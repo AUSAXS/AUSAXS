@@ -4,6 +4,7 @@
 #include <api/pyausaxs/api_data.h>
 #include <api/ObjectStorage.h>
 #include <dataset/SimpleDataset.h>
+#include <utility/Exceptions.h>
 
 #include <string>
 
@@ -32,7 +33,7 @@ int data_get_data(
     int* status
 ) {return execute_with_catch([&]() {
     auto dataset = api::ObjectStorage::get_object<SimpleDataset>(object_id);
-    if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(object_id) + "\""; return -1;}
+    if (!dataset) {throw except::invalid_argument("Invalid dataset id: \"" + std::to_string(object_id) + "\"");}
     _data_get_data_obj data(dataset->size());
     for (unsigned int i = 0; i < dataset->size(); ++i) {
         data.q[i] = dataset->x(i);

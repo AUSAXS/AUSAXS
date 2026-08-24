@@ -14,6 +14,7 @@
 #include <hist/detail/SimpleExvModel.h>
 #include <fitter/SmartFitter.h>
 #include <settings/All.h>
+#include <utility/Exceptions.h>
 
 #include <string>
 
@@ -28,7 +29,7 @@ int molecule_from_file(const char* filename, int* status) {return execute_with_c
 
 int molecule_from_pdb_id(int pdb_id, int* status) {return execute_with_catch([&]() {
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
-    if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(pdb_id) + "\""; return -1;}
+    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
     if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
     auto data = pdb->reduced_representation();
     auto molecule = data.waters.empty() 
@@ -72,7 +73,7 @@ int molecule_get_data(
     int* na, int* nw, int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     auto atoms = molecule->get_atoms();
     auto waters = molecule->get_waters();
     _molecule_get_data_obj data(atoms.size(), waters.size());
@@ -113,7 +114,7 @@ void molecule_hydrate(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->generate_new_hydration();
 }, status);}
 
@@ -129,7 +130,7 @@ int molecule_distance_histogram(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->reset_histogram_manager();
     auto hist = molecule->get_histogram();
     _molecule_distance_histogram_obj data(settings::axes::bin_count);
@@ -175,7 +176,7 @@ int molecule_debye(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->reset_histogram_manager();
     auto hist = molecule->get_histogram();
     auto debye_I = hist->debye_transform();
@@ -198,12 +199,12 @@ void molecule_debye_userq(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->reset_histogram_manager();
     std::vector<double> q_vals(q, q + n_points);
     auto hist = molecule->get_histogram();
     auto debye_I = hist->debye_transform(q_vals);
-    if (static_cast<int>(debye_I.size()) != n_points) {*status = 3; return;}
+    if (static_cast<int>(debye_I.size()) != n_points) {throw except::size_error("Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i);
     }
@@ -217,7 +218,7 @@ int molecule_debye_raw(
     hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
 
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
     auto debye_I = hist->debye_transform();
     _molecule_debye_obj data(debye_I.size());
@@ -243,11 +244,14 @@ void molecule_debye_raw_userq(
     hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
 
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     std::vector<double> q_vals(q, q + n_points);
     auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
     auto debye_I = hist->debye_transform(q_vals);
-    if (static_cast<int>(debye_I.size()) != n_points) {*status = 3; return;}
+    if (static_cast<int>(debye_I.size()) != n_points) {
+        hist::detail::SimpleExvModel::enable();
+        throw except::size_error("Raw Debye transform returned an unexpected number of points.");
+    }
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i)*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by debye transform
     }
@@ -260,7 +264,7 @@ int molecule_debye_exact(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     auto qv = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
     auto Iq = hist::exact_debye_transform(*molecule, qv);
     _molecule_debye_obj data(Iq.size());
@@ -282,10 +286,10 @@ void molecule_debye_exact_userq(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     std::vector<double> q_vals(q, q + n_points);
     auto Iq = hist::exact_debye_transform(*molecule, q_vals);
-    if (static_cast<int>(Iq.size()) != n_points) {*status = 3; return;}
+    if (static_cast<int>(Iq.size()) != n_points) {throw except::size_error("Exact Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
         I[i] = Iq[i]*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by exact_debye
     }
@@ -296,10 +300,10 @@ int molecule_debye_fit(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return -1;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->reset_histogram_manager();
     auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
-    if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}
+    if (!dataset) {throw except::invalid_argument("Invalid dataset id: \"" + std::to_string(data_id) + "\"");}
     auto fitter = fitter::SmartFitter(*dataset, molecule->get_histogram());
     int fit_result_id = api::ObjectStorage::register_object(fitter.fit());
     return fit_result_id;
@@ -310,7 +314,7 @@ void molecule_clear_hydration(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->clear_hydration();
 }, status);}
 
@@ -320,6 +324,6 @@ void molecule_Rg(
     int* status
 ) {return execute_with_catch([&]() {
     auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {ErrorMessage::last_error = "Invalid molecule id: \"" + std::to_string(molecule_id) + "\""; return;}
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     *Rg = molecule->get_Rg();
 }, status);}

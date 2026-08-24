@@ -4,6 +4,7 @@
 #include <api/pyausaxs/api_fit.h>
 #include <api/ObjectStorage.h>
 #include <fitter/SmartFitter.h>
+#include <utility/Exceptions.h>
 
 #include <string>
 
@@ -26,7 +27,7 @@ int fit_get_fit_info(
     int* status
 ) {return execute_with_catch([&]() {
     auto fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
-    if (!fit_result) {ErrorMessage::last_error = "Invalid fit result id: \"" + std::to_string(fit_id) + "\""; return -1;}
+    if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
 
     _fit_get_fit_info_obj data(fit_result->parameters.size());
     for (unsigned int i = 0; i < fit_result->parameters.size(); ++i) {
@@ -65,7 +66,7 @@ int fit_get_fit_curves(
     int* status
 ) {return execute_with_catch([&]() {
     auto fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
-    if (!fit_result) {ErrorMessage::last_error = "Invalid fit result id: \"" + std::to_string(fit_id) + "\""; return -1;}
+    if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
     _fit_get_fit_curves_obj data(fit_result->curves.size_rows());
     for (unsigned int i = 0; i < data.size(); ++i) {
         data.q[i]       = fit_result->curves.col(0)[i];

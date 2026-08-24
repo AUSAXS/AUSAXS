@@ -70,7 +70,7 @@ int rigidbody_get_preview_structure(
     int* status
 ) {return execute_with_catch([&]() {
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
+    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
 
     auto& sequencer = get_cached_sequencer(*script_obj);
     auto molecule = sequencer._get_molecule();
@@ -219,7 +219,7 @@ void rigidbody_validate(
     int* status
 ) {return execute_with_catch([&]() {
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return;}
+    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
     rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
 }, status);}
 
@@ -234,7 +234,7 @@ int rigidbody_run(
     int* status
 ) {return execute_with_catch([&]() {
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
+    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
     auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
     sequencer->execute();
 
@@ -325,7 +325,7 @@ void rigidbody_get_body_names(
     int* status
 ) {execute_with_catch([&]() {
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return;}
+    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
 
     auto& sequencer = get_cached_sequencer(*script_obj);
     // the setup elements (merge/delete/convert_to_symmetry) are applied during parsing, so the registry
@@ -356,7 +356,7 @@ int rigidbody_get_symmetry_layout(
     int* status
 ) {return execute_with_catch([&]() {
     auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {ErrorMessage::last_error = "Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\""; return -1;}
+    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
 
     auto& sequencer = get_cached_sequencer(*script_obj);
     auto molecule = sequencer._get_molecule();
