@@ -111,7 +111,7 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("XVGReader::parse_data: Could not open file \"" + path.str() + "\"");}
+    if (!input.is_open()) {throw ausaxs::except::io_error("XVGReader::parse_data: Could not open file \"" + path.str() + "\"");}
 
     std::string line;
     std::vector<std::string> header;
@@ -184,7 +184,7 @@ std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(con
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("XVGReader::construct_multifile: Could not open file \"" + path.str() + "\"");}
+    if (!input.is_open()) {throw ausaxs::except::io_error("XVGReader::construct_multifile: Could not open file \"" + path.str() + "\"");}
 
     std::string line;
     std::vector<std::string> header;

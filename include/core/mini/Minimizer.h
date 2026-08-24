@@ -76,7 +76,7 @@ namespace ausaxs::mini {
             double tol = 1e-4;
         protected:
             std::vector<Parameter> parameters;
-            std::function<double(std::vector<double>)> function = [] (std::vector<double>) -> double {throw std::runtime_error("Minimizer::function: Function was not initialized.");};
+            std::function<double(std::vector<double>)> function = [] (std::vector<double>) -> double {throw ausaxs::except::runtime_error("Minimizer::function: Function was not initialized.");};
             mini::Landscape evaluations;
             unsigned int fevals = 0;
             unsigned int max_evals = 100;

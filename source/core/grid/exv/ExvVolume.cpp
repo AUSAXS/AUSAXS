@@ -80,6 +80,6 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
         }
 
         default:
-            throw std::runtime_error("Molecule::get_volume_exv: Unknown excluded volume method. Did you forget to add it to the switch statement?");
+            throw ausaxs::except::runtime_error("Molecule::get_volume_exv: Unknown excluded volume method. Did you forget to add it to the switch statement?");
     }
 }

@@ -7,12 +7,12 @@
 
 #include <utility/Curl.h>
 #include <utility/Console.h>
+#include <utility/Exceptions.h>
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
 
 #include <curl/curl.h>
 
-#include <stdexcept>
 #include <cstdlib>
 #include <memory>
 #include <cstdio>
@@ -27,7 +27,7 @@ bool curl::download(const std::string& url, const io::File& path) {
 
     static bool curl_inited = [](){
         CURLcode cres = curl_global_init(CURL_GLOBAL_DEFAULT);
-        if (cres != CURLE_OK) {throw std::runtime_error(std::string("curl::download: curl_global_init failed: ") + curl_easy_strerror(cres));}
+        if (cres != CURLE_OK) {throw except::runtime_error(std::string("curl::download: curl_global_init failed: ") + curl_easy_strerror(cres));}
         std::atexit([](){ curl_global_cleanup(); });
         return true;
     }();
@@ -40,14 +40,14 @@ bool curl::download(const std::string& url, const io::File& path) {
     }
     std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> curl_ptr(raw_curl, &curl_easy_cleanup);
     FILE* raw_fp = fopen(path.path().c_str(), "wb");
-    if (!raw_fp) {throw std::runtime_error("curl::download: Failed to open destination file: \"" + path.path() + "\"");}
+    if (!raw_fp) {throw ausaxs::except::runtime_error("curl::download: Failed to open destination file: \"" + path.path() + "\"");}
     std::unique_ptr<FILE, int(*)(FILE*)> fp(raw_fp, &fclose);
 
     CURLcode res = curl_easy_setopt(raw_curl, CURLOPT_URL, url.c_str());
-    if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set URL: \"" + url + "\".");}
+    if (res != CURLE_OK) {throw ausaxs::except::runtime_error("curl::download: Failed to set URL: \"" + url + "\".");}
 
     res = curl_easy_setopt(raw_curl, CURLOPT_WRITEDATA, fp.get());
-    if (res != CURLE_OK) {throw std::runtime_error("curl::download: Failed to set write data: \"" + path.path() + "\".");}
+    if (res != CURLE_OK) {throw ausaxs::except::runtime_error("curl::download: Failed to set write data: \"" + path.path() + "\".");}
 
     res = curl_easy_perform(raw_curl);
     if (res == CURLE_OK) {

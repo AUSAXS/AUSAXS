@@ -103,7 +103,7 @@ GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
             break;
 
         default:
-            throw std::runtime_error("RawGridExv: Unknown expansion strategy. Did you forget to add a case?");
+            throw ausaxs::except::runtime_error("RawGridExv: Unknown expansion strategy. Did you forget to add a case?");
     }
 
     int stride = std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width));

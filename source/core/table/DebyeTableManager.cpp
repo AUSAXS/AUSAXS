@@ -3,8 +3,8 @@
 
 #include <table/DebyeTableManager.h>
 #include <table/ArrayDebyeTable.h>
+#include <utility/Exceptions.h>
 
-#include <stdexcept>
 #include <numeric>
 #include <cassert>
 
@@ -29,7 +29,7 @@ observer_ptr<const table::DebyeTable> DebyeTableManager::get_sinc_table() const 
     if (use_custom_table) {
         if (recalculate) {
             if (q.defaulted && d.defaulted) {
-                throw std::runtime_error("DebyeTableManager::get_sinc_table(): both q-axis and d-axis are defaulted, but custom table requested.");
+                throw except::runtime_error("DebyeTableManager::get_sinc_table(): both q-axis and d-axis are defaulted, but custom table requested.");
             } else if (q.defaulted) {
                 custom_sinc_table = std::make_unique<table::VectorDebyeTable>(d.axis, constants::axes::q_vals);
             } else if (d.defaulted) {

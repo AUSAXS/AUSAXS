@@ -41,10 +41,10 @@ PlotDataset& PlotDataset::plot(const Dataset& data, const PlotOptions& options) 
 
 void PlotDataset::plot_residuals(const Dataset& data, const plots::PlotOptions& options) {
     if (!ss.str().empty()) {
-        throw std::runtime_error("PlotDataset::plot_residuals: Cannot plot residuals after plotting other datasets or lines. Please create a new PlotDataset for plotting residuals.");
+        throw ausaxs::except::runtime_error("PlotDataset::plot_residuals: Cannot plot residuals after plotting other datasets or lines. Please create a new PlotDataset for plotting residuals.");
     }
     if (data.size_cols() != 4) {
-        throw std::runtime_error("PlotDataset::plot_residuals: Input dataset must have exactly 4 columns (q | I | Ierr | model).");
+        throw ausaxs::except::runtime_error("PlotDataset::plot_residuals: Input dataset must have exactly 4 columns (q | I | Ierr | model).");
     }
     ss << "PlotResiduals\n" 
         << data.to_string() 

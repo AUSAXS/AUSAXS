@@ -10,7 +10,7 @@
 #include <math/MathTypeTraits.h>
 
 #include <initializer_list>
-#include <stdexcept>
+#include <math/Exceptions.h>
 #include <array>
 
 namespace ausaxs {
@@ -169,7 +169,7 @@ namespace ausaxs {
 	Vector3<Q> operator*(const Matrix<T>& M, const Vector3<Q>& v) {
 		#if (SAFE_MATH)
 			if (M.M != v.size()) [[unlikely]] {
-				throw std::invalid_argument("Vector3::operator*: Invalid matrix dimensions (got: " + std::to_string(M.M) + ", expected: " + std::to_string(v.size()) + "]).");
+				throw ausaxs::except::invalid_argument("Vector3::operator*: Invalid matrix dimensions (got: " + std::to_string(M.M) + ", expected: " + std::to_string(v.size()) + "]).");
 			}
 		#endif
 
@@ -184,7 +184,7 @@ namespace ausaxs {
 	bool operator==(const Vector3<T>& v, const Vector<Q>& w) {
 		#if (SAFE_MATH)
 			if (v.size() != w.size()) [[unlikely]] {
-				throw std::invalid_argument("Vector3::operator*: Invalid vector dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(w.size()) + "]).");
+				throw ausaxs::except::invalid_argument("Vector3::operator*: Invalid vector dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(w.size()) + "]).");
 			}
 		#endif
 

@@ -17,7 +17,7 @@
 #include <cctype>
 #include <numbers>
 #include <optional>
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
     switch (t) {
@@ -121,12 +121,12 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
         case type::dp11: return std::make_unique<PlanarDihedralSymmetry<11>>();
         case type::dp12: return std::make_unique<PlanarDihedralSymmetry<12>>();
         default:
-            throw std::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
+            throw except::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
     }
 }
 
 ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
-    if (name.empty()) {throw std::runtime_error("symmetry::get: Symmetry name cannot be empty.");}
+    if (name.empty()) {throw except::runtime_error("symmetry::get: Symmetry name cannot be empty.");}
     if (name == "c2") {return type::c2;}
     if (name == "c3") {return type::c3;}
     if (name == "c4") {return type::c4;}
@@ -164,7 +164,7 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "dp10") {return type::dp10;}
     if (name == "dp11") {return type::dp11;}
     if (name == "dp12") {return type::dp12;}
-    throw std::runtime_error("symmetry::get: Unknown symmetry name \"" + std::string(name) + "\".");
+    throw except::runtime_error("symmetry::get: Unknown symmetry name \"" + std::string(name) + "\".");
 }
 
 std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::string_view name) {

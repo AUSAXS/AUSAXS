@@ -18,7 +18,7 @@ SettingSection::SettingSection(std::string_view name, std::initializer_list<std:
     for (auto& setting : settings) {
         for (auto& name : setting->names) {
             if (stored_settings.contains(name)) {
-                throw std::runtime_error("Settings::add: Duplicate setting name: \"" + name + "\".");
+                throw ausaxs::except::runtime_error("Settings::add: Duplicate setting name: \"" + name + "\".");
             }
             stored_settings[name] = std::move(setting);
         }

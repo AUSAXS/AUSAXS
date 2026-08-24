@@ -7,7 +7,7 @@
 #include <settings/FormFactorSettings.h>
 
 #include <string>
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 namespace ausaxs::form_factor {
     // The form factor type of an atom. This is intended to be used as an index for best performance.
@@ -57,7 +57,7 @@ namespace ausaxs::form_factor {
             case form_factor_t::EXCLUDED_VOLUME: return "EXV";
             case form_factor_t::COUNT: return "CNT";
             case form_factor_t::UNKNOWN: return "UNK";
-            default: throw std::runtime_error("form_factor::to_string: Unknown form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+            default: throw ausaxs::except::runtime_error("form_factor::to_string: Unknown form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
         }
     }
 
@@ -79,7 +79,7 @@ namespace ausaxs::form_factor {
         if (str == "EXV") return form_factor_t::EXCLUDED_VOLUME;
         if (str == "CNT") return form_factor_t::COUNT;
         if (str == "UNK") return form_factor_t::UNKNOWN;
-        throw std::runtime_error("form_factor::from_string: Unknown form factor string \"" + str + "\"");
+        throw ausaxs::except::runtime_error("form_factor::from_string: Unknown form factor string \"" + str + "\"");
     }
 
     /**
@@ -165,7 +165,7 @@ namespace ausaxs::constants::mass {
             case form_factor::form_factor_t::OTHER: return 39.948;
             case form_factor::form_factor_t::EXCLUDED_VOLUME: return 0;
             case form_factor::form_factor_t::COUNT: return 0;
-            default: throw std::runtime_error("constants::mass::get_mass: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+            default: throw ausaxs::except::runtime_error("constants::mass::get_mass: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
         }
     }
 }
@@ -188,7 +188,7 @@ namespace ausaxs::constants::radius {
             case form_factor::form_factor_t::SH: return get_vdw_radius(atom_t::S);
             case form_factor::form_factor_t::OTHER: return get_vdw_radius(atom_t::Ar);
             case form_factor::form_factor_t::UNKNOWN: return 0;
-            default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+            default: throw ausaxs::except::runtime_error("constants::radius::get_vdw_radius: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
         }
     }
 }
@@ -214,7 +214,7 @@ namespace ausaxs::constants::charge::nuclear {
             case form_factor::form_factor_t::SH: return 17;
             case form_factor::form_factor_t::OTHER: return 18;
             case ausaxs::form_factor::form_factor_t::EXCLUDED_VOLUME: return 0;
-            default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+            default: throw ausaxs::except::runtime_error("constants::charge::nuclear::get_charge: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
         }
     }
 }

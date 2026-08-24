@@ -162,7 +162,7 @@ namespace {
     // number of times the loop body itself is run. Nested loops multiply the counter by their own iteration
     // count as they are entered, so a step deep in the tree is counted once for every time it is reached.
     unsigned int count_optimization_steps(observer_ptr<LoopElement> loop, unsigned int multiplier, int depth = 0) {
-        if (100 < ++depth) {throw std::runtime_error("LoopElement::count_optimization_steps: element tree too deep");}
+        if (100 < ++depth) {throw ausaxs::except::runtime_error("LoopElement::count_optimization_steps: element tree too deep");}
 
         unsigned int steps = 0;
         for (auto& e : loop->_get_elements()) {
@@ -217,7 +217,7 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
                 // the Sequencer is the top of the chain and has no owner to continue to, so the search ends here
                 if (dynamic_cast<Sequencer*>(current) != nullptr) {break;}
                 current = current->_get_owner();
-                if (100 < ++escape_counter) {throw std::runtime_error("LoopElement::_parse::create: owner chain too long while searching for last parameter element.");}
+                if (100 < ++escape_counter) {throw ausaxs::except::runtime_error("LoopElement::_parse::create: owner chain too long while searching for last parameter element.");}
             }
             return nullptr;
         };

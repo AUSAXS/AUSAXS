@@ -2,9 +2,9 @@
 // Author: Kristian Lytje
 
 #include <shell/Command.h>
+#include <utility/Exceptions.h>
 
 #include <cstdio>
-#include <stdexcept>
 #include <string>
 #include <array>
 
@@ -59,7 +59,7 @@ CommandResult Command::execute() const {
     std::string result;
     FILE* pipe = popen(cmd.data(), "r");
     if (pipe == nullptr) {
-        throw std::runtime_error("popen() failed!");
+        throw except::runtime_error("popen() failed!");
     }
     while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
         result += buffer.data();

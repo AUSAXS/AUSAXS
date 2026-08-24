@@ -31,7 +31,7 @@ namespace ausaxs::container {
             const typename std::array<T, M>::const_iterator begin(int i) const {
                 #if SAFE_MATH
                     if (i >= static_cast<int>(N)) {
-                        throw except::out_of_bounds(
+                        throw except::out_of_range(
                             "ArrayContainer2D::begin: Index out of bounds "
                             "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
                         );
@@ -46,7 +46,7 @@ namespace ausaxs::container {
             const typename std::array<T, M>::const_iterator end(unsigned int i) const {
                 #if SAFE_MATH
                     if (i >= static_cast<int>(N)) {
-                        throw except::out_of_bounds(
+                        throw except::out_of_range(
                             "ArrayContainer2D::end: Index out of bounds "
                             "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
                         );
@@ -61,7 +61,7 @@ namespace ausaxs::container {
             typename std::array<T, M>::iterator begin(unsigned int i) {
                 #if SAFE_MATH
                     if (i >= static_cast<int>(N)) {
-                        throw except::out_of_bounds(
+                        throw except::out_of_range(
                             "ArrayContainer2D::begin: Index out of bounds "
                             "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
                         );
@@ -76,7 +76,7 @@ namespace ausaxs::container {
             typename std::array<T, M>::iterator end(unsigned int i) {
                 #if SAFE_MATH
                     if (i >= static_cast<int>(N)) {
-                        throw except::out_of_bounds(
+                        throw except::out_of_range(
                             "ArrayContainer2D::end: Index out of bounds "
                             "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
                         );

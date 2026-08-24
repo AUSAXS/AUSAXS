@@ -139,7 +139,7 @@ void SetupElement::_set_saxs_path(const io::ExistingFile& saxs) {
 }
 
 SetupElement& SetupElement::fixed_constraint() {
-    throw std::runtime_error("SetupElement::fixed_constraint: Not implemented.");
+    throw ausaxs::except::runtime_error("SetupElement::fixed_constraint: Not implemented.");
 }
 
 SetupElement& SetupElement::generate_backbone_constraints() {

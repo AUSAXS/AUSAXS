@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utility/Exceptions.h>
+
 #include <iostream>
 #include <unordered_map>
 
@@ -51,7 +53,7 @@ namespace ausaxs::console {
                 {"white", color::white}
             };
             auto it = colormap.find(color_name);
-            if (it == colormap.end()) {throw std::invalid_argument("ConsoleColor::parse: Unknown color name: \"" + std::string(color_name) + "\"");}
+            if (it == colormap.end()) {throw ausaxs::except::invalid_argument("ConsoleColor::parse: Unknown color name: \"" + std::string(color_name) + "\"");}
             return it->second;
         }
     }

@@ -3,7 +3,7 @@
 
 #include <math/PeakFinder.h>
 #include <algorithm>
-#include <stdexcept>
+#include <math/Exceptions.h>
 
 using namespace ausaxs;
 
@@ -14,7 +14,7 @@ using namespace ausaxs;
 
 namespace peak_finder {struct Limit {double min = 0, max = 0;};}
 std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const std::vector<double>& y, unsigned int min_spacing, double min_prominence) {
-	if (x.size() != y.size()) {throw std::invalid_argument("math::find_minima: x and y must have the same size.");}
+    if (x.size() != y.size()) {throw except::invalid_argument("math::find_minima: x and y must have the same size.");}
     if (x.size() < 3) {return {};}
 	unsigned int size = x.size();
 

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <math/Exceptions.h>
 #include <math/slices/Slice.h>
 #include <math/Vector.h>
 #include <math/MathConcepts.h>
@@ -170,7 +171,7 @@ namespace ausaxs {
     Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
         #if (SAFE_MATH)
             if (A.M != v.size()) [[unlikely]] {
-                throw std::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(A.M) + "]).");
+                throw ausaxs::except::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(A.M) + "]).");
             }
         #endif
 
@@ -189,7 +190,7 @@ namespace ausaxs {
     Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
         #if (SAFE_MATH)
             if (A.M != B.N) [[unlikely]] {
-                throw std::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
+                throw ausaxs::except::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
             }
         #endif
 

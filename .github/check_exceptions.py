@@ -26,9 +26,12 @@ for directory in directories:
                         if "#include <stdexcept>" in line:
                             flag_fail = True
                             print(f"{file_path}:{line_no}: includes <stdexcept>; throw ausaxs::except::* instead of a raw std:: exception")
+                        if "throw std::" in line:
+                            flag_fail = True
+                            print(f"{file_path}:{line_no}: throws a standard exception; throw ausaxs::except::* instead")
 
 if flag_fail:
-    print("Some files include <stdexcept> instead of using the ausaxs::except:: hierarchy.")
+    print("Some files bypass the ausaxs::except:: hierarchy.")
     exit(1)
 
 print("No files bypass the ausaxs::except:: hierarchy.")

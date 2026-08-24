@@ -9,6 +9,6 @@ hydrate::ImplicitHydration::ImplicitHydration() = default;
 
 hydrate::ImplicitHydration::~ImplicitHydration() = default;
 
-void hydrate::ImplicitHydration::clear() {throw std::runtime_error("ImplicitHydration::clear: Not implemented.");}
+void hydrate::ImplicitHydration::clear() {throw ausaxs::except::runtime_error("ImplicitHydration::clear: Not implemented.");}
 
-std::unique_ptr<hydrate::Hydration> hydrate::ImplicitHydration::clone() const {throw std::runtime_error("ImplicitHydration::clone: Not implemented.");}
+std::unique_ptr<hydrate::Hydration> hydrate::ImplicitHydration::clone() const {throw ausaxs::except::runtime_error("ImplicitHydration::clone: Not implemented.");}

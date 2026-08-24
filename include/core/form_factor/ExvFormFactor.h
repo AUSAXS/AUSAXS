@@ -67,7 +67,7 @@ namespace ausaxs::form_factor {
                     case form_factor_t::S:     return S;
                     case form_factor_t::SH:    return SH;
                     case form_factor_t::OTHER: return Ar;
-                    default: throw std::runtime_error("form_factor::detail::ExvFormFactorSet::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                    default: throw ausaxs::except::runtime_error("form_factor::detail::ExvFormFactorSet::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
             }
 

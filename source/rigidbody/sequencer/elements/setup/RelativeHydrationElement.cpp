@@ -45,7 +45,7 @@ namespace {
 RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::string& name, double ratio) : owner(owner) {
     const auto& body_names = owner->setup()._body_name_registry();
     if (!body_names.contains(name)) {
-        throw std::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + name + "\" is not known.");
+        throw ausaxs::except::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + name + "\" is not known.");
     }
     static_cast<void>(body_names.resolve_body(name)); // throws on a symmetry replica, which has no hydration of its own to scale
     custom_levels[permanent_name(body_names, name)] = ratio;
@@ -62,7 +62,7 @@ std::vector<double> RelativeHydrationElement::_get_ratios() const {
 
     for (const auto& [name, ratio] : custom_levels) {
         if (!body_names.contains(name)) {
-            throw std::runtime_error(
+            throw ausaxs::except::runtime_error(
                 "RelativeHydrationElement::_get_ratios: A relative hydration level was declared for body \"" + name + "\", but that body no longer exists."
             );
         }

@@ -25,7 +25,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("DATReader::construct: Could not open file \"" + path.str() + "\"");}
+    if (!input.is_open()) {throw ausaxs::except::io_error("DATReader::construct: Could not open file \"" + path.str() + "\"");}
 
     std::string line;
     std::vector<std::string> header;

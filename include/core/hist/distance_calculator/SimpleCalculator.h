@@ -325,7 +325,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
         case 29: return enqueue_calculate_self<29>(data, merge_id);
         case 30: return enqueue_calculate_self<30>(data, merge_id);
         case 60: return enqueue_calculate_self<60>(data, merge_id);
-        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_self: unsupported scaling factor (" + std::to_string(scaling) + ")");
+        default: throw ausaxs::except::runtime_error("SimpleCalculator::enqueue_calculate_self: unsupported scaling factor (" + std::to_string(scaling) + ")");
     }
 }
 
@@ -372,6 +372,6 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
         case 29: return enqueue_calculate_cross<29>(data_1, data_2, merge_id);
         case 30: return enqueue_calculate_cross<30>(data_1, data_2, merge_id);
         case 60: return enqueue_calculate_cross<60>(data_1, data_2, merge_id);
-        default: throw std::runtime_error("SimpleCalculator::enqueue_calculate_cross: unsupported scaling factor (" + std::to_string(scaling) + ")");
+        default: throw ausaxs::except::runtime_error("SimpleCalculator::enqueue_calculate_cross: unsupported scaling factor (" + std::to_string(scaling) + ")");
     }
 }

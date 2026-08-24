@@ -13,7 +13,7 @@
 #include <fitter/SmartFitter.h>
 #include <settings/All.h>
 
-#include <stdexcept>
+#include <utility/Exceptions.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -108,7 +108,7 @@ int pdb_decompose_symmetry(
     double* rmsd_out, int* status
 ) {return execute_with_catch([&]() {
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
-    if (!pdb) {throw std::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
+    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
 
     // group atoms into chains, preserving first-seen chain order (chain 0 = reference)
     std::unordered_map<char, int> chain_index;
@@ -118,16 +118,16 @@ int pdb_decompose_symmetry(
         if (inserted) {chains.emplace_back();}
         chains[it->second].push_back(atom.coords);
     }
-    if (chains.size() < 2) {throw std::invalid_argument("pdb_decompose_symmetry: at least two chains are required.");}
+    if (chains.size() < 2) {throw except::invalid_argument("pdb_decompose_symmetry: at least two chains are required.");}
     for (const auto& c : chains) {
         if (c.size() != chains[0].size()) {
-            throw std::invalid_argument("pdb_decompose_symmetry: chains have differing atom counts; they must be copies of the same molecule.");
+            throw except::invalid_argument("pdb_decompose_symmetry: chains have differing atom counts; they must be copies of the same molecule.");
         }
     }
 
     auto base = symmetry::create(std::string(symmetry_name));
     if (chains.size() != base->repetitions() + 1) {
-        throw std::invalid_argument(
+        throw except::invalid_argument(
             "pdb_decompose_symmetry: symmetry \"" + std::string(symmetry_name) + "\" needs "
             + std::to_string(base->repetitions() + 1) + " chains, but " + std::to_string(chains.size()) + " were found."
         );

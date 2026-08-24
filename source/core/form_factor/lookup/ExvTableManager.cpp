@@ -35,7 +35,7 @@ observer_ptr<const constants::exv::detail::ExvSet> ExvTableManager::get_current_
             return custom_exv_tables.get();
         }
         default: 
-            throw std::runtime_error(
+            throw ausaxs::except::runtime_error(
                 "constants::displaced_volume::get_exv_set: Invalid displaced volume set" 
                 "(enum " + std::to_string(static_cast<int>(settings::exv::exv_set.value)) + ")"
             );

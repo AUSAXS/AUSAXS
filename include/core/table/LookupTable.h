@@ -6,7 +6,7 @@
 #include <table/Table.h>
 
 #include <unordered_map>
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 namespace ausaxs::table {
     /**
@@ -79,7 +79,7 @@ namespace ausaxs::table {
             double lookup(const T row, const Q col) const {
                 #ifdef DEBUG
                     if (!Tmap.contains(row) || !Qmap.contains(col)) {
-                        throw std::out_of_range("LookupTable::lookup: Index out of range.");
+                        throw ausaxs::except::out_of_range("LookupTable::lookup: Index out of range.");
                     }
                 #endif
                 return index(Tmap.at(row), Qmap.at(col));}
@@ -104,7 +104,7 @@ namespace ausaxs::table {
             void assign(const T row, const Q col, double val) {
                 #ifdef DEBUG
                     if (!Tmap.contains(row) || !Qmap.contains(col)) {
-                        throw std::out_of_range("LookupTable::assign: Index out of range.");
+                        throw ausaxs::except::out_of_range("LookupTable::assign: Index out of range.");
                     }
                 #endif
                 index(Tmap.at(row), Qmap.at(col)) = val;}

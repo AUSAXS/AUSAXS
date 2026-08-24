@@ -23,7 +23,7 @@ namespace {
     template<typename T>
     void merge_optional_vector(std::optional<std::vector<T>>& dst, const std::optional<std::vector<T>>& src) {
         if (dst.has_value() && src.has_value()) {dst->insert(dst->end(), src->begin(), src->end());}
-        else if (dst.has_value() != src.has_value()) {throw std::runtime_error("MergeElement: metadata mismatch. This is not supposed to happen.");}
+        else if (dst.has_value() != src.has_value()) {throw ausaxs::except::runtime_error("MergeElement: metadata mismatch. This is not supposed to happen.");}
     }
 
     void merge_metadata(data::Body& first, const data::Body& other) {

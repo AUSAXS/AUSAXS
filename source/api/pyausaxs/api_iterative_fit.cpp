@@ -60,7 +60,7 @@ void iterative_fit_evaluate(
     }
     auto& enabled_pars = iterative_fit_state->enabled_pars;
     if (n_pars != static_cast<int>(enabled_pars.get_enabled_pars_count())) {
-        throw std::runtime_error(
+        throw ausaxs::except::runtime_error(
             "Number of provided parameters (" + std::to_string(n_pars) + ") " 
             "does not match number of enabled fit parameters (" + std::to_string(enabled_pars.get_enabled_pars_count()) + ")"
         );
@@ -85,7 +85,7 @@ void iterative_fit_evaluate_userq(
     if (!iterative_fit_state) {ErrorMessage::last_error = "Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\""; return;}
     auto& enabled_pars = iterative_fit_state->enabled_pars;
     if (n_pars != static_cast<int>(enabled_pars.get_enabled_pars_count())) {
-        throw std::runtime_error(
+        throw ausaxs::except::runtime_error(
             "Number of provided parameters (" + std::to_string(n_pars) + ") " 
             "does not match number of enabled fit parameters (" + std::to_string(enabled_pars.get_enabled_pars_count()) + ")"
         );

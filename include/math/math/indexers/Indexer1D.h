@@ -4,7 +4,7 @@
 #pragma once
 
 #if (SAFE_MATH) 
-    #include <stdexcept>
+    #include <math/Exceptions.h>
     #include <string>
 #endif
 
@@ -13,7 +13,7 @@ namespace ausaxs::utility::indexer {
      * @brief CRTP mixin providing element access for a one-dimensional container.
      *
      * The deriving class must expose a contiguous @c data member and a @c size() method. When the
-     * SAFE_MATH macro is set, every access is bounds-checked and throws std::out_of_range on failure;
+     * SAFE_MATH macro is set, every access is bounds-checked and throws ausaxs::except::out_of_range on failure;
      * otherwise the checks compile away to a plain indexed access.
      */
     template<typename Derived>
@@ -23,7 +23,7 @@ namespace ausaxs::utility::indexer {
                 #if (SAFE_MATH)
                     int N = static_cast<int>(derived().size());
                     if (i < 0 || N <= i) {
-                        throw std::out_of_range(
+                        throw ausaxs::except::out_of_range(
                             "Indexer1D: Index out of bounds "
                             "(" + std::to_string(i) + " should be less than " + std::to_string(N) + ")"
                         );
@@ -36,7 +36,7 @@ namespace ausaxs::utility::indexer {
                 #if (SAFE_MATH)
                     int N = static_cast<int>(derived().size());
                     if (i < 0 || N <= i) {
-                        throw std::out_of_range(
+                        throw ausaxs::except::out_of_range(
                             "Indexer1D: Index out of bounds "
                             "(" + std::to_string(i) + " should be less than " + std::to_string(N) + ")"
                         );

@@ -3,20 +3,14 @@
 
 #pragma once
 
+#include <math/Exceptions.h>
+
 #include <string>
-#include <exception>
 
 /**
  * @brief This namespace contains all custom exceptions for this project. 
  */
 namespace ausaxs::except {
-    struct base : public std::exception {
-        base(const char* msg);
-        base(const std::string msg);
-        const char* what() const noexcept;
-        const std::string msg;
-    };
-
     // Missing argument. Used whenever a required option is missing.
     struct missing_option : public base {using base::base;};
 
@@ -24,12 +18,6 @@ namespace ausaxs::except {
     struct bad_order : public base {using base::base;};
 
     struct invalid_extension : public base {using base::base;};
-
-    // Invalid argument. Used whenever a check on the arguments is made. 
-    struct invalid_argument : public base {using base::base;};
-
-    // An atom is placed out of bounds. Used in the Grid class. 
-    struct out_of_bounds : public base {using base::base;};
 
     // Invalid operation. Used in the Grid class. 
     struct invalid_operation : public base {using base::base;};
@@ -45,9 +33,6 @@ namespace ausaxs::except {
 
     // Size error. Used when something is wrong with sizes. 
     struct size_error : public base {using base::base;};
-
-    // IO error. Used when something is wrong with reading/writing files. 
-    struct io_error : public base {using base::base;};
 
     // Null-pointer error. Used when a pointer has not been initialized yet. 
     struct nullptr_error : public base {using base::base;};

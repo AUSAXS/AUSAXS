@@ -6,7 +6,7 @@
 #include <data/symmetry/PairSchedule.h>
 
 #include <cassert>
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
@@ -75,10 +75,10 @@ std::vector<SymmetricDuplicatePair> CompositeSymmetry::internal_pair_schedule() 
 // a composite has two parameter sets; std::span cannot describe both at once. Callers must reach the sub-symmetries via for_each_leaf instead, 
 // so calling these directly is a programming error.
 std::span<double> CompositeSymmetry::span_translation() {
-    throw std::runtime_error("CompositeSymmetry::span_translation: a composite has no single contiguous parameter span; use symmetry::for_each_leaf to reach its sub-symmetries.");
+    throw except::runtime_error("CompositeSymmetry::span_translation: a composite has no single contiguous parameter span; use symmetry::for_each_leaf to reach its sub-symmetries.");
 }
 std::span<double> CompositeSymmetry::span_rotation() {
-    throw std::runtime_error("CompositeSymmetry::span_rotation: a composite has no single contiguous parameter span; use symmetry::for_each_leaf to reach its sub-symmetries.");
+    throw except::runtime_error("CompositeSymmetry::span_rotation: a composite has no single contiguous parameter span; use symmetry::for_each_leaf to reach its sub-symmetries.");
 }
 
 void ausaxs::symmetry::for_each_leaf(ISymmetry& sym, const std::function<void(ISymmetry&)>& fn) {

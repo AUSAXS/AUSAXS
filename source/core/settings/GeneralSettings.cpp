@@ -79,7 +79,7 @@ template<> void settings::io::detail::SettingRef<settings::general::QUnit>::set(
     else if (str == "nm") {settingref = settings::general::QUnit::USER_NM;}
     else if (str == "default_to_a") {settingref = settings::general::QUnit::A;}
     else if (str == "default_to_nm") {settingref = settings::general::QUnit::NM;}
-    else {throw std::invalid_argument("settings: Unknown value for q-unit: \"" + val[0] + "\"");}
+    else {throw ausaxs::except::invalid_argument("settings: Unknown value for q-unit: \"" + val[0] + "\"");}
 }
 
 template<> std::string settings::io::detail::SettingRef<settings::general::QUnit>::type() const {return "string";}

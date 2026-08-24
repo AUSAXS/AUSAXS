@@ -5,7 +5,7 @@
 
 #include <form_factor/FormFactor.h>
 
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 namespace ausaxs::form_factor {
     struct NormalizedFormFactor : public FormFactor {
@@ -68,11 +68,11 @@ namespace ausaxs::form_factor {
                 case form_factor_t::OTHER:              return other;
                 case form_factor_t::EXCLUDED_VOLUME:    return excluded_volume;
                 case form_factor_t::UNKNOWN:
-                throw std::runtime_error(
+                throw ausaxs::except::runtime_error(
                     "form_factor::lookup::atomic::normalized::get: Attempted to get the form factor of an UNKNOWN atom.\n"
                     "This typically occurs when performing species-dependent operations on data without form factor information."
                 );
-                default: throw std::runtime_error("form_factor::lookup::atomic::normalized::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                default: throw ausaxs::except::runtime_error("form_factor::lookup::atomic::normalized::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }
         }
     }
