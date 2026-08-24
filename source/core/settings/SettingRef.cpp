@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <settings/SettingRef.h>
+#include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 #include <utility/Limit.h>
 
@@ -19,6 +20,7 @@ template<> std::string ausaxs::settings::io::detail::SettingRef<double>::type() 
 template<> std::string ausaxs::settings::io::detail::SettingRef<int>::type() const  {return "int";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<unsigned int>::type() const  {return "uint";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::type() const  {return "bool";}
+template<> std::string ausaxs::settings::io::detail::SettingRef<settings::hist::WeightedBins>::type() const {return "weighted-bins";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::type() const {return "vector-string";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<double>>::type() const {return "vector-double";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<int>>::type() const {return "vector-int";}
@@ -32,6 +34,14 @@ template<> std::string settings::io::detail::SettingRef<double>::get() const {re
 template<> std::string settings::io::detail::SettingRef<int>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<unsigned int>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<bool>::get() const {return std::to_string(settingref);}
+template<> std::string settings::io::detail::SettingRef<settings::hist::WeightedBins>::get() const {
+    switch (settingref.value) {
+        case settings::hist::WeightedBins::Value::True: return "true";
+        case settings::hist::WeightedBins::Value::False: return "false";
+        case settings::hist::WeightedBins::Value::Auto: return "auto";
+    }
+    throw except::parse_error("Settings::get_weighted_bins: invalid value.");
+}
 template<> std::string settings::io::detail::SettingRef<Limit>::get() const {return std::to_string(settingref.min) + " " + std::to_string(settingref.max);}
 template<> std::string settings::io::detail::SettingRef<std::vector<std::string>>::get() const {
     std::string str;
@@ -56,11 +66,12 @@ template<> void settings::io::detail::SettingRef<std::string>::set(const std::ve
 }
 template<> void settings::io::detail::SettingRef<bool>::set(const std::vector<std::string>& str) {
     if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option \"" + get() + "\" received too many settings.");}
-
-    if (str[0] == "true" || str[0] == "TRUE" || str[0] == "1") {settingref = true; return;}
-    else if (str[0] == "false" || str[0] == "FALSE" || str[0] == "0") {settingref = false; return;}
-    throw except::parse_error("Settings::parse_bool: Option \"" + get() + "\" expected boolean string, but got \"" + str[0] + "\".");
+    settingref = utility::parse_bool(str[0]);
 }
+template<> void settings::io::detail::SettingRef<settings::hist::WeightedBins>::set(const std::vector<std::string>& str) {
+    settingref = hist::WeightedBins(str[0]);
+}
+
 template<> void settings::io::detail::SettingRef<double>::set(const std::vector<std::string>& str) {
     if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option \"" + get() + "\" received too many settings.");}
     settingref = std::stod(str[0]);

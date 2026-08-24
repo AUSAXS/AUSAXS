@@ -4,6 +4,7 @@
 #pragma once
 
 #include <settings/SettingsHelper.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Type.h>
 #include <utility/UtilityFwd.h>
 
@@ -116,6 +117,7 @@ template<> std::string ausaxs::settings::io::detail::SettingRef<double>::type() 
 template<> std::string ausaxs::settings::io::detail::SettingRef<int>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<unsigned int>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::type() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::settings::hist::WeightedBins>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<double>>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<int>>::type() const;
@@ -128,6 +130,7 @@ template<> std::string ausaxs::settings::io::detail::SettingRef<double>::get() c
 template<> std::string ausaxs::settings::io::detail::SettingRef<int>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<unsigned int>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::get() const;
+template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::settings::hist::WeightedBins>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<double>>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<int>>::get() const;
@@ -135,6 +138,7 @@ template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::
 
 template<> void ausaxs::settings::io::detail::SettingRef<std::string>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<bool>::set(const std::vector<std::string>& str);
+template<> void ausaxs::settings::io::detail::SettingRef<ausaxs::settings::hist::WeightedBins>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<double>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<int>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<unsigned int>::set(const std::vector<std::string>& str);

@@ -16,7 +16,6 @@
 using namespace ausaxs;
 
 unsigned int settings::axes::skip = 0;
-bool settings::hist::weighted_bins = true;
 
 // qmin
 settings::detail::Setting<double> settings::axes::qmin = {
@@ -163,4 +162,10 @@ bool settings::hist::supports_partial_calculation(settings::hist::HistogramManag
         default:
             return false;
     }
+}
+
+settings::hist::WeightedBins settings::hist::weighted_bins(settings::hist::WeightedBins::Value::Auto);
+settings::hist::WeightedBins::WeightedBins(std::string_view str) {
+    if (auto lc = utility::to_lowercase(str); lc == "auto") {value = WeightedBins::Value::Auto;}
+    else {value = utility::parse_bool(str) ? WeightedBins::Value::True : WeightedBins::Value::False;}
 }

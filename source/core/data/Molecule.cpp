@@ -5,6 +5,8 @@
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/distribution/Distribution1D.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/state/BoundSignaller.h>
@@ -19,6 +21,7 @@
 #include <hydrate/generation/GridBasedHydration.h>
 #include <io/Writer.h>
 #include <utility/Console.h>
+#include <utility/Logging.h>
 #include <settings/All.h>
 
 #include <numeric>
@@ -54,7 +57,6 @@ Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
     initialize();
 }
 
-#include <utility/Logging.h>
 Molecule& Molecule::operator=(Molecule&& other) {
     logging::log("Molecule move-assign");
     if (this == &other) {return *this;}
@@ -64,9 +66,40 @@ Molecule& Molecule::operator=(Molecule&& other) {
     return *this;
 }
 
-void Molecule::reset_histogram_manager() {
-    set_histogram_manager(hist::factory::construct_histogram_manager(this));
+void Molecule::lazy_histogram_manager_init() const {
+    if (phm != nullptr) {return;}
+    if (!settings::hist::weighted_bins.is_auto()) {
+        phm = hist::factory::construct_histogram_manager(this);
+        bind_body_signallers();
+        return;
+    }
+
+    // First build the cheap representation. Ordering must be measured from the atom-atom component: hydration can hide sharp peaks in the total p(r).
+    const auto choice = settings::hist::get_histogram_manager();
+    settings::hist::weighted_bins = false;
+    phm = hist::factory::construct_histogram_manager(this, false);
+    bind_body_signallers();
+    const auto histogram = phm->calculate_all();
+    const bool ordered = hist::DistanceHistogram::is_highly_ordered(histogram->get_aa_counts().get_content());
+
+    const bool grid = choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid
+        || choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface
+        || choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;
+    settings::hist::weighted_bins = ordered || grid;
+
+    if (settings::hist::weighted_bins.is_true()) {
+        phm = hist::factory::construct_histogram_manager(this, true);
+        bind_body_signallers();
+        console::print_text(grid
+            ? "Molecule: weighted bins enabled (required by grid excluded volume)."
+            : "Molecule: weighted bins enabled automatically (ordered atom-atom structure)."
+        );
+    } else {
+        console::print_text("Molecule: weighted bins disabled automatically (disordered atom-atom structure).");
+    }
 }
+
+void Molecule::reset_histogram_manager() {phm = nullptr;}
 
 void Molecule::initialize() {
     logging::log("initializing Molecule");
@@ -234,13 +267,11 @@ void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrateg
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
-    assert(phm != nullptr && "Molecule::get_histogram: phm is nullptr.");
-    return phm->calculate_all();
+    return get_histogram_manager()->calculate_all();
 }
 
 std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
-    assert(phm != nullptr && "Molecule::get_total_histogram: phm is nullptr.");
-    return phm->calculate();
+    return get_histogram_manager()->calculate();
 }
 
 observer_ptr<grid::Grid> Molecule::get_grid() const {
@@ -294,7 +325,7 @@ void Molecule::signal_modified_hydration_layer() const {
     }
 }
 
-void Molecule::bind_body_signallers() {
+void Molecule::bind_body_signallers() const {
     if (phm == nullptr) {return;}
 
     auto cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
@@ -314,12 +345,17 @@ void Molecule::bind_body_signallers() {
     }
 }
 
-observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {
-    assert(phm != nullptr && "Molecule::get_histogram_manager: phm is nullptr.");
+observer_ptr<IHistogramManager> Molecule::get_histogram_manager() {
+    lazy_histogram_manager_init();
     return phm.get();
 }
 
-void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager) {
+observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {
+    lazy_histogram_manager_init();
+    return phm.get();
+}
+
+void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager)  {
     phm = std::move(manager);
     bind_body_signallers();
 }

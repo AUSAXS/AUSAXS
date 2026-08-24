@@ -6,6 +6,8 @@
 #include <settings/ExportMacro.h>
 #include <settings/SettingsHelper.h>
 
+#include <string_view>
+
 namespace ausaxs::settings {
     /// @brief Settings controlling the q-axis of the scattering curve and the distance-histogram binning.
     struct EXPORT axes {
@@ -18,7 +20,7 @@ namespace ausaxs::settings {
     };
 
     /// @brief Settings selecting how distance histograms are computed.
-    struct hist {
+    struct EXPORT hist {
         /// @brief The available histogram-manager implementations; see get_histogram_manager().
         enum class HistogramManagerChoice {
             HistogramManager,                    // A simple manager that recalculates the entire histogram every time.
@@ -40,7 +42,25 @@ namespace ausaxs::settings {
             CrysolManager,                       // A manager that mimics the Crysol method to evaluate the scattering intensity.
             Count,
         };
-        static bool weighted_bins;          // Whether to use weighted p(r) bins or not.
+        struct WeightedBins {
+            enum class Value {
+                True,
+                False,
+                Auto
+            };
+
+            WeightedBins() = default;
+            WeightedBins(bool value) : value(value ? Value::True : Value::False) {}
+            WeightedBins(std::string_view str);
+            WeightedBins(WeightedBins::Value value) : value(value) {}
+
+            bool is_auto() const {return value == Value::Auto;}
+            bool is_true() const {return value == Value::True;}
+            bool is_false() const {return value == Value::False;}
+
+            Value value = Value::Auto;
+        };
+        static WeightedBins weighted_bins;
 
         /**
          * @brief Get the histogram manager corresponding to the current combination of excluded volume model and number of threads.

@@ -83,8 +83,8 @@ namespace ausaxs::utility {
 
     /**
      * @brief Parse a string as a boolean value.
-     *        The following strings are considered true: "true", "yes", "1".
-     *        The following strings are considered false: "false", "no", "0".
+     *        The following strings are considered true: "true", "yes", "1", and their upper-case variants.
+     *        The following strings are considered false: "false", "no", "0", and their upper-case variants.
      *        Other input will throw an exception.
      */
     bool parse_bool(std::string_view s);

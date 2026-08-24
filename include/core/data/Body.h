@@ -178,7 +178,7 @@ namespace ausaxs::data {
 			/**
 			 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
 			 */
-			void register_probe(std::shared_ptr<signaller::Signaller> signal);
+			void register_probe(std::shared_ptr<signaller::Signaller> signal) const;
 
 			/**
 			 * @brief Get the signaller object for this body. 
@@ -195,7 +195,7 @@ namespace ausaxs::data {
 			inline static unsigned int uid_counter = 0;
 
 			// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
-			std::shared_ptr<signaller::Signaller> signal;
+			mutable std::shared_ptr<signaller::Signaller> signal;
 
 			void initialize();
 
