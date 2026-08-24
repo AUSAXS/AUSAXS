@@ -9,10 +9,12 @@
 
 using namespace ausaxs;
 
+namespace {
 struct _get_setting_obj {
     std::string value;
     std::string type;
 };
+}
 int get_setting(
     const char* name,
     const char** value,

@@ -12,6 +12,7 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
+namespace {
 struct _iterative_fit_state_obj {
     explicit _iterative_fit_state_obj(Molecule* protein) : protein(protein) {}
     Molecule* protein;
@@ -19,6 +20,7 @@ struct _iterative_fit_state_obj {
     std::unique_ptr<hist::ICompositeDistanceHistogram> hist; 
     fitter::SmartFitter::EnabledFitParameters enabled_pars = fitter::SmartFitter::EnabledFitParameters::initialize_from_settings();
 };
+}
 int iterative_fit_init(
     int molecule_id, 
     int* status

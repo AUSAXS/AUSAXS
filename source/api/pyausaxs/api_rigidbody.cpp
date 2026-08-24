@@ -26,11 +26,13 @@
 
 using namespace ausaxs;
 
+namespace {
 struct _rigidbody_script_obj {
     std::string script;
     // lazily parsed and cached on the first read-only preview query (see get_cached_sequencer below)
     std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
 };
+}
 int rigidbody_load_script(
     const char* script,
     int* status
@@ -52,11 +54,13 @@ namespace {
     }
 }
 
+namespace {
 struct _rigidbody_preview_structure_obj {
     std::vector<double> x, y, z;
     std::vector<int> body_index, copy_index, residue_seq, is_ca;
     std::vector<int> constraint_data; // flat triplets: [index1, index2, type, ...]
 };
+}
 int rigidbody_get_preview_structure(
     int rigidbody_id,
     double** x, double** y, double** z,
@@ -141,9 +145,11 @@ int rigidbody_get_preview_structure(
     return data_id;
 }, status);}
 
+namespace {
 struct _rigidbody_live_structure_obj {
     std::vector<double> x, y, z;
 };
+}
 int rigidbody_get_live_structure(
     double** x, double** y, double** z,
     int* n_atoms, int* version,
@@ -169,9 +175,11 @@ int rigidbody_get_live_structure(
     return data_id;
 }, status);}
 
+namespace {
 struct _rigidbody_live_poller_obj {
     std::vector<double> x, y, z;
 };
+}
 int rigidbody_create_live_poller(
     int* status
 ) {return execute_with_catch([&]() {
@@ -215,9 +223,11 @@ void rigidbody_validate(
     rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
 }, status);}
 
-struct _data_get_data_obj {
+namespace {
+struct _rigidbody_get_data_obj {
     std::vector<double> q, I, I_err, I_inter;
 };
+}
 int rigidbody_run(
     int rigidbody_id,
     double** q, double** I, double** I_err, double** I_interp, int* n_points,
@@ -228,14 +238,15 @@ int rigidbody_run(
     auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
     sequencer->execute();
 
-    auto data = sequencer->_get_controller()->get_fitter()->fit()->curves.select_columns({0, 1, 2, 3});
-    _data_get_data_obj data_obj;
+    auto fit_result = sequencer->_get_controller()->get_fitter()->fit();
+    auto data = fit_result->curves.select_columns({0, 1, 2, 3});
+    _rigidbody_get_data_obj data_obj;
     data_obj.q = data.col(0);
     data_obj.I = data.col(1);
     data_obj.I_err = data.col(2);
     data_obj.I_inter = data.col(3);
     int data_id = api::ObjectStorage::register_object(std::move(data_obj));
-    auto ref = api::ObjectStorage::get_object<_data_get_data_obj>(data_id);
+    auto ref = api::ObjectStorage::get_object<_rigidbody_get_data_obj>(data_id);
     *q = ref->q.data();
     *I = ref->I.data();
     *I_err = ref->I_err.data();
@@ -330,11 +341,13 @@ void rigidbody_get_body_names(
     *size = static_cast<int>(body_names_cstr.size());
 }, status);}
 
+namespace {
 struct _rigidbody_symmetry_layout_obj {
     std::vector<int> body, copy, symmetry, replica;
     std::vector<std::string> type, name;
     std::vector<const char*> type_ptr, name_ptr;
 };
+}
 int rigidbody_get_symmetry_layout(
     int rigidbody_id,
     int** body, int** copy, int** symmetry, int** replica,

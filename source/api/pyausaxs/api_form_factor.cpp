@@ -38,10 +38,12 @@ namespace {
     } 
 }
 
+namespace {
 struct _ff_valid_form_factor_types_obj {
     std::vector<std::string> types;
     std::vector<const char*> types_ptr;
 };
+}
 int ff_valid_form_factor_types(
     const char*** types,
     int* n_types,

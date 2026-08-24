@@ -9,6 +9,7 @@
 
 using namespace ausaxs;
 
+namespace {
 struct _fit_get_fit_info_obj {
     explicit _fit_get_fit_info_obj(unsigned int n_pars) : 
         pars(n_pars), pars_ptr(n_pars), pvals(n_pars), perr_n(n_pars), perr_p(n_pars)
@@ -17,6 +18,7 @@ struct _fit_get_fit_info_obj {
     std::vector<const char*> pars_ptr;
     std::vector<double> pvals, perr_n, perr_p;
 };
+}
 int fit_get_fit_info(
     int fit_id,
     const char*** pars, double** pvals, double** perr_min, double** perr_max, int* n_pars,
@@ -48,6 +50,7 @@ int fit_get_fit_info(
     return data_id;
 }, status);}
 
+namespace {
 struct _fit_get_fit_curves_obj {
     explicit _fit_get_fit_curves_obj(unsigned int size) :
         q(size), I_data(size), I_err(size), I_model(size)
@@ -55,6 +58,7 @@ struct _fit_get_fit_curves_obj {
     std::size_t size() const {return q.size();}
     std::vector<double> q, I_data, I_err, I_model;
 };
+}
 int fit_get_fit_curves(
     int fit_id,
     double** q, double** I_data, double** I_err, double** I_model, int* n_points,

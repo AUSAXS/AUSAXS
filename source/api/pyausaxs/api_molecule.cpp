@@ -53,6 +53,7 @@ int molecule_from_arrays(double* xx, double* yy, double* zz, double* ww, int n_a
     return molecule_id;
 }, status);}
 
+namespace {
 struct _molecule_get_data_obj {
     _molecule_get_data_obj(unsigned int n_atoms, unsigned int n_waters) :
         ax(n_atoms), ay(n_atoms), az(n_atoms), aw(n_atoms),
@@ -63,6 +64,7 @@ struct _molecule_get_data_obj {
     std::vector<std::string> aform_factors;
     std::vector<const char*> aform_factors_ptr;
 };
+}
 int molecule_get_data(
     int molecule_id,
     double** ax_out, double** ay_out, double** az_out, double** aw_out, const char*** aform_factors_out,
@@ -115,10 +117,12 @@ void molecule_hydrate(
     molecule->generate_new_hydration();
 }, status);}
 
+namespace {
 struct _molecule_distance_histogram_obj {
     explicit _molecule_distance_histogram_obj(unsigned int n_bins) : aa(n_bins), aw(n_bins), ww(n_bins), axis(n_bins) {}
     std::vector<double> aa, aw, ww, axis;
 };
+}
 int molecule_distance_histogram(
     int molecule_id,
     double** aa, double** aw, double** ww, double** axis, int* n_bins, 
@@ -157,12 +161,14 @@ int molecule_distance_histogram(
     return data_id;
 }, status);}
 
+namespace {
 struct _molecule_debye_obj {
     explicit _molecule_debye_obj(unsigned int size) :
         q(size), I(size)
     {}
     std::vector<double> q, I;
 };
+}
 int molecule_debye(
     int molecule_id, 
     double** q, double** I, int* n_points,

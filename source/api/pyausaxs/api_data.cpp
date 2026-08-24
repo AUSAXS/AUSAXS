@@ -18,12 +18,14 @@ int data_read(
     return data_id;
 }, status);}
 
+namespace {
 struct _data_get_data_obj {
     explicit _data_get_data_obj(unsigned int size) :
         q(size), I(size), Ierr(size)
     {}
     std::vector<double> q, I, Ierr;
 };
+}
 int data_get_data(
     int object_id,
     double** q, double** I, double** Ierr, int* n_points,

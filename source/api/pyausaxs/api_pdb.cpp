@@ -30,6 +30,7 @@ int pdb_read(
     return pdb_id;
 }, status);}
 
+namespace {
 struct _pdb_get_data_obj {
     explicit _pdb_get_data_obj(unsigned int size) :
         serial(size), resSeq(size), name(size), altLoc(size), resName(size), iCode(size), element(size), charge(size), 
@@ -42,6 +43,7 @@ struct _pdb_get_data_obj {
     std::vector<char> chainID;
     std::vector<double> x, y, z, occupancy, tempFactor;
 };
+}
 int pdb_get_data(
     int object_id,
     int** serial_out, const char*** name_out, const char*** altLoc_out, const char*** resName_out, const char** chainID_out, int** resSeq_out, 
@@ -97,10 +99,12 @@ int pdb_get_data(
     return data_id;
 }, status);}
 
+namespace {
 struct _pdb_decompose_obj {
     std::vector<double> x, y, z;
     std::vector<int> copy_index;
 };
+}
 
 int pdb_decompose_symmetry(
     int pdb_id, const char* symmetry_name,
