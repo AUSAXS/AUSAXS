@@ -19,7 +19,6 @@ namespace ausaxs::grid::volume {
      *
      * The atom sits anywhere within its own bin, so it is up to half a bin away from that bin's center along each
      * axis. A bin at offset k is therefore within reach only if k*width - width/2 <= r, i.e. k <= r/width + 1/2.
-     * Rounding up r/width instead would add an outer shell of bins that is always further away than r.
      */
     inline int max_bin_radius(double r) {
         return static_cast<int>(std::floor(r/settings::grid::cell_width + 0.5));
