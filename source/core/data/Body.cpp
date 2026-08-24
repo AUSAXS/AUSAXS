@@ -228,7 +228,7 @@ std::shared_ptr<signaller::Signaller> Body::get_signaller() const {
     return signal;
 }
 
-void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
+void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) const {
     this->signal = std::move(signal);
     assert(( // verify the signaller contains the correct symmetry information
         dynamic_cast<signaller::UnboundSignaller*>(this->signal.get()) // UnboundSignaller does not store symmetry sizes

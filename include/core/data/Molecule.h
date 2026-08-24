@@ -243,11 +243,12 @@ namespace ausaxs::data {
 			/**
 			 * @brief Bind the signaller objects in each body to the histogram manager. 
 			 */
-			void bind_body_signallers();
+			void bind_body_signallers() const;
 
 			/**
 			 * @brief Get the histogram manager of this molecule.
 			 */
+			[[nodiscard]] observer_ptr<hist::IHistogramManager> get_histogram_manager();
 			[[nodiscard]] observer_ptr<hist::IHistogramManager> get_histogram_manager() const;
 
 			/**
@@ -285,9 +286,10 @@ namespace ausaxs::data {
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 			mutable std::unique_ptr<grid::Grid> grid; 						// The grid representation of this body
-			std::unique_ptr<hist::IHistogramManager> phm;					// The histogram manager of this molecule
+			mutable std::unique_ptr<hist::IHistogramManager> phm;					// The histogram manager of this molecule
 			std::unique_ptr<hydrate::HydrationStrategy> hydration_strategy; // The strategy used to generate the hydration layer
 
 			void initialize();
+			void lazy_histogram_manager_init() const;
 	};
 }

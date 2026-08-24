@@ -66,9 +66,11 @@ Molecule& Molecule::operator=(Molecule&& other) {
     return *this;
 }
 
-void Molecule::reset_histogram_manager() {
+void Molecule::lazy_histogram_manager_init() const {
+    if (phm != nullptr) {return;}
     if (!settings::hist::weighted_bins.is_auto()) {
-        set_histogram_manager(hist::factory::construct_histogram_manager(this));
+        phm = hist::factory::construct_histogram_manager(this);
+        bind_body_signallers();
         return;
     }
 
@@ -76,11 +78,10 @@ void Molecule::reset_histogram_manager() {
     // atom-atom component: hydration can hide sharp peaks in the total p(r).
     const auto choice = settings::hist::get_histogram_manager();
     settings::hist::weighted_bins = false;
-    set_histogram_manager(hist::factory::construct_histogram_manager(this, false));
-    const auto histogram = get_histogram();
-    const bool ordered = hist::DistanceHistogram::is_highly_ordered(
-        histogram->get_aa_counts().get_content()
-    );
+    phm = hist::factory::construct_histogram_manager(this, false);
+    bind_body_signallers();
+    const auto histogram = phm->calculate_all();
+    const bool ordered = hist::DistanceHistogram::is_highly_ordered(histogram->get_aa_counts().get_content());
 
     const bool grid = choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid
         || choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface
@@ -88,14 +89,18 @@ void Molecule::reset_histogram_manager() {
     settings::hist::weighted_bins = ordered || grid;
 
     if (settings::hist::weighted_bins.is_true()) {
-        set_histogram_manager(hist::factory::construct_histogram_manager(this, true));
+        phm = hist::factory::construct_histogram_manager(this, true);
+        bind_body_signallers();
         console::print_text(grid
             ? "Molecule: weighted bins enabled (required by grid excluded volume)."
-            : "Molecule: weighted bins enabled automatically (ordered atom-atom structure).");
+            : "Molecule: weighted bins enabled automatically (ordered atom-atom structure)."
+        );
     } else {
         console::print_text("Molecule: weighted bins disabled automatically (disordered atom-atom structure).");
     }
 }
+
+void Molecule::reset_histogram_manager() {phm = nullptr;}
 
 void Molecule::initialize() {
     logging::log("initializing Molecule");
@@ -263,13 +268,11 @@ void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrateg
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
-    assert(phm != nullptr && "Molecule::get_histogram: phm is nullptr.");
-    return phm->calculate_all();
+    return get_histogram_manager()->calculate_all();
 }
 
 std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
-    assert(phm != nullptr && "Molecule::get_total_histogram: phm is nullptr.");
-    return phm->calculate();
+    return get_histogram_manager()->calculate();
 }
 
 observer_ptr<grid::Grid> Molecule::get_grid() const {
@@ -323,7 +326,7 @@ void Molecule::signal_modified_hydration_layer() const {
     }
 }
 
-void Molecule::bind_body_signallers() {
+void Molecule::bind_body_signallers() const {
     if (phm == nullptr) {return;}
 
     auto cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
@@ -343,12 +346,17 @@ void Molecule::bind_body_signallers() {
     }
 }
 
-observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {
-    assert(phm != nullptr && "Molecule::get_histogram_manager: phm is nullptr.");
+observer_ptr<IHistogramManager> Molecule::get_histogram_manager() {
+    lazy_histogram_manager_init();
     return phm.get();
 }
 
-void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager) {
+observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {
+    lazy_histogram_manager_init();
+    return phm.get();
+}
+
+void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager)  {
     phm = std::move(manager);
     bind_body_signallers();
 }
