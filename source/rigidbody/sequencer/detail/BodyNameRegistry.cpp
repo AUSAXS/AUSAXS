@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs::rigidbody::sequencer::detail;
 
@@ -28,7 +28,7 @@ void BodyNameRegistry::add_body(int body, Entry inherited) {
 void BodyNameRegistry::add_replica(int body, int isymmetry, int replica) {
     auto base = entries.find(to_index(body));
     if (base == entries.end()) {
-        throw std::runtime_error("BodyNameRegistry::add_replica: body " + std::to_string(body) + " is not registered.");
+        throw except::runtime_error("BodyNameRegistry::add_replica: body " + std::to_string(body) + " is not registered.");
     }
 
     std::string tag_prefix = base->second.default_name + "s" + std::to_string(isymmetry + 1);
@@ -42,10 +42,10 @@ void BodyNameRegistry::add_entity(int index, Entry entry) {
     // both names are validated before either is written, so a rejected registration leaves the registry untouched
     if (entry.alias == entry.default_name) {entry.alias.clear();} // not a distinct name, so not an alias
     if (lookup.contains(entry.default_name)) {
-        throw std::runtime_error("BodyNameRegistry::add_entity: the name \"" + entry.default_name + "\" is already in use.");
+        throw except::runtime_error("BodyNameRegistry::add_entity: the name \"" + entry.default_name + "\" is already in use.");
     }
     if (!entry.alias.empty() && lookup.contains(entry.alias)) {
-        throw std::runtime_error("BodyNameRegistry::add_entity: the name \"" + entry.alias + "\" is already in use.");
+        throw except::runtime_error("BodyNameRegistry::add_entity: the name \"" + entry.alias + "\" is already in use.");
     }
 
     lookup.emplace(entry.default_name, index);
@@ -56,12 +56,12 @@ void BodyNameRegistry::add_entity(int index, Entry entry) {
 void BodyNameRegistry::rename(std::string_view old_name, std::string_view new_name) {
     auto it = lookup.find(std::string{old_name});
     if (it == lookup.end()) {
-        throw std::runtime_error("BodyNameRegistry::rename: unknown body name \"" + std::string{old_name} + "\".");
+        throw except::runtime_error("BodyNameRegistry::rename: unknown body name \"" + std::string{old_name} + "\".");
     }
     int index = it->second;
 
     if (auto taken = lookup.find(std::string{new_name}); taken != lookup.end() && taken->second != index) {
-        throw std::runtime_error("BodyNameRegistry::rename: the name \"" + std::string{new_name} + "\" is already in use.");
+        throw except::runtime_error("BodyNameRegistry::rename: the name \"" + std::string{new_name} + "\" is already in use.");
     }
 
     Entry& entry = entries.at(index);
@@ -122,7 +122,7 @@ BodySymmetrySelector BodyNameRegistry::resolve(std::string_view name) const {
         for (const auto& [index, entry] : entries) { // listed in index order, so the suggestion reads in the same order as the bodies
             known += entry.display_name() + " ";
         }
-        throw std::runtime_error("BodyNameRegistry::resolve: Unknown body name \"" + std::string{name} + "\". Known body names are: " + known);
+        throw except::runtime_error("BodyNameRegistry::resolve: Unknown body name \"" + std::string{name} + "\". Known body names are: " + known);
     }
     return from_index(it->second);
 }
@@ -130,7 +130,7 @@ BodySymmetrySelector BodyNameRegistry::resolve(std::string_view name) const {
 int BodyNameRegistry::resolve_body(std::string_view name) const {
     auto sel = resolve(name);
     if (sel.symmetry != -1 || sel.replica != 0) {
-        throw std::runtime_error("BodyNameRegistry::resolve_body: \"" + std::string{name} + "\" refers to a symmetry replica, not a base body.");
+        throw except::runtime_error("BodyNameRegistry::resolve_body: \"" + std::string{name} + "\" refers to a symmetry replica, not a base body.");
     }
     return sel.body;
 }

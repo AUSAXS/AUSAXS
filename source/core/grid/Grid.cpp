@@ -308,7 +308,7 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
         // sanity check
         #if DEBUG
             if (!is_valid_bin(loc)) [[unlikely]] {
-                throw except::out_of_bounds(
+                throw except::out_of_range(
                     "Grid::add: Atom is located outside the grid!\nBin location: "
                      + loc.to_string() + "\n: " + axes.to_string() + "\n"
                     "Real location: " + atom.coordinates().to_string()
@@ -341,7 +341,7 @@ auto add_single_water = [] (grid::Grid& g, const data::Water& w) {
     // sanity check
     #if DEBUG
         if (!g.is_valid_bin(loc)) [[unlikely]] {
-            throw except::out_of_bounds(
+            throw except::out_of_range(
                 "Grid::add: Water is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + g.get_axes().to_string() + "\n"
                 "Real location: " + w.coordinates().to_string()
             );

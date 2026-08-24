@@ -6,7 +6,7 @@
 #include <math/MathConcepts.h>
 
 #include <algorithm>
-#include <stdexcept>
+#include <math/Exceptions.h>
 #include <vector>
 #include <cmath>
 #include <cassert>
@@ -81,7 +81,7 @@ namespace ausaxs::stats {
     template<numeric T>
     T mode(const std::vector<T>& v) {
         if (v.empty()) {
-            throw std::invalid_argument("stats::mode: Vector is empty.");
+            throw ausaxs::except::invalid_argument("stats::mode: Vector is empty.");
         }
         std::vector<T> v_copy = v;
         std::sort(v_copy.begin(), v_copy.end());

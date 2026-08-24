@@ -102,7 +102,7 @@ void NamedWrapper<T>::save(const io::File& path, const std::string& header) cons
 
     std::ofstream output(path);
     if (!output.is_open()) {
-        throw std::ios_base::failure("NamedWrapper::save: Could not open file \"" + path.str() + "\"");
+        throw ausaxs::except::io_error("NamedWrapper::save: Could not open file \"" + path.str() + "\"");
     }
 
     // write header

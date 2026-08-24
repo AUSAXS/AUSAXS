@@ -42,7 +42,7 @@ namespace ausaxs::container {
             const typename std::vector<T>::const_iterator begin(int i, int j) const {
                 #if SAFE_MATH
                     if (i >= static_cast<int>(N) || j >= static_cast<int>(M)) {
-                        throw except::out_of_bounds(
+                        throw except::out_of_range(
                             "ArrayContainer3D::begin: Index out of bounds "
                             "(" + std::to_string(N) + ", " + std::to_string(M) + ") <= "
                             "(" + std::to_string(i) + ", " + std::to_string(j) + ")"
@@ -58,7 +58,7 @@ namespace ausaxs::container {
             const typename std::vector<T>::const_iterator end(int i, int j) const {
                 #if SAFE_MATH
                     if (i >= static_cast<int>(N) || j >= static_cast<int>(M)) {
-                        throw except::out_of_bounds(
+                        throw except::out_of_range(
                             "ArrayContainer3D::end: Index out of bounds "
                             "(" + std::to_string(N) + ", " + std::to_string(M) + ") <= "
                             "(" + std::to_string(i) + ", " + std::to_string(j) + ")"
@@ -74,7 +74,7 @@ namespace ausaxs::container {
             typename std::vector<T>::iterator begin(int i, int j) {
                 #if SAFE_MATH
                     if (i >= static_cast<int>(N) || j >= static_cast<int>(M)) {
-                        throw except::out_of_bounds(
+                        throw except::out_of_range(
                             "ArrayContainer3D::begin: Index out of bounds "
                             "(" + std::to_string(N) + ", " + std::to_string(M) + ") <= "
                             "(" + std::to_string(i) + ", " + std::to_string(j) + ")"
@@ -90,7 +90,7 @@ namespace ausaxs::container {
             typename std::vector<T>::iterator end(int i, int j) {
                 #if SAFE_MATH
                     if (i >= static_cast<int>(N) || j >= static_cast<int>(M)) {
-                        throw except::out_of_bounds(
+                        throw except::out_of_range(
                             "ArrayContainer3D::end: Index out of bounds "
                             "(" + std::to_string(N) + ", " + std::to_string(M) + ") <= "
                             "(" + std::to_string(i) + ", " + std::to_string(j) + ")"

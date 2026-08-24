@@ -31,7 +31,7 @@ namespace ausaxs::mini {
                 case algorithm::LIMITED_SCAN:
                     return std::make_shared<LimitedScan>();
                 default:
-                    throw std::invalid_argument("all::create_minimizer: Unknown minimizer type.");
+                    throw ausaxs::except::invalid_argument("all::create_minimizer: Unknown minimizer type.");
             }
         }
 

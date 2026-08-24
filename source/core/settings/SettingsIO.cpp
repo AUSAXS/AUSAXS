@@ -13,7 +13,7 @@ using namespace ausaxs;
 
 void settings::detail::parse_option(const std::string& name, const std::vector<std::string>& value) {
     if (!settings::io::detail::ISettingRef::get_stored_settings().contains(name)) {
-        throw std::runtime_error("Unknown option: \"" + name + "\".");
+        throw ausaxs::except::runtime_error("Unknown option: \"" + name + "\".");
     }
     settings::io::detail::ISettingRef::get_stored_settings()[name]->set(value);
 }
@@ -34,7 +34,7 @@ void settings::read(const ::io::ExistingFile& path) {
     console::print_info("Reading settings from file: \"" + path.str() + "\"");
 
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("settings::read: Could not open setup file.");}
+    if (!input.is_open()) {throw ausaxs::except::io_error("settings::read: Could not open setup file.");}
 
     std::string line; 
     while (getline(input, line)) {
@@ -55,7 +55,7 @@ void settings::read(const ::io::ExistingFile& path) {
 void settings::write(const ::io::File& path) {
     path.directory().create();
     std::ofstream output(path);
-    if (!output.is_open()) {throw std::ios_base::failure("settings::write: Could not open setup file.");}
+    if (!output.is_open()) {throw ausaxs::except::io_error("settings::write: Could not open setup file.");}
 
     output << "### Auto-generated settings file ###\n";
     for (const auto& section : settings::io::SettingSection::get_sections()) {

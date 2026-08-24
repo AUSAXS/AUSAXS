@@ -15,7 +15,7 @@ void console::indent(int level) {
 
 void console::unindent(int level) {
     if (indentation.empty()) {
-        throw std::runtime_error("Cannot unindent console output below 0.");
+        throw ausaxs::except::runtime_error("Cannot unindent console output below 0.");
     }
     indentation.resize(indentation.size() - level);
 }

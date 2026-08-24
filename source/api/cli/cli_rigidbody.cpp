@@ -178,6 +178,6 @@ void add_calibration(rigidbody::Rigidbody& rigidbody, const io::ExistingFile& mf
         std::cout << "Calibration results:" << std::endl;
         fitter::FitReporter::report(res.get());
     }
-    throw std::runtime_error("rigidbody: Calibration is currently disabled.");
+    throw ausaxs::except::runtime_error("rigidbody: Calibration is currently disabled.");
     // rigidbody.apply_calibration(std::move(res));
 }

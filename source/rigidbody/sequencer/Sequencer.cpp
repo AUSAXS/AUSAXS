@@ -30,11 +30,11 @@ Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), se
 Sequencer::~Sequencer() = default;
 
 LoopElement& Sequencer::end() {
-    throw std::runtime_error("Sequencer::end: Too many end() calls detected.");
+    throw ausaxs::except::runtime_error("Sequencer::end: Too many end() calls detected.");
 }
 
 void Sequencer::run() {
-    throw std::logic_error("Sequencer::run: Use execute() to run the sequencer. Calling run() directly skips rigidbody and controller initialization.");
+    throw ausaxs::except::logic_error("Sequencer::run: Use execute() to run the sequencer. Calling run() directly skips rigidbody and controller initialization.");
 }
 
 observer_ptr<rigidbody::Rigidbody> Sequencer::_get_rigidbody() const {
@@ -79,7 +79,7 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     _reset_counters();     // a previous run must not leak into this one
     _recount_total_iterations(this);
     auto saxs_path = setup()._get_saxs_path();
-    if (!saxs_path.exists()) {throw std::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path.str() + "\" does not exist.");}
+    if (!saxs_path.exists()) {throw ausaxs::except::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path.str() + "\" does not exist.");}
     rigidbody->molecule.generate_new_hydration(); // some setup elements requires access to the hydration generators
 
     // run the setup elements, defining all of the necessary parameters

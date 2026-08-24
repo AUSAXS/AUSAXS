@@ -31,7 +31,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
     }
 
     if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
-        throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
+        throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
@@ -55,7 +55,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
 
     if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
-        throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
+        throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
@@ -71,11 +71,11 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     resolved_paths = {lookup_file(path).first};
     rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(resolved_paths[0]));
     if (rigidbody->molecule.size_body() <= 1) {
-        throw std::runtime_error("LoadElement::LoadElement: Could not split \"" + path + "\" by chain, as it contains only one.");
+        throw ausaxs::except::runtime_error("LoadElement::LoadElement: Could not split \"" + path + "\" by chain, as it contains only one.");
     }
 
     if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
-        throw std::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
+        throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
@@ -118,7 +118,7 @@ std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
 
     auto loc = path.find("%");
     int start = loc, end = loc;
-    while (path[++end] == '%') {if (100 < end - start) {throw std::runtime_error("LoadElement::LoadElement: The maximum number of consecutive '%' characters is 100.");}}
+    while (path[++end] == '%') {if (100 < end - start) {throw ausaxs::except::runtime_error("LoadElement::LoadElement: The maximum number of consecutive '%' characters is 100.");}}
     int counter = 0;
 
     // file numbered zero may or may not exist
@@ -151,7 +151,7 @@ std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
         }
     }
 
-    if (wildcarded_files.empty()) {throw std::runtime_error("LoadElement::LoadElement: No files found matching the wildcarded path.");}
+    if (wildcarded_files.empty()) {throw ausaxs::except::runtime_error("LoadElement::LoadElement: No files found matching the wildcarded path.");}
     return wildcarded_files;
 }
 

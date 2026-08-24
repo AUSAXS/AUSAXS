@@ -107,7 +107,7 @@ void Dataset::save(const io::File& path, const std::string& header) const {
 
     // check if file was succesfully opened
     std::ofstream output(path);
-    if (!output.is_open()) {throw std::ios_base::failure("IntensityFitter::save: Could not open file \"" + path.str() + "\"");}
+    if (!output.is_open()) {throw ausaxs::except::io_error("IntensityFitter::save: Could not open file \"" + path.str() + "\"");}
 
     // write header
     if (!header.empty()) {

@@ -33,7 +33,7 @@ namespace ausaxs::container {
             const typename std::vector<T>::const_iterator begin(int i) const {
                 #if (SAFE_MATH)
                     if (i >= static_cast<int>(N) || i < 0) {
-                        throw except::out_of_bounds("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
+                        throw except::out_of_range("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
                 return data.begin() + i*M;
@@ -45,7 +45,7 @@ namespace ausaxs::container {
             const typename std::vector<T>::const_iterator end(int i) const {
                 #if (SAFE_MATH)
                     if (i >= static_cast<int>(N) || i < 0) {
-                        throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
+                        throw except::out_of_range("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif
                 return data.begin() + i*M + M;
@@ -57,7 +57,7 @@ namespace ausaxs::container {
             typename std::vector<T>::iterator begin(int i) {
                 #if (SAFE_MATH)
                     if (i >= static_cast<int>(N) || i < 0) {
-                        throw except::out_of_bounds("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
+                        throw except::out_of_range("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif            
                 return data.begin() + i*M;
@@ -69,7 +69,7 @@ namespace ausaxs::container {
             typename std::vector<T>::iterator end(int i) {
                 #if (SAFE_MATH)
                     if (i >= static_cast<int>(N) || i < 0) {
-                        throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
+                        throw except::out_of_range("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
                 #endif            
                 return data.begin() + i*M + M;

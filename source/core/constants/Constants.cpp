@@ -6,7 +6,7 @@
 #include <utility/StringUtils.h>
 #include <io/ExistingFile.h>
 
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 
@@ -180,7 +180,7 @@ unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
         case atom_t::M:  return 0;
         case atom_t::dummy: return 1;
         case atom_t::unknown: return 1;
-        default: throw std::runtime_error("constants::charge::nuclear::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
+        default: throw except::runtime_error("constants::charge::nuclear::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 
@@ -189,7 +189,7 @@ unsigned int constants::charge::ionic::get_charge(atom_t atom) {
         case atom_t::Ca: return 2;
         case atom_t::Cl: return -1;
         case atom_t::Zn: return 2;
-        default: throw std::runtime_error("constants::charge::ionic::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
+        default: throw except::runtime_error("constants::charge::ionic::get_charge: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 
@@ -207,7 +207,7 @@ unsigned int constants::valence::get_valence(atom_t atom) {
         case atom_t::Fe: return 4;
         case atom_t::Se: return 2;
         case atom_t::M:  return 0;
-        default: throw std::runtime_error("constants::valence::get_valence: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
+        default: throw except::runtime_error("constants::valence::get_valence: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 
@@ -287,7 +287,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         // fake elements
         case atom_t::M: return 0;
         case atom_t::dummy: {return radius::detail::dummy_radius;}
-        default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
+        default: throw except::runtime_error("constants::radius::get_vdw_radius: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
     }
 }
 
@@ -368,7 +368,7 @@ std::string ausaxs::constants::symbols::to_string(atom_t atom) {
 
         case atom_t::M:  return "M";
         case atom_t::dummy: return "#";
-        default: throw std::runtime_error("constants::symbols::to_string: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
+        default: throw except::runtime_error("constants::symbols::to_string: Unknown atom type \"" + std::to_string(static_cast<int>(atom)) + "\"");
     }
 }
 
@@ -383,6 +383,6 @@ std::string ausaxs::constants::symbols::to_string(atomic_group_t group) {
         case atomic_group_t::OH: return "OH";
         case atomic_group_t::SH: return "SH";
         case atomic_group_t::unknown: return "unknown";
-        default: throw std::runtime_error("constants::symbols::to_string: Unknown atomic group \"" + std::to_string(static_cast<int>(group)) + "\"");
+        default: throw except::runtime_error("constants::symbols::to_string: Unknown atomic group \"" + std::to_string(static_cast<int>(group)) + "\"");
     }
 }

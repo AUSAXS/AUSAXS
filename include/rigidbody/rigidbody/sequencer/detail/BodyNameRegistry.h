@@ -32,13 +32,13 @@ namespace ausaxs::rigidbody::sequencer::detail {
 
             /**
              * @brief Register a body's permanent default name ("bN"), together with an optional initial custom alias.
-             * @throws std::runtime_error if the alias is already in use by another entity.
+             * @throws ausaxs::except::runtime_error if the alias is already in use by another entity.
              */
             void add_body(int body, const std::string& alias = {});
 
             /**
              * @brief Register a body under an entry inherited from a body it succeeds, rather than minting a fresh default name.
-             * @throws std::runtime_error if either inherited name is still in use.
+             * @throws ausaxs::except::runtime_error if either inherited name is still in use.
              */
             void add_body(int body, Entry inherited);
 
@@ -50,13 +50,13 @@ namespace ausaxs::rigidbody::sequencer::detail {
              * @param isymmetry The symmetry's index within the body (0-based).
              * @param replica The replica number (1-based).
              *
-             * @throws std::runtime_error if the base body is not registered, or one of the generated tags is already in use.
+             * @throws ausaxs::except::runtime_error if the base body is not registered, or one of the generated tags is already in use.
              */
             void add_replica(int body, int isymmetry, int replica);
 
             /**
              * @brief Set an entity's custom alias, identified by any of its currently known names.
-             * @throws std::runtime_error if old_name is unknown, or new_name is already in use by a different entity.
+             * @throws ausaxs::except::runtime_error if old_name is unknown, or new_name is already in use by a different entity.
              */
             void rename(std::string_view old_name, std::string_view new_name);
 
@@ -69,7 +69,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
 
             /**
              * @brief Resolve a name to the (body, symmetry, replica) selector it refers to.
-             * @throws std::runtime_error if the name is unknown.
+             * @throws ausaxs::except::runtime_error if the name is unknown.
              */
             BodySymmetrySelector resolve(std::string_view name) const;
 
@@ -80,7 +80,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
 
             /**
              * @brief The names of the entity at an encoded index (see to_index).
-             * @throws std::out_of_range if nothing is registered at that index.
+             * @throws ausaxs::except::out_of_range if nothing is registered at that index.
              */
             const Entry& entry(int index) const;
 
@@ -98,7 +98,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
             /**
              * @brief Register an entity's names at an already-encoded index.
              *
-             * @throws std::runtime_error if either name is already in use.
+             * @throws ausaxs::except::runtime_error if either name is already in use.
              */
             void add_entity(int index, Entry entry);
 

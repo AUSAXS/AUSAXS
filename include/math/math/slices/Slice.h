@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <math/Exceptions.h>
 #include <math/MathConcepts.h>
 #include <math/slices/SliceIterator.h>
 #include <math/Vector.h>
@@ -49,7 +50,7 @@ namespace ausaxs {
              */
             virtual const T& operator[](unsigned int j) const {
                 #if SAFE_MATH
-                    if (j >= size()) {throw std::out_of_range("Slice::operator[]: Index out of range.");}
+                    if (j >= size()) {throw ausaxs::except::out_of_range("Slice::operator[]: Index out of range.");}
                 #endif
                 return data[offset + j*step];
             }
@@ -59,7 +60,7 @@ namespace ausaxs {
              */
             const T& back() const {
                 #if SAFE_MATH
-                    if (size() == 0) {throw std::out_of_range("Slice::back(): Slice is empty.");}
+                    if (size() == 0) {throw ausaxs::except::out_of_range("Slice::back(): Slice is empty.");}
                 #endif
                 return (*this)[length-1];
             }
@@ -69,7 +70,7 @@ namespace ausaxs {
              */
             const T& front() const {
                 #if SAFE_MATH
-                    if (size() == 0) {throw std::out_of_range("Slice::front(): Slice is empty.");}
+                    if (size() == 0) {throw ausaxs::except::out_of_range("Slice::front(): Slice is empty.");}
                 #endif
                 return (*this)[0];
             }
@@ -173,7 +174,7 @@ namespace ausaxs {
             void validate_sizes([[maybe_unused]] unsigned int other) const {
                 #if SAFE_MATH
                     if (size() != other) {
-                        throw std::invalid_argument("Slice::validate_sizes: Slice of size \"" + std::to_string(other) + "\" does not fit in slice of size \"" + std::to_string(size()) + "\".");
+                        throw ausaxs::except::invalid_argument("Slice::validate_sizes: Slice of size \"" + std::to_string(other) + "\" does not fit in slice of size \"" + std::to_string(size()) + "\".");
                     }
                 #endif
             }
@@ -201,7 +202,7 @@ namespace ausaxs {
              */
             virtual T& operator[](unsigned int j) {
                 #if SAFE_MATH
-                    if (j >= this->size()) {throw std::out_of_range("Slice::operator[]: Index out of range.");}
+                    if (j >= this->size()) {throw ausaxs::except::out_of_range("Slice::operator[]: Index out of range.");}
                 #endif
                 return this->data[this->offset + j*this->step];
             }
@@ -246,7 +247,7 @@ namespace ausaxs {
              */
             T& back() {
                 #if SAFE_MATH
-                    if (this->size() == 0) {throw std::out_of_range("MutableSlice::back(): Slice is empty.");}
+                    if (this->size() == 0) {throw ausaxs::except::out_of_range("MutableSlice::back(): Slice is empty.");}
                 #endif
                 return (*this)[this->size()-1];
             }
@@ -257,7 +258,7 @@ namespace ausaxs {
              */
             T& front() {
                 #if SAFE_MATH
-                    if (this->size() == 0) {throw std::out_of_range("MutableSlice::front(): Slice is empty.");}
+                    if (this->size() == 0) {throw ausaxs::except::out_of_range("MutableSlice::front(): Slice is empty.");}
                 #endif
                 return (*this)[0];
             }

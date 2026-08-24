@@ -94,7 +94,7 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_new_protein(double
     }
 
     if (charge_levels.empty()) {
-        throw except::out_of_bounds("SmartProteinManager::generate_protein: charge_levels is empty.");
+        throw except::out_of_range("SmartProteinManager::generate_protein: charge_levels is empty.");
     }
 
     // sort vector so we can slice it into levels of charge density

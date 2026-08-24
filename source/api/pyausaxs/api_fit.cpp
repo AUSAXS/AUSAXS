@@ -4,11 +4,13 @@
 #include <api/pyausaxs/api_fit.h>
 #include <api/ObjectStorage.h>
 #include <fitter/SmartFitter.h>
+#include <utility/Exceptions.h>
 
 #include <string>
 
 using namespace ausaxs;
 
+namespace {
 struct _fit_get_fit_info_obj {
     explicit _fit_get_fit_info_obj(unsigned int n_pars) : 
         pars(n_pars), pars_ptr(n_pars), pvals(n_pars), perr_n(n_pars), perr_p(n_pars)
@@ -17,6 +19,7 @@ struct _fit_get_fit_info_obj {
     std::vector<const char*> pars_ptr;
     std::vector<double> pvals, perr_n, perr_p;
 };
+}
 int fit_get_fit_info(
     int fit_id,
     const char*** pars, double** pvals, double** perr_min, double** perr_max, int* n_pars,
@@ -24,7 +27,7 @@ int fit_get_fit_info(
     int* status
 ) {return execute_with_catch([&]() {
     auto fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
-    if (!fit_result) {ErrorMessage::last_error = "Invalid fit result id: \"" + std::to_string(fit_id) + "\""; return -1;}
+    if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
 
     _fit_get_fit_info_obj data(fit_result->parameters.size());
     for (unsigned int i = 0; i < fit_result->parameters.size(); ++i) {
@@ -48,6 +51,7 @@ int fit_get_fit_info(
     return data_id;
 }, status);}
 
+namespace {
 struct _fit_get_fit_curves_obj {
     explicit _fit_get_fit_curves_obj(unsigned int size) :
         q(size), I_data(size), I_err(size), I_model(size)
@@ -55,13 +59,14 @@ struct _fit_get_fit_curves_obj {
     std::size_t size() const {return q.size();}
     std::vector<double> q, I_data, I_err, I_model;
 };
+}
 int fit_get_fit_curves(
     int fit_id,
     double** q, double** I_data, double** I_err, double** I_model, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
     auto fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
-    if (!fit_result) {ErrorMessage::last_error = "Invalid fit result id: \"" + std::to_string(fit_id) + "\""; return -1;}
+    if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
     _fit_get_fit_curves_obj data(fit_result->curves.size_rows());
     for (unsigned int i = 0; i < data.size(); ++i) {
         data.q[i]       = fit_result->curves.col(0)[i];

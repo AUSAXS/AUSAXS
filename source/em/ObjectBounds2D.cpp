@@ -14,8 +14,8 @@ ObjectBounds2D::ObjectBounds2D(unsigned int size_x, unsigned int size_y) : bound
 ObjectBounds2D::~ObjectBounds2D() = default;
 
 void ObjectBounds2D::set_bounds(unsigned int x, const Limit& limit) {
-    if (x >= N) {throw except::out_of_bounds("ObjectBounds2D::set_bounds: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
-    if (limit.max > M) {throw except::out_of_bounds("ObjectBounds2D::set_bounds: limit " + std::to_string(limit.max) + " is out of bounds (" + std::to_string(M) + ")");}
+    if (x >= N) {throw except::out_of_range("ObjectBounds2D::set_bounds: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
+    if (limit.max > M) {throw except::out_of_range("ObjectBounds2D::set_bounds: limit " + std::to_string(limit.max) + " is out of bounds (" + std::to_string(M) + ")");}
     bounds[x] = limit;
 }
 
@@ -24,14 +24,14 @@ void ObjectBounds2D::set_bounds(unsigned int x, unsigned int min, unsigned int m
 }
 
 void ObjectBounds2D::set_min(unsigned int x, unsigned int min) {
-    if (x >= N) {throw except::out_of_bounds("ObjectBounds2D::set_min: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
-    if (min > M) {throw except::out_of_bounds("ObjectBounds2D::set_min: limit " + std::to_string(min) + " is out of bounds (" + std::to_string(M) + ")");}
+    if (x >= N) {throw except::out_of_range("ObjectBounds2D::set_min: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
+    if (min > M) {throw except::out_of_range("ObjectBounds2D::set_min: limit " + std::to_string(min) + " is out of bounds (" + std::to_string(M) + ")");}
     bounds[x].min = min;
 }
 
 void ObjectBounds2D::set_max(unsigned int x, unsigned int max) {
-    if (x >= N) {throw except::out_of_bounds("ObjectBounds2D::set_max: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
-    if (max > M) {throw except::out_of_bounds("ObjectBounds2D::set_max: limit " + std::to_string(max) + " is out of bounds (" + std::to_string(M) + ")");}
+    if (x >= N) {throw except::out_of_range("ObjectBounds2D::set_max: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
+    if (max > M) {throw except::out_of_range("ObjectBounds2D::set_max: limit " + std::to_string(max) + " is out of bounds (" + std::to_string(M) + ")");}
     bounds[x].max = max;
 }
 

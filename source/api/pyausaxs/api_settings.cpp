@@ -6,13 +6,16 @@
 #include <settings/SettingsIO.h>
 #include <settings/SettingRef.h>
 #include <settings/All.h>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 
+namespace {
 struct _get_setting_obj {
     std::string value;
     std::string type;
 };
+}
 int get_setting(
     const char* name,
     const char** value,
@@ -21,7 +24,7 @@ int get_setting(
 ) {return execute_with_catch([&]() {
     std::string name_str(name);
     const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
-    if (!map.contains(name_str)) {ErrorMessage::last_error = "Unknown setting: \"" + name_str + "\""; return -1;}
+    if (!map.contains(name_str)) {throw except::invalid_argument("Unknown setting: \"" + name_str + "\"");}
     const auto& setting = map.at(name_str);
     auto obj_id = api::ObjectStorage::register_object(_get_setting_obj{
         .value = setting->get(),
@@ -39,7 +42,7 @@ void set_setting(
     int* status
 ) {return execute_with_catch([&]() {
     const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
-    if (!map.contains(name)) {ErrorMessage::last_error = "Unknown setting: \"" + std::string(name) + "\""; return;}
+    if (!map.contains(name)) {throw except::invalid_argument("Unknown setting: \"" + std::string(name) + "\"");}
     map.at(name)->set({value});
 }, status);}
 

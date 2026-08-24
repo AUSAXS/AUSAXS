@@ -12,7 +12,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 namespace ausaxs::settings::io::detail {
     /**
@@ -61,15 +61,15 @@ namespace ausaxs::settings::io::detail {
         virtual ~SettingRef() = default;
 
         void set(const std::vector<std::string>&) override {
-            throw std::runtime_error("settings::io::detail::SettingRef::set: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
+            throw ausaxs::except::runtime_error("settings::io::detail::SettingRef::set: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
         }
 
         std::string get() const override {
-            throw std::runtime_error("settings::io::detail::SettingRef::get: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
+            throw ausaxs::except::runtime_error("settings::io::detail::SettingRef::get: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
         }
 
         std::string type() const override {
-            throw std::runtime_error("settings::io::detail::SettingRef::type: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
+            throw ausaxs::except::runtime_error("settings::io::detail::SettingRef::type: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
         }
 
         bool requires_quoting() const override {return false;}

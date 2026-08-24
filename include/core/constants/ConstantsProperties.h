@@ -7,7 +7,7 @@
 #include <constants/ConstantsSI.h>
 
 #include <cassert>
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 namespace ausaxs::constants {
     namespace mass {
@@ -90,7 +90,7 @@ constexpr double ausaxs::constants::mass::get_mass(atom_t atom) {
             assert(false && "constants::mass::get_mass: Attempting to get mass of \"unknown\" atom type");
             [[fallthrough]];
         default: 
-            throw std::runtime_error("constants::mass::get_mass: Missing switch case for atom type: " + std::to_string(static_cast<int>(atom)));
+            throw ausaxs::except::runtime_error("constants::mass::get_mass: Missing switch case for atom type: " + std::to_string(static_cast<int>(atom)));
         return 0;
     }
 }
@@ -109,7 +109,7 @@ constexpr double ausaxs::constants::mass::get_mass(atomic_group_t group) {
             assert(false && "constants::mass::get_mass: Attempting to get mass of \"unknown\" atomic group");
             [[fallthrough]];
         default: 
-            throw std::runtime_error("constants::mass::get_mass: Missing switch case for atomic group: " + std::to_string(static_cast<int>(group)));
+            throw ausaxs::except::runtime_error("constants::mass::get_mass: Missing switch case for atomic group: " + std::to_string(static_cast<int>(group)));
         return 0;
     }
 }

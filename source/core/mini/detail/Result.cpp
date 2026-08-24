@@ -45,7 +45,7 @@ FittedParameter& Result::get_parameter(ausaxs::constants::fit::Parameters param)
 }
 
 const FittedParameter& Result::get_parameter(unsigned int index) const {
-    if (size() < index) {throw except::out_of_bounds("Result::get_parameter: Index \"" + std::to_string(index) + "\" is out of bounds (" + std::to_string(size()) + ").");}
+    if (size() < index) {throw except::out_of_range("Result::get_parameter: Index \"" + std::to_string(index) + "\" is out of bounds (" + std::to_string(size()) + ").");}
     return parameters[index];
 }
 

@@ -33,15 +33,17 @@ namespace {
             case form_factor_t::SH:     return {std::cref(constants::form_factor::SH::a),       std::cref(constants::form_factor::SH::b),       std::cref(constants::form_factor::SH::c)};
             case form_factor_t::OTHER:  return {std::cref(constants::form_factor::other::a),    std::cref(constants::form_factor::other::b),    std::cref(constants::form_factor::other::c)};
             case form_factor_t::EXCLUDED_VOLUME: return {std::cref(constants::form_factor::excluded_volume::a), std::cref(constants::form_factor::excluded_volume::b), std::cref(constants::form_factor::excluded_volume::c)};
-            default: throw std::runtime_error("get_gaussian_coefficients: Unknown form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+            default: throw ausaxs::except::runtime_error("get_gaussian_coefficients: Unknown form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
         }
     } 
 }
 
+namespace {
 struct _ff_valid_form_factor_types_obj {
     std::vector<std::string> types;
     std::vector<const char*> types_ptr;
 };
+}
 int ff_valid_form_factor_types(
     const char*** types,
     int* n_types,
@@ -97,6 +99,6 @@ void ff_get_current_exv_volume(
         case form_factor::form_factor_t::OH: *volume = exv_table->OH; break;
         case form_factor::form_factor_t::SH: *volume = exv_table->SH; break;
         case form_factor::form_factor_t::OTHER: *volume = constants::exv::Ar; break;
-        default: throw std::runtime_error("ff_get_current_exv_volume: Unknown form factor type \"" + std::string(element) + "\"");
+        default: throw ausaxs::except::runtime_error("ff_get_current_exv_volume: Unknown form factor type \"" + std::string(element) + "\"");
     }
 }, status);}

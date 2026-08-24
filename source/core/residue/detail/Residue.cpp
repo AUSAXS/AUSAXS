@@ -56,7 +56,7 @@ unsigned int Bond::parse_order(const std::string& order) {
     if (order_lower == "sing") {return 1;}
     else if (order_lower == "doub") {return 2;}
     else if (order_lower == "trip") {return 3;}
-    else {throw std::runtime_error("Bond::parse_order: Invalid bond order: " + order);}
+    else {throw ausaxs::except::runtime_error("Bond::parse_order: Invalid bond order: " + order);}
 }
 
 

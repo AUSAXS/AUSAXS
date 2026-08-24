@@ -67,7 +67,7 @@ void io::detail::pdb::write(const PDBStructure& s, const io::File& path) {
     auto content = as_pdb(s);
     if (content.size() == 1) {
         std::ofstream output(path);
-        if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
+        if (!output.is_open()) {throw ausaxs::except::io_error("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
         output << content.at(0) << std::flush;
         output.close();
         if (settings::general::verbose) {std::cout << "Output written to file " + path.str() + "." << std::endl;}
@@ -77,7 +77,7 @@ void io::detail::pdb::write(const PDBStructure& s, const io::File& path) {
             auto nfile = path.append("_part" + std::to_string(i+1));
             if (settings::general::verbose) {std::cout << "Output written to file " + nfile.str() << std::endl;}
             std::ofstream output(nfile);
-            if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
+            if (!output.is_open()) {throw ausaxs::except::io_error("PDBWriter::write: Could not open file \"" + path.str() + "\"");}
             output << content.at(i) << std::flush;
             output.close();
         }

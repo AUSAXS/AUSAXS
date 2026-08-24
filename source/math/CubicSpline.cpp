@@ -3,7 +3,7 @@
 
 #include <math/CubicSpline.h>
 
-#include <stdexcept>
+#include <math/Exceptions.h>
 #include <string>
 #include <cmath>
 
@@ -20,8 +20,8 @@ double CubicSpline::spline(double z) const {
 void CubicSpline::setup() {
     int n = x.size();
 
-    if (n != int(y.size())) {throw std::invalid_argument("CubicSpline::setup: x and y must have the same size (" + std::to_string(n) + " != " + std::to_string(y.size()) + ").");}
-    if (n < 4) {throw std::invalid_argument("CubicSpline::setup: x and y must have at least four elements.");}
+    if (n != int(y.size())) {throw except::invalid_argument("CubicSpline::setup: x and y must have the same size (" + std::to_string(n) + " != " + std::to_string(y.size()) + ").");}
+    if (n < 4) {throw except::invalid_argument("CubicSpline::setup: x and y must have at least four elements.");}
 
     b = std::vector<double>(n);
     c = std::vector<double>(n-1);

@@ -4,14 +4,14 @@
 #pragma once
 
 #include <io/detail/IValidatedFile.h>
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 namespace ausaxs::io {
     namespace detail {
         struct validate_existing_file {
             static void validate(observer_ptr<File> f) {
                 if (!f->empty() && !f->exists()) {
-                    throw std::runtime_error("ExistingFile::validate: File \"" + f->path() + "\" does not exist.");
+                    throw ausaxs::except::runtime_error("ExistingFile::validate: File \"" + f->path() + "\" does not exist.");
                 }
             }
         };

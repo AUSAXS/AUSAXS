@@ -30,7 +30,7 @@ namespace ausaxs::fitter {
             /**
              * @brief Set the data curves for this fit. 
              *
-             * @throw std::invalid_argument If the number of columns is not 5 or the column names are not as expected. 
+             * @throw ausaxs::except::invalid_argument If the number of columns is not 5 or the column names are not as expected. 
              */
             void set_data_curves(NamedDataset&& curves);
 

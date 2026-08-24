@@ -3,7 +3,7 @@
 
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 
-#include <stdexcept>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
@@ -37,7 +37,7 @@ search::ArgResult<int> search::get_arg(std::vector<std::string>& names, const st
             try {
                 return {std::stoi(args.at(name)[0].str), true};
             } catch (std::exception&) {
-                throw std::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[0].str + "\" cannot be interpreted as an integer.");
+                throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[0].str + "\" cannot be interpreted as an integer.");
             }
         }
     }
@@ -52,7 +52,7 @@ search::ArgResult<std::vector<int>> search::get_arg(std::vector<std::string>& na
             try {
                 for (const auto& arg : args.at(name).args) {values.push_back(std::stoi(arg.str));}
             } catch (std::exception&) {
-                throw std::invalid_argument("SequenceParser::get_arg: \"" + args.at(name).args[values.size()].str + "\" cannot be interpreted as an integer.");
+                throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name).args[values.size()].str + "\" cannot be interpreted as an integer.");
             }
             return {std::move(values), true};
         }
@@ -67,7 +67,7 @@ search::ArgResult<double> search::get_arg(std::vector<std::string>& names, const
             try {
                 return {std::stod(args.at(name)[0].str), true};
             } catch (std::exception&) {
-                throw std::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[0].str + "\" cannot be interpreted as a decimal value.");
+                throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[0].str + "\" cannot be interpreted as a decimal value.");
             }
         }
     }

@@ -83,7 +83,7 @@ void SaveElement::run() {
         }
         writers.at(p).write_frame(owner->_get_molecule());
     } else {
-        throw std::runtime_error("SaveElement::run: Unknown file format: \"" + ext + "\"");
+        throw ausaxs::except::runtime_error("SaveElement::run: Unknown file format: \"" + ext + "\"");
     }
 }
 

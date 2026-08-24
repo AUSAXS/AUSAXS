@@ -75,6 +75,6 @@ mini::Landscape LimitedScan::landscape(unsigned int evals) {
     }
 
     else { // parameters.size() <= 2 
-        throw std::runtime_error("LimitedScan::landscape: Using more than two parameters is currently not implemented.");
+        throw ausaxs::except::runtime_error("LimitedScan::landscape: Using more than two parameters is currently not implemented.");
     } 
 }

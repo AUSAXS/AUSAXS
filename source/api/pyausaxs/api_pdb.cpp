@@ -13,7 +13,7 @@
 #include <fitter/SmartFitter.h>
 #include <settings/All.h>
 
-#include <stdexcept>
+#include <utility/Exceptions.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -30,6 +30,7 @@ int pdb_read(
     return pdb_id;
 }, status);}
 
+namespace {
 struct _pdb_get_data_obj {
     explicit _pdb_get_data_obj(unsigned int size) :
         serial(size), resSeq(size), name(size), altLoc(size), resName(size), iCode(size), element(size), charge(size), 
@@ -42,6 +43,7 @@ struct _pdb_get_data_obj {
     std::vector<char> chainID;
     std::vector<double> x, y, z, occupancy, tempFactor;
 };
+}
 int pdb_get_data(
     int object_id,
     int** serial_out, const char*** name_out, const char*** altLoc_out, const char*** resName_out, const char** chainID_out, int** resSeq_out, 
@@ -49,7 +51,7 @@ int pdb_get_data(
     const char*** charge_out, int* n_atoms_out, int* status
 ) {return execute_with_catch([&]() {
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(object_id);
-    if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(object_id) + "\""; return -1;}
+    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(object_id) + "\"");}
     const auto& atoms = pdb->atoms;
     _pdb_get_data_obj data(atoms.size());
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
@@ -97,10 +99,12 @@ int pdb_get_data(
     return data_id;
 }, status);}
 
+namespace {
 struct _pdb_decompose_obj {
     std::vector<double> x, y, z;
     std::vector<int> copy_index;
 };
+}
 
 int pdb_decompose_symmetry(
     int pdb_id, const char* symmetry_name,
@@ -108,7 +112,7 @@ int pdb_decompose_symmetry(
     double* rmsd_out, int* status
 ) {return execute_with_catch([&]() {
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
-    if (!pdb) {throw std::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
+    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
 
     // group atoms into chains, preserving first-seen chain order (chain 0 = reference)
     std::unordered_map<char, int> chain_index;
@@ -118,16 +122,16 @@ int pdb_decompose_symmetry(
         if (inserted) {chains.emplace_back();}
         chains[it->second].push_back(atom.coords);
     }
-    if (chains.size() < 2) {throw std::invalid_argument("pdb_decompose_symmetry: at least two chains are required.");}
+    if (chains.size() < 2) {throw except::invalid_argument("pdb_decompose_symmetry: at least two chains are required.");}
     for (const auto& c : chains) {
         if (c.size() != chains[0].size()) {
-            throw std::invalid_argument("pdb_decompose_symmetry: chains have differing atom counts; they must be copies of the same molecule.");
+            throw except::invalid_argument("pdb_decompose_symmetry: chains have differing atom counts; they must be copies of the same molecule.");
         }
     }
 
     auto base = symmetry::create(std::string(symmetry_name));
     if (chains.size() != base->repetitions() + 1) {
-        throw std::invalid_argument(
+        throw except::invalid_argument(
             "pdb_decompose_symmetry: symmetry \"" + std::string(symmetry_name) + "\" needs "
             + std::to_string(base->repetitions() + 1) + " chains, but " + std::to_string(chains.size()) + " were found."
         );
@@ -173,13 +177,13 @@ int pdb_debye_fit(
     int* status
 ) {return execute_with_catch([&]() {
     auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
-    if (!pdb) {ErrorMessage::last_error = "Invalid pdb id: \"" + std::to_string(pdb_id) + "\""; return -1;}
+    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
     if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
     auto data = pdb->reduced_representation();
     auto molecule = data.waters.empty() ? Molecule({Body{std::move(data.atoms)}}) : Molecule({Body{std::move(data.atoms), std::move(data.waters)}});
     molecule.reset_histogram_manager();
     auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
-    if (!dataset) {ErrorMessage::last_error = "Invalid dataset id: \"" + std::to_string(data_id) + "\""; return -1;}
+    if (!dataset) {throw except::invalid_argument("Invalid dataset id: \"" + std::to_string(data_id) + "\"");}
     auto fitter = fitter::SmartFitter(*dataset, molecule.get_histogram());
     int fit_result_id = api::ObjectStorage::register_object(fitter.fit());
     return fit_result_id;

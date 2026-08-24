@@ -190,7 +190,7 @@ Body& Body::operator=(const Body& rhs) {
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); h) {
         hydration = std::make_unique<hydrate::ExplicitHydration>(h->waters);
     } else if (auto h = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); h) {
-        throw std::runtime_error("Body::operator=: Implicit hydration is not implemented.");
+        throw ausaxs::except::runtime_error("Body::operator=: Implicit hydration is not implemented.");
     }
     symmetries = rhs.symmetries->clone();
     signal->modified_internal();
@@ -215,7 +215,7 @@ bool Body::equals_content(const Body& rhs) const {
         }
     } else if (auto h = dynamic_cast<hydrate::ImplicitHydration*>(hydration.get()); h) {
         if (auto r = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); r) {
-            throw std::runtime_error("Body::equals_content: Implicit hydration is not implemented.");
+            throw ausaxs::except::runtime_error("Body::equals_content: Implicit hydration is not implemented.");
         } else {
             return false;
         }
