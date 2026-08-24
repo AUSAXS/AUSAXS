@@ -74,8 +74,7 @@ void Molecule::lazy_histogram_manager_init() const {
         return;
     }
 
-    // First build the cheap representation. Ordering must be measured from the
-    // atom-atom component: hydration can hide sharp peaks in the total p(r).
+    // First build the cheap representation. Ordering must be measured from the atom-atom component: hydration can hide sharp peaks in the total p(r).
     const auto choice = settings::hist::get_histogram_manager();
     settings::hist::weighted_bins = false;
     phm = hist::factory::construct_histogram_manager(this, false);

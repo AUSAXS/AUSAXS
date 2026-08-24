@@ -101,9 +101,6 @@ bool DistanceHistogram::is_highly_ordered() const {
 }
 
 bool DistanceHistogram::is_highly_ordered(const std::vector<double>& counts) {
-    // Count spikes relative to the neighbouring bins. The atom-atom component
-    // is intentionally accepted here because hydration can hide ordering in
-    // the total p(r) histogram.
     if (counts.size() < 3) {return false;}
 
     unsigned int peaks = 0;
