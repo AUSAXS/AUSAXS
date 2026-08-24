@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <functional>
 #include <memory>
+#include <mutex>
 
 namespace ausaxs::api {
     /**
@@ -16,7 +17,7 @@ namespace ausaxs::api {
      */
     struct ObjectStorage {
         struct StoredObject {
-            void* ptr;
+            void* ptr = nullptr;
             std::function<void(void*)> deleter;
         };
         template<typename T> static int register_object(T&& obj);
@@ -34,12 +35,14 @@ namespace ausaxs::api {
 
         static inline int current_id = 1;
         static inline std::unordered_map<int, StoredObject> storage;
+        static inline std::mutex mutex;
     };
 
     template<typename T> 
     int ObjectStorage::register_object(T&& obj) {
+        T* ptr = new T(std::move(obj)); // constructed outside the lock; it cannot be observed yet
+        std::lock_guard lock(mutex);
         int id = current_id++;
-        T* ptr = new T(std::move(obj));
         storage.emplace(id, StoredObject{
             .ptr=static_cast<void*>(ptr), 
             .deleter=[](void* p) { delete static_cast<T*>(p); }
@@ -49,8 +52,9 @@ namespace ausaxs::api {
 
     template<typename T>
     int ObjectStorage::register_object(std::unique_ptr<T> obj) {
-        int id = current_id++;
         T* ptr = obj.release(); // take ownership
+        std::lock_guard lock(mutex);
+        int id = current_id++;
         storage.emplace(id, StoredObject{ ptr,
             [](void* p){ delete static_cast<T*>(p); }});
         return id;
@@ -58,6 +62,7 @@ namespace ausaxs::api {
 
     template<typename T>
     inline T* ObjectStorage::get_object(int id) {
+        std::lock_guard lock(mutex);
         auto it = storage.find(id);
         if (it != storage.end()) {
             return static_cast<T*>(it->second.ptr);
@@ -66,11 +71,15 @@ namespace ausaxs::api {
     }
 
     inline void ObjectStorage::deregister_object(int id) {
-        auto it = storage.find(id);
-        if (it != storage.end()) {
-            it->second.deleter(it->second.ptr);
+        StoredObject obj;
+        {
+            std::lock_guard lock(mutex);
+            auto it = storage.find(id);
+            if (it == storage.end()) {return;}
+            obj = std::move(it->second);
             storage.erase(it);
         }
+        obj.deleter(obj.ptr);
     }
 }
 

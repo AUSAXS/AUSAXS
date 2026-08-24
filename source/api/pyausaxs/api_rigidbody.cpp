@@ -22,6 +22,7 @@
 #include <data/symmetry/BodySymmetryFacade.h>
 #include <data/detail/SimpleBody.h>
 #include <settings/MoleculeSettings.h>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 
@@ -166,6 +167,39 @@ int rigidbody_get_live_structure(
     *n_atoms = static_cast<int>(ref->x.size());
     *version = ver;
     return data_id;
+}, status);}
+
+struct _rigidbody_live_poller_obj {
+    std::vector<double> x, y, z;
+};
+int rigidbody_create_live_poller(
+    int* status
+) {return execute_with_catch([&]() {
+    return api::ObjectStorage::register_object(_rigidbody_live_poller_obj{});
+}, status);}
+
+void rigidbody_poll_live_structure(
+    int poller_id,
+    double** x, double** y, double** z,
+    int* n_atoms, int* version,
+    int* status
+) {execute_with_catch([&]() {
+    auto poller = api::ObjectStorage::get_object<_rigidbody_live_poller_obj>(poller_id);
+    if (!poller) {throw except::invalid_argument("Invalid live poller id: \"" + std::to_string(poller_id) + "\"");}
+
+    // copied under the publisher's lock: the buffers are resized from a thread pool task, so reading them
+    // directly from the consumer's thread would race with a reallocation
+    rigidbody::sequencer::UpdateElement::lock();
+    poller->x = rigidbody::sequencer::UpdateElement::x;
+    poller->y = rigidbody::sequencer::UpdateElement::y;
+    poller->z = rigidbody::sequencer::UpdateElement::z;
+    *version = rigidbody::sequencer::UpdateElement::version;
+    rigidbody::sequencer::UpdateElement::unlock();
+
+    *x = poller->x.data();
+    *y = poller->y.data();
+    *z = poller->z.data();
+    *n_atoms = static_cast<int>(poller->x.size());
 }, status);}
 
 void rigidbody_register_live_consumer(bool connected, int* status) {execute_with_catch([&]() {
