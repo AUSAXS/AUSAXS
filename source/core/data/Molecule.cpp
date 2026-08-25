@@ -191,8 +191,15 @@ double Molecule::get_volume_exv(double d) const {
 }
 
 observer_ptr<grid::Grid> Molecule::create_grid() const {
-    grid = std::make_unique<grid::Grid>(bodies); 
+    grid = std::make_unique<grid::Grid>(bodies);
+    grid_atom_count = symmetry_atom_count();
     return grid.get();
+}
+
+std::size_t Molecule::symmetry_atom_count() const {
+    return std::accumulate(bodies.begin(), bodies.end(), std::size_t{0},
+        [] (std::size_t sum, const Body& body) {return sum + body.symmetry().size_atom_total();}
+    );
 }
 
 std::vector<AtomFF> Molecule::get_atoms() const {
@@ -275,18 +282,25 @@ std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
 }
 
 observer_ptr<grid::Grid> Molecule::get_grid() const {
+    if (grid != nullptr && is_grid_stale()) {clear_grid();}
     return grid == nullptr ? create_grid() : grid.get();
+}
+
+bool Molecule::is_grid_stale() const {
+    return symmetry_atom_count() != grid_atom_count;
 }
 
 void Molecule::set_grid(grid::Grid&& grid) {
     this->grid = std::make_unique<grid::Grid>(std::move(grid));
+    grid_atom_count = symmetry_atom_count();
 }
 
 void Molecule::set_grid(std::unique_ptr<grid::Grid> grid) {
     this->grid = std::move(grid);
+    grid_atom_count = symmetry_atom_count();
 }
 
-void Molecule::clear_grid() {
+void Molecule::clear_grid() const {
     grid = nullptr;
 }
 
