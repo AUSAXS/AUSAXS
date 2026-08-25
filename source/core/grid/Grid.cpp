@@ -299,6 +299,7 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
 
     a_members.resize(a_members.size() + body.symmetry().size_atom_total());
     auto b_atoms = body.symmetry().explicit_structure().atoms;
+    assert(b_atoms.size() == body.symmetry().size_atom_total() && "Grid::add: explicit_structure() atom count does not match size_atom_total().");
 
     for (int i = start; i < static_cast<int>(a_members.size()); i++) {
         auto& atom = b_atoms[i-start];

@@ -286,10 +286,20 @@ namespace ausaxs::data {
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 			mutable std::unique_ptr<grid::Grid> grid; 						// The grid representation of this body
-			mutable std::unique_ptr<hist::IHistogramManager> phm;					// The histogram manager of this molecule
+			mutable std::size_t grid_atom_count = 0;						// Total atom count (incl. symmetry copies) `grid` was last synchronised to; used to detect staleness
+			mutable std::unique_ptr<hist::IHistogramManager> phm;			// The histogram manager of this molecule
 			std::unique_ptr<hydrate::HydrationStrategy> hydration_strategy; // The strategy used to generate the hydration layer
 
 			void initialize();
 			void lazy_histogram_manager_init() const;
+
+			/**
+			 * @brief Check whether `grid` is stale relative to the bodies. 
+			 * 		  Only detects changes in the total (including symmetric) atom count. 
+			 */
+			bool is_grid_stale() const;
+
+			// @brief Total atom count across all bodies, including symmetry copies.
+			std::size_t symmetry_atom_count() const;
 	};
 }
