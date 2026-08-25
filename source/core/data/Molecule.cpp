@@ -62,6 +62,7 @@ Molecule& Molecule::operator=(Molecule&& other) {
     if (this == &other) {return *this;}
     bodies = std::move(other.bodies);
     grid = std::move(other.grid);
+    grid_atom_count = other.grid_atom_count; // must follow the grid, or it would immediately be considered stale and discarded
     initialize(); // reinitialize since some of the members contains pointers to the old object
     return *this;
 }
@@ -178,8 +179,7 @@ double Molecule::get_relative_mass_density() const {
 }
 
 double Molecule::get_volume_grid() const {
-    if (grid == nullptr) {create_grid();}
-    return grid->get_volume();
+    return get_grid()->get_volume();
 }
 
 double Molecule::get_volume_vdw() const {
@@ -282,7 +282,7 @@ std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
 }
 
 observer_ptr<grid::Grid> Molecule::get_grid() const {
-    if (grid != nullptr && is_grid_stale()) {clear_grid();}
+    if (grid != nullptr && is_grid_stale()) {grid = nullptr;}
     return grid == nullptr ? create_grid() : grid.get();
 }
 
@@ -300,7 +300,7 @@ void Molecule::set_grid(std::unique_ptr<grid::Grid> grid) {
     grid_atom_count = symmetry_atom_count();
 }
 
-void Molecule::clear_grid() const {
+void Molecule::clear_grid() {
     grid = nullptr;
 }
 

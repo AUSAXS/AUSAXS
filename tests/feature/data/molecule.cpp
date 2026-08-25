@@ -16,6 +16,7 @@
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <io/pdb/PDBStructure.h>
 #include <rigidbody/BodySplitter.h>
+#include <data/symmetry/CyclicSymmetry.h>
 
 #include <vector>
 #include <string>
@@ -457,6 +458,47 @@ TEST_CASE_METHOD(fixture, "Molecule::create_grid") {
     auto grid = protein.get_grid();
     protein.create_grid();
     REQUIRE(protein.get_grid() != grid);
+}
+
+// the Molecule is not notified of symmetries added through its bodies, so the only thing standing between it and a silently
+// corrupted grid is noticing that the atom count no longer matches
+auto add_symmetry_copy = [] (Molecule& protein) {
+    protein.get_body(0).symmetry().add(std::make_unique<symmetry::CyclicSymmetry>(
+        Vector3<double>{0, 0, 0}, Vector3<double>{30, 0, 0}, Vector3<double>{0, 0, 1}, 0, 1
+    ));
+};
+
+TEST_CASE_METHOD(fixture, "Molecule::get_grid: a grid built before a symmetry was added is discarded") {
+    Molecule protein({Body{std::vector{a1, a2, a3, a4, a5, a6, a7, a8}}});
+    REQUIRE(protein.get_grid()->a_members.size() == 8);
+
+    add_symmetry_copy(protein);
+    CHECK(protein.get_grid()->a_members.size() == 16);
+}
+
+TEST_CASE_METHOD(fixture, "Molecule::get_volume_grid: a grid built before a symmetry was added is discarded") {
+    Molecule protein({Body{std::vector{a1, a2, a3, a4, a5, a6, a7, a8}}});
+    double volume = protein.get_volume_grid();
+
+    // every grid accessor has to route through get_grid(), or it reads the grid the staleness check was supposed to discard.
+    // nothing may touch the grid between here and the check below, or the rebuild happens behind its back.
+    add_symmetry_copy(protein);
+    CHECK(volume < protein.get_volume_grid());
+}
+
+TEST_CASE_METHOD(fixture, "Molecule::operator=: moving a Molecule keeps its grid") {
+    Molecule src({Body{std::vector{a1, a2, a3, a4, a5, a6, a7, a8}}});
+
+    // an oversized grid, as installed by SmartProteinManager and the --exv-ref path, is not reproducible from the bodies alone
+    src.set_grid(std::make_unique<grid::Grid>(Limit3D(-500, 500, -500, 500, -500, 500)));
+    for (const auto& body : src.get_bodies()) {src.get_grid()->add(body);}
+    auto axes = src.get_grid()->get_axes();
+    REQUIRE(axes.x.min < -400);
+
+    Molecule dst;
+    dst = std::move(src);
+    CHECK(dst.get_grid()->get_axes().x.min == axes.x.min);
+    CHECK(dst.get_grid()->a_members.size() == 8);
 }
 
 TEST_CASE_METHOD(fixture, "Molecule::size_body") {
