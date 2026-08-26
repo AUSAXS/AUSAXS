@@ -50,7 +50,7 @@ PDBStructure::PDBStructure(const data::Body& body) {
     int residue_serial = 0;
     char chain = 'A';
     atoms.reserve(body.size_atom()*(body.size_symmetry()+1));
-    waters.reserve(body.size_water()*(body.size_symmetry()+1));
+    waters.reserve(body.symmetry().size_water_total());
     add_single_body(this->atoms, this->waters, body, serial, residue_serial, chain);
     refresh();
 }

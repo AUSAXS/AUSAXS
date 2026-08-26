@@ -81,6 +81,11 @@ namespace ausaxs::data {
 			[[nodiscard]] std::optional<std::reference_wrapper<const std::vector<data::Water>>> get_waters() const; //< @copydoc get_waters()
 
 			/**
+			 * @brief Whether the current hydration already covers the full symmetry-expanded assembly or only the primary body. 
+			 */
+			[[nodiscard]] bool waters_expanded_across_symmetry() const;
+
+			/**
 			 * @brief Set the hydration object.
 			 */
 			void set_hydration(std::unique_ptr<hydrate::Hydration> hydration);

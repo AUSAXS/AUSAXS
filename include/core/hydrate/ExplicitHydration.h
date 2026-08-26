@@ -17,6 +17,7 @@ namespace ausaxs::hydrate {
             ~ExplicitHydration() override;
 
             std::vector<data::Water> waters;
+            bool expanded_across_symmetry = false; // Whether `waters` already covers the full symmetry-expanded assembly
 
             void clear() override;
 

@@ -188,7 +188,7 @@ Body& Body::operator=(const Body& rhs) {
     atoms = rhs.atoms;
     metadata = rhs.metadata;
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); h) {
-        hydration = std::make_unique<hydrate::ExplicitHydration>(h->waters);
+        hydration = std::make_unique<hydrate::ExplicitHydration>(*h);
     } else if (auto h = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); h) {
         throw ausaxs::except::runtime_error("Body::operator=: Implicit hydration is not implemented.");
     }
@@ -248,6 +248,12 @@ std::optional<std::reference_wrapper<std::vector<data::Water>>> Body::get_waters
     assert(hydration != nullptr && "Body::get_waters: hydration is nullptr.");
     auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
     return h ? std::optional(std::ref(h->waters)) : std::nullopt;
+}
+
+bool Body::waters_expanded_across_symmetry() const {
+    assert(hydration != nullptr && "Body::waters_expanded_across_symmetry: hydration is nullptr.");
+    auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
+    return h != nullptr && h->expanded_across_symmetry;
 }
 
 void Body::set_hydration(std::unique_ptr<hydrate::Hydration> hydration) {
