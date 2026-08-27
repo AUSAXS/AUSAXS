@@ -25,6 +25,7 @@
 #include <hist/hist_test_helper.h>
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <random>
 
@@ -34,8 +35,17 @@ using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
     std::unique_ptr<Sequencer> parse(const std::string& content) {
+        // catch_discover_tests registers every TEST_CASE as a separate ctest test, so ctest invokes
+        // each one as its own process and `counter` restarts at zero in all of them. A fixed path
+        // therefore has all test cases sharing the same files, and a parallel ctest run lets one
+        // process truncate a config while another is still parsing it. Tag the path per process so
+        // the cases cannot collide.
+        static const std::string tag = std::to_string(std::random_device{}());
         static int counter = 0;
-        std::string path = "/tmp/ausaxs_split_element_test_" + std::to_string(counter++) + ".conf";
+        std::string path = (
+            std::filesystem::temp_directory_path() /
+            ("ausaxs_split_element_" + tag + "_" + std::to_string(counter++) + ".conf")
+        ).string();
         std::ofstream f(path);
         f << content;
         f.close();
