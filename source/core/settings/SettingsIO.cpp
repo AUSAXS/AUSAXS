@@ -8,11 +8,22 @@
 #include <utility/Console.h>
 
 #include <fstream>
+#include <unordered_map>
 
 using namespace ausaxs;
 
+namespace {
+    const std::unordered_map<std::string, std::string> deprecated_options = {
+        {"bin_count", "the number of distance-histogram bins is now deduced from the structure being calculated"},
+    };
+}
+
 void settings::detail::parse_option(const std::string& name, const std::vector<std::string>& value) {
     if (!settings::io::detail::ISettingRef::get_stored_settings().contains(name)) {
+        if (auto deprecated = deprecated_options.find(name); deprecated != deprecated_options.end()) {
+            console::print_warning("settings::read: Ignoring deprecated option \"" + name + "\": " + deprecated->second + ".");
+            return;
+        }
         throw ausaxs::except::runtime_error("Unknown option: \"" + name + "\".");
     }
     settings::io::detail::ISettingRef::get_stored_settings()[name]->set(value);

@@ -7,6 +7,7 @@
 #include <data/Body.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/BinEstimate.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/detail/SimpleExvModel.h>
@@ -40,11 +41,30 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     logging::log("SymmetryManagerMT::calculate: starting calculation");
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-    hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator;
 
     // start by generating the transformed data
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
     auto[data, data_w] = generate_transformed_data<variable_bin_width>(*protein);
+
+    // Size the distance axis from the actual extent of the assembly instead of a configured maximum.
+    // The symmetry copies are materialized above, so the bound is taken over the transformed positions
+    // and thus covers the whole assembly rather than just the asymmetric unit.
+    // This is a strict upper bound, so every bin it drops was zero anyway and the trim-to-last-non-zero
+    // step below produces an identical histogram - see hist/detail/BinEstimate.h.
+    unsigned int bin_count = [&data, &data_w] {
+        bin_estimate::extent_state extent;
+        for (const auto& body : data) {bin_estimate::accumulate_bounds(extent, body.atomic);}
+        bin_estimate::accumulate_bounds(extent, data_w);
+
+        auto centre = bin_estimate::centroid(extent);
+        double r2_max = 0;
+        for (const auto& body : data) {bin_estimate::accumulate_radius(r2_max, centre, body.atomic);}
+        bin_estimate::accumulate_radius(r2_max, centre, data_w);
+
+        return bin_estimate::bin_count_from_distance<variable_bin_width>(bin_estimate::max_distance(extent, r2_max));
+    }();
+
+    hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_count);
 
     const auto& waters = data_w;
     int self_merge_id_aa = 0, self_merge_id_ww = 1;
@@ -158,7 +178,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     }
 
     // calculate p_tot
-    GenericDistribution1D_t p_tot(settings::axes::bin_count);
+    GenericDistribution1D_t p_tot(bin_count);
     for (int i = 0; i < static_cast<int>(p_tot.size()); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area

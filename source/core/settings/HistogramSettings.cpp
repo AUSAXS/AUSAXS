@@ -47,37 +47,16 @@ settings::detail::Setting<double> settings::axes::qmax = {
     }
 };
 
-auto small_d_range_warning = [] (double bin_width, unsigned int bin_count) {
-    static bool warned = false;
-    if (warned) {return;}
-    warned = true;
-    console::print_warning(
-        "settings::axes::bin_width: The specified bin width (" + std::to_string(bin_width) + "\u212B) and bin count (" + std::to_string(bin_count) + ") "
-        "result in a maximum d-value of less than the recommended " + std::to_string(int(constants::axes::d_axis.max)) + "\u212B. "
-        "Structures larger than the new minimum of " + std::to_string(int(bin_width*bin_count)) + "\u212B will trigger segmentation faults. "
-        "Consider increasing the bin count or bin width to cover a longer range."
-    );
-};
-
 // bin_width
 settings::detail::Setting<double> settings::axes::bin_width = {
     constants::axes::d_axis.width(),
     [](double& new_width) {
-        if (new_width*settings::axes::bin_count < constants::axes::d_axis.max) {small_d_range_warning(new_width, settings::axes::bin_count);}
         if (std::abs(constants::axes::d_axis.width() - new_width) < 1e-6) {
             settings::flags::custom_bin_width = false;
         } else {
             settings::flags::custom_bin_width = true;
         }
         settings::flags::inv_bin_width = 1./new_width;
-    }
-};
-
-// bin_count
-settings::detail::Setting<unsigned int> settings::axes::bin_count = {
-    constants::axes::d_axis.bins,
-    [](unsigned int& new_count) {
-        if (new_count*settings::axes::bin_width < constants::axes::d_axis.max) {small_d_range_warning(settings::axes::bin_width, new_count);}
     }
 };
 
@@ -94,7 +73,6 @@ namespace ausaxs::settings::io {
     settings::io::SettingSection hist_section("Histogram", {
         settings::io::create(settings::hist::weighted_bins, "weighted_bins"),
         settings::io::create(settings::axes::bin_width, "bin_width"),
-        settings::io::create(settings::axes::bin_count, "bin_count"),
     });
 }
 

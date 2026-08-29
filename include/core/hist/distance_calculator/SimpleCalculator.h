@@ -43,11 +43,6 @@ namespace ausaxs::hist::distance_calculator {
             };
 
             /**
-             * @brief Construct a calculator whose result histograms span the full configured distance range.
-             */
-            SimpleCalculator() : bin_count(settings::axes::bin_count) {}
-
-            /**
              * @brief Construct a calculator whose result histograms span @a bin_count bins.
              *
              * Intended to be given a strict upper bound on the number of bins the submitted data can

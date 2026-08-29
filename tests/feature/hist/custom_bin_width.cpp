@@ -23,53 +23,51 @@ using namespace ausaxs::hist;
 using namespace ausaxs::data;
 
 template<template<bool, bool> class MANAGER>
-void run_nongrid_test1(const Molecule& protein) {
+void run_nongrid_test1(const Molecule& protein, std::size_t expected_bins) {
     auto h1 = MANAGER<false, false>(&protein).calculate_all();
-    REQUIRE(h1->get_d_axis().size() == settings::axes::bin_count);
+    REQUIRE(h1->get_d_axis().size() == expected_bins);
     auto h2 = MANAGER<true, false>(&protein).calculate_all();
-    REQUIRE(h2->get_d_axis().size() == settings::axes::bin_count);
+    REQUIRE(h2->get_d_axis().size() == expected_bins);
     auto h3 = MANAGER<false, true>(&protein).calculate_all();
-    REQUIRE(h3->get_d_axis().size() == settings::axes::bin_count);
+    REQUIRE(h3->get_d_axis().size() == expected_bins);
     auto h4 = MANAGER<true, true>(&protein).calculate_all();
-    REQUIRE(h4->get_d_axis().size() == settings::axes::bin_count);
+    REQUIRE(h4->get_d_axis().size() == expected_bins);
 }
 
 template<template<bool> class MANAGER>
-void run_grid_test1(const Molecule& protein) {
+void run_grid_test1(const Molecule& protein, std::size_t min_bins) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
-    REQUIRE(h1->get_d_axis().size() > 0.95*settings::axes::bin_count);
+    REQUIRE(h1->get_d_axis().size() >= min_bins);
     auto h2 = MANAGER<true>(&protein).calculate_all();
-    REQUIRE(h2->get_d_axis().size() > 0.95*settings::axes::bin_count);
+    REQUIRE(h2->get_d_axis().size() >= min_bins);
 }
-TEST_CASE("Custom bin count: respected by managers") {
+TEST_CASE("Deduced bin count: axis covers the structure") {
     settings::general::verbose = false;
-    settings::axes::bin_count = GENERATE(4000, 5000, 6000);
+    double max_dist = GENERATE(250., 500., 1000.);
+    std::size_t expected_bins = std::round(max_dist/settings::axes::bin_width) + 1;
 
-    // for nongrid managers it should be possible to have distances up to max_dist
     settings::grid::min_exv_radius = 0;
-    double max_dist = settings::axes::bin_width*(settings::axes::bin_count-1);
     std::vector atoms = {
         data::AtomFF({0, 0, 0}, form_factor::form_factor_t::H),
         data::AtomFF({max_dist, 0, 0}, form_factor::form_factor_t::H)
     };
     Molecule protein({Body{atoms}});
     invoke_for_all_nongrid_histogram_manager_variants(
-        []<template<bool, bool> class MANAGER>(const Molecule& protein) {
-            run_nongrid_test1<MANAGER>(protein);
+        [expected_bins]<template<bool, bool> class MANAGER>(const Molecule& protein) {
+            run_nongrid_test1<MANAGER>(protein, expected_bins);
         },
         protein
     );
 
-    // have to be careful with the expanded exv in grid-based managers
-    max_dist = 0.95*settings::axes::bin_width*(settings::axes::bin_count-1);
+    // the grid-based managers histogram an expanded excluded volume, so they can only be bounded below
     atoms = {
         data::AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
         data::AtomFF({max_dist, 0, 0}, form_factor::form_factor_t::C)
     };
     protein = Molecule({Body{atoms}});
     invoke_for_all_grid_histogram_manager_variants(
-        []<template<bool> class MANAGER>(const Molecule& protein) {
-            run_grid_test1<MANAGER>(protein);
+        [expected_bins]<template<bool> class MANAGER>(const Molecule& protein) {
+            run_grid_test1<MANAGER>(protein, expected_bins);
         },
         protein
     );
@@ -153,14 +151,12 @@ template<template<bool> class MANAGER>
 void run_test4(const Molecule& protein) {
     auto iq = MANAGER<false>(&protein).calculate_all()->debye_transform();
     settings::axes::bin_width = constants::axes::d_axis.width();
-    settings::axes::bin_count = 8000/settings::axes::bin_width;
     auto iq2 = MANAGER<true>(&protein).calculate_all()->debye_transform();
     REQUIRE(compare_hist(iq, iq2, 1e-6, 0.005));
 }
 template<template<bool, bool> class MANAGER>
 void run_test4(const Molecule& protein) {
     settings::axes::bin_width = constants::axes::d_axis.width();
-    settings::axes::bin_count = 8000/settings::axes::bin_width;
 
     auto iq = MANAGER<false, false>(&protein).calculate_all()->debye_transform();
     auto iq2 = MANAGER<false, true>(&protein).calculate_all()->debye_transform();
@@ -194,15 +190,13 @@ auto avg_deviation = [] (const std::vector<double>& a, const std::vector<double>
 template<template<bool, bool> class MANAGER>
 void run_test5(const Molecule& protein, const std::vector<double>& exact) {
     settings::axes::bin_width = 0.5;
-    settings::axes::bin_count = 8000/settings::axes::bin_width;
     auto target_dev = avg_deviation(
         MANAGER<true, false>(&protein).calculate_all()->debye_transform().get_counts(),
         exact
     );
     for (auto width : {0.25, 0.15, 0.1}) {
         settings::axes::bin_width = width;
-        settings::axes::bin_count = 8000/settings::axes::bin_width;
-        auto iq = MANAGER<true, true>(&protein).calculate_all()->debye_transform().get_counts();
+            auto iq = MANAGER<true, true>(&protein).calculate_all()->debye_transform().get_counts();
         REQUIRE(avg_deviation(iq, exact) <= target_dev*1.001); // allow numerical noise
     }
 }
