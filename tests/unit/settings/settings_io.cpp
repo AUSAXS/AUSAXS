@@ -18,7 +18,7 @@ struct SettingsIOFixture {
     // write the current settings to a scratch file, clear the output setting, and read them back
     static std::string round_trip(const std::string& value) {
         settings::general::output = value;
-        test::TempFile file("ausaxs_settings_io_test", ".txt");
+        test::TempFile file(".txt");
         settings::write(file);
         settings::general::output = "";
         settings::read(file);
@@ -45,7 +45,7 @@ TEST_CASE_METHOD(SettingsIOFixture, "settings: string values round-trip through 
 }
 
 TEST_CASE_METHOD(SettingsIOFixture, "settings: a hand-written quoted path is read as one value") {
-    test::TempFile file("ausaxs_settings_io_test", ".txt", "output \"C:\\my folder\\out\\\"\n");
+    test::TempFile file(".txt", "output \"C:\\my folder\\out\\\"\n");
     settings::general::output = "";
     settings::read(file);
     CHECK(settings::general::output == "C:\\my folder\\out\\");

@@ -32,7 +32,7 @@ struct ParameterParseFixture {
     }
 
     std::unique_ptr<Sequencer> parse(const std::string& content) {
-        test::TempFile config("ausaxs_parameter_parse_test", ".conf", content);
+        test::TempFile config(".conf", content);
         SequenceParser parser;
         return parser.parse_file(config);
     }

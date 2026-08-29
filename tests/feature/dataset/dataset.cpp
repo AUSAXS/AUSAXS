@@ -442,5 +442,5 @@ test::TempFile generate_SASDJG5_dataset() {
     "2.20169256e-02   2.36571727e+04   0.00000000e+00\n" 
     "2.32808119e-02   2.41054892e+04   0.00000000e+00\n";
 
-    return test::TempFile("SASDJG5_dataset", ".dat", data);
+    return test::TempFile(".dat", data);
 }

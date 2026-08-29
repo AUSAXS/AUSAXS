@@ -99,7 +99,7 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
                 "TER       3      ARG A 129                                                     \n"
                 "HETATM    4  O   HOH A 130      30.117  29.049  34.879  0.94 34.19           O \n"
                 "HETATM    5  O   HOH A 131      31.117  30.049  35.879  0.94 34.19           O \n";
-            test::TempFile path("molecule_fake_data", ".pdb", content);
+            test::TempFile path(".pdb", content);
 
             // check PDB io
             Molecule protein(path);

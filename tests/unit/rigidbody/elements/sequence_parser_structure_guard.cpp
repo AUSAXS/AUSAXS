@@ -22,7 +22,7 @@ using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
     std::unique_ptr<Sequencer> parse(const std::string& content) {
-        test::TempFile config("ausaxs_seq_structure_guard_test", ".conf", content);
+        test::TempFile config(".conf", content);
         SequenceParser parser;
         return parser.parse_file(config);
     }
