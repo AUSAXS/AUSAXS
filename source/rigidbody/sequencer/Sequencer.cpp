@@ -103,9 +103,9 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     auto best_conf = _get_best_conf();
     if (!best_conf->waters.empty()) {
         rigidbody->molecule.clear_hydration();
-        rigidbody->molecule.get_body(0).set_hydration(
-            std::make_unique<hydrate::ExplicitHydration>(std::move(best_conf->waters))
-        );
+        auto hydration = std::make_unique<hydrate::ExplicitHydration>(std::move(best_conf->waters));
+        hydration->expanded_across_symmetry = true; // snapshotted from a molecule already hydrated by generate_new_hydration()
+        rigidbody->molecule.get_body(0).set_hydration(std::move(hydration));
     }
 
     // update the fitter with the restored hydration shell and symmetry state. This is unconditional because the last

@@ -61,7 +61,9 @@ void GridBasedHydration::hydrate() {
         auto waters = generate_explicit_hydration(grid->a_members);
         culling_strategy->set_target_count(target);
         culling_strategy->cull(waters);
-        protein->get_body(0).set_hydration(std::make_unique<ExplicitHydration>(to_atoms(waters)));
+        auto hydration = std::make_unique<ExplicitHydration>(to_atoms(waters));
+        hydration->expanded_across_symmetry = true; // spans grid->a_members, i.e. every body's symmetry copies
+        protein->get_body(0).set_hydration(std::move(hydration));
         return;
     }
 
@@ -78,6 +80,8 @@ void GridBasedHydration::hydrate() {
         auto waters = generate_explicit_hydration(atoms);
         culling_strategy->set_target_count(target);
         culling_strategy->cull(waters);
-        protein->get_body(i).set_hydration(std::make_unique<ExplicitHydration>(to_atoms(waters)));
+        auto hydration = std::make_unique<ExplicitHydration>(to_atoms(waters));
+        hydration->expanded_across_symmetry = true; // span includes this body's own symmetry copies
+        protein->get_body(i).set_hydration(std::move(hydration));
     }
 }

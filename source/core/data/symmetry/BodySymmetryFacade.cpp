@@ -117,6 +117,7 @@ std::size_t symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_atom_tota
 
 template<typename BODY, bool NONCONST>
 std::size_t symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_water_total() const {
+    if (body->waters_expanded_across_symmetry()) {return body->size_water();}
     return body->size_water()*(body->size_symmetry_total()+1);
 }
 
@@ -132,28 +133,31 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
     }
 
     atoms.reserve((1+body->size_symmetry_total())*body->size_atom());
-    waters.reserve((1+body->size_symmetry_total())*body->size_water());
     auto cm = body->get_cm();
 
-    // static spans for iteration
-    std::span<AtomFF> atom_span(atoms);
+    bool duplicate_waters = !body->waters_expanded_across_symmetry();
+    if (duplicate_waters) {waters.reserve((1+body->size_symmetry_total())*body->size_water());}
+
+    std::span<AtomFF> atom_span(atoms); // static spans for iteration
     std::span<Water> water_span(waters);
     for (unsigned int isym = 0; isym < body->size_symmetry(); ++isym) {
         assert(atom_span.data() == atoms.data() && "atoms span has been reallocated and invalidated atom_span");
-        assert(water_span.data() == waters.data() && "waters span has been reallocated and invalidated water_span");
+        assert((!duplicate_waters || water_span.data() == waters.data()) && "waters span has been reallocated and invalidated water_span");
         for (int i = 0; i < static_cast<int>(get(isym)->repetitions()); ++i) {
             auto t = get_transform(isym, cm, i+1);
             for (const auto& a : atom_span) {
                 atoms.emplace_back(t(a.coordinates()), a.form_factor_type());
             }
 
-            for (const auto& w : water_span) {
-                waters.emplace_back(t(w.coordinates()));
+            if (duplicate_waters) {
+                for (const auto& w : water_span) {
+                    waters.emplace_back(t(w.coordinates()));
+                }
             }
         }
     }
     assert(atoms.capacity() == atoms.size() && "atomic loop was not executed the expected number of times");
-    assert(waters.capacity() == waters.size() && "water loop was not executed the expected number of times");
+    assert((!duplicate_waters || waters.capacity() == waters.size()) && "water loop was not executed the expected number of times");
 
     return data::detail::SimpleBody(atoms, waters);
 }
