@@ -103,9 +103,9 @@ namespace {
         for (int i = 0; i < static_cast<int>(gpu_histogram.size()); ++i) {
             const auto& entry = gpu_histogram[i];
             if constexpr (weighted_bins) {
-                histogram.add_index(i, ausaxs::hist::detail::WeightedEntry{entry.value, entry.count, entry.bin_center});
+                histogram.add_index(i, ausaxs::hist::detail::WeightedEntry{entry.value.value(), entry.count, entry.bin_center.value()});
             } else {
-                histogram.add_index(i, entry.value);
+                histogram.add_index(i, entry.value.value());
             }
         }
         return histogram;

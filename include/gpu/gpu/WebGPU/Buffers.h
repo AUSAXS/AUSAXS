@@ -28,6 +28,26 @@ namespace ausaxs::gpu {
         wgpu::Buffer parameters;
     };
 
+    /**
+     * @brief The scale of the fixed-point bin values. Must match FIXED_SCALE in the wgsl shaders.
+     *
+     * The shaders cannot accumulate in floating point without losing most of the contributions to
+     * rounding, and have no 64-bit integers, so bin values are scaled integers spread over two u32
+     * words. See WebGPUSimpleUnweighted.wgsl.
+     */
+    constexpr double fixed_point_scale = 65536;
+
+    /// @brief A bin value as written by the shaders: a signed 64-bit fixed-point integer in two words.
+    struct FixedPoint {
+        std::uint32_t low;
+        std::uint32_t high;
+
+        double value() const {
+            return static_cast<double>(static_cast<std::int64_t>((static_cast<std::uint64_t>(high) << 32) | low))/fixed_point_scale;
+        }
+    };
+    static_assert(sizeof(FixedPoint) == 8, "FixedPoint must be two 32-bit words to match the shader layout.");
+
     template<bool weighted_bins>
     struct Buffers {
         //? Consider containing the webgpu struct definition inside the type definitions, and write them directly into an embedded wgsl script.
@@ -35,26 +55,20 @@ namespace ausaxs::gpu {
 
         // GPU memory layout of unweighted histogram data
         struct HistogramTypeUnweighted {
-            float value;
-
-            // for std::plus<> to function with this type
-            HistogramTypeUnweighted operator+(const HistogramTypeUnweighted& other) const {
-                return {value + other.value};
-            }
+            FixedPoint value;
         };
 
         // GPU memory layout of weighted histogram data
         struct HistogramTypeWeighted {
-            float value;
+            FixedPoint value;
             std::uint32_t count;
-            float bin_center;
-
-            // for std::plus<> to function with this type
-            HistogramTypeWeighted operator+(const HistogramTypeWeighted& other) const {
-                return {value + other.value, count + other.count, bin_center + other.bin_center};
-            }
+            FixedPoint bin_center;
         };
         using HistogramType = std::conditional_t<weighted_bins, HistogramTypeWeighted, HistogramTypeUnweighted>;
+        static_assert(
+            sizeof(HistogramType) == (weighted_bins ? 20 : 8),
+            "The histogram type must be tightly packed to match the shader layout."
+        );
 
         /// @brief Upload a set of coordinates to a read-only storage buffer.
         template<bool variable_bin_width>

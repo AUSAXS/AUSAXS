@@ -23,7 +23,9 @@ namespace {
         double max_absolute = 0;
         double max_relative = 0;
         int max_relative_bin = -1;
+        double worst_bin_content = 0;
         double cpu_total = 0, gpu_total = 0;
+        double absolute_total = 0; // summed bin-by-bin deviation, to catch contributions moving between bins
     };
 
     template<bool weighted_bins>
@@ -40,11 +42,13 @@ namespace {
 
             double absolute = std::abs(c - g);
             result.max_absolute = std::max(result.max_absolute, absolute);
+            result.absolute_total += absolute;
             if (c != 0) {
                 double relative = absolute/std::abs(c);
                 if (relative > result.max_relative) {
                     result.max_relative = relative;
                     result.max_relative_bin = i;
+                    result.worst_bin_content = c;
                 }
             }
         }
@@ -53,9 +57,11 @@ namespace {
 
     void print(std::string_view name, const Comparison& c) {
         std::cout << "    " << std::left << std::setw(6) << name
-                  << " sum " << std::scientific << std::setprecision(6) << c.cpu_total << " vs " << c.gpu_total
-                  << " (deviation " << std::abs(c.cpu_total - c.gpu_total)/std::abs(c.cpu_total) << ")"
-                  << ", worst bin " << c.max_relative_bin << ": " << c.max_relative << std::endl;
+                  << " sum " << std::scientific << std::setprecision(3) << c.cpu_total << " vs " << c.gpu_total
+                  << " (deviation " << std::abs(c.cpu_total - c.gpu_total)/std::abs(c.cpu_total)
+                  << ", summed per-bin deviation " << c.absolute_total/std::abs(c.cpu_total) << ")" << std::endl;
+        std::cout << "           worst bin " << c.max_relative_bin << ": " << c.max_relative
+                  << " relative, " << c.max_absolute << " of " << c.worst_bin_content << std::endl;
     }
 
     template<bool weighted_bins>

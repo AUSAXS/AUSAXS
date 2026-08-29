@@ -16,7 +16,11 @@ using namespace ausaxs;
 using namespace ausaxs::gpu;
 
 namespace {
-    constexpr int workgroup_size = 64; // must match @workgroup_size in the wgsl shaders
+    constexpr std::size_t workgroup_size = 256; // must match @workgroup_size in the wgsl shaders
+
+    std::size_t workgroups_for(std::size_t invocations) {
+        return (invocations + workgroup_size - 1)/workgroup_size;
+    }
 
     template<bool variable_bin_width>
     ShaderParameters make_parameters(int scaling) {
@@ -76,9 +80,9 @@ wgpu::BindGroup WebGPUBackend<weighted_bins, variable_bin_width>::assign_buffers
 }
 
 template<bool weighted_bins, bool variable_bin_width>
-void WebGPUBackend<weighted_bins, variable_bin_width>::dispatch(wgpu::BindGroup bind_group, wgpu::ComputePipeline pipeline, std::size_t atom_count) {
+void WebGPUBackend<weighted_bins, variable_bin_width>::dispatch(wgpu::BindGroup bind_group, wgpu::ComputePipeline pipeline, std::size_t workgroups) {
+    if (workgroups == 0) {return;}
     if (!encoder) {encoder = GPUInstance::get().device.createCommandEncoder();}
-    int workgroups = static_cast<int>((atom_count + workgroup_size - 1)/workgroup_size);
 
     auto compute_pass = encoder.beginComputePass(wgpu::Default);
     compute_pass.setPipeline(pipeline);
@@ -99,8 +103,9 @@ int WebGPUBackend<weighted_bins, variable_bin_width>::submit_self(
     auto [histogram, index] = buffer_manager.get_self_buffer(merge_id);
     self_result_count = std::max(self_result_count, index+1);
 
+    // each invocation evaluates two rows of the distance matrix, one from either end
     auto bind_group = assign_buffers(atom_buffer, Buffers<weighted_bins>::dummy_buffer(), histogram, parameter_buffer);
-    dispatch(bind_group, shader::Simple::get<weighted_bins>().pipelines.self, atoms.size());
+    dispatch(bind_group, shader::Simple::get<weighted_bins>().pipelines.self, workgroups_for((atoms.size() + 1)/2));
 
     temporary_buffers.emplace_back(atom_buffer);
     temporary_buffers.emplace_back(parameter_buffer);
@@ -122,7 +127,7 @@ int WebGPUBackend<weighted_bins, variable_bin_width>::submit_cross(
     cross_result_count = std::max(cross_result_count, index+1);
 
     auto bind_group = assign_buffers(atom_buffer_1, atom_buffer_2, histogram, parameter_buffer);
-    dispatch(bind_group, shader::Simple::get<weighted_bins>().pipelines.cross, atoms_1.size());
+    dispatch(bind_group, shader::Simple::get<weighted_bins>().pipelines.cross, workgroups_for(atoms_1.size()));
 
     temporary_buffers.emplace_back(atom_buffer_1);
     temporary_buffers.emplace_back(atom_buffer_2);

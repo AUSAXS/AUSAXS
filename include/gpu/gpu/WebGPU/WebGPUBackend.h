@@ -50,7 +50,7 @@ namespace ausaxs::gpu {
             int self_result_count = 0, cross_result_count = 0;
 
             wgpu::BindGroup assign_buffers(wgpu::Buffer atoms_1, wgpu::Buffer atoms_2, wgpu::Buffer histogram, wgpu::Buffer parameters);
-            void dispatch(wgpu::BindGroup bind_group, wgpu::ComputePipeline pipeline, std::size_t atom_count);
+            void dispatch(wgpu::BindGroup bind_group, wgpu::ComputePipeline pipeline, std::size_t workgroups);
             void release_temporaries();
     };
 }
