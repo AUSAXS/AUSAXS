@@ -61,10 +61,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
     int data_x_size = (int) data_x.size();
-
-    // Size the distance axis from the actual extent of the coordinate sets involved instead of the
-    // configured maximum. This is a strict upper bound over every set, so the bins it drops were
-    // zero anyway - see hist/detail/BinEstimate.h.
     unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x);
 
     //########################//

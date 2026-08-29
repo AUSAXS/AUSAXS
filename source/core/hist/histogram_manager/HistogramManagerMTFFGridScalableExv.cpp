@@ -82,9 +82,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             coord.value.pos.y() *= scale;
             coord.value.pos.z() *= scale;
         }
-
-        // Computed on the *scaled* excluded volume: the scale factor is a runtime fit parameter and
-        // can push the exv shell well beyond the unscaled extent. See hist/detail/BinEstimate.h.
         unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_data_x);
 
         //########################//

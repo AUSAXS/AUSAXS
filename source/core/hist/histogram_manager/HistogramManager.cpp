@@ -42,10 +42,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);
-
-    // Size the distance axis from the actual extent of this molecule instead of the configured
-    // maximum. This is a strict upper bound, so every bin it drops was zero anyway and the
-    // trim-to-last-non-zero step below produces an identical histogram - see hist/detail/BinEstimate.h.
     unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w);
 
     GenericDistribution1D_t p_aa(bin_count);

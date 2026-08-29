@@ -46,11 +46,6 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
     auto[data, data_w] = generate_transformed_data<variable_bin_width>(*protein);
 
-    // Size the distance axis from the actual extent of the assembly instead of a configured maximum.
-    // The symmetry copies are materialized above, so the bound is taken over the transformed positions
-    // and thus covers the whole assembly rather than just the asymmetric unit.
-    // This is a strict upper bound, so every bin it drops was zero anyway and the trim-to-last-non-zero
-    // step below produces an identical histogram - see hist/detail/BinEstimate.h.
     unsigned int bin_count = [&data, &data_w] {
         bin_estimate::extent_state extent;
         for (const auto& body : data) {bin_estimate::accumulate_bounds(extent, body.atomic);}

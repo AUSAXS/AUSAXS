@@ -38,10 +38,6 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     auto& data_w = *data_w_ptr;
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
-
-    // Size the distance axis from the actual extent of this molecule instead of the configured
-    // maximum. This is a strict upper bound, so every bin it drops was zero anyway and the
-    // trim-to-last-non-zero step below produces an identical histogram - see hist/detail/BinEstimate.h.
     unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
     //########################//

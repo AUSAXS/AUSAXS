@@ -44,12 +44,6 @@ namespace ausaxs::hist::distance_calculator {
 
             /**
              * @brief Construct a calculator whose result histograms span @a bin_count bins.
-             *
-             * Intended to be given a strict upper bound on the number of bins the submitted data can
-             * reach, e.g. from hist::detail::required_bin_count. Bins above the true maximum distance
-             * are zero either way, so a right-sized allocation yields an identical histogram at a
-             * fraction of the memory traffic. Passing a value that is too small is an out-of-bounds
-             * write, not a truncation - the bound must be strict.
              */
             explicit SimpleCalculator(unsigned int bin_count) : bin_count(bin_count) {}
 

@@ -30,10 +30,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     hist::detail::CompactCoordinates<vbw> data_a(this->protein->get_bodies());
     hist::detail::CompactCoordinates<vbw> data_w(this->protein->get_waters());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, this->protein);
-
-    // Size the distance axis from the actual extent of this molecule instead of the configured
-    // maximum. This is a strict upper bound, so every bin it drops was zero anyway and the
-    // trim-to-last-non-zero step below produces an identical histogram - see hist/detail/BinEstimate.h.
     unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
     hist::distance_calculator::SimpleCalculator<wb, vbw> calculator(bin_count);

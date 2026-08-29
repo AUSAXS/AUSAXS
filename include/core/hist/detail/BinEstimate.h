@@ -17,7 +17,6 @@
 #include <limits>
 #include <ranges>
 #include <string>
-#include <string_view>
 
 namespace ausaxs::hist::detail {
     namespace bin_estimate {
