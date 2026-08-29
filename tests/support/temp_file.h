@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace ausaxs::test {
     namespace detail {
@@ -41,16 +42,33 @@ namespace ausaxs::test {
     class TempFile : public io::File {
         public:
             /**
-             * @param prefix File name prefix, without a directory. The unique tag is appended to it.
+             * @brief Create a temporary file with the given extension and contents. 
              * @param extension File extension, including the dot.
              * @param contents The contents to write.
              */
-            TempFile(std::string_view prefix, std::string_view extension, std::string_view contents = "")
-                : io::File(io::Folder("temp"), std::string(prefix) + "_" + detail::unique_tag(), extension)
+            explicit TempFile(std::string_view extension, std::string_view contents = "")
+                : io::File(io::Folder("temp"), "ausaxs_test_" + detail::unique_tag(), extension)
             {
                 create(contents);
             }
 
-            ~TempFile() override {remove();}
+            // move-only: a copy would share one path between two owners, and whichever is destroyed first deletes the file out from under the other.
+            TempFile(const TempFile&) = delete;
+            TempFile& operator=(const TempFile&) = delete;
+
+            TempFile(TempFile&& other) noexcept : io::File(std::move(other)), owns(std::exchange(other.owns, false)) {}
+            TempFile& operator=(TempFile&& other) noexcept {
+                if (this != &other) {
+                    if (owns) {remove();}
+                    io::File::operator=(std::move(other));
+                    owns = std::exchange(other.owns, false);
+                }
+                return *this;
+            }
+
+            ~TempFile() override {if (owns) {remove();}}
+
+        private:
+            bool owns = true;
     };
 }

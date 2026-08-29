@@ -33,7 +33,7 @@ struct LoopCountFixture {
 
     // the total step count the given script body would report, as Sequencer::execute calculates it
     unsigned int total_iterations_of(const std::string& body) {
-        test::TempFile config("ausaxs_loop_count_test", ".conf", load() + body);
+        test::TempFile config(".conf", load() + body);
         SequenceParser parser;
         auto seq = parser.parse_file(config);
         REQUIRE(seq != nullptr);

@@ -7,10 +7,31 @@
 #include <constants/Constants.h>
 #include <settings/GeneralSettings.h>
 
+#include <support/temp_file.h>
+
+#include <filesystem>
 #include <map>
 #include <string>
 
 using namespace ausaxs;
+
+namespace {
+    // Downloads `url` and caches it at `cache_path` for reuse across test runs. Safe under `ctest --parallel`: several processes may all decide the cache
+    // is missing and download concurrently, but each writes to its own private file first and only publishes it via a single atomic filesystem rename, so
+    // no reader ever observes a partially-written cache file. The download itself is idempotent (the remote resource is static), so a lost race just means
+    // some redundant network traffic, never corrupted content.
+    io::File download_cached(const std::string& url, const io::File& cache_path) {
+        if (cache_path.exists()) {return cache_path;}
+        cache_path.directory().create();
+
+        io::File tmp(cache_path.directory(), cache_path.stem() + "_" + test::detail::unique_tag(), cache_path.extension());
+        REQUIRE(ausaxs::curl::download(url, tmp));
+
+        if (!cache_path.exists()) {std::filesystem::rename(tmp.path(), cache_path.path());}
+        else {tmp.remove();}
+        return cache_path;
+    }
+}
 
 /**
  * @brief The old version of the Constants.h file. This is used for testing the new version.
@@ -323,14 +344,7 @@ TEST_CASE("ResidueParser: parse_all") {
 }
 
 TEST_CASE("ResidueParser: cif_reader_single") {
-    if (auto folder = io::Folder("temp/residues"); !folder.exists()) {
-        folder.create();
-    }
-
-    io::File gly("temp/residues/GLY.cif");
-    if (!gly.exists()) {
-        REQUIRE(ausaxs::curl::download("files.rcsb.org/ligands/view/GLY.cif", "temp/residues/GLY.cif"));
-    }
+    auto gly = download_cached("files.rcsb.org/ligands/view/GLY.cif", io::File("temp/residues/GLY.cif"));
     auto residue = io::detail::cif::read_residue(gly).front().to_map();
     for (const auto& [atom, num] : hydrogen_atoms::glycine::get) {
         REQUIRE(num == residue.get(atom, constants::symbols::parse_element_string(std::string(1, atom[0]))));
@@ -338,16 +352,8 @@ TEST_CASE("ResidueParser: cif_reader_single") {
 }
 
 TEST_CASE("ResidueParser: cif_reader_all") {
-    if (auto folder = io::Folder("temp/residues"); !folder.exists()) {
-        folder.create();
-    }
-
     for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
-        io::File res("temp/residues/" + acid + ".cif");
-        if (!res.exists()) {
-            REQUIRE(ausaxs::curl::download("files.rcsb.org/ligands/view/" + acid + ".cif", res.str()));
-        }
-
+        auto res = download_cached("files.rcsb.org/ligands/view/" + acid + ".cif", io::File("temp/residues/" + acid + ".cif"));
         auto residue = io::detail::cif::read_residue(res).front().to_map();
         for (const auto& [atom, num_hydrogens] : atom_map) {
             SECTION(acid + " " + atom) {

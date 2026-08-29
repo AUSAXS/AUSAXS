@@ -3,11 +3,11 @@
 
 #include <fitter/FitReporter.h>
 #include <fitter/FitResult.h>
-#include <io/File.h>
 #include <mini/detail/FittedParameter.h>
 
+#include <support/temp_file.h>
+
 #include <fstream>
-#include <filesystem>
 
 using namespace ausaxs;
 using namespace ausaxs::fitter;
@@ -21,32 +21,28 @@ TEST_CASE("FitReporter::save") {
     result.parameters = {{"param1", 1.0, 0.1}};
     
     SECTION("with header") {
-        io::File path("/tmp/fit_report_test.txt");
+        test::TempFile path(".txt");
         FitReporter::save(&result, path, "Test Header");
-        
-        REQUIRE(std::filesystem::exists(path.str()));
-        
+
+        REQUIRE(path.exists());
+
         std::ifstream file(path.str());
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        
+
         REQUIRE_THAT(content, Catch::Matchers::ContainsSubstring("Test Header"));
         REQUIRE_THAT(content, Catch::Matchers::ContainsSubstring("FIT REPORT"));
-        
-        std::filesystem::remove(path.str());
     }
-    
+
     SECTION("without header") {
-        io::File path("/tmp/fit_report_test2.txt");
+        test::TempFile path(".txt");
         FitReporter::save(&result, path);
-        
-        REQUIRE(std::filesystem::exists(path.str()));
-        
+
+        REQUIRE(path.exists());
+
         std::ifstream file(path.str());
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        
+
         REQUIRE_THAT(content, Catch::Matchers::ContainsSubstring("FIT REPORT"));
-        
-        std::filesystem::remove(path.str());
     }
 }
 
@@ -66,36 +62,32 @@ TEST_CASE("FitReporter::save_multiple") {
     result2.parameters = {{"param2", 2.0, 0.2}};
     
     SECTION("with titles") {
-        io::File path("/tmp/fit_report_multi.txt");
+        test::TempFile path(".txt");
         std::vector<FitResult> fits = {result1, result2};
         std::vector<std::string> titles = {"Fit 1", "Fit 2"};
-        
+
         FitReporter::save(fits, path, titles);
-        
-        REQUIRE(std::filesystem::exists(path.str()));
-        
+
+        REQUIRE(path.exists());
+
         std::ifstream file(path.str());
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        
+
         REQUIRE_THAT(content, Catch::Matchers::ContainsSubstring("Fit 1"));
         REQUIRE_THAT(content, Catch::Matchers::ContainsSubstring("Fit 2"));
-        
-        std::filesystem::remove(path.str());
     }
-    
+
     SECTION("without titles") {
-        io::File path("/tmp/fit_report_multi2.txt");
+        test::TempFile path(".txt");
         std::vector<FitResult> fits = {result1, result2};
-        
+
         FitReporter::save(fits, path);
-        
-        REQUIRE(std::filesystem::exists(path.str()));
-        
+
+        REQUIRE(path.exists());
+
         std::ifstream file(path.str());
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        
+
         REQUIRE_THAT(content, Catch::Matchers::ContainsSubstring("FIT REPORT"));
-        
-        std::filesystem::remove(path.str());
     }
 }

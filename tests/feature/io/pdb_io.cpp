@@ -9,9 +9,10 @@
 #include <utility/Console.h>
 #include <settings/All.h>
 
+#include <support/temp_file.h>
+
 #include <vector>
 #include <string>
-#include <fstream>
 #include <iostream>
 
 using namespace ausaxs;
@@ -22,22 +23,19 @@ TEST_CASE("PDBReader::read") {
     settings::molecule::center = false;
     settings::general::verbose = false;
 
-    io::File path("temp/io/pdb_reader_read.pdb");
-    path.create();
-
-    std::ofstream pdb_file(path);
-    pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << std::endl;
-    pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << std::endl;
-    pdb_file << "TER       3      ARG A 129                                                     " << std::endl;
-    pdb_file << "HETATM    4  O   HOH A 130      30.117  29.049  34.879  0.94 34.19           O " << std::endl;
-    pdb_file << "HETATM    5  O   HOH A 131      31.117  30.049  35.879  0.94 34.19           O " << std::endl;
-    pdb_file.close();
+    std::string content =
+        "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C \n"
+        "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C \n"
+        "TER       3      ARG A 129                                                     \n"
+        "HETATM    4  O   HOH A 130      30.117  29.049  34.879  0.94 34.19           O \n"
+        "HETATM    5  O   HOH A 131      31.117  30.049  35.879  0.94 34.19           O \n";
+    test::TempFile path(".pdb", content);
 
     // check PDB io
     auto protein = io::detail::pdb::read(path);
-    path = "temp/io/temp2.pdb";
-    io::detail::pdb::write(protein, path);
-    protein = io::detail::pdb::read(path);
+    test::TempFile path2(".pdb");
+    io::detail::pdb::write(protein, path2);
+    protein = io::detail::pdb::read(path2);
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.
@@ -132,20 +130,23 @@ TEST_CASE("PDBWriter: writing multifile pdb") {
     }
 
     Molecule protein({{atoms, waters}});
-    protein.save("temp/tests/io/temp_multifile.pdb");
-    
-    REQUIRE(io::File("temp/tests/io/temp_multifile_part1.pdb").exists());
-    REQUIRE(io::File("temp/tests/io/temp_multifile_part2.pdb").exists());
+    io::File base("temp/tests/io/temp_multifile_" + test::detail::unique_tag() + ".pdb");
+    protein.save(base);
+
+    io::File part1 = io::File(base).append("_part1");
+    io::File part2 = io::File(base).append("_part2");
+    REQUIRE(part1.exists());
+    REQUIRE(part2.exists());
 
     // first file
-    Molecule protein2("temp/tests/io/temp_multifile_part1.pdb");
+    Molecule protein2(part1);
     REQUIRE(protein2.get_body(0).size_atom() == 100000);
 
-    Molecule protein3("temp/tests/io/temp_multifile_part2.pdb");
+    Molecule protein3(part2);
     REQUIRE(protein3.get_body(0).size_atom() == 1000);
     REQUIRE(protein3.size_water() == 100);
 
-    Molecule protein4("temp/tests/io/temp_multifile.pdb");
+    Molecule protein4(base);
     REQUIRE(protein.size_body() == protein4.size_body());
     for (unsigned int i = 0; i < protein.get_bodies().size(); ++i) {
         if (!protein.get_body(i).equals_content(protein4.get_body(i))) {
@@ -209,8 +210,9 @@ TEST_CASE("PDBStructure: save") {
     settings::general::verbose = false;
 
     auto protein = io::detail::pdb::read("tests/files/2epe.pdb");
-    io::detail::pdb::write(protein, "temp/io/pdb_structure_save.pdb");
-    auto protein2 = io::detail::pdb::read("temp/io/pdb_structure_save.pdb");
+    test::TempFile path(".pdb");
+    io::detail::pdb::write(protein, path);
+    auto protein2 = io::detail::pdb::read(path);
     auto atoms1 = protein.atoms;
     auto atoms2 = protein2.atoms;
 

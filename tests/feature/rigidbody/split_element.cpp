@@ -25,7 +25,6 @@
 #include <hist/hist_test_helper.h>
 
 #include <algorithm>
-#include <fstream>
 #include <random>
 
 using namespace ausaxs;
@@ -34,13 +33,7 @@ using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
     std::unique_ptr<Sequencer> parse(const std::string& content) {
-        static int counter = 0;
-        std::string path = "/tmp/ausaxs_split_element_test_" + std::to_string(counter++) + ".conf";
-        std::ofstream f(path);
-        f << content;
-        f.close();
-        SequenceParser parser;
-        return parser.parse_file(path);
+        return SequenceParser().parse_text(content);
     }
 
     // Load 2epe as a single body, optionally applying `symmetry_name` to it (empty = none), then run `extra` script lines (e.g. a split).

@@ -4,6 +4,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <dataset/NamedDataset.h>
 
+#include <support/temp_file.h>
+
 using namespace ausaxs;
 
 TEST_CASE("NamedDataset::NamedDataset") {
@@ -156,9 +158,8 @@ TEST_CASE("NamedDataset::save") {
     NamedDataset named(std::move(d), {"x", "y", "z"});
 
     SECTION("save to file") {
-        io::File path("/tmp/named_dataset_test.dat");
+        test::TempFile path(".dat");
         named.save(path, "# Test header");
         CHECK(path.exists());
-        std::remove(path.str().c_str());
     }
 }

@@ -8,25 +8,21 @@
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 
-#include <fstream>
+#include <support/temp_file.h>
 
 using namespace ausaxs;
 
 TEST_CASE("DATReader::construct") {
     settings::general::verbose = false;
-    io::File test_file = "temp/tests/dataset/dat_test.dat";
-    test_file.directory().create();
 
     SECTION("simple contents") {
-        std::string test_file_contents = 
+        std::string test_file_contents =
             "x y z\n"
             "0.1 1 10\n"
             "0.2 2 20\n"
             "0.3 3 30\n";
 
-        std::ofstream file(test_file);
-        file << test_file_contents;
-        file.close();
+        test::TempFile test_file(".dat", test_file_contents);
 
         // default M
         auto data = detail::DATReader().construct(test_file, 0);
@@ -66,9 +62,7 @@ TEST_CASE("DATReader::construct") {
             "0.4 4 40 400\n";
 
         {
-            std::ofstream file(test_file);
-            file << test_file_contents;
-            file.close();
+            test::TempFile test_file(".dat", test_file_contents);
 
             // default M
             auto data = detail::DATReader().construct(test_file, 0);
@@ -118,8 +112,9 @@ TEST_CASE("DATReader: different unit") {
     SECTION("specified in file") {
         settings::axes::qmax = 1;
 
-        dataset.save(          "temp/tests/dataset/save.dat", "[nm]");
-        Dataset loaded_dataset("temp/tests/dataset/save.dat");
+        test::TempFile path(".dat");
+        dataset.save(path, "[nm]");
+        Dataset loaded_dataset(path);
         REQUIRE(loaded_dataset.size() == dataset.size());
         for (unsigned int i = 0; i < dataset.size(); i++) {
             REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
@@ -129,8 +124,9 @@ TEST_CASE("DATReader: different unit") {
 
     SECTION("specified by setting") {
         settings::general::input_q_unit = settings::general::QUnit::NM;
-        dataset.save(          "temp/tests/dataset/save.dat");
-        Dataset loaded_dataset("temp/tests/dataset/save.dat");
+        test::TempFile path(".dat");
+        dataset.save(path);
+        Dataset loaded_dataset(path);
         REQUIRE(loaded_dataset.size() == dataset.size());
         for (unsigned int i = 0; i < dataset.size(); i++) {
             REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
@@ -149,20 +145,16 @@ auto vec_approx = [](const auto& v1, const auto& v2) {
 
 TEST_CASE("XVGReader::construct") {
     settings::general::verbose = false;
-    io::File test_file = "temp/tests/dataset/xvg_test.dat";
-    test_file.directory().create();
 
     SECTION("simple contents") {
-        std::string test_file_contents = 
+        std::string test_file_contents =
             "x y z\n"
             "0.1 1 10\n"
             "0.2 2 20\n"
             "0.3 3 30\n";
 
         {
-            std::ofstream file(test_file);
-            file << test_file_contents;
-            file.close();
+            test::TempFile test_file(".dat", test_file_contents);
 
             // default M
             auto data = detail::XVGReader().construct(test_file, 0);
@@ -203,9 +195,7 @@ TEST_CASE("XVGReader::construct") {
             "0.4 4 40 400\n";
 
         {
-            std::ofstream file(test_file);
-            file << test_file_contents;
-            file.close();
+            test::TempFile test_file(".dat", test_file_contents);
 
             // default M
             auto data = detail::XVGReader().construct(test_file, 0);

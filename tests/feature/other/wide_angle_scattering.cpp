@@ -8,6 +8,8 @@
 
 #include "hist/hist_test_helper.h"
 
+#include <support/temp_file.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 

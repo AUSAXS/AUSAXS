@@ -6,15 +6,20 @@
 #include <constants/ConstantsAxes.h>
 #include <settings/All.h>
 
+#include <support/temp_file.h>
+
 using namespace ausaxs;
 
 TEST_CASE("settings") {
     SECTION("write_settings") {
-        settings::write("temp/settings/settings.txt");
+        test::TempFile path(".txt");
+        settings::write(path);
     }
 
     SECTION("read_settings") {
-        settings::read("temp/settings/settings.txt");
+        test::TempFile path(".txt");
+        settings::write(path);
+        settings::read(path);
     }
 }
 

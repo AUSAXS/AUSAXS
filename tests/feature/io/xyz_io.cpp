@@ -4,14 +4,14 @@
 #include <io/detail/structure/XYZReader.h>
 #include <constants/Constants.h>
 
+#include <support/temp_file.h>
+
 using namespace ausaxs;
 using namespace data;
 
 TEST_CASE("XYZReader::read") {
     SECTION("simple") {
-        // Create a temporary XYZ file
-        io::File tmp("temp/tests/io/temp.xyz");
-        tmp.create(
+        test::TempFile tmp(".xyz",
             "3\n"
             "Comment line\n"
             "H 0.0 0.0 0.0\n"

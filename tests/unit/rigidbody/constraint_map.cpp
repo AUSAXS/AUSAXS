@@ -58,7 +58,7 @@ TEST_CASE("ConstraintManager: the per-body map covers bodies added after constru
 TEST_CASE("ConstraintManager: an unconstrained split optimizes without tripping the per-body map", "[files]") {
     common_settings();
 
-    test::TempFile config("ausaxs_constraint_map_test", ".conf",
+    test::TempFile config(".conf",
         "load {\n"
         "    pdb tests/files/LAR1-4.pdb\n"
         "    saxs tests/files/LAR1-2.dat\n"

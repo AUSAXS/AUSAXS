@@ -4,14 +4,15 @@
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
 
+#include <support/temp_file.h>
+
 #include <fstream>
 
 using namespace ausaxs;
 
 TEST_CASE("Curl::download") {
     settings::general::verbose = false;
-    io::File file("temp/test/curl/LYS.cif");
-    file.create();
+    test::TempFile file(".cif");
     curl::download("https://files.rcsb.org/ligands/view/LYS.cif", file);
     CHECK(file.exists());
 

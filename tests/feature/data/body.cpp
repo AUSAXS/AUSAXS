@@ -13,6 +13,8 @@
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <io/Writer.h>
 
+#include <support/temp_file.h>
+
 #include <vector>
 #include <numbers>
 
@@ -107,15 +109,14 @@ TEST_CASE("Body::save") {
         AtomFF({ 1, -1,  1}, form_factor::form_factor_t::O), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)
     };
     Body body(a);
-    io::Writer::write({body}, "temp/body_io.pdb");
-    Body body2("temp/body_io.pdb");
+    test::TempFile path(".pdb");
+    io::Writer::write({body}, path);
+    Body body2(path);
 
     CHECK(body.size_atom() == body2.size_atom());
     for (unsigned int i = 0; i < body.size_atom(); i++) {
         CHECK(body.get_atom(i) == body2.get_atom(i));
     }
-
-    std::remove("temp/body_io.pdb");
 }
 
 TEST_CASE_METHOD(fixture, "Body::translate") {

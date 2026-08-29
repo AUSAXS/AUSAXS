@@ -8,7 +8,8 @@
 #include <io/ExistingFile.h>
 #include <settings/GeneralSettings.h>
 
-#include <fstream>
+#include <support/temp_file.h>
+
 #include <numbers>
 
 using namespace ausaxs;
@@ -38,7 +39,7 @@ TEST_CASE("Dataset::save") {
         std::vector<double>{1,    2,    3,    4,    5,    6,    7,    8,    9,    10}
     });
 
-    std::string path = "temp/tests/dataset/dataset_save.dat";
+    test::TempFile path(".dat");
     dataset.save(path);
     Dataset loaded_dataset(path);
     CHECK(dataset == loaded_dataset);
@@ -240,7 +241,7 @@ TEST_CASE_METHOD(fixture, "Dataset::limit_x") {
     }
 }
 
-std::string generate_SASDJG5_dataset();
+test::TempFile generate_SASDJG5_dataset();
 TEST_CASE("Dataset::find_minima") {
     settings::general::verbose = false;
     SECTION("simple") {
@@ -357,12 +358,8 @@ TEST_CASE("Dataset::find_maxima") {
     }
 }
 
-std::string generate_SASDJG5_dataset() {
-    io::File file("temp/tests/dataset/SASDJG5.dat");
-    if (file.exists()) {return file;}
-    file.create();
-
-    std::string data = 
+test::TempFile generate_SASDJG5_dataset() {
+    std::string data =
     "1.54196666e-03   7.54563335e+03   0.00000000e+00\n" 
     "1.79474393e-03   7.36448607e+03   0.00000000e+00\n" 
     "2.04752120e-03   7.26108566e+03   0.00000000e+00\n" 
@@ -445,8 +442,5 @@ std::string generate_SASDJG5_dataset() {
     "2.20169256e-02   2.36571727e+04   0.00000000e+00\n" 
     "2.32808119e-02   2.41054892e+04   0.00000000e+00\n";
 
-    std::ofstream out(file);
-    out << data;
-    out.close();
-    return file;
+    return test::TempFile(".dat", data);
 }

@@ -7,6 +7,8 @@
 #include <settings/GeneralSettings.h>
 #include <plots/All.h>
 
+#include <support/temp_file.h>
+
 using namespace ausaxs;
 
 TEST_CASE("fitreporter", "[manual]") {
@@ -22,7 +24,7 @@ TEST_CASE("fitreporter", "[manual]") {
             fitter::FitReporter::report(&fit);
         }
         SECTION("File printing") {
-            fitter::FitReporter::save(&fit, "temp/fitreport1.txt");
+            fitter::FitReporter::save(&fit, test::TempFile(".txt"));
         }
     }
 
@@ -41,7 +43,7 @@ TEST_CASE("fitreporter", "[manual]") {
             fitter::FitReporter::report(fits, titles);   
         }
         SECTION("File printing") {
-            fitter::FitReporter::save(fits, "temp/fitreport2.txt", titles);
+            fitter::FitReporter::save(fits, test::TempFile(".txt"), titles);
         }
     }
 }
