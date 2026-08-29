@@ -28,6 +28,18 @@ add_plot_scripts_to_target(em_fitter)
 add_plot_scripts_to_target(rigidbody_optimizer)
 add_plot_scripts_to_target(ausaxs)
 
+if (GPU)
+	# compares the GPU histogram kernel against the CPU one
+	add_executable(gpu_debug "gpu_debug.cpp")
+	target_link_libraries(gpu_debug PRIVATE ausaxs_core ausaxs_api ausaxs_math ausaxs_em ausaxs_rigidbody)
+	target_copy_webgpu_binaries(gpu_debug)
+
+	target_copy_webgpu_binaries(saxs_fitter)
+	target_copy_webgpu_binaries(em_fitter)
+	target_copy_webgpu_binaries(rigidbody_optimizer)
+	target_copy_webgpu_binaries(ausaxs)
+endif()
+
 if (GUI)
 	add_subdirectory(gui)
 endif()

@@ -92,7 +92,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     propagate_reference_symmetry_modifications(externally_modified, internally_modified, symmetry_modified);
 
     auto pool = utility::multi_threading::get_global_pool();
-    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>();
+    auto calculator = distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::create();
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -168,7 +168,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
 
     // prepare a list of tasks to be run after the calculations are done
     // this way we avoid having to maintain two identical but separate loops for calculations and combining
-    using res_t = distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::run_result;
+    using res_t = distance_calculator::SimpleKernel<weighted_bins, variable_bin_width>::run_result;
     std::list<std::function<void()>> combine_tasks;
     res_t res; // placeholder for future results
 

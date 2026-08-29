@@ -17,6 +17,7 @@ std::string settings::general::output = "output/";
 bool settings::general::keep_hydrogens = false;
 bool settings::general::supplementary_plots = true;
 bool settings::general::generate_plots = true;
+bool settings::general::gpu = false;
 settings::general::QUnit settings::general::input_q_unit = settings::general::QUnit::A;
 
 std::string settings::general::cache = [] () {
@@ -59,7 +60,8 @@ namespace ausaxs::settings::io {
         settings::io::create(general::keep_hydrogens, {"keep_hydrogens"}),
         settings::io::create(general::supplementary_plots, {"supplementary_plots"}),
         settings::io::create(general::input_q_unit, {"unit"}),
-        settings::io::create(general::offline, {"offline"})
+        settings::io::create(general::offline, {"offline"}),
+        settings::io::create(general::gpu, {"gpu"})
     });
 }
 
