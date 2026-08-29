@@ -14,6 +14,7 @@
 #include <utility/Logging.h>
 
 #include <cassert>
+#include <ranges>
 
 using namespace ausaxs;
 using namespace ausaxs::hist::detail;
@@ -46,18 +47,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
     auto[data, data_w] = generate_transformed_data<variable_bin_width>(*protein);
 
-    unsigned int bin_count = [&data, &data_w] {
-        bin_estimate::extent_state extent;
-        for (const auto& body : data) {bin_estimate::accumulate_bounds(extent, body.atomic);}
-        bin_estimate::accumulate_bounds(extent, data_w);
-
-        auto centre = bin_estimate::centroid(extent);
-        double r2_max = 0;
-        for (const auto& body : data) {bin_estimate::accumulate_radius(r2_max, centre, body.atomic);}
-        bin_estimate::accumulate_radius(r2_max, centre, data_w);
-
-        return bin_estimate::bin_count_from_distance<variable_bin_width>(bin_estimate::max_distance(extent, r2_max));
-    }();
+    // the per-body data is a struct rather than a range, so project out the coordinate sets for the estimator
+    auto atomic = data | std::views::transform([] (const auto& body) -> const auto& {return body.atomic;});
+    unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(atomic, data_w);
 
     hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_count);
 

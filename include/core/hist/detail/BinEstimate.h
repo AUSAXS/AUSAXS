@@ -8,10 +8,9 @@
 #include <settings/Flags.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Console.h>
-#include <utility/Exceptions.h>
 
 #include <algorithm>
-#include <array>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <limits>
@@ -23,16 +22,34 @@ namespace ausaxs::hist::detail {
         constexpr unsigned int min_bin_count = 10; // minimum number of bins for all returned histograms
         constexpr unsigned int headroom = 2;       // extra bins on top of the geometric bound
 
-        /**
-         * @brief A set of coordinates that can be scanned directly.
-         */
+        // a set of coordinates that can be indexed directly
         template<typename T>
-        concept CoordinateSet = requires(const T& t) {
-            t.size();
-            t[0].value.pos;
-        };
+        concept CoordinateSet = requires(const T& t) {t.size(); t[0].value.pos;};
 
-        struct extent_state {
+        // invoke f(x, y, z) for every point in the set
+        template<typename F, CoordinateSet Coords>
+        void for_each_point(F& f, const Coords& coords) {
+            std::size_t size = coords.size();
+            for (std::size_t i = 0; i < size; ++i) {
+                const auto& p = coords[i].value.pos;
+                f(static_cast<double>(p.x()), static_cast<double>(p.y()), static_cast<double>(p.z()));
+            }
+        }
+
+        // a container of sets - possibly nested, as in the per-body symmetry data
+        template<typename F, std::ranges::input_range Range> requires (!CoordinateSet<Range>)
+        void for_each_point(F& f, const Range& sets) {
+            for (const auto& set : sets) {for_each_point(f, set);}
+        }
+
+        /**
+         * @brief A strict upper bound on the maximum distance between any two of the given points.
+         *
+         * Two independent O(N) bounds are evaluated and the tighter one is returned: the diagonal of the bounding box, which is tight for 
+         * elongated structures, and twice the largest distance from the box centre to any point, which is tight for globular ones. 
+         */
+        template<typename... Sets>
+        double max_distance(const Sets&... sets) {
             double lo[3] = {
                 std::numeric_limits<double>::max(),
                 std::numeric_limits<double>::max(),
@@ -43,93 +60,26 @@ namespace ausaxs::hist::detail {
                 std::numeric_limits<double>::lowest(),
                 std::numeric_limits<double>::lowest()
             };
-            double sum[3] = {0, 0, 0};
-            std::size_t n = 0;
-        };
-
-        // first pass: axis-aligned bounding box and centroid
-        template<CoordinateSet Coords>
-        void accumulate_bounds(extent_state& s, const Coords& coords) {
-            std::size_t size = coords.size();
-            for (std::size_t i = 0; i < size; ++i) {
-                const auto& p = coords[i].value.pos;
-                const double xyz[3] = {
-                    static_cast<double>(p.x()), static_cast<double>(p.y()), static_cast<double>(p.z())
-                };
+            auto expand = [&lo, &hi] (double x, double y, double z) {
+                const double p[3] = {x, y, z};
                 for (int k = 0; k < 3; ++k) {
-                    s.lo[k] = std::min(s.lo[k], xyz[k]);
-                    s.hi[k] = std::max(s.hi[k], xyz[k]);
-                    s.sum[k] += xyz[k];
+                    lo[k] = std::min(lo[k], p[k]);
+                    hi[k] = std::max(hi[k], p[k]);
                 }
-            }
-            s.n += size;
-        }
-
-        // a container of coordinate sets - possibly nested, as in the per-body symmetry data
-        template<std::ranges::input_range Range> requires (!CoordinateSet<Range>)
-        void accumulate_bounds(extent_state& s, const Range& sets) {
-            for (const auto& set : sets) {accumulate_bounds(s, set);}
-        }
-
-        /**
-         * @brief The centroid of everything accumulated so far.
-         */
-        inline std::array<double, 3> centroid(const extent_state& s) {
-            assert(s.n != 0);
-            return {
-                s.sum[0]/static_cast<double>(s.n),
-                s.sum[1]/static_cast<double>(s.n),
-                s.sum[2]/static_cast<double>(s.n)
             };
-        }
+            (for_each_point(expand, sets), ...);
+            if (hi[0] < lo[0]) {return 0;} // no points were seen
 
-        // second pass: largest squared distance from the centroid
-        template<CoordinateSet Coords>
-        void accumulate_radius(double& r2_max, const std::array<double, 3>& centre, const Coords& coords) {
-            std::size_t size = coords.size();
-            for (std::size_t i = 0; i < size; ++i) {
-                const auto& p = coords[i].value.pos;
-                double dx = static_cast<double>(p.x()) - centre[0];
-                double dy = static_cast<double>(p.y()) - centre[1];
-                double dz = static_cast<double>(p.z()) - centre[2];
+            const double centre[3] = {(lo[0]+hi[0])/2, (lo[1]+hi[1])/2, (lo[2]+hi[2])/2};
+            double r2_max = 0;
+            auto radius = [&r2_max, &centre] (double x, double y, double z) {
+                double dx = x-centre[0], dy = y-centre[1], dz = z-centre[2];
                 r2_max = std::max(r2_max, dx*dx + dy*dy + dz*dz);
-            }
-        }
+            };
+            (for_each_point(radius, sets), ...);
 
-        template<std::ranges::input_range Range> requires (!CoordinateSet<Range>)
-        void accumulate_radius(double& r2_max, const std::array<double, 3>& centre, const Range& sets) {
-            for (const auto& set : sets) {accumulate_radius(r2_max, centre, set);}
-        }
-
-        /**
-         * @brief Combine the two passes into a strict upper bound on the maximum pairwise distance.
-         *
-         * @param s        The bounding box and centroid, from accumulate_bounds.
-         * @param r2_max   The largest squared distance from that centroid, from accumulate_radius.
-         */
-        inline double max_distance(const extent_state& s, double r2_max) {
-            assert(s.n != 0 && "Cannot determine the maximum atomic distance of an empty list.");
-            double dx = s.hi[0] - s.lo[0], dy = s.hi[1] - s.lo[1], dz = s.hi[2] - s.lo[2];
-            double d_box = std::sqrt(dx*dx + dy*dy + dz*dz);
-            double d_sphere = 2*std::sqrt(r2_max);
-            return std::min(d_box, d_sphere);
-        }
-
-        /**
-         * @brief Convert an upper bound on the maximum distance into a bin count.
-         */
-        inline unsigned int bin_count_from_distance(double d_max, double inv_bin_width) {
-            double bins = std::ceil(d_max*inv_bin_width) + headroom;
-            assert(std::isfinite(bins) && 0 < bins && "Determined bin count is not finite."); 
-            return std::max<unsigned int>(static_cast<unsigned int>(bins), min_bin_count);
-        }
-
-        /**
-         * @brief As above, picking up the bin width the calculators will actually use.
-         */
-        template<bool variable_bin_width>
-        unsigned int bin_count_from_distance(double d_max) {
-            return bin_count_from_distance(d_max, static_cast<double>(WidthController<variable_bin_width>::get_inv_width()));
+            double dx = hi[0]-lo[0], dy = hi[1]-lo[1], dz = hi[2]-lo[2];
+            return std::min(std::sqrt(dx*dx + dy*dy + dz*dz), 2*std::sqrt(r2_max));
         }
 
         /**
@@ -154,49 +104,14 @@ namespace ausaxs::hist::detail {
     }
 
     /**
-     * @brief Compute a strict upper bound on the maximum distance between any two points in the given coordinate sets.
-     *
-     * Two independent O(N) bounds are evaluated and the tighter one is returned:
-     *  - the diagonal of the axis-aligned bounding box enclosing every point, and
-     *  - twice the largest distance from the centroid to any point.
-     * The first is tight for elongated structures, the second for globular ones.
-     *
-     * @param coords Any number of coordinate sets, or (possibly nested) containers of them.
+     * @brief The number of distance bins required to histogram every pairwise distance within the given sets, as a strict upper bound.
+     * @param sets Any number of coordinate sets, or (possibly nested) containers of them.
      */
-    template<typename... Coords>
-    double estimate_max_distance(const Coords&... coords) {
-        bin_estimate::extent_state s;
-        (bin_estimate::accumulate_bounds(s, coords), ...);
-        if (s.n == 0) {return 0;}
-
-        auto centre = bin_estimate::centroid(s);
-        double r2_max = 0;
-        (bin_estimate::accumulate_radius(r2_max, centre, coords), ...);
-        return bin_estimate::max_distance(s, r2_max);
-    }
-
-    /**
-     * @brief Compute the number of distance bins required to histogram every pairwise distance
-     *        within the given coordinate sets, as a strict upper bound.
-     *
-     * Because it is an upper bound, every bin above the true maximum distance is zero, so the
-     * trim-to-last-non-zero step the managers already perform yields an identical histogram to
-     * one computed over a larger allocation.
-     *
-     * @param inv_bin_width The reciprocal bin width the calculators will use.
-     */
-    template<typename... Coords>
-    unsigned int estimate_bin_count(double inv_bin_width, const Coords&... coords) {
-        return bin_estimate::bin_count_from_distance(estimate_max_distance(coords...), inv_bin_width);
-    }
-
-    /**
-     * @brief Convenience overload picking up the bin width the calculators will actually use.
-     *
-     * @tparam variable_bin_width The same flag the manager and its coordinate sets are templated on.
-     */
-    template<bool variable_bin_width, typename... Coords>
-    unsigned int required_bin_count(const Coords&... coords) {
-        return estimate_bin_count(static_cast<double>(WidthController<variable_bin_width>::get_inv_width()), coords...);
+    template<bool variable_bin_width, typename... Sets>
+    unsigned int required_bin_count(const Sets&... sets) {
+        double inv_bin_width = static_cast<double>(WidthController<variable_bin_width>::get_inv_width());
+        double bins = std::ceil(bin_estimate::max_distance(sets...)*inv_bin_width) + bin_estimate::headroom;
+        assert(std::isfinite(bins) && 0 < bins && "Determined bin count is not finite.");
+        return std::max<unsigned int>(static_cast<unsigned int>(bins), bin_estimate::min_bin_count);
     }
 }
