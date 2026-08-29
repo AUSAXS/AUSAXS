@@ -6,6 +6,7 @@
 #include <hist/distance_calculator/SimpleKernel.h>
 #include <hist/distance_calculator/SimpleCPU.h>
 #include <settings/GeneralSettings.h>
+#include <utility/Console.h>
 
 #ifdef AUSAXS_GPU
     #include <gpu/WebGPUSimple.h>
@@ -23,11 +24,20 @@ namespace ausaxs::hist::distance_calculator {
     template<bool weighted_bins, bool variable_bin_width>
     struct SimpleCalculator {
         static std::unique_ptr<SimpleKernel<weighted_bins, variable_bin_width>> create() {
-            #ifdef AUSAXS_GPU
-                if (settings::general::gpu) {
+            if (settings::general::gpu) {
+                #ifdef AUSAXS_GPU
                     return std::make_unique<WebGPUSimple<weighted_bins, variable_bin_width>>();
-                }
-            #endif
+                #else
+                    static bool warned = false;
+                    if (!warned) {
+                        warned = true;
+                        console::print_warning(
+                            "settings::general::gpu: this build has no GPU support; using the CPU. "
+                            "Configure with -DGPU=ON to enable it."
+                        );
+                    }
+                #endif
+            }
             return std::make_unique<SimpleCPU<weighted_bins, variable_bin_width>>();
         }
     };

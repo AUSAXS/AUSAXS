@@ -99,6 +99,41 @@ namespace {
         print("self", compare<weighted_bins>(cpu_result.self.at(0), gpu_result.self.at(0)));
         print("cross", compare<weighted_bins>(cpu_result.cross.at(0), gpu_result.cross.at(0)));
     }
+
+    // the same comparison one level up: the scattering profile as the histogram manager produces it,
+    // which is what settings::general::gpu switches for the rest of the library
+    void run_manager(const data::Molecule& molecule) {
+        auto profile = [&molecule] (bool gpu) {
+            settings::general::gpu = gpu;
+            auto start = std::chrono::steady_clock::now();
+            auto intensity = molecule.get_total_histogram()->debye_transform();
+            auto end = std::chrono::steady_clock::now();
+            return std::make_pair(std::move(intensity), std::chrono::duration<double, std::milli>(end - start).count());
+        };
+
+        auto [cpu_intensity, cpu_ms] = profile(false);
+        auto [gpu_intensity, gpu_ms] = profile(true);
+        settings::general::gpu = false;
+
+        double max_relative = 0;
+        int max_relative_index = -1;
+        for (int i = 0; i < static_cast<int>(cpu_intensity.size()); ++i) {
+            double c = cpu_intensity.get_counts()[i];
+            double g = gpu_intensity.get_counts()[i];
+            if (c == 0) {continue;}
+            if (double relative = std::abs(c - g)/std::abs(c); relative > max_relative) {
+                max_relative = relative;
+                max_relative_index = i;
+            }
+        }
+
+        std::cout << "scattering profile through the histogram manager" << std::endl;
+        std::cout << "    cpu: " << std::fixed << std::setprecision(1) << cpu_ms << " ms"
+                  << "  gpu: " << gpu_ms << " ms"
+                  << "  speedup: " << std::setprecision(2) << (gpu_ms == 0 ? 0 : cpu_ms/gpu_ms) << "x" << std::endl;
+        std::cout << "    worst q-point " << max_relative_index << ": "
+                  << std::scientific << std::setprecision(3) << max_relative << " relative" << std::endl;
+    }
 }
 
 int main(int argc, char const *argv[]) {
@@ -110,5 +145,6 @@ int main(int argc, char const *argv[]) {
 
     run<false>(molecule);
     run<true>(molecule);
+    run_manager(molecule);
     return 0;
 }
