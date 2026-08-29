@@ -26,6 +26,7 @@ namespace {
         double worst_bin_content = 0;
         double cpu_total = 0, gpu_total = 0;
         double absolute_total = 0; // summed bin-by-bin deviation, to catch contributions moving between bins
+        double peak_bin = 0;       // largest single bin, to judge the headroom of the fixed-point range
     };
 
     template<bool weighted_bins>
@@ -41,6 +42,7 @@ namespace {
             result.gpu_total += g;
 
             double absolute = std::abs(c - g);
+            result.peak_bin = std::max(result.peak_bin, std::abs(c));
             result.max_absolute = std::max(result.max_absolute, absolute);
             result.absolute_total += absolute;
             if (c != 0) {
@@ -61,7 +63,8 @@ namespace {
                   << " (deviation " << std::abs(c.cpu_total - c.gpu_total)/std::abs(c.cpu_total)
                   << ", summed per-bin deviation " << c.absolute_total/std::abs(c.cpu_total) << ")" << std::endl;
         std::cout << "           worst bin " << c.max_relative_bin << ": " << c.max_relative
-                  << " relative, " << c.max_absolute << " of " << c.worst_bin_content << std::endl;
+                  << " relative, " << c.max_absolute << " of " << c.worst_bin_content
+                  << "; peak bin " << c.peak_bin << std::endl;
     }
 
     template<bool weighted_bins>
@@ -93,9 +96,12 @@ namespace {
             return calculator.run();
         });
 
+        double pairs = 0.5*atoms.size()*(atoms.size() - 1) + static_cast<double>(atoms.size())*waters.size();
         std::cout << "    cpu: " << std::fixed << std::setprecision(1) << cpu_ms << " ms"
                   << "  gpu: " << gpu_ms << " ms"
-                  << "  speedup: " << std::setprecision(2) << (gpu_ms == 0 ? 0 : cpu_ms/gpu_ms) << "x" << std::endl;
+                  << "  speedup: " << std::setprecision(2) << (gpu_ms == 0 ? 0 : cpu_ms/gpu_ms) << "x"
+                  << "  (" << std::setprecision(1) << 1e-6*pairs/cpu_ms << " vs " << 1e-6*pairs/gpu_ms
+                  << " Gpair/s over " << settings::general::threads << " threads)" << std::endl;
         print("self", compare<weighted_bins>(cpu_result.self.at(0), gpu_result.self.at(0)));
         print("cross", compare<weighted_bins>(cpu_result.cross.at(0), gpu_result.cross.at(0)));
     }
@@ -140,8 +146,18 @@ int main(int argc, char const *argv[]) {
     std::string file = argc > 1 ? argv[1] : "tests/files/2epe.pdb";
     settings::general::verbose = false;
 
+    // the thread pool is created on first use, so the count can only be set here, before anything runs
+    if (argc > 2) {settings::general::threads = std::stoi(argv[2]);}
+
     data::Molecule molecule(file);
-    molecule.generate_new_hydration();
+    {   // the hydration shell is regenerated before every histogram evaluation in a rigidbody run,
+        // so its cost bounds what overlapping it with the GPU calculation could save
+        auto start = std::chrono::steady_clock::now();
+        molecule.generate_new_hydration();
+        auto end = std::chrono::steady_clock::now();
+        std::cout << "hydration shell: " << std::fixed << std::setprecision(1)
+                  << std::chrono::duration<double, std::milli>(end - start).count() << " ms" << std::endl;
+    }
 
     run<false>(molecule);
     run<true>(molecule);
