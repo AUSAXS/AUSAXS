@@ -16,6 +16,8 @@
 
 #include "hist/hist_test_helper.h"
 
+#include <support/temp_file.h>
+
 #include <fstream>
 
 using namespace ausaxs;
@@ -226,18 +228,19 @@ TEST_CASE("ImageStackBase::read") {
         header->ny = 3;
         header->nz = 3;
 
+        test::TempFile test_file(".ccp4");
         auto save_test_file = [&] (int mapc, int mapr, int maps) {
             header->mapc = mapc;
             header->mapr = mapr;
             header->maps = maps;
 
-            std::vector<Matrix<float>> data = 
+            std::vector<Matrix<float>> data =
             {   {{1, 2, 3},    {4, 5, 6},    {7, 8, 9}},
                 {{10, 11, 12}, {13, 14, 15}, {16, 17, 18}},
                 {{19, 20, 21}, {22, 23, 24}, {25, 26, 27}}
             };
 
-            std::ofstream output("tests/files/test.ccp4", std::ios::binary);
+            std::ofstream output(test_file, std::ios::binary);
             output.write(reinterpret_cast<char*>(header), sizeof(*header));
             for (auto& m : data) {
                 for (auto& v : m) {
@@ -248,7 +251,7 @@ TEST_CASE("ImageStackBase::read") {
 
         // x = 1, y = 2, z = 3
         save_test_file(1, 2, 3);
-        em::ImageStackBase isb1("tests/files/test.ccp4");
+        em::ImageStackBase isb1(test_file);
         REQUIRE(isb1.size() == 3);
         {
             REQUIRE(isb1.image(0).index(0, 0) == 1);
@@ -287,7 +290,7 @@ TEST_CASE("ImageStackBase::read") {
 
         // x = 2, y = 1, z = 3
         save_test_file(2, 1, 3);
-        em::ImageStackBase isb2("tests/files/test.ccp4");
+        em::ImageStackBase isb2(test_file);
         REQUIRE(isb2.size() == 3);
         {
             REQUIRE(isb2.image(0).index(0, 0) == 1);
@@ -326,7 +329,7 @@ TEST_CASE("ImageStackBase::read") {
 
         // x = 3, y = 1, z = 2
         save_test_file(3, 1, 2);
-        em::ImageStackBase isb3("tests/files/test.ccp4");
+        em::ImageStackBase isb3(test_file);
         REQUIRE(isb3.size() == 3);
         {
             REQUIRE(isb3.image(0).index(0, 0) == 1);
@@ -365,7 +368,7 @@ TEST_CASE("ImageStackBase::read") {
 
         // x = 3, y = 2, z = 1
         save_test_file(3, 2, 1);
-        em::ImageStackBase isb4("tests/files/test.ccp4");
+        em::ImageStackBase isb4(test_file);
         REQUIRE(isb4.size() == 3);
         {
             REQUIRE(isb4.image(0).index(0, 0) == 1);

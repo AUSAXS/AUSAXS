@@ -10,9 +10,10 @@
 #include <residue/detail/Residue.h>
 #include <constants/Constants.h>
 
+#include <support/temp_file.h>
+
 #include <vector>
 #include <string>
-#include <fstream>
 #include <iostream>
 
 using namespace ausaxs;
@@ -22,39 +23,36 @@ TEST_CASE("CIFReader::read") {
     settings::molecule::center = false;
     settings::general::verbose = false;
 
-    io::File path("temp/io/temp.cif");
-    path.create();
-
-    std::ofstream cif_file(path);
-    cif_file << "loop_" << std::endl;
-    cif_file << "_atom_site.group_PDB" << std::endl;
-    cif_file << "_atom_site.id" << std::endl;
-    cif_file << "_atom_site.type_symbol" << std::endl;
-    cif_file << "_atom_site.label_atom_id" << std::endl;
-    cif_file << "_atom_site.label_alt_id" << std::endl;
-    cif_file << "_atom_site.label_comp_id" << std::endl;
-    cif_file << "_atom_site.label_asym_id" << std::endl;
-    cif_file << "_atom_site.label_entity_id" << std::endl;
-    cif_file << "_atom_site.label_seq_id" << std::endl;
-    cif_file << "_atom_site.pdbx_PDB_ins_code" << std::endl;
-    cif_file << "_atom_site.Cartn_x" << std::endl;
-    cif_file << "_atom_site.Cartn_y" << std::endl;
-    cif_file << "_atom_site.Cartn_z" << std::endl;
-    cif_file << "_atom_site.occupancy" << std::endl;
-    cif_file << "_atom_site.B_iso_or_equiv" << std::endl;
-    cif_file << "_atom_site.pdbx_formal_charge" << std::endl;
-    cif_file << "_atom_site.auth_seq_id" << std::endl;
-    cif_file << "_atom_site.auth_comp_id" << std::endl;
-    cif_file << "_atom_site.auth_asym_id" << std::endl;
-    cif_file << "_atom_site.auth_atom_id" << std::endl;
-    cif_file << "_atom_site.pdbx_PDB_model_num" << std::endl;
-    cif_file << "_atom_site.calc_flag" << std::endl;
-    cif_file << "ATOM   1    N N   . SER A 1 1   ? -32.928 -5.043  -33.904 0.100 45.216  0 1   SER AAA N   1 ?" << std::endl;
-    cif_file << "ATOM   2    C CA  . SER A 1 1   ? -32.489 -6.122  -32.994 0.200 46.910  0 1   SER AAA CA  1 ?" << std::endl;
-    cif_file << "ATOM   3    C C   . SER A 1 1   ? -30.974 -6.329  -33.145 0.300 46.121  0 1   SER AAA C   1 ?" << std::endl;
-    cif_file << "ATOM   4    O O   . SER A 1 1   ? -30.318 -5.462  -33.746 0.400 50.538  0 1   SER AAA O   1 ?" << std::endl;
-    cif_file << "#" << std::endl;
-    cif_file.close();
+    std::string content =
+        "loop_\n"
+        "_atom_site.group_PDB\n"
+        "_atom_site.id\n"
+        "_atom_site.type_symbol\n"
+        "_atom_site.label_atom_id\n"
+        "_atom_site.label_alt_id\n"
+        "_atom_site.label_comp_id\n"
+        "_atom_site.label_asym_id\n"
+        "_atom_site.label_entity_id\n"
+        "_atom_site.label_seq_id\n"
+        "_atom_site.pdbx_PDB_ins_code\n"
+        "_atom_site.Cartn_x\n"
+        "_atom_site.Cartn_y\n"
+        "_atom_site.Cartn_z\n"
+        "_atom_site.occupancy\n"
+        "_atom_site.B_iso_or_equiv\n"
+        "_atom_site.pdbx_formal_charge\n"
+        "_atom_site.auth_seq_id\n"
+        "_atom_site.auth_comp_id\n"
+        "_atom_site.auth_asym_id\n"
+        "_atom_site.auth_atom_id\n"
+        "_atom_site.pdbx_PDB_model_num\n"
+        "_atom_site.calc_flag\n"
+        "ATOM   1    N N   . SER A 1 1   ? -32.928 -5.043  -33.904 0.100 45.216  0 1   SER AAA N   1 ?\n"
+        "ATOM   2    C CA  . SER A 1 1   ? -32.489 -6.122  -32.994 0.200 46.910  0 1   SER AAA CA  1 ?\n"
+        "ATOM   3    C C   . SER A 1 1   ? -30.974 -6.329  -33.145 0.300 46.121  0 1   SER AAA C   1 ?\n"
+        "ATOM   4    O O   . SER A 1 1   ? -30.318 -5.462  -33.746 0.400 50.538  0 1   SER AAA O   1 ?\n"
+        "#\n";
+    test::TempFile path(".cif", content);
 
     // check CIF io
     auto protein = io::detail::cif::read(path);

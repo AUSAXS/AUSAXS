@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace ausaxs::test {
     namespace detail {
@@ -51,6 +52,29 @@ namespace ausaxs::test {
                 create(contents);
             }
 
-            ~TempFile() override {remove();}
+            /**
+             * @brief Convenience overload for a scratch file with an arbitrary name.
+             * @param extension File extension, including the dot.
+             */
+            explicit TempFile(std::string_view extension) : TempFile("ausaxs_test", extension) {}
+
+            // move-only: a copy would share one path between two owners, and whichever is destroyed first deletes the file out from under the other.
+            TempFile(const TempFile&) = delete;
+            TempFile& operator=(const TempFile&) = delete;
+
+            TempFile(TempFile&& other) noexcept : io::File(std::move(other)), owns(std::exchange(other.owns, false)) {}
+            TempFile& operator=(TempFile&& other) noexcept {
+                if (this != &other) {
+                    if (owns) {remove();}
+                    io::File::operator=(std::move(other));
+                    owns = std::exchange(other.owns, false);
+                }
+                return *this;
+            }
+
+            ~TempFile() override {if (owns) {remove();}}
+
+        private:
+            bool owns = true;
     };
 }

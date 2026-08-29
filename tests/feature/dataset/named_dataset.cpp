@@ -8,6 +8,8 @@
 #include <dataset/Dataset.h>
 #include <io/File.h>
 
+#include <support/temp_file.h>
+
 #include <fstream>
 #include <string>
 
@@ -28,8 +30,8 @@ TEST_CASE("NamedDataset: User-facing file I/O") {
         // user-facing output: wrap with NamedDataset for clarity
         NamedSimpleDataset named_output(std::move(raw_data), {"q", "I(q)", "error"});
 
-        // save with meaningful column names (use build directory for portability)
-        io::File output_path("temp/tests/named_dataset.dat");
+        // save with meaningful column names
+        test::TempFile output_path(".dat");
         named_output.save(output_path, "# SAXS experimental data");
         REQUIRE(output_path.exists());
 

@@ -6,6 +6,8 @@
 #include <dataset/SimpleDataset.h>
 #include <math/Statistics.h>
 
+#include <support/temp_file.h>
+
 using namespace ausaxs;
 
 struct fixture {
@@ -30,7 +32,7 @@ TEST_CASE("SimpleDataset::load") {
             std::vector<double>{1,    2,    3,    4,    5,    6,    7,    8,    9,    10},
             std::vector<double>{1,    1,    1,    1,    1,    1,    1,    1,    1,    1}
         );
-        std::string path = "temp/dataset/save.dat";
+        test::TempFile path(".dat");
         dataset.save(path);
 
         SimpleDataset loaded_dataset(path);
@@ -63,7 +65,7 @@ TEST_CASE("SimpleDataset::save") {
     SECTION("same contents") {
         SimpleDataset data("tests/files/2epe.dat");
         auto data2 = data;
-        data.save("temp/dataset/2epe.dat");
+        data.save(test::TempFile(".dat"));
         REQUIRE(data.size() == data2.size());
         REQUIRE(data.x().size() == data2.x().size());
         REQUIRE(data.y().size() == data2.y().size());
@@ -81,9 +83,10 @@ TEST_CASE("SimpleDataset::save") {
         for (double x = 1.347e-01; x < 1.351e-01; x += 1e-6) {
             data.push_back(x, sin(x));
         }
-        data.save("temp/dataset_io_accuracy.dat");
+        test::TempFile path(".dat");
+        data.save(path);
 
-        SimpleDataset data2("temp/dataset_io_accuracy.dat");
+        SimpleDataset data2(path);
         REQUIRE(data.size() == data2.size());
         for (unsigned int i = 0; i < data.size(); i++) {
             CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(data2.x(i), 1e-6));

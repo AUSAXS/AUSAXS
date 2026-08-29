@@ -8,6 +8,9 @@
 #include <fitter/FitResult.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
+#include <io/Folder.h>
+
+#include <support/temp_file.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -27,8 +30,10 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::SaveElement basic
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
     
     SECTION("Save PDB file - verify no crash") {
-        std::string output_path = "/tmp/ausaxs_test_output/test_save.pdb";
-        
+        io::Folder out_dir("temp/ausaxs_test_output_" + test::detail::unique_tag());
+        out_dir.create();
+        std::string output_path = out_dir.path() + "/test_save.pdb";
+
         REQUIRE_NOTHROW(
             seq
                 .setup()
@@ -47,8 +52,10 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::EveryNStepElement
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
     
     SECTION("Execute every 2 steps - verify no crash") {
-        std::string output_path = "/tmp/ausaxs_test_output/every_n_%.pdb";
-        
+        io::Folder out_dir("temp/ausaxs_test_output_" + test::detail::unique_tag());
+        out_dir.create();
+        std::string output_path = out_dir.path() + "/every_n_%.pdb";
+
         REQUIRE_NOTHROW(
             seq
                 .setup()

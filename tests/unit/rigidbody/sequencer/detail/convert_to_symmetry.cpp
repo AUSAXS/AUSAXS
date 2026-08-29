@@ -19,10 +19,12 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
+#include <support/temp_file.h>
+
 #include <cstdio>
-#include <fstream>
 #include <numbers>
 #include <set>
+#include <sstream>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
@@ -64,12 +66,11 @@ namespace {
     // Write an atom cloud as a single chain. Each atom is its own residue unless `residues` assigns them explicitly, and the atom indices in `omit` are left
     // out entirely - which, since the residue ids stay tied to the atom's index in the reference cloud, is how a chain modelled to a lesser extent than its
     // copies appears in a deposited structure: the retained atoms keep the ids they would have had.
-    void write_pdb(
-        const io::File& path, const std::vector<Vector3<double>>& atoms,
+    test::TempFile write_pdb(
+        const std::vector<Vector3<double>>& atoms,
         const std::vector<int>& residues = {}, const std::set<std::size_t>& omit = {}
     ) {
-        path.create();
-        std::ofstream out(path);
+        std::ostringstream out;
         int serial = 1;
         for (std::size_t i = 0; i < atoms.size(); ++i) {
             if (omit.contains(i)) {continue;}
@@ -81,6 +82,14 @@ namespace {
             ++serial;
         }
         out << "END\n";
+        return test::TempFile(".pdb", out.str());
+    }
+
+    std::vector<std::string> paths_of(const std::vector<test::TempFile>& files) {
+        std::vector<std::string> paths;
+        paths.reserve(files.size());
+        for (const auto& f : files) {paths.push_back(f.str());}
+        return paths;
     }
 }
 
@@ -89,13 +98,11 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a cyclic assembly"
     auto ref = reference_atoms();
     auto chains = c3_assembly();
 
-    std::vector<std::string> files = {
-        "temp/rigidbody/ausaxs_convsym_0.pdb", "temp/rigidbody/ausaxs_convsym_1.pdb", "temp/rigidbody/ausaxs_convsym_2.pdb"
-    };
-    for (std::size_t i = 0; i < files.size(); ++i) {write_pdb(files[i], chains[i]);}
+    std::vector<test::TempFile> files;
+    for (std::size_t i = 0; i < chains.size(); ++i) {files.push_back(write_pdb(chains[i]));}
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(files);
+    seq.setup().load(paths_of(files));
     auto* molecule = seq._get_molecule();
     REQUIRE(molecule->size_body() == 3);
 
@@ -142,14 +149,11 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a composite p2-p2 
         chains.push_back(std::move(chain));
     }
 
-    std::vector<std::string> files;
-    for (int i = 0; i < 4; ++i) {
-        files.push_back("/tmp/ausaxs_convp2_" + std::to_string(i) + ".pdb");
-        write_pdb(files.back(), chains[i]);
-    }
+    std::vector<test::TempFile> files;
+    for (int i = 0; i < 4; ++i) {files.push_back(write_pdb(chains[i]));}
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(files);
+    seq.setup().load(paths_of(files));
     auto* molecule = seq._get_molecule();
     REQUIRE(molecule->size_body() == 4);
 
@@ -176,14 +180,11 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects an assembly that is 
     chains.push_back([&]{ auto c = ref; for (auto& p : c) {p += Vector3<double>{15, 0, 0};} return c; }());
     chains.push_back([&]{ auto c = ref; for (auto& p : c) {p += Vector3<double>{0, 15, 0};} return c; }());
 
-    std::vector<std::string> files;
-    for (int i = 0; i < 3; ++i) {
-        files.push_back("/tmp/ausaxs_convbad_" + std::to_string(i) + ".pdb");
-        write_pdb(files.back(), chains[i]);
-    }
+    std::vector<test::TempFile> files;
+    for (int i = 0; i < 3; ++i) {files.push_back(write_pdb(chains[i]));}
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(files);
+    seq.setup().load(paths_of(files));
     CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3"); }());
 }
 
@@ -193,14 +194,13 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement matches up copies modelled t
     auto chains = c3_assembly();
     const auto& ref = chains[0];
 
-    std::vector<std::string> files;
+    std::vector<test::TempFile> files;
     for (int i = 0; i < 3; ++i) {
-        files.push_back("temp/rigidbody/ausaxs_convgap_" + std::to_string(i) + ".pdb");
-        write_pdb(files.back(), chains[i], {}, i == 0 ? std::set<std::size_t>{} : std::set<std::size_t>{2});
+        files.push_back(write_pdb(chains[i], {}, i == 0 ? std::set<std::size_t>{} : std::set<std::size_t>{2}));
     }
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(files);
+    seq.setup().load(paths_of(files));
     auto* molecule = seq._get_molecule();
     REQUIRE(molecule->size_body() == 3);
     REQUIRE(molecule->get_body(0).size_atom() == ref.size());
@@ -231,14 +231,13 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement drops residues modelled to d
     const auto& ref = chains[0];
     std::vector<int> residues{1, 1, 2, 2, 3, 3};
 
-    std::vector<std::string> files;
+    std::vector<test::TempFile> files;
     for (int i = 0; i < 3; ++i) {
-        files.push_back("temp/rigidbody/ausaxs_convpartial_" + std::to_string(i) + ".pdb");
-        write_pdb(files.back(), chains[i], residues, i == 1 ? std::set<std::size_t>{3} : std::set<std::size_t>{});
+        files.push_back(write_pdb(chains[i], residues, i == 1 ? std::set<std::size_t>{3} : std::set<std::size_t>{}));
     }
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(files);
+    seq.setup().load(paths_of(files));
     auto* molecule = seq._get_molecule();
     REQUIRE(molecule->size_body() == 3);
 
@@ -260,16 +259,15 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects copies that share no
     // a perfect c3 assembly, but with residue numbering that does not agree between the copies, leaving no correspondence to fit on
     auto chains = c3_assembly();
 
-    std::vector<std::string> files;
+    std::vector<test::TempFile> files;
     for (int i = 0; i < 3; ++i) {
-        files.push_back("temp/rigidbody/ausaxs_convdisjoint_" + std::to_string(i) + ".pdb");
         std::vector<int> residues;
         for (std::size_t j = 0; j < chains[i].size(); ++j) {residues.push_back(100*i + static_cast<int>(j) + 1);}
-        write_pdb(files.back(), chains[i], residues);
+        files.push_back(write_pdb(chains[i], residues));
     }
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(files);
+    seq.setup().load(paths_of(files));
     CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3"); }());
 }
 
@@ -281,18 +279,17 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement is reachable through the scr
     for (const auto& a : ref) {cm += a;}
     cm /= static_cast<double>(ref.size());
 
-    std::vector<std::string> files;
+    std::vector<test::TempFile> files;
     for (int k = 0; k < 3; ++k) {
         std::vector<Vector3<double>> chain;
         if (k == 0) {chain = ref;}
         else {auto t = source._get_transform(cm, k); for (const auto& a : ref) {chain.push_back(t(a));}}
-        files.push_back("/tmp/ausaxs_convparse_" + std::to_string(k) + ".pdb");
-        write_pdb(files.back(), chain);
+        files.push_back(write_pdb(chain));
     }
 
     std::string script =
         "load {\n"
-        "pdb " + files[0] + " " + files[1] + " " + files[2] + "\n"
+        "pdb " + files[0].str() + " " + files[1].str() + " " + files[2].str() + "\n"
         "saxs tests/files/SASDJG5.dat\n"
         "}\n"
         "convert_to_symmetry c3\n";
@@ -349,11 +346,10 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled bo
         chains.push_back(std::move(chain));
     }
 
-    io::File file("temp/rigidbody/ausaxs_convsym_single.pdb");
-    write_pdb(file, assembly);
+    auto file = write_pdb(assembly);
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(std::vector<std::string>{file});
+    seq.setup().load(std::vector<std::string>{file.str()});
     auto* molecule = seq._get_molecule();
     REQUIRE(molecule->size_body() == 1);
     REQUIRE(molecule->get_body(0).size_atom() == 3*ref.size());
@@ -389,11 +385,10 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a single body that d
     std::vector<Vector3<double>> atoms;
     for (int i = 0; i < 7; ++i) {atoms.push_back({static_cast<double>(i), 0.5*i, static_cast<double>(-i)});}
 
-    io::File file("temp/rigidbody/ausaxs_convsym_indivisible.pdb");
-    write_pdb(file, atoms);
+    auto file = write_pdb(atoms);
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(std::vector<std::string>{file});
+    seq.setup().load(std::vector<std::string>{file.str()});
     REQUIRE(seq._get_molecule()->size_body() == 1);
 
     CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0}, "c3"); }());
@@ -407,22 +402,21 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a single body that i
         for (const auto& a : ref) {assembly.push_back(a + shift);}
     }
 
-    io::File file("temp/rigidbody/ausaxs_convsym_single_bad.pdb");
-    write_pdb(file, assembly);
+    auto file = write_pdb(assembly);
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(std::vector<std::string>{file});
+    seq.setup().load(std::vector<std::string>{file.str()});
     CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0}, "c3"); }());
 }
 
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a wrong body count") {
     auto ref = reference_atoms();
-    std::vector<std::string> files = {"/tmp/ausaxs_convsym_a.pdb", "/tmp/ausaxs_convsym_b.pdb"};
-    write_pdb(files[0], ref);
-    write_pdb(files[1], ref);
+    std::vector<test::TempFile> files;
+    files.push_back(write_pdb(ref));
+    files.push_back(write_pdb(ref));
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(files);
+    seq.setup().load(paths_of(files));
 
     // c3 needs three bodies, only two are available
     CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0, 1}, "c3"); }());

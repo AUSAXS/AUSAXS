@@ -6,8 +6,6 @@
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 
-#include <fstream>
-
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -16,23 +14,19 @@ TEST_CASE("SequenceParser: parse minimal config", "[files]") {
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 250;
 
-    // Write a minimal config to a temporary location
-    std::string config_path = "/tmp/ausaxs_test_minimal.conf";
-    {
-        std::ofstream f(config_path);
-        f << "load {\n"
-          << "    pdb tests/files/SASDJG5.pdb\n"
-          << "    saxs tests/files/SASDJG5.dat\n"
-          << "    split chain\n"
-          << "}\n"
-          << "loop 3\n"
-          << "    optimize_once\n"
-          << "    end\n"
-          << "end\n";
-    }
+    std::string config =
+        "load {\n"
+        "    pdb tests/files/SASDJG5.pdb\n"
+        "    saxs tests/files/SASDJG5.dat\n"
+        "    split chain\n"
+        "}\n"
+        "loop 3\n"
+        "    optimize_once\n"
+        "    end\n"
+        "end\n";
 
     SequenceParser parser;
-    auto sequencer = parser.parse_file(config_path);
+    auto sequencer = parser.parse_text(config);
     REQUIRE(sequencer != nullptr);
 
     auto result = sequencer->execute();

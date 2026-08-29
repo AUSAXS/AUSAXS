@@ -18,6 +18,8 @@
 #include "hist/hist_test_helper.h"
 #include "grid/grid_debug.h"
 
+#include <support/temp_file.h>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 
@@ -47,7 +49,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
     }
 
     SimpleDataset dataset(rxs, volumes);
-    plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "temp/tests/hist/composite_distance_histogram_ff_grid/volumes.png");
+    plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "composite_distance_histogram_ff_grid_volumes.png");
 }
 
 auto calc_scat = [] (double k) {
