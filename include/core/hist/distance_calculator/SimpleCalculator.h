@@ -43,6 +43,22 @@ namespace ausaxs::hist::distance_calculator {
             };
 
             /**
+             * @brief Construct a calculator whose result histograms span the full configured distance range.
+             */
+            SimpleCalculator() : bin_count(settings::axes::bin_count) {}
+
+            /**
+             * @brief Construct a calculator whose result histograms span @a bin_count bins.
+             *
+             * Intended to be given a strict upper bound on the number of bins the submitted data can
+             * reach, e.g. from hist::detail::required_bin_count. Bins above the true maximum distance
+             * are zero either way, so a right-sized allocation yields an identical histogram at a
+             * fraction of the memory traffic. Passing a value that is too small is an out-of-bounds
+             * write, not a truncation - the bound must be strict.
+             */
+            explicit SimpleCalculator(unsigned int bin_count) : bin_count(bin_count) {}
+
+            /**
              * @brief Queue a self-correlation calculation. 
              *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made. 
              *
@@ -80,6 +96,7 @@ namespace ausaxs::hist::distance_calculator {
             run_result run();
 
         private:
+            unsigned int bin_count;
             std::vector<std::unique_ptr<container::ThreadLocalWrapper<GenericDistribution1D_t>>> self_results, cross_results;
             std::unordered_map<int, int> self_merge_ids, cross_merge_ids;
 
@@ -103,10 +120,10 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
         res_idx = self_results.size();
         merge_id = merge_id == -1 ? res_idx : merge_id;
         self_merge_ids[merge_id] = res_idx;
-        self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(settings::axes::bin_count));
+        self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(bin_count));
     } else {
         res_idx = self_merge_ids[merge_id];
-        assert(self_results[res_idx]->get().size() == settings::axes::bin_count && "The result vector has the wrong size.");
+        assert(self_results[res_idx]->get().size() == bin_count && "The result vector has the wrong size.");
     }
 
     auto res_ptr = self_results[res_idx].get();
@@ -174,10 +191,10 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_
         res_idx = cross_results.size();
         merge_id = merge_id == -1 ? res_idx : merge_id;
         cross_merge_ids[merge_id] = res_idx;
-        cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(settings::axes::bin_count));
+        cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(bin_count));
     } else {
         res_idx = cross_merge_ids[merge_id];
-        assert(cross_results[res_idx]->get().size() == settings::axes::bin_count && "The result vector has the wrong size.");
+        assert(cross_results[res_idx]->get().size() == bin_count && "The result vector has the wrong size.");
     }
 
     auto res_ptr = cross_results[res_idx].get();

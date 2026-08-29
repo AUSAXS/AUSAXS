@@ -6,6 +6,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/BinEstimate.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <data/Molecule.h>
 #include <utility/Logging.h>
@@ -30,7 +31,12 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     hist::detail::CompactCoordinates<vbw> data_w(this->protein->get_waters());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, this->protein);
 
-    hist::distance_calculator::SimpleCalculator<wb, vbw> calculator;
+    // Size the distance axis from the actual extent of this molecule instead of the configured
+    // maximum. This is a strict upper bound, so every bin it drops was zero anyway and the
+    // trim-to-last-non-zero step below produces an identical histogram - see hist/detail/BinEstimate.h.
+    unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
+
+    hist::distance_calculator::SimpleCalculator<wb, vbw> calculator(bin_count);
     calculator.enqueue_calculate_self(data_a);
     calculator.enqueue_calculate_self(data_w);
     calculator.enqueue_calculate_cross(data_a, data_w);
@@ -41,7 +47,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     auto p_aw = res.cross[0];
 
     // calculate p_tot
-    GenericDistribution1D_t p_tot(settings::axes::bin_count);
+    GenericDistribution1D_t p_tot(bin_count);
     for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area

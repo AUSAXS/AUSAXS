@@ -3,6 +3,7 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/BinEstimate.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
@@ -68,10 +69,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     int data_x_i_size = (int) data_x_i.size();
     int data_x_s_size = (int) data_x_s.size();
 
+    // Size the distance axis from the actual extent of the coordinate sets involved instead of the
+    // configured maximum. This is a strict upper bound over every set, so the bins it drops were
+    // zero anyway - see hist/detail/BinEstimate.h.
+    unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
+
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<XXContainer> p_xx_all(settings::axes::bin_count);
+    container::ThreadLocalWrapper<XXContainer> p_xx_all(bin_count);
     auto calc_xx_ii = [&data_x_i, &p_xx_all, data_x_i_size] (int imin, int imax) {
         auto& p_xx = p_xx_all.get();
         for (int i = imin; i < imax; ++i) { // exv interior
@@ -141,7 +147,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         return p_xx;
     };
 
-    container::ThreadLocalWrapper<AXContainer> p_ax_all(settings::form_factor::max_ff_types, settings::axes::bin_count);
+    container::ThreadLocalWrapper<AXContainer> p_ax_all(settings::form_factor::max_ff_types, bin_count);
     auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
         auto& p_ax = p_ax_all.get();
         for (int i = imin; i < imax; ++i) { // atoms
@@ -182,7 +188,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         return p_ax;
     };
 
-    container::ThreadLocalWrapper<WXContainer> p_wx_all(settings::axes::bin_count);
+    container::ThreadLocalWrapper<WXContainer> p_wx_all(bin_count);
     auto calc_wx = [&data_w, &data_x_i, &data_x_s, &p_wx_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
         auto& p_wx = p_wx_all.get();
         for (int i = imin; i < imax; ++i) { // waters

@@ -3,6 +3,7 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/BinEstimate.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
@@ -82,10 +83,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             coord.value.pos.z() *= scale;
         }
 
+        // Computed on the *scaled* excluded volume: the scale factor is a runtime fit parameter and
+        // can push the exv shell well beyond the unscaled extent. See hist/detail/BinEstimate.h.
+        unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_data_x);
+
         //########################//
         // PREPARE MULTITHREADING //
         //########################//
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(settings::axes::bin_count);
+        container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
         auto calc_xx = [&scaled_data_x, &p_xx_all, data_x_size] (int imin, int imax) {
             auto& p_xx = p_xx_all.get();
             for (int i = imin; i < imax; ++i) { // exv
@@ -109,7 +114,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             return p_xx;
         };
 
-        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(settings::form_factor::max_ff_types, settings::axes::bin_count);
+        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(settings::form_factor::max_ff_types, bin_count);
         auto calc_ax = [&data_a, &scaled_data_x, &p_ax_all, data_x_size] (int imin, int imax) {
             auto& p_ax = p_ax_all.get();
             for (int i = imin; i < imax; ++i) { // atoms
@@ -133,7 +138,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             return p_ax;
         };
 
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(settings::axes::bin_count);
+        container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
         auto calc_wx = [&data_w, &scaled_data_x, &p_wx_all, data_x_size] (int imin, int imax) {
             auto& p_wx = p_wx_all.get();
             for (int i = imin; i < imax; ++i) { // waters
