@@ -265,7 +265,7 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aa(unsigne
 
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialHistogramManager<weighted_bins, variable_bin_width>::initialize() {
-    unsigned int bin_count = bin_estimate::configured_bin_count("PartialHistogramManager::initialize");
+    unsigned int bin_count = bin_estimate::configured_bin_count();
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);

@@ -93,9 +93,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     propagate_reference_symmetry_modifications(externally_modified, internally_modified, symmetry_modified);
 
     auto pool = utility::multi_threading::get_global_pool();
-    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>(
-        bin_estimate::configured_bin_count("PartialSymmetryManagerMT::calculate")
-    );
+    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>(bin_estimate::configured_bin_count());
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -501,7 +499,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_b
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize() {
     auto pool = utility::multi_threading::get_global_pool();
-    unsigned int bin_count = bin_estimate::configured_bin_count("PartialSymmetryManagerMT::initialize");
+    unsigned int bin_count = bin_estimate::configured_bin_count();
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);

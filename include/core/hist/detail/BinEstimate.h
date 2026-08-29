@@ -21,29 +21,11 @@
 
 namespace ausaxs::hist::detail {
     namespace bin_estimate {
-        /**
-         * @brief The smallest histogram the managers may allocate.
-         *
-         * The trim loops in the managers start at index size()-1 and stop at index 10, so
-         * anything smaller than 11 bins either skips the loop entirely or - for an empty
-         * histogram - underflows the unsigned index.
-         */
-        constexpr unsigned int min_bin_count = 11;
+        constexpr unsigned int min_bin_count = 10; // minimum number of bins for all returned histograms
+        constexpr unsigned int headroom = 2;       // extra bins on top of the geometric bound
 
         /**
-         * @brief Extra bins added on top of the geometric bound.
-         *
-         * The calculators bin as std::round(inv_width*d), which can carry the index up to
-         * half a bin past the bound, and they evaluate d in single precision. Two bins of
-         * headroom covers both with room to spare.
-         */
-        constexpr unsigned int headroom = 2;
-
-        /**
-         * @brief A set of coordinates that can be scanned directly, i.e. every CompactCoordinates* specialisation.
-         *
-         * Anything indexable yielding a .value.pos qualifies. Containers of such sets do not, and are
-         * handled by the range overloads below instead - which is what distinguishes the two.
+         * @brief A set of coordinates that can be scanned directly.
          */
         template<typename T>
         concept CoordinateSet = requires(const T& t) {
@@ -91,9 +73,10 @@ namespace ausaxs::hist::detail {
         }
 
         /**
-         * @brief The centroid of everything accumulated so far. Only meaningful if s.n != 0.
+         * @brief The centroid of everything accumulated so far.
          */
         inline std::array<double, 3> centroid(const extent_state& s) {
+            assert(s.n != 0);
             return {
                 s.sum[0]/static_cast<double>(s.n),
                 s.sum[1]/static_cast<double>(s.n),
@@ -126,7 +109,7 @@ namespace ausaxs::hist::detail {
          * @param r2_max   The largest squared distance from that centroid, from accumulate_radius.
          */
         inline double max_distance(const extent_state& s, double r2_max) {
-            if (s.n == 0) {return 0;}
+            assert(s.n != 0 && "Cannot determine the maximum atomic distance of an empty list.");
             double dx = s.hi[0] - s.lo[0], dy = s.hi[1] - s.lo[1], dz = s.hi[2] - s.lo[2];
             double d_box = std::sqrt(dx*dx + dy*dy + dz*dz);
             double d_sphere = 2*std::sqrt(r2_max);
@@ -138,12 +121,7 @@ namespace ausaxs::hist::detail {
          */
         inline unsigned int bin_count_from_distance(double d_max, double inv_bin_width) {
             double bins = std::ceil(d_max*inv_bin_width) + headroom;
-
-            // guard against a degenerate bin width or a non-finite coordinate: fall back to the
-            // full default range rather than allocating something unusable.
-            if (!std::isfinite(bins) || bins <= 0) {
-                return std::max<unsigned int>(constants::axes::d_axis.bins, min_bin_count);
-            }
+            assert(std::isfinite(bins) && 0 < bins && "Determined bin count is not finite."); 
             return std::max<unsigned int>(static_cast<unsigned int>(bins), min_bin_count);
         }
 
@@ -156,33 +134,20 @@ namespace ausaxs::hist::detail {
         }
 
         /**
-         * @brief The bin count for managers that cannot deduce one, i.e. settings::flags::max_bin_count.
-         *
-         * The partial managers cache histograms across body movements, so a bound deduced from the
-         * conformation present at initialization can be exceeded by a later one. They therefore need a
-         * fixed upper bound chosen by whoever drives the optimization, rather than deducing their own.
-         *
-         * @param context The calling manager, for the error message.
-         * @throws except::invalid_operation if the flag has not been set.
+         * @brief The bin count for managers that cannot deduce one.
+         * @return settings::flag::max_bin_count
          */
-        inline unsigned int configured_bin_count(std::string_view context) {
-            if (settings::flags::max_bin_count == 0) {
-                throw except::invalid_operation(
-                    std::string(context) + ": settings::flags::max_bin_count has not been set. "
-                    "Managers that cache histograms across body movements cannot deduce their own bin count, so the "
-                    "caller driving the movements must supply an upper bound - see settings/Flags.h. Subprograms "
-                    "performing such movements normally set it to constants::axes::d_axis.bins during initialization."
-                );
-            }
+        inline unsigned int configured_bin_count() {
+            assert(settings::flags::max_bin_count != 0 && "max_bin_count has not been set.");
 
             static bool warned = false;
             if (!warned && settings::axes::bin_width*settings::flags::max_bin_count < constants::axes::d_axis.max) {
                 warned = true;
                 console::print_warning(
-                    std::string(context) + ": the current bin width (" + std::to_string(settings::axes::bin_width) + "Å) and "
-                    "bin count (" + std::to_string(settings::flags::max_bin_count) + ") only cover distances up to " +
-                    std::to_string(int(settings::axes::bin_width*settings::flags::max_bin_count)) + "Å, which is less than the "
-                    "recommended " + std::to_string(int(constants::axes::d_axis.max)) + "Å. Larger structures will be truncated."
+                    "The current bin width (" + std::to_string(settings::axes::bin_width) + "Å) and bin count (" + 
+                    std::to_string(settings::flags::max_bin_count) + ") only cover distances up to " + 
+                    std::to_string(int(settings::axes::bin_width*settings::flags::max_bin_count)) + "Å, which is less than the recommended " + 
+                    std::to_string(int(constants::axes::d_axis.max)) + "Å. Larger structures will cause segfaults."
                 );
             }
             return std::max(settings::flags::max_bin_count, min_bin_count);
