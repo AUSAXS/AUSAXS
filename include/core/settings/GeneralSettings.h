@@ -21,6 +21,12 @@ namespace ausaxs::settings {
         static bool supplementary_plots;    // Whether to generate supplementary plots when possible.
         static bool gpu;                    // Whether to offload the distance histogram calculations to the GPU. Requires a GPU-enabled build.
 
+        enum class GPUBackend : char {
+            SYCL,   // Compute kernels through a SYCL implementation. Requires -DSYCL=ON.
+            WEBGPU, // Compute shaders through WebGPU. Requires -DGPU=ON.
+        };
+        static GPUBackend gpu_backend; // Which backend to offload to. Only used when gpu is enabled.
+
         struct detail {
             static unsigned int job_size;   // The number of atoms to process in each job.
         };

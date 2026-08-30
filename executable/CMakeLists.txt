@@ -28,12 +28,21 @@ add_plot_scripts_to_target(em_fitter)
 add_plot_scripts_to_target(rigidbody_optimizer)
 add_plot_scripts_to_target(ausaxs)
 
-if (GPU)
-	# compares the GPU histogram kernel against the CPU one
+if (GPU OR SYCL)
+	# compares the GPU histogram kernels against the CPU one
 	add_executable(gpu_debug "gpu_debug.cpp")
 	target_link_libraries(gpu_debug PRIVATE ausaxs_core ausaxs_api ausaxs_math ausaxs_em ausaxs_rigidbody)
-	target_copy_webgpu_binaries(gpu_debug)
+endif()
 
+if (SYCL)
+	# the SYCL kernels are a prebuilt object that has to be embedded in each final binary; see source/gpu
+	foreach(_target saxs_fitter em_fitter rigidbody_optimizer ausaxs gpu_debug)
+		ausaxs_add_sycl_kernels(${_target})
+	endforeach()
+endif()
+
+if (GPU)
+	target_copy_webgpu_binaries(gpu_debug)
 	target_copy_webgpu_binaries(saxs_fitter)
 	target_copy_webgpu_binaries(em_fitter)
 	target_copy_webgpu_binaries(rigidbody_optimizer)
