@@ -20,9 +20,12 @@
 #include <io/ExistingFile.h>
 #include <settings/All.h>
 #include <constants/Constants.h>
+#include <utility/Random.h>
 #include <utility/Utility.h>
 
 #include <hist/hist_test_helper.h>
+
+#include <algorithm>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -169,6 +172,36 @@ void run_test2(const Molecule& protein, const auto& target) {
     REQUIRE(compare_hist_approx(h4->get_weighted_counts(), target));
 }
 
+template<template<bool> class MANAGER>
+void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
+    auto h1 = MANAGER<false>(&original).calculate_all();
+    auto h2 = MANAGER<false>(&permuted).calculate_all();
+    REQUIRE(compare_hist(h1->debye_transform(), h2->debye_transform()));
+
+    auto h3 = MANAGER<true>(&original).calculate_all();
+    auto h4 = MANAGER<true>(&permuted).calculate_all();
+    REQUIRE(compare_hist(h3->debye_transform(), h4->debye_transform()));
+}
+
+template<template<bool, bool> class MANAGER>
+void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
+    auto h1 = MANAGER<false, false>(&original).calculate_all();
+    auto h2 = MANAGER<false, false>(&permuted).calculate_all();
+    REQUIRE(compare_hist(h1->debye_transform(), h2->debye_transform()));
+
+    auto h3 = MANAGER<false, true>(&original).calculate_all();
+    auto h4 = MANAGER<false, true>(&permuted).calculate_all();
+    REQUIRE(compare_hist(h3->debye_transform(), h4->debye_transform()));
+
+    auto h5 = MANAGER<true, false>(&original).calculate_all();
+    auto h6 = MANAGER<true, false>(&permuted).calculate_all();
+    REQUIRE(compare_hist(h5->debye_transform(), h6->debye_transform()));
+
+    auto h7 = MANAGER<true, true>(&original).calculate_all();
+    auto h8 = MANAGER<true, true>(&permuted).calculate_all();
+    REQUIRE(compare_hist(h7->debye_transform(), h8->debye_transform()));
+}
+
 TEST_CASE("HistogramManager::calculate_all real data") {
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
@@ -186,6 +219,31 @@ TEST_CASE("HistogramManager::calculate_all real data") {
         },
         protein, p_exp->get_weighted_counts()
     );
+}
+
+TEST_CASE("HistogramManager::calculate_all is invariant to atom ordering") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::general::verbose = false;
+
+    for (const auto& filename : {"tests/files/2epe.pdb", "tests/files/c60.pdb", "tests/files/diamond.pdb"}) {
+        SECTION(filename) {
+            Molecule original(filename);
+            Molecule permuted(filename);
+            for (auto& body : permuted.get_bodies()) {
+                std::shuffle(body.get_atoms().begin(), body.get_atoms().end(), ausaxs::random::generator());
+            }
+
+            invoke_for_all_histogram_manager_variants(
+                []<template<bool> class MANAGER>(const Molecule& original, const Molecule& permuted) {
+                    run_test_atom_order_invariance<MANAGER>(original, permuted);
+                },
+                []<template<bool, bool> class MANAGER>(const Molecule& original, const Molecule& permuted) {
+                    run_test_atom_order_invariance<MANAGER>(original, permuted);
+                },
+                original, permuted
+            );
+        }
+    }
 }
 
 TEST_CASE("PartialHistogramManager::get_probe") {
