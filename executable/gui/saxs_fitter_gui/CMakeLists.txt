@@ -10,5 +10,10 @@ include(ElementsConfigApp)
 
 target_link_libraries("${ELEMENTS_APP_PROJECT}" PRIVATE ausaxs_core ausaxs_math ausaxs_gui nfd)
 target_include_directories("${ELEMENTS_APP_PROJECT}" PRIVATE "${CMAKE_SOURCE_DIR}/include/gui")
+if (SYCL)
+	# the SYCL kernels are a prebuilt object that has to be embedded in each final binary; see source/gpu
+	ausaxs_add_sycl_kernels("${ELEMENTS_APP_PROJECT}")
+endif()
+
 add_dependencies("${ELEMENTS_APP_PROJECT}" plotter)
 add_plot_scripts_to_target("${ELEMENTS_APP_PROJECT}")

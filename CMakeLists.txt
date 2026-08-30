@@ -7,6 +7,11 @@ option(GUI "Enable GUI executables" OFF)
 option(DLIB "Use the dlib minimizers" ON)
 option(BUILD_PLOT_EXE "Compile the plotting utility as an executable for the current platform" OFF)
 option(BUILD_TESTS "Build the test suite" ON)
+option(GPU "Enable WebGPU support" OFF)
+option(SYCL "Enable SYCL support, through an AdaptiveCpp installation" OFF)
+set(ACPP_ROOT "" CACHE PATH "Root of the AdaptiveCpp installation to use for SYCL support")
+set(ACPP_TARGETS "generic" CACHE STRING "Device targets to compile the SYCL kernels for")
+set(ACPP_CLANG "" CACHE FILEPATH "Clang to build the SYCL kernels with; defaults to the one AdaptiveCpp was built against")
 option(BUILD_EXECUTABLES "Build the command-line executables" ON)
 option(STATIC_CURL "Link against a static CURL library on Windows" ON)
 set(ARCH "auto" CACHE STRING "Target architecture (auto, native, or a specific -march value)")
@@ -79,6 +84,17 @@ if (DLIB)
 		set(CMAKE_CXX_STANDARD 20) # continue with C++20
 	endif()
 	add_compile_definitions("DLIB_AVAILABLE")
+endif()
+
+if (GPU)
+	FetchContent_Declare(
+		webgpu
+		GIT_REPOSITORY https://github.com/eliemichel/WebGPU-distribution
+		GIT_TAG v0.3.0-beta
+		GIT_PROGRESS TRUE
+	)
+	set(WEBGPU_BACKEND "DAWN")
+	FetchContent_MakeAvailable(webgpu)
 endif()
 
 if(USE_SYSTEM_BACKWARD)

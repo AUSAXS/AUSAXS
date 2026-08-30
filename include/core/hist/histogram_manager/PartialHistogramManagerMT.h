@@ -5,7 +5,7 @@
 
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/distance_calculator/SimpleKernel.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 
@@ -34,7 +34,7 @@ namespace ausaxs::hist {
 
 		private:
 		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-			using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>;
+			using calculator_t = observer_ptr<distance_calculator::SimpleKernel<weighted_bins, variable_bin_width>>;
 			struct { // cache for early return
 				GenericDistribution1D_t p_aa;
 				GenericDistribution1D_t p_aw;

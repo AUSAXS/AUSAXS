@@ -17,7 +17,16 @@ std::string settings::general::output = "output/";
 bool settings::general::keep_hydrogens = false;
 bool settings::general::supplementary_plots = true;
 bool settings::general::generate_plots = true;
+bool settings::general::gpu = false;
 settings::general::QUnit settings::general::input_q_unit = settings::general::QUnit::A;
+
+// default to whichever backend is present, preferring the faster one if the build has both
+settings::general::GPUBackend settings::general::gpu_backend =
+    #ifdef AUSAXS_GPU_SYCL
+        settings::general::GPUBackend::SYCL;
+    #else
+        settings::general::GPUBackend::WEBGPU;
+    #endif
 
 std::string settings::general::cache = [] () {
     const char* env_p = nullptr;
@@ -59,9 +68,28 @@ namespace ausaxs::settings::io {
         settings::io::create(general::keep_hydrogens, {"keep_hydrogens"}),
         settings::io::create(general::supplementary_plots, {"supplementary_plots"}),
         settings::io::create(general::input_q_unit, {"unit"}),
-        settings::io::create(general::offline, {"offline"})
+        settings::io::create(general::offline, {"offline"}),
+        settings::io::create(general::gpu, {"gpu"}),
+        settings::io::create(general::gpu_backend, {"gpu_backend"})
     });
 }
+
+template<> std::string settings::io::detail::SettingRef<settings::general::GPUBackend>::get() const {
+    switch (settingref) {
+        case settings::general::GPUBackend::SYCL: return "sycl";
+        case settings::general::GPUBackend::WEBGPU: return "webgpu";
+        default: return std::to_string(static_cast<int>(settingref));
+    }
+}
+
+template<> void settings::io::detail::SettingRef<settings::general::GPUBackend>::set(const std::vector<std::string>& val) {
+    auto str = utility::to_lowercase(val[0]);
+    if (str == "sycl") {settingref = settings::general::GPUBackend::SYCL;}
+    else if (str == "webgpu") {settingref = settings::general::GPUBackend::WEBGPU;}
+    else {throw ausaxs::except::invalid_argument("settings: Unknown value for gpu_backend: \"" + val[0] + "\"");}
+}
+
+template<> std::string settings::io::detail::SettingRef<settings::general::GPUBackend>::type() const {return "string";}
 
 template<> std::string settings::io::detail::SettingRef<settings::general::QUnit>::get() const {
     switch (settingref) {

@@ -4,3 +4,7 @@ add_subdirectory(em)
 add_subdirectory(math)
 add_subdirectory(rigidbody)
 add_subdirectory(gui)
+
+if (GPU OR SYCL)
+	add_subdirectory(gpu)
+endif()
