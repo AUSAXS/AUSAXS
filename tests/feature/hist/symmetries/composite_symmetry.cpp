@@ -93,6 +93,7 @@ TEST_CASE("SymmetryManager: CompositeSymmetry") {
         test_composite_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
+        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_composite_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }

@@ -76,6 +76,7 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry") {
         test_reference_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
+        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_reference_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
@@ -124,6 +125,7 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry with dihedral base") {
         test_reference_symmetry_dihedral(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
+        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_reference_symmetry_dihedral(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
