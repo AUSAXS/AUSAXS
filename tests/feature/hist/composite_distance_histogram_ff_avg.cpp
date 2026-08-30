@@ -50,6 +50,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
 
             double axsum = 
+                9 +
                 16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
@@ -105,6 +106,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
             double axsum = 
+                8 +
                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
@@ -161,6 +163,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
             double axsum = 
+                8 +
                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);

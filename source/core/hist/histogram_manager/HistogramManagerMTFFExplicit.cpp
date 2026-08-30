@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <hist/histogram_manager/detail/HistogramManagerMTFFHelpers.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
@@ -25,186 +26,6 @@ using namespace ausaxs;
 using namespace ausaxs::container;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
-
-namespace {
-    // Local evaluation helpers for FFExplicit - atom-atom (3D histogram)
-    template<bool vbw, int factor>
-    void evaluate_aa16(
-        WeightedDistribution3D& p_aa,
-        const CompactCoordinatesFF<vbw>& data_a, int i, int j
-    ) {
-        xyzff::HexaEvaluatedResult res = add16::evaluate_weighted(data_a, data_a, i, j);
-        for (int k = 0; k < 16; ++k) {
-            p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_aa16(
-        Distribution3D& p_aa,
-        const CompactCoordinatesFF<vbw>& data_a, int i, int j
-    ) {
-        xyzff::HexaEvaluatedResultRounded res = add16::evaluate_unweighted(data_a, data_a, i, j);
-        for (int k = 0; k < 16; ++k) {
-            p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_aa8(
-        WeightedDistribution3D& p_aa,
-        const CompactCoordinatesFF<vbw>& data_a, int i, int j
-    ) {
-        xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_a, i, j);
-        for (int k = 0; k < 8; ++k) {
-            p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_aa8(
-        Distribution3D& p_aa,
-        const CompactCoordinatesFF<vbw>& data_a, int i, int j
-    ) {
-        xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_a, data_a, i, j);
-        for (int k = 0; k < 8; ++k) {
-            p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_aa4(
-        WeightedDistribution3D& p_aa,
-        const CompactCoordinatesFF<vbw>& data_a, int i, int j
-    ) {
-        xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_a, i, j);
-        for (int k = 0; k < 4; ++k) {
-            p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distance_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_aa4(
-        Distribution3D& p_aa,
-        const CompactCoordinatesFF<vbw>& data_a, int i, int j
-    ) {
-        xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_a, data_a, i, j);
-        for (int k = 0; k < 4; ++k) {
-            p_aa.increment_linear_index<factor>(res.ff_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_aa1(
-        WeightedDistribution3D& p_aa,
-        const CompactCoordinatesFF<vbw>& data_a, int i, int j
-    ) {
-        xyzff::EvaluatedResult res = add1::evaluate_weighted(data_a, data_a, i, j);
-        p_aa.increment_linear_index<factor>(res.ff_bin, res.distance_bin, res.distance);
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_aa1(
-        Distribution3D& p_aa,
-        const CompactCoordinatesFF<vbw>& data_a, int i, int j
-    ) {
-        xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_a, data_a, i, j);
-        p_aa.increment_linear_index<factor>(res.ff_bin, res.distance);
-    }
-
-    // Local evaluation helpers for FFExplicit - atom-water (2D histogram)
-    template<bool vbw, int factor>
-    void evaluate_wa16(
-        WeightedDistribution2D& p_wa,
-        const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j
-    ) {
-        xyzff::HexaEvaluatedResult res = add16::evaluate_weighted(data_a, data_w, i, j);
-        int ff_i = data_a.get_ff_type(i);
-        for (int k = 0; k < 16; ++k) {
-            p_wa.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_wa16(
-        Distribution2D& p_wa,
-        const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j
-    ) {
-        xyzff::HexaEvaluatedResultRounded res = add16::evaluate_unweighted(data_a, data_w, i, j);
-        int ff_i = data_a.get_ff_type(i);
-        for (int k = 0; k < 16; ++k) {
-            p_wa.increment_index<factor>(ff_i, res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_wa8(
-        WeightedDistribution2D& p_wa,
-        const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j
-    ) {
-        xyzff::OctoEvaluatedResult res = add8::evaluate_weighted(data_a, data_w, i, j);
-        int ff_i = data_a.get_ff_type(i);
-        for (int k = 0; k < 8; ++k) {
-            p_wa.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_wa8(
-        Distribution2D& p_wa,
-        const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j
-    ) {
-        xyzff::OctoEvaluatedResultRounded res = add8::evaluate_unweighted(data_a, data_w, i, j);
-        int ff_i = data_a.get_ff_type(i);
-        for (int k = 0; k < 8; ++k) {
-            p_wa.increment_index<factor>(ff_i, res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_wa4(
-        WeightedDistribution2D& p_wa,
-        const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j
-    ) {
-        xyzff::QuadEvaluatedResult res = add4::evaluate_weighted(data_a, data_w, i, j);
-        int ff_i = data_a.get_ff_type(i);
-        for (int k = 0; k < 4; ++k) {
-            p_wa.increment_index<factor>(ff_i, res.distance_bins[k], res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_wa4(
-        Distribution2D& p_wa,
-        const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j
-    ) {
-        xyzff::QuadEvaluatedResultRounded res = add4::evaluate_unweighted(data_a, data_w, i, j);
-        int ff_i = data_a.get_ff_type(i);
-        for (int k = 0; k < 4; ++k) {
-            p_wa.increment_index<factor>(ff_i, res.distances[k]);
-        }
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_wa1(
-        WeightedDistribution2D& p_wa,
-        const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j
-    ) {
-        xyzff::EvaluatedResult res = add1::evaluate_weighted(data_a, data_w, i, j);
-        int ff_i = data_a.get_ff_type(i);
-        p_wa.increment_index<factor>(ff_i, res.distance_bin, res.distance);
-    }
-
-    template<bool vbw, int factor>
-    void evaluate_wa1(
-        Distribution2D& p_wa,
-        const CompactCoordinatesFF<vbw>& data_a, const CompactCoordinatesFF<vbw>& data_w, int i, int j
-    ) {
-        xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_a, data_w, i, j);
-        int ff_i = data_a.get_ff_type(i);
-        p_wa.increment_index<factor>(ff_i, res.distance);
-    }
-}
 
 template<bool wb, bool vbw>
 HistogramManagerMTFFExplicit<wb, vbw>::~HistogramManagerMTFFExplicit() = default;
@@ -262,19 +83,19 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
         for (int i = imin; i < imax; ++i) { // atom
             int j = 0;                      // water
             for (; j+15 < data_w_size; j+=16) {
-                evaluate_wa16<vbw, 1>(p_wa, data_a, data_w, i, j);
+                evaluate_aw16<vbw, 1>(p_wa, data_a, data_w, i, j);
             }
 
             for (; j+7 < data_w_size; j+=8) {
-                evaluate_wa8<vbw, 1>(p_wa, data_a, data_w, i, j);
+                evaluate_aw8<vbw, 1>(p_wa, data_a, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate_wa4<vbw, 1>(p_wa, data_a, data_w, i, j);
+                evaluate_aw4<vbw, 1>(p_wa, data_a, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate_wa1<vbw, 1>(p_wa, data_a, data_w, i, j);
+                evaluate_aw1<vbw, 1>(p_wa, data_a, data_w, i, j);
             }
         }
     };
