@@ -78,6 +78,7 @@ TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
 }
 
 TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::warnings = false;
     settings::molecule::implicit_hydrogens = false;
     auto hist_t = GENERATE(
@@ -118,6 +119,7 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
 }
 
 TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::warnings = true;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;

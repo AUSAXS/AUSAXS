@@ -69,6 +69,7 @@ TEST_CASE("WeightedDistribution: sinc_table") {
 
 // Check that the weighted distance axis is correctly calculated for all histogram managers.
 TEST_CASE("WeightedDistribution: distance_calculators") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::molecule::implicit_hydrogens = false;
     std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
     std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};

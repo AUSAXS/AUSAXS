@@ -120,6 +120,7 @@ TEST_CASE("Body::save") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::translate") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     SECTION("basic translation") {
         body.translate(Vector3<double>{1, 1, 1});
         CHECK(body.get_atom(0).coordinates() == Vector3<double>{0, 0, 0});
@@ -257,6 +258,7 @@ TEST_CASE("Body::operator==") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::state") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     auto protein = Molecule({body});
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
     auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();

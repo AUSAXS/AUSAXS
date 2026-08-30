@@ -32,6 +32,7 @@ struct fixture {
     fixture() {
         settings::molecule::center = false;
         settings::molecule::implicit_hydrogens = false;
+        settings::flags::max_bin_count = constants::axes::d_axis.bins;
     }
 
     AtomFF a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
