@@ -3,6 +3,8 @@
 
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <data/Molecule.h>
+#include <data/Body.h>
 #include <settings/ExvSettings.h>
 
 #include <unordered_map>
@@ -46,23 +48,23 @@ bool ExvTableManager::is_default() {
     return !_use_custom_exv_table;
 }
 
-const detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_form_factor_set() {
-    static auto standard = detail::ExvFormFactorSet(get_default_exv_table());
-    static auto available_sets = std::unordered_map<settings::exv::ExvSet, detail::ExvFormFactorSet>{
+const form_factor::detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_form_factor_set() {
+    static auto standard = form_factor::detail::ExvFormFactorSet(get_default_exv_table());
+    static auto available_sets = std::unordered_map<settings::exv::ExvSet, form_factor::detail::ExvFormFactorSet>{
         {settings::exv::ExvSet::Default, standard}
     };
 
     // always update custom sets to ensure they reflect changes to the exv table
     if (settings::exv::exv_set == settings::exv::ExvSet::Custom) {
         //? add caching for custom tables? 
-            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, detail::ExvFormFactorSet(*get_current_exv_table()));
+            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
             return available_sets.at(settings::exv::ExvSet::Custom);
     } else {
         // check if the current set is already available, otherwise create it
         if (auto it = available_sets.find(settings::exv::exv_set); it != available_sets.end()) {
             return it->second;
         }
-            available_sets.insert_or_assign(settings::exv::exv_set, detail::ExvFormFactorSet(*get_current_exv_table()));
+            available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
             return available_sets.at(settings::exv::exv_set);
     }
 }
@@ -72,4 +74,18 @@ void ExvTableManager::set_custom_exv_table(const constants::exv::detail::ExvSet&
     custom_exv_tables = std::make_unique<constants::exv::detail::ExvSet>(set);
     settings::exv::exv_set = settings::exv::ExvSet::Custom;
     _use_custom_exv_table = true;
+}
+
+double ExvTableManager::get_total_displaced_volume(observer_ptr<const data::Molecule> molecule) {
+    const auto& exv = *get_current_exv_table();
+    double V = 0;
+    for (const auto& atom : molecule->iterate_atoms()) {
+        V += exv.get(atom.form_factor_type());
+    }
+    return V;
+}
+
+double ExvTableManager::get_average_displaced_volume(observer_ptr<const data::Molecule> molecule) {
+    assert(molecule->size_atom() > 0 && "ExvTableManager::get_average_displaced_volume: Cannot compute average displaced volume for a molecule with no atoms.");
+    return get_total_displaced_volume(molecule)/molecule->size_atom();
 }

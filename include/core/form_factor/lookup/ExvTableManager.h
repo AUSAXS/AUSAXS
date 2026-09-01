@@ -6,6 +6,7 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/ExvTable.h>
 #include <form_factor/ExvFormFactor.h>
+#include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -19,6 +20,16 @@ namespace ausaxs::form_factor {
             static constexpr detail::ExvFormFactorSet get_current_exv_form_factor_set();
             static void set_custom_exv_table(const constants::exv::detail::ExvSet& set);
             static bool is_default();
+
+            /**
+             * @brief Get the total solvent volume displaced by @a molecule, in cubic angstroms.
+             */
+            static double get_total_displaced_volume(observer_ptr<const data::Molecule> molecule);
+
+            /**
+             * @brief Get the average solvent volume displaced by a single atom of @a molecule, in cubic angstroms.
+             */
+            static double get_average_displaced_volume(observer_ptr<const data::Molecule> molecule);
 
         private:
             static inline bool _use_custom_exv_table = false;

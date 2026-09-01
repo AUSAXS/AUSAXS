@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <hist/histogram_manager/HistogramManager.h>
-#include <hist/detail/CompactCoordinatesFF.h>
+#include <hist/histogram_manager/HistogramManagerMTFFBase.h>
 
 namespace ausaxs::hist {
 	/**
@@ -14,9 +13,9 @@ namespace ausaxs::hist {
 	 * To use unique excluded volumes for each atom, see HistogramManagerMTFFExplicit. 
 	 */
 	template<bool weighted_bins, bool variable_bin_width>
-	class HistogramManagerMTFFAvg : public HistogramManager<weighted_bins, variable_bin_width> {
+	class HistogramManagerMTFFAvg : public HistogramManagerMTFFBase<weighted_bins, variable_bin_width> {
 		public:
-			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
+			using HistogramManagerMTFFBase<weighted_bins, variable_bin_width>::HistogramManagerMTFFBase;
 
 			virtual ~HistogramManagerMTFFAvg() override;
 
@@ -29,10 +28,5 @@ namespace ausaxs::hist {
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
-
-		protected:
-			// data stored for inheritance
-			std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_a_ptr;
-		    std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_w_ptr;
 	};
 }

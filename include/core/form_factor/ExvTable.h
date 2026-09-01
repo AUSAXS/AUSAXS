@@ -5,6 +5,7 @@
 
 #include <constants/ConstantsSI.h>
 #include <constants/vdwTable.h>
+#include <form_factor/FormFactorType.h>
 #include <math/ConstexprMath.h>
 
 // Per-atom-group displaced solvent volumes for the various excluded-volume sets.
@@ -22,6 +23,11 @@ namespace ausaxs::constants::exv {
             double O, OH;
             double S, SH;
             constexpr bool operator==(const ExvSet& other) const = default;
+
+            /**
+             * @brief Get the displaced solvent volume of a single atom of the given form factor type, in cubic angstroms.
+             */
+            constexpr double get(ausaxs::form_factor::form_factor_t type) const;
         };
 
         constexpr double volume(double radius) {
@@ -133,4 +139,25 @@ namespace ausaxs::constants::exv {
 
     constexpr double OH2 = 2.98*constexpr_math::pow(10., -23)*constexpr_math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = detail::volume(constants::radius::vdw::Ar);
+
+    constexpr double detail::ExvSet::get(ausaxs::form_factor::form_factor_t type) const {
+        using ff_t = ausaxs::form_factor::form_factor_t;
+        switch (type) {
+            case ff_t::H:     return H;
+            case ff_t::C:     return C;
+            case ff_t::CH:    return CH;
+            case ff_t::CH2:   return CH2;
+            case ff_t::CH3:   return CH3;
+            case ff_t::N:     return N;
+            case ff_t::NH:    return NH;
+            case ff_t::NH2:   return NH2;
+            case ff_t::NH3:   return NH3;
+            case ff_t::O:     return O;
+            case ff_t::OH:    return OH;
+            case ff_t::S:     return S;
+            case ff_t::SH:    return SH;
+            case ff_t::OTHER: return Ar;
+            default: throw ausaxs::except::runtime_error("constants::exv::detail::ExvSet::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+        }
+    }
 }
