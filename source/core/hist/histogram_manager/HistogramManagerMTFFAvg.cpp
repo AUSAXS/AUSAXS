@@ -31,10 +31,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
         : this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom()
     ;
 
-    // The excluded volume scale of this model is a free, fittable parameter, so the excluded volume
-    // must be kept as real distance data which can be re-weighted, rather than baked into a fixed
-    // form factor table as the explicit models do.
-    return CompositeDistanceHistogramFFAvg::with_averaged_exv(
+    return std::make_unique<CompositeDistanceHistogramFFAvg>(
         Distribution3D(std::move(raw.p_aa)), 
         Distribution2D(std::move(raw.p_aw)), 
         Distribution1D(std::move(raw.p_ww)), 

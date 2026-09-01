@@ -5,7 +5,8 @@
 
 #include <hist/distribution/DistributionFwd.h>
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
+#include <form_factor/lookup/FormFactorLookupFwd.h>
 
 namespace ausaxs::hist {
     /**

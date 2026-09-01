@@ -37,6 +37,40 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     inline static bool called_wx = false;
     inline static bool called_xx = false;
     inline static bool called_debye = false;
+
+    // The averaged model does not store an excluded volume distance histogram: every exv "atom" sits on
+    // a real atom with the same averaged form factor, so the exv sums are exact linear combinations of
+    // the atomic ones. These reconstruct them independently of the implementation under test.
+    // The two cross terms count both directions, so no factor of two is applied at the call sites.
+    double derived_ax_sum(unsigned int ff1, unsigned int q) const {
+        auto sinqd_table = sinc_table.get_sinc_table();
+        double sum = 0;
+        for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
+            sum += std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+            sum += std::inner_product(distance_profiles.aa.begin(ff2, ff1), distance_profiles.aa.end(ff2, ff1), sinqd_table->begin(q), 0.0);
+        }
+        return Z_exv_avg*sum;
+    }
+
+    double derived_xx_sum(unsigned int q) const {
+        auto sinqd_table = sinc_table.get_sinc_table();
+        double sum = 0;
+        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < settings::form_factor::max_ff_types; ++ff2) {
+                sum += std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+            }
+        }
+        return Z_exv_avg*Z_exv_avg*sum;
+    }
+
+    double derived_wx_sum(unsigned int q) const {
+        auto sinqd_table = sinc_table.get_sinc_table();
+        double sum = 0;
+        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
+            sum += std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
+        }
+        return 2*Z_exv_avg*sum;
+    }
     ScatteringProfile get_profile_aa() const override  {
         called_aa = true;
         const auto& ff_table = get_ff_table();
@@ -59,7 +93,6 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_ax() const override  {
         called_ax = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -67,8 +100,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(q);
             for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
-                double ax_sum = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-                Iq[q-q0] += 2*cx*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
+                Iq[q-q0] += cx*derived_ax_sum(ff1, q)*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
             }
         }
         return ScatteringProfile(std::move(Iq), debye_axis);
@@ -77,15 +109,13 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_xx() const override  {
         called_xx = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(q);
-            double xx_sum = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] += cx*cx*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
+            Iq[q-q0] += cx*cx*derived_xx_sum(q)*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
         }
         return ScatteringProfile(std::move(Iq), debye_axis);
     }
@@ -93,15 +123,13 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
     ScatteringProfile get_profile_wx() const override  {
         called_wx = true;
         const auto& ff_table = get_ff_table();
-        auto sinqd_table = sinc_table.get_sinc_table();
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
         unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
             double cx = exv_factor(q);
-            double ew_sum = std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] += 2*cx*free_params.cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
+            Iq[q-q0] += cx*free_params.cw*derived_wx_sum(q)*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
         }
         return ScatteringProfile(std::move(Iq), debye_axis);
     }
@@ -158,8 +186,7 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
                 }
 
                 // atom-exv
-                double ax_sum = std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-                Iq[q-q0] -= 2*cx*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
+                Iq[q-q0] -= cx*derived_ax_sum(ff1, q)*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
 
                 // atom-water
                 double aw_sum = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
@@ -167,12 +194,10 @@ struct DebugCompositeDistanceHistogramFFAvg : public CompositeDistanceHistogramF
             }
 
             // exv-exv
-            double xx_sum = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] += cx*cx*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
+            Iq[q-q0] += cx*cx*derived_xx_sum(q)*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
 
             // exv-water
-            double ew_sum = std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] -= 2*cx*free_params.cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
+            Iq[q-q0] -= cx*free_params.cw*derived_wx_sum(q)*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
 
             // water-water
             double ww_sum = std::inner_product(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table->begin(q), 0.0);

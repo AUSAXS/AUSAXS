@@ -33,6 +33,7 @@ target_sources(ausaxs_core PRIVATE
 	"intensity_calculator/CompositeDistanceHistogramFFAvg.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFAvgBase.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFExplicitBase.cpp"
+	"intensity_calculator/CompositeDistanceHistogramFFGridBase.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGrid.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGridSurface.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.cpp"

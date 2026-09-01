@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <utility/TypeTraits.h>
 
@@ -12,7 +12,7 @@ namespace ausaxs::hist {
      * @brief A class containing partial distance histograms for the different types of interactions and atomic types. 
      *        Beyond the functionality of CompositeDistanceHistogramFFGrid, this class allows scaling the form factors of only the surface grid cells. 
      */
-    class CompositeDistanceHistogramFFGridSurface : public CompositeDistanceHistogramFFAvg {
+    class CompositeDistanceHistogramFFGridSurface : public CompositeDistanceHistogramFFGridBase {
         public:
             struct XXContainer {
                 XXContainer(unsigned int size) : interior(size), surface(size), cross(size) {}
@@ -62,20 +62,6 @@ namespace ausaxs::hist {
                 hist::WeightedDistribution1D&& p_tot_xx
             );
 
-            /**
-             * @brief Get the distance axis for the excluded volume calculations. 
-             *        If weighted bins are used, this will be distinct from the regular distance axis.
-             */
-            const std::vector<double>& get_d_axis_xx() const;
-
-            /**
-             * @brief Get the distance axis for the cross term calculations. 
-             *        If weighted bins are used, this will be distinct from the regular distance axis.
-             */
-            const std::vector<double>& get_d_axis_ax() const;
-
-            const form_factor::lookup::table_t& get_ff_table() const override;
-
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
             /**
@@ -87,16 +73,6 @@ namespace ausaxs::hist {
             static double exv_factor(double q, double cx);
 
         protected:
-            /**
-             * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.
-             */
-            observer_ptr<const table::DebyeTable> get_sinc_table_xx() const;
-
-            /**
-             * @brief Get the sinc(x) lookup table for the cross terms for the Debye transform.
-             */
-            observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
-
             hist::Distribution1D evaluate_xx_distance_profile(double cx) const;
             hist::Distribution1D evaluate_wx_distance_profile(double cx) const;
             hist::Distribution2D evaluate_ax_distance_profile(double cx) const;
@@ -104,8 +80,6 @@ namespace ausaxs::hist {
             double exv_factor(double q) const override;
 
         private: 
-            struct {table::DebyeTableManager xx, ax;} sinc_tables;
-            struct {std::vector<double> xx, ax;} distance_axes;
             struct {hist::Distribution1D xx_i, xx_s, xx_c, wx_i, wx_s; hist::Distribution2D ax_i, ax_s;} exv_distance_profiles;
 
             void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
@@ -114,7 +88,12 @@ namespace ausaxs::hist {
             //###           CACHE           ###//
             //#################################//
             void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const override;
-            void cache_refresh_sinqd() const override;
+
+            /**
+             * @brief No-op: the surface contribution is scaled per q value, so its excluded volume sinqd
+             *        values cannot be cached. cache_refresh_intensity_profiles evaluates them directly.
+             */
+            void cache_refresh_sinqd_exv() const override {}
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGridSurface>, "CompositeDistanceHistogramFFGridSurface should support nothrow move semantics.");
 }

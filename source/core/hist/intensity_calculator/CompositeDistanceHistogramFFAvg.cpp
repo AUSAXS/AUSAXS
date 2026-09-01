@@ -8,70 +8,62 @@
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
-
-#include <algorithm>
-#include <vector>
+#include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-namespace {
-    void apply_averaged_exv(Distribution3D& p_aa, Distribution2D& p_aw, double Z_exv_avg) {
-        const int n_active = static_cast<int>(form_factor::get_active_count());
-        const int ff_start = form_factor::start_index_for_explicit_exv();
-        const int nbins = static_cast<int>(p_aa.size_z());
-
-        std::vector<double> xx(nbins, 0);
-        for (int a = ff_start; a < n_active; ++a) {
-            std::vector<double> ax(nbins, 0);
-            for (int b = ff_start; b < n_active; ++b) {
-                for (int d = 0; d < nbins; ++d) {
-                    ax[d] += p_aa.index(a, b, d);
-                    ax[d] += p_aa.index(b, a, d);
-                    xx[d] += p_aa.index(a, b, d);
-                }
-            }
-            for (int d = 0; d < nbins; ++d) {
-                p_aa.index(a, form_factor::exv_bin, d) = 0.5*ax[d];
-            }
-        }
-        for (int d = 0; d < nbins; ++d) {
-            p_aa.index(form_factor::exv_bin, form_factor::exv_bin, d) = xx[d];
-        }
-
-        for (int a = ff_start; a < n_active; ++a) {
-            for (int d = 0; d < nbins; ++d) {
-                p_aw.index(form_factor::exv_bin, d) += p_aw.index(a, d);
-            }
-        }
-
-        // multiply the excluded volume charge onto the excluded volume bins
-        for (int ff1 = ff_start; ff1 < n_active; ++ff1) {
-            std::transform(p_aa.begin(ff1, form_factor::exv_bin), p_aa.end(ff1, form_factor::exv_bin), p_aa.begin(ff1, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
-        }
-        std::transform(p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), p_aa.end(form_factor::exv_bin, form_factor::exv_bin), p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg*Z_exv_avg;});
-        std::transform(p_aw.begin(form_factor::exv_bin), p_aw.end(form_factor::exv_bin), p_aw.begin(form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
-    }
-}
-
-std::unique_ptr<CompositeDistanceHistogramFFAvg> CompositeDistanceHistogramFFAvg::with_averaged_exv(
+CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(
     hist::Distribution3D&& p_aa,
     hist::Distribution2D&& p_aw,
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot,
     double Z_exv_avg
-) {
-    apply_averaged_exv(p_aa, p_aw, Z_exv_avg);
-    return std::make_unique<CompositeDistanceHistogramFFAvg>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot));
-}
+) : CompositeDistanceHistogramFFAvgBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), Z_exv_avg(Z_exv_avg) {}
 
-std::unique_ptr<CompositeDistanceHistogramFFAvg> CompositeDistanceHistogramFFAvg::with_averaged_exv(
+CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(
     hist::Distribution3D&& p_aa,
     hist::Distribution2D&& p_aw,
     hist::Distribution1D&& p_ww,
     hist::WeightedDistribution1D&& p_tot,
     double Z_exv_avg
-) {
-    apply_averaged_exv(p_aa, p_aw, Z_exv_avg);
-    return std::make_unique<CompositeDistanceHistogramFFAvg>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot));
+) : CompositeDistanceHistogramFFAvgBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), Z_exv_avg(Z_exv_avg) {}
+
+void CompositeDistanceHistogramFFAvg::cache_refresh_sinqd_exv() const {
+    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+
+    if (cache.sinqd.ax.empty()) {
+        cache.sinqd.ax = container::Container2D<double>(form_factor::get_total_ff_count(), debye_axis.bins);
+        cache.sinqd.xx = container::Container1D<double>(debye_axis.bins);
+        cache.sinqd.wx = container::Container1D<double>(debye_axis.bins);
+    }
+
+    const unsigned int ff_start = form_factor::start_index_for_explicit_exv();
+    const unsigned int n_active = form_factor::get_active_count();
+    const double Z = Z_exv_avg;
+
+    // Every pairwise distance is stored in exactly one of the aa(a,b) / aa(b,a) slots, so summing the
+    // row and the column of a type gives its pair count in both directions - which is precisely the
+    // atom-exv cross term, since every excluded volume sphere sits on an atom. Summing the rows once
+    // more gives the exv-exv term. A few hundred adds per q value replace the whole exv histogram.
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        double total = 0;
+        for (unsigned int a = ff_start; a < n_active; ++a) {
+            double row = 0, col = 0;
+            for (unsigned int b = ff_start; b < n_active; ++b) {
+                row += cache.sinqd.aa.index(a, b, q-q0);
+                col += cache.sinqd.aa.index(b, a, q-q0);
+            }
+            cache.sinqd.ax.index(a, q-q0) = Z*(row + col);
+            total += row;
+        }
+        cache.sinqd.xx.index(q-q0) = Z*Z*total;
+
+        double wx = 0;
+        for (unsigned int a = ff_start; a < n_active; ++a) {
+            wx += cache.sinqd.aw.index(a, q-q0);
+        }
+        cache.sinqd.wx.index(q-q0) = 2*Z*wx;
+    }
 }
