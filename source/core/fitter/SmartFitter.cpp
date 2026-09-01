@@ -16,7 +16,29 @@
 using namespace ausaxs;
 using namespace ausaxs::fitter;
 
-SmartFitter::~SmartFitter() = default;
+namespace {
+    void warn_if_parameter_on_bound(const std::vector<mini::Parameter>& guess, const mini::Result& res) {
+        constexpr double rel_tol = 1e-3;    // fraction of the allowed range counted as "on the bound"
+        for (unsigned int i = 0; i < guess.size(); ++i) {
+            if (!guess[i].has_bounds()) {continue;}
+            const auto& bounds = guess[i].bounds.value();
+            double span = bounds.span();
+            if (!(0 < span)) {continue;}
+            double value = res.get_parameter(i).value;
+            double tol = rel_tol*span;
+            bool on_lower = value <= bounds.min + tol;
+            bool on_upper = bounds.max - tol <= value;
+            if (!on_lower && !on_upper) {continue;}
+            console::print_warning(
+                "Warning: the fitted parameter \"" + guess[i].name + "\" converged to its " + (on_lower ? "lower" : "upper") + 
+                " bound (" + std::to_string(value) + " in [" + std::to_string(bounds.min) + ", " + std::to_string(bounds.max) + "])."
+            );
+        }
+    }
+    bool solvent_density_warned = false;
+}
+
+SmartFitter::~SmartFitter() {solvent_density_warned = false;}
 SmartFitter::SmartFitter(SmartFitter&&) noexcept = default;
 SmartFitter& SmartFitter::operator=(SmartFitter&&) noexcept = default;
 
@@ -62,13 +84,26 @@ void SmartFitter::EnabledFitParameters::validate_model(observer_ptr<hist::Distan
         atomic_debye_waller = false;
         exv_debye_waller = false;
     }
+    if (solvent_density) {
+        if (!solvent_density_warned) {
+            console::print_warning(
+                "Warning: fitting the solvent density scaling factor "
+                "(\"" + constants::fit::to_string(constants::fit::Parameters::SCALING_RHO) + "\") is strongly discouraged."
+            );
+            solvent_density_warned = true;
+        }
+    }
 }
 
-SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();}
+SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {
+    enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();
+    solvent_density_warned = false;
+}
 
 SmartFitter::SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::DistanceHistogram> h) : SmartFitter(saxs) {
     enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();
     set_model(std::move(h));
+    solvent_density_warned = false;
 }
 
 observer_ptr<hist::ICompositeDistanceHistogramExv> cast_exv(observer_ptr<hist::DistanceHistogram> hist) {
@@ -155,6 +190,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     auto f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
     auto res = mini->minimize();
+    warn_if_parameter_on_bound(guess, res);
 
     auto linear_fitter = prepare_linear_fitter(res.get_parameter_values());
     auto linear_fit = linear_fitter.fit();
