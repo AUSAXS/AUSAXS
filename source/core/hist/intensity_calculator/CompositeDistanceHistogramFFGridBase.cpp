@@ -32,7 +32,7 @@ namespace {
     form_factor::lookup::table_t generate_ff_table(T&& ffx) {
         auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
         form_factor::lookup::table_t table;
-        for (unsigned int i = 0; i < settings::form_factor::max_ff_types; ++i) {
+        for (unsigned int i = 0; i < form_factor::total_ff_count; ++i) {
             for (unsigned int j = 0; j < i; ++j) {
                 table.index(i, j) = NormalizedFormFactorProduct(
                     lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[i])), 

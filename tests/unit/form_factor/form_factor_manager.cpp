@@ -15,7 +15,7 @@ using namespace ausaxs::form_factor;
 const std::vector<int>& identity() {
     static std::vector<int> identity;
     if (identity.empty()) {
-        identity = std::vector<int>(get_total_ff_count());
+        identity = std::vector<int>(total_ff_count);
         std::iota(identity.begin(), identity.end(), 0);
     }
     return identity;
@@ -25,12 +25,12 @@ TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
     auto* tables = manager::get_active_product_tables();
     REQUIRE(tables != nullptr);
 
-    SECTION("active_count equals max_ff_types for identity set") {
-        REQUIRE(tables->active_count == static_cast<unsigned int>(settings::form_factor::max_ff_types));
+    SECTION("active_count equals total_ff_count for identity set") {
+        REQUIRE(tables->active_count == form_factor::total_ff_count);
     }
 
     SECTION("ff_indices are identity") {
-        for (unsigned int i = 0; i < static_cast<unsigned int>(settings::form_factor::max_ff_types); ++i) {
+        for (unsigned int i = 0; i < form_factor::total_ff_count; ++i) {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(i));
         }
     }
@@ -66,10 +66,10 @@ TEST_CASE("form_factor::get_active_count") {
 
 TEST_CASE("form_factor_manager::get_active_mapping default") {
     auto mapping = manager::get_active_mapping();
-    REQUIRE(mapping.size() == get_total_ff_count());
+    REQUIRE(mapping.size() == total_ff_count);
 
     SECTION("identity mapping") {
-        for (unsigned int i = 0; i < get_total_ff_count(); ++i) {
+        for (unsigned int i = 0; i < total_ff_count; ++i) {
             REQUIRE(mapping[i] == static_cast<int>(i));
         }
     }
@@ -84,7 +84,7 @@ TEST_CASE("form_factor_manager::get_active_mapping custom subset") {
     manager::detail::use_form_factors({exv, water, C});
 
     auto mapping = manager::get_active_mapping();
-    REQUIRE(mapping.size() == get_total_ff_count());
+    REQUIRE(mapping.size() == total_ff_count);
 
     SECTION("active types map to correct slots") {
         REQUIRE(mapping[exv]   == 0);
@@ -135,7 +135,7 @@ TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
     }
 
     SECTION("trailing slots are padded with OTHER") {
-        for (int i = 5; i < settings::form_factor::max_ff_types; ++i) {
+        for (unsigned int i = 5; i < form_factor::total_ff_count; ++i) {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(form_factor_t::OTHER));
         }
     }
@@ -169,7 +169,7 @@ TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
         }
 
         unsigned int expected = 3; // EXV and WATER are forced to the front, OTHER to the back
-        for (int t = 0; t < static_cast<int>(get_total_ff_count()); ++t) {
+        for (int t = 0; t < static_cast<int>(total_ff_count); ++t) {
             if (t == static_cast<int>(form_factor_t::EXCLUDED_VOLUME)) {continue;}
             if (t == static_cast<int>(form_factor_t::WATER)) {continue;}
             if (t == static_cast<int>(form_factor_t::OTHER)) {continue;}

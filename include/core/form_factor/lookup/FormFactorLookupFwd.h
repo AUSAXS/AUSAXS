@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <container/ArrayContainer2D.h>
-#include <settings/FormFactorSettings.h>
 
 namespace ausaxs::form_factor {
-    namespace lookup {using table_t = container::ArrayContainer2D<FormFactorProduct, settings::form_factor::max_ff_types, settings::form_factor::max_ff_types>;}
+    namespace lookup {using table_t = container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count>;}
 }

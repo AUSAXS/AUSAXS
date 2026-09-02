@@ -15,9 +15,9 @@
 namespace ausaxs::form_factor::manager {
     namespace detail {
         struct ActiveTables {
-            ActiveTables(std::array<int, settings::form_factor::max_ff_types>&& ff_indices, unsigned int active_count);
+            ActiveTables(std::array<int, form_factor::total_ff_count>&& ff_indices, unsigned int active_count);
             unsigned int active_count;
-            std::array<int, settings::form_factor::max_ff_types> ff_indices;
+            std::array<int, form_factor::total_ff_count> ff_indices;
             lookup::table_t raw_exv_table;
             lookup::table_t raw_cross_table;
             lookup::table_t raw_atomic_table;

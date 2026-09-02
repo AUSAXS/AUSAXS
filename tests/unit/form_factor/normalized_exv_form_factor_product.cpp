@@ -59,8 +59,8 @@ TEST_CASE("manager::raw_exv_table: completeness") {
         const auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
-        for (unsigned int ff1 = 1; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+        for (unsigned int ff1 = 1; ff1 < form_factor::total_ff_count; ++ff1) {
+            for (unsigned int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
                 const ExvFormFactor& ff1_obj = exv_set.get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = exv_set.get(static_cast<form_factor_t>(ff2));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
@@ -124,8 +124,8 @@ TEST_CASE("manager::normalized_cross_table: completeness") {
         auto& table = manager::get_active_product_tables()->normalized_cross_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
-        for (unsigned int ff1 = 0; ff1 < settings::form_factor::max_ff_types; ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < settings::form_factor::max_ff_types; ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
+            for (unsigned int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
                 const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = exv_set.get(static_cast<form_factor_t>(ff2));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
@@ -163,8 +163,8 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
 
         const auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto ffset = form_factor::detail::ExvFormFactorSet(custom_set);
-        for (unsigned int ff1 = 1; ff1 < get_total_ff_count(); ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < get_total_ff_count(); ++ff2) {
+        for (unsigned int ff1 = 1; ff1 < total_ff_count; ++ff1) {
+            for (unsigned int ff2 = 1; ff2 < total_ff_count; ++ff2) {
                 const ExvFormFactor& ff1_obj = ffset.get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
                 for (unsigned int i = 0; i < 10; ++i) {
@@ -185,8 +185,8 @@ TEST_CASE("ExvSet switching") {
         const auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::Traube);
 
-        for (unsigned int ff1 = 1; ff1 < get_total_ff_count(); ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < get_total_ff_count(); ++ff2) {
+        for (unsigned int ff1 = 1; ff1 < total_ff_count; ++ff1) {
+            for (unsigned int ff2 = 1; ff2 < total_ff_count; ++ff2) {
                 const ExvFormFactor& ff1_obj = ffset.get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
@@ -208,8 +208,8 @@ TEST_CASE("ExvSet switching") {
         const auto& table = manager::get_active_product_tables()->raw_exv_table;
         auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::vdw);
 
-        for (unsigned int ff1 = 1; ff1 < get_total_ff_count(); ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < get_total_ff_count(); ++ff2) {
+        for (unsigned int ff1 = 1; ff1 < total_ff_count; ++ff1) {
+            for (unsigned int ff2 = 1; ff2 < total_ff_count; ++ff2) {
                 const ExvFormFactor& ff1_obj = ffset.get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);

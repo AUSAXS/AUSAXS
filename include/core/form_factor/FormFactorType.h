@@ -4,7 +4,6 @@
 #pragma once
 
 #include <constants/Constants.h>
-#include <settings/FormFactorSettings.h>
 
 #include <string>
 #include <utility/Exceptions.h>
@@ -31,6 +30,12 @@ namespace ausaxs::form_factor {
         COUNT,              // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
         UNKNOWN,            // this is used to indicate that the form factor is unknown
     };
+
+    /**
+     * @brief The number of defined form factor types (including excluded volume).
+     */
+    constexpr unsigned int total_ff_count = static_cast<unsigned int>(form_factor::form_factor_t::COUNT);
+
     constexpr int exv_bin   = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::WATER);
     static_assert(exv_bin == 0, "form_factor::form_factor_t::EXCLUDED_VOLUME must be at index 0");
@@ -42,7 +47,7 @@ namespace ausaxs::form_factor {
         /**
          * @brief The number of form factor slots currently in use.
          */
-        inline unsigned int active_ff_count = settings::form_factor::max_ff_types;
+        inline unsigned int active_ff_count = total_ff_count;
     }
 
     /**
@@ -92,13 +97,6 @@ namespace ausaxs::form_factor {
         if (str == "CNT") return form_factor_t::COUNT;
         if (str == "UNK") return form_factor_t::UNKNOWN;
         throw ausaxs::except::runtime_error("form_factor::from_string: Unknown form factor string \"" + str + "\"");
-    }
-
-    /**
-     * @brief Get the total number of defined form factor types (including excluded volume).
-     */
-    constexpr unsigned int get_total_ff_count() {
-        return static_cast<unsigned int>(form_factor_t::COUNT);
     }
 
     /**

@@ -19,7 +19,6 @@
 #include <math/Vector3.h>
 #include <constants/Constants.h>
 #include <settings/Flags.h>
-#include <settings/FormFactorSettings.h>
 #include <form_factor/FormFactorType.h>
 
 #include <array>

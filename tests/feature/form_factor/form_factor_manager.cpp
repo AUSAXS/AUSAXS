@@ -21,7 +21,7 @@ using namespace ausaxs::form_factor;
 const std::vector<int>& identity() {
     static std::vector<int> identity;
     if (identity.empty()) {
-        identity = std::vector<int>(get_total_ff_count());
+        identity = std::vector<int>(total_ff_count);
         std::iota(identity.begin(), identity.end(), 0);
     }
     return identity;
@@ -131,7 +131,7 @@ void run_truncation_comparison(data::Molecule& protein) {
     auto i4 = MANAGER<true, true>(&protein).calculate_all()->debye_transform();
 
     manager::use_form_factors(protein);
-    REQUIRE(get_active_count() < static_cast<unsigned int>(settings::form_factor::max_ff_types));
+    REQUIRE(get_active_count() < form_factor::total_ff_count);
     auto i1t = MANAGER<false, false>(&protein).calculate_all()->debye_transform();
     auto i2t = MANAGER<true, false>(&protein).calculate_all()->debye_transform();
     auto i3t = MANAGER<false, true>(&protein).calculate_all()->debye_transform();
@@ -150,7 +150,7 @@ void run_truncation_comparison(data::Molecule& protein) {
     auto i2 = MANAGER<true>(&protein).calculate_all()->debye_transform();
 
     manager::use_form_factors(protein);
-    REQUIRE(get_active_count() < static_cast<unsigned int>(settings::form_factor::max_ff_types));
+    REQUIRE(get_active_count() < form_factor::total_ff_count);
     auto i1t = MANAGER<false>(&protein).calculate_all()->debye_transform();
     auto i2t = MANAGER<true>(&protein).calculate_all()->debye_transform();
 

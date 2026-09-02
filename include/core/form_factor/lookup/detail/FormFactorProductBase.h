@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/ExvFormFactor.h>
 #include <settings/MoleculeSettings.h>
-#include <settings/FormFactorSettings.h>
 #include <constants/Constants.h>
 
 #include <array>
@@ -19,7 +19,7 @@ namespace ausaxs::form_factor::lookup::detail {
      * @tparam FormFactorLookup A type providing a static `get(form_factor_t)` method.
      */
     template<typename FormFactorLookup>
-    const form_factor::lookup::table_t generate_atomic_table(const std::array<int, settings::form_factor::max_ff_types>& ff_indices) {
+    const form_factor::lookup::table_t generate_atomic_table(const std::array<int, form_factor::total_ff_count>& ff_indices) {
         form_factor::lookup::table_t table;
         for (unsigned int i = 0; i < ff_indices.size(); ++i) {
             for (unsigned int j = 0; j < i; ++j) {
@@ -43,7 +43,7 @@ namespace ausaxs::form_factor::lookup::detail {
      *        This is a symmetric table.
      * @param use_default_table If true, always use the default EXV set.
      */
-    const inline form_factor::lookup::table_t generate_exv_table(const std::array<int, settings::form_factor::max_ff_types>& ff_indices, bool use_default_table = false) {
+    const inline form_factor::lookup::table_t generate_exv_table(const std::array<int, form_factor::total_ff_count>& ff_indices, bool use_default_table = false) {
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::table_t table;
@@ -69,7 +69,7 @@ namespace ausaxs::form_factor::lookup::detail {
      * @param use_default_table If true, always use the default EXV set.
      */
     template<typename AtomicFormFactorLookup>
-    const form_factor::lookup::table_t generate_cross_table(const std::array<int, settings::form_factor::max_ff_types>& ff_indices, bool use_default_table = false) {
+    const form_factor::lookup::table_t generate_cross_table(const std::array<int, form_factor::total_ff_count>& ff_indices, bool use_default_table = false) {
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::table_t table;
