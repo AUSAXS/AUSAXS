@@ -50,6 +50,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
 
             double axsum = 
+                9 +
                 16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
@@ -105,6 +106,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
             double axsum = 
+                8 +
                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
@@ -161,6 +163,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
             double axsum = 
+                8 +
                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
                 24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
                 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
@@ -286,5 +289,40 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: Debye-Waller factors") {
         h_cast->apply_exv_debye_waller_factor(Bx);
         auto Iq = h_cast->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq));
+    }
+}
+// With a single atomic species every partial profile is one form factor product times a common distance sum,
+// so each profile can be converted into any other by dividing out its form factors and multiplying in the swapped ones.
+// The average excluded volume charge Z cancels in the relations below, so it never has to be computed here.
+TEST_CASE("CompositeDistanceHistogramFFAvg: exv term normalization") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+
+    std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+    std::vector<Water> w = {Water({0, 0, 0})};
+    std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
+    Molecule protein(a);
+
+    auto hist_data = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
+    auto hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
+    auto aa = hist->get_profile_aa();
+    auto ax = hist->get_profile_ax();
+    auto xx = hist->get_profile_xx();
+    auto aw = hist->get_profile_aw();
+    auto wx = hist->get_profile_wx();
+
+    for (unsigned int i = 0; i < aa.size(); ++i) {
+        // aa = S_aa*fC^2, ax = S_aa*2*Z*fC*fx  =>  ax/(2aa) = Z*fx/fC, the exv-to-atom form factor ratio
+        double ratio = ax[i]/(2*aa[i]);
+
+        // xx = S_aa*(Z*fx)^2
+        REQUIRE_THAT(xx[i], Catch::Matchers::WithinRel(aa[i]*ratio*ratio, 1e-6));
+
+        // aw = 2*S_aw*fC*fw, wx = 2*S_aw*fw*Z*fx  =>  the factor 2 of the two pair orderings must match the one
+        // in aw. The dummy atoms sit only on the real atoms, so there is no exv-water counterpart to this term.
+        REQUIRE_THAT(wx[i], Catch::Matchers::WithinRel(aw[i]*ratio, 1e-6));
     }
 }

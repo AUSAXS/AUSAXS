@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <form_factor/lookup/FormFactorProduct.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
@@ -14,8 +13,7 @@ namespace ausaxs::hist {
      *        The excluded volume is approximated using a space-filling grid of spheres, filling the volume of the molecule. 
      *        This approach adds a substantial overhead to the calculations, but should give a more accurate representation of the excluded volume.
      */
-    class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFAvg {
-        friend class CompositeDistanceHistogramFFGridSurface;
+    class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFGridBase {
         friend class CompositeDistanceHistogramFFGridScalableExv;
         public:
             CompositeDistanceHistogramFFGrid(CompositeDistanceHistogramFFGrid&&) noexcept;
@@ -41,61 +39,16 @@ namespace ausaxs::hist {
                 hist::WeightedDistribution1D&& p_tot_xx
             );
 
-            const form_factor::lookup::table_t& get_ff_table() const override {return ff_table;}
-
-            /**
-             * @brief Generate a new interal form factor table for the grid-based calculations.
-             * 
-             * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
-             */
-            template<FormFactorType T>
-            static form_factor::lookup::table_t generate_ff_table(T&& ffx);
-            static form_factor::lookup::table_t generate_ff_table(); //< @copydoc generate_ff_table(T&&)
-
-            /**
-             * @brief Regenerate the form factor table. This must be called to reflect changes in settings::grid::exv::width.
-             * 
-             * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
-             */
-            template<FormFactorType T>
-            static void regenerate_ff_table(T&& ffx = {0});
-
-            /**
-             * @brief Get the distance axis for the excluded volume calculations. 
-             *        If weighted bins are used, this will be distinct from the regular distance axis.
-             */
-            const std::vector<double>& get_d_axis_xx() const {return distance_axes.xx;}
-
-            /**
-             * @brief Get the distance axis for the cross term calculations. 
-             *        If weighted bins are used, this will be distinct from the regular distance axis.
-             */
-            const std::vector<double>& get_d_axis_ax() const {return distance_axes.ax;}
-
         protected:
-            /**
-             * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.
-             */
-            observer_ptr<const table::DebyeTable> get_sinc_table_xx() const;
-
-            /**
-             * @brief Get the sinc(x) lookup table for the cross terms for the Debye transform.
-             */
-            observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
-
             double exv_factor(double q) const override;
 
-        private: 
-            inline static form_factor::lookup::table_t ff_table;
-            struct {table::DebyeTableManager xx, ax;} sinc_tables;
-            struct {std::vector<double> xx, ax;} distance_axes;
+            void cache_refresh_sinqd_exv() const override;
+            void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const override;
 
-            void initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx);
-
-            //#################################//
-            //###           CACHE           ###//
-            //#################################//
-            void cache_refresh_sinqd() const override;
+            // The grid excluded volume is a separate set of scatterers rather than dummies placed on the atoms, so ax, xx and wx are distance distributions 
+            // in their own right and have nothing to share with the atomic sinqd cache. They are binned on their own distance axes too, hence the separate 
+            // sinc tables. Indexed as [ff1] for 2D.
+            mutable struct {container::Container2D<double> ax; container::Container1D<double> xx, wx;} exv_sinqd;
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGrid>, "CompositeDistanceHistogramFFGrid should support nothrow move semantics.");
 }

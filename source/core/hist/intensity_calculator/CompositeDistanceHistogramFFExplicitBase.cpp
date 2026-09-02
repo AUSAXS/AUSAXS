@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicitBase.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <form_factor/lookup/FormFactorProduct.h>
@@ -46,11 +47,6 @@ CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::Composi
 ) : CompositeDistanceHistogramFFAvgBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot))  {}
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
-const AA CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::get_ffaa_table() const {
-    return this->get_ff_table();
-}
-
-template<typename AA, typename AXFormFactorTableType, typename XX>
 double CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::exv_factor(double q, double cx) {
     constexpr double rm2 = constants::radius::average_atomic_radius*constants::radius::average_atomic_radius/4;
     return std::pow(cx, 3)*std::exp(-rm2*(std::pow(cx, 2) - 1)*q*q);
@@ -62,153 +58,62 @@ double CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::
 }
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
-void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_sinqd() const {
+void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const {
     auto pool = utility::multi_threading::get_global_pool();
-    const auto& sinqd_table = this->sinc_table.get_sinc_table();
 
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    unsigned int bins = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).bins;
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
-    if (exv_cache.sinqd.aa.empty()) {
-        // We only need one sinqd calculation per histogram type since aa/ax/xx share the same data
-        exv_cache.sinqd.aa = container::Container3D<double>(settings::form_factor::max_ff_types, settings::form_factor::max_ff_types, debye_axis.bins);
-        exv_cache.sinqd.aw = container::Container2D<double>(settings::form_factor::max_ff_types, debye_axis.bins);
-        exv_cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
-    }
+    // these lazily initialize shared state, so they must be resolved before any job is submitted
+    const auto* ff_ax_table = &get_ffax_table();
+    const auto* ff_xx_table = &get_ffxx_table();
 
-    for (unsigned int ff1 = 0; ff1 < form_factor::get_active_count(); ++ff1) {
-        for (unsigned int ff2 = 0; ff2 < form_factor::get_active_count(); ++ff2) {
-            pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table] () {
-                for (unsigned int q = q0; q < q0+bins; ++q) {
-                    // Single sinqd calculation - the same histogram is used for aa, ax, and xx
-                    exv_cache.sinqd.aa.index(ff1, ff2, q-q0) = std::inner_product(this->distance_profiles.aa.begin(ff1, ff2), this->distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
-                }
-            });
-        }
-        pool->detach_task([this, q0, bins=debye_axis.bins, ff1, sinqd_table] () {
-            for (unsigned int q = q0; q < q0+bins; ++q) {
-                // Single sinqd calculation - the same histogram is used for aw and wx
-                exv_cache.sinqd.aw.index(ff1, q-q0) = std::inner_product(this->distance_profiles.aw.begin(ff1), this->distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
-            }
-        });
-    }
-    pool->detach_task([&] () {
-        for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-            exv_cache.sinqd.ww.index(q-q0) = std::inner_product(this->distance_profiles.ww.begin(), this->distance_profiles.ww.end(), sinqd_table->begin(q), 0.0);
-        }
-    });
-    exv_cache.sinqd.valid = true;
-    pool->wait();
-}
-
-template<typename AA, typename AXFormFactorTableType, typename XX>
-void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
-    auto pool = utility::multi_threading::get_global_pool();
-    const auto& ff_aa_table = get_ffaa_table();
-    const auto& ff_ax_table = get_ffax_table();
-    const auto& ff_xx_table = get_ffxx_table();
-    const auto& sinqd_table = this->sinc_table.get_sinc_table();
-
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-
-    if (sinqd_changed) {
-        this->cache.intensity_profiles.aa = std::vector<double>(debye_axis.bins, 0);
-    }
-    if (cw_changed) {
-        this->cache.intensity_profiles.aw = std::vector<double>(debye_axis.bins, 0);
-        this->cache.intensity_profiles.ww = std::vector<double>(debye_axis.bins, 0);
-    }
+    // aa, ax and xx all share the same distance histogram, so the atomic sinqd cache is reused with the
+    // ax and xx form factor tables. Likewise wx reuses the aw cache.
     if (cx_changed) {
-        this->cache.intensity_profiles.ax = std::vector<double>(debye_axis.bins, 0);
-        this->cache.intensity_profiles.xx = std::vector<double>(debye_axis.bins, 0);
-    }
-    if (cw_changed || cx_changed) {
-        this->cache.intensity_profiles.wx = std::vector<double>(debye_axis.bins, 0);
-    }
-
-    std::vector<double> cx(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(constants::axes::q_vals[q]);}
-
-    if (sinqd_changed) {
-        pool->detach_task([&] () {
+        // ax
+        pool->detach_task([this, &cx, q0, bins, ff_ax_table] () {
             for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
-                    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                        this->cache.intensity_profiles.aa[q-q0] += 
-                            exv_cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_aa_table.index(ff1, ff2).evaluate(q)
-                        ;
-                    }
-                }
-            }
-        });
-    }
-
-    if (cx_changed) {
-        // Use the same sinqd.aa values but with different form factor tables for ax and xx
-        // For ax: subtract self-correlations at distance bin 0
-        pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
-                    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                        double sinqd_ax = exv_cache.sinqd.aa.index(ff1, ff2, q-q0);
+                    for (unsigned int q = q0; q < q0+bins; ++q) {
                         this->cache.intensity_profiles.ax[q-q0] += 
-                            this->free_params.crho*cx[q-q0]*sinqd_ax*(ff_ax_table.index(ff1, ff2).evaluate(q) + ff_ax_table.index(ff2, ff1).evaluate(q))
+                            this->free_params.crho*cx[q-q0]*this->cache.sinqd.aa.index(ff1, ff2, q-q0)
+                            *(ff_ax_table->index(ff1, ff2).evaluate(q) + ff_ax_table->index(ff2, ff1).evaluate(q))
                         ;
                     }
                 }
             }
         });
-        pool->detach_task([&] () {
+
+        // xx
+        pool->detach_task([this, &cx, q0, bins, ff_xx_table] () {
             for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
-                    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+                    for (unsigned int q = q0; q < q0+bins; ++q) {
                         this->cache.intensity_profiles.xx[q-q0] += 
-                            std::pow(cx[q-q0]*this->free_params.crho, 2)*exv_cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_xx_table.index(ff1, ff2).evaluate(q)
+                            std::pow(cx[q-q0]*this->free_params.crho, 2)*this->cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_xx_table->index(ff1, ff2).evaluate(q)
                         ;
                     }
                 }
-            }
-        });
-    }
-
-    if (cw_changed) {
-        pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                    this->cache.intensity_profiles.aw[q-q0] += 
-                        2*this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)*ff_aa_table.index(ff1, form_factor::water_bin).evaluate(q)
-                    ;
-                }
-            }
-        });
-        pool->detach_task([&] () {
-            for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                this->cache.intensity_profiles.ww[q-q0] += 
-                    this->free_params.cw*this->free_params.cw*exv_cache.sinqd.ww.index(q-q0)*ff_aa_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q)
-                ;
             }
         });
     }
 
     if (cw_changed || cx_changed) {
-        // Use the same sinqd.aw values but with different form factor table for wx
-        pool->detach_task([&] () {
+        // wx
+        pool->detach_task([this, &cx, q0, bins, ff_ax_table] () {
             for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+                for (unsigned int q = q0; q < q0+bins; ++q) {
+                    // only the atom carries excluded volume, so the exv form factor is evaluated only for the atom, not the water. 
+                    // See the CompositeDistanceHistogramFFAvgBase class documentation.
                     this->cache.intensity_profiles.wx[q-q0] += 
-                        this->free_params.crho*cx[q-q0]*this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)
-                        *(ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q) + ff_ax_table.index(ff1, form_factor::water_bin).evaluate(q))
+                        2*this->free_params.crho*cx[q-q0]*this->free_params.cw*this->cache.sinqd.aw.index(ff1, q-q0)
+                        *ff_ax_table->index(form_factor::water_bin, ff1).evaluate(q)
                     ;
                 }
             }
         });
     }
-
-    this->cache.intensity_profiles.cached_cx = this->free_params.cx;
-    this->cache.intensity_profiles.cached_crho = this->free_params.crho;
-    this->cache.intensity_profiles.cached_cw = this->free_params.cw;
-    pool->wait();    
 }
 
 template class hist::CompositeDistanceHistogramFFExplicitBase<

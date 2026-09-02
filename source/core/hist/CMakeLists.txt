@@ -9,6 +9,7 @@ target_sources(ausaxs_core PRIVATE
 	"histogram_manager/HistogramManager.cpp"
 	"histogram_manager/HistogramManagerFactory.cpp"
 	"histogram_manager/HistogramManagerMT.cpp"
+	"histogram_manager/HistogramManagerMTFFBase.cpp"
 	"histogram_manager/HistogramManagerMTFFAvg.cpp"
 	"histogram_manager/HistogramManagerMTFFExplicit.cpp"
 	"histogram_manager/HistogramManagerMTFFGrid.cpp"
@@ -29,8 +30,10 @@ target_sources(ausaxs_core PRIVATE
 	"distribution/detail/WeightedEntry.cpp"
 
 	"intensity_calculator/CompositeDistanceHistogram.cpp"
+	"intensity_calculator/CompositeDistanceHistogramFFAvg.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFAvgBase.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFExplicitBase.cpp"
+	"intensity_calculator/CompositeDistanceHistogramFFGridBase.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGrid.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGridSurface.cpp"
 	"intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.cpp"

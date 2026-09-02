@@ -4,8 +4,7 @@
 #pragma once
 
 #include <hist/HistFwd.h>
-#include <hist/detail/CompactCoordinatesFF.h>
-#include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManagerMTFFBase.h>
 
 namespace ausaxs::hist {
 	/**
@@ -13,9 +12,9 @@ namespace ausaxs::hist {
 	 *		  This is equivalent to the CRYSOL implementation. 
 	 */
 	template<bool weighted_bins, bool variable_bin_width>
-	class HistogramManagerMTFFExplicit : public HistogramManager<weighted_bins, variable_bin_width> {
+	class HistogramManagerMTFFExplicit : public HistogramManagerMTFFBase<weighted_bins, variable_bin_width> {
 		public:
-			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
+			using HistogramManagerMTFFBase<weighted_bins, variable_bin_width>::HistogramManagerMTFFBase;
 
 			virtual ~HistogramManagerMTFFExplicit() override;
 
@@ -28,9 +27,5 @@ namespace ausaxs::hist {
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
-
-		protected:
-			std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_a_ptr;
-		    std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_w_ptr;
 	};
 }

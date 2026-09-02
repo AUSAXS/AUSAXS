@@ -7,7 +7,7 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
@@ -45,7 +45,7 @@ auto test_normalized = [] (Molecule& protein, std::function<std::unique_ptr<ICom
     set_unity_charge(exv);
 
     // calculate the xx, ax, aa distributions from FFGrid (raw counts)
-    auto h_cast = static_cast<CompositeDistanceHistogramFFAvg*>(h.get());
+    auto h_cast = static_cast<CompositeDistanceHistogramFFGridBase*>(h.get());
     hist::Distribution1D xx1, ax1, aa1;
     {
         auto aa = h_cast->get_raw_aa_counts_by_ff();
@@ -96,7 +96,7 @@ auto test_absolute_aa = [] (Molecule& protein, std::function<std::unique_ptr<ICo
     auto h = calculate(protein);
 
     // Get atom-atom histogram from FFGrid with form factor weighting
-    auto h_cast = static_cast<CompositeDistanceHistogramFFAvg*>(h.get());
+    auto h_cast = static_cast<CompositeDistanceHistogramFFGridBase*>(h.get());
     auto aa_by_ff = h_cast->get_aa_counts_by_ff();
     
     // Sum all form factor contributions
