@@ -211,9 +211,8 @@ void SimpleDataset::scale_y(double factor) {
 }
 
 void SimpleDataset::simulate_noise() {
-    auto fun = [&] (double y, double yerr) {
-        auto gauss = std::normal_distribution<double>(y, yerr);
-        return gauss(random::generator());
+    auto fun = [] (double y, double yerr) {
+        return random::gaussian(y, yerr);
     };
 
     auto y = this->y();
