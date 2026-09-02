@@ -16,6 +16,7 @@ namespace ausaxs::settings {
         static bool store_calpha;           // Decides whether per-atom backbone classification (N/C-alpha/C/O) is retained as metadata.
         static bool store_occupancy;        // Decides whether per-atom occupancy is retained as metadata.
         static bool store_residue_seq;      // Decides whether per-atom residue sequence is retained as metadata.
+        static bool store_chain_id;         // Decides whether the per-atom source chain identifier is retained as metadata.
     };
 
     struct EXPORT hydrate {

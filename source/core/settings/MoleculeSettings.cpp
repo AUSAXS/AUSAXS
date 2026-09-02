@@ -17,6 +17,7 @@ bool settings::molecule::allow_unknown_atoms = false;
 bool settings::molecule::store_calpha = true;
 bool settings::molecule::store_occupancy = false;
 bool settings::molecule::store_residue_seq = true;
+bool settings::molecule::store_chain_id = true;
 
 namespace ausaxs::settings::io {
     settings::io::SettingSection molecule_section("Molecule", {
@@ -28,6 +29,7 @@ namespace ausaxs::settings::io {
         settings::io::create(molecule::store_calpha, "store_calpha"),
         settings::io::create(molecule::store_occupancy, "store_occupancy"),
         settings::io::create(molecule::store_residue_seq, "store_residue_seq"),
+        settings::io::create(molecule::store_chain_id, "store_chain_id"),
     });
 
     settings::io::SettingSection hydrate_section("Hydrate", {

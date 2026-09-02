@@ -81,18 +81,8 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
     auto slice = [&atoms, &metadata] (std::size_t begin, std::size_t end) -> Body {
         Body b(std::vector<AtomFF>(atoms.begin()+begin, atoms.begin()+end), std::vector<data::Water>{});
 
-        AtomMetadata m;
-        bool any = false;
-        if (metadata->backbone)    {
-            m.backbone    = std::vector<backbone_t>(metadata->backbone->begin()+begin, metadata->backbone->begin()+end);   
-            any = true;
-        } if (metadata->residue_seq) {
-            m.residue_seq = std::vector<int>(metadata->residue_seq->begin()+begin, metadata->residue_seq->begin()+end);
-            any = true;
-        } if (metadata->occupancy)   {
-            m.occupancy   = std::vector<float>(metadata->occupancy->begin()+begin, metadata->occupancy->begin()+end);
-            any = true;
-        } if (any) {b.set_metadata(std::move(m));}
+        AtomMetadata m = metadata->subrange(begin, end);
+        if (!m.empty()) {b.set_metadata(std::move(m));}
         return b;
     };
 

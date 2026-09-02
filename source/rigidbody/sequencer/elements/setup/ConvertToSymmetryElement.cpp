@@ -59,9 +59,7 @@ namespace {
         body.get_atoms().resize(n);
         if (!body.get_metadata()) {return;}
         data::AtomMetadata metadata = *body.get_metadata();
-        if (metadata.backbone)    {metadata.backbone->resize(n);}
-        if (metadata.residue_seq) {metadata.residue_seq->resize(n);}
-        if (metadata.occupancy)   {metadata.occupancy->resize(n);}
+        metadata.resize(n);
         body.set_metadata(std::move(metadata));
     }
 }
