@@ -28,7 +28,8 @@ namespace {
 manager::detail::ActiveTables::ActiveTables(std::array<int, form_factor::total_ff_count>&& ff_indices, unsigned int active_count) 
     : active_count(active_count), ff_indices(std::move(ff_indices))
 {
-    form_factor::detail::active_ff_count = active_count; // publish for the header-inline form_factor::get_active_count()
+    // must come first; the table generators below only fill the active sub-block, which they read from here
+    form_factor::detail::active_ff_count = active_count;
     this->raw_atomic_table         = lookup::detail::generate_atomic_table<lookup::detail::RawFormFactorLookup>(this->ff_indices);
     this->raw_cross_table          = lookup::detail::generate_cross_table<lookup::detail::RawFormFactorLookup>(this->ff_indices);
     this->raw_exv_table            = lookup::detail::generate_exv_table(this->ff_indices);

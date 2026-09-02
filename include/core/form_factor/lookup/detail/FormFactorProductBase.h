@@ -16,12 +16,13 @@
 namespace ausaxs::form_factor::lookup::detail {
     /**
      * @brief Generate an atomic form factor product table.
+     *        Only the active sub-block is filled; no atom can index the remainder.
      * @tparam FormFactorLookup A type providing a static `get(form_factor_t)` method.
      */
     template<typename FormFactorLookup>
     const form_factor::lookup::table_t generate_atomic_table(const std::array<int, form_factor::total_ff_count>& ff_indices) {
         form_factor::lookup::table_t table;
-        for (unsigned int i = 0; i < ff_indices.size(); ++i) {
+        for (unsigned int i = 0; i < form_factor::get_active_count(); ++i) {
             for (unsigned int j = 0; j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(
                     FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i])), 
@@ -47,7 +48,7 @@ namespace ausaxs::form_factor::lookup::detail {
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::table_t table;
-        for (unsigned int i = start_index_for_explicit_exv(); i < ff_indices.size(); ++i) {
+        for (unsigned int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
             for (unsigned int j = start_index_for_explicit_exv(); j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(
                     exv_set.get(static_cast<form_factor_t>(ff_indices[i])), 
@@ -73,8 +74,8 @@ namespace ausaxs::form_factor::lookup::detail {
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::table_t table;
-        for (unsigned int i = 0; i < ff_indices.size(); ++i) {
-            for (unsigned int j = start_index_for_explicit_exv(); j < ff_indices.size(); ++j) {
+        for (unsigned int i = 0; i < form_factor::get_active_count(); ++i) {
+            for (unsigned int j = start_index_for_explicit_exv(); j < form_factor::get_active_count(); ++j) {
                 table.index(i, j) = FormFactorProduct(
                     AtomicFormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i])), 
                     exv_set.get(static_cast<form_factor_t>(ff_indices[j]))

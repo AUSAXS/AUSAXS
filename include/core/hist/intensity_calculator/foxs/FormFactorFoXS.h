@@ -49,9 +49,10 @@ namespace ausaxs::form_factor::foxs {
             }
 
             [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> generate_table() {
-                auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
+                auto ff_tables = form_factor::manager::get_active_product_tables();
+                auto ff_indices = ff_tables->ff_indices;
                 container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> table;
-                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
+                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
                     for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
                             get_form_factor(static_cast<form_factor_t>(ff_indices[i])), 
@@ -91,9 +92,10 @@ namespace ausaxs::form_factor::foxs {
             }
 
             [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> generate_table() {
-                auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
+                auto ff_tables = form_factor::manager::get_active_product_tables();
+                auto ff_indices = ff_tables->ff_indices;
                 container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> table;
-                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
+                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
                     for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
                             get_form_factor(static_cast<form_factor_t>(ff_indices[i])), 

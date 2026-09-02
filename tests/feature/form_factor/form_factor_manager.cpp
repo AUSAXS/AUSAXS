@@ -190,6 +190,28 @@ TEST_CASE("form_factor_manager: truncated ff set scattering consistent across al
     manager::detail::use_form_factors(identity());
 }
 
+TEST_CASE("form_factor_manager: truncated ff set scattering consistent for special exv calculators") {
+    // the FoXS/CRYSOL product tables are only filled over the active sub-block, so they need the same
+    // check as the histograms - and they are only reachable through these exv models
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+
+    data::Molecule protein("tests/files/2epe.pdb");
+    protein.generate_new_hydration();
+
+    auto run_exv = [&](settings::exv::ExvMethod method) {
+        settings::exv::exv_method = method;
+        run_truncation_comparison<hist::HistogramManagerMTFFExplicit>(protein);
+    };
+
+    SECTION("FoXS")   {run_exv(settings::exv::ExvMethod::FoXS);}
+    SECTION("Pepsi")  {run_exv(settings::exv::ExvMethod::Pepsi);}
+    SECTION("CRYSOL") {run_exv(settings::exv::ExvMethod::CRYSOL);}
+
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+    manager::detail::use_form_factors(identity());
+}
+
 TEST_CASE("form_factor_manager: use_form_factors(Molecule) reproduces identity scattering") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;

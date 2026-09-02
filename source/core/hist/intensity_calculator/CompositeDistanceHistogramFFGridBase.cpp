@@ -32,7 +32,8 @@ namespace {
     form_factor::lookup::table_t generate_ff_table(T&& ffx) {
         auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
         form_factor::lookup::table_t table;
-        for (unsigned int i = 0; i < form_factor::total_ff_count; ++i) {
+        unsigned int n_active = form_factor::get_active_count();
+        for (unsigned int i = 0; i < n_active; ++i) {
             for (unsigned int j = 0; j < i; ++j) {
                 table.index(i, j) = NormalizedFormFactorProduct(
                     lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[i])), 
@@ -50,11 +51,10 @@ namespace {
                 ffx
             );
             table.index(form_factor::exv_bin, i) = table.index(i, form_factor::exv_bin);
-            table.index(form_factor::exv_bin, form_factor::exv_bin) = NormalizedFormFactorProduct(
-                ffx, 
-                ffx
-            );
         }
+
+        // must come last; the loop above overwrites this slot on its first iteration
+        table.index(form_factor::exv_bin, form_factor::exv_bin) = NormalizedFormFactorProduct(ffx, ffx);
         return table;
     }
 }
