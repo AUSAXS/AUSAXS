@@ -46,19 +46,15 @@ auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& w
     auto asize = body.size_atom();
     auto batoms = b.atoms;
 
-    // when present, per-atom backbone role and residue sequence let the writer emit a structure PyMOL (and similar
-    // tools) can trace as a cartoon; symmetry copies repeat the base body's classification via i % asize.
     const auto& metadata = body.get_metadata();
-    const std::vector<data::backbone_t>* backbone = (metadata && metadata->backbone)    ? &metadata->backbone.value()    : nullptr;
-    const std::vector<int>*              resseq   = (metadata && metadata->residue_seq) ? &metadata->residue_seq.value() : nullptr;
-    const std::vector<char>*             chain_id = (metadata && metadata->chain_id)    ? &metadata->chain_id.value()    : nullptr;
+    observer_ptr<const std::vector<data::backbone_t>> backbone = (metadata && metadata->backbone)    ? &metadata->backbone.value()    : nullptr;
+    observer_ptr<const std::vector<int>>              resseq   = (metadata && metadata->residue_seq) ? &metadata->residue_seq.value() : nullptr;
+    observer_ptr<const std::vector<char>>             chain_id = (metadata && metadata->chain_id)    ? &metadata->chain_id.value()    : nullptr;
 
     for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
         const auto& a = batoms[i];
         int midx = i % static_cast<int>(asize);
 
-        // a single body may hold several source chains (Molecule loads an entire file into one), and each must be emitted under an identifier of its own.
-        // Otherwise their residue sequences - which restart at every chain - collide, and consumers like PyMOL can only trace the first of them.
         if (midx == 0) {++chain;}
         else if (chain_id && (*chain_id)[midx] != (*chain_id)[midx-1]) {++chain;}
 
