@@ -38,6 +38,18 @@ namespace ausaxs::form_factor {
 
     inline int start_index_for_explicit_exv() {return static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)+1;}
 
+    namespace detail {
+        /**
+         * @brief The number of form factor slots currently in use.
+         */
+        inline unsigned int active_ff_count = settings::form_factor::max_ff_types;
+    }
+
+    /**
+     * @brief Get the number of active form factors.
+     */
+    inline unsigned int get_active_count() noexcept {return detail::active_ff_count;}
+
     [[maybe_unused]] static std::string to_string(form_factor_t type) {
         switch (type) {
             case form_factor_t::H: return "H";

@@ -184,8 +184,17 @@ namespace ausaxs::hist::detail {
 // implementation defined in header to support efficient inlining
 
 namespace ausaxs::hist::detail::xyzff {
+    /**
+     * @brief The row stride of the packed (ff1, ff2) index.
+     *        This must match the second dimension of the distribution the packed index is used as a
+     *        linear index into - see e.g. Distribution3D::increment_linear_index.
+     */
+    inline int32_t ff_stride() noexcept {
+        return static_cast<int32_t>(form_factor::get_active_count());
+    }
+
     inline int32_t ff_bin_index(int32_t ff1, int32_t ff2) noexcept {
-        return ff2 + ff1*settings::form_factor::max_ff_types;
+        return ff2 + ff1*ff_stride();
     }
 }
 
@@ -395,9 +404,8 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
     namespace ausaxs::hist::detail::xyzff {
         template<bool vbw>
         inline static __m128i ff_bin_index(int32_t ff_self, __m128 ff_others_raw) noexcept {
-            __m128 mul_fac = _mm_set_ps1(settings::form_factor::max_ff_types);
             __m128 ff_others = _mm_cvtepi32_ps(_mm_castps_si128(ff_others_raw));
-            __m128 ff1_scaled = _mm_mul_ps(_mm_set_ps1(static_cast<float>(ff_self)), mul_fac);
+            __m128 ff1_scaled = _mm_set_ps1(static_cast<float>(ff_self*ff_stride()));
             return _mm_cvtps_epi32(_mm_add_ps(ff_others, ff1_scaled));
         }
     }
@@ -526,8 +534,8 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
         __m256 ff_raw = _mm256_shuffle_ps(fft0, fft1, _MM_SHUFFLE(3,2,3,2));
         __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
-        __m256 mul_fac = _mm256_set1_ps(settings::form_factor::max_ff_types);
-        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, _mm256_mul_ps(_mm256_set1_ps(this->value.ff), mul_fac)));
+        __m256 ff1_scaled = _mm256_set1_ps(static_cast<float>(this->value.ff*xyzff::ff_stride()));
+        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, ff1_scaled));
 
         // compute differences and square
         __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
@@ -582,8 +590,8 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
         __m256 ff_raw = _mm256_shuffle_ps(fft0, fft1, _MM_SHUFFLE(3,2,3,2));
         __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
-        __m256 mul_fac = _mm256_set1_ps(settings::form_factor::max_ff_types);
-        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, _mm256_mul_ps(_mm256_set1_ps(this->value.ff), mul_fac)));
+        __m256 ff1_scaled = _mm256_set1_ps(static_cast<float>(this->value.ff*xyzff::ff_stride()));
+        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, ff1_scaled));
 
         __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
         __m256 d12 = _mm256_sub_ps(svv, v12);
@@ -638,8 +646,8 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         __m256 ff_hi_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v811, gather_ff, v1215));
         __m512 ff_all_float = _mm512_cvtepi32_ps(_mm512_castps_si512(
             _mm512_insertf32x8(_mm512_castps256_ps512(ff_lo_raw), ff_hi_raw, 1)));
-        __m512 mul_fac = _mm512_set1_ps(settings::form_factor::max_ff_types);
-        __m512i ff_bins = _mm512_cvtps_epi32(_mm512_add_ps(ff_all_float, _mm512_mul_ps(_mm512_set1_ps(this->value.ff), mul_fac)));
+        __m512 ff1_scaled = _mm512_set1_ps(static_cast<float>(this->value.ff*xyzff::ff_stride()));
+        __m512i ff_bins = _mm512_cvtps_epi32(_mm512_add_ps(ff_all_float, ff1_scaled));
 
         // compute squared differences (square-first for ILP)
         __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
@@ -695,8 +703,8 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         __m256 ff_hi_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v811, gather_ff, v1215));
         __m512 ff_all_float = _mm512_cvtepi32_ps(_mm512_castps_si512(
             _mm512_insertf32x8(_mm512_castps256_ps512(ff_lo_raw), ff_hi_raw, 1)));
-        __m512 mul_fac = _mm512_set1_ps(settings::form_factor::max_ff_types);
-        __m512i ff_bins = _mm512_cvtps_epi32(_mm512_add_ps(ff_all_float, _mm512_mul_ps(_mm512_set1_ps(this->value.ff), mul_fac)));
+        __m512 ff1_scaled = _mm512_set1_ps(static_cast<float>(this->value.ff*xyzff::ff_stride()));
+        __m512i ff_bins = _mm512_cvtps_epi32(_mm512_add_ps(ff_all_float, ff1_scaled));
 
         __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
         __m512 d03   = _mm512_sub_ps(svv, v03);
