@@ -211,12 +211,11 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_corre
     }
 
     // calculate self-correlation
-    double total_weight = std::accumulate(
-        current.get_data().begin(), 
-        current.get_data().end(), 
-        0.0, 
-        [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
-    );
+    double total_weight = 0;
+    for (unsigned int i = 0; i < current.size(); ++i) {
+        double w = current.get_weight(i);
+        total_weight += w*w;
+    }
     if constexpr (weighted_bins) {
         p_aa.add_index(0, WeightedEntry(total_weight, total_weight, 0));
     } else {
@@ -336,12 +335,11 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
     }
 
     // calculate self-correlation
-    double total_weight = std::accumulate(
-        this->coords_w.get_data().begin(), 
-        this->coords_w.get_data().end(), 
-        0.0, 
-        [](double sum, const auto& val) {return sum + val.value.w*val.value.w;}
-    );
+    double total_weight = 0;
+    for (unsigned int i = 0; i < this->coords_w.size(); ++i) {
+        double w = this->coords_w.get_weight(i);
+        total_weight += w*w;
+    }
 
     if constexpr (weighted_bins) {
         p_ww.add_index(0, WeightedEntry(total_weight, total_weight, 0));

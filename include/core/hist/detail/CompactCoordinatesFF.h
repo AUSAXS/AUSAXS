@@ -20,7 +20,7 @@ namespace ausaxs::hist::detail {
 
         void setup() {
             auto map = form_factor::manager::get_active_mapping();
-            for (unsigned int i = 0; i < this->data.size(); ++i) {
+            for (unsigned int i = 0; i < this->size(); ++i) {
                 if (get_ff_type(i) == static_cast<int>(ausaxs::form_factor::form_factor_t::UNKNOWN)) {
                     throw ausaxs::except::runtime_error(
                         "CompactCoordinatesFF: Attempted to use an atom with UNKNOWN form factor type.\n"

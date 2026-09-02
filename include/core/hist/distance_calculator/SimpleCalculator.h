@@ -151,12 +151,12 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
     pool->detach_task(
         [&data, res_ptr] () {
             auto& p_aa = res_ptr->get();
-            double total_weight = scaling*std::accumulate(
-                data.get_data().begin(), 
-                data.get_data().end(), 
-                0.0, 
-                [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
-            );
+            double total_weight = 0;
+            for (unsigned int i = 0; i < data.size(); ++i) {
+                double w = data.get_weight(i);
+                total_weight += w*w;
+            }
+            total_weight *= scaling;
 
             if constexpr (weighted_bins) {
                 p_aa.add_index(0, detail::WeightedEntry(total_weight, total_weight, 0));

@@ -22,17 +22,16 @@ namespace ausaxs::hist::detail {
         constexpr unsigned int min_bin_count = 10; // minimum number of bins for all returned histograms
         constexpr unsigned int headroom = 2;       // extra bins on top of the geometric bound
 
-        // a set of coordinates that can be indexed directly
+        // a set of coordinates that exposes its positions component-wise
         template<typename T>
-        concept CoordinateSet = requires(const T& t) {t.size(); t[0].value.pos;};
+        concept CoordinateSet = requires(const T& t) {t.size(); t.x(0u); t.y(0u); t.z(0u);};
 
         // invoke f(x, y, z) for every point in the set
         template<typename F, CoordinateSet Coords>
         void for_each_point(F& f, const Coords& coords) {
-            std::size_t size = coords.size();
-            for (std::size_t i = 0; i < size; ++i) {
-                const auto& p = coords[i].value.pos;
-                f(static_cast<double>(p.x()), static_cast<double>(p.y()), static_cast<double>(p.z()));
+            unsigned int size = static_cast<unsigned int>(coords.size());
+            for (unsigned int i = 0; i < size; ++i) {
+                f(static_cast<double>(coords.x(i)), static_cast<double>(coords.y(i)), static_cast<double>(coords.z(i)));
             }
         }
 

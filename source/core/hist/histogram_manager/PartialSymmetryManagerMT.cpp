@@ -148,7 +148,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
             for (int iatom = 0; iatom < static_cast<int>(this->protein->get_body(ibody).get_atoms().size()); ++iatom) {
                 std::cout << "[" << ibody << 0 << 0 << iatom << "]: ";
                 for (int i = 0; i < 4; ++i) {
-                    std::cout << coords[ibody].atomic[0][0].get_data()[iatom].data[i] << " ";
+                    std::cout << coords[ibody].atomic[0][0].component(iatom, i) << " ";
                 }
                 std::cout << std::endl;
             }
@@ -158,7 +158,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                     for (int iatom = 0; iatom < static_cast<int>(this->protein->get_body(ibody).get_atoms().size()); ++iatom) {
                         std::cout << "[" << ibody << isym+1 << irepeat << iatom << "]: ";
                         for (int i = 0; i < 4; ++i) {
-                            std::cout << coords[ibody].atomic[isym+1][irepeat].get_data()[iatom].data[i] << " ";
+                            std::cout << coords[ibody].atomic[isym+1][irepeat].component(iatom, i) << " ";
                         }
                         std::cout << std::endl;
                     }
@@ -738,7 +738,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aa(int
         std::cout << std::endl;
     #endif
 
-    assert(res.get_data().data() != nullptr && "res.get_data() is nullptr. Was it already moved?");
+    assert(!res.empty() && "res is empty. Was it already moved?");
     master_hist_mutex.lock();
     this->master -= this->partials_aa.index(ibody1, ibody2).index(isym1, isym2);
     this->partials_aa.index(ibody1, ibody2).index(isym1, isym2) = std::move(res);
@@ -766,7 +766,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aw(int
         std::cout << std::endl;
     #endif
 
-    assert(res.get_data().data() != nullptr && "res.get_data() is nullptr. Was it already moved?");
+    assert(!res.empty() && "res is empty. Was it already moved?");
     master_hist_mutex.lock();
     this->master -= this->partials_aw.index(ibody).index(isym);
     this->partials_aw.index(ibody).index(isym) = std::move(res);
@@ -794,7 +794,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_ww(Gen
         std::cout << std::endl;
     #endif
 
-    assert(res.get_data().data() != nullptr && "res.get_data() is nullptr. Was it already moved?");
+    assert(!res.empty() && "res is empty. Was it already moved?");
     master_hist_mutex.lock();
     this->master -= this->partials_ww;
     this->partials_ww = std::move(res);
