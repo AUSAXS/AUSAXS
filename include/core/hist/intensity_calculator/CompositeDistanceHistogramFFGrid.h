@@ -43,6 +43,12 @@ namespace ausaxs::hist {
             double exv_factor(double q) const override;
 
             void cache_refresh_sinqd_exv() const override;
+            void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const override;
+
+            // The grid excluded volume is a separate set of scatterers rather than dummies placed on the atoms, so ax, xx and wx are distance distributions 
+            // in their own right and have nothing to share with the atomic sinqd cache. They are binned on their own distance axes too, hence the separate 
+            // sinc tables. Indexed as [ff1] for 2D.
+            mutable struct {container::Container2D<double> ax; container::Container1D<double> xx, wx;} exv_sinqd;
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGrid>, "CompositeDistanceHistogramFFGrid should support nothrow move semantics.");
 }

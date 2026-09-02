@@ -108,106 +108,47 @@ void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d
     std::transform(aw.begin(form_factor::exv_bin), aw.end(form_factor::exv_bin), wx.begin(), aw.begin(form_factor::exv_bin), std::plus<double>());
 }
 
-void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
+void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const {
     auto pool = utility::multi_threading::get_global_pool();
-    const auto& ff_table = get_ff_table();
+
+    unsigned int bins = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).bins;
+    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+
+    // these lazily initialize shared state, so they must be resolved before any job is submitted
+    const auto* ff_table = &get_ff_table();
     auto sinqd_table_ax = get_sinc_table_ax();
     auto sinqd_table_xx = get_sinc_table_xx();
 
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-
-    if (sinqd_changed) {
-        this->cache.intensity_profiles.aa = std::vector<double>(debye_axis.bins, 0);
-    }
-    if (cw_changed) {
-        this->cache.intensity_profiles.aw = std::vector<double>(debye_axis.bins, 0);
-        this->cache.intensity_profiles.ww = std::vector<double>(debye_axis.bins, 0);
-    }
-    if (cx_changed) {
-        this->cache.intensity_profiles.ax = std::vector<double>(debye_axis.bins, 0);
-        this->cache.intensity_profiles.xx = std::vector<double>(debye_axis.bins, 0);
-    }
-    if (cw_changed || cx_changed) {
-        this->cache.intensity_profiles.wx = std::vector<double>(debye_axis.bins, 0);
-    }
-
-    std::vector<double> cx(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {cx[q-q0] = exv_factor(constants::axes::q_vals[q]);}
-
-    if (sinqd_changed) {
-        // aa
-        pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
-                    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                        this->cache.intensity_profiles.aa[q-q0] += 
-                            this->cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_table.index(ff1, ff2).evaluate(q);
-                    }
-                }
-            }
-        });
-    }
-
     if (cx_changed) {
         // ax
-        pool->detach_task([&] () {
-            for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        pool->detach_task([this, &cx, q0, bins, ff_table, sinqd_table_ax] () {
+            for (unsigned int q = q0; q < q0+bins; ++q) {
                 auto ax = evaluate_ax_distance_profile(cx[q-q0]);
                 for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                     double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table_ax->begin(q), 0.0);
-                    this->cache.intensity_profiles.ax[q-q0] += 
-                        2*this->free_params.crho*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
+                    cache.intensity_profiles.ax[q-q0] += 2*free_params.crho*ax_sum*ff_table->index(ff1, form_factor::exv_bin).evaluate(q);
                 }
             }
         });
 
         // xx
-        pool->detach_task([&] () {
-            for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        pool->detach_task([this, &cx, q0, bins, ff_table, sinqd_table_xx] () {
+            for (unsigned int q = q0; q < q0+bins; ++q) {
                 auto xx = evaluate_xx_distance_profile(cx[q-q0]);
                 double xx_sum = std::inner_product(xx.begin(), xx.end(), sinqd_table_xx->begin(q), 0.0);
-                this->cache.intensity_profiles.xx[q-q0] += 
-                    this->free_params.crho*this->free_params.crho*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
-            }
-        });
-    }
-
-    if (cw_changed) {
-        // aw
-        pool->detach_task([&] () {
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                    this->cache.intensity_profiles.aw[q-q0] += 
-                        2*this->free_params.cw*this->cache.sinqd.aw.index(ff1, q-q0)
-                        *ff_table.index(ff1, form_factor::water_bin).evaluate(q);
-                }
-            }
-        });
-
-        // ww
-        pool->detach_task([&] () {
-            for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-                this->cache.intensity_profiles.ww[q-q0] += 
-                    this->free_params.cw*this->free_params.cw*this->cache.sinqd.ww.index(q-q0)
-                    *ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
+                cache.intensity_profiles.xx[q-q0] += free_params.crho*free_params.crho*xx_sum*ff_table->index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
             }
         });
     }
 
     if (cw_changed || cx_changed) {
         // wx
-        pool->detach_task([&] () {
-            for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        pool->detach_task([this, &cx, q0, bins, ff_table, sinqd_table_ax] () {
+            for (unsigned int q = q0; q < q0+bins; ++q) {
                 auto wx = evaluate_wx_distance_profile(cx[q-q0]);
                 double wx_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
-                this->cache.intensity_profiles.wx[q-q0] += 
-                    2*this->free_params.crho*wx_sum*this->free_params.cw*ff_table.index(form_factor::water_bin, form_factor::exv_bin).evaluate(q);
+                cache.intensity_profiles.wx[q-q0] += 2*free_params.crho*wx_sum*free_params.cw*ff_table->index(form_factor::water_bin, form_factor::exv_bin).evaluate(q);
             }
         });
     }
-    this->cache.intensity_profiles.cached_cx = this->free_params.cx;
-    this->cache.intensity_profiles.cached_cw = this->free_params.cw;
-    this->cache.intensity_profiles.cached_crho = this->free_params.crho;
-    pool->wait();
 }

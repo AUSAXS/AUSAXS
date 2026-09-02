@@ -87,11 +87,11 @@ namespace ausaxs::hist {
             //#################################//
             //###           CACHE           ###//
             //#################################//
-            void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const override;
+            void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const override;
 
             /**
              * @brief No-op: the surface contribution is scaled per q value, so its excluded volume sinqd
-             *        values cannot be cached. cache_refresh_intensity_profiles evaluates them directly.
+             *        values cannot be cached. cache_refresh_intensity_exv evaluates them directly.
              */
             void cache_refresh_sinqd_exv() const override {}
     };

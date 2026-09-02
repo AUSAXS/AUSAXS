@@ -75,24 +75,13 @@ namespace ausaxs::hist {
             // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
             double exv_factor(double q) const override;
 
-            //#################################//
-            //###           CACHE           ###//
-            //#################################//
-            mutable struct {
-                // cached sinqd vals for each form factor combination
-                // indexing as [ff1][ff2] for 3D, [ff1] for 2D
-                // Note: aa, ax, xx share the same underlying histogram, so we only cache sinqd_aa
-                // Similarly, aw and wx share the same histogram
-                mutable struct {
-                    container::Container3D<double> aa;
-                    container::Container2D<double> aw;
-                    container::Container1D<double> ww;
-                    bool valid = false;
-                } sinqd;
-            } exv_cache;
-
         private:
-            void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const override;
-            void cache_refresh_sinqd() const override;
+            void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const override;
+
+            /**
+             * @brief No-op: aa, ax and xx all share the same underlying histogram, and so do aw and wx, so the
+             *        atomic sinqd cache is all this family needs.
+             */
+            void cache_refresh_sinqd_exv() const override {}
     };
 }

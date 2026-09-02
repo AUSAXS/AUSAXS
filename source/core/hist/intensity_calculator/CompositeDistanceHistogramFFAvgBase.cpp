@@ -469,35 +469,6 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
 }
 
 template<typename FormFactorTableType>
-void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sinqd_exv() const {
-    auto pool = utility::multi_threading::get_global_pool();
-    const auto& sinqd_table = sinc_table.get_sinc_table();
-
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
-
-    if (cache.sinqd.ax.empty()) {
-        cache.sinqd.ax = container::Container2D<double>(form_factor::get_total_ff_count(), debye_axis.bins);
-        cache.sinqd.xx = container::Container1D<double>(debye_axis.bins);
-        cache.sinqd.wx = container::Container1D<double>(debye_axis.bins);
-    }
-
-    for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-        pool->detach_task([this, q0, bins=debye_axis.bins, ff1, sinqd_table] () {
-            for (unsigned int q = q0; q < q0+bins; ++q) {
-                cache.sinqd.ax.index(ff1, q-q0) = 2*std::inner_product(distance_profiles.aa.begin(ff1, form_factor::exv_bin), distance_profiles.aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-            }
-        });
-    }
-    pool->detach_task([this, q0, bins=debye_axis.bins, sinqd_table] () {
-        for (unsigned int q = q0; q < q0+bins; ++q) {
-            cache.sinqd.xx.index(q-q0) = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-            cache.sinqd.wx.index(q-q0) = 2*std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
-        }
-    });
-}
-
-template<typename FormFactorTableType>
 void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
     auto pool = utility::multi_threading::get_global_pool();
     const auto& ff_table = get_ff_table(); 
@@ -562,42 +533,4 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     cache.intensity_profiles.cached_cw = free_params.cw;
     pool->wait();
 }
-template<typename FormFactorTableType>
-void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const {
-    auto pool = utility::multi_threading::get_global_pool();
-
-    unsigned int bins = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).bins;
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
-
-    if (cx_changed) {
-        // ax
-        pool->detach_task([this, &cx, q0, bins] () {
-            const auto& ff_table = get_ff_table();
-            for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (unsigned int q = q0; q < q0+bins; ++q) {
-                    cache.intensity_profiles.ax[q-q0] += free_params.crho*cx[q-q0]*cache.sinqd.ax.index(ff1, q-q0)*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
-                }
-            }
-        });
-
-        // xx
-        pool->detach_task([this, &cx, q0, bins] () {
-            const auto& ff_table = get_ff_table();
-            for (unsigned int q = q0; q < q0+bins; ++q) {
-                cache.intensity_profiles.xx[q-q0] += std::pow(cx[q-q0]*free_params.crho, 2)*cache.sinqd.xx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
-            }
-        });
-    }
-
-    if (cw_changed || cx_changed) {
-        // wx
-        pool->detach_task([this, &cx, q0, bins] () {
-            const auto& ff_table = get_ff_table();
-            for (unsigned int q = q0; q < q0+bins; ++q) {
-                cache.intensity_profiles.wx[q-q0] += free_params.crho*cx[q-q0]*free_params.cw*cache.sinqd.wx.index(q-q0)*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
-            }
-        });
-    }
-}
-
 template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::lookup::table_t>;

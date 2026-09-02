@@ -24,7 +24,8 @@ namespace ausaxs::hist {
      * Note that p_aa already stores each atom-atom pair in both orderings, so its factor is baked into the counts, whereas p_aw stores each water-atom 
      * pair only once and needs the factor written out explicitly.
      *
-     * The excluded volume sits on the atoms only: A_x runs over the atoms and never over the hydration shell. There is therefore no water-exv self term, 
+     * The excluded volume belongs to the molecule only: A_x never extends over the hydration shell, whether it is built from dummy atoms placed on the 
+     * real atoms or from a separate grid. There is therefore no water-exv self term, 
      * and wx has the single form factor pairing f_w*fx_a rather than a second pairing with an excluded volume of the water itself. 
      * This is valid for two reasons:
      *  (i) The hydration density is rescaled regardless. Instead of modelling the excess density as \delta\rho_w = (\rho_w - \rho_b), we model it as 
@@ -216,11 +217,14 @@ namespace ausaxs::hist {
             cache_get_distance_profiles() const;
 
             mutable struct {
-                // cached sinqd vals for each form factor combination indexing as [ff1][ff2]
+                // cached sinqd vals for each form factor combination indexing as [ff1][ff2].
+                // only the atomic terms live here. Models placing their dummy atoms on top of the real atoms reuse
+                // these for the excluded volume as well, whereas models where the excluded volume is a separate set
+                // of scatterers own the additional distributions themselves
                 mutable struct {
                     container::Container3D<double> aa;
-                    container::Container2D<double> ax, aw;
-                    container::Container1D<double> xx, wx, ww;
+                    container::Container2D<double> aw;
+                    container::Container1D<double> ww;
                     bool valid = false;
                 } sinqd;
 
@@ -238,18 +242,17 @@ namespace ausaxs::hist {
             } cache;
 
             /**
-             * @brief Submit the jobs filling the excluded volume half of the sinqd cache.
-             *        Overrides must only submit to the global pool and not wait on it; cache_refresh_sinqd waits
-             *        once for both halves so that they overlap.
+             * @brief Submit the jobs filling the excluded volume half of the sinqd cache. Implementations should only submit to the global pool 
+             *        and not wait on it; cache_refresh_sinqd waits once for both halves so that they may overlap. 
              */
-            virtual void cache_refresh_sinqd_exv() const;
+            virtual void cache_refresh_sinqd_exv() const = 0;
 
             /**
              * @brief Add the excluded volume terms (ax, xx, wx) to the intensity profile cache.
              *        The corresponding profiles have already been zeroed by the caller.
              * @param cx The excluded volume scaling factor evaluated for every q value.
              */
-            virtual void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const;
+            virtual void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const = 0;
 
         private:
             // @copydoc cache_refresh_sinqd_exv
