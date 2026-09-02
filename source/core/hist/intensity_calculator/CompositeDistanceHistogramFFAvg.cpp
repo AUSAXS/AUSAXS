@@ -43,10 +43,6 @@ void CompositeDistanceHistogramFFAvg::cache_refresh_sinqd_exv() const {
     const unsigned int n_active = form_factor::get_active_count();
     const double Z = Z_exv_avg;
 
-    // Every pairwise distance is stored in exactly one of the aa(a,b) / aa(b,a) slots, so summing the
-    // row and the column of a type gives its pair count in both directions - which is precisely the
-    // atom-exv cross term, since every excluded volume sphere sits on an atom. Summing the rows once
-    // more gives the exv-exv term. A few hundred adds per q value replace the whole exv histogram.
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         double total = 0;
         for (unsigned int a = ff_start; a < n_active; ++a) {

@@ -28,8 +28,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     logging::log("HistogramManagerMTFFExplicit::calculate: starting calculation");
     auto raw = this->compute_raw_distributions();
 
-    // No excluded volume distance data is synthesized; each of the calculators below bakes a
-    // per-species excluded volume form factor into its own form factor lookup tables instead.
     switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::FoXS:
             return std::make_unique<CompositeDistanceHistogramFoXS>(
