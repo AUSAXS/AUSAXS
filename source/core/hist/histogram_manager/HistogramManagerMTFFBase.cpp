@@ -43,7 +43,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(settings::form_factor::max_ff_types, settings::form_factor::max_ff_types, bin_count); // ff_type1, ff_type2, distance
+    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(form_factor::get_active_count(), form_factor::get_active_count(), bin_count); // ff_type1, ff_type2, distance
     auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
         auto& p_aa = p_aa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -66,7 +66,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(settings::form_factor::max_ff_types, bin_count); // ff_type, distance
+    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(form_factor::get_active_count(), bin_count); // ff_type, distance
     auto calc_aw = [&data_w, &data_a, &p_aw_all, data_w_size] (int imin, int imax) {
         auto& p_aw = p_aw_all.get();
         for (int i = imin; i < imax; ++i) { // atom

@@ -77,7 +77,7 @@ void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd_exv() const {
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     if (exv_sinqd.ax.empty()) {
-        exv_sinqd.ax = container::Container2D<double>(form_factor::get_total_ff_count(), debye_axis.bins);
+        exv_sinqd.ax = container::Container2D<double>(form_factor::get_active_count(), debye_axis.bins);
         exv_sinqd.xx = container::Container1D<double>(debye_axis.bins);
         exv_sinqd.wx = container::Container1D<double>(debye_axis.bins);
     }

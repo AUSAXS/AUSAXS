@@ -35,9 +35,9 @@ TEST_CASE("form_factor_t::to_string") {
     }
 }
 
-TEST_CASE("form_factor_t::get_total_ff_count") {
+TEST_CASE("form_factor_t::total_ff_count") {
     SECTION("count value") {
-        unsigned int count = get_total_ff_count();
+        unsigned int count = total_ff_count;
         CHECK(count == static_cast<unsigned int>(form_factor_t::COUNT));
         CHECK(count > 0);
     }

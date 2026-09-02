@@ -9,12 +9,12 @@
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/detail/FormFactorProductBase.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
-#include <settings/FormFactorSettings.h>
 #include <container/Container2D.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/Logging.h>
 
+#include <algorithm>
 #include <cassert>
 #include <numeric>
 
@@ -25,9 +25,11 @@ namespace {
     std::unique_ptr<manager::detail::ActiveTables> active_tables;
 }
 
-manager::detail::ActiveTables::ActiveTables(std::array<int, settings::form_factor::max_ff_types>&& ff_indices, unsigned int active_count) 
-    : ff_indices(std::move(ff_indices)), active_count(active_count)
+manager::detail::ActiveTables::ActiveTables(std::array<int, form_factor::total_ff_count>&& ff_indices, unsigned int active_count) 
+    : active_count(active_count), ff_indices(std::move(ff_indices))
 {
+    // must come first; the table generators below only fill the active sub-block, which they read from here
+    form_factor::detail::active_ff_count = active_count;
     this->raw_atomic_table         = lookup::detail::generate_atomic_table<lookup::detail::RawFormFactorLookup>(this->ff_indices);
     this->raw_cross_table          = lookup::detail::generate_cross_table<lookup::detail::RawFormFactorLookup>(this->ff_indices);
     this->raw_exv_table            = lookup::detail::generate_exv_table(this->ff_indices);
@@ -37,46 +39,48 @@ manager::detail::ActiveTables::ActiveTables(std::array<int, settings::form_facto
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() noexcept {
     if (!active_tables) { // initialize default tables
-        std::array<int, settings::form_factor::max_ff_types> default_indices;
+        std::array<int, form_factor::total_ff_count> default_indices;
         std::iota(default_indices.begin(), default_indices.end(), 0);
-        active_tables = std::make_unique<detail::ActiveTables>(std::move(default_indices), settings::form_factor::max_ff_types);
+        active_tables = std::make_unique<detail::ActiveTables>(std::move(default_indices), form_factor::total_ff_count);
     }
     return active_tables.get();
 }
 
 std::vector<int> manager::get_active_mapping() {
     auto ff_indices = get_active_product_tables()->ff_indices;
-    std::vector<int> mapping(form_factor::get_total_ff_count(), -1);
-    assert(mapping.size() == ff_indices.size() && "Mapping size should match total form factor count.");
-    for (unsigned int i = 0; i < ff_indices.size(); ++i) {
+    std::vector<int> mapping(form_factor::total_ff_count, -1);
+    for (unsigned int i = 0; i < form_factor::get_active_count(); ++i) {
         mapping[ff_indices[i]] = i;
     }
 
     // form factors not in the active set fall back to the OTHER slot (see header docs).
     // mapping them to a real slot - rather than an out-of-range sentinel - keeps the
-    // generated histograms in-bounds once the enum is extended beyond max_ff_types.
+    // generated histograms in-bounds.
     int other_slot = mapping[static_cast<int>(form_factor::form_factor_t::OTHER)];
     assert(other_slot != -1 && "OTHER must always be part of the active form factor set.");
     for (auto& m : mapping) {if (m == -1) {m = other_slot;}}
     return mapping;
 }
 
-unsigned int form_factor::get_active_count() noexcept {
-    return manager::get_active_product_tables()->active_count;
-}
-
 void manager::detail::use_form_factors(std::vector<int> ff_indices) {
     assert(!ff_indices.empty() && "Custom form factors cannot be empty.");
-    assert(ff_indices.size() <= form_factor::get_total_ff_count() && "Custom form factors cannot exceed the total number of available form factors.");
+    assert(ff_indices.size() <= form_factor::total_ff_count && "Custom form factors cannot exceed the total number of available form factors.");
 
-    std::array<int, settings::form_factor::max_ff_types> ff_indices_array;
+    // ensure form_factor_t::OTHER is always present
+    constexpr int other = static_cast<int>(form_factor::form_factor_t::OTHER);
+    if (std::find(ff_indices.begin(), ff_indices.end(), other) == ff_indices.end()) {
+        assert(ff_indices.size() < form_factor::total_ff_count && "Cannot append OTHER to a full form factor set.");
+        ff_indices.push_back(other);
+    }
+
+    std::array<int, form_factor::total_ff_count> ff_indices_array;
     std::copy(ff_indices.begin(), ff_indices.end(), ff_indices_array.begin());
     std::fill(ff_indices_array.begin() + ff_indices.size(), ff_indices_array.end(), static_cast<int>(form_factor::form_factor_t::OTHER));
     active_tables = std::make_unique<detail::ActiveTables>(std::move(ff_indices_array), ff_indices.size());
 }
 
 void manager::use_form_factors(data::Molecule& molecule) {
-    std::vector<int> ff_counts(form_factor::get_total_ff_count(), 0);
+    std::vector<int> ff_counts(form_factor::total_ff_count, 0);
     for (auto& a : molecule.iterate_atoms()) {
         ++ff_counts[static_cast<int>(a.form_factor_type())];
     }
@@ -85,10 +89,18 @@ void manager::use_form_factors(data::Molecule& molecule) {
     ff_counts[static_cast<int>(form_factor::form_factor_t::WATER)] = std::numeric_limits<int>::max()-1;
     ff_counts[static_cast<int>(form_factor::form_factor_t::OTHER)] = std::numeric_limits<int>::min();
 
-    std::vector<int> ff_indices(form_factor::get_total_ff_count());
+    std::vector<int> ff_indices(form_factor::total_ff_count);
     std::iota(ff_indices.begin(), ff_indices.end(), 0);
     std::sort(ff_indices.begin(), ff_indices.end(), [&ff_counts](int a, int b) {return ff_counts[a] > ff_counts[b];});
-    ff_indices.resize(settings::form_factor::max_ff_types);
+
+    // Truncate to the form factors actually present. The sort above places EXCLUDED_VOLUME and WATER first (forced), then every type with a non-zero atom 
+    // count in descending order, then the absent types, and finally OTHER. Everything from the first absent type onwards is dead weight and therefore removed. 
+    unsigned int n_present = 0;
+    for (unsigned int i = 2; i < ff_indices.size(); ++i) {
+        if (ff_counts[ff_indices[i]] <= 0) {break;}
+        ++n_present;
+    }
+    ff_indices.resize(std::min<unsigned int>(2 + n_present + 1, form_factor::total_ff_count));
     ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // OTHER will never be selected, so it is safe to assign it here
 
     if (logging::logging_enabled()) {
@@ -108,7 +120,7 @@ void manager::use_form_factors(data::Molecule& molecule) {
 void manager::rebuild() {
     if (!active_tables) {return;} // lazy init will pick up the new EXV set
     active_tables = std::make_unique<detail::ActiveTables>(
-        std::array<int, settings::form_factor::max_ff_types>(active_tables->ff_indices),
+        std::array<int, form_factor::total_ff_count>(active_tables->ff_indices),
         active_tables->active_count
     );
 }

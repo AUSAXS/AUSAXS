@@ -15,7 +15,7 @@ using namespace ausaxs::form_factor;
 const std::vector<int>& identity() {
     static std::vector<int> identity;
     if (identity.empty()) {
-        identity = std::vector<int>(get_total_ff_count());
+        identity = std::vector<int>(total_ff_count);
         std::iota(identity.begin(), identity.end(), 0);
     }
     return identity;
@@ -25,12 +25,12 @@ TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
     auto* tables = manager::get_active_product_tables();
     REQUIRE(tables != nullptr);
 
-    SECTION("active_count equals max_ff_types for identity set") {
-        REQUIRE(tables->active_count == static_cast<unsigned int>(settings::form_factor::max_ff_types));
+    SECTION("active_count equals total_ff_count for identity set") {
+        REQUIRE(tables->active_count == form_factor::total_ff_count);
     }
 
     SECTION("ff_indices are identity") {
-        for (unsigned int i = 0; i < static_cast<unsigned int>(settings::form_factor::max_ff_types); ++i) {
+        for (unsigned int i = 0; i < form_factor::total_ff_count; ++i) {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(i));
         }
     }
@@ -43,20 +43,33 @@ TEST_CASE("form_factor::get_active_count") {
         manager::detail::use_form_factors({
             static_cast<int>(form_factor_t::EXCLUDED_VOLUME),
             static_cast<int>(form_factor_t::WATER),
+            static_cast<int>(form_factor_t::C),
+            static_cast<int>(form_factor_t::OTHER)
+        });
+        REQUIRE(get_active_count() == 4);
+        REQUIRE(get_active_count() == manager::get_active_product_tables()->active_count);
+        manager::detail::use_form_factors(identity());
+    }
+
+    SECTION("OTHER is appended to a subset that omits it") {
+        // every inactive type is folded onto the OTHER slot, so it must always be part of the active set
+        manager::detail::use_form_factors({
+            static_cast<int>(form_factor_t::EXCLUDED_VOLUME),
+            static_cast<int>(form_factor_t::WATER),
             static_cast<int>(form_factor_t::C)
         });
-        REQUIRE(get_active_count() == 3);
-        REQUIRE(get_active_count() == manager::get_active_product_tables()->active_count);
+        REQUIRE(get_active_count() == 4);
+        REQUIRE(manager::get_active_product_tables()->ff_indices[3] == static_cast<int>(form_factor_t::OTHER));
         manager::detail::use_form_factors(identity());
     }
 }
 
 TEST_CASE("form_factor_manager::get_active_mapping default") {
     auto mapping = manager::get_active_mapping();
-    REQUIRE(mapping.size() == get_total_ff_count());
+    REQUIRE(mapping.size() == total_ff_count);
 
     SECTION("identity mapping") {
-        for (unsigned int i = 0; i < get_total_ff_count(); ++i) {
+        for (unsigned int i = 0; i < total_ff_count; ++i) {
             REQUIRE(mapping[i] == static_cast<int>(i));
         }
     }
@@ -71,7 +84,7 @@ TEST_CASE("form_factor_manager::get_active_mapping custom subset") {
     manager::detail::use_form_factors({exv, water, C});
 
     auto mapping = manager::get_active_mapping();
-    REQUIRE(mapping.size() == get_total_ff_count());
+    REQUIRE(mapping.size() == total_ff_count);
 
     SECTION("active types map to correct slots") {
         REQUIRE(mapping[exv]   == 0);
@@ -85,9 +98,12 @@ TEST_CASE("form_factor_manager::get_active_mapping custom subset") {
         REQUIRE(mapping[static_cast<int>(form_factor_t::H)] == mapping[other]);
     }
 
-    SECTION("OTHER slot is last in the padded array") {
-        // padding fills trailing slots with OTHER, so the mapping for OTHER is overwritten repeatedly and ends at the last padded index
-        REQUIRE(mapping[other] == settings::form_factor::max_ff_types - 1);
+    SECTION("OTHER slot is the last active slot") {
+        // OTHER is appended to the requested set, so it takes the last slot of the active prefix.
+        // The trailing padding is deliberately *not* mapped: those slots lie outside the histograms,
+        // which are sized to the active count.
+        REQUIRE(get_active_count() == 4);
+        REQUIRE(mapping[other] == 3);
     }
 
     manager::detail::use_form_factors(identity());
@@ -103,8 +119,8 @@ TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
 
     auto* tables = manager::get_active_product_tables();
 
-    SECTION("active_count reflects explicit count") {
-        REQUIRE(tables->active_count == 4);
+    SECTION("active_count reflects explicit count plus the appended OTHER") {
+        REQUIRE(tables->active_count == 5);
     }
 
     SECTION("explicit slots are preserved") {
@@ -114,8 +130,12 @@ TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
         REQUIRE(tables->ff_indices[3] == static_cast<int>(form_factor_t::N));
     }
 
+    SECTION("OTHER is appended after the explicit slots") {
+        REQUIRE(tables->ff_indices[4] == static_cast<int>(form_factor_t::OTHER));
+    }
+
     SECTION("trailing slots are padded with OTHER") {
-        for (int i = 4; i < settings::form_factor::max_ff_types; ++i) {
+        for (unsigned int i = 5; i < form_factor::total_ff_count; ++i) {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(form_factor_t::OTHER));
         }
     }
@@ -137,13 +157,36 @@ TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
         REQUIRE(tables->ff_indices[1] == static_cast<int>(form_factor_t::WATER));
     }
 
-    SECTION("OTHER is always the last slot") {
-        REQUIRE(tables->ff_indices[settings::form_factor::max_ff_types - 1] == static_cast<int>(form_factor_t::OTHER));
+    SECTION("OTHER is always the last active slot") {
+        REQUIRE(tables->ff_indices[tables->active_count - 1] == static_cast<int>(form_factor_t::OTHER));
     }
 
-    SECTION("active_count equals max_ff_types for a real molecule with diverse atoms") {
-        // 2epe.pdb contains many different atom types, expect all slots populated
-        REQUIRE(tables->active_count == static_cast<unsigned int>(settings::form_factor::max_ff_types));
+    SECTION("active set is truncated to the types actually present") {
+        // the active set is [EXV, WATER, <present types>, OTHER]; every absent type is dropped
+        std::vector<int> counts(static_cast<int>(form_factor_t::UNKNOWN) + 1, 0);
+        for (const auto& a : molecule.iterate_atoms()) {
+            ++counts[static_cast<int>(a.form_factor_type())];
+        }
+
+        unsigned int expected = 3; // EXV and WATER are forced to the front, OTHER to the back
+        for (int t = 0; t < static_cast<int>(total_ff_count); ++t) {
+            if (t == static_cast<int>(form_factor_t::EXCLUDED_VOLUME)) {continue;}
+            if (t == static_cast<int>(form_factor_t::WATER)) {continue;}
+            if (t == static_cast<int>(form_factor_t::OTHER)) {continue;}
+            if (counts[t] > 0) {++expected;}
+        }
+
+        REQUIRE(tables->active_count == expected);
+    }
+
+    SECTION("every type present in the molecule has its own slot") {
+        auto mapping = manager::get_active_mapping();
+        int other_slot = mapping[static_cast<int>(form_factor_t::OTHER)];
+        for (const auto& a : molecule.iterate_atoms()) {
+            int t = static_cast<int>(a.form_factor_type());
+            if (t == static_cast<int>(form_factor_t::OTHER)) {continue;} // OTHER is always folded onto its own slot
+            REQUIRE(mapping[t] != other_slot);
+        }
     }
 
     manager::detail::use_form_factors(identity());
