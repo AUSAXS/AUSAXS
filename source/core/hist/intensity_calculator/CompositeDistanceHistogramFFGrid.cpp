@@ -52,11 +52,10 @@ void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd_exv() const {
             }
         });
     }
-    pool->detach_task([&] () {
-        for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+    pool->detach_task([this, q0, bins=debye_axis.bins, sinqd_table_ax, sinqd_table_xx] () {
+        for (unsigned int q = q0; q < q0+bins; ++q) {
             cache.sinqd.xx.index(q-q0) = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table_xx->begin(q), 0.0);
             cache.sinqd.wx.index(q-q0) = 2*std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table_ax->begin(q), 0.0);
         }
     });
-    pool->wait();
 }

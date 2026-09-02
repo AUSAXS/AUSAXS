@@ -237,6 +237,11 @@ namespace ausaxs::hist {
                 } intensity_profiles;
             } cache;
 
+            /**
+             * @brief Submit the jobs filling the excluded volume half of the sinqd cache.
+             *        Overrides must only submit to the global pool and not wait on it; cache_refresh_sinqd waits
+             *        once for both halves so that they overlap.
+             */
             virtual void cache_refresh_sinqd_exv() const;
 
             /**
@@ -247,6 +252,7 @@ namespace ausaxs::hist {
             virtual void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const;
 
         private:
+            // @copydoc cache_refresh_sinqd_exv
             void cache_refresh_sinqd_atomic() const;
 
             /**

@@ -425,8 +425,10 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_dis
 
 template<typename FormFactorTableType>
 void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sinqd() const {
+    // both halves only submit their jobs, so the atomic and excluded volume work overlaps in the pool
     cache_refresh_sinqd_atomic();
     cache_refresh_sinqd_exv();
+    utility::multi_threading::get_global_pool()->wait();
     cache.sinqd.valid = true;
 }
 
@@ -459,12 +461,11 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
             }
         });
     }
-    pool->detach_task([&] () {
-        for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+    pool->detach_task([this, q0, bins=debye_axis.bins, sinqd_table] () {
+        for (unsigned int q = q0; q < q0+bins; ++q) {
             cache.sinqd.ww.index(q-q0) = std::inner_product(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table->begin(q), 0.0);
         }
     });
-    pool->wait();
 }
 
 template<typename FormFactorTableType>
@@ -488,13 +489,12 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
             }
         });
     }
-    pool->detach_task([&] () {
-        for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+    pool->detach_task([this, q0, bins=debye_axis.bins, sinqd_table] () {
+        for (unsigned int q = q0; q < q0+bins; ++q) {
             cache.sinqd.xx.index(q-q0) = std::inner_product(distance_profiles.aa.begin(form_factor::exv_bin, form_factor::exv_bin), distance_profiles.aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
             cache.sinqd.wx.index(q-q0) = 2*std::inner_product(distance_profiles.aw.begin(form_factor::exv_bin), distance_profiles.aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
         }
     });
-    pool->wait();
 }
 
 template<typename FormFactorTableType>
