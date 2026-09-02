@@ -90,7 +90,7 @@ hist::Distribution2D CompositeDistanceHistogramFFGridSurface::evaluate_ax_distan
 }
 
 void CompositeDistanceHistogramFFGridSurface::initialize(std::vector<double>&& d_axis_ax, std::vector<double>&& d_axis_xx) {
-    ff_table = generate_ff_table();
+    regenerate_ff_table();
     initialize_grid_axes(std::move(d_axis_ax), std::move(d_axis_xx));
 
     // fix the aa counts to also contain the exv contributions

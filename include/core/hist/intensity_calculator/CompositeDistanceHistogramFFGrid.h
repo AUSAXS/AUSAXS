@@ -14,7 +14,6 @@ namespace ausaxs::hist {
      *        This approach adds a substantial overhead to the calculations, but should give a more accurate representation of the excluded volume.
      */
     class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFGridBase {
-        // needs to move the cached state out of a separately-evaluated FFGrid instance
         friend class CompositeDistanceHistogramFFGridScalableExv;
         public:
             CompositeDistanceHistogramFFGrid(CompositeDistanceHistogramFFGrid&&) noexcept;
@@ -43,10 +42,6 @@ namespace ausaxs::hist {
         protected:
             double exv_factor(double q) const override;
 
-            /**
-             * @brief The grid excluded volume is independent data, so it is read straight out of the distance
-             *        histograms - but using the grid's own sinc(qd) tables rather than the atomic one.
-             */
             void cache_refresh_sinqd_exv() const override;
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFGrid>, "CompositeDistanceHistogramFFGrid should support nothrow move semantics.");

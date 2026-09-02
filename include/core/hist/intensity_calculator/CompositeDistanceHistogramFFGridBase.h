@@ -15,13 +15,6 @@
 namespace ausaxs::hist {
     /**
      * @brief Common base for the excluded volume models built on a space-filling grid of dummy spheres.
-     *
-     * Unlike the averaged model (CompositeDistanceHistogramFFAvg), the grid excluded volume is computed
-     * independently of the atomic positions, so it cannot be derived from the atomic distance data. It is
-     * stored in the excluded volume row and column of the distance histograms, and - since the grid is
-     * highly ordered - it needs its own weighted distance axes and sinc(qd) lookup tables.
-     *
-     * This class owns that machinery, along with the grid form factor table shared by all grid variants.
      */
     class CompositeDistanceHistogramFFGridBase : public CompositeDistanceHistogramFFAvgBase<form_factor::lookup::table_t> {
         public:
@@ -30,21 +23,17 @@ namespace ausaxs::hist {
             const form_factor::lookup::table_t& get_ff_table() const override {return ff_table;}
 
             /**
-             * @brief Generate a new internal form factor table for the grid-based calculations.
-             *
-             * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
+             * @brief Regenerate the internal form factor table for the grid-based calculations.
+             *        This must be called to reflect changes in settings::grid::exv::width.
+             * @param ffx The excluded volume form factor to use.
              */
             template<FormFactorType T>
-            static form_factor::lookup::table_t generate_ff_table(T&& ffx);
-            static form_factor::lookup::table_t generate_ff_table(); //< @copydoc generate_ff_table(T&&)
+            static void regenerate_ff_table(T&& ffx);
 
             /**
-             * @brief Regenerate the form factor table. This must be called to reflect changes in settings::grid::exv::width.
-             *
-             * @param ffx The excluded volume form factor to use. Leave as default to couple it to the grid volume.
+             * @brief Regenerate the internal form factor table, coupling the excluded volume form factor to the grid volume.
              */
-            template<FormFactorType T>
-            static void regenerate_ff_table(T&& ffx = {0});
+            static void regenerate_ff_table();
 
             /**
              * @brief Get the distance axis for the excluded volume calculations.

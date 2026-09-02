@@ -23,7 +23,7 @@ CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
     hist::WeightedDistribution1D&& p_tot_ax,
     hist::WeightedDistribution1D&& p_tot_xx
 ) : CompositeDistanceHistogramFFGridBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot_aa)) {
-    ff_table = generate_ff_table();
+    regenerate_ff_table();
     initialize_grid_axes(p_tot_ax.get_weighted_axis(), p_tot_xx.get_weighted_axis());
 }
 

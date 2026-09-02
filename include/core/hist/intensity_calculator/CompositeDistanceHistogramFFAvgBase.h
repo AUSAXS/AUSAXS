@@ -14,14 +14,6 @@
 #include <vector>
 
 namespace ausaxs::hist {
-    /**
-     * @brief A class containing partial distance histograms for the different types of interactions and atomic types. 
-     *        Beyond the functionality of CompositeDistanceHistogram, this class also uses individual form factors for each atomic type.
-     *        An average form factor is used for the excluded volume.
-     *        For more information, see CompositeDistanceHistogram.
-     * 
-     * @tparam FormFactorTableType The form factor lookup table to use.
-     */
     template<typename FormFactorTableType>
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
@@ -204,10 +196,7 @@ namespace ausaxs::hist {
             cache_get_distance_profiles() const;
 
             mutable struct {
-                // cached sinqd vals for each form factor combination
-                // indexing as [ff1][ff2]
-                // ax and wx are cross terms and count both directions, so the intensity calculation
-                // applies no factor of two to them.
+                // cached sinqd vals for each form factor combination indexing as [ff1][ff2]
                 mutable struct {
                     container::Container3D<double> aa;
                     container::Container2D<double> ax, aw;
@@ -228,22 +217,9 @@ namespace ausaxs::hist {
                 } intensity_profiles;
             } cache;
 
-            /**
-             * @brief Fill the cached sinqd values for the excluded volume terms (ax, xx, wx).
-             *
-             * The default implementation reads the excluded volume row and column of the distance data.
-             * That is how the grid-based models store their excluded volume, since theirs is computed
-             * independently of the atomic distances and cannot be recovered from them.
-             * Models whose excluded volume *is* a function of the atomic distances should override this
-             * and derive the values from cache.sinqd.aa / cache.sinqd.aw instead, both of which are
-             * already filled by the time this is called.
-             */
             virtual void cache_refresh_sinqd_exv() const;
 
         private:
-            /**
-             * @brief Fill the cached sinqd values for the purely atomic terms (aa, aw, ww).
-             */
             void cache_refresh_sinqd_atomic() const;
 
             /**
