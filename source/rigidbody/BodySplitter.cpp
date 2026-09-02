@@ -27,8 +27,8 @@ namespace {
     // Splitting by residue requires the residue ids to be retained as metadata. The operation is meaningless without them, so the file-based overloads force 
     // retention on for the duration of the load rather than failing on a configuration the caller has no reason to think about.
     struct residue_seq_guard {
-        residue_seq_guard() : previous(settings::molecule::store_residue_seq) {settings::molecule::store_residue_seq = true;}
-        ~residue_seq_guard() {settings::molecule::store_residue_seq = previous;}
+        residue_seq_guard() : previous(AtomMetadata::store_residue_seq) {AtomMetadata::store_residue_seq = true;}
+        ~residue_seq_guard() {AtomMetadata::store_residue_seq = previous;}
         bool previous;
     };
 }
@@ -37,7 +37,7 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
     const auto& metadata = body.get_metadata();
     if (!metadata || !metadata->residue_seq) {
         throw except::parse_error(
-            "BodySplitter::split: Body has no residue sequence metadata. Enable settings::molecule::store_residue_seq "
+            "BodySplitter::split: Body has no residue sequence metadata. Enable data::AtomMetadata::store_residue_seq "
             "before loading to make splitting by residue possible."
         );
     }

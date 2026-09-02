@@ -56,8 +56,8 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get the optional per-atom metadata of this body.
 			 *
-			 * Empty unless metadata retention was enabled at load time (see settings::molecule::store_calpha
-			 * and store_occupancy). When present, its fields are parallel-indexed to get_atoms().
+			 * Empty unless metadata retention was enabled at load time (see the store_* flags on data::AtomMetadata). 
+			 * When present, its fields are parallel-indexed to get_atoms().
 			 */
 			[[nodiscard]] const std::optional<AtomMetadata>& get_metadata() const;
 

@@ -4,7 +4,7 @@
 #include <settings/RigidBodySettings.h>
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
-#include <settings/MoleculeSettings.h>
+#include <data/atoms/AtomMetadata.h>
 
 using namespace ausaxs;
 
@@ -17,11 +17,11 @@ settings::rigidbody::BodySelectStrategyChoice settings::rigidbody::body_select_s
 settings::detail::Setting<settings::rigidbody::ConstraintGenerationStrategyChoice> settings::rigidbody::constraint_generation_strategy = {
     settings::rigidbody::ConstraintGenerationStrategyChoice::None,
     [] (settings::rigidbody::ConstraintGenerationStrategyChoice& val) {
-        // backbone constraint generation relies on per-atom C-alpha metadata (store_calpha) and the residue sequence ids (store_residue_seq)
-        //  used to identify which C-alpha pairs are actually backbone-adjacent; couple them to the strategy so callers cannot forget to enable them.
+        // backbone constraint generation relies on the per-atom backbone classification and the residue sequence ids used to identify which C-alpha pairs
+        // are actually backbone-adjacent; couple them to the strategy so callers cannot forget to enable them.
         if (val == settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone) {
-            settings::molecule::store_calpha = true;
-            settings::molecule::store_residue_seq = true;
+            data::AtomMetadata::store_backbone = true;
+            data::AtomMetadata::store_residue_seq = true;
         }
     }
 };

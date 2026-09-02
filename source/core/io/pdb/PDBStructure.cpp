@@ -214,13 +214,12 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     res.atoms.reserve(atoms.size());
     res.waters.reserve(waters.size());
 
-    // optionally retain per-atom metadata while the source information is still available;
-    // each field is parallel-indexed to res.atoms (see settings::molecule)
+    // optionally retain per-atom metadata while the source information is still available
     data::AtomMetadata md;
-    if (settings::molecule::store_calpha) {md.backbone.emplace().reserve(atoms.size());}
-    if (settings::molecule::store_residue_seq) {md.residue_seq.emplace().reserve(atoms.size());}
-    if (settings::molecule::store_chain_id) {md.chain_id.emplace().reserve(atoms.size());}
-    if (settings::molecule::store_occupancy) {md.occupancy.emplace().reserve(atoms.size());}
+    if (data::AtomMetadata::store_backbone)    {md.backbone.emplace().reserve(atoms.size());}
+    if (data::AtomMetadata::store_residue_seq) {md.residue_seq.emplace().reserve(atoms.size());}
+    if (data::AtomMetadata::store_chain_id)    {md.chain_id.emplace().reserve(atoms.size());}
+    if (data::AtomMetadata::store_occupancy)   {md.occupancy.emplace().reserve(atoms.size());}
 
     for (auto& a : atoms) {
         res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);

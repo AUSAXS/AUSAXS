@@ -25,16 +25,21 @@ namespace ausaxs::data {
 
     /**
      * @brief Optional per-atom metadata for a Body.
-     *        Each field is parallel-indexed to the Body's atom vector and is only engaged if the corresponding setting (see settings::molecule) is enabled at load time.
      *
      *        Whenever the atom vector of a Body is reshaped, its metadata must be reshaped identically or the parallel indexing is lost. The operations doing so 
      *        are provided as members here rather than at the call sites, so that adding a field only requires extending _visit below.
      */
     struct AtomMetadata {
-        std::optional<std::vector<backbone_t>> backbone;     //< engaged iff settings::molecule::store_calpha
-        std::optional<std::vector<int>>        residue_seq;  //< residue sequence id; engaged iff settings::molecule::store_residue_seq
-        std::optional<std::vector<char>>       chain_id;     //< source chain identifier; engaged iff settings::molecule::store_chain_id
-        std::optional<std::vector<float>>      occupancy;    //< engaged iff settings::molecule::store_occupancy
+        std::optional<std::vector<backbone_t>> backbone;     //< engaged iff store_backbone
+        std::optional<std::vector<int>>        residue_seq;  //< residue sequence id; engaged iff store_residue_seq
+        std::optional<std::vector<char>>       chain_id;     //< source chain identifier; engaged iff store_chain_id
+        std::optional<std::vector<float>>      occupancy;    //< engaged iff store_occupancy
+
+        // which fields are retained when a structure is loaded.
+        inline static bool store_backbone    = true;
+        inline static bool store_residue_seq = true;
+        inline static bool store_chain_id    = true;
+        inline static bool store_occupancy   = false;
 
         // total number of fields, engaged or not. Must be kept in sync with _visit.
         static constexpr std::size_t field_count = 4;

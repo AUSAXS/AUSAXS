@@ -121,9 +121,6 @@ TEST_CASE("PDBWriter: multi-chain structures keep their chains apart") {
     settings::general::verbose = false;
     settings::molecule::center = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::store_calpha = true;
-    settings::molecule::store_residue_seq = true;
-    settings::molecule::store_chain_id = true;
 
     // Molecule loads an entire file into a single Body, so the chain boundaries only survive as metadata. The residue ids restart at every chain, so writing
     // the body under one chain identifier would make the residues of the second chain indistinguishable from those of the first.

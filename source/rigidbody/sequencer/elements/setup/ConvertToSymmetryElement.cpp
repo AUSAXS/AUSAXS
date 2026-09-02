@@ -133,7 +133,7 @@ std::vector<std::vector<Vector3<double>>> ConvertToSymmetryElement::_gather_copi
         if (runs[k].empty()) {
             throw except::parse_error("convert_to_symmetry",
                 "Body \"" + body_name(bodies[k]) + "\" carries no residue metadata, which the copies are matched up by. This should not be reachable: "
-                "rigidbody refinement retains it unconditionally (see settings::molecule::store_residue_seq)."
+                "rigidbody refinement retains it unconditionally."
             );
         }
     }

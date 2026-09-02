@@ -112,6 +112,22 @@ TEST_CASE("PDBAtom::as_pdb") {
         PDBAtom a2; a2.parse_pdb(res);
         CHECK(a1.equals_content(a2));
     }
+
+    SECTION("atom name is aligned on the element symbol") {
+        // the name occupies columns 13-16, with the element symbol right-justified within columns 13-14. A single-character symbol therefore leaves column 13
+        // blank, unless the name is long enough to fill the field on its own.
+        auto name_field = [] (const std::string& name, constants::atom_t element) {
+            auto record = PDBAtom(1, name, "", "UNK", 'A', 1, "", Vector3<double>{0, 0, 0}, 1, 1, element, "").as_pdb();
+            CHECK(record.size() == 81); // 80 columns plus the newline; an unaligned name shifts every field after it
+            return record.substr(12, 4);
+        };
+
+        CHECK(name_field("N",    constants::atom_t::N)  == " N  ");
+        CHECK(name_field("CA",   constants::atom_t::C)  == " CA ");   // alpha carbon, not calcium
+        CHECK(name_field("CH2",  constants::atom_t::C)  == " CH2");
+        CHECK(name_field("HG11", constants::atom_t::H)  == "HG11");   // fills the field
+        CHECK(name_field("FE",   constants::atom_t::Fe) == "FE  ");   // two-character symbol starts in column 13
+    }
 }
 
 TEST_CASE("PDBAtom::coordinates") {
