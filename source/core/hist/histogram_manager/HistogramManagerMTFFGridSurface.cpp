@@ -228,34 +228,37 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     //##############//
     // SUBMIT TASKS //
     //##############//
-    int job_size = settings::general::detail::job_size;
-    for (int i = 0; i < (int) data_x_i_size; i+=job_size) {
+    int job_size_xi = settings::general::detail::get_job_size(data_x_i_size);
+    int job_size_xs = settings::general::detail::get_job_size(data_x_s_size);
+    int job_size_a = settings::general::detail::get_job_size(data_a_size);
+    int job_size_w = settings::general::detail::get_job_size(data_w_size);
+    for (int i = 0; i < (int) data_x_i_size; i+=job_size_xi) {
         pool->detach_task(
-            [&calc_xx_ii, i, job_size, data_x_i_size] () {return calc_xx_ii(i, std::min(i+job_size, data_x_i_size));}
+            [&calc_xx_ii, i, job_size_xi, data_x_i_size] () {return calc_xx_ii(i, std::min(i+job_size_xi, data_x_i_size));}
         );
     }
 
-    for (int i = 0; i < (int) data_x_s_size; i+=job_size) {
+    for (int i = 0; i < (int) data_x_s_size; i+=job_size_xs) {
         pool->detach_task(
-            [&calc_xx_ss, i, job_size, data_x_s_size] () {return calc_xx_ss(i, std::min(i+job_size, data_x_s_size));}
+            [&calc_xx_ss, i, job_size_xs, data_x_s_size] () {return calc_xx_ss(i, std::min(i+job_size_xs, data_x_s_size));}
         );
     }
 
-    for (int i = 0; i < (int) data_x_i_size; i+=job_size) {
+    for (int i = 0; i < (int) data_x_i_size; i+=job_size_xi) {
         pool->detach_task(
-            [&calc_xx_si, i, job_size, data_x_i_size] () {return calc_xx_si(i, std::min(i+job_size, data_x_i_size));}
+            [&calc_xx_si, i, job_size_xi, data_x_i_size] () {return calc_xx_si(i, std::min(i+job_size_xi, data_x_i_size));}
         );
     }
 
-    for (int i = 0; i < (int) data_a_size; i+=job_size) {
+    for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
         pool->detach_task(
-            [&calc_ax, i, job_size, data_a_size] () {return calc_ax(i, std::min(i+job_size, data_a_size));}
+            [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
         );
     }
 
-    for (int i = 0; i < (int) data_w_size; i+=job_size) {
+    for (int i = 0; i < (int) data_w_size; i+=job_size_w) {
         pool->detach_task(
-            [&calc_wx, i, job_size, data_w_size] () {return calc_wx(i, std::min(i+job_size, data_w_size));}
+            [&calc_wx, i, job_size_w, data_w_size] () {return calc_wx(i, std::min(i+job_size_w, data_w_size));}
         );
     }
 

@@ -6,6 +6,7 @@
 #include <utility/StringUtils.h>
 
 #include <thread>
+#include <algorithm>
 
 using namespace ausaxs;
 
@@ -47,7 +48,14 @@ std::string settings::general::cache = [] () {
 }();
 std::string settings::general::residue_folder = cache + "residues/";
 
-unsigned int ausaxs::settings::general::detail::job_size = 800; // The number of atoms to process in each job.
+unsigned int ausaxs::settings::general::detail::get_job_size(unsigned int n) {
+    constexpr unsigned int jobs_per_thread = 8; // aim for this many jobs per thread
+    constexpr unsigned int min_job_size = 64; // but never go below this to avoid excessive overhead from too many small jobs
+    constexpr unsigned int max_job_size = 512;
+
+    unsigned int threads = std::max(1u, settings::general::threads);
+    return std::clamp(n/(jobs_per_thread*threads), min_job_size, max_job_size);
+}
 
 namespace ausaxs::settings::io {
     settings::io::SettingSection general_section("General", {
