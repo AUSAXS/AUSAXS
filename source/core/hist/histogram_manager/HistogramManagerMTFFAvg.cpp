@@ -21,10 +21,9 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::calculate()
 
 template<bool wb, bool vbw>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::calculate_all() {
-    assert(0 < this->protein->size_atom() && "The protein must contain at least one atom to calculate the average excluded volume.");
     logging::log("HistogramManagerMTFFAvg::calculate: starting calculation");
     auto raw = this->compute_raw_distributions();
-    double Z_exv_avg = this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom();
+    double Z_exv_avg = this->protein->size_atom() == 0 ? 0 : this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom();
 
     return std::make_unique<CompositeDistanceHistogramFFAvg>(
         Distribution3D(std::move(raw.p_aa)), 

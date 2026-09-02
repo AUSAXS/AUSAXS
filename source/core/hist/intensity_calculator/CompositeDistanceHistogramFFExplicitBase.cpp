@@ -47,11 +47,6 @@ CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::Composi
 ) : CompositeDistanceHistogramFFAvgBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot))  {}
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
-const AA CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::get_ffaa_table() const {
-    return this->get_ff_table();
-}
-
-template<typename AA, typename AXFormFactorTableType, typename XX>
 double CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::exv_factor(double q, double cx) {
     constexpr double rm2 = constants::radius::average_atomic_radius*constants::radius::average_atomic_radius/4;
     return std::pow(cx, 3)*std::exp(-rm2*(std::pow(cx, 2) - 1)*q*q);

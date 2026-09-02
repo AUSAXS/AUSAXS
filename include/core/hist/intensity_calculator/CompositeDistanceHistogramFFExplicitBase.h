@@ -59,7 +59,6 @@ namespace ausaxs::hist {
                 hist::WeightedDistribution1D&& p_tot
             );
 
-            const AAFormFactorTableType get_ffaa_table() const;
             virtual const AXFormFactorTableType& get_ffax_table() const = 0;
             virtual const XXFormFactorTableType& get_ffxx_table() const = 0;
 
