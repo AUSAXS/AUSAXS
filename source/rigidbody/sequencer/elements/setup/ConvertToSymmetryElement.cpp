@@ -59,9 +59,7 @@ namespace {
         body.get_atoms().resize(n);
         if (!body.get_metadata()) {return;}
         data::AtomMetadata metadata = *body.get_metadata();
-        if (metadata.backbone)    {metadata.backbone->resize(n);}
-        if (metadata.residue_seq) {metadata.residue_seq->resize(n);}
-        if (metadata.occupancy)   {metadata.occupancy->resize(n);}
+        metadata.resize(n);
         body.set_metadata(std::move(metadata));
     }
 }
@@ -135,7 +133,7 @@ std::vector<std::vector<Vector3<double>>> ConvertToSymmetryElement::_gather_copi
         if (runs[k].empty()) {
             throw except::parse_error("convert_to_symmetry",
                 "Body \"" + body_name(bodies[k]) + "\" carries no residue metadata, which the copies are matched up by. This should not be reachable: "
-                "rigidbody refinement retains it unconditionally (see settings::molecule::store_residue_seq)."
+                "rigidbody refinement retains it unconditionally."
             );
         }
     }

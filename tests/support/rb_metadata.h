@@ -16,7 +16,7 @@ namespace ausaxs::test {
      * @brief Attach C-alpha backbone metadata to a single in-memory body.
      *
      * The rigidbody constraint code identifies the backbone atoms it constrains through the
-     * per-atom metadata that PDB loading attaches when settings::molecule::store_calpha is enabled.
+     * per-atom metadata that PDB loading attaches when data::AtomMetadata::store_backbone is enabled.
      * Bodies assembled directly from AtomFF vectors in tests never pass through that path, so the
      * metadata is absent and the constraint generators dereference an empty optional.
      *

@@ -27,8 +27,8 @@ namespace {
     // Splitting by residue requires the residue ids to be retained as metadata. The operation is meaningless without them, so the file-based overloads force 
     // retention on for the duration of the load rather than failing on a configuration the caller has no reason to think about.
     struct residue_seq_guard {
-        residue_seq_guard() : previous(settings::molecule::store_residue_seq) {settings::molecule::store_residue_seq = true;}
-        ~residue_seq_guard() {settings::molecule::store_residue_seq = previous;}
+        residue_seq_guard() : previous(AtomMetadata::store_residue_seq) {AtomMetadata::store_residue_seq = true;}
+        ~residue_seq_guard() {AtomMetadata::store_residue_seq = previous;}
         bool previous;
     };
 }
@@ -37,7 +37,7 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
     const auto& metadata = body.get_metadata();
     if (!metadata || !metadata->residue_seq) {
         throw except::parse_error(
-            "BodySplitter::split: Body has no residue sequence metadata. Enable settings::molecule::store_residue_seq "
+            "BodySplitter::split: Body has no residue sequence metadata. Enable data::AtomMetadata::store_residue_seq "
             "before loading to make splitting by residue possible."
         );
     }
@@ -81,18 +81,8 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
     auto slice = [&atoms, &metadata] (std::size_t begin, std::size_t end) -> Body {
         Body b(std::vector<AtomFF>(atoms.begin()+begin, atoms.begin()+end), std::vector<data::Water>{});
 
-        AtomMetadata m;
-        bool any = false;
-        if (metadata->backbone)    {
-            m.backbone    = std::vector<backbone_t>(metadata->backbone->begin()+begin, metadata->backbone->begin()+end);   
-            any = true;
-        } if (metadata->residue_seq) {
-            m.residue_seq = std::vector<int>(metadata->residue_seq->begin()+begin, metadata->residue_seq->begin()+end);
-            any = true;
-        } if (metadata->occupancy)   {
-            m.occupancy   = std::vector<float>(metadata->occupancy->begin()+begin, metadata->occupancy->begin()+end);
-            any = true;
-        } if (any) {b.set_metadata(std::move(m));}
+        AtomMetadata m = metadata->subrange(begin, end);
+        if (!m.empty()) {b.set_metadata(std::move(m));}
         return b;
     };
 

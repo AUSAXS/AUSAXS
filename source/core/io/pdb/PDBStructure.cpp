@@ -13,6 +13,8 @@
 #include <constants/Constants.h>
 #include <settings/MoleculeSettings.h>
 
+#include <string_view>
+
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
 
@@ -25,22 +27,58 @@ PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<
 PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters, const Header& header, const Footer& footer, const Terminate& terminate) 
     : header(header), footer(footer), terminate(terminate), atoms(atoms), waters(waters) {}
 
-auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, char& chain) {
+// A PDB chain identifier is a single character, so the writer cannot simply count upwards. The available identifiers are cycled instead, which keeps the
+// output well-formed for structures with more chains than there are letters. Such a structure cannot be written without ambiguity anyway.
+static constexpr std::string_view chain_identifiers = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+static char chain_identifier(int index) {
+    return chain_identifiers[index % chain_identifiers.size()];
+}
+
+// Inverse of chain_identifier. Identifiers outside the table - such as the blank chain of a file carrying no chain information - map to the first slot.
+static int chain_index(char identifier) {
+    auto i = chain_identifiers.find(identifier);
+    return i == std::string_view::npos ? 0 : static_cast<int>(i);
+}
+
+auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, int& chain) {
     auto b = body.symmetry().explicit_structure();
     auto asize = body.size_atom();
     auto batoms = b.atoms;
+
+    const auto& metadata = body.get_metadata();
+    observer_ptr<const std::vector<data::backbone_t>> backbone = (metadata && metadata->backbone)    ? &metadata->backbone.value()    : nullptr;
+    observer_ptr<const std::vector<int>>              resseq   = (metadata && metadata->residue_seq) ? &metadata->residue_seq.value() : nullptr;
+    observer_ptr<const std::vector<char>>             chain_id = (metadata && metadata->chain_id)    ? &metadata->chain_id.value()    : nullptr;
+
     for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
-        if (i % asize == 0) {++chain;}
         const auto& a = batoms[i];
+        int midx = i % static_cast<int>(asize);
+
+        if (midx == 0) {++chain;}
+        else if (chain_id && (*chain_id)[midx] != (*chain_id)[midx-1]) {++chain;}
+
+        std::string name = form_factor::to_string(a.form_factor_type());
+        if (backbone) {
+            switch ((*backbone)[midx]) {
+                case data::backbone_t::n:       name = "N";  break;
+                case data::backbone_t::c_alpha: name = "CA"; break;
+                case data::backbone_t::c:       name = "C";  break;
+                case data::backbone_t::o:       name = "O";  break;
+                case data::backbone_t::none:    break;
+            }
+        }
+        int resSeq = resseq ? (*resseq)[midx] : 0;
+
         atoms.emplace_back(
-            ++serial, form_factor::to_string(a.form_factor_type()), "", "UNK", chain, 0, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
+            ++serial, name, "", "UNK", chain_identifier(chain), resSeq, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
         );
     }
 
     if (b.waters.size() == 0) {return;}
     for (const auto& w : b.waters) {
         waters.emplace_back(
-            ++serial, "O", "", "HOH", chain, ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
+            ++serial, "O", "", "HOH", chain_identifier(chain), ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
         );
     }
 };
@@ -48,7 +86,7 @@ auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& w
 PDBStructure::PDBStructure(const data::Body& body) {
     int serial = 0;
     int residue_serial = 0;
-    char chain = 'A';
+    int chain = -1; // add_single_body advances to the first identifier before using it
     atoms.reserve(body.size_atom()*(body.size_symmetry()+1));
     waters.reserve(body.symmetry().size_water_total());
     add_single_body(this->atoms, this->waters, body, serial, residue_serial, chain);
@@ -58,12 +96,11 @@ PDBStructure::PDBStructure(const data::Body& body) {
 PDBStructure::PDBStructure(const data::Molecule& molecule) {
     int serial = 0;
     int residue_serial = 0;
-    char chain = 'A';
+    int chain = -1; // add_single_body advances to the first identifier before using it
     atoms.reserve(molecule.size_atom());
     waters.reserve(molecule.size_water());
     for (const auto& body : molecule.get_bodies()) {
         add_single_body(this->atoms, this->waters, body, serial, residue_serial, chain);
-        ++chain;
     }
     refresh();
 }
@@ -137,13 +174,12 @@ void PDBStructure::refresh() {
     }
 
     bool terminate_inserted = false;
-    char chainID = '0'; int resSeq = 0; int serial = atoms[0].serial;
+    int resSeq = 0; int serial = atoms[0].serial;
 
     auto insert_ter = [&] () {
         // last atom before the terminate
         // we need this to determine what chainID and resSeq to use for the terminate and hetatms
         const PDBAtom& a = atoms.at(serial-1-atoms[0].serial);
-        chainID = a.chainID;
         resSeq = a.resSeq;
         if (serial != 0) {terminate = Terminate(serial, a.resName, a.chainID, a.resSeq, " ");}
         terminate_inserted = true;
@@ -164,12 +200,12 @@ void PDBStructure::refresh() {
         serial++;
     }
 
-    chainID = atoms[atoms.size()-1].chainID+1;
+    int chain = chain_index(atoms[atoms.size()-1].chainID) + 1;
     resSeq = atoms[atoms.size()-1].resSeq + 1;
     for (auto& a : waters) {
         a.serial = serial++ % 100000;
         a.resSeq = resSeq++ % 10000;
-        a.chainID = chainID + int(resSeq/10000);
+        a.chainID = chain_identifier(chain + resSeq/10000);
     }
 }
 
@@ -178,21 +214,29 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     res.atoms.reserve(atoms.size());
     res.waters.reserve(waters.size());
 
-    // optionally retain per-atom metadata while the source information is still available;
-    // each field is parallel-indexed to res.atoms (see settings::molecule)
+    // optionally retain per-atom metadata while the source information is still available
     data::AtomMetadata md;
-    if (settings::molecule::store_calpha) {md.backbone.emplace().reserve(atoms.size());}
-    if (settings::molecule::store_residue_seq) {md.residue_seq.emplace().reserve(atoms.size());}
-    if (settings::molecule::store_occupancy) {md.occupancy.emplace().reserve(atoms.size());}
+    if (data::AtomMetadata::store_backbone)    {md.backbone.emplace().reserve(atoms.size());}
+    if (data::AtomMetadata::store_residue_seq) {md.residue_seq.emplace().reserve(atoms.size());}
+    if (data::AtomMetadata::store_chain_id)    {md.chain_id.emplace().reserve(atoms.size());}
+    if (data::AtomMetadata::store_occupancy)   {md.occupancy.emplace().reserve(atoms.size());}
 
     for (auto& a : atoms) {
         res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);
-        if (md.backbone)    {md.backbone->emplace_back(a.name == "CA" && a.element == constants::atom_t::C ? data::backbone_t::c_alpha : data::backbone_t::none);}
+        if (md.backbone)    {
+            data::backbone_t bt = data::backbone_t::none;
+            if      (a.element == constants::atom_t::C && a.name == "CA") {bt = data::backbone_t::c_alpha;}
+            else if (a.element == constants::atom_t::N && a.name == "N")  {bt = data::backbone_t::n;}
+            else if (a.element == constants::atom_t::C && a.name == "C")  {bt = data::backbone_t::c;}
+            else if (a.element == constants::atom_t::O && a.name == "O")  {bt = data::backbone_t::o;}
+            md.backbone->emplace_back(bt);
+        }
         if (md.residue_seq) {md.residue_seq->emplace_back(a.resSeq);}
+        if (md.chain_id)    {md.chain_id->emplace_back(a.chainID);}
         if (md.occupancy)   {md.occupancy->emplace_back(static_cast<float>(a.occupancy));}
     }
 
-    if (md.backbone || md.residue_seq || md.occupancy) {res.metadata = std::move(md);}
+    if (!md.empty()) {res.metadata = std::move(md);}
 
     for (auto& w : waters) {
         res.waters.emplace_back(w.coords);

@@ -158,6 +158,12 @@ void PDBAtom::add_implicit_hydrogens() {
     }
 }
 
+// two-char element symbols are right-aligned in the PDB format, so we need to add a space in front of one-char symbols
+static std::string name_field(const std::string& name, constants::atom_t element) {
+    if (name.size() < 4 && constants::symbols::to_string(element).size() < 2) {return " " + name;}
+    return name;
+}
+
 using std::left, std::right, std::setw;
 std::string PDBAtom::as_pdb() const {
     std::stringstream ss;
@@ -168,7 +174,7 @@ std::string PDBAtom::as_pdb() const {
     ss << left << setw(6) << get_recName()                                          // 1 - 6
         << right << setw(5) << serial                                               // 7 - 11
         << " "                                                                      // 12
-        << " " << left << setw(3) << name                                           // 13 - 16
+        << left << setw(4) << name_field(name, element)                             // 13 - 16
         << left << setw(1) << altLoc                                                // 17
         << left << setw(3) << resName                                               // 18 - 20
         << " "                                                                      // 21

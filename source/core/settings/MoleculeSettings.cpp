@@ -14,9 +14,6 @@ bool settings::molecule::implicit_hydrogens = true;
 bool settings::molecule::use_occupancy = true;
 bool settings::molecule::allow_unknown_residues = false;
 bool settings::molecule::allow_unknown_atoms = false;
-bool settings::molecule::store_calpha = false;
-bool settings::molecule::store_occupancy = false;
-bool settings::molecule::store_residue_seq = true;
 
 namespace ausaxs::settings::io {
     settings::io::SettingSection molecule_section("Molecule", {
@@ -25,9 +22,6 @@ namespace ausaxs::settings::io {
         settings::io::create(molecule::allow_unknown_residues, "allow_unknown_residues"),
         settings::io::create(molecule::implicit_hydrogens, "implicit_hydrogens"),
         settings::io::create(molecule::use_occupancy, "use_occupancy"),
-        settings::io::create(molecule::store_calpha, "store_calpha"),
-        settings::io::create(molecule::store_occupancy, "store_occupancy"),
-        settings::io::create(molecule::store_residue_seq, "store_residue_seq"),
     });
 
     settings::io::SettingSection hydrate_section("Hydrate", {

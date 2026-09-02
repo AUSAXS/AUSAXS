@@ -108,7 +108,7 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintBond::evaluate") {
 TEST_CASE("DistanceConstraintBond: prefers sequential C-alpha pairs") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    // the Backbone strategy enables store_calpha + store_residue_seq via the settings hook, so the
+    // the Backbone strategy enables store_backbone + store_residue_seq via the settings hook, so the
     // generated bond constraints can identify the sequential C-alpha pair joining each body pair.
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 

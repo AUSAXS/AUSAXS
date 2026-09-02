@@ -17,22 +17,13 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
-    // a field consistently absent on both sides (e.g. occupancy, which is off by default) is fine and left absent;
-    // a field present on only one side means the two bodies were tracked under different settings, which would
-    // desync the merged result from the atom vector, so that case is a hard error instead of a silent drop
-    template<typename T>
-    void merge_optional_vector(std::optional<std::vector<T>>& dst, const std::optional<std::vector<T>>& src) {
-        if (dst.has_value() && src.has_value()) {dst->insert(dst->end(), src->begin(), src->end());}
-        else if (dst.has_value() != src.has_value()) {throw ausaxs::except::runtime_error("MergeElement: metadata mismatch. This is not supposed to happen.");}
-    }
-
     void merge_metadata(data::Body& first, const data::Body& other) {
         if (!first.get_metadata().has_value() && !other.get_metadata().has_value()) {return;}
         data::AtomMetadata result = first.get_metadata().value_or(data::AtomMetadata{});
-        data::AtomMetadata other_meta = other.get_metadata().value_or(data::AtomMetadata{});
-        merge_optional_vector(result.backbone, other_meta.backbone);
-        merge_optional_vector(result.residue_seq, other_meta.residue_seq);
-        merge_optional_vector(result.occupancy, other_meta.occupancy);
+
+        // append rejects a field engaged on only one side, which would mean the two bodies were tracked under different settings. That should not be reachable
+        // from the sequencer, as the setting is fixed for the duration of a run.
+        result.append(other.get_metadata().value_or(data::AtomMetadata{}));
         first.set_metadata(std::move(result));
     }
 }

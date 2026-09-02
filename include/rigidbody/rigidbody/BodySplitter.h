@@ -16,7 +16,7 @@ namespace ausaxs::rigidbody {
          * Each split id marks the *first* residue of a new body, and is consumed the first time it is encountered, so a residue id repeated later in the body 
          * (e.g. a second chain) does not trigger a second split. Any explicit waters are dropped. 
          *
-         * @param body   The body to split. Must carry residue sequence metadata (see settings::molecule::store_residue_seq).
+         * @param body   The body to split. Must carry residue sequence metadata.
          * @param splits Residue sequence ids to split at; produces splits.size()+1 bodies.
          */
         static std::vector<data::Body> split(const data::Body& body, const std::vector<int>& splits);
