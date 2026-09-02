@@ -16,6 +16,7 @@
 #include <settings/EMSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/Flags.h>
+#include <constants/ConstantsAxes.h>
 
 #include <vector>
 #include <cassert>
@@ -142,6 +143,7 @@ void SmartProteinManager::update_protein(double cutoff) {
         toggle_histogram_manager_init(false);
         logging::log("SmartProteinManager::update_protein: protein is nullptr or empty. Generating new protein.");
         protein = generate_new_protein(cutoff); 
+        settings::flags::max_bin_count = constants::axes::d_axis.bins; // always use full bin width
         protein->set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
         previous_cutoff = cutoff;
         return;

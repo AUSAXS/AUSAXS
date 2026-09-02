@@ -136,6 +136,7 @@ namespace {
 TEST_CASE("SymmetryManager: random mixed-symmetry fuzz") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
+    settings::flags::max_bin_count = constants::axes::d_axis.bins; // the partial managers cannot deduce a bin count
     SECTION("SymmetryManager") {
         run_fuzz(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }

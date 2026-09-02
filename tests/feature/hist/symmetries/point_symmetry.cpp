@@ -155,6 +155,7 @@ TEST_CASE("SymmetryManager: PointSymmetry") {
         test_point_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
+        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_point_symmetry(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }

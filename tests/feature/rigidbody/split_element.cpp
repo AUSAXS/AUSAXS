@@ -130,6 +130,7 @@ TEST_CASE("SplitElement: splitting a symmetric body preserves scattering under r
 }
 
 TEST_CASE("SplitElement: splitting a body with no symmetry yields independent fragments", "[files]") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;

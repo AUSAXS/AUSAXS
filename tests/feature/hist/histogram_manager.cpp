@@ -247,6 +247,7 @@ TEST_CASE("HistogramManager::calculate_all is invariant to atom ordering") {
 }
 
 TEST_CASE("PartialHistogramManager::get_probe") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     auto phm = hist::PartialHistogramManager<false, false>(&protein);
@@ -262,6 +263,7 @@ TEST_CASE("PartialHistogramManager::get_probe") {
 }
 
 TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     auto phm = hist::PartialHistogramManager<false, false>(&protein);

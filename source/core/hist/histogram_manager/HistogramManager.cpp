@@ -10,6 +10,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/BinEstimate.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <settings/HistogramSettings.h>
 #include <constants/ConstantsAxes.h>
@@ -35,15 +36,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     logging::log("HistogramManager::calculate: starting calculation");
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-    GenericDistribution1D_t p_aa(settings::axes::bin_count);
-    GenericDistribution1D_t p_ww(settings::axes::bin_count);
-    GenericDistribution1D_t p_aw(settings::axes::bin_count);
 
     hist::detail::CompactCoordinates<variable_bin_width> data_a(protein->get_bodies());
     hist::detail::CompactCoordinates<variable_bin_width> data_w(protein->get_waters());
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);
+    unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w);
+
+    GenericDistribution1D_t p_aa(bin_count);
+    GenericDistribution1D_t p_ww(bin_count);
+    GenericDistribution1D_t p_aw(bin_count);
 
     // calculate aa distances
     for (int i = 0; i < data_a_size; ++i) {
@@ -117,7 +120,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     }
 
     // calculate p_tot
-    GenericDistribution1D_t p_tot(settings::axes::bin_count);
+    GenericDistribution1D_t p_tot(bin_count);
     for (int i = 0; i < (int) p_aa.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area

@@ -71,6 +71,7 @@ class SmartFitterDebug : public fitter::SmartFitter {
 };
 
 TEST_CASE("SmartFitter::fit") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::molecule::implicit_hydrogens = false;
     Molecule protein("tests/files/2epe.pdb");
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
@@ -262,6 +263,7 @@ TEST_CASE("fitter: correct dof", "[files]") {
 // Check that the SmartFitter produces consistent fits when using different q-ranges
 // This is a good but rather long test for potential memory issues or inconsistencies in the various histogram managers
 TEST_CASE("SmartFitter: consistent fits using different q-ranges") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::general::warnings = false;
 

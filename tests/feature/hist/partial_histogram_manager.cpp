@@ -18,6 +18,7 @@ using namespace ausaxs::data;
 
 // Test that the first calculation is correct
 TEST_CASE("PartialHistogramManager: initial calculation") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -134,6 +135,7 @@ auto test_random = [] (data::Molecule& protein, auto&& phm) {
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialHistogramManager: subsequent calculations") {
+    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     data::Molecule protein({

@@ -4,6 +4,7 @@
 #include <hist/histogram_manager/HistogramManagerMTFFBase.h>
 #include <hist/histogram_manager/detail/HistogramManagerMTFFHelpers.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>
+#include <hist/detail/BinEstimate.h>
 #include <container/ThreadLocalWrapper.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
@@ -37,11 +38,12 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     auto& data_w = *data_w_ptr;
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
+    unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(settings::form_factor::max_ff_types, settings::form_factor::max_ff_types, settings::axes::bin_count); // ff_type1, ff_type2, distance
+    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(settings::form_factor::max_ff_types, settings::form_factor::max_ff_types, bin_count); // ff_type1, ff_type2, distance
     auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
         auto& p_aa = p_aa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -64,7 +66,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(settings::form_factor::max_ff_types, settings::axes::bin_count); // ff_type, distance
+    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(settings::form_factor::max_ff_types, bin_count); // ff_type, distance
     auto calc_aw = [&data_w, &data_a, &p_aw_all, data_w_size] (int imin, int imax) {
         auto& p_aw = p_aw_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -87,7 +89,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(settings::axes::bin_count); // distance
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(bin_count); // distance
     auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
         auto& p_ww = p_ww_all.get();
         for (int i = imin; i < imax; ++i) { // water
@@ -152,7 +154,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
         p_ww.add_index(0, data_w_size);
     }
 
-    GenericDistribution1D_t p_tot(settings::axes::bin_count);
+    GenericDistribution1D_t p_tot(bin_count);
     {   // sum all elements to the total
         unsigned int n_active = form_factor::get_active_count();
         for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {

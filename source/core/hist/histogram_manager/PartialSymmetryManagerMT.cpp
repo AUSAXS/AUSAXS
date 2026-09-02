@@ -5,6 +5,7 @@
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/detail/BinEstimate.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -92,7 +93,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     propagate_reference_symmetry_modifications(externally_modified, internally_modified, symmetry_modified);
 
     auto pool = utility::multi_threading::get_global_pool();
-    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>();
+    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>(bin_estimate::configured_bin_count());
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -498,7 +499,8 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_b
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize() {
     auto pool = utility::multi_threading::get_global_pool();
-    Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
+    unsigned int bin_count = bin_estimate::configured_bin_count();
+    Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
     this->partials_ww = detail::PartialHistogram<weighted_bins>(axis.bins);
@@ -719,7 +721,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calcul
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
-        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
+        Axis axis(0, settings::axes::bin_width*settings::flags::max_bin_count, settings::flags::max_bin_count);
         std::cout << "combine_aa[" << ibody1 << isym1 << ", " << ibody2 << isym2 << "]" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
@@ -747,7 +749,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aa(int
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aw(int ibody, int isym, GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
-        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
+        Axis axis(0, settings::axes::bin_width*settings::flags::max_bin_count, settings::flags::max_bin_count);
         std::cout << "combine_aw[" << ibody << isym << "]" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {
@@ -775,7 +777,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aw(int
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_ww(GenericDistribution1D_t&& res) {
     #if DEBUG_INFO_PSMMT_EXTENDED
-        Axis axis(0, settings::axes::bin_width*settings::axes::bin_count, settings::axes::bin_count);
+        Axis axis(0, settings::axes::bin_width*settings::flags::max_bin_count, settings::flags::max_bin_count);
         std::cout << "combine_ww" << std::endl;
         std::cout << "\tremoving " << std::endl << "\t\t";
         for (int i = 0; i < 20; ++i) {

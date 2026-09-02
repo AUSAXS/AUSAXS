@@ -16,6 +16,7 @@
 #include <settings/All.h>
 #include <utility/Exceptions.h>
 
+#include <algorithm>
 #include <string>
 
 using namespace ausaxs;
@@ -133,24 +134,20 @@ int molecule_distance_histogram(
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->reset_histogram_manager();
     auto hist = molecule->get_histogram();
-    _molecule_distance_histogram_obj data(settings::axes::bin_count);
-    {   // copy to avoid issues with mismatching sizes between the (possibly truncated) histogram and data
-        auto& aa_dist = hist->get_aa_counts();
-        auto& aw_dist = hist->get_aw_counts();
-        auto& ww_dist = hist->get_ww_counts();
-        auto& axis = hist->get_d_axis();
-        std::copy(aa_dist.get_content().begin(), aa_dist.get_content().end(), data.aa.begin());
-        std::copy(aw_dist.get_content().begin(), aw_dist.get_content().end(), data.aw.begin());
-        std::copy(ww_dist.get_content().begin(), ww_dist.get_content().end(), data.ww.begin());
-        std::copy(axis.begin(), axis.end(), data.axis.begin());
-        for (unsigned int i = axis.size(); i < settings::axes::bin_count; ++i) {
-            data.axis[i] = i * settings::axes::bin_width;
-        }
-    }
-    assert(data.aa.size() == settings::axes::bin_count);
-    assert(data.aw.size() == settings::axes::bin_count);
-    assert(data.ww.size() == settings::axes::bin_count);
-    assert(data.axis.size() == settings::axes::bin_count);
+    auto& aa_dist = hist->get_aa_counts();
+    auto& aw_dist = hist->get_aw_counts();
+    auto& ww_dist = hist->get_ww_counts();
+    auto& d_axis = hist->get_d_axis();
+    assert(
+        (d_axis.size() == aa_dist.size() && d_axis.size() == aw_dist.size() && d_axis.size() == ww_dist.size()) 
+        && "Misaligned distance vectors."
+    );
+
+    _molecule_distance_histogram_obj data(aa_dist.size());
+    std::copy(aa_dist.get_content().begin(), aa_dist.get_content().end(), data.aa.begin());
+    std::copy(aw_dist.get_content().begin(), aw_dist.get_content().end(), data.aw.begin());
+    std::copy(ww_dist.get_content().begin(), ww_dist.get_content().end(), data.ww.begin());
+    std::copy(d_axis.begin(), d_axis.end(), data.axis.begin());
 
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto ref = api::ObjectStorage::get_object<_molecule_distance_histogram_obj>(data_id);
@@ -158,7 +155,7 @@ int molecule_distance_histogram(
     *aw = ref->aw.data();
     *ww = ref->ww.data();
     *axis = ref->axis.data();
-    *n_bins = static_cast<int>(settings::axes::bin_count);
+    *n_bins = static_cast<int>(d_axis.size());
     return data_id;
 }, status);}
 

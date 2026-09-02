@@ -69,6 +69,7 @@ auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoice choic
 TEST_CASE("SymmetryManager: PolyhedralSymmetry") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
+    settings::flags::max_bin_count = constants::axes::d_axis.bins; // the partial managers cannot deduce a bin count
     SECTION("SymmetryManager") {
         test_polyhedral_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
@@ -105,6 +106,7 @@ auto test_polyhedral_symmetry_lysozyme = [] (settings::hist::HistogramManagerCho
 TEST_CASE("SymmetryManager: PolyhedralSymmetry on hydrated lysozyme") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
+    settings::flags::max_bin_count = constants::axes::d_axis.bins; // the partial managers cannot deduce a bin count
     SECTION("SymmetryManager") {
         test_polyhedral_symmetry_lysozyme(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
