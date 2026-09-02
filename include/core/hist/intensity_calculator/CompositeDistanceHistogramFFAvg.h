@@ -49,7 +49,14 @@ namespace ausaxs::hist {
                 return form_factor::manager::get_active_product_tables()->raw_atomic_table;
             }
 
-            void cache_refresh_sinqd_exv() const override;
+            /**
+             * @brief No-op: the dummy atoms sit on top of the real atoms, so the excluded volume terms share the
+             *        atomic sinqd cache. cache_refresh_intensity_exv contracts it with the exv form factors directly.
+             */
+            void cache_refresh_sinqd_exv() const override {}
+
+            void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const override;
+
             double Z_exv_avg = 0; // the average excluded volume charge displaced by a single atom
     };
     static_assert(supports_nothrow_move_v<CompositeDistanceHistogramFFAvg>, "CompositeDistanceHistogramAvg should support nothrow move semantics.");

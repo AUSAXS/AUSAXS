@@ -109,10 +109,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] -= 2*aasum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2ax
             Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);                // + xx
             Iq_exp[q] += 2*awsum*ff_C.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);   // +2aw
-            Iq_exp[q] -= awsum*(
-                            ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]) 
-                            + ff_wx.evaluate(q_axis[q])*ff_C.evaluate(q_axis[q])
-                        );  // -wx-xw
+            Iq_exp[q] -= 2*awsum*ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2wx
             Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                     // + ww
 
             #if DEBYE_DEBUG
@@ -167,10 +164,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] -= 2*aasum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2ax
             Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);                // + xx
             Iq_exp[q] += 2*awsum*ff_C.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);   // +2aw
-            Iq_exp[q] -= awsum*(
-                            ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q])
-                            + ff_wx.evaluate(q_axis[q])*ff_C.evaluate(q_axis[q])
-                        );  // -2wx
+            Iq_exp[q] -= 2*awsum*ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2wx
             Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                     // + ww
         }
         auto Iq = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all()->debye_transform();
@@ -198,6 +192,48 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     //     unsigned int M = protein.water_size();
     //     REQUIRE_THAT(Iq[0], Catch::Matchers::WithinRel(std::pow(N*ZC + M*ZO - N*ZX, 2) + 2*N*ZC*ZX, 1e-3));
     // }
+}
+
+// With a single atomic species every partial profile is one form factor product times a common distance sum,
+// so each profile can be converted into any other by dividing out its form factors and multiplying in the swapped ones.
+// This pins the relative normalization of the excluded volume terms without needing the distance sums themselves.
+TEST_CASE("CompositeDistanceHistogramFFExplicit: exv term normalization") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    auto ff_C  = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
+    auto ff_Cx = form_factor::ExvTableManager::get_current_exv_form_factor_set().get(form_factor::form_factor_t::C);
+
+    std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b2 = {AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b3 = {AtomFF({-1, -1,  1}, form_factor::form_factor_t::C), AtomFF({-1, 1,  1}, form_factor::form_factor_t::C)};
+    std::vector<AtomFF> b4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
+    std::vector<Water> w = {Water({0, 0, 0})};
+    std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
+    Molecule protein(a);
+
+    auto hist_data = hist::HistogramManagerMTFFExplicit<false, false>(&protein).calculate_all();
+    auto hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());
+    auto aa = hist->get_profile_aa();
+    auto ax = hist->get_profile_ax();
+    auto xx = hist->get_profile_xx();
+    auto aw = hist->get_profile_aw();
+    auto wx = hist->get_profile_wx();
+
+    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+    for (unsigned int i = 0; i < aa.size(); ++i) {
+        double q = constants::axes::q_vals[q0+i];
+        double fC = ff_C.evaluate(q), fCx = ff_Cx.evaluate(q);
+
+        // aa = S_aa*fC^2, ax = S_aa*2*fC*fCx  =>  both orderings of the (atom, atom-exv) pairing
+        REQUIRE_THAT(ax[i], Catch::Matchers::WithinRel(aa[i]*2*fCx/fC, 1e-6));
+
+        // xx = S_aa*fCx^2
+        REQUIRE_THAT(xx[i], Catch::Matchers::WithinRel(aa[i]*std::pow(fCx/fC, 2), 1e-6));
+
+        // aw = 2*S_aw*fC*fw, wx = 2*S_aw*fw*fCx  =>  the factor 2 of the two pair orderings must match the one in
+        // aw, and the water carries no exv of its own, so only the atomic exv form factor enters
+        REQUIRE_THAT(wx[i], Catch::Matchers::WithinRel(aw[i]*fCx/fC, 1e-6));
+    }
 }
 
 TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {

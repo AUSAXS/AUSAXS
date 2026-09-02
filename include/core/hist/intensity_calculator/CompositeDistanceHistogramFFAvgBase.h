@@ -14,6 +14,26 @@
 #include <vector>
 
 namespace ausaxs::hist {
+    /**
+     * @brief Common base for the excluded volume intensity calculators.
+     *
+     * The scattering amplitude is decomposed into an atomic, an excluded volume, and a hydration contribution,
+     *      A = A_a - A_x + A_w,
+     * so the intensity splits into the six partial profiles cached by this class and summed in debye_transform():
+     *      I = aa + xx + ww + ax + xa + wx + xw + aw + wa
+     * Note that p_aa already stores each atom-atom pair in both orderings, so its factor is baked into the counts, whereas p_aw stores each water-atom 
+     * pair only once and needs the factor written out explicitly.
+     *
+     * The excluded volume sits on the atoms only: A_x runs over the atoms and never over the hydration shell. There is therefore no water-exv self term, 
+     * and wx has the single form factor pairing f_w*fx_a rather than a second pairing with an excluded volume of the water itself. 
+     * This is valid for two reasons:
+     *  (i) The hydration density is rescaled regardless. Instead of modelling the excess density as \delta\rho_w = (\rho_w - \rho_b), we model it as 
+     *      \delta\rho_w = c_w*\rho'_w with c_w fitted. Our hydration shell is not physically accurate and does not reproduce the number density of a 
+     *      real shell in the first place, so folding the bulk subtraction into the fitted scaling costs nothing.
+     *
+     *  (ii) It is a significant optimization. If the excluded volume also sat on the water molecules, any fit of c_x would depend on the generated shell, 
+     *       which is stochastic; evaluating it properly would then require averaging over many generated shells.
+     */
     template<typename FormFactorTableType>
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
@@ -218,6 +238,13 @@ namespace ausaxs::hist {
             } cache;
 
             virtual void cache_refresh_sinqd_exv() const;
+
+            /**
+             * @brief Add the excluded volume terms (ax, xx, wx) to the intensity profile cache.
+             *        The corresponding profiles have already been zeroed by the caller.
+             * @param cx The excluded volume scaling factor evaluated for every q value.
+             */
+            virtual void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const;
 
         private:
             void cache_refresh_sinqd_atomic() const;

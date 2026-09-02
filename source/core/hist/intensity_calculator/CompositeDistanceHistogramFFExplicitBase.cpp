@@ -197,9 +197,11 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         pool->detach_task([&] () {
             for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+                    // only the atom carries excluded volume, so the exv form factor is evaluated only for the atom, not the water. 
+                    // See the CompositeDistanceHistogramFFAvgBase class documentation.
                     this->cache.intensity_profiles.wx[q-q0] += 
-                        this->free_params.crho*cx[q-q0]*this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)
-                        *(ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q) + ff_ax_table.index(ff1, form_factor::water_bin).evaluate(q))
+                        2*this->free_params.crho*cx[q-q0]*this->free_params.cw*exv_cache.sinqd.aw.index(ff1, q-q0)
+                        *ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q)
                     ;
                 }
             }

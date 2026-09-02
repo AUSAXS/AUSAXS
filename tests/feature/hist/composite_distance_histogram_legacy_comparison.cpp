@@ -324,7 +324,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
             double cx = exv_factor(constants::axes::q_vals[q]);
             for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < settings::form_factor::max_ff_types; ++ff1) {
                 double wx_sum = std::inner_product(this->distance_profiles.aw.begin(ff1), this->distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
-                Iq[q-q0] += cx*this->free_params.cw*wx_sum*(ff_ax_table.index(ff_w_index, ff1).evaluate(q) + ff_ax_table.index(ff1, ff_w_index).evaluate(q));
+                Iq[q-q0] += 2*cx*this->free_params.cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
             }
         }
         return ScatteringProfile(std::move(Iq), debye_axis);
@@ -364,7 +364,7 @@ struct DebugCompositeDistanceHistogramFFExplicit : public CompositeDistanceHisto
 
                 // exv-water (same as aw, no self-correlations)
                 double wx_sum = aw_sum;
-                Iq[q-q0] -= cx*this->free_params.cw*wx_sum*(ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q) + ff_ax_table.index(ff1, form_factor::water_bin).evaluate(q));
+                Iq[q-q0] -= 2*cx*this->free_params.cw*wx_sum*ff_ax_table.index(form_factor::water_bin, ff1).evaluate(q);
             }
 
             // water-water
