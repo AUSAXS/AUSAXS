@@ -10,6 +10,7 @@
 #include <container/ThreadLocalWrapper.h>
 #include <utility/MultiThreading.h>
 #include <settings/HistogramSettings.h>
+#include <settings/GeneralSettings.h>
 
 #include <vector>
 #include <unordered_map>
@@ -117,7 +118,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, va
 
     auto res_ptr = self_results[res_idx].get();
     int data_size = static_cast<int>(data.size());
-    int job_size = settings::general::detail::job_size;
+    int job_size = settings::general::detail::get_job_size(data_size);
 
     // calculate upper triangle
     for (int i = 0; i < data_size; i+=job_size) {
@@ -189,7 +190,7 @@ int ausaxs::hist::distance_calculator::SimpleCalculator<weighted_bins, variable_
     auto res_ptr = cross_results[res_idx].get();
     int data_1_size = static_cast<int>(data_1.size());
     int data_2_size = static_cast<int>(data_2.size());
-    int job_size = settings::general::detail::job_size;
+    int job_size = settings::general::detail::get_job_size(data_2_size);
 
     for (int i = 0; i < data_2_size; i+=job_size) {
         pool->detach_task(

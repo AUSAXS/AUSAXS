@@ -162,20 +162,22 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         //##############//
         // SUBMIT TASKS //
         //##############//
-        int job_size = settings::general::detail::job_size;
-        for (int i = 0; i < (int) data_x_size; i+=job_size) {
+        int job_size_x = settings::general::detail::get_job_size(data_x_size);
+        int job_size_a = settings::general::detail::get_job_size(data_a_size);
+        int job_size_w = settings::general::detail::get_job_size(data_w_size);
+        for (int i = 0; i < (int) data_x_size; i+=job_size_x) {
             pool->detach_task(
-                [&calc_xx, i, job_size, data_x_size] () {return calc_xx(i, std::min(i+job_size, data_x_size));}
+                [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
             );
         }
-        for (int i = 0; i < (int) data_a_size; i+=job_size) {
+        for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
             pool->detach_task(
-                [&calc_ax, i, job_size, data_a_size] () {return calc_ax(i, std::min(i+job_size, data_a_size));}
+                [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
             );
         }
-        for (int i = 0; i < (int) data_w_size; i+=job_size) {
+        for (int i = 0; i < (int) data_w_size; i+=job_size_w) {
             pool->detach_task(
-                [&calc_wx, i, job_size, data_w_size] () {return calc_wx(i, std::min(i+job_size, data_w_size));}
+                [&calc_wx, i, job_size_w, data_w_size] () {return calc_wx(i, std::min(i+job_size_w, data_w_size));}
             );
         }
 

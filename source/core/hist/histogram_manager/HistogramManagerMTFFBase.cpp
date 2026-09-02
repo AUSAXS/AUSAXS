@@ -115,20 +115,21 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     //##############//
     // SUBMIT TASKS //
     //##############//
-    int job_size = settings::general::detail::job_size;
-    for (int i = 0; i < (int) data_a_size; i+=job_size) {
+    int job_size_a = settings::general::detail::get_job_size(data_a_size);
+    int job_size_w = settings::general::detail::get_job_size(data_w_size);
+    for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
         pool->detach_task(
-            [&calc_aa, i, job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
+            [&calc_aa, i, job_size_a, data_a_size] () {calc_aa(i, std::min(i+job_size_a, data_a_size));}
         );
     }
-    for (int i = 0; i < (int) data_a_size; i+=job_size) {
+    for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
         pool->detach_task(
-            [&calc_aw, i, job_size, data_a_size] () {calc_aw(i, std::min(i+job_size, data_a_size));}
+            [&calc_aw, i, job_size_a, data_a_size] () {calc_aw(i, std::min(i+job_size_a, data_a_size));}
         );
     }
-    for (int i = 0; i < (int) data_w_size; i+=job_size) {
+    for (int i = 0; i < (int) data_w_size; i+=job_size_w) {
         pool->detach_task(
-            [&calc_ww, i, job_size, data_w_size] () {calc_ww(i, std::min(i+job_size, data_w_size));}
+            [&calc_ww, i, job_size_w, data_w_size] () {calc_ww(i, std::min(i+job_size_w, data_w_size));}
         );
     }
 

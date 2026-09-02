@@ -21,7 +21,10 @@ namespace ausaxs::settings {
         static bool supplementary_plots;    // Whether to generate supplementary plots when possible.
 
         struct detail {
-            static unsigned int job_size;   // The number of atoms to process in each job.
+            /**
+             * @brief Get the number of items a single thread-pool job should process, for a loop over @a n items.
+             */
+            static unsigned int get_job_size(unsigned int n);
         };
 
         enum class QUnit : char {
