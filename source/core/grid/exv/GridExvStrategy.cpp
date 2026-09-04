@@ -6,9 +6,21 @@
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <utility/Logging.h>
 #include <settings/ExvSettings.h>
+#include <settings/GridSettings.h>
+
+#include <algorithm>
+#include <cmath>
 
 using namespace ausaxs;
 using namespace ausaxs::grid::exv;
+
+int grid::exv::point_stride() {
+    return std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width));
+}
+
+double grid::exv::point_spacing() {
+    return point_stride()*settings::grid::cell_width;
+}
 
 GridExcludedVolume grid::exv::create(observer_ptr<grid::Grid> grid) {
     switch (settings::exv::exv_method) {

@@ -8,6 +8,7 @@
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/LatticeCorrelation.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
@@ -46,12 +47,13 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     auto pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
+    // the raw points are kept alive past this point since the lattice self-correlation below needs them
+    auto exv = get_exv();
     hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
     {   // generate the excluded volume representation
-        auto exv = get_exv().interior;
-        std::vector<data::AtomFF> interior(exv.size());
+        std::vector<data::AtomFF> interior(exv.interior.size());
         std::transform(
-            exv.begin(), exv.end(), interior.begin(),
+            exv.interior.begin(), exv.interior.end(), interior.begin(),
             [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
         );
         data_x = CompactCoordinatesFF<variable_bin_width>(std::move(interior));
@@ -141,14 +143,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     //##############//
     // SUBMIT TASKS //
     //##############//
-    int job_size_x = settings::general::detail::get_job_size(data_x_size);
     int job_size_a = settings::general::detail::get_job_size(data_a_size);
     int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < (int) data_x_size; i+=job_size_x) {
-        pool->detach_task(
-            [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
-        );
-    }
     for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
         pool->detach_task(
             [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
@@ -160,8 +156,23 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         );
     }
 
+    // the excluded volume points are the sites of a cubic lattice, so p_xx is the radially binned autocorrelation of a
+    // binary occupancy array rather than a pair loop; see hist::detail::lattice. this runs on the calling thread and so
+    // overlaps with the ax and wx jobs above, and falls back to the pair loop if the transform is not affordable.
+    auto p_xx_lattice = detail::lattice::self_correlation(
+        exv.interior, exv.spacing, detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
+    );
+    if (!p_xx_lattice.has_value()) {
+        int job_size_x = settings::general::detail::get_job_size(data_x_size);
+        for (int i = 0; i < (int) data_x_size; i+=job_size_x) {
+            pool->detach_task(
+                [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
+            );
+        }
+    }
+
     pool->wait();
-    WeightedDistribution1D p_xx_generic = p_xx_all.merge();
+    WeightedDistribution1D p_xx_generic = p_xx_lattice.has_value() ? std::move(*p_xx_lattice) : p_xx_all.merge();
     WeightedDistribution2D p_ax_generic = p_ax_all.merge();
     WeightedDistribution1D p_wx_generic = p_wx_all.merge();
 
