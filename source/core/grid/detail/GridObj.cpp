@@ -52,3 +52,12 @@ bool GridObj::is_only_atom_center(State s) const {return (s & A_CENTER) && !(s &
 
 bool GridObj::is_water_center(int x, int y, int z) const {return is_water_center(index(x, y, z));}
 bool GridObj::is_water_center(State s) const {return s & W_CENTER;}
+
+bool GridObj::is_volume_counted(int x, int y, int z) const {return is_volume_counted(index(x, y, z));}
+bool GridObj::is_volume_counted(State s) const {return s & (A_CENTER | A_AREA | VOLUME);}
+
+bool GridObj::is_volume_from_center_only(int x, int y, int z) const {return is_volume_from_center_only(index(x, y, z));}
+bool GridObj::is_volume_from_center_only(State s) const {return (s & A_CENTER) && !(s & (A_AREA | VOLUME));}
+
+bool GridObj::is_volume_from_area_only(int x, int y, int z) const {return is_volume_from_area_only(index(x, y, z));}
+bool GridObj::is_volume_from_area_only(State s) const {return (s & (A_AREA | VOLUME)) && !(s & A_CENTER);}

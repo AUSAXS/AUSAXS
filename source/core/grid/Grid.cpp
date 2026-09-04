@@ -318,7 +318,7 @@ std::span<GridMember<AtomFF>> Grid::add(const Body& body, bool expand) {
         #endif
 
         auto& bin = grid.index(x, y, z);
-        volume += grid.is_empty_or_water(bin);
+        volume += !grid.is_volume_counted(bin);
         bin |= detail::A_CENTER;
 
         GridMember gm(atom, std::move(loc));
@@ -383,7 +383,7 @@ void Grid::remove(const Body& body) {
     for (int i = start; i < end; i++) {
         volume::deflate(this, a_members[i]);
         auto& bin = grid.index(a_members[i].get_bin_loc());
-        volume -= grid.is_only_atom_center(bin); // multiple atoms may share a center bin, so we have to check if its volume was already removed
+        volume -= grid.is_volume_from_center_only(bin); // multiple atoms may share a center bin, so we have to check if its volume was already removed
         bin &= ~detail::A_CENTER;
     }
 

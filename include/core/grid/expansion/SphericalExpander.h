@@ -11,7 +11,19 @@
 #include <utility/observer_ptr.h>
 #include <settings/GridSettings.h>
 
+#include <cmath>
+
 namespace ausaxs::grid::volume {
+    /**
+     * @brief Get the largest bin offset that can lie within @a r of an atom, in bins.
+     *
+     * The atom sits anywhere within its own bin, so it is up to half a bin away from that bin's center along each
+     * axis. A bin at offset k is therefore within reach only if k*width - width/2 <= r, i.e. k <= r/width + 1/2.
+     */
+    inline int max_bin_radius(double r) {
+        return static_cast<int>(std::floor(r/settings::grid::cell_width + 0.5));
+    }
+
     template<bool AtomicMinVol, bool WaterMinVol>
     struct SphericalExpander {
         static void expand_volume(observer_ptr<grid::Grid> grid, GridMember<data::AtomFF>& atom);
@@ -42,9 +54,9 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::expand_volume(observer_ptr
         // determine maximum bin radius to check
         double br;
         if constexpr (AMV) {
-            br = std::ceil(std::max(rvdw, rvol)/settings::grid::cell_width);
+            br = max_bin_radius(std::max(rvdw, rvol));
         } else {
-            br = std::ceil(rvdw/settings::grid::cell_width);
+            br = max_bin_radius(rvdw);
         }
 
         auto [bx, by, bz] = atom.get_bin_loc();
@@ -105,9 +117,9 @@ void ausaxs::grid::volume::SphericalExpander<_, WMV>::expand_volume(observer_ptr
         // determine maximum bin radius to check
         double br;
         if constexpr (WMV) {
-            br = std::ceil(std::max(rvdw, rvol)/settings::grid::cell_width);
+            br = max_bin_radius(std::max(rvdw, rvol));
         } else {
-            br = std::ceil(rvdw/settings::grid::cell_width);
+            br = max_bin_radius(rvdw);
         }
 
         auto[bx, by, bz] = water.get_bin_loc();
@@ -160,7 +172,7 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::deflate_volume(observer_pt
     int xm, xp, ym, yp, zm, zp;
     {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
         auto axes = grid->get_axes();
-        double br = std::ceil(rmax/settings::grid::cell_width);
+        double br = max_bin_radius(rmax);
         auto [bx, by, bz] = atom.get_bin_loc();
         xm = std::max<int>(bx - br, 0), xp = std::min<int>(bx + br + 1, axes.x.bins); // xminus and xplus
         ym = std::max<int>(by - br, 0), yp = std::min<int>(by + br + 1, axes.y.bins); // yminus and yplus
@@ -180,7 +192,7 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::deflate_volume(observer_pt
                 // determine if the bin is within a sphere centered on the atom
                 auto& bin = grid->grid.index(i, j, k);
                 if (dist <= rmax2) {
-                    removed_volume += grid->grid.is_only_atom_area_or_volume(bin);
+                    removed_volume += grid->grid.is_volume_from_area_only(bin);
                     bin &= ~(detail::A_AREA | detail::VOLUME);
                 }
             }
@@ -206,7 +218,7 @@ void ausaxs::grid::volume::SphericalExpander<_, WMV>::deflate_volume(observer_pt
     {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
         auto axes = grid->get_axes();
         auto[bx, by, bz] = water.get_bin_loc();
-        double r = std::ceil(rmax/settings::grid::cell_width);
+        double r = max_bin_radius(rmax);
         xm = std::max<int>(bx - r, 0), xp = std::min<int>(bx + r + 1, axes.x.bins); // xminus and xplus
         ym = std::max<int>(by - r, 0), yp = std::min<int>(by + r + 1, axes.y.bins); // yminus and yplus
         zm = std::max<int>(bz - r, 0), zp = std::min<int>(bz + r + 1, axes.z.bins); // zminus and zplus    
