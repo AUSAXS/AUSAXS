@@ -23,7 +23,7 @@ std::vector<double> WeightedDistribution3D::get_weights() const {
     auto d_vals = Axis(0, size_z()*settings::axes::bin_width, size_z()).as_vector();
     std::vector<double> weights(size_z());
     for (std::size_t z = 0; z < size_z(); z++) {
-        unsigned int count = 0;
+        std::uint64_t count = 0;
         for (std::size_t x = 0; x < size_x(); x++) {
             for (std::size_t y = 0; y < size_y(); y++) {
                 weights[z] += index(x, y, z).bin_center;

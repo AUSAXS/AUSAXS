@@ -6,6 +6,7 @@
 #include <constants/ConstantsAxes.h>
 #include <utility/TypeTraits.h>
 
+#include <cstdint>
 #include <iosfwd>
 
 namespace ausaxs::hist::detail {
@@ -15,7 +16,7 @@ namespace ausaxs::hist::detail {
      */
     struct WeightedEntry {
         WeightedEntry();
-        WeightedEntry(constants::axes::d_type value, unsigned int count, double bin_center);
+        WeightedEntry(constants::axes::d_type value, std::uint64_t count, double bin_center);
 
         /**
          * @brief Add the distance to this bin, and increase the counter by one.
@@ -45,7 +46,7 @@ namespace ausaxs::hist::detail {
         bool operator==(double other) const;
         
         constants::axes::d_type value = 0;
-        unsigned int count = 0;
+        std::uint64_t count = 0;
         double bin_center = 0;
     };
 
@@ -58,7 +59,7 @@ static_assert(supports_nothrow_move_v<ausaxs::hist::detail::WeightedEntry>, "Wei
 
 
 inline ausaxs::hist::detail::WeightedEntry::WeightedEntry() = default;
-inline ausaxs::hist::detail::WeightedEntry::WeightedEntry(constants::axes::d_type value, unsigned int count, double bin_center) : value(value), count(count), bin_center(bin_center) {}
+inline ausaxs::hist::detail::WeightedEntry::WeightedEntry(constants::axes::d_type value, std::uint64_t count, double bin_center) : value(value), count(count), bin_center(bin_center) {}
 
 template<int N>
 inline void ausaxs::hist::detail::WeightedEntry::increment(float distance) {
