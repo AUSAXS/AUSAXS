@@ -4,16 +4,10 @@
 #include <api/cli/cli_rigidbody.h>
 #include <CLI/CLI.hpp>
 
-#include <data/Body.h>
-#include <data/Molecule.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/BodySplitter.h>
-#include <rigidbody/DefaultOptimizer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <fitter/FitReporter.h>
-#include <fitter/SmartFitter.h>
 #include <constants/Constants.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
@@ -21,25 +15,21 @@
 #include <plots/All.h>
 #include <settings/All.h>
 
-#include <vector>
 #include <string>
 
 using namespace ausaxs;
 
-void add_calibration(rigidbody::Rigidbody& rigidbody, const io::ExistingFile& mfile);
 int cli_rigidbody(int argc, char const *argv[]) {
     settings::grid::scaling = 2;
     settings::grid::cubic = true;
     settings::general::verbose = true;
+    settings::general::output = "output/rigidbody/";
     bool save_settings = false;
 
-    io::File pdb, mfile, settings, config;
-    std::vector<unsigned int> constraints;
-    CLI::App app{"[EXPERIMENTAL] Perform rigid-body optimization."};
+    io::File script, settings;
+    CLI::App app{"Perform rigid-body optimization."};
     app.fallthrough();
-    app.add_option("input_structure", pdb, "Path to the structure or configuration file.")->check(CLI::ExistingFile);
-    app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
-    app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/rigidbody/")->group("General options");
+    auto p_script = app.add_option("input_script", script, "Path to the rigid-body configuration script.")->check(CLI::ExistingFile);
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
     app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms, 
@@ -102,8 +92,6 @@ int cli_rigidbody(int argc, char const *argv[]) {
         console::print_info("Settings saved to settings.txt in current directory.");
     }});
 
-    auto p_cal = app.add_option("--calibrate", settings::rigidbody::detail::calibration_file, "Path to the calibration data.")->expected(0, 1)->check(CLI::ExistingFile)->group("");
-    app.add_option("--constraints", settings::rigidbody::detail::constraints, "Constraints to apply to the rigid body.")->group("");
     CLI11_PARSE(app, argc, argv);
 
     console::print_info("Running AUSAXS " + std::string(constants::version));
@@ -115,69 +103,30 @@ int cli_rigidbody(int argc, char const *argv[]) {
     //### PARSE INPUT ###//
     //###################//
     try {
-        settings::general::output += mfile.stem() + "/";
-
-        // check if pdb is a config script
-        if (constants::filetypes::config.check(pdb)) {
-            auto res = rigidbody::sequencer::SequenceParser().parse_file(pdb)->execute();
-            fitter::FitReporter::report(res.get());
-            fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
-            res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
-            return 0;
+        // rigid-body optimization is only available through the sequencer configuration format
+        if (p_script->count() == 0) {
+            throw except::missing_option("rigidbody: A configuration script must be supplied.");
+        }
+        if (!constants::filetypes::config.check(script)) {
+            throw except::invalid_argument(
+                "rigidbody: The input file \"" + script.str() + "\" is not a configuration script. "
+                "Rigid-body optimization must be described in a configuration script."
+            );
         }
 
-        // if a settings file was provided
+        // if a settings file was provided, read it and re-parse the command line arguments so they take priority
         if (p_settings->count() != 0) {
-            settings::read(settings);        // read it
-            CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
-        } else {                            // otherwise check if there is a settings file in the same directory
-            if (settings::discover(std::filesystem::path(mfile.path()).parent_path().string())) {
-                CLI11_PARSE(app, argc, argv);
-            }
+            settings::read(settings);
+            CLI11_PARSE(app, argc, argv);
         }
-        if (settings::rigidbody::detail::constraints.empty()) {
-            throw except::missing_option("Constraints must be supplied. Use --constraints to specify them.");
-        }
-        settings::validate_settings();
 
-        rigidbody::Rigidbody rigidbody = rigidbody::BodySplitter::split(pdb, settings::rigidbody::detail::constraints);
-        if (p_cal->count() != 0) { // calibration file was provided
-            add_calibration(rigidbody, mfile);
-        }
-        auto res = rigidbody::default_optimize(&rigidbody, mfile);
+        auto res = rigidbody::sequencer::SequenceParser().parse_file(script)->execute();
         fitter::FitReporter::report(res.get());
-        fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt", argc, argv);
+        fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
         res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
     } catch (const std::exception& e) {
         console::print_warning(e.what());
         throw e;
     }
     return 0;
-}
-
-void add_calibration(rigidbody::Rigidbody& rigidbody, const io::ExistingFile& mfile) {
-    if (settings::rigidbody::detail::calibration_file.empty()) {
-        // look for calibration file in the same directory as the measurement file
-        for (const auto& f : mfile.directory().files()) {
-            if (constants::filetypes::saxs_data.check(f)) {
-                settings::rigidbody::detail::calibration_file = f.path();
-                std::cout << "\tUsing calibration file: \"" << f.path() << "\"" << std::endl;
-                break;
-            }
-        }
-    }
-    if (settings::rigidbody::detail::calibration_file.empty()) {
-        throw except::missing_option("rigidbody: Default calibration file not found. Use --calibrate <path> to specify it.");
-    }
-
-    settings::general::output += "calibrated/";
-    rigidbody.molecule.generate_new_hydration();
-    fitter::SmartFitter fitter({settings::rigidbody::detail::calibration_file}, rigidbody.molecule.get_histogram());
-    auto res = fitter.fit();
-    if (settings::general::verbose) {
-        std::cout << "Calibration results:" << std::endl;
-        fitter::FitReporter::report(res.get());
-    }
-    throw ausaxs::except::runtime_error("rigidbody: Calibration is currently disabled.");
-    // rigidbody.apply_calibration(std::move(res));
 }
