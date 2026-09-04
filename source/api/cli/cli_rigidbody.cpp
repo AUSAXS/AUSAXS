@@ -26,10 +26,10 @@ int cli_rigidbody(int argc, char const *argv[]) {
     settings::general::output = "output/rigidbody/";
     bool save_settings = false;
 
-    io::File config, settings;
-    CLI::App app{"[EXPERIMENTAL] Perform rigid-body optimization."};
+    io::File script, settings;
+    CLI::App app{"Perform rigid-body optimization."};
     app.fallthrough();
-    auto p_config = app.add_option("input_config", config, "Path to the rigid-body configuration script.")->check(CLI::ExistingFile);
+    auto p_script = app.add_option("input_script", script, "Path to the rigid-body configuration script.")->check(CLI::ExistingFile);
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
     app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms, 
@@ -104,12 +104,12 @@ int cli_rigidbody(int argc, char const *argv[]) {
     //###################//
     try {
         // rigid-body optimization is only available through the sequencer configuration format
-        if (p_config->count() == 0) {
+        if (p_script->count() == 0) {
             throw except::missing_option("rigidbody: A configuration script must be supplied.");
         }
-        if (!constants::filetypes::config.check(config)) {
+        if (!constants::filetypes::config.check(script)) {
             throw except::invalid_argument(
-                "rigidbody: The input file \"" + config.str() + "\" is not a configuration script. "
+                "rigidbody: The input file \"" + script.str() + "\" is not a configuration script. "
                 "Rigid-body optimization must be described in a configuration script."
             );
         }
@@ -120,7 +120,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
             CLI11_PARSE(app, argc, argv);
         }
 
-        auto res = rigidbody::sequencer::SequenceParser().parse_file(config)->execute();
+        auto res = rigidbody::sequencer::SequenceParser().parse_file(script)->execute();
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
         res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
