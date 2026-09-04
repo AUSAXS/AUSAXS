@@ -22,7 +22,7 @@ namespace ausaxs::constants {
         constexpr double get_mass(atomic_group_t group); 
 
         namespace density {
-            constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3;
+            constexpr double water = 0.9982067*SI::mass::gm/SI::volume::cm3;
             constexpr double protein = 1.35*SI::mass::gm/SI::volume::cm3;
         }
     }

@@ -104,14 +104,20 @@ namespace ausaxs::data {
 			/**
 			 * @brief Calculate the atomic molar mass of this molecule in Daltons.
 			 * 		  Note that this is just the sum of the molar mass of all atoms.
+			 *
+			 * @param include_waters Whether the hydration shell contributes to the mass.
 			 */
-			[[nodiscard]] double get_molar_mass() const;
+			[[nodiscard]] double get_molar_mass(bool include_waters = true) const;
 
 			/**
 			 * @brief Get the absolute atomic mass of this entire molecule. 
 			 * 		  Note that this is just the sum of the mass of all atoms.  
+			 *
+			 * @param include_waters Whether the hydration shell contributes to the mass.
+			 *        Note that the grid volume is *dry* - waters are never added to it - so any
+			 *        quantity dividing a mass by a grid volume must pass false here.
 			 */
-			[[nodiscard]] double get_absolute_mass() const;
+			[[nodiscard]] double get_absolute_mass(bool include_waters = true) const;
 
 			/**
 			 * @brief Get the excluded volume mass of this molecule.

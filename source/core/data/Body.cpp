@@ -159,13 +159,14 @@ double Body::get_total_atomic_charge() const {
     return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const data::AtomFF& atom) {return sum + atom.weight();});
 }
 
-double Body::get_molar_mass() const {
-    return get_absolute_mass()*constants::Avogadro;
+double Body::get_molar_mass(bool include_waters) const {
+    return get_absolute_mass(include_waters)*constants::Avogadro;
 }
 
-double Body::get_absolute_mass() const {
+double Body::get_absolute_mass(bool include_waters) const {
     double M = 0;
     std::for_each(atoms.begin(), atoms.end(), [&M] (const data::AtomFF& a) {M += constants::mass::get_mass(a.form_factor_type());});
+    if (!include_waters) {return M;}
     if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         std::for_each(h->waters.begin(), h->waters.end(), [&M] (const data::Water& a) {M += constants::mass::get_mass(a.form_factor_type());});
     }

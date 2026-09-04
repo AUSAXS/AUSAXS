@@ -270,7 +270,8 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         // calculate extra stuff
         console::print_info("\nExtra informaton");
         console::print_text("Volume:");
-        double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
+        // the grid volume is dry, so the mass must be dry too
+        double rhoM = protein.get_absolute_mass(false)/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
         double exv_vol = protein.get_volume_grid();
         double mol_charge = protein.get_total_atomic_charge();
         console::print_text("\tvan der Waals:   " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " A^3");
