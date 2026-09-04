@@ -35,8 +35,13 @@ namespace ausaxs::settings {
             // The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Å.
             static double width;
 
-            // The surface thickness of the grid in Ångström. This is used for fitting the excluded volume. 
+            // The surface thickness of the grid in Ångström. This is used for fitting the excluded volume.
             static double surface_thickness;
+
+            // The maximum amount of memory in MB the excluded volume self-correlation may allocate for its lattice transform.
+            // Structures whose bounding box would need more than this fall back to an explicit pair loop, which is far slower
+            // but allocates nothing. See hist::detail::lattice.
+            static unsigned int max_transform_memory;
 
             enum class ExvType {
                 AtomicOnly,     // Consider only atoms as part of the excluded volume

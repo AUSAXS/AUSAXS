@@ -15,6 +15,7 @@ option(USE_SYSTEM_GCEM "Use system provided GCEM" OFF)
 option(USE_SYSTEM_BACKWARD "Use system provided backward" OFF)
 option(USE_SYSTEM_CLI11 "Use system provided CLI11" OFF)
 option(USE_SYSTEM_THREADPOOL "Use system provided thread-pool" OFF)
+option(USE_SYSTEM_POCKETFFT "Use system provided pocketfft" OFF)
 option(USE_SYSTEM_CATCH "Use system provided Catch" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -110,6 +111,21 @@ else()
 	set(BS_THREAD_POOL_INCLUDE_DIR ${thread_pool_SOURCE_DIR}/include)
 endif()
 
+if(USE_SYSTEM_POCKETFFT)
+	find_path(POCKETFFT_INCLUDE_DIR pocketfft_hdronly.h)
+	if (NOT POCKETFFT_INCLUDE_DIR)
+		message(FATAL_ERROR "pocketfft headers not found")
+	endif()
+else()
+	FetchContent_Declare(
+		pocketfft
+		GIT_REPOSITORY https://github.com/mreineck/pocketfft
+		GIT_TAG c90e55b3d529f8efa40ed01a20de22405f45fc65 # the header-only C++ version lives on the "cpp" branch, which carries no tags
+	)
+	FetchContent_MakeAvailable(pocketfft)
+	set(POCKETFFT_INCLUDE_DIR ${pocketfft_SOURCE_DIR})
+endif()
+
 if(USE_SYSTEM_GCEM)
 	find_package(gcem REQUIRED)
 	find_path(GCEM_INCLUDE_DIR gcem.hpp)
@@ -132,6 +148,7 @@ set_property(
 unset(compile_options)
 
 include_directories(${BS_THREAD_POOL_INCLUDE_DIR} ${GCEM_INCLUDE_DIR} ${BACKWARD_INCLUDE_DIR})
+include_directories(SYSTEM ${POCKETFFT_INCLUDE_DIR})
 
 ############################################
 ##           Find and link CURL           ##

@@ -17,6 +17,7 @@ unsigned int settings::grid::min_bins = 0;
 double settings::grid::exv::surface_thickness = 1;
 double settings::grid::exv::width = 1;
 bool settings::grid::exv::save = false;
+unsigned int settings::grid::exv::max_transform_memory = 2048;
 settings::grid::exv::ExvType settings::grid::exv::expansion_strategy = settings::grid::exv::ExvType::AtomicOnly;
 
 double settings::grid::detail::min_score = 0.25;
@@ -31,6 +32,7 @@ namespace ausaxs::settings::io {
         settings::io::create(grid::exv::width, "exv_width"),
         settings::io::create(grid::exv::save, "save_exv"),
         settings::io::create(grid::exv::surface_thickness, "surface_thickness"),
+        settings::io::create(grid::exv::max_transform_memory, "max_transform_memory"),
         settings::io::create(grid::detail::min_score, "detail.min_score"),
     });
 }
