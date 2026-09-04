@@ -20,7 +20,7 @@ std::vector<double> WeightedDistribution2D::get_weighted_axis() const {
     auto d_vals = Axis(0, size_y()*settings::axes::bin_width, size_y()).as_vector();
     std::vector<double> weights(size_y());
     for (std::size_t y = 0; y < size_y(); y++) {
-        unsigned int count = 0;
+        std::uint64_t count = 0;
         for (std::size_t x = 0; x < size_x(); x++) {
             weights[y] += index(x, y).bin_center;
             count += index(x, y).count;
