@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -24,6 +25,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cmath>
 
 using namespace ausaxs;
 using namespace data;
@@ -376,19 +378,58 @@ TEST_CASE("Molecule::get_relative_charge_density", "[files]") {
 
 TEST_CASE("Molecule::get_relative_mass_density", "[files]") {
     settings::general::verbose = false;
-    Molecule protein("tests/files/2epe.pdb");
-    Catch::Matchers::WithinAbs(
-        protein.get_relative_mass_density() - (protein.get_absolute_mass() - constants::mass::density::water*protein.get_volume_grid())/protein.get_volume_grid(),
-        1e-6
+    settings::molecule::implicit_hydrogens = true;      // do not inherit the override from get_Rg above
+    settings::molecule::allow_unknown_atoms = true;     // SASDJQ4 carries a few
+
+    std::string file = GENERATE(
+        "tests/files/2epe.pdb",
+        "tests/files/6lyz.pdb",
+        "tests/files/168l.pdb",
+        "tests/files/LAR1-2.pdb",
+        "tests/files/SASDJQ4.pdb",
+        "tests/files/SASDJG5.pdb"
     );
+    INFO("structure: " << file);
+    Molecule protein{io::ExistingFile(file)};
+
+    // hydrate first: the grid volume is dry, so a shell is what makes the dry/hydrated
+    // distinction visible. Using the hydrated mass below would give 1.78-2.05 g/cm^3.
+    protein.generate_new_hydration();
+    double V = protein.get_volume_grid();
+    REQUIRE(protein.size_water() != 0);
+
+    auto to_gcm3 = [] (double rho_Da_A3) {return rho_Da_A3*constants::unit::gm/std::pow(constants::unit::cm, 3);};
+
+    // definition: the mass must be dry to match the volume, and the water density must be
+    // converted from an absolute (SI) density to Da/A^3 before it can be subtracted
+    double m_water = constants::mass::density::water*V*constants::SI::volume::A3/constants::SI::mass::u;
+    REQUIRE_THAT(
+        protein.get_relative_mass_density(),
+        Catch::Matchers::WithinAbs((protein.get_absolute_mass(false) - m_water)/V, 1e-6)
+    );
+
+    // physics: every structure here is a folded protein, so its mass density - this is the
+    // RhoM printed by the CLI - must land near the canonical 1.35-1.40 g/cm^3 ...
+    CHECK_THAT(to_gcm3(protein.get_absolute_mass(false)/V), Catch::Matchers::WithinAbs(1.39, 0.05));
+
+    // ... and the excess over water (0.998 g/cm^3) correspondingly near 0.39
+    CHECK_THAT(to_gcm3(protein.get_relative_mass_density()), Catch::Matchers::WithinAbs(0.39, 0.05));
+
+    // the shell contributes mass only when asked to
+    CHECK(protein.get_absolute_mass(true) > protein.get_absolute_mass(false));
+
+    settings::molecule::allow_unknown_atoms = false;
 }
 
 TEST_CASE("Molecule::get_relative_charge", "[files]") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    Catch::Matchers::WithinAbs(
-        protein.get_relative_charge() - (protein.get_total_atomic_charge() - protein.get_volume_grid()*constants::charge::density::water),
-        1e-6    
+    REQUIRE_THAT(
+        protein.get_relative_charge(),
+        Catch::Matchers::WithinAbs(
+            protein.get_total_atomic_charge() - protein.get_volume_grid()*constants::charge::density::water,
+            1e-6
+        )
     );
 }
 

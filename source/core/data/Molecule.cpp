@@ -126,12 +126,16 @@ void Molecule::save(const io::File& path) const {
     io::Writer::write({*this}, path);
 }
 
-double Molecule::get_molar_mass() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_molar_mass();});
+double Molecule::get_molar_mass(bool include_waters) const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0,
+        [include_waters] (double sum, const Body& body) {return sum + body.get_molar_mass(include_waters);}
+    );
 }
 
-double Molecule::get_absolute_mass() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_absolute_mass();});
+double Molecule::get_absolute_mass(bool include_waters) const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0,
+        [include_waters] (double sum, const Body& body) {return sum + body.get_absolute_mass(include_waters);}
+    );
 }
 
 double Molecule::get_excluded_volume_mass() const {
@@ -173,8 +177,12 @@ double Molecule::get_relative_charge_density() const {
 
 double Molecule::get_relative_mass_density() const {
     double V = get_volume_grid();
-    double m_molecule = get_absolute_mass();
-    double m_water = constants::mass::density::water*V;
+
+    // the grid volume is dry - waters are never added to it - so the mass must be dry as well
+    double m_molecule = get_absolute_mass(false);
+
+    // density::water is an absolute (SI) density; convert it to Da/A^3 exactly as get_excluded_volume_mass does
+    double m_water = constants::mass::density::water*V*constants::SI::volume::A3/constants::SI::mass::u;
     return (m_molecule - m_water)/V;
 }
 
