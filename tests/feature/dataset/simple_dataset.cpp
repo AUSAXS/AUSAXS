@@ -123,4 +123,49 @@ TEST_CASE("SimpleDataset::rebin") {
     REQUIRE(dataset.size() == 844);
     dataset.rebin();
     CHECK(dataset.size() < 400);
+
+    // below q = 0.03 the fold factor is 1, and folding a point into itself is the identity
+    SECTION("fold factor 1 is the identity") {
+        double err_scale = GENERATE(0., 0.01);
+        std::vector<double> x, y, yerr;
+        for (unsigned int i = 0; i < 20; ++i) {
+            x.push_back(0.001*(i+1));
+            y.push_back(i);
+            yerr.push_back(err_scale*(i+1));
+        }
+        SimpleDataset unfolded(x, y, yerr);
+        unfolded.rebin();
+
+        REQUIRE(unfolded.size() == x.size());
+        for (unsigned int i = 0; i < x.size(); ++i) {
+            CHECK_THAT(unfolded.x(i),    Catch::Matchers::WithinAbs(x[i],    1e-9));
+            CHECK_THAT(unfolded.y(i),    Catch::Matchers::WithinAbs(y[i],    1e-9));
+            CHECK_THAT(unfolded.yerr(i), Catch::Matchers::WithinAbs(yerr[i], 1e-9));
+        }
+    }
+
+    // every input point must be folded into exactly one output point
+    SECTION("no input points are dropped") {
+        // a band with a constant fold factor, so the expected grouping is known exactly
+        auto [qmin, fold] = GENERATE(
+            std::make_pair(0.03, 2u),
+            std::make_pair(0.06, 4u),
+            std::make_pair(0.10, 8u)
+        );
+
+        unsigned int N = 8*fold;
+        std::vector<double> x, y, yerr(N, 1);
+        for (unsigned int i = 0; i < N; ++i) {
+            x.push_back(qmin + 1e-5*(i+1));
+            y.push_back(i);                 // y_i = i, so each bin reports the mean of its indices
+        }
+        SimpleDataset folded(x, y, yerr);
+        folded.rebin();
+
+        REQUIRE(folded.size() == N/fold);
+        for (unsigned int i = 0; i < folded.size(); ++i) {
+            double first = i*fold;
+            CHECK_THAT(folded.y(i), Catch::Matchers::WithinAbs(first + (fold-1)/2., 1e-9));
+        }
+    }
 }
