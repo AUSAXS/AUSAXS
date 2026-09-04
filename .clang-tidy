@@ -32,11 +32,13 @@ Checks: >
   cppcoreguidelines-virtual-class-destructor,
 
   -bugprone-easily-swappable-parameters,
+  -misc-const-correctness,
   -misc-header-include-cycle,
   -misc-no-recursion,
   -misc-non-private-member-variables-in-classes,
   -modernize-use-nodiscard,
   -modernize-use-trailing-return-type,
+  -performance-avoid-endl,
   -performance-enum-size,
   -portability-avoid-pragma-once,
   -portability-simd-intrinsics,
@@ -56,6 +58,11 @@ Checks: >
 #   bugprone-easily-swappable-parameters
 #       Geometry and histogram APIs legitimately take runs of same-typed scalars,
 #       e.g. Limit3D(double xmin, double xmax, ...), Grid::to_xyz(int i, int j, int k).
+#   misc-const-correctness
+#       2811 hits, all of them `const` on ordinary local variables. Pure style with
+#       no defect-finding value, and the fixit writes east const (`std::string const
+#       tool`), which matches nothing else in the tree. At that volume it buries the
+#       findings that are actually bugs.
 #   misc-header-include-cycle
 #       Fires on the Foo.h <-> Foo.tpp template-definition idiom (math/Matrix.tpp).
 #   misc-no-recursion
@@ -68,6 +75,12 @@ Checks: >
 #       on essentially every const method.
 #   modernize-use-trailing-return-type
 #       The codebase uses leading return types throughout.
+#   performance-avoid-endl
+#       `std::endl` is `'\n'` *plus* a flush; the fixit drops the flush silently.
+#       The console output helpers (utility/ConsoleColor.h, Logging) rely on that
+#       flush so progress and warnings appear immediately when stdout is a pipe or
+#       a file rather than a tty. 121 hits, each a potential behaviour change that
+#       no test would catch.
 #   performance-enum-size
 #       Enum underlying types are pinned explicitly (`enum class form_factor_t : int`)
 #       because they index into fixed-layout tables.
