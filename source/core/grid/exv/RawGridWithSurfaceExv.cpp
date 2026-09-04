@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <grid/exv/RawGridWithSurfaceExv.h>
+#include <grid/exv/GridExvStrategy.h>
 
 #include <grid/Grid.h>
 #include <grid/detail/GridObj.h>
@@ -110,8 +111,11 @@ namespace {
                 throw ausaxs::except::runtime_error("RawGridExv: Unknown expansion strategy. Did you forget to add a case?");
         }
 
-        int stride = static_cast<int>(std::max<double>(1, std::round(settings::grid::exv::width/settings::grid::cell_width)));
+        int stride = point_stride();
         int buffer = static_cast<int>(std::max<double>(1, std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
+
+        // both point sets are made of grid->to_xyz(i, j, k) values, so they share the sites of a cubic lattice of this spacing
+        vol.spacing = point_spacing();
 
         const auto& axes = grid->get_axes();
         auto& gobj = grid->grid;
