@@ -146,11 +146,12 @@ TEST_CASE("CompositeSymmetry: _get_transform composes a 3-level nesting") {
 }
 
 // A small concrete atomic system: explicit_structure must lay out na*(1+repetitions) atoms as [original, copy_1, ...], each block being
-// _get_transform(cm, rep) applied to the base atoms.
+// _get_transform(cm, rep) applied to the base atoms. The base weights are deliberately *not* the nominal charge of their
+// form factor type, since that is the only way to see whether a copy carries its source atom's weight or a rebuilt one.
 TEST_CASE("CompositeSymmetry: explicit_structure materialises every copy") {
     std::vector<AtomFF> base = {
-        AtomFF({1, 0, 0}, form_factor::form_factor_t::C),
-        AtomFF({0, 2, 0}, form_factor::form_factor_t::C)
+        AtomFF({1, 0, 0}, form_factor::form_factor_t::C, 7.25),
+        AtomFF({0, 2, 0}, form_factor::form_factor_t::C, 3.50)
     };
     Body body{base};
 
@@ -170,6 +171,8 @@ TEST_CASE("CompositeSymmetry: explicit_structure materialises every copy") {
         for (int i = 0; i < na; ++i) {
             Vector3<double> expected = rep == 0 ? base[i].coordinates() : sym->_get_transform(cm, rep)(base[i].coordinates());
             CHECK((s.atoms[rep*na + i].coordinates() - expected).magnitude() < 1e-9);
+            CHECK(s.atoms[rep*na + i].weight() == base[i].weight());
+            CHECK(s.atoms[rep*na + i].form_factor_type() == base[i].form_factor_type());
         }
     }
 }
