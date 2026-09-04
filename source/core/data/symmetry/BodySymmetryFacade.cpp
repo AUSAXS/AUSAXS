@@ -146,7 +146,7 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
         for (int i = 0; i < static_cast<int>(get(isym)->repetitions()); ++i) {
             auto t = get_transform(isym, cm, i+1);
             for (const auto& a : atom_span) {
-                atoms.emplace_back(t(a.coordinates()), a.form_factor_type());
+                atoms.emplace_back(t(a.coordinates()), a.form_factor_type(), a.weight());
             }
 
             if (duplicate_waters) {
