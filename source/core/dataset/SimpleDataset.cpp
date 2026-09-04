@@ -278,7 +278,8 @@ void SimpleDataset::rebin() noexcept {
         };
     }
 
-    for (unsigned int i = 0; i < size(); i++) {
+    // note: func() advances 'i' past every point it consumed, so the loop must not increment it again
+    for (unsigned int i = 0; i < size(); ) {
         // determine how many data points to fold into one
         unsigned int fold;
         if (0.1 < x(i)) {fold = 8;}
