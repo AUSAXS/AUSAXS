@@ -46,8 +46,11 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
 
-    SECTION("simple_intensity_fitter") {
-        fitter::LinearFitter fitter(SimpleDataset("tests/files/2epe.dat"), protein_2epe.get_total_histogram());
+    SECTION("total histogram") {
+        // the total histogram carries no hydration shell, so only the linear parameters are fitted
+        settings::fit::fit_hydration = false;
+
+        fitter::SmartFitter fitter(SimpleDataset("tests/files/2epe.dat"), protein_2epe.get_total_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_model(protein_LAR12.get_total_histogram());

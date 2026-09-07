@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <fitter/LinearFitter.h>
+#include <fitter/detail/LinearLeastSquares.h>
 #include <dataset/SimpleDataset.h>
 #include <mini/detail/Parameter.h>
 #include <hist/HistFwd.h>

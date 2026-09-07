@@ -166,8 +166,8 @@ TEST_CASE("fitter: correct dof", "[files]") {
     settings::fit::fit_atomic_debye_waller = false;
     settings::fit::fit_exv_debye_waller = false;
 
-    SECTION("LinearFitter") {
-        fitter::LinearFitter fitter(data, protein.get_histogram());
+    SECTION("linear only") {
+        fitter::SmartFitter fitter(data, protein.get_histogram());
         REQUIRE(fitter.dof() == size-2);
         auto res = fitter.fit();
         REQUIRE(res->dof == size-2);
