@@ -130,10 +130,10 @@ const ObjectBounds2D& Image::setup_bounds(double cutoff) {
         for (unsigned int y = 0; y < M; y++) {
             if (index(x, y) < cutoff) {continue;}
             if (!min_set) {
-                bounds.set_bounds(x, y, y); // update min val to this index, and also set max in case this is the only entry
+                bounds.set_bounds(x, y, y+1); // update min val to this index, and also set max in case this is the only entry
                 min_set = true;
             } else {
-                bounds.set_max(x, y);
+                bounds.set_max(x, y+1);
             }
         }
     }
