@@ -12,6 +12,7 @@
 #include <utility/Console.h>
 
 #include <cassert>
+#include <algorithm>
 
 using namespace ausaxs;
 using namespace ausaxs::fitter;
@@ -250,29 +251,38 @@ void SmartFitter::set_guess(std::vector<mini::Parameter>&& guess) {
     }
 
     // validate and reorder the parameters
-    std::vector<int> order;
+    // note: 'order' pairs the canonical slot of each supplied parameter with its index in the input,
+    //       so that sorting it yields the permutation taking the input into canonical order
+    std::vector<std::pair<int, unsigned int>> order;
     for (unsigned int i = 0; i < guess.size(); ++i) {
         if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::SCALING_WATER)) {
             if (!enabled_fit_parameters.hydration) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set hydration scaling factor when hydration is disabled.");}
-            order.push_back(0);
+            order.emplace_back(0, i);
         } else if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::SCALING_EXV)) {
             if (!enabled_fit_parameters.excluded_volume) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set excluded volume scaling factor when excluded volume is disabled.");}
-            order.push_back(1);
+            order.emplace_back(1, i);
         } else if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::SCALING_RHO)) {
             if (!enabled_fit_parameters.solvent_density) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set solvent density scaling factor when solvent density is disabled.");}
-            order.push_back(2);
+            order.emplace_back(2, i);
         } else if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC)) {
             if (!enabled_fit_parameters.atomic_debye_waller) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set atomic Debye-Waller factor when atomic Debye-Waller is disabled.");}
-            order.push_back(3);
+            order.emplace_back(3, i);
         } else if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV)) {
             if (!enabled_fit_parameters.exv_debye_waller) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set excluded volume Debye-Waller factor when excluded volume Debye-Waller is disabled.");}
-            order.push_back(4);
+            order.emplace_back(4, i);
         } else {
             throw except::invalid_argument("SmartFitter::set_guess: Unknown parameter name: \"" + guess[i].name + "\"");
         }
     }
+    std::sort(order.begin(), order.end());
+    assert(
+        std::adjacent_find(order.begin(), order.end(), [] (const auto& a, const auto& b) {return a.first == b.first;}) == order.end()
+        && "SmartFitter::set_guess: The same parameter was supplied more than once."
+    );
+
     this->guess.clear();
-    std::for_each(order.begin(), order.end(), [&] (int i) {this->guess.push_back(guess[i]);});
+    this->guess.reserve(order.size());
+    std::for_each(order.begin(), order.end(), [&] (const auto& o) {this->guess.push_back(std::move(guess[o.second]));});
 }
 
 void SmartFitter::set_model(std::unique_ptr<hist::DistanceHistogram> h) {
