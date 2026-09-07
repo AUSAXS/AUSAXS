@@ -107,10 +107,16 @@ TEST_CASE("PDBAtom::parse_pdb") {
 
 TEST_CASE("PDBAtom::as_pdb") {
     SECTION("parse and as_pdb") {
-        PDBAtom a1; a1.parse_pdb("ATOM      1  N   GLY A   1     1.00000 2.00000 3.000001.00000.0000           N  ");
-        std::string res = a1.as_pdb();
-        PDBAtom a2; a2.parse_pdb(res);
-        CHECK(a1.equals_content(a2));
+        auto roundtrip = [] (const std::string& record) {
+            PDBAtom a1; a1.parse_pdb(record);
+            PDBAtom a2; a2.parse_pdb(a1.as_pdb());
+            CHECK(a1.equals_content(a2));
+        };
+
+        roundtrip("ATOM      1  N   GLY A   1     1.00000 2.00000 3.000001.00000.0000           N  ");
+
+        // a coordinate below -100 or beyond 1000 needs all eight columns of its field to keep its last decimal
+        roundtrip("ATOM      2  CA  ARG A   1    -123.4561234.567 -99.999  1.00 20.00           C  ");
     }
 
     SECTION("atom name is aligned on the element symbol") {
