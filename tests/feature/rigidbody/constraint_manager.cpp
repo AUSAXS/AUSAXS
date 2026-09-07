@@ -73,9 +73,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
         auto initial_non_disc = cm.non_discoverable_constraints.size();
         cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule));
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
-        // a bond constraint can only be declared between backbone-adjacent bodies, so the generator will find this pair too - which is what makes the identity
-    // check below the only meaningful one: the old code replaced the declared constraint with a generated one, leaving a plausible-looking count behind
-    cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         CHECK(cm.non_discoverable_constraints.size() == initial_non_disc + 1);
         REQUIRE(cm.discoverable_constraints.size() == 2);
     }
@@ -110,9 +108,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
         CHECK(val != 0);
         CHECK(cm.evaluate() == val);
 
-        // a bond constraint can only be declared between backbone-adjacent bodies, so the generator will find this pair too - which is what makes the identity
-    // check below the only meaningful one: the old code replaced the declared constraint with a generated one, leaving a plausible-looking count behind
-    cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         auto dc2 = cm.discoverable_constraints.back().get();
         protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
         auto val2 = dc2->evaluate();
@@ -122,9 +118,6 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
     }
 }
 
-// BL-077. `generate_constraints` used to assign the generated list straight over `discoverable_constraints`, so a constraint the script declared before an
-// `autoconstrain` further down was silently deleted - a real chi2 tether and a real transform-propagation link, gone, with no diagnostic. Generation is
-// additive instead, which is only correct because it happens exactly once; a second run would duplicate every bond the first one found.
 TEST_CASE_METHOD(fixture, "ConstraintManager::generate_constraints is additive") {
     settings::general::verbose = false;
     using Choice = settings::rigidbody::ConstraintGenerationStrategyChoice;
@@ -133,8 +126,6 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::generate_constraints is additive")
     auto& cm = *protein.constraints;
     REQUIRE(cm.discoverable_constraints.empty()); // nothing is generated until a script asks for it
 
-    // a bond constraint can only be declared between backbone-adjacent bodies, so the generator will find this pair too - which is what makes the identity
-    // check below the only meaningful one: the old code replaced the declared constraint with a generated one, leaving a plausible-looking count behind
     cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
     REQUIRE(cm.discoverable_constraints.size() == 1);
     auto* declared = cm.discoverable_constraints.front().get();

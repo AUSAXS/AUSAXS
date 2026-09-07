@@ -64,9 +64,6 @@ namespace ausaxs::settings {
         };
         static DecayStrategyChoice decay_strategy;
 
-        // Constraint generation is requested explicitly - through the `autoconstrain` script element, or ConstraintManager::generate_constraints - and has no
-        // global default. Rigid-body optimization is only driven from a configuration script, so a setting here would be a hidden way to change what a script
-        // does without the script saying so.
         enum class ConstraintGenerationStrategyChoice {
             None,       // Do not generate constraints. Only those supplied by the user will be used.
             Backbone    // Generate a bond constraint between every pair of backbone-adjacent bodies.

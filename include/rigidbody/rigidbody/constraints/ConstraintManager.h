@@ -35,12 +35,6 @@ namespace ausaxs::rigidbody::constraints {
 
         /**
          * @brief Generate automatic constraints using a custom generator, appending them to whatever constraints are already present.
-         *
-         * Generated constraints are appended rather than assigned over the list, so a constraint the user declared beforehand survives - deleting it would
-         * throw away a real chi2 tether and a real transform-propagation link, and the declaration and the generation are equally deliberate statements.
-         * Appending is only correct because generation happens at most once; a second run is rejected rather than silently doubling every bond it finds.
-         *
-         * @throws If constraints have already been generated.
          */
         void generate_constraints(std::unique_ptr<ConstraintGenerationStrategy> generator);
 
@@ -81,9 +75,6 @@ namespace ausaxs::rigidbody::constraints {
             * This map allows us to quickly find all constraints that apply to a given body without having to iterate over all constraints.
             */
             void refresh() const;
-
-            // Whether a generator has already run. Generation is additive, so allowing it twice would duplicate every constraint the first run found.
-            bool generated = false;
 
             // List of all discoverable constraints associated with each body. It is a cache of what the constraint list and molecule already say, so reading it
             // is a const operation even when it has to be rebuilt first.

@@ -32,14 +32,6 @@ void ConstraintManager::generate_constraints(settings::rigidbody::ConstraintGene
 }
 
 void ConstraintManager::generate_constraints(std::unique_ptr<ConstraintGenerationStrategy> generator) {
-    if (generated) {
-        throw except::invalid_argument(
-            "ConstraintManager::generate_constraints: Constraints have already been generated. Generation is additive, so a second autoconstrain would "
-            "duplicate every bond it finds - state the one strategy you want instead."
-        );
-    }
-    generated = true;
-
     for (auto& constraint : generator->generate()) {
         discoverable_constraints.emplace_back(std::move(constraint));
     }
