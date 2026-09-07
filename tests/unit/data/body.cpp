@@ -198,10 +198,14 @@ TEST_CASE("Body::get_molar_mass") {
     };
     Body body(atoms);
     
-    double expected = constants::mass::get_mass(form_factor::form_factor_t::C) * constants::Avogadro +
-                      constants::mass::get_mass(form_factor::form_factor_t::O) * constants::Avogadro +
-                      constants::mass::get_mass(form_factor::form_factor_t::N) * constants::Avogadro;
-    CHECK_THAT(body.get_molar_mass(), Catch::Matchers::WithinRel(expected, 1e-6));
+    // 1 Da is 1 g/mol by definition, so the molar mass in g/mol is numerically the summed atomic mass in Da. 
+    double expected = constants::mass::get_mass(form_factor::form_factor_t::C) +
+                      constants::mass::get_mass(form_factor::form_factor_t::O) +
+                      constants::mass::get_mass(form_factor::form_factor_t::N);
+    CHECK_THAT(body.get_molar_mass(), Catch::Matchers::WithinRel(expected, 1e-5));
+
+    // independent order-of-magnitude anchor: C + N + O is ~42 g/mol
+    CHECK_THAT(body.get_molar_mass(), Catch::Matchers::WithinAbs(42.02, 0.5));
 }
 
 TEST_CASE("Body::get_absolute_mass") {

@@ -102,7 +102,7 @@ namespace ausaxs::data {
 			[[nodiscard]] Vector3<double> get_cm(bool include_water = false) const;
 
 			/**
-			 * @brief Calculate the atomic molar mass of this molecule in Daltons.
+			 * @brief Calculate the atomic molar mass of this molecule in g/mol.
 			 * 		  Note that this is just the sum of the molar mass of all atoms.
 			 *
 			 * @param include_waters Whether the hydration shell contributes to the mass.

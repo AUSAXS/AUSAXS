@@ -160,7 +160,7 @@ double Body::get_total_atomic_charge() const {
 }
 
 double Body::get_molar_mass(bool include_waters) const {
-    return get_absolute_mass(include_waters)*constants::Avogadro;
+    return get_absolute_mass(include_waters)*constants::unit::gm*constants::Avogadro;
 }
 
 double Body::get_absolute_mass(bool include_waters) const {
