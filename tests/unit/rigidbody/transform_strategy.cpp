@@ -25,7 +25,6 @@ using namespace ausaxs::rigidbody;
 TEST_CASE("TransformStrategy::apply unconstrained body") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 25;
 
     SECTION("translate unconstrained body") {
@@ -84,7 +83,6 @@ TEST_CASE("TransformStrategy::apply unconstrained body") {
 TEST_CASE("TransformStrategy::rotate_and_translate") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 10;
 
     SECTION("rotation then translation on single body") {
@@ -111,7 +109,6 @@ TEST_CASE("TransformStrategy::rotate_and_translate") {
 TEST_CASE("TransformStrategy::undo") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 50;
 
     SECTION("undo after single transformation") {
@@ -170,7 +167,6 @@ TEST_CASE("TransformStrategy::undo") {
 TEST_CASE("TransformStrategy::reconstructed body matches current state after multiple transformations") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 10;
 
     SECTION("reconstructed body matches current state after multiple transformations") {
@@ -210,7 +206,6 @@ TEST_CASE("TransformStrategy::reconstructed body matches current state after mul
 TEST_CASE("TransformStrategy::parameter accumulation") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 10;
 
     SECTION("translations accumulate linearly") {
@@ -260,7 +255,6 @@ TEST_CASE("TransformStrategy::parameter accumulation") {
 TEST_CASE("TransformStrategy::apply keeps a symmetric assembly rigid") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 25;
 
     auto make_body = [] (std::unique_ptr<symmetry::ISymmetry> sym) {

@@ -56,13 +56,13 @@ TEST_CASE("SymmetryBackup: Symmetry parameters backed up and restored on undo") 
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     // Create a rigidbody with symmetry
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     bodies.get_body(0).symmetry().add(symmetry::type::c2);
     
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
     unsigned int ibody = 0;
 
@@ -114,12 +114,12 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     bodies.get_body(0).symmetry().add(symmetry::type::c2);
     
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
     unsigned int ibody = 0;
 
@@ -143,7 +143,6 @@ TEST_CASE("SymmetryBackup: Body symmetry storage preserved through transformatio
 TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     SECTION("SingleTransform") {
         settings::grid::min_bins = 250;
@@ -153,6 +152,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         bodies.get_body(0).symmetry().add(symmetry::type::c2);
         
         Rigidbody rigidbody(std::move(bodies));
+        rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         rigidbody.molecule.generate_new_hydration();
         unsigned int ibody = 0;
 
@@ -188,6 +188,7 @@ TEST_CASE("SymmetryBackup: Constraint-based transforms preserve symmetries") {
         bodies.get_body(0).symmetry().add(symmetry::type::c2);
         
         Rigidbody rigidbody(std::move(bodies));
+        rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         rigidbody.molecule.generate_new_hydration();
         unsigned int ibody = 0;
 
@@ -220,13 +221,13 @@ TEST_CASE("SymmetryBackup: Multiple transformations maintain symmetry integrity"
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::iterations = 10;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     bodies.get_body(0).symmetry().add(symmetry::type::c2);
     
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
     unsigned int ibody = 0;
 
@@ -250,7 +251,6 @@ TEST_CASE("SymmetryBackup: CompositeSymmetry parameters are optimised") {
     settings::grid::min_bins = 100;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     // a p2-3-style composite: an inner c2 (with an offset) nested inside an outer c3
     auto make_composite = [] {
@@ -327,13 +327,13 @@ TEST_CASE("SymmetryBackup: CompositeSymmetry parameters are optimised") {
 TEST_CASE("SymmetryBackup: Grid properly sized for symmetry optimization") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     // Create rigidbody with symmetry
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     bodies.get_body(0).symmetry().add(symmetry::type::c2);
     
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
     unsigned int ibody = 0;
 
@@ -366,7 +366,6 @@ TEST_CASE("SymmetryBackup: Grid properly sized for symmetry optimization") {
 
 TEST_CASE("SymmetryBackup: undo restores the body's symmetries, not just its parameters") {
     settings::general::verbose = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     Molecule m{std::vector<Body>{Body(std::vector{
         AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
@@ -403,7 +402,6 @@ TEST_CASE("SymmetryBackup: undo restores the body's symmetries under constrained
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 250;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     auto strategy = GENERATE(
         settings::rigidbody::TransformationStrategyChoice::SingleTransform,
@@ -414,6 +412,7 @@ TEST_CASE("SymmetryBackup: undo restores the body's symmetries under constrained
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     bodies.get_body(0).symmetry().add(symmetry::type::c2);
     Rigidbody rb(std::move(bodies));
+    rb.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rb.molecule.generate_new_hydration();
     unsigned int ibody = 0;
 

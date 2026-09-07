@@ -44,7 +44,6 @@ TEST_CASE("SequenceParser: the body set cannot be changed once constraints exist
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 25; // let the grid size itself: "copy" places its clone 2*Rg away, which overflows a fixed small grid
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     // the guard runs before the element does any work of its own, so every mutating element can be checked the same way
     auto mutation = GENERATE(as<std::string>{},
@@ -66,7 +65,6 @@ TEST_CASE("SequenceParser: the body set may be changed while no constraints exis
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 25; // let the grid size itself: "copy" places its clone 2*Rg away, which overflows a fixed small grid
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     auto mutation = GENERATE(as<std::string>{},
         "delete b2\n",

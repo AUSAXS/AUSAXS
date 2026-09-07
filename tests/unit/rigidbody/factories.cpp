@@ -42,7 +42,6 @@ TEST_CASE("DecayFactory::create_decay_strategy") {
 TEST_CASE("BodySelectFactory::create_selection_strategy") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
     AtomFF a2({5, 0, 0}, form_factor::form_factor_t::C);
@@ -62,7 +61,6 @@ TEST_CASE("BodySelectFactory::create_selection_strategy") {
 TEST_CASE("TransformFactory::create_transform_strategy") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
     AtomFF a2({5, 0, 0}, form_factor::form_factor_t::C);
@@ -82,7 +80,6 @@ TEST_CASE("TransformFactory::create_transform_strategy") {
 TEST_CASE("ControllerFactory::create_controller") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
     AtomFF a2({5, 0, 0}, form_factor::form_factor_t::C);

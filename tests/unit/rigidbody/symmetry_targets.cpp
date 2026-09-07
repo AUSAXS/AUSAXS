@@ -32,7 +32,6 @@ namespace {
     std::unique_ptr<Rigidbody> make_rigidbody(int nbodies = 4) {
         settings::general::verbose = false;
         settings::molecule::implicit_hydrogens = false;
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
         std::vector<Body> bodies;
         for (int i = 0; i < nbodies; ++i) {

@@ -22,7 +22,6 @@ struct SelectionStrategiesFixture {
     SelectionStrategiesFixture() {
         settings::general::verbose = false;
         settings::molecule::implicit_hydrogens = false;
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
         
         // Create test bodies
         AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
@@ -124,9 +123,9 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
 
     SECTION("RandomConstraintSelect") {
         // DistanceConstraintBond (the discoverable constraint type RandomConstraintSelect samples from) requires C-alpha backbone metadata, so load a real 
-        // structure via BodySplitter with the Backbone generation strategy instead of hand-building one (see distance_constraint_bond.cpp)
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
+        // structure via BodySplitter and generate backbone constraints from it, instead of hand-building one (see distance_constraint_bond.cpp)
         Rigidbody local_rb = BodySplitter::split("tests/files/LAR1-4.pdb", {9, 99, 202, 292});
+        local_rb.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         REQUIRE(local_rb.constraints->discoverable_constraints.size() == 4); // one bond between each of the 5 sequential bodies
 
         RandomConstraintSelect selector(&local_rb);
@@ -140,7 +139,6 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
             CHECK(ibody < local_rb.molecule.get_bodies().size());
         }
 
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }
 
     SECTION("RandomConstraintSelect throws instead of crashing once no constraints remain") {

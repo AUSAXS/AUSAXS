@@ -6,9 +6,12 @@
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/BodySplitter.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <settings/All.h>
+
+#include <algorithm>
 
 #include <support/rb_metadata.h>
 
@@ -19,7 +22,6 @@ using namespace ausaxs::rigidbody;
 struct fixture {
     fixture() {
         settings::molecule::implicit_hydrogens = false;
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }
 
     AtomFF a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
@@ -71,7 +73,9 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
         auto initial_non_disc = cm.non_discoverable_constraints.size();
         cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule));
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
-        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));
+        // a bond constraint can only be declared between backbone-adjacent bodies, so the generator will find this pair too - which is what makes the identity
+    // check below the only meaningful one: the old code replaced the declared constraint with a generated one, leaving a plausible-looking count behind
+    cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         CHECK(cm.non_discoverable_constraints.size() == initial_non_disc + 1);
         REQUIRE(cm.discoverable_constraints.size() == 2);
     }
@@ -106,12 +110,44 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
         CHECK(val != 0);
         CHECK(cm.evaluate() == val);
 
-        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));
+        // a bond constraint can only be declared between backbone-adjacent bodies, so the generator will find this pair too - which is what makes the identity
+    // check below the only meaningful one: the old code replaced the declared constraint with a generated one, leaving a plausible-looking count behind
+    cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         auto dc2 = cm.discoverable_constraints.back().get();
         protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
         auto val2 = dc2->evaluate();
         auto val_after = dc1->evaluate();
         CHECK(val2 != 0);
         CHECK(cm.evaluate() == val_after + val2);
+    }
+}
+
+// BL-077. `generate_constraints` used to assign the generated list straight over `discoverable_constraints`, so a constraint the script declared before an
+// `autoconstrain` further down was silently deleted - a real chi2 tether and a real transform-propagation link, gone, with no diagnostic. Generation is
+// additive instead, which is only correct because it happens exactly once; a second run would duplicate every bond the first one found.
+TEST_CASE_METHOD(fixture, "ConstraintManager::generate_constraints is additive") {
+    settings::general::verbose = false;
+    using Choice = settings::rigidbody::ConstraintGenerationStrategyChoice;
+
+    Rigidbody protein = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+    auto& cm = *protein.constraints;
+    REQUIRE(cm.discoverable_constraints.empty()); // nothing is generated until a script asks for it
+
+    // a bond constraint can only be declared between backbone-adjacent bodies, so the generator will find this pair too - which is what makes the identity
+    // check below the only meaningful one: the old code replaced the declared constraint with a generated one, leaving a plausible-looking count behind
+    cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
+    REQUIRE(cm.discoverable_constraints.size() == 1);
+    auto* declared = cm.discoverable_constraints.front().get();
+
+    SECTION("a later autoconstrain leaves the declared constraint alone") {
+        cm.generate_constraints(Choice::Backbone);
+        REQUIRE(cm.discoverable_constraints.size() == 3); // the two generated backbone bonds, plus the declared one
+        CHECK(std::any_of(cm.discoverable_constraints.begin(), cm.discoverable_constraints.end(),
+            [declared] (const auto& c) {return c.get() == declared;}));
+    }
+
+    SECTION("generating twice is rejected rather than silently doubling every bond") {
+        cm.generate_constraints(Choice::None);
+        CHECK_THROWS(cm.generate_constraints(Choice::Backbone));
     }
 }

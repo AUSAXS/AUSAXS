@@ -23,7 +23,6 @@ using namespace ausaxs::data;
 
 TEST_CASE("UniformParameterGenerator::next") {
     settings::general::verbose = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     int iterations = 100;
     double length_start = GENERATE(1, 2, 3);
@@ -64,7 +63,6 @@ TEST_CASE("UniformParameterGenerator::next") {
 
 TEST_CASE("UniformParameterGenerator::next steps are isotropic") {
     settings::general::verbose = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     Rigidbody rb(Molecule{std::vector<Body>{Body(std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)})}});
 
     // no decay, so that every step is drawn against the full amplitude
@@ -96,7 +94,6 @@ TEST_CASE("UniformParameterGenerator::next steps are isotropic") {
 
 TEST_CASE("UniformParameterGenerator::next symmetry components are independent") {
     settings::general::verbose = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     int iterations = 100;
     Molecule m{std::vector<Body>{Body(std::vector{
@@ -155,7 +152,6 @@ TEST_CASE("UniformParameterGenerator::next symmetry components are independent")
 
 TEST_CASE("UniformParameterGenerator: a cyclic axis keeps its length as deltas accumulate") {
     settings::general::verbose = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     Molecule m{std::vector<Body>{Body(std::vector{
         AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
@@ -178,7 +174,6 @@ TEST_CASE("UniformParameterGenerator: a cyclic axis keeps its length as deltas a
 
 TEST_CASE("UniformParameterGenerator::next respects a planar symmetry's reduced parameter count") {
     settings::general::verbose = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     Molecule m{std::vector<Body>{Body(std::vector{
         AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 1, 1}, form_factor::form_factor_t::C)
@@ -207,7 +202,6 @@ TEST_CASE("UniformParameterGenerator::next respects a planar symmetry's reduced 
 
 TEST_CASE("UniformParameterGenerator: a rejected step does not corrupt the next delta") {
     settings::general::verbose = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     Molecule m{std::vector<Body>{Body(std::vector{
         AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 1, 1}, form_factor::form_factor_t::C)

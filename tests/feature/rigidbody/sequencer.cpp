@@ -4,6 +4,7 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/All.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <data/Molecule.h>
@@ -52,10 +53,10 @@ TEST_CASE("Sequencer: load_existing with pre-built Rigidbody", "[files]") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     Rigidbody rb(std::move(bodies));
+    rb.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
 
     sequencer::Sequencer seq(io::ExistingFile("tests/files/2epe.dat"));
     auto result = seq

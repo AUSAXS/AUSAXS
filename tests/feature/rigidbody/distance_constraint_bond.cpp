@@ -108,13 +108,12 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintBond::evaluate") {
 TEST_CASE("DistanceConstraintBond: prefers sequential C-alpha pairs") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    // the Backbone strategy enables store_backbone + store_residue_seq via the settings hook, so the
-    // generated bond constraints can identify the sequential C-alpha pair joining each body pair.
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     // This structure used to produce bond constraints between non-sequential C-alpha atoms (the
-    // geometrically closest pair) instead of the sequential pair joining the two bodies.
+    // geometrically closest pair) instead of the sequential pair joining the two bodies. The generated
+    // bond constraints identify that pair through the C-alpha and residue-sequence metadata.
     Rigidbody rigidbody = BodySplitter::split("tests/files/LAR1-4.pdb", {9, 99, 202, 292});
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
 
     const auto& constraints = rigidbody.constraints->discoverable_constraints;
     REQUIRE(constraints.size() == 4); // one bond between each of the 5 sequential bodies

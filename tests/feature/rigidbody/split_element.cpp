@@ -167,7 +167,6 @@ TEST_CASE("SplitElement: constrained optimization steps of split symmetric fragm
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
     settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::NoStrategy;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::transform_strategy = GENERATE(
         settings::rigidbody::TransformationStrategyChoice::RigidTransform,
         settings::rigidbody::TransformationStrategyChoice::SingleTransform

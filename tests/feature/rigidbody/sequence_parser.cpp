@@ -37,7 +37,6 @@ TEST_CASE("SequenceParser: parse minimal config", "[files]") {
 TEST_CASE("SequenceParser: parse normal config with output folder", "[files]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 250;
 
     SequenceParser parser;
@@ -52,7 +51,6 @@ TEST_CASE("SequenceParser: parse normal config with output folder", "[files]") {
 TEST_CASE("SequenceParser: parse symmetry config", "[files]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::min_bins = 250;
 
     SequenceParser parser;

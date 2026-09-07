@@ -24,10 +24,10 @@ TEST_CASE("Backup: Parameters restored after undo") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
     
     unsigned int ibody = 0;
@@ -62,10 +62,10 @@ TEST_CASE("Backup: Body positions match parameters after transformation") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
 
     unsigned int ibody = 0;
@@ -104,13 +104,13 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     SECTION("SingleTransform updates single body") {
         settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
         Rigidbody rigidbody(std::move(bodies));
+        rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         rigidbody.molecule.generate_new_hydration();
 
         unsigned int ibody = 0;
@@ -161,6 +161,7 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
 
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
         Rigidbody rigidbody(std::move(bodies));
+        rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         rigidbody.molecule.generate_new_hydration();
 
         unsigned int ibody = 1; // Middle body
@@ -196,10 +197,10 @@ TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
 
     unsigned int ibody = 0;

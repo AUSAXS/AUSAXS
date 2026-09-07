@@ -28,11 +28,11 @@ TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     // Note: Do not call generate_new_hydration() here - it changes CM after Conformation is created
 
     auto& transformer = rigidbody.transformer;
@@ -94,11 +94,11 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
 
     auto& transformer = rigidbody.transformer;
@@ -135,7 +135,6 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
 TEST_CASE("RigidTransform: Orbital motion correctness") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::molecule::center = false;
     settings::grid::scaling = 2;
 
@@ -197,11 +196,11 @@ TEST_CASE("RigidTransform: Multi-step transformation consistency", "[broken]") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
     settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     Rigidbody rigidbody(std::move(bodies));
+    rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     // Note: Do not call generate_new_hydration() here - it changes CM after Conformation is created
 
     auto& transformer = rigidbody.transformer;

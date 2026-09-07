@@ -28,7 +28,6 @@ struct PathResolutionFixture {
         settings::general::verbose = false;
         settings::molecule::implicit_hydrogens = false;
         settings::grid::min_bins = 250;
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
         root = "temp/paths_" + test::detail::unique_tag();
         std::filesystem::create_directories(root + "/sub");
     }
