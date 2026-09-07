@@ -21,19 +21,19 @@ namespace ausaxs::fitter::detail {
             /**
              * @brief Prepare a linear least-squares fit with unity errors. 
              *
-             * @param data The measured data.
-             * @param model The model data to be fitted.
+             * @param x The independent variable. When fitting a model to a measurement, this is the model curve.
+             * @param y The dependent variable. When fitting a model to a measurement, this is the measured data.
              */
-            LinearLeastSquares(const std::vector<double>& data, const std::vector<double>& model);
+            LinearLeastSquares(const std::vector<double>& x, const std::vector<double>& y);
 
             /**
              * @brief Prepare a linear least-squares fit.
              *
-             * @param data The measured data.
-             * @param model The model data to be fitted.
-             * @param errors The errors on the measured data.
+             * @param x The independent variable. When fitting a model to a measurement, this is the model curve.
+             * @param y The dependent variable. When fitting a model to a measurement, this is the measured data.
+             * @param yerr The errors on @a y.
              */
-            LinearLeastSquares(const std::vector<double>& data, const std::vector<double>& model, const std::vector<double>& errors);
+            LinearLeastSquares(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr);
 
             [[nodiscard]] std::unique_ptr<FitResult> fit() override;
             [[nodiscard]] unsigned int dof() const override;
@@ -52,7 +52,7 @@ namespace ausaxs::fitter::detail {
             [[nodiscard]] std::vector<double> get_model_curve();
 
         protected:
-            std::vector<double> data, model, inv_sigma;
+            std::vector<double> x, y, inv_sigma;
 
             /**
              * @brief Perform a linear least-squares fit and calculate @a only the fitted parameters.

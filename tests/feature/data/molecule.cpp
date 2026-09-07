@@ -9,7 +9,6 @@
 #include <constants/Constants.h>
 #include <utility/Utility.h>
 #include <utility/Random.h>
-#include <fitter/LinearFitter.h>
 #include <settings/All.h>
 #include <fitter/SmartFitter.h>
 #include <hydrate/generation/RadialHydration.h>
@@ -199,8 +198,10 @@ TEST_CASE("Molecule::simulate_dataset", "[files]") {
 
     Molecule protein("tests/files/2epe.pdb");
 
+    settings::fit::fit_hydration = false;
+
     SimpleDataset data = protein.simulate_dataset();
-    fitter::LinearFitter fitter(data, protein.get_histogram());
+    fitter::SmartFitter fitter(data, protein.get_histogram());
     auto res = fitter.fit();
     REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
 }
@@ -311,8 +312,10 @@ TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
 
     // we want to check that the hydration shells are consistent for fitting purposes
     SECTION("consistent hydration generation") {
+        settings::fit::fit_hydration = false;
+
         Molecule protein("tests/files/2epe.pdb");
-        fitter::LinearFitter fitter(SimpleDataset{"tests/files/2epe.dat"}, protein.get_histogram());
+        fitter::SmartFitter fitter(SimpleDataset{"tests/files/2epe.dat"}, protein.get_histogram());
 
         protein.generate_new_hydration();
         double chi2 = fitter.fit()->fval;

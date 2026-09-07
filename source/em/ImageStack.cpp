@@ -5,7 +5,6 @@
 #include <settings/All.h>
 #include <plots/All.h>
 #include <mini/All.h>
-#include <fitter/LinearFitter.h>
 #include <fitter/SmartFitter.h>
 #include <mini/detail/Parameter.h>
 #include <em/detail/ExtendedLandscape.h>
