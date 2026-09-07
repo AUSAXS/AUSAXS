@@ -30,7 +30,7 @@ namespace ausaxs::constants {
     namespace radius {
         constexpr double electron = 0.0000281794; // electron radius in units of Ångström
     }
-    constexpr double Avogadro = 6.02214076e-23; // mol^-1
+    constexpr double Avogadro = 6.02214076e23; // mol^-1
 
     /**
      * @brief Relative units.

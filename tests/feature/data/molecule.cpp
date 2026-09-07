@@ -338,7 +338,13 @@ TEST_CASE("Molecule::get_volume_grid", "[files]") {
 TEST_CASE("Molecule::get_molar_mass", "[files]") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    REQUIRE(protein.get_molar_mass() == protein.get_absolute_mass()*constants::Avogadro);
+
+    // 1 Da is 1 g/mol, so the molar mass in g/mol must match the summed atomic mass in Da.
+    REQUIRE_THAT(protein.get_molar_mass(), Catch::Matchers::WithinRel(protein.get_absolute_mass(), 1e-5));
+
+    // absolute anchor: 2epe is a ~14 kDa protein. This catches a unit slip by orders of
+    REQUIRE(1e3 < protein.get_molar_mass());
+    REQUIRE(protein.get_molar_mass() < 1e5);
 }
 
 TEST_CASE("Molecule::get_absolute_mass", "[files]") {

@@ -114,7 +114,7 @@ namespace ausaxs::data {
 			[[nodiscard]] double get_volume_vdw() const;
 
 			/**
-			 * @brief Calculate the molar mass of this body in Daltons.
+			 * @brief Calculate the molar mass of this body in g/mol.
 			 *
 			 * @param include_waters Whether the hydration shell contributes to the mass.
 			 */
