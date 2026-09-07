@@ -49,6 +49,15 @@ namespace ausaxs::hist::distance_calculator {
             explicit SimpleCalculator(unsigned int bin_count) : bin_count(bin_count) {}
 
             /**
+             * @brief Drain the thread pool before any of this object's state is released.
+             */
+            ~SimpleCalculator() {
+                auto pool = utility::multi_threading::get_global_pool();
+                pool->purge();
+                pool->wait();
+            }
+
+            /**
              * @brief Queue a self-correlation calculation. 
              *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made. 
              *
