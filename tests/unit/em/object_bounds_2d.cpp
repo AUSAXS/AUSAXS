@@ -79,15 +79,15 @@ TEST_CASE("ObjectBounds2D::empty") {
 
 TEST_CASE("ObjectBounds2D::bounded_area") {
     em::ObjectBounds2D bounds = em::ObjectBounds2D(2, 5);
-    CHECK(bounds.bounded_area() == 12);
+    CHECK(bounds.bounded_area() == bounds.total_area()); // a fresh instance encloses everything
 
     bounds.set_bounds(0, Limit(0, 1));
     bounds.set_bounds(1, Limit(1, 1));
-    CHECK(bounds.bounded_area() == 3);
+    CHECK(bounds.bounded_area() == 1);
 
     bounds.set_bounds(0, Limit(0, 5));
     bounds.set_bounds(1, Limit(3, 5));
-    CHECK(bounds.bounded_area() == 9);    
+    CHECK(bounds.bounded_area() == 7);    
 }
 
 TEST_CASE("ObjectBounds2D::total_area") {

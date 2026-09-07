@@ -22,13 +22,13 @@ TEST_CASE("ObjectBounds3D::operator[]") {
 
 TEST_CASE("ObjectBounds3D::bounded_volume") {
     em::ObjectBounds3D bounds(1, 2, 3);
-    CHECK(bounds.bounded_volume() == 9);
+    CHECK(bounds.bounded_volume() == bounds.total_volume()); // a fresh instance encloses everything
 
     bounds[0].set_bounds(0, 0, 1);
-    CHECK(bounds.bounded_volume() == 8);
+    CHECK(bounds.bounded_volume() == 5);
 
     bounds[0].set_bounds(0, 0, 0);
-    CHECK(bounds.bounded_volume() == 7);
+    CHECK(bounds.bounded_volume() == 4);
 }
 
 TEST_CASE("ObjectBounds3D::total_volume") {

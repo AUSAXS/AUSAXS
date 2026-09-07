@@ -41,9 +41,9 @@ unsigned int ObjectBounds2D::size_x() const {return N;}
 
 unsigned int ObjectBounds2D::size_y() const {return M;}
 
-bool ObjectBounds2D::empty() const {return bounded_area() == N;}
+bool ObjectBounds2D::empty() const {return bounded_area() == 0;}
 
-unsigned int ObjectBounds2D::bounded_area() const {return std::accumulate(bounds.begin(), bounds.end(), 0u, [] (unsigned int area, const Limit& limit) {return area += static_cast<unsigned int>(limit.max+1 - limit.min);});}
+unsigned int ObjectBounds2D::bounded_area() const {return std::accumulate(bounds.begin(), bounds.end(), 0u, [] (unsigned int area, const Limit& limit) {return area += static_cast<unsigned int>(limit.max - limit.min);});}
 
 unsigned int ObjectBounds2D::total_area() const {return N*M;}
 

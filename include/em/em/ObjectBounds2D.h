@@ -10,6 +10,9 @@
 namespace ausaxs::em {
     /**
      * @brief Describes the bounds of some object contained within a 2D matrix. 
+     *
+     * Each row is bounded by a half-open index range [min, max), so @a max is one past the last enclosed index and
+     * an empty row is expressed as an empty range. A newly constructed instance encloses the entire matrix.
      */
     class ObjectBounds2D {
         public:
@@ -23,7 +26,7 @@ namespace ausaxs::em {
             void set_min(unsigned int x, unsigned int min);
 
             /**
-             * @brief Set the maximum bound of the xth row.
+             * @brief Set the maximum bound of the xth row, exclusive.
              */
             void set_max(unsigned int x, unsigned int max);
 
@@ -53,7 +56,7 @@ namespace ausaxs::em {
             [[nodiscard]] unsigned int size_y() const;
 
             /**
-             * @brief Returns true if no bounds have been set. 
+             * @brief Returns true if no area is enclosed by these bounds.
              */
             [[nodiscard]] bool empty() const;
 

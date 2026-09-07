@@ -195,9 +195,24 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_minimum_bounds") {
     auto bound = GENERATE(1, 5, 9);
     isb.set_minimum_bounds(bound);
     for (unsigned int i = 0; i < isb.size(); ++i) {
-        auto b = isb.image(i).get_bounds();
-        for (auto j = b[i].min; j < b[i].max; ++j) {
-            REQUIRE(bound <= isb.image(i).index(i, j));
+        const auto& image = isb.image(i);
+        const auto& bounds = image.get_bounds();
+        for (unsigned int x = 0; x < bounds.size_x(); ++x) {
+            auto min = static_cast<unsigned int>(bounds[x].min);
+            auto max = static_cast<unsigned int>(bounds[x].max);
+
+            // the bounds must enclose every voxel above the cutoff
+            for (unsigned int y = 0; y < bounds.size_y(); ++y) {
+                if (bound <= image.index(x, y)) {
+                    CHECK(min <= y);
+                    CHECK(y < max);
+                }
+            }
+
+            // and must be tight: a row with nothing above the cutoff encloses nothing, and otherwise both edges qualify
+            if (min == max) {continue;}
+            CHECK(bound <= image.index(x, min));
+            CHECK(bound <= image.index(x, max-1));
         }
     }
 }

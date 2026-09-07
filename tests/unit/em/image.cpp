@@ -76,33 +76,33 @@ TEST_CASE("Image::setup_bounds") {
         em::ObjectBounds2D bounds = image.setup_bounds(1);
         REQUIRE(bounds.size_x() == 6);
         CHECK(bounds[0].min == 1);
-        CHECK(bounds[0].max == 4);
+        CHECK(bounds[0].max == 5);
         CHECK(bounds[1].min == 1);
-        CHECK(bounds[1].max == 3);
+        CHECK(bounds[1].max == 4);
         CHECK(bounds[2].min == 2);
-        CHECK(bounds[2].max == 4);
+        CHECK(bounds[2].max == 5);
         CHECK(bounds[3].min == 1);
-        CHECK(bounds[3].max == 4);
+        CHECK(bounds[3].max == 5);
         CHECK(bounds[4].min == 1);
-        CHECK(bounds[4].max == 3);
+        CHECK(bounds[4].max == 4);
         CHECK(bounds[5].min == 1);
-        CHECK(bounds[5].max == 5);
+        CHECK(bounds[5].max == 6);
         CHECK(image.get_bounds() == bounds);
 
         bounds = image.setup_bounds(5);
         REQUIRE(bounds.size_x() == 6);
         CHECK(bounds[0].min == 3);
-        CHECK(bounds[0].max == 3);
+        CHECK(bounds[0].max == 4);
         CHECK(bounds[1].min == 2);
-        CHECK(bounds[1].max == 3);
+        CHECK(bounds[1].max == 4);
         CHECK(bounds[2].min == 0);
-        CHECK(bounds[2].max == 0);
+        CHECK(bounds[2].max == 0);   // no voxel above the cutoff, i.e. an empty range
         CHECK(bounds[3].min == 3);
-        CHECK(bounds[3].max == 3);
+        CHECK(bounds[3].max == 4);
         CHECK(bounds[4].min == 3);
-        CHECK(bounds[4].max == 3);
+        CHECK(bounds[4].max == 4);
         CHECK(bounds[5].min == 5);
-        CHECK(bounds[5].max == 5);
+        CHECK(bounds[5].max == 6);
         CHECK(image.get_bounds() == bounds);
     }
 
@@ -113,50 +113,69 @@ TEST_CASE("Image::setup_bounds") {
         em::ObjectBounds2D bounds = image.setup_bounds(1);
         REQUIRE(bounds.size_x() == 6);
         CHECK(bounds[0].min == 1);
-        CHECK(bounds[0].max == 5);
+        CHECK(bounds[0].max == 6);
         CHECK(bounds[1].min == 1);
-        CHECK(bounds[1].max == 4);
+        CHECK(bounds[1].max == 5);
         CHECK(bounds[2].min == 1);
-        CHECK(bounds[2].max == 4);
+        CHECK(bounds[2].max == 5);
         CHECK(bounds[3].min == 0);
-        CHECK(bounds[3].max == 4);
+        CHECK(bounds[3].max == 5);
         CHECK(bounds[4].min == 1);
-        CHECK(bounds[4].max == 4);
+        CHECK(bounds[4].max == 5);
         CHECK(bounds[5].min == 0);
-        CHECK(bounds[5].max == 5);
+        CHECK(bounds[5].max == 6);
         CHECK(image.get_bounds() == bounds);
 
         bounds = image.setup_bounds(2);
         REQUIRE(bounds.size_x() == 6);
         CHECK(bounds[0].min == 2);
-        CHECK(bounds[0].max == 4);
+        CHECK(bounds[0].max == 5);
         CHECK(bounds[1].min == 1);
-        CHECK(bounds[1].max == 4);
+        CHECK(bounds[1].max == 5);
         CHECK(bounds[2].min == 2);
-        CHECK(bounds[2].max == 2);
+        CHECK(bounds[2].max == 3);
         CHECK(bounds[3].min == 0);
-        CHECK(bounds[3].max == 3);
+        CHECK(bounds[3].max == 4);
         CHECK(bounds[4].min == 2);
-        CHECK(bounds[4].max == 2);
+        CHECK(bounds[4].max == 3);
         CHECK(bounds[5].min == 0);
-        CHECK(bounds[5].max == 3);
+        CHECK(bounds[5].max == 4);
         CHECK(image.get_bounds() == bounds);
 
         bounds = image.setup_bounds(3);
         REQUIRE(bounds.size_x() == 6);
         CHECK(bounds[0].min == 3);
-        CHECK(bounds[0].max == 3);
+        CHECK(bounds[0].max == 4);
         CHECK(bounds[1].min == 1);
-        CHECK(bounds[1].max == 4);
+        CHECK(bounds[1].max == 5);
         CHECK(bounds[2].min == 0);
-        CHECK(bounds[2].max == 0);
+        CHECK(bounds[2].max == 0);   // no voxel above the cutoff, i.e. an empty range
         CHECK(bounds[3].min == 3);
-        CHECK(bounds[3].max == 3);
+        CHECK(bounds[3].max == 4);
         CHECK(bounds[4].min == 0);
-        CHECK(bounds[4].max == 0);
+        CHECK(bounds[4].max == 0);   // no voxel above the cutoff, i.e. an empty range
         CHECK(bounds[5].min == 0);
-        CHECK(bounds[5].max == 2);
+        CHECK(bounds[5].max == 3);
         CHECK(image.get_bounds() == bounds);
+    }
+
+    SECTION("bounds do not change the voxel count") {
+        // the bounds are a pure optimisation, so setting them must not change how many voxels are found above the
+        // cutoff. At cutoff 5 four of these rows hold a single qualifying voxel and one holds none at all.
+        Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
+        em::Image image(data);
+
+        for (double cutoff : {1., 3., 5.}) {
+            unsigned int expected = 0;
+            for (unsigned int x = 0; x < data.N; x++) {
+                for (unsigned int y = 0; y < data.M; y++) {
+                    if (cutoff <= data.index(x, y)) {expected++;}
+                }
+            }
+
+            image.setup_bounds(cutoff);
+            CHECK(image.count_voxels(cutoff) == expected);
+        }
     }
 
     SECTION("correct_bounded_area") {
