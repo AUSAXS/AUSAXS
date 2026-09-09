@@ -41,6 +41,7 @@ jobs:
         run: |
           cat > /tmp/sizes.sh <<'HELPER'
           _used_kb() { df --output=used -k / | tail -1 | tr -d ' '; }
+          _total_kb() { df --output=size -k / | tail -1 | tr -d ' '; }
           _avail_kb() { df --output=avail -k / | tail -1 | tr -d ' '; }
           _human() {
             awk -v k="${1:-0}" 'BEGIN {
@@ -60,8 +61,11 @@ jobs:
             _avail=$(_avail_kb)
             _tree_size="--"
             if [ -n "$_tree" ] && [ -e "$_tree" ]; then
-              _tree_kb=$(du -sk "$_tree" 2>/dev/null | cut -f1)
-              [ -z "$_tree_kb" ] && _tree_kb=$(sudo du -sk "$_tree" 2>/dev/null | cut -f1)
+              # Resolved first because /opt/rocm is a symlink to /opt/rocm-<version>, and du
+              # measures the link itself rather than its target: 0 KiB for a multi-gigabyte tree.
+              _resolved=$(readlink -f "$_tree" 2>/dev/null || echo "$_tree")
+              _tree_kb=$(du -sk "$_resolved" 2>/dev/null | cut -f1)
+              [ -z "$_tree_kb" ] && _tree_kb=$(sudo du -sk "$_resolved" 2>/dev/null | cut -f1)
               [ -n "$_tree_kb" ] && _tree_size=$(_human "$_tree_kb")
             fi
             printf '| %s | %s | %s | %s | %s |\n' \
@@ -77,18 +81,33 @@ jobs:
             fi
           }
           HELPER
+          . /tmp/sizes.sh
           {
             echo '## Dependency sizes'
+            echo
+            # Recorded because the job's disk budget is set by the runner image, which is not a
+            # stable quantity: GitHub documents ~14 GB free on a standard hosted runner and has
+            # at times provided far more. If this line ever shrinks back toward the documented
+            # figure, the peak row below is what says whether this job still fits.
+            printf '_Runner disk: %s total, %s free before cleanup._\n' \
+              "$(_human "$(_total_kb)")" "$(_human "$(_avail_kb)")"
             echo
             echo '| Step | Disk delta | Installed tree | Tree size | Free after |'
             echo '|---|---|---|---|---|'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # ROCm alone is ~10 GB and a stock runner has nowhere near enough headroom for it plus CUDA
-      # plus an LLVM build tree. These are the standard preinstalled toolchains no part of this
-      # build touches; removing them frees roughly 30 GB -- the summary table reports what it
-      # actually reclaimed, as a negative delta. If a later step dies with ENOSPC rather than a
-      # real error, this is the first place to look.
+      # These are the standard preinstalled toolchains no part of this build touches. Removing
+      # them is what keeps the job inside the envelope GitHub actually commits to. The docs
+      # promise roughly 14 GB free on a standard hosted runner; the image measured on 2026-09-09
+      # offered 86 GiB before this step and 106.7 GiB after. That surplus is a property of the
+      # current runner image rather than of the service, so it must not be designed around --
+      # note that this step reclaiming 26.2 GiB is itself proof the disk is nothing like the
+      # documented size today.
+      #
+      # Measured the same day, the dependencies cost far less than this file once claimed: ROCm
+      # 3.8 GiB, LLVM 1.3 GiB, CUDA 290 MiB, base 77 MiB, AdaptiveCpp 19 MiB installed. The row
+      # that matters for the budget is the AdaptiveCpp peak, which includes the transient build
+      # tree. If a later step dies with ENOSPC rather than a real error, look here first.
       - name: Free disk space
         run: |
           . /tmp/sizes.sh
@@ -263,11 +282,32 @@ jobs:
             -DACPP_COMPILER_FEATURE_PROFILE=full \
             -DWITH_OPENCL_BACKEND=ON \
             $cuda_args $rocm_args
-          cmake --build build
           # Installed, not just built: `acpp`, the headers, the CMake package config and the
           # deployment manifests are what the deploy, configure and build steps below consume.
-          cmake --install build
+          #
+          # It must be `--build --target install`, never `cmake --install build`. AdaptiveCpp
+          # installs the SPIR-V translator from an `install(CODE)` hook that shells out to
+          # `cmake --build . --target InstallLLVMSpirvTranslator`, and `.` is the build directory
+          # only when the install runs as a build target; `cmake --install` runs it in whatever
+          # directory it was invoked from. The hook passes no RESULT_VARIABLE, so getting this
+          # wrong installs an AdaptiveCpp missing llvm-spirv and reports success.
+          cmake --build build --target install
           "$ACPP_PREFIX/bin/acpp" --version
+
+          # Guards exactly that: the hook cannot report its own failure, so check its output. The
+          # alternative is finding out eight minutes later, when deploying the ocl component dies
+          # on the missing binary.
+          spirv="$ACPP_PREFIX/lib/hipSYCL/ext/llvm-spirv/bin/llvm-spirv"
+          if [ ! -x "$spirv" ]; then
+            echo "::error::AdaptiveCpp installed without ${spirv}"
+            echo "  its install(CODE) hook for InstallLLVMSpirvTranslator failed silently."
+            exit 1
+          fi
+          echo "  ok  llvm-spirv installed at ${spirv}"
+
+          # Reported before the build tree is deleted, because this is the job's high-water mark
+          # and therefore the only row that answers "would this still fit on a smaller runner?".
+          size_end 'AdaptiveCpp (peak, before cleanup)' /tmp/acpp
           cd / && rm -rf /tmp/acpp
           # Measured after the build tree is gone, so this is the installed toolchain alone.
           size_end 'AdaptiveCpp' "$ACPP_PREFIX"

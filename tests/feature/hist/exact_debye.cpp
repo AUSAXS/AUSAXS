@@ -5,6 +5,7 @@
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
+#include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
 
 #include "hist/hist_test_helper.h"
