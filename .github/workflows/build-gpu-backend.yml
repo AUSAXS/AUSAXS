@@ -1,0 +1,417 @@
+name: Build GPU backend
+
+# The GPU backend is deliberately not part of `build-and-test-template.yml` or
+# `build-release.yml`. It is a dlopen'd plugin behind a versioned C ABI, on no target's link line,
+# so `libausaxs` has identical dependencies whether or not it exists. Building it alongside the
+# platform builds would add a multi-gigabyte toolchain to four matrix legs that consume none of it.
+#
+# Why this is one long linear job
+# -------------------------------
+# Everything here -- vendor SDKs, AdaptiveCpp, the runtime package -- is rebuilt from scratch on
+# every run, which takes roughly 40-60 minutes. That is deliberate. The alternative is a prebuilt
+# GHCR image, which is faster but spreads a failure across an image build, a registry and a
+# consuming job. Runner minutes are free on a public repository and this workflow only fires when
+# `source/gpu/**` changes, so the simpler thing is bought cheaply. If run time ever does start to
+# hurt, the fix is a GHCR image, not `actions/cache`: cache entries are evicted after 7 days of
+# disuse, which a workflow that triggers this rarely would miss almost every time.
+#
+# What this workflow can and cannot verify
+# ----------------------------------------
+# No GitHub-hosted runner has a GPU of any vendor. So this proves that the backend compiles, that
+# it exports the v1 ABI, that the shipped runtime tree is self-contained enough to dlopen it, and
+# that it degrades to "no device" cleanly instead of crashing. Numerical validation of the kernel
+# is not possible here and stays on real hardware; the invariant to check there is the deviation
+# against SimpleCPU, not the timing.
+#
+# Note on triggers: `workflow_dispatch` only appears in the Actions UI once this file exists on the
+# default branch. Before then, the `push` trigger below is the only way to exercise it.
+
+# The two path lists are duplicated on purpose: GitHub Actions' workflow parser does not support
+# YAML anchors, so factoring them out silently breaks the triggers. Keep them in sync by hand.
+on:
+  push:
+    paths:
+      - 'source/gpu/**'
+      - 'include/gpu/**'
+      - '.github/workflows/build-gpu-backend.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'source/gpu/**'
+      - 'include/gpu/**'
+      - '.github/workflows/build-gpu-backend.yml'
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+  # Every version pin lives here and nowhere else.
+  LLVM_VERSION: "21"
+  # Leave CUDA_VERSION or ROCM_VERSION empty to skip that backend. Doing so also drops the matching
+  # deployment component, which is a supported end state: components are independent, and users can
+  # install one later without recompiling (AdaptiveCpp `doc/deployment.md`).
+  CUDA_VERSION: "12.6"
+  ROCM_VERSION: "7.2.4"
+  ACPP_REPO: "https://github.com/AdaptiveCpp/AdaptiveCpp"
+  # Pinned rather than tracking `develop`: this is the commit the SYCL backend was developed and
+  # validated against. Bumping it is a deliberate act -- AdaptiveCpp's runtime has no stable ABI,
+  # so a new pin means every shipped backend binary must be rebuilt (`doc/deployment.md`).
+  ACPP_COMMIT: "d2272b04"
+
+  ACPP_PREFIX: "/opt/acpp"
+  DIST: "/opt/ausaxs-gpu-dist"
+
+jobs:
+  backend:
+    name: "SYCL backend (Linux x86_64)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ROCm alone is ~10 GB and a stock runner has nowhere near enough headroom for it plus CUDA
+      # plus an LLVM build tree. These are the standard preinstalled toolchains no part of this
+      # build touches; removing them frees roughly 30 GB. If a later step dies with ENOSPC rather
+      # than a real error, this is the first place to look.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/share/boost /usr/local/share/powershell \
+                      /usr/local/lib/node_modules "${AGENT_TOOLSDIRECTORY:-/opt/hostedtoolcache}"
+          sudo apt-get -qq purge -y '^ghc-.*' '^dotnet-.*' '^llvm-1[0-9].*' azure-cli firefox || true
+          sudo apt-get -qq autoremove -y
+          df -h /
+
+      # libcurl4-openssl-dev is not a GPU dependency: the AUSAXS top-level CMakeLists does an
+      # unconditional find_package(CURL REQUIRED), so configuring the project needs it even when
+      # the only target being built is the backend.
+      #
+      # Intel GPUs are reached through the SPIR-V JIT and the OpenCL backend, which want nothing
+      # but headers and an ICD loader. The compute-runtime and intel-graphics-compiler packages
+      # AdaptiveCpp's own CI installs are runtime-only, for a device no hosted runner has, so they
+      # are omitted. No Level Zero package either: the pinned AdaptiveCpp commit declares no
+      # WITH_LEVEL_ZERO_BACKEND option. Revisit if a future pin adds that backend.
+      - name: Install base dependencies
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y --no-install-recommends \
+            build-essential cmake ninja-build python3 \
+            libcurl4-openssl-dev libnuma-dev \
+            ocl-icd-opencl-dev opencl-headers \
+            upx-ucl lsb-release wget gnupg ca-certificates
+
+      # apt.llvm.org is flaky often enough that AdaptiveCpp's own CI retries it; keep the loop.
+      - name: Install LLVM ${{ env.LLVM_VERSION }}
+        run: |
+          set -e
+          wget -q https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          success=0
+          for i in 1 2 3 4 5; do
+            if sudo ./llvm.sh "$LLVM_VERSION"; then success=1; break; fi
+            echo "Attempt $i failed, retrying in 15s..."
+            sleep 15
+          done
+          if [ "$success" -ne 1 ]; then echo "llvm.sh failed after 5 attempts"; exit 1; fi
+          sudo apt-get -qq install -y \
+            "clang-tools-${LLVM_VERSION}" \
+            "libclang-${LLVM_VERSION}-dev" \
+            "libomp-${LLVM_VERSION}-dev" \
+            "lld-${LLVM_VERSION}" \
+            "llvm-${LLVM_VERSION}-dev"
+          sudo apt-get -qq install -y -o DPkg::options::="--force-overwrite" \
+            "libclang-rt-${LLVM_VERSION}-dev"
+          rm llvm.sh
+
+      # Installed from the apt repo rather than the ~4 GB runfile AdaptiveCpp's CI uses, because
+      # only three pieces are needed and apt spares us hardcoding a driver-version string into a
+      # URL. cuda-nvcc supplies nvvm/libdevice, which is load-bearing twice over: AdaptiveCpp's
+      # `cmake/FindCUDA.cmake` shim rejects a toolkit whose root has no `nvvm` directory, and the
+      # PTX JIT links `libdevice.10.bc` at run time (`llvm-to-backend/ptx/LLVMToPtx.cpp`).
+      - name: Install CUDA ${{ env.CUDA_VERSION }}
+        if: env.CUDA_VERSION != ''
+        run: |
+          set -e
+          suffix="${CUDA_VERSION//./-}"
+          distro="$(lsb_release -is | tr '[:upper:]' '[:lower:]')$(lsb_release -rs | tr -d '.')"
+          wget -q "https://developer.download.nvidia.com/compute/cuda/repos/${distro}/x86_64/cuda-keyring_1.1-1_all.deb"
+          sudo dpkg -i cuda-keyring_1.1-1_all.deb && rm cuda-keyring_1.1-1_all.deb
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y --no-install-recommends \
+            "cuda-cudart-dev-${suffix}" "cuda-driver-dev-${suffix}" "cuda-nvcc-${suffix}"
+
+      # The HIP deployment manifest harvests from across the ROCm tree -- hipcc for detection,
+      # rocm-device-libs for the amdgcn JIT bitcode, and libamdhip64 / libhsa-runtime64 /
+      # libamd_comgr / libhsakmt / librocprofiler-register for the runtime -- so `rocm-dev` is the
+      # right meta-package despite its size.
+      #
+      # The pin priority must exceed 1000. AMD's package version numbers are *lower* than Ubuntu's
+      # own rocm packages on recent releases, so the conventional 500/600 leaves everything "kept
+      # back" with no useful error. A priority above 1000 permits the downgrade; nothing else does.
+      - name: Install ROCm ${{ env.ROCM_VERSION }}
+        if: env.ROCM_VERSION != ''
+        run: |
+          set -e
+          sudo mkdir -p /etc/apt/keyrings
+          wget -qO - https://repo.radeon.com/rocm/rocm.gpg.key \
+            | gpg --dearmor | sudo tee /etc/apt/keyrings/rocm.gpg > /dev/null
+          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/${ROCM_VERSION} $(lsb_release -cs) main" \
+            | sudo tee /etc/apt/sources.list.d/rocm.list
+          printf 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 1001\n' \
+            | sudo tee /etc/apt/preferences.d/rocm-pin-1001
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y rocm-dev
+          df -h /
+
+      # ACPP_COMPILER_FEATURE_PROFILE=full is mandatory, not a preference: it is what enables the
+      # SSCP compiler, and `generic` is our only compilation target. The cheaper `minimal` profile
+      # exists to avoid linking libLLVM (~133 MB), but it also disables SSCP, which would leave no
+      # path to the GPU at all. There is no configuration in which a JIT-capable package is small.
+      - name: Build AdaptiveCpp
+        run: |
+          set -e
+          git clone --recurse-submodules "$ACPP_REPO" /tmp/acpp
+          cd /tmp/acpp
+          git checkout "$ACPP_COMMIT"
+          git submodule update --init --recursive
+
+          if [ -n "$CUDA_VERSION" ]; then
+            cuda_args="-DWITH_CUDA_BACKEND=ON -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-${CUDA_VERSION}"
+          else
+            cuda_args="-DWITH_CUDA_BACKEND=OFF"
+          fi
+          if [ -n "$ROCM_VERSION" ]; then
+            rocm_args="-DWITH_ROCM_BACKEND=ON -DROCM_PATH=/opt/rocm"
+          else
+            rocm_args="-DWITH_ROCM_BACKEND=OFF"
+          fi
+
+          cmake -S . -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$ACPP_PREFIX" \
+            -DCMAKE_C_COMPILER="/usr/bin/clang-${LLVM_VERSION}" \
+            -DCMAKE_CXX_COMPILER="/usr/bin/clang++-${LLVM_VERSION}" \
+            -DCLANG_EXECUTABLE_PATH="/usr/bin/clang++-${LLVM_VERSION}" \
+            -DLLVM_DIR="/usr/lib/llvm-${LLVM_VERSION}/lib/cmake/llvm" \
+            -DClang_DIR="/usr/lib/llvm-${LLVM_VERSION}/lib/cmake/clang" \
+            -DACPP_COMPILER_FEATURE_PROFILE=full \
+            -DWITH_OPENCL_BACKEND=ON \
+            $cuda_args $rocm_args
+          sudo cmake --build build --target install
+          "$ACPP_PREFIX/bin/acpp" --version
+          cd / && rm -rf /tmp/acpp
+
+      # `--acpp-deploy` reads the `acpp-deployment-manifest-*.json` files AdaptiveCpp generated at
+      # configure time, so it can only deploy backends that were actually built.
+      #
+      # Each component is deployed separately and then checked, because --acpp-deploy prints
+      # "acpp error:" lines for files it cannot find but still exits 0 -- a missing backend
+      # otherwise yields a silently incomplete package. The sentinels below are the per-component
+      # pieces that matter most and are hardest to notice missing: the JIT's vendor device bitcode.
+      #
+      # These per-component directories are a *packaging* layout, not a runnable one. AdaptiveCpp
+      # locates backend plugins relative to libacpp-rt, so at run time the components must be
+      # overlaid into a single tree; extracting every archive into the same directory does that.
+      - name: Deploy runtime components
+        run: |
+          set -e
+          export PATH="$ACPP_PREFIX/bin:$PATH"
+          sudo mkdir -p "$DIST" && sudo chown "$(id -u):$(id -g)" "$DIST"
+
+          deploy_and_check() {
+            component=$1
+            sentinel=$2
+            echo "=== deploying component: ${component} ==="
+            acpp "--acpp-deploy=${component}:${DIST}/${component}"
+            if [ -n "$sentinel" ] && [ ! -e "${DIST}/${component}/${sentinel}" ]; then
+              echo "::error::component '${component}' deployed without '${sentinel}'"
+              echo "  --acpp-deploy reports missing files as 'acpp error:' lines but still exits 0,"
+              echo "  so check the log above. Usually it means the backend was not built: verify"
+              echo "  the matching -DWITH_*_BACKEND and that the SDK was found at configure time."
+              exit 1
+            fi
+          }
+
+          deploy_and_check core "libacpp-rt.so"
+          if [ -n "$CUDA_VERSION" ]; then
+            deploy_and_check cuda "hipSYCL/ext/bitcode/ptx/libdevice.10.bc"
+          fi
+          if [ -n "$ROCM_VERSION" ]; then
+            deploy_and_check hip "hipSYCL/ext/bitcode/amdgcn/ockl.bc"
+          fi
+          deploy_and_check ocl "hipSYCL/librt-backend-ocl.so"
+          du -sh "$DIST"/*
+
+      # DLIB/GUI/tests/executables are all off: none are reachable from the backend target, which
+      # resets its own COMPILE_OPTIONS, INCLUDE_DIRECTORIES and LINK_LIBRARIES before
+      # add_sycl_to_target is applied. This only has to get the project far enough to configure.
+      # ACPP_TARGETS defaults to `generic` in source/gpu/CMakeLists.txt, which is what we want.
+      - name: Configure AUSAXS
+        run: |
+          cmake -B build -S . -G Ninja \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DAdaptiveCpp_ROOT="$ACPP_PREFIX" \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXECUTABLES=OFF \
+            -DDLIB=OFF \
+            -DGUI=OFF
+
+      - name: Build backend
+        run: cmake --build build --target ausaxs_gpu_sycl -j$(nproc)
+
+      # Guards against a silently renamed or hidden entry point. The expected symbol list is read
+      # out of the header so it cannot drift from the ABI it claims to implement.
+      - name: Check exported ABI symbols
+        run: |
+          set -euo pipefail
+          lib=build/lib/libausaxs_gpu_sycl.so
+          test -f "$lib"
+          expected=$(grep -oE 'symbol_[a-z_]+ *= *"ausaxs_gpu_[a-z_]+"' include/gpu/gpu/GPUBackendABI.h \
+            | grep -oE 'ausaxs_gpu_[a-z_]+' | sort -u)
+          test -n "$expected"
+          # Symbols are dumped once to a file rather than piped into `grep -q` per symbol. Under
+          # `pipefail` that pipe reports failure for every symbol that IS present: grep -q exits on
+          # the first match, nm dies of SIGPIPE, and pipefail propagates nm's status.
+          nm -D --defined-only "$lib" > /tmp/backend_syms.txt
+          missing=0
+          for sym in $expected; do
+            if grep -qw "$sym" /tmp/backend_syms.txt; then
+              echo "  ok      $sym"
+            else
+              echo "  MISSING $sym"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      # `merged` is what a user ends up with after extracting every component archive into one
+      # directory, and it is the only layout in which the runtime can actually find its plugins.
+      - name: Assemble runtime package
+        run: |
+          set -euo pipefail
+          mkdir -p dist/merged
+          for component in "$DIST"/*/; do
+            name=$(basename "$component")
+            mkdir -p "dist/$name"
+            cp -r "$component"/* "dist/$name/"
+            cp -r "$component"/* dist/merged/
+          done
+          cp build/lib/libausaxs_gpu_sycl.so dist/
+          cp build/lib/libausaxs_gpu_sycl.so dist/merged/
+          du -sh dist/*
+
+      # libLLVM dominates the `core` component at ~133 MB. AdaptiveCpp's deployment guide
+      # recommends upx, which decompresses in memory on load and typically halves it. Non-fatal:
+      # if upx cannot handle this particular library, an uncompressed package is still correct.
+      - name: Compress libLLVM
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          for lib in dist/core/libLLVM.so.*; do
+            [ -f "$lib" ] || continue
+            before=$(stat -c%s "$lib")
+            if upx --best "$lib"; then
+              echo "$lib: $before -> $(stat -c%s "$lib") bytes"
+            else
+              echo "upx declined $lib; shipping it uncompressed"
+            fi
+          done
+
+      # The real risk in a harvested package is an unresolved transitive dependency: the backend
+      # links AdaptiveCpp, which links LLVM, which pulls in whatever the distro built it against.
+      # Loading the library and calling into the ABI is the cheapest way to find that out, and it
+      # needs no device -- abi_version() and available() are both host-side. available() returning
+      # 0 here is the expected, correct answer on a runner with no GPU; what is under test is that
+      # it answers at all rather than aborting.
+      - name: Load backend and query the ABI
+        run: |
+          set -euo pipefail
+          expected_version=$(grep -oE 'version *= *[0-9]+' include/gpu/gpu/GPUBackendABI.h \
+            | grep -oE '[0-9]+' | head -1)
+          echo "Header declares ABI version ${expected_version}"
+          cat > /tmp/abi_probe.c <<'PROBE'
+          #include <dlfcn.h>
+          #include <stdio.h>
+          int main(int argc, char** argv) {
+              void* h = dlopen(argv[1], RTLD_NOW);
+              if (!h) {printf("dlopen failed: %s\n", dlerror()); return 2;}
+              int (*abi_version)(void) = dlsym(h, "ausaxs_gpu_abi_version");
+              int (*available)(void) = dlsym(h, "ausaxs_gpu_available");
+              const char* (*last_error)(void) = dlsym(h, "ausaxs_gpu_last_error");
+              if (!abi_version || !available || !last_error) {printf("dlsym failed: %s\n", dlerror()); return 3;}
+              printf("abi_version=%d\n", abi_version());
+              printf("available=%d\n", available() ? 1 : 0);
+              const char* err = last_error();
+              printf("last_error=%s\n", err ? err : "(none)");
+              return 0;
+          }
+          PROBE
+          cc -O0 -o /tmp/abi_probe /tmp/abi_probe.c -ldl
+          # The version is parsed out of stdout rather than returned as the exit status, so that
+          # bumping the ABI can never collide with the probe's own failure codes.
+          set +e
+          out=$(LD_LIBRARY_PATH="$PWD/dist/merged:${LD_LIBRARY_PATH:-}" \
+            /tmp/abi_probe "$PWD/dist/merged/libausaxs_gpu_sycl.so" 2>&1)
+          rc=$?
+          set -e
+          echo "$out"
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::the backend could not be loaded from the deployed package (probe exit $rc)"
+            exit 1
+          fi
+          reported=$(echo "$out" | grep -oE '^abi_version=[0-9]+' | cut -d= -f2)
+          if [ "$reported" != "$expected_version" ]; then
+            echo "::error::backend reports ABI version '$reported', header declares '$expected_version'"
+            exit 1
+          fi
+          echo "ABI version $reported matches the header."
+
+      # Informational, never failing. This is the command AdaptiveCpp's deployment guide tells you
+      # to run after deploying; anything it lists is resolved from outside the package and is
+      # therefore a candidate to add. libc, linux-vdso, libcuda.so and libdrm* are expected to show
+      # up and must NOT be bundled -- they belong to the system or the graphics driver.
+      - name: Report dependencies resolved outside the package
+        continue-on-error: true
+        run: |
+          {
+            echo '## Dependencies resolved outside the runtime package'
+            echo '```'
+            LD_LIBRARY_PATH="$PWD/dist/merged" \
+              ldd $(find "$PWD/dist/merged" -type f | grep -v '\.bc$') 2>/dev/null \
+              | grep -v "$PWD/dist/merged" | awk '{print $3;}' | sort -u | grep -v '^$'
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Uploaded per component rather than as one archive, mirroring how they are meant to be
+      # consumed: `core` is mandatory and carries libLLVM, the rest are optional and installable
+      # later without recompiling. The vendor components decide which hardware a release supports;
+      # in particular the HIP component is limited to the GPUs its ROCm version knows, and can be
+      # rebuilt against a newer ROCm to extend that without touching the backend binary.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gpu-backend-linux-x64
+          path: dist/libausaxs_gpu_sycl.so
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gpu-runtime-core-linux-x64
+          path: dist/core/*
+
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('dist/cuda/**') != ''
+        with:
+          name: gpu-runtime-cuda-linux-x64
+          path: dist/cuda/*
+
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('dist/hip/**') != ''
+        with:
+          name: gpu-runtime-hip-linux-x64
+          path: dist/hip/*
+
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('dist/ocl/**') != ''
+        with:
+          name: gpu-runtime-ocl-linux-x64
+          path: dist/ocl/*

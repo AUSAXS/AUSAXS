@@ -1,7 +1,11 @@
 add_library(ausaxs_core OBJECT)
 set_target_properties(ausaxs_core PROPERTIES POSITION_INDEPENDENT_CODE 1)
 target_include_directories(ausaxs_core PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
-target_link_libraries(ausaxs_core ausaxs_math CURL::libcurl)
+
+# the GPU backend ABI is a dependency-free header describing the interface of a backend that is looked
+# up at run time, so it is part of the core interface whether or not a backend is ever built.
+target_include_directories(ausaxs_core PUBLIC "${CMAKE_SOURCE_DIR}/include/gpu")
+target_link_libraries(ausaxs_core ausaxs_math CURL::libcurl ${CMAKE_DL_LIBS})
 if (DLIB) 
 	target_link_libraries(ausaxs_core "dlib::dlib") 
 endif()
@@ -41,6 +45,7 @@ add_subdirectory(data)
 add_subdirectory(dataset)
 add_subdirectory(fitter)
 add_subdirectory(form_factor)
+add_subdirectory(gpu)
 add_subdirectory(grid)
 add_subdirectory(hist)
 add_subdirectory(hydrate)
