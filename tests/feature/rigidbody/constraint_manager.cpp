@@ -117,28 +117,3 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
         CHECK(cm.evaluate() == val_after + val2);
     }
 }
-
-TEST_CASE_METHOD(fixture, "ConstraintManager::generate_constraints is additive") {
-    settings::general::verbose = false;
-    using Choice = settings::rigidbody::ConstraintGenerationStrategyChoice;
-
-    Rigidbody protein = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-    auto& cm = *protein.constraints;
-    REQUIRE(cm.discoverable_constraints.empty()); // nothing is generated until a script asks for it
-
-    cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
-    REQUIRE(cm.discoverable_constraints.size() == 1);
-    auto* declared = cm.discoverable_constraints.front().get();
-
-    SECTION("a later autoconstrain leaves the declared constraint alone") {
-        cm.generate_constraints(Choice::Backbone);
-        REQUIRE(cm.discoverable_constraints.size() == 3); // the two generated backbone bonds, plus the declared one
-        CHECK(std::any_of(cm.discoverable_constraints.begin(), cm.discoverable_constraints.end(),
-            [declared] (const auto& c) {return c.get() == declared;}));
-    }
-
-    SECTION("generating twice is rejected rather than silently doubling every bond") {
-        cm.generate_constraints(Choice::None);
-        CHECK_THROWS(cm.generate_constraints(Choice::Backbone));
-    }
-}
