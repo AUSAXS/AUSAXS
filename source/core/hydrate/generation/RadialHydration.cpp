@@ -119,13 +119,19 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     }
 
     double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
+
+    // convert an offset in Ångström to the nearest whole number of bins. The division must happen *before* the
+    // rounding, or the probe distances are quantized in Ångström and then shrunk by the width a second time.
+    auto to_bin_offset = [width] (const Vector3<double>& rot, double r) {
+        return Vector3<int>(std::round(r*rot.x()/width), std::round(r*rot.y()/width), std::round(r*rot.z()/width));
+    };
+
     for (const auto& rot : rots) {
-        double xr = rot.x(), yr = rot.y(), zr = rot.z();
-        bins_1rh.push_back(Vector3<int>(std::round(  rh*xr)/width, std::round(  rh*yr)/width, std::round(  rh*zr)/width));
-        bins_3rh.push_back(Vector3<int>(std::round(3*rh*xr)/width, std::round(3*rh*yr)/width, std::round(3*rh*zr)/width));
-        bins_5rh.push_back(Vector3<int>(std::round(5*rh*xr)/width, std::round(5*rh*yr)/width, std::round(5*rh*zr)/width));
-        bins_7rh.push_back(Vector3<int>(std::round(7*rh*xr)/width, std::round(7*rh*yr)/width, std::round(7*rh*zr)/width));
-        locs.push_back(Vector3<double>(xr, yr, zr));
+        bins_1rh.push_back(to_bin_offset(rot,   rh));
+        bins_3rh.push_back(to_bin_offset(rot, 3*rh));
+        bins_5rh.push_back(to_bin_offset(rot, 5*rh));
+        bins_7rh.push_back(to_bin_offset(rot, 7*rh));
+        locs.push_back(rot);
     }
 
     // set the member vectors
