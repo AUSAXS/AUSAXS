@@ -46,7 +46,6 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
 TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None; // make sure there's no other distance constraints
     Rigidbody protein(Molecule{ap});
     test::mark_backbone_carbons(protein.molecule);
 

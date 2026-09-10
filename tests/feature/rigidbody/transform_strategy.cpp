@@ -59,7 +59,6 @@ struct fixture {
 
 // NOTE: Exact position expectations and reconstruction need recalculating for pivot-based transform system
 TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::general::verbose = false;
     settings::grid::scaling = 2;
 
@@ -194,7 +193,6 @@ auto vector_contains = [] (std::vector<unsigned int> vec, std::vector<unsigned i
 };
 
 TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::general::verbose = false;
 
     SECTION("get_connected") {

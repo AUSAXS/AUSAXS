@@ -18,7 +18,6 @@ using namespace ausaxs::data;
 TEST_CASE("NoConstraints::generate") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     SECTION("simple") {
         double distance = settings::rigidbody::bond_distance;

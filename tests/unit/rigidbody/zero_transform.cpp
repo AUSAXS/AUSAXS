@@ -16,7 +16,6 @@ using namespace ausaxs::rigidbody;
 TEST_CASE("ZeroTransform: zeroed delta parameters do not cause drift") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
     AtomFF a2({5, 0, 0}, form_factor::form_factor_t::C);

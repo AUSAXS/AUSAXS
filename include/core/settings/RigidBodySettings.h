@@ -5,7 +5,6 @@
 
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
-#include <settings/SettingsHelper.h>
 #include <settings/ExportMacro.h>
 
 #include <vector>
@@ -69,7 +68,6 @@ namespace ausaxs::settings {
             None,       // Do not generate constraints. Only those supplied by the user will be used.
             Backbone    // Generate a bond constraint between every pair of backbone-adjacent bodies.
         };
-        static settings::detail::Setting<ConstraintGenerationStrategyChoice> constraint_generation_strategy;
 
         enum class ControllerChoice {
             Classic,    // Classic controller essentially equivalent to a gradient descent. 

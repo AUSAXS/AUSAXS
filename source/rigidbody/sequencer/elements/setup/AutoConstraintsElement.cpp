@@ -4,7 +4,6 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
-#include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/Rigidbody.h>
 #include <settings/RigidBodySettings.h>
@@ -12,7 +11,7 @@
 using namespace ausaxs::rigidbody::sequencer;
 
 AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy) : owner(owner), strategy(strategy) {
-    owner->_get_rigidbody()->constraints->generate_constraints(rigidbody::factory::generate_constraints(owner->_get_rigidbody()->constraints.get(), strategy));
+    owner->_get_rigidbody()->constraints->generate_constraints(strategy);
 }
 
 void AutoConstraintsElement::run() {}

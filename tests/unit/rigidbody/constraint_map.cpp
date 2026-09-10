@@ -26,7 +26,6 @@ namespace {
         settings::general::verbose = false;
         settings::molecule::implicit_hydrogens = false;
         settings::grid::min_bins = 25; // let the grid size itself to the conformation the optimization wanders into
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }
 }
 

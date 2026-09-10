@@ -17,7 +17,6 @@ using namespace ausaxs::rigidbody::constraints;
 
 ConstraintManager::ConstraintManager(observer_ptr<const Rigidbody> rigidbody) : molecule(&rigidbody->molecule) {
     non_discoverable_constraints.emplace_back(std::make_unique<OverlapConstraint>(molecule));
-    generate_constraints(factory::generate_constraints(this));
 }
 
 ConstraintManager::~ConstraintManager() = default;
@@ -28,8 +27,14 @@ const std::vector<observer_ptr<IDistanceConstraint>>& ConstraintManager::get_bod
     return distance_constraints_map.at(ibody);
 }
 
+void ConstraintManager::generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice choice) {
+    generate_constraints(factory::generate_constraints(this, choice));
+}
+
 void ConstraintManager::generate_constraints(std::unique_ptr<ConstraintGenerationStrategy> generator) {
-    discoverable_constraints = generator->generate();
+    for (auto& constraint : generator->generate()) {
+        discoverable_constraints.emplace_back(std::move(constraint));
+    }
     invalidate();
 }
 

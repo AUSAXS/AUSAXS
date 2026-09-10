@@ -21,7 +21,6 @@ using namespace ausaxs::data;
 TEST_CASE("BackboneConstraints::generate") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
     SECTION("simple") {
         double distance = settings::rigidbody::bond_distance;
@@ -35,13 +34,15 @@ TEST_CASE("BackboneConstraints::generate") {
         Body b3 = Body(std::vector<AtomFF>{a3});
         Body b4 = Body(std::vector<AtomFF>{a4});
         std::vector<Body> ap = {b1, b2, b3, b4};
-        test::mark_backbone_carbons(ap); // generation runs in the Rigidbody ctor, so mark before constructing
+        test::mark_backbone_carbons(ap); // the generator reads this metadata, so mark before generating below
         rigidbody::Rigidbody rigidbody(Molecule{ap});
+        rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 3);
     }
 
     SECTION("real data") {
         rigidbody::Rigidbody rigidbody = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 2);
     }
 }

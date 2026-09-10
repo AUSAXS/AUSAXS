@@ -6,9 +6,12 @@
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/BodySplitter.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <settings/All.h>
+
+#include <algorithm>
 
 #include <support/rb_metadata.h>
 
@@ -19,7 +22,6 @@ using namespace ausaxs::rigidbody;
 struct fixture {
     fixture() {
         settings::molecule::implicit_hydrogens = false;
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }
 
     AtomFF a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
@@ -71,7 +73,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
         auto initial_non_disc = cm.non_discoverable_constraints.size();
         cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule));
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
-        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         CHECK(cm.non_discoverable_constraints.size() == initial_non_disc + 1);
         REQUIRE(cm.discoverable_constraints.size() == 2);
     }
@@ -106,7 +108,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
         CHECK(val != 0);
         CHECK(cm.evaluate() == val);
 
-        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 2));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         auto dc2 = cm.discoverable_constraints.back().get();
         protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
         auto val2 = dc2->evaluate();

@@ -4,6 +4,7 @@
 #include <rigidbody/controller/MetropolisController.h>
 #include <rigidbody/controller/ControllerFactory.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <data/Molecule.h>
@@ -21,11 +22,11 @@ struct ControllerFixture {
         settings::general::verbose = false;
         settings::molecule::implicit_hydrogens = false;
         settings::grid::min_bins = 250;
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone;
 
         // Create a rigidbody for testing
         auto bodies = BodySplitter::split("tests/files/SASDJG5.pdb");
         rb = std::make_unique<Rigidbody>(std::move(bodies));
+        rb->constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     }
     
     std::unique_ptr<Rigidbody> rb;
@@ -82,7 +83,6 @@ TEST_CASE_METHOD(ControllerFixture, "Controllers::SimpleController basic functio
 TEST_CASE("Controllers::ControllerFactory") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     
     AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
     AtomFF a2({5, 0, 0}, form_factor::form_factor_t::C);

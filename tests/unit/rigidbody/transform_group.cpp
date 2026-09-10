@@ -18,7 +18,6 @@ using namespace ausaxs::rigidbody;
 TEST_CASE("TransformGroup::TransformGroup") {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     settings::grid::scaling = 2;
 
     SECTION("construction with single body") {
@@ -70,7 +69,6 @@ TEST_CASE("TransformGroup::TransformGroup") {
     }
 
     SECTION("construction with constraint") {
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
         
         AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
         AtomFF a2({1, 0, 0}, form_factor::form_factor_t::C);

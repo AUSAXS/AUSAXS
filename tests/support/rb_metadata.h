@@ -23,9 +23,9 @@ namespace ausaxs::test {
      * This marks every carbon atom as a C-alpha backbone atom, reproducing the carbon-based atom
      * selection the constraints used before backbone metadata was introduced.
      *
-     * Note: constraint generation runs inside the Rigidbody constructor, so when a non-trivial
-     * generation strategy is active the bodies must be marked *before* they are handed to the
-     * molecule. Use the std::vector<Body> overload in that case.
+     * Note: the constraint generators read this metadata, so bodies must be marked before
+     * ConstraintManager::generate_constraints runs. Marking them before they are handed to the
+     * molecule - the std::vector<Body> overload - is the simplest way to get that ordering right.
      */
     inline void mark_backbone_carbons(data::Body& body) {
         data::AtomMetadata md;

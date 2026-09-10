@@ -7,6 +7,7 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/RigidbodyFwd.h>
+#include <settings/RigidBodySettings.h>
 #include <data/DataFwd.h>
 
 #include <memory>
@@ -28,12 +29,12 @@ namespace ausaxs::rigidbody::constraints {
         ~ConstraintManager();
 
         /**
-         * @brief Generate automatic constraints based on the currently selected constraint generation strategy in the settings.
+         * @brief Generate automatic constraints using the given strategy.
          */
-        void generate_constraints();
+        void generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice choice);
 
         /**
-         * @brief Generate automatic constraints using a custom generator.
+         * @brief Generate automatic constraints using a custom generator, appending them to whatever constraints are already present.
          */
         void generate_constraints(std::unique_ptr<ConstraintGenerationStrategy> generator);
 

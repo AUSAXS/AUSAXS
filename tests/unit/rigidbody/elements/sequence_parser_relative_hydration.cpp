@@ -26,7 +26,6 @@ struct SequenceParserRelativeHydrationFixture {
         settings::molecule::implicit_hydrogens = false;
         settings::grid::min_bins = 100;
         settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::NoStrategy;
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }
 
     std::unique_ptr<Sequencer> parse(const std::string& content) {

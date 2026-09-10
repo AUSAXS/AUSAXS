@@ -10,10 +10,6 @@
 using namespace ausaxs;
 using namespace rigidbody::constraints;
 
-std::unique_ptr<ConstraintGenerationStrategy> rigidbody::factory::generate_constraints(observer_ptr<const constraints::ConstraintManager> manager) {
-    return generate_constraints(manager, settings::rigidbody::constraint_generation_strategy);
-}
-
 std::unique_ptr<ConstraintGenerationStrategy> rigidbody::factory::generate_constraints(
     observer_ptr<const constraints::ConstraintManager> manager, const settings::rigidbody::ConstraintGenerationStrategyChoice& choice
 ) {

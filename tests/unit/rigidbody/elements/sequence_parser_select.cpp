@@ -35,7 +35,6 @@ struct SequenceParserSelectFixture {
         // let the grid size itself to the conformation: the symmetry-isolation case below drives several ungated symmetry perturbations, whose random
         // walk can otherwise carry a symmetry copy outside a grid pinned to this many bins
         settings::grid::min_bins = 25;
-        settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
     }
 
     std::unique_ptr<Sequencer> parse(const std::string& content) {

@@ -4,7 +4,6 @@
 #include <settings/RigidBodySettings.h>
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
-#include <data/atoms/AtomMetadata.h>
 
 using namespace ausaxs;
 
@@ -14,17 +13,6 @@ settings::rigidbody::TransformationStrategyChoice settings::rigidbody::transform
 settings::rigidbody::ParameterGenerationStrategyChoice settings::rigidbody::parameter_generation_strategy = ParameterGenerationStrategyChoice::Simple;
 settings::rigidbody::ParameterMaskStrategyChoice settings::rigidbody::parameter_mask_strategy = ParameterMaskStrategyChoice::All;
 settings::rigidbody::BodySelectStrategyChoice settings::rigidbody::body_select_strategy = BodySelectStrategyChoice::RandomBodySelect;
-settings::detail::Setting<settings::rigidbody::ConstraintGenerationStrategyChoice> settings::rigidbody::constraint_generation_strategy = {
-    settings::rigidbody::ConstraintGenerationStrategyChoice::None,
-    [] (settings::rigidbody::ConstraintGenerationStrategyChoice& val) {
-        // backbone constraint generation relies on the per-atom backbone classification and the residue sequence ids used to identify which C-alpha pairs
-        // are actually backbone-adjacent; couple them to the strategy so callers cannot forget to enable them.
-        if (val == settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone) {
-            data::AtomMetadata::store_backbone = true;
-            data::AtomMetadata::store_residue_seq = true;
-        }
-    }
-};
 settings::rigidbody::DecayStrategyChoice settings::rigidbody::decay_strategy = DecayStrategyChoice::Linear;
 settings::rigidbody::ControllerChoice settings::rigidbody::controller_choice = ControllerChoice::Classic;
 
@@ -53,11 +41,6 @@ template<> void settings::io::detail::SettingRef<settings::rigidbody::ParameterG
 template<> std::string settings::io::detail::SettingRef<settings::rigidbody::BodySelectStrategyChoice>::get() const {return std::to_string(static_cast<int>(settingref));}
 template<> void settings::io::detail::SettingRef<settings::rigidbody::BodySelectStrategyChoice>::set(const std::vector<std::string>& val) {
     settingref = static_cast<settings::rigidbody::BodySelectStrategyChoice>(std::stoi(val[0]));
-}
-
-template<> std::string settings::io::detail::SettingRef<settings::rigidbody::ConstraintGenerationStrategyChoice>::get() const {return std::to_string(static_cast<int>(settingref));}
-template<> void settings::io::detail::SettingRef<settings::rigidbody::ConstraintGenerationStrategyChoice>::set(const std::vector<std::string>& val) {
-    settingref = static_cast<settings::rigidbody::ConstraintGenerationStrategyChoice>(std::stoi(val[0]));
 }
 
 template<> std::string settings::io::detail::SettingRef<settings::rigidbody::DecayStrategyChoice>::get() const {return std::to_string(static_cast<int>(settingref));}
