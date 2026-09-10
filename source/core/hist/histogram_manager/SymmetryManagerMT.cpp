@@ -77,6 +77,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
 
             // distinct distance pairs among {original, copy_1, ..., copy_N} of this symmetry;
             // every other copy-pair is identical to a listed representative and folded into scale
+            calculator.hold();
             for (const auto& pair : sym1->internal_pair_schedule()) {
                 calculator.enqueue_calculate_cross(
                     atomic_at(i_body1, i_sym1, pair.repA),
@@ -84,9 +85,13 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                     pair.scale, cross_merge_id_aa
                 );
             }
+            calculator.release_hold();
 
             for (int i_repeat1 = 0; i_repeat1 < static_cast<int>(sym1->repetitions()); ++i_repeat1) {
                 const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
+
+                // this copy against everything it can pair with, as one group
+                calculator.hold();
                 if constexpr (contains_waters) {
                     calculator.enqueue_calculate_cross(waters, body1_sym_atomic, 1, cross_merge_id_aw);
                 }
@@ -115,6 +120,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                         calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                     }
                 }
+                calculator.release_hold();
             }
         }
 
@@ -122,6 +128,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
         for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
             const auto& body2 = protein->get_body(j_body1);
             const auto& body2_atomic = data[j_body1].atomic[0][0];
+
+            // the host body against all of body2, as one group
+            calculator.hold();
             calculator.enqueue_calculate_cross(body1_atomic, body2_atomic, 1, cross_merge_id_aa);
 
             // external histograms with other symmetries in same body
@@ -132,6 +141,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                     calculator.enqueue_calculate_cross(body1_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                 }
             }
+            calculator.release_hold();
         }
     }
     if constexpr (contains_waters) {

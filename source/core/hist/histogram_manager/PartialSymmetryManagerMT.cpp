@@ -93,7 +93,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     propagate_reference_symmetry_modifications(externally_modified, internally_modified, symmetry_modified);
 
     auto pool = utility::multi_threading::get_global_pool();
-    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>(bin_estimate::configured_bin_count());
+    distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_estimate::configured_bin_count());
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -258,7 +258,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     if constexpr (hydration_enabled) {
         // check if the hydration layer was modified
         if (hydration_modified) {
-            calc_ww(calculator.get());
+            calc_ww(&calculator);
             enqueue_combine_ww();
         }
     }
@@ -267,7 +267,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     for (int ibody1 = 0; ibody1 < static_cast<int>(this->body_size); ++ibody1) {
         // check for internal modifications
         if (internally_modified[ibody1]) {
-            calc_aa_self(calculator.get(), ibody1);
+            calc_aa_self(&calculator, ibody1);
             enqueue_combine_aa_self(ibody1, 0, ibody1, 0);
 
             // internal modification implies external modification
@@ -284,7 +284,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 // external modification requires recalculation of all affected symmetries
                 for (int isym1 = 0; isym1 < 1+static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
                     for (int isym2 = 0; isym2 < 1+static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
-                        calc_aa(calculator.get(), ibody1, isym1, ibody2, isym2);
+                        calc_aa(&calculator, ibody1, isym1, ibody2, isym2);
                         enqueue_combine_aa(ibody1, isym1, ibody2, isym2);
                     }
                 }
@@ -300,7 +300,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 if (externally_modified[ibody2]) {continue;}
                 for (int isym2 = 0; isym2 < static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
                     if (symmetry_modified[ibody2][isym2]) {
-                        calc_aa(calculator.get(), ibody1, 0, ibody2, isym2+1);
+                        calc_aa(&calculator, ibody1, 0, ibody2, isym2+1);
                         enqueue_combine_aa(ibody1, 0, ibody2, isym2+1);
                     }
                 }
@@ -313,14 +313,14 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
 
                     // cross-correlation with other main body
                     if (symmetry_modified[ibody1][isym1]) {
-                        calc_aa(calculator.get(), ibody1, isym1+1, ibody2, 0);
+                        calc_aa(&calculator, ibody1, isym1+1, ibody2, 0);
                         enqueue_combine_aa(ibody1, isym1+1, ibody2, 0);
                     }
                     
                     // cross-correlations with symmetries in other main body
                     for (int isym2 = 0; isym2 < static_cast<int>(this->protein->get_body(ibody2).size_symmetry()); ++isym2) {
                         if (!(symmetry_modified[ibody1][isym1] || symmetry_modified[ibody2][isym2])) {continue;}
-                        calc_aa(calculator.get(), ibody1, isym1+1, ibody2, isym2+1);
+                        calc_aa(&calculator, ibody1, isym1+1, ibody2, isym2+1);
                         enqueue_combine_aa(ibody1, isym1+1, ibody2, isym2+1);
                     }
                 }
@@ -332,14 +332,14 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
             for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
                 // cross-correlation with main body
                 if (symmetry_modified[ibody1][isym1]) {
-                    calc_aa(calculator.get(), ibody1, isym1+1, ibody1, 0);
+                    calc_aa(&calculator, ibody1, isym1+1, ibody1, 0);
                     enqueue_combine_aa(ibody1, isym1+1, ibody1, 0);
                 }
 
                 // cross-correlations with other symmetries
                 for (int isym2 = 0; isym2 < isym1; ++isym2) {
                     if (!(symmetry_modified[ibody1][isym1] || symmetry_modified[ibody1][isym2])) {continue;}
-                    calc_aa(calculator.get(), ibody1, isym1+1, ibody1, isym2+1);
+                    calc_aa(&calculator, ibody1, isym1+1, ibody1, isym2+1);
                     enqueue_combine_aa(ibody1, isym1+1, ibody1, isym2+1);
                 }
             }
@@ -351,7 +351,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
 
                 // update all by looping from 0 (main body) to 1+size_symmetry (last symmetry)
                 for (int isym1 = 0; isym1 < 1+static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
-                    calc_aw(calculator.get(), ibody1, isym1);
+                    calc_aw(&calculator, ibody1, isym1);
                     enqueue_combine_aw(ibody1, isym1);
                 }
             } else {
@@ -359,7 +359,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 // hydration layer not modified, check for symmetry modifications
                 for (int isym1 = 0; isym1 < static_cast<int>(this->protein->get_body(ibody1).size_symmetry()); ++isym1) {
                     if (symmetry_modified[ibody1][isym1]) {
-                        calc_aw(calculator.get(), ibody1, isym1+1);
+                        calc_aw(&calculator, ibody1, isym1+1);
                         enqueue_combine_aw(ibody1, isym1+1);
                     }
                 }
@@ -368,7 +368,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     }
 
     // wait for all calculations to finish
-    res = calculator->run();
+    res = calculator.run();
 
     // start all queued combine tasks
     // these will update all partial histograms with the results of the calculations
@@ -589,6 +589,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_ww(calcul
 
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) const {
+    // every job below shares one res_index, so each loop is held and dispatched as a single group.
     const auto& body1 = protein->get_body(ibody1);
     const auto& body2 = protein->get_body(ibody2);
     int res_index = to_res_index(ibody1, isym1, ibody2, isym2);
@@ -609,6 +610,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
 
             // distinct distance pairs among {original, copy_1, ..., copy_N}; repetition 0 is
             // the original body (atomic[0][0]), 1..N are the copies (atomic[isym1][rep-1])
+            calculator->hold();
             for (const auto& pair : sym1->internal_pair_schedule()) {
                 assert((pair.repA == 0 || pair.repA-1 < static_cast<int>(coords[ibody1].atomic[isym1].size())) && "internal_pair_schedule: repA out of range for atomic copies");
                 assert((pair.repB == 0 || pair.repB-1 < static_cast<int>(coords[ibody1].atomic[isym1].size())) && "internal_pair_schedule: repB out of range for atomic copies");
@@ -621,6 +623,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
                     std::cout << "\t\tstored at cross index " << res_index << std::endl;
                 #endif
             }
+            calculator->release_hold();
             return;
         }
         assert(isym1 != 0 && "Attempting to calculate cross-correlations outside the lower triangle");
@@ -637,6 +640,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
     } else if (isym1 == 0) {
         assert(isym2 < 1+static_cast<int>(body2.size_symmetry()) && "symmetry index out of bounds");
         const auto& sym2 = body2.symmetry().get(isym2-1);
+        calculator->hold();
         for (int irepeat2 = 0; irepeat2 < static_cast<int>(sym2->repetitions()); ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[isym2][irepeat2];
             calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, 1, res_index);
@@ -646,10 +650,12 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
                 std::cout << "\t\tstored at cross index " << res_index << std::endl;
             #endif
         }
+        calculator->release_hold();
         return;
     } else if (isym2 == 0) {
         assert(isym1 < 1+static_cast<int>(body1.size_symmetry()) && "symmetry index out of bounds");
         const auto& sym1 = body1.symmetry().get(isym1-1);
+        calculator->hold();
         for (int irepeat1 = 0; irepeat1 < static_cast<int>(sym1->repetitions()); ++irepeat1) {
             const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
             calculator->enqueue_calculate_cross(body1_sym_atomic, coords[ibody2].atomic[0][0], 1, res_index);
@@ -659,6 +665,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
                 std::cout << "\t\tstored at cross index " << res_index << std::endl;
             #endif
         }
+        calculator->release_hold();
         return;
     }
 
@@ -668,6 +675,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
     const auto& sym1 = body1.symmetry().get(isym1-1);
     const auto& sym2 = body2.symmetry().get(isym2-1);
 
+    calculator->hold();
     for (int irepeat1 = 0; irepeat1 < static_cast<int>(sym1->repetitions()); ++irepeat1) {
         const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
         for (int irepeat2 = 0; irepeat2 < static_cast<int>(sym2->repetitions()); ++irepeat2) {
@@ -680,6 +688,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
             #endif
         }
     }
+    calculator->release_hold();
 }
 
 template<bool weighted_bins, bool variable_bin_width> 
@@ -705,6 +714,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calcul
     // else iterate over its repititions
     assert(isym < 1+static_cast<int>(body.size_symmetry()) && "symmetry index out of bounds");
     const auto& sym = body.symmetry().get(isym-1);
+    calculator->hold(); // one res_index for every copy, see calc_aa
     for (int irepeat = 0; irepeat < static_cast<int>(sym->repetitions()); ++irepeat) {
         const auto& body1_sym_atomic = coords[ibody].atomic[isym][irepeat];
         #if DEBUG_INFO_PSMMT
@@ -713,6 +723,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calcul
         #endif
         calculator->enqueue_calculate_cross(body1_sym_atomic, waters, 1, res_index);
     }
+    calculator->release_hold();
 }
 
 #if DEBUG_INFO_PSMMT_EXTENDED

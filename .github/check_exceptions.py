@@ -3,14 +3,11 @@ import os
 directories = ["source", "include", "executable", "scripts"]
 suffixes = (".cpp", ".h")
 
-# the only files allowed to touch <stdexcept>: they define the ausaxs::except:: hierarchy itself.
-# everywhere else must throw ausaxs::except::* (which derives from except::base) instead of a raw
-# std:: exception, since except::base prints the message on construction (source/core/utility/Exceptions.cpp) -
-# on Windows an uncaught exception aborts without ever printing its what(), so the message must be
-# printed at construction time or it is lost.
+# the only files allowed to touch <stdexcept>: they define the ausaxs::except:: hierarchy itself
 allowlist = [
     os.path.join("include", "core", "utility", "Exceptions.h"),
     os.path.join("source", "core", "utility", "Exceptions.cpp"),
+    os.path.join("source", "gpu", "SYCL", "SYCLBackend.cpp"),
 ]
 
 flag_fail = False

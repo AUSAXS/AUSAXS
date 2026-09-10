@@ -48,6 +48,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     app.add_flag("--offline", settings::general::offline, "Run the program in offline mode. This will prevent any network requests.")
         ->default_val(settings::general::offline);
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
+    app.add_flag("--gpu", settings::general::gpu, "Use GPU acceleration if available.")->default_val(settings::general::gpu);
 
     // config subcommands
     auto sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");

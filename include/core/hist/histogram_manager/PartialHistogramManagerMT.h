@@ -5,7 +5,7 @@
 
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/distance_calculator/DistanceCalculatorFwd.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 

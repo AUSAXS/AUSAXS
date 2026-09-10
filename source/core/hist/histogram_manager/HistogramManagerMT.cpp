@@ -33,9 +33,12 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
     hist::distance_calculator::SimpleCalculator<wb, vbw> calculator(bin_count);
+    // all three are known up front, so they are held and dispatched as one unit
+    calculator.hold();
     calculator.enqueue_calculate_self(data_a);
     calculator.enqueue_calculate_self(data_w);
     calculator.enqueue_calculate_cross(data_a, data_w);
+    calculator.release_hold();
     auto res = calculator.run();
 
     auto p_aa = res.self[0];

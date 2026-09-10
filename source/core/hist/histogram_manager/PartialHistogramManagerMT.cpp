@@ -52,11 +52,11 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
     auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
-    auto calculator = std::make_unique<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>(hist::detail::bin_estimate::configured_bin_count());
+    distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(hist::detail::bin_estimate::configured_bin_count());
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
-        initialize(calculator.get()); 
+        initialize(&calculator); 
 
         // since the initialization also calculates the self-correlation, mark it as unmodified to avoid desyncing its state
         internally_modified = std::vector<bool>(this->body_size, false);
@@ -68,7 +68,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
 
             // if the internal state was modified, we have to recalculate the self-correlation
             if (internally_modified[i]) {
-                calc_self_correlation(calculator.get(), i);
+                calc_self_correlation(&calculator, i);
             }
 
             // if the external state was modified, we have to update the coordinate representations for later calculations (implicitly done in calc_self_correlation)
@@ -90,28 +90,32 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
 
     // check if the hydration layer was modified
     if (hydration_modified) {
-        calc_ww(calculator.get());
+        calc_ww(&calculator);
     }
 
     // iterate through the lower triangle and check if either of each pair of bodies was modified
     for (unsigned int i = 0; i < this->body_size; ++i) {
+        // everything body i pairs with is enqueued back-to-back with no work in between, so it is held
+        // and dispatched as one group; the coordinates were all built above, before pool->wait()
+        calculator.hold();
         for (unsigned int j = 0; j < i; ++j) {
             if (externally_modified[i] || externally_modified[j]) {
                 // one of the bodies was modified, so we recalculate its partial histogram
-                calc_aa(calculator.get(), i, j);
+                calc_aa(&calculator, i, j);
             }
         }
 
         // we also have to remember to update the partial histograms with the hydration layer
         if (externally_modified[i] || hydration_modified) {
-            calc_aw(calculator.get(), i);
+            calc_aw(&calculator, i);
         }
+        calculator.release_hold();
     }
 
     // merge the partial results from each thread and add it to the master histogram
     // for this process, we first have to wait for all threads to finish
     // then we extract the results in the same order they were submitted to ensure correctness
-    auto res = calculator->run();
+    auto res = calculator.run();
     {
         if (hydration_modified) {
             assert(res.self.contains(water_res_index) && "PartialHistogramManagerMT::calculate: water result not found");

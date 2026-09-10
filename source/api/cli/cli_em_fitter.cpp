@@ -35,6 +35,7 @@ int cli_em_fitter(int argc, char const *argv[]) {
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
+    app.add_flag("--gpu", settings::general::gpu, "Use GPU acceleration if available.")->default_val(settings::general::gpu);
 
     // config subcommands
     auto sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");

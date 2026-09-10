@@ -19,6 +19,8 @@ namespace ausaxs::settings {
         static bool keep_hydrogens;         // Whether to keep bound hydrogens when reading a structure.
         static bool generate_plots;         // Whether to generate plots when possible.
         static bool supplementary_plots;    // Whether to generate supplementary plots when possible.
+        static bool gpu;                    // Whether to offload the distance histogram calculations to the GPU. Requires a GPU backend to be installed alongside the library.
+        static std::string gpu_library;     // Path to the GPU backend to use. Empty to search the usual locations.
 
         struct detail {
             /**

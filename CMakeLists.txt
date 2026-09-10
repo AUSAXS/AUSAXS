@@ -21,6 +21,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# A GPU backend is opened by name at run time rather than linked, so it is not on any target's link
+# line and nothing would otherwise teach the binaries in the build tree where to find it.
+list(APPEND CMAKE_BUILD_RPATH "${CMAKE_BINARY_DIR}/lib")
 include(cmake/setup_compile_commands.cmake)
 setup_compile_commands()
 
