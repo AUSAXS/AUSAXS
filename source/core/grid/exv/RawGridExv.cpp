@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <grid/exv/RawGridExv.h>
+#include <grid/exv/GridExvStrategy.h>
 #include <utility/Logging.h>
 #include <settings/GridSettings.h>
 
@@ -32,7 +33,7 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
         }
     ;
 
-    int stride = std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width));
+    int stride = point_stride();
     int buffer = std::max(1., std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width));
     const auto& axes = grid->get_axes();
 
@@ -55,5 +56,6 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
         "RawGridExv::create: added " + std::to_string(atoms.size()) + "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
     );
 
-    return GridExcludedVolume{std::move(atoms), {}};
+    // every point is a grid->to_xyz(i, j, k), so the set is exactly a subset of the sites of a cubic lattice of this spacing
+    return GridExcludedVolume{std::move(atoms), {}, stride*settings::grid::cell_width};
 }

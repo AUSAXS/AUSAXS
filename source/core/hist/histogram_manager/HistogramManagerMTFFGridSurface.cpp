@@ -4,6 +4,7 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/LatticeCorrelation.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
@@ -47,8 +48,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
     hist::detail::CompactCoordinatesFF<variable_bin_width> data_x_i, data_x_s;
 
+    // the raw points are kept alive past this point since the lattice correlations below need them
+    auto exv = get_exv();
     {   // generate the excluded volume representation
-        auto exv = get_exv();
         std::vector<data::AtomFF> interior(exv.interior.size()), surface(exv.surface.size());
         std::transform(
             exv.interior.begin(), exv.interior.end(), interior.begin(),
@@ -228,28 +230,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     //##############//
     // SUBMIT TASKS //
     //##############//
-    int job_size_xi = settings::general::detail::get_job_size(data_x_i_size);
-    int job_size_xs = settings::general::detail::get_job_size(data_x_s_size);
     int job_size_a = settings::general::detail::get_job_size(data_a_size);
     int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < (int) data_x_i_size; i+=job_size_xi) {
-        pool->detach_task(
-            [&calc_xx_ii, i, job_size_xi, data_x_i_size] () {return calc_xx_ii(i, std::min(i+job_size_xi, data_x_i_size));}
-        );
-    }
-
-    for (int i = 0; i < (int) data_x_s_size; i+=job_size_xs) {
-        pool->detach_task(
-            [&calc_xx_ss, i, job_size_xs, data_x_s_size] () {return calc_xx_ss(i, std::min(i+job_size_xs, data_x_s_size));}
-        );
-    }
-
-    for (int i = 0; i < (int) data_x_i_size; i+=job_size_xi) {
-        pool->detach_task(
-            [&calc_xx_si, i, job_size_xi, data_x_i_size] () {return calc_xx_si(i, std::min(i+job_size_xi, data_x_i_size));}
-        );
-    }
-
     for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
         pool->detach_task(
             [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
@@ -262,10 +244,45 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         );
     }
 
+    // both excluded volume point sets are drawn from the sites of one cubic lattice, so all three of their correlations
+    // are radially binned autocorrelations of binary occupancy arrays rather than pair loops; see hist::detail::lattice.
+    // this runs on the calling thread and so overlaps with the ax and wx jobs above, and falls back to the pair loops
+    // if the transform is not affordable.
+    auto p_xx_lattice = detail::lattice::correlations(
+        exv.interior, exv.surface, exv.spacing,
+        hist::detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
+    );
+    if (!p_xx_lattice.has_value()) {
+        int job_size_xi = settings::general::detail::get_job_size(data_x_i_size);
+        int job_size_xs = settings::general::detail::get_job_size(data_x_s_size);
+        for (int i = 0; i < (int) data_x_i_size; i+=job_size_xi) {
+            pool->detach_task(
+                [&calc_xx_ii, i, job_size_xi, data_x_i_size] () {return calc_xx_ii(i, std::min(i+job_size_xi, data_x_i_size));}
+            );
+        }
+
+        for (int i = 0; i < (int) data_x_s_size; i+=job_size_xs) {
+            pool->detach_task(
+                [&calc_xx_ss, i, job_size_xs, data_x_s_size] () {return calc_xx_ss(i, std::min(i+job_size_xs, data_x_s_size));}
+            );
+        }
+
+        for (int i = 0; i < (int) data_x_i_size; i+=job_size_xi) {
+            pool->detach_task(
+                [&calc_xx_si, i, job_size_xi, data_x_i_size] () {return calc_xx_si(i, std::min(i+job_size_xi, data_x_i_size));}
+            );
+        }
+    }
+
     pool->wait();
     XXContainer p_xx = p_xx_all.merge();
     AXContainer p_ax = p_ax_all.merge();
     WXContainer p_wx = p_wx_all.merge();
+    if (p_xx_lattice.has_value()) {
+        p_xx.interior = std::move(p_xx_lattice->first);
+        p_xx.surface  = std::move(p_xx_lattice->second);
+        p_xx.cross    = std::move(p_xx_lattice->cross);
+    }
 
     //###################//
     // SELF-CORRELATIONS //
