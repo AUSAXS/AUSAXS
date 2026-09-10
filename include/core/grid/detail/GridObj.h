@@ -130,22 +130,22 @@ namespace ausaxs::grid::detail {
              *        separately from the volume, so letting their flags participate in the bookkeeping would cause a bin
              *        shared by an atom and a water to be counted when the atom is added but not when it is removed. 
              */
-            bool is_volume_counted(State s) const;
-            bool is_volume_counted(int x, int y, int z) const; // @copydoc is_volume_counted(State) const
+            bool contributes_volume(State s) const;
+            bool contributes_volume(int x, int y, int z) const; // @copydoc contributes_volume(State) const
 
             /**
              * @brief Branchless function to check if a given bin contributes to the volume counter solely through an
              *        atom center, and so stops contributing when that center is removed. 
              */
-            bool is_volume_from_center_only(State s) const;
-            bool is_volume_from_center_only(int x, int y, int z) const; // @copydoc is_volume_from_center_only(State) const
+            bool contributes_volume_from_center_only(State s) const;
+            bool contributes_volume_from_center_only(int x, int y, int z) const; // @copydoc contributes_volume_from_center_only(State) const
 
             /**
              * @brief Branchless function to check if a given bin contributes to the volume counter solely through an
              *        atomic area, and so stops contributing when that area is deflated. 
              */
-            bool is_volume_from_area_only(State s) const;
-            bool is_volume_from_area_only(int x, int y, int z) const; // @copydoc is_volume_from_area_only(State) const
+            bool contributes_volume_from_area_only(State s) const;
+            bool contributes_volume_from_area_only(int x, int y, int z) const; // @copydoc contributes_volume_from_area_only(State) const
 
             using container::Container3D<State>::index;
             State& index(const Vector3<int>& v);

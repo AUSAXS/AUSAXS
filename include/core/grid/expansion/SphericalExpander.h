@@ -192,7 +192,7 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::deflate_volume(observer_pt
                 // determine if the bin is within a sphere centered on the atom
                 auto& bin = grid->grid.index(i, j, k);
                 if (dist <= rmax2) {
-                    removed_volume += grid->grid.is_volume_from_area_only(bin);
+                    removed_volume += grid->grid.contributes_volume_from_area_only(bin);
                     bin &= ~(detail::A_AREA | detail::VOLUME);
                 }
             }
