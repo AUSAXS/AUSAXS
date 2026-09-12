@@ -61,9 +61,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
 
       # pinned so the build does not float on the vcpkg bundled with the runner image
       - uses: lukka/run-vcpkg@v11
@@ -80,11 +77,9 @@ jobs:
       - name: Install dependencies
         shell: pwsh
         run: |
-          & "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\vcpkg.exe" install curl pkgconf cairo libwebp --triplet x64-windows-static
+          & "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\vcpkg.exe" install curl pkgconf --triplet x64-windows-static
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           choco install ninja
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          pip install matplotlib numpy scipy pyinstaller
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build the library
@@ -92,20 +87,17 @@ jobs:
         run: |
           mkdir build
           cmake -B build -S . -G "Ninja" \
-            -DGUI=ON \
-            -DBUILD_PLOT_EXE=ON \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
             -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_TARGET_TRIPLET="x64-windows-static"
-          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs saxs_fitter_gui em_fitter_gui -j12
+          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs -j12
 
       - name: Configure output folders for upload
         shell: bash
         run: |
           rm -rf build/lib/*.exp build/lib/*.lib
-          rm -rf build/bin/resources
 
       - uses: actions/upload-artifact@v4
         with:
@@ -177,154 +169,6 @@ jobs:
             build/lib/*
             build/bin/*
 
-  build-mac-gui:
-    name: "${{ matrix.name }}"
-    needs: check-version
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix: 
-        include: 
-          - runner: macos-15-intel
-            name: "MacOS x86"
-            arch: x86_64
-            vcpkg_triplet: x64-osx
-            CC: clang
-            CXX: clang++
-            XCODE_VER: 26.1.1
-
-          - runner: macos-15
-            name: "MacOS arm64"
-            arch: arm64
-            vcpkg_triplet: arm64-osx
-            CC: clang
-            CXX: clang++
-            XCODE_VER: 26.1.1
-    env:
-      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,readwrite"
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: lukka/get-cmake@latest            
-      - uses: lukka/run-vcpkg@v11
-        id: vcpkg
-        with:
-          vcpkgGitCommitId: 4334d8b4c8916018600212ab4dd4bbdc343065d1
-
-      - name: Set Xcode version
-        run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.XCODE_VER }}.app/Contents/Developer
-
-      - name: Install mono & nuget
-        run: brew install mono nuget
-
-      - uses: ./.github/actions/setup-vcpkg-nuget
-        if: matrix.arch == 'arm64'
-        with:
-          package_permission: true
-          nuget_cmd: $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: ./.github/actions/setup-vcpkg-nuget
-        if: matrix.arch == 'x86_64'
-        with:
-          package_permission: true
-          nuget_cmd: 'mono $("${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg" fetch nuget | tail -n 1)'
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install dependencies
-        run: |
-          brew install autoconf autoconf-archive automake libtool
-          vcpkg install curl pkgconf cairo libwebp --triplet ${{ matrix.vcpkg_triplet }}
-
-      - name: Build the library
-        run: |
-          mkdir build
-          cmake -B build -S . \
-            -DGUI=ON \
-            -DCMAKE_C_COMPILER=${{ matrix.CC }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.CXX }} \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="${{ matrix.vcpkg_triplet }}" \
-            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
-          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs saxs_fitter_gui em_fitter_gui -j12
-
-      - name: Clean up GUI binary folders for upload
-        run: |
-          find build/bin -type d -name "*.app" ! -name "saxs_fitter_gui.app" ! -name "em_fitter_gui.app" -exec rm -rf {} +
-          rm -rf build/lib/*.a
-          mv build/bin/saxs_fitter_gui.app/contents/MacOS/saxs_fitter_gui build/bin/saxs_fitter_gui
-          mv build/bin/em_fitter_gui.app/contents/MacOS/em_fitter_gui build/bin/em_fitter_gui
-          rm -rf build/bin/saxs_fitter_gui.app
-          rm -rf build/bin/em_fitter_gui.app
-
-      - name: Sign the artifacts
-        env: 
-          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
-          CERTIFICATE_PWD: ${{ secrets.MACOS_P12_PASSWORD }}
-          KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
-          DEV_ID: ${{ secrets.MACOS_DEV_ID }}
-        run: |
-            CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
-            KEYCHAIN_PATH=$RUNNER_TEMP/keychain
-
-            echo -n $CERTIFICATE_BASE64 | base64 --decode -o $CERTIFICATE_PATH
-
-            security create-keychain -p $KEYCHAIN_PWD $KEYCHAIN_PATH
-            security default-keychain -s $KEYCHAIN_PATH
-            security unlock-keychain -p $KEYCHAIN_PWD $KEYCHAIN_PATH
-
-            security import $CERTIFICATE_PATH -k $KEYCHAIN_PATH -P $CERTIFICATE_PWD -T /usr/bin/codesign
-            security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PWD $KEYCHAIN_PATH
-            security list-keychain -d user -s $KEYCHAIN_PATH
-
-            codesign --deep --verify --force --verbose --options runtime --timestamp --sign "$DEV_ID" build/bin/ausaxs build/bin/saxs_fitter_gui build/bin/em_fitter_gui
-
-      - name: Notarize ausaxs
-        uses: lando/notarize-action@v2
-        with: 
-          product-path: build/bin/ausaxs
-          primary-bundle-id: "com.ausaxs.ausaxs"
-          appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
-          appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
-          appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
-          verbose: true
-
-      - name: Notarize saxs_fitter_gui
-        uses: lando/notarize-action@v2
-        with: 
-          product-path: build/bin/saxs_fitter_gui
-          primary-bundle-id: "com.ausaxs.saxs_fitter_gui"
-          appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
-          appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
-          appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
-          verbose: true
-
-      - name: Notarize em_fitter_gui
-        uses: lando/notarize-action@v2
-        with: 
-          product-path: build/bin/em_fitter_gui
-          primary-bundle-id: "com.ausaxs.em_fitter_gui"
-          appstore-connect-username: ${{ secrets.MACOS_APP_USR }}
-          appstore-connect-password: ${{ secrets.MACOS_APP_PWD }}
-          appstore-connect-team-id: ${{ secrets.MACOS_APP_TEAM_ID }}
-          verbose: true
-
-      # - name: Staple the notarization ticket
-      #   run: |
-      #     xcrun stapler staple build/bin/saxs_fitter_gui.app
-      #     xcrun stapler staple build/bin/em_fitter_gui.app
-      #     codesign -dv --verbose=4 build/bin/saxs_fitter_gui.app build/bin/em_fitter_gui.app
-      #     spctl -a -vv build/bin/saxs_fitter_gui.app
-      #     spctl -a -vv build/bin/em_fitter_gui.app
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-${{ matrix.arch }}-gui-binaries
-          path: |
-            build/lib/*
-            build/bin/*
-
   build-ubuntu:
     name: ${{ matrix.name }}
     needs: check-version
@@ -362,7 +206,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libcurl4-openssl-dev libcairo2-dev libgtk-3-dev libwebp-dev
+          sudo apt-get install libcurl4-openssl-dev
           if [ "${{ matrix.c_compiler }}" == "gcc-10" ]; then
             sudo apt-get install gcc-10 g++-10
           fi
@@ -376,19 +220,17 @@ jobs:
         run: |
           mkdir build
           cmake -B build -S . \
-            -DGUI=ON \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs saxs_fitter_gui em_fitter_gui -j12
+          cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs -j12
 
-      - name: Build the GUI executables (${{ matrix.os }})
+      - name: Build the library (${{ matrix.os }})
         if: matrix.full_build == false
         shell: bash
         run: |
           mkdir build
           cmake -B build -S . \
-            -DGUI=ON \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
@@ -397,7 +239,6 @@ jobs:
       - name: Configure output folders for upload
         shell: bash
         run: |
-          rm -rf build/bin/resources
           rm -rf build/lib/*.a
 
       - uses: actions/upload-artifact@v4
