@@ -1,5 +1,8 @@
 add_library(ausaxs_math OBJECT 
 	"CubicSpline.cpp"
+	"detail/Diagnostics.cpp"
+	"detail/Format.cpp"
+	"detail/Streams.cpp"
 	"LUPDecomposition.cpp"
 	"MatrixUtils.cpp"
 	"MovingAverager.cpp"

@@ -14,6 +14,8 @@
 
 #include <support/rb_metadata.h>
 
+#include <iostream>
+
 using namespace ausaxs;
 using namespace data;
 using namespace rigidbody;

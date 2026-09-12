@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iostream>
 
 using namespace ausaxs::rigidbody::sequencer;
 

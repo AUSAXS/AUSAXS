@@ -5,9 +5,7 @@
 
 #include <cassert>
 
-#ifndef NDEBUG
-    #include <iostream>  // only the asserts below print
-#endif
+#include <math/detail/Diagnostics.h>
 
 namespace ausaxs::utility::indexer {
     /**
@@ -25,8 +23,7 @@ namespace ausaxs::utility::indexer {
             constexpr const auto& index(int i, int j, int k) const {
                 assert([&]() -> bool {
                     if (0 <= i && i < derived().N && 0 <= j && j < derived().M && 0 <= k && k < derived().L) {return true;}
-                    std::cout << "Indexer3D: Index out of bounds (" << i << ", " << j << ", " << k << ") should be less than (" << derived().N << ", " << derived().M << ", " << derived().L << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_3d("Indexer3D", i, j, k, derived().N, derived().M, derived().L);
                 }() && "Indexer3D: Index out of bounds.");
                 return derived().data[k + derived().L * (j + derived().M * i)]; 
             }
@@ -34,8 +31,7 @@ namespace ausaxs::utility::indexer {
             constexpr auto& index(int i, int j, int k) {
                 assert([&]() -> bool {
                     if (0 <= i && i < derived().N && 0 <= j && j < derived().M && 0 <= k && k < derived().L) {return true;}
-                    std::cout << "Indexer3D: Index out of bounds (" << i << ", " << j << ", " << k << ") should be less than (" << derived().N << ", " << derived().M << ", " << derived().L << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_3d("Indexer3D", i, j, k, derived().N, derived().M, derived().L);
                 }() && "Indexer3D: Index out of bounds.");
                 return derived().data[k + derived().L * (j + derived().M * i)]; 
             }
@@ -43,8 +39,7 @@ namespace ausaxs::utility::indexer {
             constexpr const auto& linear_index(int i) const { 
                 assert([&]() -> bool {
                     if (0 <= i && i < derived().N*derived().M*derived().L) {return true;}
-                    std::cout << "Indexer3D::linear_index: Index out of bounds (" << i << " should be less than " << derived().N*derived().M*derived().L << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_1d("Indexer3D::linear_index", i, derived().N*derived().M*derived().L);
                 }() && "Indexer3D::linear_index: Index out of bounds.");
                 return derived().data[i]; 
             }
@@ -56,8 +51,7 @@ namespace ausaxs::utility::indexer {
             constexpr auto& linear_index(int i) { 
                 assert([&]() -> bool {
                     if (0 <= i && i < derived().N*derived().M*derived().L) {return true;}
-                    std::cout << "Indexer3D::linear_index: Index out of bounds (" << i << " should be less than " << derived().N*derived().M*derived().L << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_1d("Indexer3D::linear_index", i, derived().N*derived().M*derived().L);
                 }() && "Indexer3D::linear_index: Index out of bounds.");
                 return derived().data[i]; 
             }

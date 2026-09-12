@@ -8,7 +8,7 @@
 #include <math/indexers/Indexer1D.h>
 
 #include <initializer_list>
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -170,7 +170,7 @@ namespace ausaxs {
     Vector<T> operator-(const Vector<T>& v) {return Vector<T>(v.size()) - v;}
 
     template<numeric T> 
-    std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {os << v.to_string(); return os;}
+    std::ostream& operator<<(std::ostream& os, const Vector<T>& v);
 }
 
 #include <math/Vector.tpp>

@@ -10,6 +10,7 @@
 #include <utility/Exceptions.h>
 
 #include <fstream>
+#include <iomanip>
 #include <string>
 
 using namespace ausaxs;

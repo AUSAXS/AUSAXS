@@ -6,13 +6,13 @@
 #include <cassert>
 #include <math/MathConcepts.h>
 #include <math/Vector.h>
+#include <math/detail/Diagnostics.h>
+#include <math/detail/Format.h>
 #include <math/slices/SliceIterator.h>
 
 #include <cmath>
 #include <initializer_list>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
+#include <iosfwd>
 #include <vector>
 
 namespace ausaxs {
@@ -144,15 +144,12 @@ namespace ausaxs {
             }
 
             std::string to_string() const {
-                std::stringstream s; s << "( ";
+                std::vector<double> tmp(size());
                 for (int i = 0; i < size(); i++) {
-                    s << std::setprecision(8) << (*this)[i] << " ";
+                    tmp[i] = (*this)[i];
                 }
-                s << ")";
-                return s.str();
+                return ausaxs::detail::format_vector(tmp.data(), tmp.size());
             }
-
-            friend std::ostream& operator<<(std::ostream& os, const Slice<T, Container>& v) {os << v.to_string(); return os;}
 
             SliceIterator<const T> begin() const {return SliceIterator<const T>(&data[offset], step);}
             SliceIterator<const T> end() const {return SliceIterator<const T>(&data[offset] + length*step, step);}
@@ -166,11 +163,13 @@ namespace ausaxs {
             void validate_sizes([[maybe_unused]] int other) const {
                 assert([&]() -> bool {
                     if (size() == other) {return true;}
-                    std::cout << "Slice::validate_sizes: Slice of size " << other << " does not fit in slice of size " << size() << "." << std::endl;
-                    return false;
+                    return ausaxs::detail::report_size_mismatch("Slice::validate_sizes", other, size());
                 }() && "Slice::validate_sizes: Slice sizes do not match.");
             }
     };
+
+    template<numeric T, container_type Container>
+    std::ostream& operator<<(std::ostream& os, const Slice<T, Container>& v);
 
     template<typename T, container_type Container>
     std::vector<T> operator-(const Slice<T, Container>& lhs) {

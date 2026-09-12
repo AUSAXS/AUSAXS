@@ -1,18 +1,14 @@
 #pragma once
 
 #include <math/Vector.h>
+#include <math/detail/Diagnostics.h>
+#include <math/detail/Format.h>
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <functional>
-#include <iomanip>
 #include <numeric>
-#include <sstream>
-
-#ifndef NDEBUG
-    #include <iostream>  // only the asserts below print
-#endif
 
 namespace ausaxs {
     template<numeric T>
@@ -100,12 +96,8 @@ namespace ausaxs {
 
     template<numeric T>
     std::string Vector<T>::to_string() const {
-        std::stringstream s; s << "( ";
-        for (const auto& e : data) {
-            s << std::setprecision(8) << e << " ";
-        }
-        s << ")";
-        return s.str();
+        std::vector<double> tmp(data.begin(), data.end());
+        return ausaxs::detail::format_vector(tmp.data(), tmp.size());
     }
 
     template<numeric T>
@@ -141,8 +133,7 @@ namespace ausaxs {
     void Vector<T>::compatibility_check([[maybe_unused]] const Vector<Q>& v) const {
         assert([&]() -> bool {
             if (size() == v.size()) {return true;}
-            std::cout << "Vector::compatibility_check: Vector dimensions do not match (got: " << v.size() << ", expected: " << size() << ")." << std::endl;
-            return false;
+            return ausaxs::detail::report_size_mismatch("Vector::compatibility_check", v.size(), size());
         }() && "Vector::compatibility_check: Vector dimensions do not match.");
     }
 }
