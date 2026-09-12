@@ -15,7 +15,7 @@ jobs:
   check-sources:
     name: "Check the source conventions"
     if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       # depth 2 gets the pull request's merge commit and its parents, so HEAD^ is the
       # base branch and HEAD^..HEAD is exactly what the pull request changes
