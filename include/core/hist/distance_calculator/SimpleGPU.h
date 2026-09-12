@@ -12,8 +12,8 @@
 
 #include <cassert>
 #include <cstdint>
+#include <deque>
 #include <memory>
-#include <numeric>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -95,6 +95,7 @@ namespace ausaxs::hist::distance_calculator {
                 self_slots.clear();
                 cross_slots.clear();
                 diagonal.clear();
+                coordinate_buffers.clear();
                 queued.clear();
                 next_slot = 0;
                 session_open = false;
@@ -122,6 +123,7 @@ namespace ausaxs::hist::distance_calculator {
             bool session_open = false;                              // whether begin() has been issued for the batch being built
             bool holding = false;                                   // whether jobs are being collected into a group, see hold()
             std::vector<double> diagonal;                           // per slot, the zero-distance contribution
+            std::deque<std::vector<float>> coordinate_buffers;
             int next_slot = 0;
             std::unique_ptr<SimpleCPU<weighted_bins, variable_bin_width>> cpu;
             bool on_cpu = false;                                    // whether the device was given up on, see switch_to_cpu()
@@ -242,22 +244,28 @@ namespace ausaxs::hist::distance_calculator {
                 return cpu->run();
             }
 
-            static const float* coordinates(const CompactCoordinates_t& a) {
-                static_assert(
-                    sizeof(typename std::decay_t<decltype(a.get_data())>::value_type) == 4*sizeof(float),
-                    "The coordinates must be tightly packed [x, y, z, w] floats to match the kernel layout."
-                );
-                return reinterpret_cast<const float*>(a.get_data().data());
+            const float* coordinates(const CompactCoordinates_t& a) {
+                coordinate_buffers.emplace_back(a.size()*4);
+                auto& packed = coordinate_buffers.back();
+                for (unsigned int i = 0; i < a.size(); ++i) {
+                    packed[4*i] = a.x(i);
+                    packed[4*i + 1] = a.y(i);
+                    packed[4*i + 2] = a.z(i);
+                    packed[4*i + 3] = a.get_non_coordinate_value(i);
+                }
+                return packed.data();
             }
 
             /**
              * @brief The contribution of the zero distance of every atom with itself.
              */
             static double self_weight(const CompactCoordinates_t& a, int scaling) {
-                return scaling*std::accumulate(
-                    a.get_data().begin(), a.get_data().end(), 0.0,
-                    [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
-                );
+                double total_weight = 0;
+                for (unsigned int i = 0; i < a.size(); ++i) {
+                    double weight = a.get_non_coordinate_value(i);
+                    total_weight += weight*weight;
+                }
+                return scaling*total_weight;
             }
 
             /**
