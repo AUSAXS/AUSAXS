@@ -3,6 +3,8 @@
 
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 
+#include <numbers>
+
 using namespace ausaxs;
 
 double hist::CompositeDistanceHistogramPepsi::exv_factor(double /*unused*/, double cx) {

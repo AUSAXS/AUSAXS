@@ -11,6 +11,7 @@
 #include <utility/observer_ptr.h>
 
 #include <cassert>
+#include <cstdint>
 #include <memory>
 #include <numeric>
 #include <string_view>

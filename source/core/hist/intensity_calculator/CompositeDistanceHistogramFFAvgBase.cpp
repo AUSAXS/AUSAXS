@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

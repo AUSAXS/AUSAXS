@@ -8,6 +8,8 @@
 #include <form_factor/FormFactorType.h>
 #include <math/ConstexprMath.h>
 
+#include <numbers>
+
 // Per-atom-group displaced solvent volumes for the various excluded-volume sets.
 // Each set below is annotated with its literature source; see settings::exv::ExvSet for selection.
 namespace ausaxs::constants::exv {

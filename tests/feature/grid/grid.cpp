@@ -13,6 +13,7 @@
 #include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 
+#include <iostream>
 #include <string>
 #include <vector>
 

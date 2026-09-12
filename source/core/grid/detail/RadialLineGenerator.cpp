@@ -6,6 +6,8 @@
 #include <grid/Grid.h>
 #include <math/Vector3.h>
 
+#include <numbers>
+
 using namespace ausaxs;
 using namespace ausaxs::grid::detail;
 

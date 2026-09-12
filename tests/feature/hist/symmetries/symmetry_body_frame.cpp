@@ -14,6 +14,8 @@
 
 #include <hist/hist_test_helper.h>
 
+#include <numbers>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 

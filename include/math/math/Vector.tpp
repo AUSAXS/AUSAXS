@@ -65,7 +65,7 @@ namespace ausaxs {
     bool Vector<T>::operator==(const Vector<Q>& v) const {
         compatibility_check(v);
         Vector<T> a = *this - v; // difference vector
-        return std::accumulate(a.begin(), a.end(), 0.0, [] (double sum, T x) {return sum + abs(x);}) < precision;
+        return std::accumulate(a.begin(), a.end(), 0.0, [] (double sum, T x) {return sum + std::abs(x);}) < precision;
     }
 
     template<numeric T> template<numeric Q>

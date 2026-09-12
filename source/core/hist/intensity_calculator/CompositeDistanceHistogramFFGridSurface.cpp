@@ -8,6 +8,7 @@
 #include <utility/MultiThreading.h>
 
 #include <algorithm>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

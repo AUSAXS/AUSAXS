@@ -14,6 +14,7 @@
 #include <settings/MoleculeSettings.h>
 
 #include <algorithm>
+#include <numeric>
 #include <ranges>
 
 #include <hist/hist_test_helper.h>

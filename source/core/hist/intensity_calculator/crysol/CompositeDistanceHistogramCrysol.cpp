@@ -5,6 +5,8 @@
 
 #include <form_factor/lookup/FormFactorManager.h>
 
+#include <numbers>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 

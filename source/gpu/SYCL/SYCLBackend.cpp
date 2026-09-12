@@ -19,6 +19,7 @@
 #include <sycl/sycl.hpp>
 
 #include <array>
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <stdexcept>

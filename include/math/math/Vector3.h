@@ -13,6 +13,7 @@
 
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <initializer_list>
 #include <iosfwd>
 
@@ -179,7 +180,7 @@ namespace ausaxs {
 		    return ausaxs::detail::report_size_mismatch("Vector3::operator==", v.size(), w.size());
 		}() && "Vector3::operator*: Invalid vector dimensions.");
 
-		return abs(v.x() - w[0]) + abs(v.y() - w[1]) + abs(v.z() - w[2]) < Vector3<T>::precision;
+		return std::abs(v.x() - w[0]) + std::abs(v.y() - w[1]) + std::abs(v.z() - w[2]) < Vector3<T>::precision;
 	}
 
 	template<numeric T, numeric Q>

@@ -13,6 +13,8 @@
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <utility/Logging.h>
 
+#include <numeric>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;

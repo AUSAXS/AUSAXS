@@ -9,6 +9,7 @@
 #include <hist/detail/data/CompactCoordinatesXYZW.h>
 #include <utility/Concepts.h>
 
+#include <numeric>
 #include <vector>
 
 namespace ausaxs::hist::detail {

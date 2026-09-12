@@ -5,6 +5,8 @@
 
 #include <settings/HistogramSettings.h>
 
+#include <numeric>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 

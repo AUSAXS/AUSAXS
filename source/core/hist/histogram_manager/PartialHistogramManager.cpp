@@ -14,6 +14,8 @@
 #include <utility/Logging.h>
 
 #include <algorithm>
+#include <cstdint>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

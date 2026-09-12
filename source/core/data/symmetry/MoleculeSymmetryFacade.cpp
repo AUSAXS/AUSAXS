@@ -8,6 +8,8 @@
 #include <io/Writer.h>
 #include <io/pdb/PDBStructure.h>
 
+#include <numeric>
+
 using namespace ausaxs;
 using namespace ausaxs::data;
 

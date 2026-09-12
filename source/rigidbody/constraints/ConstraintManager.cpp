@@ -11,6 +11,7 @@
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 
 #include <cassert>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
