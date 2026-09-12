@@ -42,7 +42,7 @@ jobs:
           echo "Changed files: $files"
           sudo apt-get update
           sudo apt-get install libcurl4-openssl-dev clang-tidy
-          cmake -B build -S . -DGUI=OFF
+          cmake -B build -S . -DGUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           python scripts/run_clang_tidy.py --summary="$GITHUB_STEP_SUMMARY" $files
 
   build-win:
