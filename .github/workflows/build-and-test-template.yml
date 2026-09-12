@@ -96,7 +96,7 @@ jobs:
       - name: Install dependencies
         shell: pwsh
         run: |
-          & "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\vcpkg.exe" install curl pkgconf --triplet x64-windows-static
+          & "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\vcpkg.exe" install curl --triplet x64-windows-static
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           choco install ninja
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
