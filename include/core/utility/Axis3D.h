@@ -8,6 +8,9 @@
 #include <utility/Axis.h>
 #include <utility/UtilityFwd.h>
 
+#include <ostream>
+#include <string>
+
 namespace ausaxs {
 	/**
 	 * @brief A representation of a 3D coordinate system.

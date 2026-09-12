@@ -37,13 +37,13 @@ namespace ausaxs::hist::detail::xyzff {
         int32_t ff_bin;     // The form factor bin index
     };
 
-    struct QuadEvaluatedResult {
+    struct alignas(16) QuadEvaluatedResult {
         std::array<float, 4> distances;       // The raw distances (for weighted bin center calculation)
         std::array<int32_t, 4> distance_bins; // The distance bin indices (for array indexing)
         std::array<int32_t, 4> ff_bins;       // The form factor bin indices
     };
 
-    struct QuadEvaluatedResultRounded {
+    struct alignas(16) QuadEvaluatedResultRounded {
         std::array<int32_t, 4> distances;   // The distance bin
         std::array<int32_t, 4> ff_bins;     // The form factor bin indices
     };
@@ -59,13 +59,13 @@ namespace ausaxs::hist::detail::xyzff {
         std::array<int32_t, 8> ff_bins;     // The form factor bin indices
     };
 
-    struct alignas(32) HexaEvaluatedResult {
+    struct alignas(64) HexaEvaluatedResult {
         std::array<float, 16> distances;       // The raw distances
         std::array<int32_t, 16> distance_bins; // The distance bin indices
         std::array<int32_t, 16> ff_bins;       // The form factor bin indices
     };
 
-    struct alignas(32) HexaEvaluatedResultRounded {
+    struct alignas(64) HexaEvaluatedResultRounded {
         std::array<int32_t, 16> distances;   // The distance bin
         std::array<int32_t, 16> ff_bins;     // The form factor bin indices
     };
@@ -79,6 +79,15 @@ namespace ausaxs::hist::detail::xyzff {
     static_assert(sizeof(OctoEvaluatedResultRounded) == 64,  "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
     static_assert(sizeof(HexaEvaluatedResult)        == 192, "hist::detail::HexaEvaluatedResult is not 192 bytes long");
     static_assert(sizeof(HexaEvaluatedResultRounded) == 128, "hist::detail::HexaEvaluatedResultRounded is not 128 bytes long");
+
+    // the SIMD kernels write their results with aligned stores, so the destination alignment must match the widest
+    // vector written into each struct: 16B for the SSE quads, 32B for the AVX2 octos, and 64B for the AVX-512 hexas
+    static_assert(alignof(QuadEvaluatedResult)        == 16, "hist::detail::QuadEvaluatedResult is not 16-byte aligned");
+    static_assert(alignof(QuadEvaluatedResultRounded) == 16, "hist::detail::QuadEvaluatedResultRounded is not 16-byte aligned");
+    static_assert(alignof(OctoEvaluatedResult)        == 32, "hist::detail::OctoEvaluatedResult is not 32-byte aligned");
+    static_assert(alignof(OctoEvaluatedResultRounded) == 32, "hist::detail::OctoEvaluatedResultRounded is not 32-byte aligned");
+    static_assert(alignof(HexaEvaluatedResult)        == 64, "hist::detail::HexaEvaluatedResult is not 64-byte aligned");
+    static_assert(alignof(HexaEvaluatedResultRounded) == 64, "hist::detail::HexaEvaluatedResultRounded is not 64-byte aligned");
 
     // ensure our structures are trivially copyable
     static_assert(std::is_trivial_v<EvaluatedResult>,            "hist::detail::EvaluatedResult is not trivial");
@@ -103,7 +112,7 @@ namespace ausaxs::hist::detail::xyzff {
 
 namespace ausaxs::hist::detail {
     template<bool variable_bin_width>
-    class CompactCoordinatesXYZFF : public WidthController<variable_bin_width> {
+    class alignas(16) CompactCoordinatesXYZFF : public WidthController<variable_bin_width> {
         public:
             using WidthController<variable_bin_width>::get_inv_width;
             CompactCoordinatesXYZFF() noexcept = default;
@@ -166,14 +175,16 @@ namespace ausaxs::hist::detail {
                 xyzff::HexaEvaluatedResult evaluate_16_avx512(std::span<const CompactCoordinatesXYZFF, 16> others) const noexcept;
             #endif
     };
-    static_assert(sizeof(CompactCoordinatesXYZFF<true>) == 16,              "CompactCoordinatesXYZFF is not 16 bytes. This is required for aligning SIMD instructions.");
-    static_assert(std::is_trivial_v<CompactCoordinatesXYZFF<true>>,         "CompactCoordinatesXYZFF is not trivial");
-    static_assert(std::is_standard_layout_v<CompactCoordinatesXYZFF<true>>, "CompactCoordinatesXYZFF is not standard layout");
-    static_assert(supports_nothrow_move_v<CompactCoordinatesXYZFF<true>>,   "CompactCoordinatesXYZFF should support nothrow move semantics.");
-    static_assert(sizeof(CompactCoordinatesXYZFF<false>) == 16,             "CompactCoordinatesXYZFF is not 16 bytes. This is required for aligning SIMD instructions.");
-    static_assert(std::is_trivial_v<CompactCoordinatesXYZFF<false>>,        "CompactCoordinatesXYZFF is not trivial");
-    static_assert(std::is_standard_layout_v<CompactCoordinatesXYZFF<false>>,"CompactCoordinatesXYZFF is not standard layout");
-    static_assert(supports_nothrow_move_v<CompactCoordinatesXYZFF<false>>,  "CompactCoordinatesXYZFF should support nothrow move semantics.");
+    static_assert(sizeof(CompactCoordinatesXYZFF<true>) == 16,               "CompactCoordinatesXYZFF is not 16 bytes. This is required for aligning SIMD instructions.");
+    static_assert(alignof(CompactCoordinatesXYZFF<true>) == 16,              "CompactCoordinatesXYZFF is not 16-byte aligned. This is required for the aligned SIMD loads of its own data.");
+    static_assert(std::is_trivial_v<CompactCoordinatesXYZFF<true>>,          "CompactCoordinatesXYZFF is not trivial");
+    static_assert(std::is_standard_layout_v<CompactCoordinatesXYZFF<true>>,  "CompactCoordinatesXYZFF is not standard layout");
+    static_assert(supports_nothrow_move_v<CompactCoordinatesXYZFF<true>>,    "CompactCoordinatesXYZFF should support nothrow move semantics.");
+    static_assert(sizeof(CompactCoordinatesXYZFF<false>) == 16,              "CompactCoordinatesXYZFF is not 16 bytes. This is required for aligning SIMD instructions.");
+    static_assert(alignof(CompactCoordinatesXYZFF<false>) == 16,             "CompactCoordinatesXYZFF is not 16-byte aligned. This is required for the aligned SIMD loads of its own data.");
+    static_assert(std::is_trivial_v<CompactCoordinatesXYZFF<false>>,         "CompactCoordinatesXYZFF is not trivial");
+    static_assert(std::is_standard_layout_v<CompactCoordinatesXYZFF<false>>, "CompactCoordinatesXYZFF is not standard layout");
+    static_assert(supports_nothrow_move_v<CompactCoordinatesXYZFF<false>>,   "CompactCoordinatesXYZFF should support nothrow move semantics.");
 }
 
 //#########################################//
