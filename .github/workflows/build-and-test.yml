@@ -10,6 +10,8 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == 'AUSAXS/AUSAXS'
     permissions:
       packages: write
+      contents: read
+      actions: read
 
     uses: ./.github/workflows/build-and-test-template.yml
     with:
@@ -19,6 +21,8 @@ jobs:
     if: github.event.pull_request.head.repo.full_name != 'AUSAXS/AUSAXS'
     permissions:
       packages: read
+      contents: read
+      actions: read
     uses: ./.github/workflows/build-and-test-template.yml
     with:
       package_permission: false

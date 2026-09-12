@@ -24,19 +24,93 @@ env:
   DIST: "/opt/ausaxs-gpu-dist"
 
 jobs:
+  gate:
+    name: "Changed since last build?"
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      build: ${{ steps.decide.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'pull_request'
+        with:
+          fetch-depth: 0
+          filter: blob:none
+
+      - id: verified
+        uses: ./.github/actions/last-verified-sha
+        if: github.event_name == 'pull_request'
+        with:
+          workflow: build-gpu-backend.yml
+          job-name: "SYCL backend"
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide whether the backend needs rebuilding
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          VERIFIED_SHA: ${{ steps.verified.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          decide() {
+            echo "build=$1" >> "$GITHUB_OUTPUT"
+            echo "$2"
+            printf '%s\n' "**Backend build: $([ "$1" = true ] && echo 'running' || echo 'skipped')** -- $2" \
+              >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          # workflow_dispatch and workflow_call carry no diff to reason about, and are only ever
+          # reached by someone asking for a build.
+          if [ "$EVENT" != 'pull_request' ]; then
+            decide true "triggered by ${EVENT}, not a pull request"
+            exit 0
+          fi
+          if [ "$IS_DRAFT" = 'true' ]; then
+            decide false "the pull request is a draft"
+            exit 0
+          fi
+
+          if [ -n "$VERIFIED_SHA" ]; then
+            baseline=$VERIFIED_SHA
+            reason="since the last successful build, at ${baseline:0:8}"
+          else
+            # A pull request's first run, and any case where the lookup came up short. The merge
+            # base is what `paths:` itself compared against, so this is the old behaviour exactly:
+            # the gate can only ever be an improvement on it, never a regression.
+            baseline=$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || true)
+            reason="against the merge base ${baseline:0:8} (no earlier successful build on this history)"
+          fi
+
+          # As in the lookup, losing the answer has to cost a build rather than skip one.
+          if [ -z "$baseline" ] \
+            || ! changed=$(git diff --name-only "$baseline" "$HEAD_SHA" -- \
+                 'source/gpu' 'include/gpu' '.github/workflows/build-gpu-backend.yml'); then
+            decide true "no usable baseline to compare against"
+            exit 0
+          fi
+
+          if [ -n "$changed" ]; then
+            printf 'changed:\n%s\n' "$changed"
+            decide true "backend sources changed ${reason}"
+          else
+            decide false "no backend sources changed ${reason}"
+          fi
+
   backend:
     name: "SYCL backend (Linux x86_64)"
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    needs: gate
+    if: needs.gate.outputs.build == 'true'
     steps:
       - uses: actions/checkout@v4
 
-      # Every size figure quoted in this file is measured here rather than asserted: each install
-      # step records what it actually cost and appends a row to the job summary. Two numbers are
-      # reported per step because they answer different questions. "Disk delta" is the real cost
-      # to the runner and includes the .deb files apt leaves in /var/cache; "tree size" is the
-      # installed footprint alone, which is the number to quote when comparing against a vendor's
-      # published sizes. If either drifts far from the comments below, correct the comments.
       - name: Set up size accounting
         run: |
           cat > /tmp/sizes.sh <<'HELPER'
@@ -96,18 +170,6 @@ jobs:
             echo '|---|---|---|---|---|'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # These are the standard preinstalled toolchains no part of this build touches. Removing
-      # them is what keeps the job inside the envelope GitHub actually commits to. The docs
-      # promise roughly 14 GB free on a standard hosted runner; the image measured on 2026-09-09
-      # offered 86 GiB before this step and 106.7 GiB after. That surplus is a property of the
-      # current runner image rather than of the service, so it must not be designed around --
-      # note that this step reclaiming 26.2 GiB is itself proof the disk is nothing like the
-      # documented size today.
-      #
-      # Measured the same day, the dependencies cost far less than this file once claimed: ROCm
-      # 3.8 GiB, LLVM 1.3 GiB, CUDA 290 MiB, base 77 MiB, AdaptiveCpp 19 MiB installed. The row
-      # that matters for the budget is the AdaptiveCpp peak, which includes the transient build
-      # tree. If a later step dies with ENOSPC rather than a real error, look here first.
       - name: Free disk space
         run: |
           . /tmp/sizes.sh
@@ -121,15 +183,6 @@ jobs:
           df -h /
           size_end 'Free disk space (reclaimed)'
 
-      # libcurl4-openssl-dev is not a GPU dependency: the AUSAXS top-level CMakeLists does an
-      # unconditional find_package(CURL REQUIRED), so configuring the project needs it even when
-      # the only target being built is the backend.
-      #
-      # Intel GPUs are reached through the SPIR-V JIT and the OpenCL backend, which want nothing
-      # but headers and an ICD loader. The compute-runtime and intel-graphics-compiler packages
-      # AdaptiveCpp's own CI installs are runtime-only, for a device no hosted runner has, so they
-      # are omitted. No Level Zero package either: the pinned AdaptiveCpp commit declares no
-      # WITH_LEVEL_ZERO_BACKEND option. Revisit if a future pin adds that backend.
       - name: Install base dependencies
         run: |
           . /tmp/sizes.sh
@@ -168,11 +221,6 @@ jobs:
           rm llvm.sh
           size_end "LLVM ${LLVM_VERSION}" "/usr/lib/llvm-${LLVM_VERSION}"
 
-      # Installed from the apt repo rather than the ~4 GB runfile AdaptiveCpp's CI uses, because
-      # only three pieces are needed and apt spares us hardcoding a driver-version string into a
-      # URL. cuda-nvcc supplies nvvm/libdevice, which is load-bearing twice over: AdaptiveCpp's
-      # `cmake/FindCUDA.cmake` shim rejects a toolkit whose root has no `nvvm` directory, and the
-      # PTX JIT links `libdevice.10.bc` at run time (`llvm-to-backend/ptx/LLVMToPtx.cpp`).
       - name: Install CUDA ${{ env.CUDA_VERSION }}
         if: env.CUDA_VERSION != ''
         run: |
@@ -188,23 +236,6 @@ jobs:
             "cuda-cudart-dev-${suffix}" "cuda-driver-dev-${suffix}" "cuda-nvcc-${suffix}"
           size_end "CUDA ${CUDA_VERSION}" "/usr/local/cuda-${CUDA_VERSION}"
 
-      # The HIP deployment manifest harvests from across the ROCm tree -- hipcc for detection,
-      # rocm-device-libs for the amdgcn JIT bitcode, and libamdhip64 / libhsa-runtime64 /
-      # libamd_comgr / libhsakmt / librocprofiler-register for the runtime -- so `rocm-dev` is the
-      # right meta-package despite its size.
-      #
-      # Ubuntu's own archive competes with AMD's repo, and its version numbers sort *higher*:
-      # noble/universe carries hipcc 5.7.1-3 and rocminfo 5.7.1-3build1, while the same packages
-      # in ROCm 7.2.4 are versioned 1.1.1.70204 and 1.0.0.70204. At equal priority apt compares
-      # versions, not repositories, so without a pin it would quietly assemble a ROCm 5.7
-      # toolchain out of universe. That has nothing to do with anything being preinstalled -- it
-      # happens on a bare runner with no AMD package present.
-      #
-      # Any priority above 500 settles that. It is set above 1000, which additionally permits
-      # downgrading an installed package, only so that a future runner image shipping ROCm out of
-      # the box cannot reintroduce the problem. The check below is what keeps this honest: it
-      # fails with apt's own reasoning if the pin ever stops being necessary or stops being
-      # sufficient, rather than letting the wrong toolchain surface as a build error much later.
       - name: Install ROCm ${{ env.ROCM_VERSION }}
         if: env.ROCM_VERSION != ''
         run: |
@@ -242,10 +273,6 @@ jobs:
           df -h /
           size_end "ROCm ${ROCM_VERSION}" /opt/rocm
 
-      # ACPP_COMPILER_FEATURE_PROFILE=full is mandatory, not a preference: it is what enables the
-      # SSCP compiler, and `generic` is our only compilation target. The cheaper `minimal` profile
-      # exists to avoid linking libLLVM (~133 MB), but it also disables SSCP, which would leave no
-      # path to the GPU at all. There is no configuration in which a JIT-capable package is small.
       - name: Build AdaptiveCpp
         run: |
           set -e
@@ -312,17 +339,6 @@ jobs:
           # Measured after the build tree is gone, so this is the installed toolchain alone.
           size_end 'AdaptiveCpp' "$ACPP_PREFIX"
 
-      # `--acpp-deploy` reads the `acpp-deployment-manifest-*.json` files AdaptiveCpp generated at
-      # configure time, so it can only deploy backends that were actually built.
-      #
-      # Each component is deployed separately and then checked, because --acpp-deploy prints
-      # "acpp error:" lines for files it cannot find but still exits 0 -- a missing backend
-      # otherwise yields a silently incomplete package. The sentinels below are the per-component
-      # pieces that matter most and are hardest to notice missing: the JIT's vendor device bitcode.
-      #
-      # These per-component directories are a *packaging* layout, not a runnable one. AdaptiveCpp
-      # locates backend plugins relative to libacpp-rt, so at run time the components must be
-      # overlaid into a single tree; extracting every archive into the same directory does that.
       - name: Deploy runtime components
         run: |
           set -e
@@ -353,10 +369,6 @@ jobs:
           deploy_and_check ocl "hipSYCL/librt-backend-ocl.so"
           du -sh "$DIST"/*
 
-      # DLIB/GUI/tests/executables are all off: none are reachable from the backend target, which
-      # resets its own COMPILE_OPTIONS, INCLUDE_DIRECTORIES and LINK_LIBRARIES before
-      # add_sycl_to_target is applied. This only has to get the project far enough to configure.
-      # ACPP_TARGETS defaults to `generic` in source/gpu/CMakeLists.txt, which is what we want.
       - name: Configure AUSAXS
         run: |
           cmake -B build -S . -G Ninja \
@@ -370,8 +382,6 @@ jobs:
       - name: Build backend
         run: cmake --build build --target ausaxs_gpu_sycl -j$(nproc)
 
-      # Guards against a silently renamed or hidden entry point. The expected symbol list is read
-      # out of the header so it cannot drift from the ABI it claims to implement.
       - name: Check exported ABI symbols
         run: |
           set -euo pipefail
@@ -395,8 +405,6 @@ jobs:
           done
           exit $missing
 
-      # `merged` is what a user ends up with after extracting every component archive into one
-      # directory, and it is the only layout in which the runtime can actually find its plugins.
       - name: Assemble runtime package
         run: |
           set -euo pipefail
@@ -411,9 +419,6 @@ jobs:
           cp build/lib/libausaxs_gpu_sycl.so dist/merged/
           du -sh dist/*
 
-      # libLLVM dominates the `core` component at ~133 MB. AdaptiveCpp's deployment guide
-      # recommends upx, which decompresses in memory on load and typically halves it. Non-fatal:
-      # if upx cannot handle this particular library, an uncompressed package is still correct.
       - name: Compress libLLVM
         continue-on-error: true
         run: |
@@ -428,12 +433,6 @@ jobs:
             fi
           done
 
-      # The real risk in a harvested package is an unresolved transitive dependency: the backend
-      # links AdaptiveCpp, which links LLVM, which pulls in whatever the distro built it against.
-      # Loading the library and calling into the ABI is the cheapest way to find that out, and it
-      # needs no device -- abi_version() and available() are both host-side. available() returning
-      # 0 here is the expected, correct answer on a runner with no GPU; what is under test is that
-      # it answers at all rather than aborting.
       - name: Load backend and query the ABI
         run: |
           set -euo pipefail
@@ -477,10 +476,6 @@ jobs:
           fi
           echo "ABI version $reported matches the header."
 
-      # Informational, never failing. This is the command AdaptiveCpp's deployment guide tells you
-      # to run after deploying; anything it lists is resolved from outside the package and is
-      # therefore a candidate to add. libc, linux-vdso, libcuda.so and libdrm* are expected to show
-      # up and must NOT be bundled -- they belong to the system or the graphics driver.
       - name: Report dependencies resolved outside the package
         continue-on-error: true
         run: |
@@ -493,11 +488,6 @@ jobs:
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
-      # Uploaded per component rather than as one archive, mirroring how they are meant to be
-      # consumed: `core` is mandatory and carries libLLVM, the rest are optional and installable
-      # later without recompiling. The vendor components decide which hardware a release supports;
-      # in particular the HIP component is limited to the GPUs its ROCm version knows, and can be
-      # rebuilt against a newer ROCm to extend that without touching the backend binary.
       - uses: actions/upload-artifact@v4
         with:
           name: gpu-backend-linux-x64

@@ -17,11 +17,10 @@ jobs:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-26.04
     steps:
-      # depth 2 gets the pull request's merge commit and its parents, so HEAD^ is the
-      # base branch and HEAD^..HEAD is exactly what the pull request changes
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+          filter: blob:none
 
       # the two cheap checks run first so a failure reports before anything is installed
       - name: Check headers
@@ -30,16 +29,43 @@ jobs:
       - name: Check exceptions
         run: python .github/check_exceptions.py
 
-      # the tree holds over 500 translation units, so only the files this pull request
-      # touches are analysed; deletions are dropped as they no longer exist to analyse.
+      # Finds the newest commit on this branch whose conventions check already passed, so the
+      # step below can analyse what changed since then rather than the whole pull request again.
+      - id: verified
+        uses: ./.github/actions/last-verified-sha
+        with:
+          workflow: build-and-test.yml
+          # Substring of this job's `name:` above; workflow_call prefixes it with the calling
+          # job's name, so it cannot be matched exactly.
+          job-name: "Check the source conventions"
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Check clang-tidy
+        env:
+          VERIFIED_SHA: ${{ steps.verified.outputs.sha }}
         run: |
-          files=$(git diff --name-only --diff-filter=d HEAD^ HEAD -- '*.cpp' '*.h' '*.tpp' | tr '\n' ' ')
-          if [ -z "$files" ]; then
-            echo "No C++ files were changed."
+          set -euo pipefail
+          # `comm` compares bytes while `sort` honours the locale, and they disagree on '/': the
+          # locale ignores it, so `source/core/dataset/` sorts before `source/core/data/`, which
+          # `comm` then rejects as unsorted. It exits non-zero when it does, so under `set -e` the
+          # mismatch fails the check rather than merely mis-selecting files. One collation for both.
+          export LC_ALL=C
+          pr_files=$(git diff --name-only --diff-filter=d HEAD^ HEAD -- '*.cpp' '*.h' '*.tpp' | sort -u)
+
+          scope="the whole pull request"
+          if [ -n "$VERIFIED_SHA" ] && new=$(git diff --name-only --diff-filter=d "$VERIFIED_SHA" HEAD \
+                                              -- '*.cpp' '*.h' '*.tpp' | sort -u); then
+            pr_files=$(comm -12 <(printf '%s\n' "$pr_files") <(printf '%s\n' "$new"))
+            scope="changes since ${VERIFIED_SHA:0:8}"
+          fi
+
+          files=$(printf '%s\n' "$pr_files" | tr '\n' ' ')
+          if [ -z "${files// /}" ]; then
+            echo "No C++ files to analyse (${scope})."
             exit 0
           fi
-          echo "Changed files: $files"
+          echo "Analysing ${scope}: $files"
           sudo apt-get update
           sudo apt-get install libcurl4-openssl-dev clang-tidy
           cmake -B build -S . -DGUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON

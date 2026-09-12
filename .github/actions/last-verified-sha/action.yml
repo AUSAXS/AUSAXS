@@ -1,0 +1,79 @@
+name: "Last verified SHA"
+description: >
+  Find the newest commit in this branch's history that a given CI job has already checked
+  successfully, so a later run can do its work incrementally instead of redoing the whole
+  pull request on every push.
+
+inputs:
+  workflow:
+    description: "Filename of the workflow whose run history to search, e.g. build-and-test.yml."
+    required: true
+  job-name:
+    description: >
+      Substring identifying the job within that workflow. Matched as a substring rather than
+      compared, because a workflow_call prefixes the job name with the calling job's name
+      ("build-and-test-internal / Check the source conventions").
+    required: true
+  head-sha:
+    description: "Commit the candidates must be ancestors of; normally the pull request head."
+    required: true
+  token:
+    description: "Token with actions:read, used to query the run history."
+    required: true
+
+outputs:
+  sha:
+    description: >
+      The newest ancestor of head-sha whose job succeeded, or empty if there is no such commit.
+      Callers must handle empty by falling back to whatever baseline they used before.
+    value: ${{ steps.find.outputs.sha }}
+
+runs:
+  using: composite
+  steps:
+    - id: find
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ github.repository }}
+        WORKFLOW: ${{ inputs.workflow }}
+        JOB_NAME: ${{ inputs.job-name }}
+        HEAD_SHA: ${{ inputs.head-sha }}
+      run: |
+        set -euo pipefail
+
+        # Every API and git call below is allowed to fail without failing the step. Returning
+        # nothing costs the caller a full-scope run, which is the behaviour it had anyway; failing
+        # the step would instead break a check that was working. The fallback must stay on the
+        # side of doing too much work, never too little.
+        #
+        # Runs are not filtered by status: on a multi-job workflow the job we care about often
+        # finishes long before the run does, and a run that ends in failure for an unrelated
+        # reason still says something true about this job.
+        runs=$(gh api --method GET "repos/${REPO}/actions/workflows/${WORKFLOW}/runs" \
+          -F per_page=100 --jq '.workflow_runs[] | "\(.id) \(.head_sha)"' || true)
+
+        sha=""
+        for_summary=""
+        while read -r id candidate; do
+          [ -n "${candidate:-}" ] || continue
+          # Ancestry rather than branch name is the test. It costs nothing extra and buys two
+          # things: a force-push or rebase drops its abandoned commits automatically, since they
+          # stop being ancestors, and a fork's head branch -- whose name is not ours to trust --
+          # needs no special case. It does require the caller to have checked out full history.
+          git merge-base --is-ancestor "$candidate" "$HEAD_SHA" 2>/dev/null || continue
+          # The run's own conclusion cannot answer this. A run whose job was skipped still
+          # concludes 'success', and a cancelled run leaves partial work behind, so only the job's
+          # own conclusion establishes that this commit was really checked.
+          conclusion=$(gh api "repos/${REPO}/actions/runs/${id}/jobs" \
+            --jq "[.jobs[] | select(.name | contains(\"${JOB_NAME}\")) | .conclusion] | first // \"\"" || true)
+          echo "  run ${id} (${candidate:0:8}): ${JOB_NAME} ${conclusion:-absent}"
+          if [ "$conclusion" = 'success' ]; then sha=$candidate; break; fi
+        done <<< "$runs"
+
+        if [ -n "$sha" ]; then
+          echo "last verified commit: ${sha}"
+        else
+          echo "no earlier successful '${JOB_NAME}' on this history"
+        fi
+        echo "sha=$sha" >> "$GITHUB_OUTPUT"
