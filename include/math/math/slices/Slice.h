@@ -148,7 +148,7 @@ namespace ausaxs {
                 for (int i = 0; i < size(); i++) {
                     tmp[i] = (*this)[i];
                 }
-                return ausaxs::detail::format_vector(tmp.data(), tmp.size());
+                return ausaxs::detail::format_vector(tmp.data(), size());
             }
 
             SliceIterator<const T> begin() const {return SliceIterator<const T>(&data[offset], step);}

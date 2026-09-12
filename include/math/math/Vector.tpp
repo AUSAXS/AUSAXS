@@ -97,7 +97,7 @@ namespace ausaxs {
     template<numeric T>
     std::string Vector<T>::to_string() const {
         std::vector<double> tmp(data.begin(), data.end());
-        return ausaxs::detail::format_vector(tmp.data(), tmp.size());
+        return ausaxs::detail::format_vector(tmp.data(), size());
     }
 
     template<numeric T>

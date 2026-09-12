@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <math/Matrix.h>
 #include <math/Vector.h>
 #include <math/Vector3.h>
 #include <math/slices/Slice.h>
