@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <dataset/NamedWrapper.h>
 #include <dataset/Dataset.h>
 #include <dataset/Dataset2D.h>
+#include <dataset/NamedWrapper.h>
 #include <dataset/SimpleDataset.h>
 
 namespace ausaxs {

@@ -2,13 +2,13 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMT.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
-#include <hist/detail/CompactCoordinates.h>
+
+#include <data/Molecule.h>  // IWYU pragma: keep
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/SimpleExvModel.h>
-#include <data/Molecule.h>
+#include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
@@ -30,7 +30,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     hist::detail::CompactCoordinates<vbw> data_a(this->protein->get_bodies());
     hist::detail::CompactCoordinates<vbw> data_w(this->protein->get_waters());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, this->protein);
-    unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
+    int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
     hist::distance_calculator::SimpleCalculator<wb, vbw> calculator(bin_count);
     // all three are known up front, so they are held and dispatched as one unit
@@ -47,10 +47,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(bin_count);
-    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
+    for (int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area
-    unsigned int max_bin = 10; // minimum size is 10
+    int max_bin = 10; // minimum size is 10
     for (int i = p_tot.size()-1; i >= 10; i--) {
         if (p_tot.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)

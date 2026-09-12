@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <utility/UtilityFwd.h>
+#include <utility/Limit.h>
 
 #include <vector>
 
@@ -16,44 +16,44 @@ namespace ausaxs::em {
      */
     class ObjectBounds2D {
         public:
-            ObjectBounds2D(unsigned int size_x, unsigned int size_y);
+            ObjectBounds2D(int size_x, int size_y);
 
             ~ObjectBounds2D();
 
             /**
              * @brief Set the minimum bound of the xth row.
              */
-            void set_min(unsigned int x, unsigned int min);
+            void set_min(int x, int min);
 
             /**
              * @brief Set the maximum bound of the xth row, exclusive.
              */
-            void set_max(unsigned int x, unsigned int max);
+            void set_max(int x, int max);
 
             /**
              * @brief Set the bounds of the xth row. 
              */
-            void set_bounds(unsigned int x, const Limit& limit);
+            void set_bounds(int x, const Limit& limit);
 
             /**
              * @brief Set the bounds of the xth row. 
              */
-            void set_bounds(unsigned int x, unsigned int min, unsigned int max);
+            void set_bounds(int x, int min, int max);
 
             /**
              * @brief Get the bounds of the xth row. 
              */
-            [[nodiscard]] const Limit& operator[](unsigned int x) const;
+            [[nodiscard]] const Limit& operator[](int x) const;
 
             /**
              * @brief Get the size in the x-dimension. 
              */
-            [[nodiscard]] unsigned int size_x() const;
+            [[nodiscard]] int size_x() const;
 
             /**
              * @brief Get the size in the y-dimension. 
              */
-            [[nodiscard]] unsigned int size_y() const;
+            [[nodiscard]] int size_y() const;
 
             /**
              * @brief Returns true if no area is enclosed by these bounds.
@@ -63,17 +63,17 @@ namespace ausaxs::em {
             /**
              * @brief Get the total bounded area.
              */
-            [[nodiscard]] unsigned int bounded_area() const;
+            [[nodiscard]] int bounded_area() const;
 
             /**
              * @brief Get the total area.
              */
-            [[nodiscard]] unsigned int total_area() const;
+            [[nodiscard]] int total_area() const;
 
             [[nodiscard]] bool operator==(const ObjectBounds2D& other) const;
 
         private:
             std::vector<Limit> bounds;
-            unsigned int N, M;
+            int N, M;
     };
 }

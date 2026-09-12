@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>
-#include <rigidbody/sequencer/elements/setup/LoadExistingElement.h>
-#include <rigidbody/sequencer/elements/setup/LoadElement.h>
-#include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
-#include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
-#include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
-#include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
-#include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
+
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/elements/LoopElementCallback.h>
+#include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
+#include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
+#include <rigidbody/sequencer/elements/setup/LoadElement.h>
+#include <rigidbody/sequencer/elements/setup/LoadExistingElement.h>
+#include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
+#include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
+#include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -69,7 +70,7 @@ void SetupElement::_set_active_body(observer_ptr<Rigidbody> body) {
     owner->_get_sequencer()->rigidbody = body;
 }
 
-SetupElement& SetupElement::distance_constraint(const std::string& body1, const std::string& body2, unsigned int iatom1, unsigned int iatom2) {
+SetupElement& SetupElement::distance_constraint(const std::string& body1, const std::string& body2, int iatom1, int iatom2) {
     owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraintAtom>(
             &active_body->molecule,
@@ -82,7 +83,7 @@ SetupElement& SetupElement::distance_constraint(const std::string& body1, const 
     return *this;
 }
 
-SetupElement& SetupElement::distance_constraint_closest(unsigned int ibody1, unsigned int ibody2) {
+SetupElement& SetupElement::distance_constraint_closest(int ibody1, int ibody2) {
     owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraintBond>(
             &active_body->molecule,
@@ -104,7 +105,7 @@ SetupElement& SetupElement::distance_constraint_closest(const std::string& ibody
     return *this;
 }
 
-SetupElement& SetupElement::distance_constraint_center_mass(unsigned int ibody1, unsigned int ibody2) {
+SetupElement& SetupElement::distance_constraint_center_mass(int ibody1, int ibody2) {
     owner->_get_rigidbody()->constraints->add_constraint(
         std::make_unique<constraints::DistanceConstraintCM>(
             &active_body->molecule,

@@ -14,13 +14,13 @@ namespace ausaxs::mini {
 		public:
             MinimumExplorer() = default;
 
-            MinimumExplorer(double(&func)(std::vector<double>), unsigned int evals = 100);
+            MinimumExplorer(double(&func)(std::vector<double>), int evals = 100);
 
-            MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals = 100);
+            MinimumExplorer(std::function<double(std::vector<double>)> func, int evals = 100);
 
-            MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals = 100);
+            MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, int evals = 100);
 
-            MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals = 100);
+            MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, int evals = 100);
 
             /**
              * @brief Destructor.
@@ -35,7 +35,7 @@ namespace ausaxs::mini {
             /**
              * @brief Generate a landscape of the function.
              */
-            mini::Landscape landscape(unsigned int evals = 100) override;
+            mini::Landscape landscape(int evals = 100) override;
 
         private:
 			/**

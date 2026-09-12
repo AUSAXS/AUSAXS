@@ -1,18 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/BodySplitter.h>
-#include <rigidbody/transform/RigidTransform.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
-#include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/detail/SystemSpecification.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <math/MatrixUtils.h>
+#include <rigidbody/BodySplitter.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>  // IWYU pragma: keep
+#include <rigidbody/transform/RigidTransform.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
 #include <support/rb_metadata.h>
@@ -39,25 +39,26 @@ TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
     auto& param_gen = rigidbody.parameter_generator;
     
     // Transform via a constraint - RigidTransform will choose which side to transform
-    unsigned int ibody = 1;
-    auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
+    int ibody = 1;
+    auto* constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
     // Store initial parameters for all bodies
     std::vector<rigidbody::parameter::BodyTransformParametersAbsolute> initial_params = rigidbody.conformation->absolute_parameters.parameters;
     
     // Also store initial body CMs
     std::vector<Vector3<double>> initial_cms;
-    for (unsigned int i = 0; i < rigidbody.molecule.size_body(); ++i) {
+    initial_cms.reserve(rigidbody.molecule.size_body());
+    for (int i = 0; i < rigidbody.molecule.size_body(); ++i) {
         initial_cms.push_back(rigidbody.molecule.get_body(i).get_cm());
     }
 
     // Apply transformation
     auto new_params = param_gen->next(ibody);
-    transformer->apply(std::move(new_params), constraint, ibody);
+    transformer->apply(new_params, constraint, ibody);
 
     // At least one body should have updated parameters (the rigid group that was transformed)
     int bodies_updated = 0;
-    for (size_t i = 0; i < rigidbody.molecule.size_body(); ++i) {
+    for (int i = 0; i < rigidbody.molecule.size_body(); ++i) {
         auto& updated = rigidbody.conformation->absolute_parameters.parameters[i];
         auto& original = initial_params[i];
 
@@ -70,7 +71,7 @@ TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
     REQUIRE(bodies_updated >= 1);
 
     // Verify parameters can reconstruct the current state for ALL bodies
-    for (size_t i = 0; i < rigidbody.molecule.size_body(); ++i) {
+    for (int i = 0; i < rigidbody.molecule.size_body(); ++i) {
         auto& current_body = rigidbody.molecule.get_body(i);
         auto& params = rigidbody.conformation->absolute_parameters.parameters[i];
         auto& original = rigidbody.conformation->initial_conformation[i];
@@ -121,12 +122,12 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
 
     // Transform using constraint 0 (between body 0 and 1)
     // This should preserve constraint 1 (between body 1 and 2)
-    auto constraint0 = rigidbody.constraints->discoverable_constraints[0].get();
+    auto* constraint0 = rigidbody.constraints->discoverable_constraints[0].get();
     auto params = param_gen->next(0);
-    transformer->apply(std::move(params), constraint0, 0u);
+    transformer->apply(params, constraint0, 0u);
 
     // Check constraint 1 (not the hinge) is preserved
-    auto c1 = rigidbody.constraints->discoverable_constraints[1].get();
+    auto* c1 = rigidbody.constraints->discoverable_constraints[1].get();
     double new_distance_1 = (c1->get_atom1().coordinates() - c1->get_atom2().coordinates()).norm();
     INFO("Constraint 1 (internal to non-moving group) should be preserved");
     REQUIRE_THAT(new_distance_1, Catch::Matchers::WithinAbs(initial_distances[1], 0.1));
@@ -164,7 +165,7 @@ TEST_CASE("RigidTransform: Orbital motion correctness") {
     double initial_dist = (initial_cm_0 - initial_cm_1).norm();
 
     // Rotate body 0 by 90 degrees around Z axis (body 1 is at origin)
-    auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+    auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
     transformer->apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint, constraint->ibody1);
 
     // Verify distance is preserved (rigid relationship maintained)
@@ -208,15 +209,15 @@ TEST_CASE("RigidTransform: Multi-step transformation consistency", "[broken]") {
 
     // Apply multiple transformations and verify consistency is maintained throughout
     for (int iter = 0; iter < 10; ++iter) {
-        unsigned int ibody = iter % rigidbody.molecule.size_body();
+        int ibody = iter % rigidbody.molecule.size_body();
         if (rigidbody.constraints->get_body_constraints(ibody).empty()) continue;
 
-        auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
+        auto* constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
         auto params = param_gen->next(ibody);
-        transformer->apply(std::move(params), constraint, ibody);
+        transformer->apply(params, constraint, ibody);
 
         // Verify all bodies can be reconstructed from parameters
-        for (size_t i = 0; i < rigidbody.molecule.size_body(); ++i) {
+        for (int i = 0; i < rigidbody.molecule.size_body(); ++i) {
             auto& current_body = rigidbody.molecule.get_body(i);
             auto& body_params = rigidbody.conformation->absolute_parameters.parameters[i];
             auto& original = rigidbody.conformation->initial_conformation[i];

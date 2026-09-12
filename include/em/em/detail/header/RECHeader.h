@@ -31,14 +31,14 @@ namespace ausaxs::em::detail::header {
             /**
              * @brief Get the size of the header.
              */
-            unsigned int get_header_size() const override;
+            int get_header_size() const override;
 
             /**
              * @brief Get the index ordering of the data.
              * 
              * @return [x, y, z] where x, y, and z are the indices of the axes in the order they appear in the map.
              */
-            std::tuple<unsigned int, unsigned int, unsigned int> get_axis_order() const noexcept override;
+            std::tuple<int, int, int> get_axis_order() const noexcept override;
 
             /**
              * @brief Get the axes of this map.

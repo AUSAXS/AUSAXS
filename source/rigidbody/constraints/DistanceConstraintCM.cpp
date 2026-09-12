@@ -2,10 +2,10 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/DistanceConstraintCM.h>
-#include <rigidbody/constraints/DistanceConstraintFunctions.h>
-#include <constants/Constants.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/constraints/DistanceConstraintFunctions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
@@ -35,7 +35,7 @@ DistanceConstraintCM::DistanceConstraintCM(observer_ptr<const data::Molecule> mo
         double min_distance = std::numeric_limits<double>::max();
         int iatom_cm = -1;
         auto cm = body.get_cm();
-        for (unsigned int i = 0; i < body.size_atom(); i++) {
+        for (int i = 0; i < body.size_atom(); i++) {
             if (form_factor::to_atom_type(body.get_atom(i).form_factor_type()) != constants::atom_t::C) {continue;}
 
             double distance = cm.distance2(body.get_atom(i).coordinates());

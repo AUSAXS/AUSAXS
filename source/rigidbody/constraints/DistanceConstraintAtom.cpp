@@ -2,10 +2,10 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
-#include <rigidbody/constraints/DistanceConstraintFunctions.h>
-#include <constants/Constants.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/constraints/DistanceConstraintFunctions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
@@ -31,10 +31,10 @@ DistanceConstraintAtom::DistanceConstraintAtom(
     this->iatom1 = iatom1;
     this->iatom2 = iatom2;
 
-    if (iatom1 < 0 || static_cast<size_t>(iatom1) >= molecule->get_body(ibody1).size_atom()) {
+    if (iatom1 < 0 || iatom1 >= molecule->get_body(ibody1).size_atom()) {
         throw except::invalid_argument("DistanceConstraintAtom::DistanceConstraintAtom: Invalid atom index " + std::to_string(iatom1) + " for body " + std::to_string(ibody1));
     }
-    if (iatom2 < 0 || static_cast<size_t>(iatom2) >= molecule->get_body(ibody2).size_atom()) {
+    if (iatom2 < 0 || iatom2 >= molecule->get_body(ibody2).size_atom()) {
         throw except::invalid_argument("DistanceConstraintAtom::DistanceConstraintAtom: Invalid atom index " + std::to_string(iatom2) + " for body " + std::to_string(ibody2));
     }
 
@@ -75,15 +75,15 @@ DistanceConstraintAtom::DistanceConstraintAtom(
     // Find which bodies contain these atoms
     int found_ibody1 = -1, found_ibody2 = -1;
     int found_iatom1 = -1, found_iatom2 = -1;
-    for (unsigned int ibody = 0; ibody < molecule->size_body(); ++ibody) {
+    for (int ibody = 0; ibody < molecule->size_body(); ++ibody) {
         const auto& body = molecule->get_body(ibody);
-        for (unsigned int iatom = 0; iatom < body.size_atom(); ++iatom) {
+        for (int iatom = 0; iatom < body.size_atom(); ++iatom) {
             const auto& atom = body.get_atom(iatom);
             if (atom1 == atom) {
                 found_ibody1 = ibody;
                 found_iatom1 = iatom;
                 break; // atoms must be from different bodies
-            } else if (atom2 == atom) {
+            } if (atom2 == atom) {
                 found_ibody2 = ibody;
                 found_iatom2 = iatom;
                 break;

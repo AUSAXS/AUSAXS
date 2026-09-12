@@ -19,7 +19,7 @@ namespace ausaxs::hist {
             /**
              * @brief Construct an empty histogram with the given number of bins along each axis.
              */
-            Histogram2D(unsigned int size_x, unsigned int size_y) : data(size_x, size_y), x_axis(0, 0, size_x), y_axis(0, 0, size_y) {}
+            Histogram2D(int size_x, int size_y) : data(size_x, size_y), x_axis(0, 0, size_x), y_axis(0, 0, size_y) {}
 
             /**
              * @brief Construct an empty histogram with the given axes.

@@ -4,14 +4,14 @@
 #pragma once
 
 #include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
     class EveryNStepElement : public LoopElement {
         public:
-            EveryNStepElement(observer_ptr<LoopElement> owner, unsigned int n);
+            EveryNStepElement(observer_ptr<LoopElement> owner, int n);
             ~EveryNStepElement() override;
 
             void run() override;
@@ -19,7 +19,7 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Get the number of iterations of the surrounding loop between each run of this block.
              */
-            unsigned int _get_step_size() const;
+            int _get_step_size() const;
 
             static std::vector<std::string> _valid_arguments();
             static InlineSignature _valid_inline_arguments();
@@ -27,6 +27,6 @@ namespace ausaxs::rigidbody::sequencer {
 
         private:
             int n;
-            int loop_counter;
+            int loop_counter = 0;
     };
 }

@@ -1,24 +1,25 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
-#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <rigidbody/detail/SystemSpecification.h>
 
 #include <data/Body.h>
-#include <rigidbody/Rigidbody.h>
 #include <math/MatrixUtils.h>
+#include <rigidbody/Rigidbody.h>
 #include <settings/All.h>
 
 #include <support/rb_metadata.h>
 
-#include <unordered_set>
+#include <algorithm>
 #include <numbers>
+#include <unordered_set>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -161,7 +162,7 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
         // Apply a rotation then check that parameters can reconstruct
         transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, manager->discoverable_constraints[0].get(), manager->discoverable_constraints[0]->ibody1);
 
-        for (unsigned int ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
+        for (int ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
             auto& current_body = rigidbody.molecule.get_body(ibody);
             auto& params = rigidbody.conformation->absolute_parameters.parameters[ibody];
             auto& original = rigidbody.conformation->initial_conformation[ibody];
@@ -182,14 +183,9 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply", "[broken]") {
     }
 }
 
-auto vector_contains = [] (std::vector<unsigned int> vec, std::vector<unsigned int> vals) {
-    std::unordered_set<unsigned int> set(vec.begin(), vec.end());
-    for (auto val : vals) {
-        if (!set.contains(val)) {
-            return false;
-        }
-    }
-    return true;
+static auto vector_contains = [] (std::vector<int> vec, const std::vector<int>& vals) {
+    std::unordered_set<int> set(vec.begin(), vec.end());
+    return std::ranges::all_of(vals, [&set] (int val) {return set.contains(val);});
 };
 
 TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {

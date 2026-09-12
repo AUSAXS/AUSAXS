@@ -5,17 +5,17 @@
     #pragma warning(disable:4996) // disable fopen deprecation warning on MSVC
 #endif
 
-#include <utility/Curl.h>
-#include <utility/Console.h>
-#include <utility/Exceptions.h>
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
+#include <utility/Console.h>
+#include <utility/Curl.h>
+#include <utility/Exceptions.h>
 
 #include <curl/curl.h>
 
+#include <cstdio>
 #include <cstdlib>
 #include <memory>
-#include <cstdio>
 
 using namespace ausaxs;
 
@@ -34,13 +34,13 @@ bool curl::download(const std::string& url, const io::File& path) {
     (void)curl_inited; // suppress unused variable warning
 
     CURL* raw_curl = curl_easy_init();
-    if (!raw_curl) {
+    if (raw_curl == nullptr) {
         console::print_warning("curl::download: Failed to create CURL handle.");
         return false;
     }
     std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> curl_ptr(raw_curl, &curl_easy_cleanup);
     FILE* raw_fp = fopen(path.path().c_str(), "wb");
-    if (!raw_fp) {throw ausaxs::except::runtime_error("curl::download: Failed to open destination file: \"" + path.path() + "\"");}
+    if (raw_fp == nullptr) {throw ausaxs::except::runtime_error("curl::download: Failed to open destination file: \"" + path.path() + "\"");}
     std::unique_ptr<FILE, int(*)(FILE*)> fp(raw_fp, &fclose);
 
     CURLcode res = curl_easy_setopt(raw_curl, CURLOPT_URL, url.c_str());

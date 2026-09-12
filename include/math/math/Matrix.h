@@ -3,14 +3,18 @@
 
 #pragma once
 
-#include <math/Exceptions.h>
-#include <math/slices/Slice.h>
-#include <math/Vector.h>
 #include <math/MathConcepts.h>
 #include <math/MathTypeTraits.h>
+#include <math/Vector.h>
 #include <math/indexers/Indexer2D.h>
+#include <math/slices/Slice.h>
 
+#include <cassert>
 #include <initializer_list>
+
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
+#endif
 
 namespace ausaxs {
     /**
@@ -53,7 +57,7 @@ namespace ausaxs {
             /**
              * @brief Construct an empty Matrix of a given size. 
              */
-            Matrix(unsigned int n, unsigned int m);
+            Matrix(int n, int m);
 
             /**
              * @brief Add a new row at the end of the matrix.
@@ -63,7 +67,7 @@ namespace ausaxs {
             /**
              * @brief Get the identity matrix of a given dimension. 
              */
-            static Matrix<Q> identity(unsigned int dim);
+            static Matrix<Q> identity(int dim);
 
             Matrix<Q> operator-() const;
             Matrix<Q>& operator*=(double a);
@@ -85,12 +89,12 @@ namespace ausaxs {
              */
             void resize(int n, int m);
 
-            const ConstRow<Q> operator[](unsigned int i) const;
-            MutableRow<Q> operator[](unsigned int i);
-            const ConstColumn<Q> col(unsigned int j) const;
-            MutableColumn<Q> col(unsigned int j);
-            const ConstRow<Q> row(unsigned int i) const;
-            MutableRow<Q> row(unsigned int i);
+            ConstRow<Q> operator[](int i) const;
+            MutableRow<Q> operator[](int i);
+            ConstColumn<Q> col(int j) const;
+            MutableColumn<Q> col(int j);
+            ConstRow<Q> row(int i) const;
+            MutableRow<Q> row(int i);
 
             // Approximate equality operator
             template<numeric R>
@@ -116,40 +120,37 @@ namespace ausaxs {
              */
             Matrix<Q> transpose() const;
 
-            const Q& operator()(unsigned int i, unsigned int j) const;
-            Q& operator()(unsigned int i, unsigned int j);
+            const Q& operator()(int i, int j) const;
+            Q& operator()(int i, int j);
 
-            const typename std::vector<Q>::const_iterator begin() const;
-            const typename std::vector<Q>::const_iterator end() const;
+            typename std::vector<Q>::const_iterator begin() const;
+            typename std::vector<Q>::const_iterator end() const;
 
             typename std::vector<Q>::iterator begin();
             typename std::vector<Q>::iterator end();
 
             std::string to_string() const;
 
-            unsigned int N, M;
+            int N, M;
             std::vector<Q> data;
             static constexpr double precision = 1e-9;
 
         private: 
             /**
              * @brief Check if the matrix is compatible with ours.
-             *        This check can be disabled by setting the macro SAFE_MATH to 0.
              */
             template<numeric R>
             void compatibility_check(const Matrix<R>& A) const;
 
             /**
              * @brief Check if the number of columns is compatible with ours. 
-             *        This check can be disabled by setting the macro SAFE_MATH to 0.
              */
-            void compatibility_check_N(unsigned int N) const;
+            void compatibility_check_N(int N) const;
 
             /**
              * @brief Check if the number of rows is compatible with ours. 
-             *        This check can be disabled by setting the macro SAFE_MATH to 0.
              */
-            void compatibility_check_M(unsigned int M) const;
+            void compatibility_check_M(int M) const;
     };
 
     template<numeric Q, numeric R>
@@ -169,16 +170,16 @@ namespace ausaxs {
 
     template<numeric Q, numeric R>
     Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
-        #if (SAFE_MATH)
-            if (A.M != v.size()) [[unlikely]] {
-                throw ausaxs::except::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(A.M) + "]).");
-            }
-        #endif
+        assert([&]() -> bool {
+            if (A.M == v.size()) {return true;}
+            std::cout << "Matrix::operator*: Invalid matrix dimensions (got: " << v.size() << ", expected: " << A.M << ")." << std::endl;
+            return false;
+        }() && "Matrix::operator*: Invalid matrix dimensions.");
 
         Vector<Q> w(A.N);
-        for (unsigned int row = 0; row < A.N; ++row) {
+        for (int row = 0; row < A.N; ++row) {
             Q sum = Q();
-            for (unsigned int col = 0; col < A.M; ++col) {
+            for (int col = 0; col < A.M; ++col) {
                 sum += v[col]*A[row][col];
             }
             w[row] = sum;
@@ -188,17 +189,17 @@ namespace ausaxs {
 
     template<numeric Q, numeric R>
     Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
-        #if (SAFE_MATH)
-            if (A.M != B.N) [[unlikely]] {
-                throw ausaxs::except::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
-            }
-        #endif
+        assert([&]() -> bool {
+            if (A.M == B.N) {return true;}
+            std::cout << "Matrix::operator*: Invalid matrix dimensions (got: " << A.M << ", " << A.N << ", expected: " << B.N << ", " << B.M << ")." << std::endl;
+            return false;
+        }() && "Matrix::operator*: Invalid matrix dimensions.");
 
         Matrix<Q> C(A.N, B.M);
-        for (unsigned int row = 0; row < C.N; row++) {
-            for (unsigned int col = 0; col < C.M; col++) {
+        for (int row = 0; row < C.N; row++) {
+            for (int col = 0; col < C.M; col++) {
                 Q sum = Q();
-                for (unsigned int inner = 0; inner < A.M; inner++) {
+                for (int inner = 0; inner < A.M; inner++) {
                     sum += A[row][inner]*B[inner][col];
                 }
                 C[row][col] = sum;

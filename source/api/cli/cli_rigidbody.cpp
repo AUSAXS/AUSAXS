@@ -2,18 +2,18 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_rigidbody.h>
+
 #include <CLI/CLI.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <constants/ConstantsAxes.h>
+#include <constants/ValidFileExtensions.h>
+#include <constants/Version.h>
 #include <fitter/FitReporter.h>
-#include <constants/Constants.h>
+#include <io/File.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <settings/All.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
-#include <io/File.h>
-#include <plots/All.h>
-#include <settings/All.h>
 
 #include <string>
 
@@ -29,7 +29,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     io::File script, settings;
     CLI::App app{"Perform rigid-body optimization."};
     app.fallthrough();
-    auto p_script = app.add_option("input_script", script, "Path to the rigid-body configuration script.")->check(CLI::ExistingFile);
+    auto* p_script = app.add_option("input_script", script, "Path to the rigid-body configuration script.")->check(CLI::ExistingFile);
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
     app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms, 
@@ -44,13 +44,13 @@ int cli_rigidbody(int argc, char const *argv[]) {
     app.add_flag("--gpu", settings::general::gpu, "Use GPU acceleration if available.")->default_val(settings::general::gpu);
 
     // config subcommands
-    auto sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
-    auto p_settings = sub_config->add_option("--file,-f", settings, "The configuration file to use.")->check(CLI::ExistingFile);
+    auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
+    auto* p_settings = sub_config->add_option("--file,-f", settings, "The configuration file to use.")->check(CLI::ExistingFile);
     sub_config->add_flag("--save", save_settings, "Save the settings to a file.");
     sub_config->add_flag_callback("--log", [] () {logging::start("saxs_fitter");}, "Enable logging to a file.");
 
     // data subcommands
-    auto sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
+    auto* sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
     sub_data->add_option(
         "--qmax", 
         settings::axes::qmax, 
@@ -72,18 +72,18 @@ int cli_rigidbody(int argc, char const *argv[]) {
     sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins);
 
     // molecule subcommands
-    auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
+    auto* sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
     sub_mol->add_flag("--center,!--no-center", settings::molecule::center, 
         "Decides whether the protein will be centered.")->default_val(settings::molecule::center);
     sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, 
         "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy);
 
     // hydrogen subcommands
-    auto sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
+    auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
     sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
 
     // grid subcommands
-    auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
+    auto* sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
     sub_grid->add_option("--width,-w", settings::grid::cell_width, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);

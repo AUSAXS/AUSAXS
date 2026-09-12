@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <rigidbody/RigidbodyFwd.h>
-#include <rigidbody/sequencer/elements/setup/SetupElement.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
-#include <rigidbody/controller/IController.h>
 #include <data/DataFwd.h>
+#include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/controller/IController.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/sequencer/elements/setup/SetupElement.h>
 
 #include <memory>
 
@@ -26,7 +26,7 @@ namespace ausaxs::rigidbody::sequencer {
         public:
             Sequencer();
             Sequencer(const io::ExistingFile& saxs);
-            ~Sequencer();
+            ~Sequencer() override;
 
             /**
              * @brief Execute the sequencer.

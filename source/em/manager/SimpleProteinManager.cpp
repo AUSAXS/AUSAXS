@@ -2,11 +2,12 @@
 // Author: Kristian Lytje
 
 #include <em/manager/SimpleProteinManager.h>
-#include <hist/histogram_manager/HistogramManagerMT.h>
-#include <data/Molecule.h>
-#include <utility/Exceptions.h>
-#include <utility/Logging.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <utility/Logging.h>
+
+#include <algorithm>
 
 using namespace ausaxs;
 
@@ -16,14 +17,13 @@ void em::managers::SimpleProteinManager::update_protein(double cutoff) {
 
     // this sorting step is principially not necessary, but required for consistency with SmartProteinManager
     // otherwise we may see tiny differences in the generated hydration shells which breaks the tests
-    std::sort(
-        atoms.begin(), 
-        atoms.end(), 
+    std::ranges::sort(
+        atoms,
         [] (const data::EMAtom& atom1, const data::EMAtom& atom2) {return atom1.charge_density() < atom2.charge_density();}
     );
 
     std::vector<data::AtomFF> converted(atoms.size());
-    std::transform(atoms.begin(), atoms.end(), converted.begin(), [] (const data::EMAtom& atom) {return atom.get_atom_ff();});
+    std::ranges::transform(atoms, converted.begin(), [] (const data::EMAtom& atom) {return atom.get_atom_ff();});
     protein = std::make_unique<data::Molecule>(std::vector{data::Body{converted}});
     protein->set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
 }

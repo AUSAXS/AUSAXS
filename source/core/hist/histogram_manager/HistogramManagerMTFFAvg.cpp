@@ -2,12 +2,13 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+
+#include <constants/Constants.h>
+#include <data/Molecule.h>  // IWYU pragma: keep
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
-#include <data/Molecule.h>
-#include <constants/Constants.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;

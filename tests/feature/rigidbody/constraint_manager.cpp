@@ -1,14 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/DistanceConstraintAtom.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/BodySplitter.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/BodySplitter.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraintAtom.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
 #include <settings/All.h>
 
 #include <algorithm>
@@ -90,7 +90,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
         REQUIRE(cm.evaluate() == 0);
 
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
-        auto dc1 = cm.discoverable_constraints.back().get();
+        auto* dc1 = cm.discoverable_constraints.back().get();
 
         // Move body 0 toward body 1 to compress the bond (triggers non-zero evaluate)
         protein.molecule.get_body(0).translate(Vector3<double>(0, 0, 1));
@@ -109,7 +109,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
         CHECK(cm.evaluate() == val);
 
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
-        auto dc2 = cm.discoverable_constraints.back().get();
+        auto* dc2 = cm.discoverable_constraints.back().get();
         protein.molecule.get_body(0).translate(Vector3<double>(1, 0, 0));
         auto val2 = dc2->evaluate();
         auto val_after = dc1->evaluate();

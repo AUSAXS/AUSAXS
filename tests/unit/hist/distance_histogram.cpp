@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/distribution/Distribution1D.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 
 using namespace ausaxs;
 

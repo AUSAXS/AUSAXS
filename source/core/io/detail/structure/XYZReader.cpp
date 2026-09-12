@@ -2,9 +2,10 @@
 // Author: Kristian Lytje
 
 #include <io/detail/structure/XYZReader.h>
-#include <io/ExistingFile.h>
-#include <utility/Console.h>
+
+#include <io/File.h>
 #include <settings/MoleculeSettings.h>
+#include <utility/Console.h>
 
 #include <fstream>
 
@@ -31,7 +32,7 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
 
         // skip header
         if (tokens.size() != 4 && section_id == 0) {continue;}
-        else {section_id = 1;}                              // progress to main data section
+        section_id = 1;                                     // progress to main data section
         if (tokens.size() != 4 && section_id == 1) {break;} // progress to footer
 
         PDBAtom atom;

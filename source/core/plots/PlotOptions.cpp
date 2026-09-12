@@ -2,22 +2,21 @@
 // Author: Kristian Lytje
 
 #include <plots/PlotOptions.h>
+
 #include <utility/Exceptions.h>
 
-#include <typeindex>
 #include <algorithm>
 #include <sstream>
+#include <typeindex>
 
 using namespace ausaxs::plots;
 
-double inf = std::numeric_limits<double>::infinity();
-
-PlotOptions::PlotOptions() : draw_line(true) {}
+PlotOptions::PlotOptions() = default;
 PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
 
-PlotOptions::PlotOptions(std::unordered_map<std::string, std::any> options) : draw_line(true) {set(std::move(options));}
+PlotOptions::PlotOptions(std::unordered_map<std::string, std::any> options)  {set(std::move(options));}
 
-PlotOptions::PlotOptions(std::initializer_list<std::pair<std::string, std::any>> options) : draw_line(true) {
+PlotOptions::PlotOptions(std::initializer_list<std::pair<std::string, std::any>> options)  {
     std::unordered_map<std::string, std::any> opts;
     for (const auto& opt : options) {
         opts[opt.first] = opt.second;
@@ -39,11 +38,11 @@ PlotOptions& PlotOptions::set(const style::DrawStyle& style, std::unordered_map<
 }
 
 PlotOptions& PlotOptions::set(std::unordered_map<std::string, std::any> options) {
-    std::for_each(options.begin(), options.end(), [this] (const auto& opt) {parse(opt.first, opt.second);});
+    std::ranges::for_each(options, [this] (const auto& opt) {parse(opt.first, opt.second);});
     return *this;
 }
 
-void PlotOptions::parse(const std::string& key, std::any val) {
+void PlotOptions::parse(const std::string& key, const std::any& val) {
     for (const auto& opt : options) {
         for (const auto& alias : opt->aliases) {
             if (alias == key) {
@@ -64,21 +63,21 @@ void PlotOptions::SmartOption<ausaxs::Limit>::parse(const std::any& val) {
 
     // handle double list initializer like {1.5, 2.5}
     else if (std::type_index{typeid(std::vector<double>)} == val.type()) {
-        std::vector<double> vals(std::any_cast<std::vector<double>>(val));
+        auto vals(std::any_cast<std::vector<double>>(val));
         if (vals.size() != 2) {throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must contain two values. Received \"" + std::to_string(vals.size()) + "\".");}
         value = Limit(vals[0], vals[1]);
     } 
     
     // handle integer list initializer like {1, 2}
     else if (std::type_index{typeid(std::vector<int>)} == val.type()) {
-        std::vector<int> vals(std::any_cast<std::vector<int>>(val));
+        auto vals(std::any_cast<std::vector<int>>(val));
         if (vals.size() != 2) {throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must contain two values. Received \"" + std::to_string(vals.size()) + "\".");}
         value = Limit(vals[0], vals[1]);
     } 
     
     // otherwise throw
     else {
-        auto& t = val.type();
+        const auto& t = val.type();
         throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be a pair of two values. Received \"" + std::string(typeid(t).name()) + "\".");
     }
 }
@@ -96,7 +95,7 @@ void PlotOptions::SmartOption<std::string>::parse(const std::any& val) {
     } else if (std::type_index{typeid(style::DrawStyle)} == val.type()) {
         value = std::any_cast<style::DrawStyle>(val);
     } else {
-        auto& t = val.type();
+        const auto& t = val.type();
         throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be a string. Received \"" + std::string(typeid(t).name()) + "\".");
     }
 }
@@ -106,7 +105,7 @@ void PlotOptions::SmartOption<bool>::parse(const std::any& val) {
     if (std::type_index{typeid(bool)} == val.type()) {
         value = std::any_cast<bool>(val);
     } else {
-        auto& t = val.type();
+        const auto& t = val.type();
         throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be a boolean. Received \"" + std::string(typeid(t).name()) + "\".");
     }
 }
@@ -116,21 +115,7 @@ void PlotOptions::SmartOption<int>::parse(const std::any& val) {
     if (std::type_index{typeid(int)} == val.type()) {
         value = std::any_cast<int>(val);
     } else {
-        auto& t = val.type();
-        throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(t).name()) + "\".");
-    }
-}
-
-template<>
-void PlotOptions::SmartOption<unsigned int>::parse(const std::any& val) {
-    if (std::type_index{typeid(unsigned int)} == val.type()) {
-        value = std::any_cast<unsigned int>(val);
-    } else if (std::type_index{typeid(int)} == val.type()) {
-        int parsed_val = std::any_cast<int>(val);
-        if (parsed_val < 0) {throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be strictly positive.");}
-        value = parsed_val;
-    } else {
-        auto& t = val.type();
+        const auto& t = val.type();
         throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(t).name()) + "\".");
     }
 }
@@ -142,7 +127,7 @@ void PlotOptions::SmartOption<double>::parse(const std::any& val) {
     } else if (std::type_index{typeid(int)} == val.type()) {
         value = std::any_cast<int>(val);
     } else {
-        auto& t = val.type();
+        const auto& t = val.type();
         throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be a double. Received \"" + std::string(typeid(t).name()) + "\".");
     }
 }

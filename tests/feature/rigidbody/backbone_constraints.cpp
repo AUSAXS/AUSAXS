@@ -1,17 +1,13 @@
-#include "data/Molecule.h"
 #include <catch2/catch_test_macros.hpp>
+#include <data/Molecule.h>
 
-#include <rigidbody/constraints/generation/BackboneConstraints.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Body.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
-#include <io/ExistingFile.h>
-#include <settings/RigidBodySettings.h>
-#include <settings/MoleculeSettings.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <settings/GeneralSettings.h>
+#include <settings/MoleculeSettings.h>
+#include <settings/RigidBodySettings.h>
 
 #include <support/rb_metadata.h>
 

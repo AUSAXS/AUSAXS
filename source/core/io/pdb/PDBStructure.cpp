@@ -2,18 +2,17 @@
 // Author: Kristian Lytje
 
 #include <io/pdb/PDBStructure.h>
-#include <io/pdb/Record.h>
-#include <io/pdb/PDBAtom.h>
-#include <io/pdb/PDBWater.h>
-#include <io/ExistingFile.h>
+
+#include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <utility/Console.h>
-#include <utility/Exceptions.h>
-#include <constants/Constants.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBWater.h>
 #include <settings/MoleculeSettings.h>
+#include <utility/Console.h>
 
 #include <string_view>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
@@ -24,64 +23,67 @@ PDBStructure::~PDBStructure() = default;
 
 PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters) : atoms(atoms), waters(waters) {}
 
-PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters, const Header& header, const Footer& footer, const Terminate& terminate) 
-    : header(header), footer(footer), terminate(terminate), atoms(atoms), waters(waters) {}
+PDBStructure::PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters, Header header, Footer footer, Terminate terminate)
+    : header(std::move(header)), footer(std::move(footer)), terminate(std::move(terminate)), atoms(atoms), waters(waters) 
+{}
 
 // A PDB chain identifier is a single character, so the writer cannot simply count upwards. The available identifiers are cycled instead, which keeps the
 // output well-formed for structures with more chains than there are letters. Such a structure cannot be written without ambiguity anyway.
 static constexpr std::string_view chain_identifiers = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-static char chain_identifier(int index) {
-    return chain_identifiers[index % chain_identifiers.size()];
-}
+namespace {
+    char chain_identifier(int index) {
+        return chain_identifiers[index % chain_identifiers.size()];
+    }
 
-// Inverse of chain_identifier. Identifiers outside the table - such as the blank chain of a file carrying no chain information - map to the first slot.
-static int chain_index(char identifier) {
-    auto i = chain_identifiers.find(identifier);
-    return i == std::string_view::npos ? 0 : static_cast<int>(i);
-}
+    // Inverse of chain_identifier. Identifiers outside the table - such as the blank chain of a file carrying no chain information - map to the first slot.
+    int chain_index(char identifier) {
+        auto i = chain_identifiers.find(identifier);
+        return i == std::string_view::npos ? 0 : static_cast<int>(i);
+    }
 
-auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, int& chain) {
-    auto b = body.symmetry().explicit_structure();
-    auto asize = body.size_atom();
-    auto batoms = b.atoms;
+    auto add_single_body = [] (std::vector<PDBAtom>& atoms, std::vector<PDBWater>& waters, const data::Body& body, int& serial, int& residue_serial, int& chain) {
+        auto b = body.symmetry().explicit_structure();
+        auto asize = body.size_atom();
+        auto batoms = b.atoms;
 
-    const auto& metadata = body.get_metadata();
-    observer_ptr<const std::vector<data::backbone_t>> backbone = (metadata && metadata->backbone)    ? &metadata->backbone.value()    : nullptr;
-    observer_ptr<const std::vector<int>>              resseq   = (metadata && metadata->residue_seq) ? &metadata->residue_seq.value() : nullptr;
-    observer_ptr<const std::vector<char>>             chain_id = (metadata && metadata->chain_id)    ? &metadata->chain_id.value()    : nullptr;
+        const auto& metadata = body.get_metadata();
+        observer_ptr<const std::vector<data::backbone_t>> backbone = (metadata && metadata->backbone)    ? &metadata->backbone.value()    : nullptr;
+        observer_ptr<const std::vector<int>>              resseq   = (metadata && metadata->residue_seq) ? &metadata->residue_seq.value() : nullptr;
+        observer_ptr<const std::vector<char>>             chain_id = (metadata && metadata->chain_id)    ? &metadata->chain_id.value()    : nullptr;
 
-    for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
-        const auto& a = batoms[i];
-        int midx = i % static_cast<int>(asize);
+        for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
+            const auto& a = batoms[i];
+            int midx = i % asize;
 
-        if (midx == 0) {++chain;}
-        else if (chain_id && (*chain_id)[midx] != (*chain_id)[midx-1]) {++chain;}
+            if (midx == 0) {++chain;}
+            else if (chain_id && (*chain_id)[midx] != (*chain_id)[midx-1]) {++chain;}
 
-        std::string name = form_factor::to_string(a.form_factor_type());
-        if (backbone) {
-            switch ((*backbone)[midx]) {
-                case data::backbone_t::n:       name = "N";  break;
-                case data::backbone_t::c_alpha: name = "CA"; break;
-                case data::backbone_t::c:       name = "C";  break;
-                case data::backbone_t::o:       name = "O";  break;
-                case data::backbone_t::none:    break;
+            std::string name = form_factor::to_string(a.form_factor_type());
+            if (backbone) {
+                switch ((*backbone)[midx]) {
+                    case data::backbone_t::n:       name = "N";  break;
+                    case data::backbone_t::c_alpha: name = "CA"; break;
+                    case data::backbone_t::c:       name = "C";  break;
+                    case data::backbone_t::o:       name = "O";  break;
+                    case data::backbone_t::none:    break;
+                }
             }
+            int resSeq = resseq ? (*resseq)[midx] : 0;
+
+            atoms.emplace_back(
+                ++serial, name, "", "UNK", chain_identifier(chain), resSeq, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
+            );
         }
-        int resSeq = resseq ? (*resseq)[midx] : 0;
 
-        atoms.emplace_back(
-            ++serial, name, "", "UNK", chain_identifier(chain), resSeq, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
-        );
-    }
-
-    if (b.waters.size() == 0) {return;}
-    for (const auto& w : b.waters) {
-        waters.emplace_back(
-            ++serial, "O", "", "HOH", chain_identifier(chain), ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
-        );
-    }
-};
+        if (b.waters.empty()) {return;}
+        for (const auto& w : b.waters) {
+            waters.emplace_back(
+                ++serial, "O", "", "HOH", chain_identifier(chain), ++residue_serial, "", w.coordinates(), 1, 1, constants::atom_t::O, ""
+            );
+        }
+    };
+}
 
 PDBStructure::PDBStructure(const data::Body& body) {
     int serial = 0;
@@ -131,26 +133,25 @@ void PDBStructure::add_implicit_hydrogens() {
         if (!settings::molecule::allow_unknown_residues) {
             msg += " Disable implicit hydrogens with --no-implicit-hydrogens flag, or use --allow-unknown-residues to continue anyway.";
             throw except::io_error(msg);
-        } else {
-            console::print_warning("PDBStructure::add_implicit_hydrogens: " + msg + " Implicit hydrogens will be SKIPPED for these atoms.");
         }
+        console::print_warning("PDBStructure::add_implicit_hydrogens: " + msg + " Implicit hydrogens will be SKIPPED for these atoms.");
     }
 }
 
-void PDBStructure::add(const PDBAtom& r) {
-    atoms.push_back(r);
+void PDBStructure::add(const PDBAtom& a) {
+    atoms.push_back(a);
 }
 
-void PDBStructure::add(PDBAtom&& r) {
-    atoms.push_back(std::move(r));
+void PDBStructure::add(PDBAtom&& a) {
+    atoms.push_back(std::move(a));
 }
 
-void PDBStructure::add(const PDBWater& r) {
-    waters.push_back(r);
+void PDBStructure::add(const PDBWater& w) {
+    waters.push_back(w);
 }
 
-void PDBStructure::add(PDBWater&& r) {
-    waters.push_back(std::move(r));
+void PDBStructure::add(PDBWater&& w) {
+    waters.push_back(std::move(w));
 }
 
 void PDBStructure::add(const Terminate& ter) {
@@ -163,7 +164,7 @@ void PDBStructure::add(const RecordType& type, const std::string& s) {
     } else if (type == RecordType::FOOTER) {
         footer.add(s);
     } else {
-        throw except::invalid_argument("PDBStructure::add: Type is not \"HEADER\" or \"FOOTER\"!");
+        throw except::invalid_argument(R"(PDBStructure::add: Type is not "HEADER" or "FOOTER"!)");
     }
 }
 
@@ -265,7 +266,7 @@ bool PDBStructure::equals_content(const PDBStructure& rhs) const {
         return false;
     }
 
-    for (unsigned int i = 0; i < atoms.size(); i++) {
+    for (int i = 0; i < static_cast<int>(atoms.size()); i++) {
         if (!atoms[i].equals_content(rhs.atoms[i])) {
             #if FAILURE_MSG
                 std::cout << "!atoms[" << i << "].equals_content(rhs.atoms[" << i << "])" << std::endl;
@@ -274,7 +275,7 @@ bool PDBStructure::equals_content(const PDBStructure& rhs) const {
         }
     }
 
-    for (unsigned int i = 0; i < waters.size(); i++) {
+    for (int i = 0; i < static_cast<int>(waters.size()); i++) {
         if (!waters[i].equals_content(rhs.waters[i])) {
             #if FAILURE_MSG
                 std::cout << "!waters[" << i << "].equals_content(rhs.waters[" << i << "])" << std::endl;

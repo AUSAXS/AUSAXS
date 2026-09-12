@@ -2,9 +2,9 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/ReferenceSymmetry.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
-#include <constants/Constants.h>
+#include <data/Molecule.h>
 
 #include <cassert>
 
@@ -51,13 +51,13 @@ AffineTransform ReferenceSymmetry::_make_transform(const Vector3<double>& anchor
 // Note that the centre is read off the participants' current positions, so it drifts whenever they move relative to one another rather than as a rigid group.
 // That is deliberate: pinning it to the conformation the symmetry was defined in would couple the shared parameters to every real-space move of a participant,
 // which is exactly what stops the two sets of parameters from being optimised at the same time. The copies remain mutually congruent through the drift.
-Vector3<double> ReferenceSymmetry::_transform_anchor(const Vector3<double>&) const {return combined_cm();}
+Vector3<double> ReferenceSymmetry::_transform_anchor(const Vector3<double>& /*cm*/) const {return combined_cm();}
 
-std::optional<Matrix<double>> ReferenceSymmetry::_transform_orientation(const std::optional<Matrix<double>>&) const {
+std::optional<Matrix<double>> ReferenceSymmetry::_transform_orientation(const std::optional<Matrix<double>>& /*body_orientation*/) const {
     return shared_orientation(molecule, bodies.front());
 }
 
-unsigned int ReferenceSymmetry::repetitions() const {return base->repetitions();}
+int ReferenceSymmetry::repetitions() const {return base->repetitions();}
 bool ReferenceSymmetry::is_closed() const {return base->is_closed();}
 std::string ReferenceSymmetry::type_name() const {return base->type_name();}
 std::span<double> ReferenceSymmetry::span_translation() {return base->span_translation();}
@@ -69,7 +69,7 @@ std::unique_ptr<ISymmetry> ReferenceSymmetry::clone() const {
 }
 
 ISymmetry& ReferenceSymmetry::add(observer_ptr<const ISymmetry> other) {
-    auto cast = dynamic_cast<const ReferenceSymmetry*>(other);
+    const auto* cast = dynamic_cast<const ReferenceSymmetry*>(other);
     assert(cast != nullptr && "Can only add ReferenceSymmetry with another ReferenceSymmetry.");
     base->add(cast->base.get());
     return *this;
@@ -84,8 +84,8 @@ ReferenceSymmetryView::ReferenceSymmetryView(observer_ptr<const data::Molecule> 
 }
 
 observer_ptr<const ReferenceSymmetry> ReferenceSymmetryView::target() const {
-    auto sym = molecule->get_body(primary_body).symmetry().get(symmetry_index);
-    auto ref = dynamic_cast<const ReferenceSymmetry*>(sym);
+    const auto* sym = molecule->get_body(primary_body).symmetry().get(symmetry_index);
+    const auto* ref = dynamic_cast<const ReferenceSymmetry*>(sym);
     assert(ref != nullptr && "ReferenceSymmetryView::target: the referenced symmetry is not a ReferenceSymmetry.");
     return ref;
 }
@@ -95,13 +95,13 @@ AffineTransform ReferenceSymmetryView::_make_transform(const Vector3<double>& an
     return target()->_make_transform(anchor, rep);
 }
 
-Vector3<double> ReferenceSymmetryView::_transform_anchor(const Vector3<double>&) const {return target()->combined_cm();}
+Vector3<double> ReferenceSymmetryView::_transform_anchor(const Vector3<double>& /*cm*/) const {return target()->combined_cm();}
 
-std::optional<Matrix<double>> ReferenceSymmetryView::_transform_orientation(const std::optional<Matrix<double>>&) const {
+std::optional<Matrix<double>> ReferenceSymmetryView::_transform_orientation(const std::optional<Matrix<double>>& /*body_orientation*/) const {
     return shared_orientation(molecule, primary_body);
 }
 
-unsigned int ReferenceSymmetryView::repetitions() const {return target()->repetitions();}
+int ReferenceSymmetryView::repetitions() const {return target()->repetitions();}
 bool ReferenceSymmetryView::is_closed() const {return target()->is_closed();}
 std::string ReferenceSymmetryView::type_name() const {return target()->type_name();}
 std::vector<SymmetricDuplicatePair> ReferenceSymmetryView::internal_pair_schedule() const {return target()->internal_pair_schedule();}
@@ -114,4 +114,4 @@ std::unique_ptr<ISymmetry> ReferenceSymmetryView::clone() const {
 std::span<double> ReferenceSymmetryView::span_translation() {return {};}
 std::span<double> ReferenceSymmetryView::span_rotation() {return {};}
 
-ISymmetry& ReferenceSymmetryView::add(observer_ptr<const ISymmetry>) {return *this;}
+ISymmetry& ReferenceSymmetryView::add(observer_ptr<const ISymmetry> /*other*/) {return *this;}

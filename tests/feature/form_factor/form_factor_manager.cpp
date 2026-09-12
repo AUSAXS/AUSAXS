@@ -1,24 +1,23 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
-#include <data/Body.h>
+#include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <settings/All.h>
 
 #include <hist/hist_test_helper.h>
-#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 
-#include <numeric>
-#include <vector>
 #include <algorithm>
+#include <numeric>
 #include <random>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::form_factor;
 
-const std::vector<int>& identity() {
+static const std::vector<int>& identity() {
     static std::vector<int> identity;
     if (identity.empty()) {
         identity = std::vector<int>(total_ff_count);
@@ -27,7 +26,7 @@ const std::vector<int>& identity() {
     return identity;
 }
 
-const std::vector<int>& shuffled() {
+static const std::vector<int>& shuffled() {
     static std::vector<int> shuffled;
     if (shuffled.empty()) {
         shuffled = identity();
@@ -38,7 +37,7 @@ const std::vector<int>& shuffled() {
 }
 
 template<template<bool, bool> class MANAGER>
-void run_comparison(const data::Molecule& protein) {
+static void run_comparison(const data::Molecule& protein) {
     manager::detail::use_form_factors(identity());
     auto i1 = MANAGER<false, false>(&protein).calculate_all()->debye_transform();
     auto i2 = MANAGER<true, false>(&protein).calculate_all()->debye_transform();
@@ -58,7 +57,7 @@ void run_comparison(const data::Molecule& protein) {
 }
 
 template<template<bool> class MANAGER>
-void run_comparison(const data::Molecule& protein) {
+static void run_comparison(const data::Molecule& protein) {
     manager::detail::use_form_factors(identity());
     auto i1 = MANAGER<false>(&protein).calculate_all()->debye_transform();
     auto i2 = MANAGER<true>(&protein).calculate_all()->debye_transform();
@@ -123,7 +122,7 @@ TEST_CASE("manager ff set change scattering consistent for special exv calculato
 // the scattering must be unchanged - this verifies the truncated allocations and the runtime packed-index
 // stride agree with each other in every manager.
 template<template<bool, bool> class MANAGER>
-void run_truncation_comparison(data::Molecule& protein) {
+static void run_truncation_comparison(data::Molecule& protein) {
     manager::detail::use_form_factors(identity());
     auto i1 = MANAGER<false, false>(&protein).calculate_all()->debye_transform();
     auto i2 = MANAGER<true, false>(&protein).calculate_all()->debye_transform();
@@ -144,7 +143,7 @@ void run_truncation_comparison(data::Molecule& protein) {
 }
 
 template<template<bool> class MANAGER>
-void run_truncation_comparison(data::Molecule& protein) {
+static void run_truncation_comparison(data::Molecule& protein) {
     manager::detail::use_form_factors(identity());
     auto i1 = MANAGER<false>(&protein).calculate_all()->debye_transform();
     auto i2 = MANAGER<true>(&protein).calculate_all()->debye_transform();

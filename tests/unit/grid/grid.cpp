@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <grid/Grid.h>
-#include <grid/detail/GridMember.h>
 #include <data/Body.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>  // IWYU pragma: keep
 #include <settings/GridSettings.h>
 #include <utility/Axis3D.h>
 
@@ -361,7 +361,7 @@ TEST_CASE("Grid::remove Body") {
     REQUIRE(grid.a_members.size() == 2);
     
     grid.remove(body);
-    REQUIRE(grid.a_members.size() == 0);
+    REQUIRE(grid.a_members.empty());
 }
 
 TEST_CASE("Grid::clear_waters") {

@@ -3,45 +3,38 @@
 
 #pragma once
 
-#if (SAFE_MATH) 
-    #include <math/Exceptions.h>
-    #include <string>
+#include <cassert>
+
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
 #endif
 
 namespace ausaxs::utility::indexer {
     /**
      * @brief CRTP mixin providing element access for a one-dimensional container.
-     *
-     * The deriving class must expose a contiguous @c data member and a @c size() method. When the
-     * SAFE_MATH macro is set, every access is bounds-checked and throws ausaxs::except::out_of_range on failure;
-     * otherwise the checks compile away to a plain indexed access.
+     *        The deriving class must expose a contiguous @c data member and a @c size() method. 
      */
     template<typename Derived>
     class Indexer1D {
+        Indexer1D() = default;
+        friend Derived;
+
         protected:
             constexpr auto& index(int i) {
-                #if (SAFE_MATH)
-                    int N = static_cast<int>(derived().size());
-                    if (i < 0 || N <= i) {
-                        throw ausaxs::except::out_of_range(
-                            "Indexer1D: Index out of bounds "
-                            "(" + std::to_string(i) + " should be less than " + std::to_string(N) + ")"
-                        );
-                    }
-                #endif
+                assert([&]() -> bool {
+                    if (0 <= i && i < static_cast<int>(derived().size())) {return true;}
+                    std::cout << "Indexer1D: Index out of bounds (" << i << " should be less than " << static_cast<int>(derived().size()) << ")" << std::endl;
+                    return false;
+                }() && "Indexer1D: Index out of bounds.");
                 return derived().data[i]; 
             }
 
             constexpr const auto& index(int i) const {
-                #if (SAFE_MATH)
-                    int N = static_cast<int>(derived().size());
-                    if (i < 0 || N <= i) {
-                        throw ausaxs::except::out_of_range(
-                            "Indexer1D: Index out of bounds "
-                            "(" + std::to_string(i) + " should be less than " + std::to_string(N) + ")"
-                        );
-                    }
-                #endif
+                assert([&]() -> bool {
+                    if (0 <= i && i < static_cast<int>(derived().size())) {return true;}
+                    std::cout << "Indexer1D: Index out of bounds (" << i << " should be less than " << static_cast<int>(derived().size()) << ")" << std::endl;
+                    return false;
+                }() && "Indexer1D: Index out of bounds.");
                 return derived().data[i];
             }
 

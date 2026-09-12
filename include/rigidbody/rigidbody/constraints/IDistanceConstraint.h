@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <rigidbody/constraints/Constraint.h>
 #include <data/DataFwd.h>
 #include <math/Vector3.h>
+#include <rigidbody/constraints/Constraint.h>
 #include <utility/observer_ptr.h>
 
 #include <utility>
@@ -20,7 +20,7 @@ namespace ausaxs::rigidbody::constraints {
             int ibody2, int iatom2,
             std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1}
         );
-        virtual ~IDistanceConstraint() = default;
+        ~IDistanceConstraint() override = default;
 
         /**
          * @brief Get the first atom of this constraint. 

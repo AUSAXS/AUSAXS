@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <rigidbody/RigidbodyFwd.h>
-#include <rigidbody/detail/RigidbodyInternalFwd.h>
-#include <rigidbody/parameters/BodyTransformParametersRelative.h>
-#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
+#include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/detail/RigidbodyInternalFwd.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 #include <utility/observer_ptr.h>
 
 #include <vector>
@@ -36,7 +36,7 @@ namespace ausaxs::rigidbody::transform {
              * @param constraint The constraint to transform along.
              * @param ibody The index of the body the parameters were generated for.
              */
-            virtual void apply(parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int ibody) = 0;
+            virtual void apply(const parameter::BodyTransformParametersRelative& par, observer_ptr<const constraints::IDistanceConstraint> constraint, int ibody) = 0;
 
             /**
              * @brief Apply a relative transformation to a single unconstrained body. 
@@ -48,7 +48,7 @@ namespace ausaxs::rigidbody::transform {
              * @param par The relative transformation to apply.
              * @param ibody The index of the body to transform.
              */
-            void apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody);
+            void apply(const parameter::BodyTransformParametersRelative& par, int ibody);
 
             /**
              * @brief Undo the previous transformation. 
@@ -75,7 +75,7 @@ namespace ausaxs::rigidbody::transform {
              * @param pivot The point to rotate about.
              * @param body The body to apply the transformation to.
              */
-            void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, const Vector3<double>& pivot, data::Body& body);
+            static void rotate_and_translate(const Matrix<double>& M, const Vector3<double>& t, const Vector3<double>& pivot, data::Body& body);
 
             /**
              * @brief Set a new set of absolute symmetry parameters for a given body. 
@@ -87,7 +87,7 @@ namespace ausaxs::rigidbody::transform {
              *
              * Must be called after the body has been rebuilt from its initial conformation, since that also resets its symmetries to their setup values.
              */
-            void restore_symmetry(unsigned int ibody);
+            void restore_symmetry(int ibody);
 
             /**
              * @brief Add a relative symmetry delta to a body's absolute symmetry parameters and push the result to its live state.
@@ -95,7 +95,7 @@ namespace ausaxs::rigidbody::transform {
              * @param ibody The body the delta was generated for.
              * @param delta The relative symmetry parameters, parallel to the body's symmetry list.
              */
-            void apply_symmetry_delta(unsigned int ibody, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta);
+            void apply_symmetry_delta(int ibody, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta);
 
             static void add_symmetries(
                 std::vector<std::unique_ptr<symmetry::ISymmetry>>& current, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta

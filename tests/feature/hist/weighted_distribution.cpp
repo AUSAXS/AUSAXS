@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
@@ -10,22 +10,14 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
-#include <hist/distribution/WeightedDistribution1D.h>
-#include <hist/distribution/WeightedDistribution2D.h>
-#include <hist/distribution/WeightedDistribution3D.h>
-#include <data/Body.h>
-#include <data/Molecule.h>
-#include <dataset/SimpleDataset.h>
-#include <settings/MoleculeSettings.h>
 #include <settings/GeneralSettings.h>
-#include <settings/GridSettings.h>
-#include <settings/HistogramSettings.h>
-#include <grid/Grid.h>
-#include <io/ExistingFile.h>
-#include <table/ArrayDebyeTable.h>
+#include <settings/MoleculeSettings.h>
 
-#include "hist/hist_test_helper.h"
-#include "hist/intensity_calculator/DistanceHistogram.h"
+#include <algorithm>
+#include <ranges>
+
+#include <hist/hist_test_helper.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -51,10 +43,10 @@ TEST_CASE("WeightedDistribution: sinc_table") {
     auto Iq = hist->debye_transform();
 
     const auto& bins = constants::axes::d_vals;
-    auto table = DistanceHistogramDebug(std::move(hist)).get_sinc_table();
-    for (unsigned int q = 0; q < table->size_q(); ++q) {
+    const auto* table = DistanceHistogramDebug(std::move(hist)).get_sinc_table();
+    for (int q = 0; q < static_cast<int>(table->size_q()); ++q) {
         std::vector<double> sinc(20);
-        for (unsigned int d = 0; d < 20; ++d) {
+        for (int d = 0; d < 20; ++d) {
             double qd = constants::axes::q_vals[q]*bins[d];
             double val = 0;
             if (qd < 1e-3) {val = 1 - qd*qd/6 + qd*qd*qd*qd/120;}
@@ -62,7 +54,7 @@ TEST_CASE("WeightedDistribution: sinc_table") {
             REQUIRE_THAT(table->lookup(q, d), Catch::Matchers::WithinAbs(val, 1e-6));
             sinc[d] = val;
         }
-        std::transform(sinc.begin(), sinc.end(), table->begin(q), sinc.begin(), std::minus<double>());
+        std::ranges::transform(sinc, std::ranges::subrange(table->begin(q), table->end(q)), sinc.begin(), std::minus<>());
         REQUIRE_THAT(std::accumulate(sinc.begin(), sinc.end(), 0.0), Catch::Matchers::WithinAbs(0, 1e-6));
     }
 }
@@ -132,7 +124,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
             Iq_exp.resize(q_axis.size(), 0);
             auto ff2 = [] (double q) {return std::exp(-q*q);};
 
-            for (unsigned int q = 0; q < q_axis.size(); ++q) {
+            for (int q = 0; q < static_cast<int>(q_axis.size()); ++q) {
                 double dsum = 
                     9 + 
                     16*std::sin(q_axis[q]*d_exact[1])/(q_axis[q]*d_exact[1]) +
@@ -172,7 +164,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
             Iq_exp.resize(q_axis.size(), 0);
             auto ff = [] (double q) {return std::exp(-q*q/2);};
 
-            for (unsigned int q = 0; q < q_axis.size(); ++q) {
+            for (int q = 0; q < static_cast<int>(q_axis.size()); ++q) {
                 double aasum = 
                     8 + 
                     24*std::sin(q_axis[q]*d_exact[2])/(q_axis[q]*d_exact[2]) + 

@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <grid/detail/GridMember.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
 #include <form_factor/FormFactorType.h>
+#include <grid/detail/GridMember.h>
 
 using namespace ausaxs;
 using namespace ausaxs::grid;

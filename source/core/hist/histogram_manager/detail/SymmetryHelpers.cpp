@@ -2,8 +2,11 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
+
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry::detail;
@@ -12,7 +15,7 @@ using namespace ausaxs::hist::detail;
 template<bool variable_bin_width>
 std::pair<std::vector<BodySymmetryData<variable_bin_width>>, hist::detail::CompactCoordinates<variable_bin_width>> ausaxs::symmetry::detail::generate_transformed_data(const data::Molecule& protein) {
     std::vector<BodySymmetryData<variable_bin_width>> res(protein.size_body());
-    for (int i_body1 = 0; i_body1 < static_cast<int>(protein.size_body()); ++i_body1) {
+    for (int i_body1 = 0; i_body1 < protein.size_body(); ++i_body1) {
         res[i_body1] = generate_transformed_data<variable_bin_width>(protein.get_body(i_body1));
     }
     return {std::move(res), protein.get_waters()};
@@ -27,13 +30,13 @@ BodySymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transfor
 
     // loop over its symmetries
     std::vector<std::vector<CompactCoordinates<variable_bin_width>>> atomic(1+body.size_symmetry());
-    for (int i_sym_1 = 0; i_sym_1 < static_cast<int>(body.size_symmetry()); ++i_sym_1) {
-        auto symmetry = body.symmetry().get(i_sym_1);
+    for (int i_sym_1 = 0; i_sym_1 < body.size_symmetry(); ++i_sym_1) {
+        const auto* symmetry = body.symmetry().get(i_sym_1);
 
         // for every symmetry, loop over how many times it should be repeated
         // it is then repeatedly applied to the same data
-        std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(static_cast<int>(symmetry->repetitions()), data_a);
-        for (int i_repeat = 0; i_repeat < static_cast<int>(symmetry->repetitions()); ++i_repeat) {
+        std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(symmetry->repetitions(), data_a);
+        for (int i_repeat = 0; i_repeat < symmetry->repetitions(); ++i_repeat) {
             auto t = body.symmetry().get_transform(i_sym_1, cm, i_repeat+1);
             std::transform(
                 sym_atomic[i_repeat].get_data().begin(), 
@@ -55,10 +58,10 @@ template<bool variable_bin_width>
 SymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body, int isym) {
     CompactCoordinates<variable_bin_width> data_a(body.get_atoms());
     auto cm = body.get_cm();
-    auto symmetry = body.symmetry().get(isym);
+    const auto* symmetry = body.symmetry().get(isym);
 
-    std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(static_cast<int>(symmetry->repetitions()), data_a);
-    for (int i_repeat = 0; i_repeat < static_cast<int>(symmetry->repetitions()); ++i_repeat) {
+    std::vector<CompactCoordinates<variable_bin_width>> sym_atomic(symmetry->repetitions(), data_a);
+    for (int i_repeat = 0; i_repeat < symmetry->repetitions(); ++i_repeat) {
         auto t = body.symmetry().get_transform(isym, cm, i_repeat+1);
         std::transform(
             sym_atomic[i_repeat].get_data().begin(), 

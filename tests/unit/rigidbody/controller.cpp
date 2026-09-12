@@ -1,16 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/controller/SimpleController.h>
-#include <rigidbody/controller/MetropolisController.h>
-#include <rigidbody/controller/ControllerFactory.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <io/ExistingFile.h>
+#include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/BodySplitter.h>
+#include <rigidbody/controller/ControllerFactory.h>
+#include <rigidbody/controller/MetropolisController.h>
+#include <rigidbody/controller/SimpleController.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
 #include <settings/All.h>
-#include <io/ExistingFile.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -71,7 +71,7 @@ TEST_CASE_METHOD(ControllerFixture, "Controllers::SimpleController basic functio
                 double new_chi2 = ctrl.get_current_best_config()->chi2;
                 CHECK(new_chi2 <= initial_chi2);
                 initial_chi2 = new_chi2;
-                break;
+                continue;
             }
         }
         

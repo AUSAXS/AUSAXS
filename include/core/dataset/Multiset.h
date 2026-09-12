@@ -6,9 +6,9 @@
 #include <dataset/Dataset2D.h>
 #include <io/ExistingFile.h>
 
+#include <string>
 #include <unordered_map>
 #include <vector>
-#include <string>
 
 namespace ausaxs {
     class Multiset {
@@ -17,7 +17,7 @@ namespace ausaxs {
 
             [[deprecated]] Multiset(const io::Folder& path) {read(path);}
 
-            [[deprecated]] explicit Multiset(unsigned int size) : data(size) {}
+            [[deprecated]] explicit Multiset(int size) : data(size) {}
 
             [[deprecated]] explicit Multiset(const std::vector<Dataset2D>& data);
 
@@ -27,14 +27,14 @@ namespace ausaxs {
 
             [[deprecated]] Multiset(const Dataset2D& data1, const Dataset2D& data2);
 
-            const Dataset2D& operator[](unsigned int i) const;
-            Dataset2D& operator[](unsigned int i);
+            const Dataset2D& operator[](int i) const;
+            Dataset2D& operator[](int i);
 
             const Dataset2D& get_data(const std::string& name) const;
             Dataset2D& get_data(const std::string& name);
 
-            const Dataset2D& get_data(unsigned int i) const;
-            Dataset2D& get_data(unsigned int i);
+            const Dataset2D& get_data(int i) const;
+            Dataset2D& get_data(int i);
 
             /**
              * @brief Get the number of Datasets contained in this Multiset. 
@@ -75,12 +75,12 @@ namespace ausaxs {
             /**
              * @brief Read-only iterator.
              */
-            const std::vector<Dataset2D>::const_iterator begin() const;
+            std::vector<Dataset2D>::const_iterator begin() const;
 
             /**
              * @brief Read-only iterator.
              */
-            const std::vector<Dataset2D>::const_iterator end() const;
+            std::vector<Dataset2D>::const_iterator end() const;
 
             /**
              * @brief Read-write iterator.
@@ -93,7 +93,7 @@ namespace ausaxs {
             std::vector<Dataset2D>::iterator end();
 
             std::vector<Dataset2D> data;
-            std::unordered_map<std::string, unsigned int> names;
+            std::unordered_map<std::string, int> names;
 
         private:
             /**

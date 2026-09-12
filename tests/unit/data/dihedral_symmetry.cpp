@@ -1,13 +1,12 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/symmetry/DihedralSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/DihedralSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 
-#include <algorithm>
-#include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
@@ -39,7 +38,7 @@ namespace {
         auto A = build(repA), B = build(repB);
         std::vector<double> d;
         for (const auto& a : A) {for (const auto& b : B) {d.push_back((a-b).magnitude());}}
-        std::sort(d.begin(), d.end());
+        std::ranges::sort(d);
         return d;
     }
 
@@ -55,7 +54,7 @@ namespace {
 
     int orbit_size(const IPolyhedralSymmetry& s, Vector3<double> p) {
         std::vector<Vector3<double>> orbit = {p};
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {orbit.push_back(s._get_transform({0, 0, 0}, rep)(p));}
+        for (int rep = 1; rep <= s.repetitions(); ++rep) {orbit.push_back(s._get_transform({0, 0, 0}, rep)(p));}
         return count_distinct(orbit);
     }
 }
@@ -63,14 +62,14 @@ namespace {
 TEST_CASE("DihedralSymmetry: group order is 2n") {
     for (int n = 2; n <= 12; ++n) {
         auto s = make_dihedral(n);
-        CHECK(s->repetitions() == static_cast<unsigned int>(2*n) - 1); // 2n copies including the original
+        CHECK(s->repetitions() == static_cast<int>(2*n) - 1); // 2n copies including the original
     }
 }
 
 TEST_CASE("DihedralSymmetry: pair schedule covers every copy-pair exactly once") {
     int n = GENERATE(2, 3, 4, 5, 6, 8, 12);
     auto sp = make_dihedral(n); auto& s = *sp;
-    int m = static_cast<int>(s.repetitions()) + 1;
+    int m = s.repetitions() + 1;
 
     long total = 0;
     for (const auto& pair : s.internal_pair_schedule()) {
@@ -87,7 +86,7 @@ TEST_CASE("DihedralSymmetry: schedule representatives reproduce all inter-copy d
     // weighted by scale, must reconstruct the full inter-copy distance multiset
     int n = GENERATE(2, 3, 4, 6);
     auto sp = make_dihedral(n); auto& s = *sp;
-    int m = static_cast<int>(s.repetitions()) + 1;
+    int m = s.repetitions() + 1;
 
     std::vector<double> brute;
     for (int i = 0; i < m; ++i) {
@@ -96,14 +95,14 @@ TEST_CASE("DihedralSymmetry: schedule representatives reproduce all inter-copy d
             brute.insert(brute.end(), d.begin(), d.end());
         }
     }
-    std::sort(brute.begin(), brute.end());
+    std::ranges::sort(brute);
 
     std::vector<double> reconstructed;
     for (const auto& pair : s.internal_pair_schedule()) {
         auto d = cross_distances(s, pair.repA, pair.repB);
         for (int k = 0; k < pair.scale; ++k) {reconstructed.insert(reconstructed.end(), d.begin(), d.end());}
     }
-    std::sort(reconstructed.begin(), reconstructed.end());
+    std::ranges::sort(reconstructed);
 
     REQUIRE(reconstructed.size() == brute.size());
     for (std::size_t k = 0; k < brute.size(); ++k) {
@@ -114,7 +113,7 @@ TEST_CASE("DihedralSymmetry: schedule representatives reproduce all inter-copy d
 TEST_CASE("DihedralSymmetry: copies are proper rotations about the centre") {
     int n = GENERATE(2, 3, 5, 6);
     auto sp = make_dihedral(n); auto& s = *sp;
-    for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {
+    for (int rep = 1; rep <= s.repetitions(); ++rep) {
         auto f = s._get_transform({0, 0, 0}, rep);
         CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));               // centre is fixed
         CHECK_THAT(f({1, 0, 0}).magnitude(), Catch::Matchers::WithinAbs(1.0, 1e-9)); // length preserved
@@ -132,7 +131,7 @@ TEST_CASE("DihedralSymmetry: perpendicular two-fold axes distinguish D_n from C_
     SECTION("principal axis maps to its negative under some copy (not fixed as in C_2n)") {
         CHECK(orbit_size(s, {0, 0, 1}) == 2);
         bool found_flip = false;
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {
+        for (int rep = 1; rep <= s.repetitions(); ++rep) {
             if ((s._get_transform({0, 0, 0}, rep)({0, 0, 1}) - Vector3<double>{0, 0, -1}).magnitude() < 1e-9) {found_flip = true;}
         }
         CHECK(found_flip);

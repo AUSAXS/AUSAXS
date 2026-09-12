@@ -2,9 +2,11 @@
 // Author: Kristian Lytje
 
 #include <data/state/StateManager.h>
+
 #include <data/state/BoundSignaller.h>
 
 #include <cassert>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::state;

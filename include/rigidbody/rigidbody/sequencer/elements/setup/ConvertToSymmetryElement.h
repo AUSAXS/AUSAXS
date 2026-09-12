@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
-#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <math/Vector3.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -37,7 +37,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @param symmetry_name The target symmetry (e.g. "c4", "d3", "p2-p2").
              * @param tolerance Residual-RMSD threshold (Å); the setup fails if the fit exceeds it.
              */
-            ConvertToSymmetryElement(observer_ptr<Sequencer> owner, std::vector<int> bodies, const std::string& symmetry_name, double tolerance = default_tolerance);
+            ConvertToSymmetryElement(observer_ptr<Sequencer> owner, const std::vector<int>& bodies, const std::string& symmetry_name, double tolerance = default_tolerance);
             ~ConvertToSymmetryElement() override;
 
             void run() override;
@@ -58,7 +58,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @return The world-space coordinates of each copy, in file order, ready for the fit.
              * @throws sequencer::except::parse_error if the atom count does not divide evenly among the copies.
              */
-            std::vector<std::vector<Vector3<double>>> _split_into_copies(int primary, std::size_t copies_wanted, const std::string& symmetry_name);
+            std::vector<std::vector<Vector3<double>>> _split_into_copies(int primary, int copies_wanted, const std::string& symmetry_name);
 
             /**
              * @brief Gather the world-space atom coordinates of the given copy bodies, index-parallel so that entry i of each copy is the image of entry i

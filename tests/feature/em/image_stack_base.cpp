@@ -1,20 +1,19 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <em/ObjectBounds3D.h>
+#include <em/detail/ImageStackBase.h>
+#include <em/detail/header/MRCHeader.h>
+#include <em/detail/header/data/MRCData.h>
+#include <em/manager/ProteinManager.h>
 #include <hist/HistFwd.h>
 #include <hist/distribution/Distribution1D.h>
-#include <em/detail/ImageStackBase.h>
-#include <em/detail/header/data/MRCData.h>
-#include <em/detail/header/MRCHeader.h>
-#include <em/manager/ProteinManager.h>
-#include <em/ObjectBounds3D.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hydrate/generation/RadialHydration.h>
-#include <data/Molecule.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
+#include <hist/hist_test_helper.h>
 
 #include <support/temp_file.h>
 
@@ -22,19 +21,19 @@
 
 using namespace ausaxs;
 
-Matrix<float> dummy_image1 = {
+static Matrix<float> dummy_image1 = {
     {1, 2, 3},
     {4, 5, 6},
     {7, 8, 9}
 };
 
-Matrix<float> dummy_image2 = {
+static Matrix<float> dummy_image2 = {
     {10, 11, 12},
     {13, 14, 15},
     {16, 17, 18}
 };
 
-Matrix<float> dummy_image3 = {
+static Matrix<float> dummy_image3 = {
     {19, 20, 21},
     {22, 23, 24},
     {25, 26, 27}
@@ -59,7 +58,7 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
         em::ImageStackBase isb(file);
         REQUIRE(isb.size() == 154);
 
-        auto header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
+        auto* header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
         REQUIRE(header->nx == 154);
         REQUIRE(header->ny == 154);
         REQUIRE(header->nz == 154);
@@ -120,7 +119,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
 
     em::ImageStackBase isb(images);
     isb.set_header(std::move(header));
-    auto h = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
+    auto* h = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
     CHECK(h->nx == 10);
     CHECK(h->ny == 10);
     CHECK(h->nz == 10);
@@ -194,16 +193,16 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_minimum_bounds") {
 
     auto bound = GENERATE(1, 5, 9);
     isb.set_minimum_bounds(bound);
-    for (unsigned int i = 0; i < isb.size(); ++i) {
+    for (int i = 0; i < isb.size(); ++i) {
         const auto& image = isb.image(i);
         const auto& bounds = image.get_bounds();
-        for (unsigned int x = 0; x < bounds.size_x(); ++x) {
-            auto min = static_cast<unsigned int>(bounds[x].min);
-            auto max = static_cast<unsigned int>(bounds[x].max);
+        for (int x = 0; x < bounds.size_x(); ++x) {
+            auto min = static_cast<int>(bounds[x].min);
+            auto max = static_cast<int>(bounds[x].max);
 
             // the bounds must enclose every voxel above the cutoff
-            for (unsigned int y = 0; y < bounds.size_y(); ++y) {
-                if (bound <= image.index(x, y)) {
+            for (int y = 0; y < bounds.size_y(); ++y) {
+                if (static_cast<float>(bound) <= image.index(x, y)) {
                     CHECK(min <= y);
                     CHECK(y < max);
                 }
@@ -217,13 +216,14 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_minimum_bounds") {
     }
 }
 
+// NOLINTNEXTLINE
 TEST_CASE("ImageStackBase::read") {
     // test that the header is read correctly
     SECTION("correct header") {
         std::string file = "tests/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
-        auto header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
+        auto* header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
         REQUIRE(header->nx == 154);
         REQUIRE(header->ny == 154);
         REQUIRE(header->nz == 154);
@@ -238,7 +238,7 @@ TEST_CASE("ImageStackBase::read") {
         std::string file = "tests/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
-        auto header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
+        auto* header = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
         header->nx = 3;
         header->ny = 3;
         header->nz = 3;

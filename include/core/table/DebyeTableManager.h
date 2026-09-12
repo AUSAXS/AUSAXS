@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <table/DebyeTable.h>
 #include <constants/ConstantsAxes.h>
+#include <table/DebyeTable.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -14,9 +14,9 @@ namespace ausaxs::table {
     class DebyeTableManager {
         public:
             DebyeTableManager();
-            DebyeTableManager(const DebyeTableManager&);
+            DebyeTableManager(const DebyeTableManager& /*table*/);
             DebyeTableManager(DebyeTableManager&&) noexcept;
-            DebyeTableManager& operator=(const DebyeTableManager&);
+            DebyeTableManager& operator=(const DebyeTableManager& /*table*/);
             DebyeTableManager& operator=(DebyeTableManager&&) noexcept;
 
             /**
@@ -26,19 +26,21 @@ namespace ausaxs::table {
 
             void reset_to_default();
 
-            template<typename T, typename = std::enable_if_t<std::disjunction_v<
+            template<typename T>
+            void set_q_axis(T&& q_axis) requires (
+            std::disjunction_v<
                 std::is_rvalue_reference<T&&>,
                 std::is_same<T, const std::vector<double>&>,
                 std::is_same<T, std::vector<double>&>
-            >>>
-            void set_q_axis(T&& q_axis);
+            >);
 
-            template<typename T, typename = std::enable_if_t<std::disjunction_v<
+            template<typename T>
+            void set_d_axis(T&& d_axis) requires (
+            std::disjunction_v<
                 std::is_rvalue_reference<T&&>,
                 std::is_same<T, const std::vector<double>&>,
                 std::is_same<T, std::vector<double>&>
-            >>>
-            void set_d_axis(T&& d_axis);
+            >);
 
         private:
             struct {

@@ -2,16 +2,17 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/detail/SequenceParser.h>
+
+#include <io/ExistingFile.h>
 #include <rigidbody/sequencer/detail/AdditionalElements.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/All.h>
-#include <utility/observer_ptr.h>
-#include <utility/Logging.h>
 #include <utility/Exceptions.h>
+#include <utility/Logging.h>
 #include <utility/StringUtils.h>
-#include <io/ExistingFile.h>
+#include <utility/observer_ptr.h>
 
 #include <fstream>
 #include <unordered_map>

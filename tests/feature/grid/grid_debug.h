@@ -1,9 +1,9 @@
 #pragma once
 
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridSurfaceDetection.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
@@ -15,7 +15,7 @@ class GridDebug : public grid::Grid {
     public: 
         using Grid::Grid;
 
-		double get_atomic_radius(form_factor::form_factor_t) const override {return ra;}
+		double get_atomic_radius(form_factor::form_factor_t /*atom*/) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
         void set_hydration_radius(double rh) {this->rh = rh;}
@@ -48,12 +48,12 @@ class GridDebug : public grid::Grid {
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return {
-                {
+                .interior={
                     GridDebug::exv[0], 
                     GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
                     GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
                 }, 
-                {}
+                .surface={}
             };
         }
 };
@@ -68,12 +68,12 @@ class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMT
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return {
-                {
+                .interior={
                     GridDebug::exv[0], 
                     GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
                     GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
                 }, 
-                {}
+                .surface={}
             };
         }
 };
@@ -88,8 +88,8 @@ class DebugHistogramManagerMTFFGridSurface : public hist::HistogramManagerMTFFGr
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return {
-                {GridDebug::exv[0]}, 
-                {
+                .interior={GridDebug::exv[0]}, 
+                .surface={
                     GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
                     GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
                 }

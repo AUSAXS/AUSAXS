@@ -3,21 +3,21 @@
 
 #pragma once
 
-#include <hydrate/generation/HydrationStrategy.h>
-#include <hydrate/culling/CullingStrategy.h>
-#include <utility/observer_ptr.h>
-#include <grid/detail/GridInternalFwd.h>
 #include <grid/GridFwd.h>
+#include <grid/detail/GridInternalFwd.h>
+#include <hydrate/culling/CullingStrategy.h>
+#include <hydrate/generation/HydrationStrategy.h>
+#include <utility/observer_ptr.h>
 
-#include <span>
 #include <memory>
+#include <span>
 
 namespace ausaxs::hydrate {
     class GridBasedHydration : public HydrationStrategy {
         public:
             GridBasedHydration(observer_ptr<data::Molecule> protein);
             GridBasedHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
-            virtual ~GridBasedHydration();
+            ~GridBasedHydration() override;
 
             void hydrate() override;
 

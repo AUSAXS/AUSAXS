@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <em/ObjectBounds2D.h>
+
 #include <utility/Limit.h>
 
 #include <numeric>
@@ -9,42 +10,42 @@
 
 using namespace ausaxs::em;
 
-ObjectBounds2D::ObjectBounds2D(unsigned int size_x, unsigned int size_y) : bounds(size_x, Limit(0, size_y)), N(size_x), M(size_y) {}
+ObjectBounds2D::ObjectBounds2D(int size_x, int size_y) : bounds(size_x, Limit(0, size_y)), N(size_x), M(size_y) {}
 
 ObjectBounds2D::~ObjectBounds2D() = default;
 
-void ObjectBounds2D::set_bounds(unsigned int x, const Limit& limit) {
+void ObjectBounds2D::set_bounds(int x, const Limit& limit) {
     if (x >= N) {throw except::out_of_range("ObjectBounds2D::set_bounds: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
     if (limit.max > M) {throw except::out_of_range("ObjectBounds2D::set_bounds: limit " + std::to_string(limit.max) + " is out of bounds (" + std::to_string(M) + ")");}
     bounds[x] = limit;
 }
 
-void ObjectBounds2D::set_bounds(unsigned int x, unsigned int min, unsigned int max) {
+void ObjectBounds2D::set_bounds(int x, int min, int max) {
     set_bounds(x, Limit(min, max));
 }
 
-void ObjectBounds2D::set_min(unsigned int x, unsigned int min) {
+void ObjectBounds2D::set_min(int x, int min) {
     if (x >= N) {throw except::out_of_range("ObjectBounds2D::set_min: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
     if (min > M) {throw except::out_of_range("ObjectBounds2D::set_min: limit " + std::to_string(min) + " is out of bounds (" + std::to_string(M) + ")");}
     bounds[x].min = min;
 }
 
-void ObjectBounds2D::set_max(unsigned int x, unsigned int max) {
+void ObjectBounds2D::set_max(int x, int max) {
     if (x >= N) {throw except::out_of_range("ObjectBounds2D::set_max: index " + std::to_string(x) + " is out of range (" + std::to_string(N) + ")");}
     if (max > M) {throw except::out_of_range("ObjectBounds2D::set_max: limit " + std::to_string(max) + " is out of bounds (" + std::to_string(M) + ")");}
     bounds[x].max = max;
 }
 
-const ausaxs::Limit& ObjectBounds2D::operator[](unsigned int x) const {return bounds[x];}
+const ausaxs::Limit& ObjectBounds2D::operator[](int x) const {return bounds[x];}
 
-unsigned int ObjectBounds2D::size_x() const {return N;}
+int ObjectBounds2D::size_x() const {return N;}
 
-unsigned int ObjectBounds2D::size_y() const {return M;}
+int ObjectBounds2D::size_y() const {return M;}
 
 bool ObjectBounds2D::empty() const {return bounded_area() == 0;}
 
-unsigned int ObjectBounds2D::bounded_area() const {return std::accumulate(bounds.begin(), bounds.end(), 0u, [] (unsigned int area, const Limit& limit) {return area += static_cast<unsigned int>(limit.max - limit.min);});}
+int ObjectBounds2D::bounded_area() const {return std::accumulate(bounds.begin(), bounds.end(), 0, [] (int area, const Limit& limit) {return area += static_cast<int>(limit.max - limit.min);});}
 
-unsigned int ObjectBounds2D::total_area() const {return N*M;}
+int ObjectBounds2D::total_area() const {return N*M;}
 
 bool ObjectBounds2D::operator==(const ObjectBounds2D& other) const = default;

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::parameter;

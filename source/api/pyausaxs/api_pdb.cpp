@@ -2,20 +2,21 @@
 // Author: Kristian Lytje
 
 #include <api/pyausaxs/api_pdb.h>
+
 #include <api/ObjectStorage.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <fitter/SmartFitter.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <io/Reader.h>
 #include <io/pdb/PDBStructure.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <data/symmetry/PredefinedSymmetries.h>
 #include <rigidbody/sequencer/detail/SymmetryFit.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <fitter/SmartFitter.h>
 #include <settings/All.h>
 
-#include <utility/Exceptions.h>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 using namespace ausaxs;
@@ -32,7 +33,7 @@ int pdb_read(
 
 namespace {
 struct _pdb_get_data_obj {
-    explicit _pdb_get_data_obj(unsigned int size) :
+    explicit _pdb_get_data_obj(int size) :
         serial(size), resSeq(size), name(size), altLoc(size), resName(size), iCode(size), element(size), charge(size), 
         name_ptr(size), altLoc_ptr(size), resName_ptr(size), iCode_ptr(size), element_ptr(size), charge_ptr(size),
         chainID(size), x(size), y(size), z(size), occupancy(size), tempFactor(size) 
@@ -50,10 +51,10 @@ int pdb_get_data(
     const char*** iCode_out, double** x_out, double** y_out, double** z_out, double** occupancy_out, double** tempFactor_out, const char*** element_out, 
     const char*** charge_out, int* n_atoms_out, int* status
 ) {return execute_with_catch([&]() {
-    auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(object_id);
+    auto* pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(object_id);
     if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(object_id) + "\"");}
     const auto& atoms = pdb->atoms;
-    _pdb_get_data_obj data(atoms.size());
+    _pdb_get_data_obj data(static_cast<int>(atoms.size()));
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
         const auto& atom = atoms[i];
         data.serial[i] = atom.serial;
@@ -79,7 +80,7 @@ int pdb_get_data(
         data.charge_ptr[i] = data.charge[i].c_str();
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_pdb_get_data_obj>(data_id);
+    auto* ref = api::ObjectStorage::get_object<_pdb_get_data_obj>(data_id);
     *serial_out = ref->serial.data();
     *name_out = ref->name_ptr.data();
     *altLoc_out = ref->altLoc_ptr.data();
@@ -111,7 +112,7 @@ int pdb_decompose_symmetry(
     double** x_out, double** y_out, double** z_out, int** copy_index_out, int* n_atoms_out,
     double* rmsd_out, int* status
 ) {return execute_with_catch([&]() {
-    auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
+    auto* pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
     if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
 
     // group atoms into chains, preserving first-seen chain order (chain 0 = reference)
@@ -130,7 +131,7 @@ int pdb_decompose_symmetry(
     }
 
     auto base = symmetry::create(std::string(symmetry_name));
-    if (chains.size() != base->repetitions() + 1) {
+    if (static_cast<int>(chains.size()) != base->repetitions() + 1) {
         throw except::invalid_argument(
             "pdb_decompose_symmetry: symmetry \"" + std::string(symmetry_name) + "\" needs "
             + std::to_string(base->repetitions() + 1) + " chains, but " + std::to_string(chains.size()) + " were found."
@@ -149,7 +150,7 @@ int pdb_decompose_symmetry(
     auto reconstructed = rigidbody::sequencer::detail::reconstruct_copies(*fit.symmetry, cm, chains[0]);
     _pdb_decompose_obj data;
     int per = static_cast<int>(chains[0].size());
-    int reps = static_cast<int>(fit.symmetry->repetitions());
+    int reps = fit.symmetry->repetitions();
     data.x.reserve(per*(reps + 1)); data.y.reserve(per*(reps + 1)); data.z.reserve(per*(reps + 1)); data.copy_index.reserve(per*(reps + 1));
     for (int k = 0; k <= reps; ++k) {
         for (const auto& q : reconstructed[k]) {
@@ -162,7 +163,7 @@ int pdb_decompose_symmetry(
 
     *rmsd_out = fit.rmsd;
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_pdb_decompose_obj>(data_id);
+    auto* ref = api::ObjectStorage::get_object<_pdb_decompose_obj>(data_id);
     *x_out = ref->x.data();
     *y_out = ref->y.data();
     *z_out = ref->z.data();
@@ -176,13 +177,13 @@ int pdb_debye_fit(
     int pdb_id, int data_id,
     int* status
 ) {return execute_with_catch([&]() {
-    auto pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
+    auto* pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
     if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
     if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
     auto data = pdb->reduced_representation();
     auto molecule = data.waters.empty() ? Molecule({Body{std::move(data.atoms)}}) : Molecule({Body{std::move(data.atoms), std::move(data.waters)}});
     molecule.reset_histogram_manager();
-    auto dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
+    auto* dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
     if (!dataset) {throw except::invalid_argument("Invalid dataset id: \"" + std::to_string(data_id) + "\"");}
     auto fitter = fitter::SmartFitter(*dataset, molecule.get_histogram());
     int fit_result_id = api::ObjectStorage::register_object(fitter.fit());

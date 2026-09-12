@@ -1,12 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/parameters/BodyTransformParametersRelative.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
+#include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -33,7 +33,7 @@ TEST_CASE("ZeroTransform: zeroed delta parameters do not cause drift") {
 
         for (int i = 0; i < 1000; ++i) {
             parameter::BodyTransformParametersRelative zero_params({0, 0, 0}, {0, 0, 0});
-            transformer->apply(std::move(zero_params), 0u);
+            transformer->apply(zero_params, 0u);
         }
 
         auto& params = rigidbody.conformation->absolute_parameters.parameters[0];
@@ -48,7 +48,7 @@ TEST_CASE("ZeroTransform: zeroed delta parameters do not cause drift") {
     SECTION("zero transforms after non-zero transform preserve state") {
         // First apply a non-trivial transform
         parameter::BodyTransformParametersRelative real_params({1.5, 2.3, -0.7}, {0.3, -0.1, 0.5});
-        transformer->apply(std::move(real_params), 0u);
+        transformer->apply(real_params, 0u);
 
         auto rotation_after = rigidbody.conformation->absolute_parameters.parameters[0].rotation;
         auto translation_after = rigidbody.conformation->absolute_parameters.parameters[0].translation;
@@ -56,7 +56,7 @@ TEST_CASE("ZeroTransform: zeroed delta parameters do not cause drift") {
         // Then apply many zero transforms
         for (int i = 0; i < 1000; ++i) {
             parameter::BodyTransformParametersRelative zero_params({0, 0, 0}, {0, 0, 0});
-            transformer->apply(std::move(zero_params), 0u);
+            transformer->apply(zero_params, 0u);
         }
 
         auto& params = rigidbody.conformation->absolute_parameters.parameters[0];

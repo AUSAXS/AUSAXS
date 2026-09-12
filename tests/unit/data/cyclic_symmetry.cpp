@@ -12,7 +12,7 @@ using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
 TEST_CASE("Symmetry::Symmetry") {
-    SECTION("_Relation, _Repeat") {
+    SECTION("Relation, Repeat") {
         // t_r = {0,0,1} lies along the rotation axis {0,0,1} (screw symmetry)
         CyclicSymmetry s({{1, 0, 0}}, {{0, 0, 1}, {0, 0, 1}, 0.5}, 5);
         CHECK(s._initial_relation.translation == Vector3<double>{1, 0, 0});
@@ -23,49 +23,49 @@ TEST_CASE("Symmetry::Symmetry") {
     }
 }
 
-TEST_CASE("Symmetry::_Relation") {
+TEST_CASE("Symmetry::Relation") {
     SECTION("default") {
-        [[maybe_unused]] CyclicSymmetry::_Relation r;
+        [[maybe_unused]] CyclicSymmetry::Relation r;
     }
 
     SECTION("construction") {
-        CyclicSymmetry::_Relation r({1, 2, 3});
+        CyclicSymmetry::Relation r({1, 2, 3});
         CHECK(r.translation == Vector3<double>{1, 2, 3});
     }
 
     SECTION("equality") {
-        CyclicSymmetry::_Relation r1({1, 2, 3});
-        CyclicSymmetry::_Relation r2({1, 2, 3});
-        CyclicSymmetry::_Relation r3({1, 2, 4});
+        CyclicSymmetry::Relation r1({1, 2, 3});
+        CyclicSymmetry::Relation r2({1, 2, 3});
+        CyclicSymmetry::Relation r3({1, 2, 4});
 
         CHECK(r1 == r2);
         CHECK_FALSE(r1 == r3);
     }
 }
 
-TEST_CASE("Symmetry::_Repeat") {
+TEST_CASE("Symmetry::Repeat") {
     SECTION("default") {
-        [[maybe_unused]] CyclicSymmetry::_Repeat r;
+        [[maybe_unused]] CyclicSymmetry::Repeat r;
     }
 
     SECTION("full construction") {
-        CyclicSymmetry::_Repeat r({1, 0, 0}, {0, 0, 1}, 1.5);
+        CyclicSymmetry::Repeat r({1, 0, 0}, {0, 0, 1}, 1.5);
         CHECK(r.translation == Vector3<double>{1, 0, 0});
         CHECK(r.axis        == Vector3<double>{0, 0, 1});
         CHECK_THAT(r.angle, Catch::Matchers::WithinAbs(1.5, 1e-9));
     }
 
     SECTION("axis+angle constructor (no translation)") {
-        CyclicSymmetry::_Repeat r({0, 1, 0}, std::numbers::pi);
+        CyclicSymmetry::Repeat r({0, 1, 0}, std::numbers::pi);
         CHECK(r.translation == Vector3<double>{0, 0, 0});
         CHECK(r.axis        == Vector3<double>{0, 1, 0});
         CHECK_THAT(r.angle, Catch::Matchers::WithinAbs(std::numbers::pi, 1e-9));
     }
 
     SECTION("equality") {
-        CyclicSymmetry::_Repeat r1({1, 0, 0}, {0, 0, 1}, 1.5);
-        CyclicSymmetry::_Repeat r2({1, 0, 0}, {0, 0, 1}, 1.5);
-        CyclicSymmetry::_Repeat r3({1, 0, 0}, {0, 0, 1}, 1.6);
+        CyclicSymmetry::Repeat r1({1, 0, 0}, {0, 0, 1}, 1.5);
+        CyclicSymmetry::Repeat r2({1, 0, 0}, {0, 0, 1}, 1.5);
+        CyclicSymmetry::Repeat r3({1, 0, 0}, {0, 0, 1}, 1.6);
 
         CHECK(r1 == r2);
         CHECK_FALSE(r1 == r3);

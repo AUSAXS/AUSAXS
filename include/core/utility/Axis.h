@@ -5,10 +5,10 @@
 
 #include <utility/UtilityFwd.h>
 
-#include <initializer_list>
-#include <vector>
 #include <array>
+#include <initializer_list>
 #include <string>
+#include <vector>
 
 namespace ausaxs {
 	/**
@@ -77,13 +77,13 @@ namespace ausaxs {
 			 * @brief Get the bin index for a given value.
 			 * 		  Returns bins in the range [0, bins]
 			 */
-			unsigned int get_bin(double value) const noexcept;
+			int get_bin(double value) const noexcept;
 
 			/**
 			 * @brief Get the axis value for a given bin.
 			 * 		  Returns values in the range [min, max]
 			 */
-			double get_bin_value(unsigned int bin) const noexcept;
+			double get_bin_value(int bin) const noexcept;
 
 			/**
 			 * @brief Get a sub-axis of this Axis.
@@ -96,7 +96,7 @@ namespace ausaxs {
 			 * @brief Resize this Axis to a new number of bins.
 			 * 		  The maximum value is adjusted to keep the bin width constant.
 			 */
-			void resize(unsigned int bins) noexcept;
+			void resize(int bins) noexcept;
 
 			/**
 			 * @brief Get a vector representation of this Axis.
@@ -107,7 +107,7 @@ namespace ausaxs {
 				std::vector<double> v(bins);
 				double w = width();
 				double new_min = min + shift*w;
-				for (unsigned int i = 0; i < bins; ++i) {
+				for (int i = 0; i < bins; ++i) {
 					v[i] = new_min + i*w;
 				}
 				return v;
@@ -119,12 +119,12 @@ namespace ausaxs {
 			 * @param shift Specify the amount to shift each bin by. Using 0.5 will return the center values of each bin.
 			 * @tparam size The size of the array.
 			 */
-			template<unsigned int size>
+			template<int size>
 			constexpr std::array<double, size> as_array(double shift = 0) const noexcept {
 				std::array<double, size> v;
 				double w = width();
 				double new_min = min + shift*w;
-				for (unsigned int i = 0; i < bins; ++i) {
+				for (int i = 0; i < bins; ++i) {
 					v[i] = new_min + i*w;
 				}
 				return v;
@@ -140,7 +140,7 @@ namespace ausaxs {
 			 */
 			Limit limits() const noexcept;
 
-			unsigned int bins; 	// The number of equidistant bins. 
+			int bins; 			// The number of equidistant bins. 
 			double min;        	// The minimum value spanned by this Axis. 
 			double max;        	// The maximum value spanned by this Axis. 
 	};

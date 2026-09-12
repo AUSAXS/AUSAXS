@@ -1,8 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <utility/Curl.h>
-#include <io/File.h>
 #include <settings/GeneralSettings.h>
+#include <utility/Curl.h>
 
 #include <support/temp_file.h>
 

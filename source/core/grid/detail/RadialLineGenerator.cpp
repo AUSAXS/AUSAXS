@@ -2,17 +2,17 @@
 // Author: Kristian Lytje
 
 #include <grid/detail/RadialLineGenerator.h>
+
 #include <grid/Grid.h>
-#include <constants/vdwTable.h>
 #include <math/Vector3.h>
 
 using namespace ausaxs;
 using namespace ausaxs::grid::detail;
 
-RadialLineGenerator::RadialLineGenerator(observer_ptr<grid::Grid> grid, double radius, int divisions) : RadialLineGenerator(grid, {radius, 3*radius, 5*radius, 7*radius}, divisions) {}
+RadialLineGenerator::RadialLineGenerator(double radius, int divisions) : RadialLineGenerator({radius, 3*radius, 5*radius, 7*radius}, divisions) {}
 
-RadialLineGenerator::RadialLineGenerator(observer_ptr<grid::Grid> grid, std::array<double, 4> radius, int divisions) {
-    generate(grid->get_width(), radius, divisions);
+RadialLineGenerator::RadialLineGenerator(std::array<double, 4> radii, int divisions) {
+    generate(grid::Grid::get_width(), radii, divisions);
 }
 
 RadialLineGenerator::~RadialLineGenerator() = default;
@@ -30,14 +30,14 @@ void RadialLineGenerator::generate(double width, std::array<double, 4> r, int di
             double x = std::cos(phi)*sin(theta);
             double y = std::sin(phi)*sin(theta);
             double z = std::cos(theta);
-            sphere.push_back({ x,  y,  z});
-            sphere.push_back({-x,  y,  z});
-            sphere.push_back({ x, -y,  z});
-            sphere.push_back({-x, -y,  z});
-            sphere.push_back({ x,  y, -z});
-            sphere.push_back({-x,  y, -z});
-            sphere.push_back({ x, -y, -z});
-            sphere.push_back({-x, -y, -z});
+            sphere.emplace_back( x,  y,  z);
+            sphere.emplace_back(-x,  y,  z);
+            sphere.emplace_back( x, -y,  z);
+            sphere.emplace_back(-x, -y,  z);
+            sphere.emplace_back( x,  y, -z);
+            sphere.emplace_back(-x,  y, -z);
+            sphere.emplace_back( x, -y, -z);
+            sphere.emplace_back(-x, -y, -z);
         }
     }
 
@@ -62,11 +62,11 @@ void RadialLineGenerator::generate(double width, std::array<double, 4> r, int di
     double inv_width = 1./width;
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
-        bins_1.push_back(Vector3<int>(std::round(r[0]*xr)*inv_width, std::round(r[0]*yr)*inv_width, std::round(r[0]*zr)*inv_width));
-        bins_2.push_back(Vector3<int>(std::round(r[1]*xr)*inv_width, std::round(r[1]*yr)*inv_width, std::round(r[1]*zr)*inv_width));
-        bins_3.push_back(Vector3<int>(std::round(r[2]*xr)*inv_width, std::round(r[2]*yr)*inv_width, std::round(r[2]*zr)*inv_width));
-        bins_4.push_back(Vector3<int>(std::round(r[3]*xr)*inv_width, std::round(r[3]*yr)*inv_width, std::round(r[3]*zr)*inv_width));
-        locs.push_back(Vector3<double>(xr, yr, zr));
+        bins_1.emplace_back(std::round(r[0]*xr)*inv_width, std::round(r[0]*yr)*inv_width, std::round(r[0]*zr)*inv_width);
+        bins_2.emplace_back(std::round(r[1]*xr)*inv_width, std::round(r[1]*yr)*inv_width, std::round(r[1]*zr)*inv_width);
+        bins_3.emplace_back(std::round(r[2]*xr)*inv_width, std::round(r[2]*yr)*inv_width, std::round(r[2]*zr)*inv_width);
+        bins_4.emplace_back(std::round(r[3]*xr)*inv_width, std::round(r[3]*yr)*inv_width, std::round(r[3]*zr)*inv_width);
+        locs.emplace_back(xr, yr, zr);
     }
 
     // set the member vectors

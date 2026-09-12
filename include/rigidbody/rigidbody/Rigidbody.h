@@ -4,16 +4,16 @@
 #pragma once
 
 #include <data/Molecule.h>
+#include <fitter/FitterFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/controller/IController.h>
-#include <fitter/FitterFwd.h>
 
 #include <memory>
 
 namespace ausaxs::rigidbody {
 	struct Rigidbody {
-        Rigidbody(Rigidbody&& other);
-        Rigidbody& operator=(Rigidbody&& other);
+        Rigidbody(Rigidbody&& other) noexcept ;
+        Rigidbody& operator=(Rigidbody&& other) noexcept ;
         Rigidbody(data::Molecule&& molecule);
         ~Rigidbody();
 

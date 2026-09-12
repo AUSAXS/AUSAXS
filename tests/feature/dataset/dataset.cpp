@@ -2,9 +2,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <dataset/Dataset.h>
-#include <math/Matrix.h>
-#include <dataset/PointSet.h>
-#include <utility/Limit.h>
 #include <io/ExistingFile.h>
 #include <settings/GeneralSettings.h>
 
@@ -84,7 +81,7 @@ TEST_CASE("Dataset::interpolate") {
 
         Dataset data({x, y});
         data = data.interpolate(5);
-        for (unsigned int i = 0; i < data.size(); i++) {
+        for (int i = 0; i < data.size(); i++) {
             CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(std::sin(data.x(i)), 1e-3));
         }
     }
@@ -99,7 +96,7 @@ TEST_CASE("Dataset::interpolate") {
 
         Dataset data1({x1, y1});
         auto data2 = data1.interpolate(x2);
-        for (unsigned int i = 0; i < data2.size(); i++) {
+        for (int i = 0; i < data2.size(); i++) {
             CHECK_THAT(data2.y(i), Catch::Matchers::WithinAbs(std::sin(data2.x(i)), 1e-3));
         }
     }
@@ -112,7 +109,7 @@ TEST_CASE("Dataset::interpolate") {
         }
 
         Dataset data1({x1, y1});
-        for (unsigned int i = 0; i < data1.size(); i++) {
+        for (int i = 0; i < data1.size(); i++) {
             CHECK_THAT(data1.interpolate_x(data1.x(i)+0.025, 1), Catch::Matchers::WithinAbs(std::sin(data1.x(i)+0.025), 1e-3));
         }
     }
@@ -129,7 +126,7 @@ TEST_CASE("Dataset::interpolate") {
         Dataset data({x1, y1, y2});
         auto data3 = data.interpolate(x2);
         REQUIRE(data3.x() == x2);
-        for (unsigned int i = 0; i < data3.size(); i++) {
+        for (int i = 0; i < data3.size(); i++) {
             CHECK_THAT(data3.col(1)[i], Catch::Matchers::WithinAbs(std::sin(data3.x(i)), 1e-3));
             CHECK_THAT(data3.col(2)[i], Catch::Matchers::WithinAbs(std::cos(data3.x(i)), 1e-3));
             CHECK_THAT(data.interpolate_x(data3.x(i), 1), Catch::Matchers::WithinAbs(std::sin(data3.x(i)), 1e-3));
@@ -221,12 +218,12 @@ TEST_CASE_METHOD(fixture, "Dataset::limit_x") {
     SECTION("real data") {
         Dataset data("tests/files/2epe.dat");
 
-        unsigned int start = 0;
+        int start = 0;
         while (data.x(start) < 0.01) {            
             start++;
         }
 
-        unsigned int end = data.size()-1;
+        int end = data.size()-1;
         while (0.3 < data.x(end)) {
             end--;
         }
@@ -234,14 +231,14 @@ TEST_CASE_METHOD(fixture, "Dataset::limit_x") {
         auto data_limited = data;
         data_limited.limit_x(0.01, 0.3);
         REQUIRE(data_limited.size() == end-start+1);
-        for (unsigned int i = 0; i < data_limited.size(); i++) {
+        for (int i = 0; i < data_limited.size(); i++) {
             CHECK(data_limited.x(i) == data.x(i+start));
             CHECK(data_limited.y(i) == data.y(i+start));
         }
     }
 }
 
-test::TempFile generate_SASDJG5_dataset();
+static test::TempFile generate_SASDJG5_dataset();
 TEST_CASE("Dataset::find_minima") {
     settings::general::verbose = false;
     SECTION("simple") {
@@ -249,29 +246,29 @@ TEST_CASE("Dataset::find_minima") {
             std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
             std::vector<double> y = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1,  2,  3,  4,  5,  6,  7,  8,  9,  10};
             Dataset data({x, y});
-            std::vector<unsigned int> minima = data.find_minima();
-            REQUIRE(minima == std::vector<unsigned int>{9});
+            std::vector<int> minima = data.find_minima();
+            REQUIRE(minima == std::vector<int>{9});
         }
 
         SECTION("multiple") {
             std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
             std::vector<double> y = {10, 9, 8, 7, 6, 7, 8, 9, 8, 7,  6,  5,  4,  5,  6,  7,  8,  9,  10};
             Dataset data({x, y});
-            std::vector<unsigned int> minima = data.find_minima();
-            REQUIRE(minima == std::vector<unsigned int>{4, 12});
+            std::vector<int> minima = data.find_minima();
+            REQUIRE(minima == std::vector<int>{4, 12});
         }
 
         SECTION("at endpoints") {
             std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
             std::vector<double> y = {1, 2, 3, 4, 5, 4, 3, 2, 1};
             Dataset data({x, y});
-            std::vector<unsigned int> minima = data.find_minima();
-            REQUIRE(minima == std::vector<unsigned int>{0, 8});
+            std::vector<int> minima = data.find_minima();
+            REQUIRE(minima == std::vector<int>{0, 8});
         }
     }
 
     SECTION("sinusoidal noise") {
-        for (unsigned int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             std::vector<double> x;
             std::vector<double> y;
             for (double xx = -10, dx = 0.1; xx <= 10; xx += dx) {
@@ -281,9 +278,9 @@ TEST_CASE("Dataset::find_minima") {
             Dataset data({x, y});
 
             data = data.rolling_average(7);
-            std::vector<unsigned int> minima = data.find_minima(1, 0.05);
+            std::vector<int> minima = data.find_minima(1, 0.05);
             REQUIRE(minima.size() < 5);
-            for (unsigned int j = 0; j < minima.size()-1; j++) {
+            for (int j = 0; j < static_cast<int>(minima.size())-1; j++) {
                 CHECK(-2 < x[minima[j]]);
                 CHECK(x[minima[j]] < 2);
             }

@@ -2,11 +2,9 @@
 // Author: Kristian Lytje
 
 #include <fitter/detail/LinearLeastSquares.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <math/CubicSpline.h>
 
-#include <cmath>
 #include <cassert>
+#include <cmath>
 
 using namespace ausaxs::fitter::detail;
 
@@ -77,6 +75,6 @@ std::vector<double> LinearLeastSquares::get_residuals(const std::vector<double>&
     return residuals;
 }
 
-unsigned int LinearLeastSquares::dof() const {return x.size() - 2;}
+int LinearLeastSquares::dof() const {return static_cast<int>(x.size()) - 2;}
 
-unsigned int LinearLeastSquares::size() const {return x.size();}
+int LinearLeastSquares::size() const {return static_cast<int>(x.size());}

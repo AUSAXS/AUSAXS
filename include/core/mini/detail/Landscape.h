@@ -12,7 +12,7 @@ namespace ausaxs::mini {
     class Landscape {
         public: 
             Landscape() noexcept = default;
-            Landscape(unsigned int size) : evals(size) {}
+            Landscape(int size) : evals(size) {}
             Landscape(std::vector<Evaluation>&& evals);
             Landscape(const std::vector<Evaluation>& evals);
 

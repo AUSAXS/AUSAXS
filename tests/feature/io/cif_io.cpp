@@ -1,20 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <constants/Constants.h>
 #include <data/Molecule.h>
-#include <data/Body.h>
-#include <utility/Console.h>
-#include <settings/All.h>
 #include <io/detail/structure/CIFReader.h>
 #include <io/detail/structure/PDBReader.h>
 #include <residue/detail/Residue.h>
-#include <constants/Constants.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 
-#include <vector>
-#include <string>
 #include <iostream>
+#include <string>
+#include <vector>
 
 using namespace ausaxs;
 using namespace data;
@@ -182,7 +180,7 @@ TEST_CASE("CIFReader: compare with PDB", "[files]") {
         REQUIRE(a1.size() == a2.size());
         int chain = 0;
         char chainID = a2[0].chainID;
-        for (unsigned int i = 0; i < a1.size(); i++) {
+        for (int i = 0; i < static_cast<int>(a1.size()); i++) {
             // if the chainID changes, the PDB file may or may not have a TER record, thus shifting all following serials by one
             if (a2[i].chainID != chainID) {
                 // check if the PDB atom is shifted relative to the CIF file

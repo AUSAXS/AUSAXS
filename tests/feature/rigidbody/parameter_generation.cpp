@@ -2,14 +2,14 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/parameters/UniformParameterGenerator.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <data/symmetry/BodySymmetryFacade.h>
 #include <data/symmetry/CyclicSymmetry.h>
-#include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
+#include <rigidbody/parameters/UniformParameterGenerator.h>
+#include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
 #include <rigidbody/parameters/decay/NoDecay.h>
@@ -76,7 +76,7 @@ TEST_CASE("UniformParameterGenerator::next steps are isotropic") {
     double longest = 0;
     for (int i = 0; i < n; ++i) {
         auto t = gen.next(0).translation.value();
-        octants[(t.x() < 0) + 2*(t.y() < 0) + 4*(t.z() < 0)]++;
+        octants[static_cast<int>(t.x() < 0) + 2*static_cast<int>(t.y() < 0) + 4*static_cast<int>(t.z() < 0)]++;
         sum += t/t.magnitude();
         longest = std::max(longest, t.magnitude());
     }
@@ -102,8 +102,8 @@ TEST_CASE("UniformParameterGenerator::next symmetry components are independent")
     m.get_body(0).symmetry().add(symmetry::type::c2);
     Rigidbody rb(std::move(m));
 
-    auto all_zero = [](std::span<double> s) {return std::all_of(s.begin(), s.end(), [](double v) {return v == 0;});};
-    auto any_nonzero = [](std::span<double> s) {return std::any_of(s.begin(), s.end(), [](double v) {return v != 0;});};
+    auto all_zero = [](std::span<double> s) {return std::ranges::all_of(s, [](double v) {return v == 0;});};
+    auto any_nonzero = [](std::span<double> s) {return std::ranges::any_of(s, [](double v) {return v != 0;});};
 
     SECTION("only the symmetry translation moves when only its amplitude is set") {
         rigidbody::parameter::UniformParameterGenerator gen(&rb, iterations, {.symmetry_translation = 5});

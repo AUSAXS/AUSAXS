@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <dataset/Dataset.h>
 #include <dataset/detail/DATReader.h>
 #include <dataset/detail/XVGReader.h>
-#include <dataset/Dataset.h>
 #include <math/Vector.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
@@ -116,7 +116,7 @@ TEST_CASE("DATReader: different unit") {
         dataset.save(path, "[nm]");
         Dataset loaded_dataset(path);
         REQUIRE(loaded_dataset.size() == dataset.size());
-        for (unsigned int i = 0; i < dataset.size(); i++) {
+        for (int i = 0; i < dataset.size(); i++) {
             REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
             REQUIRE(loaded_dataset.y(i) == dataset.y(i));
         }
@@ -128,7 +128,7 @@ TEST_CASE("DATReader: different unit") {
         dataset.save(path);
         Dataset loaded_dataset(path);
         REQUIRE(loaded_dataset.size() == dataset.size());
-        for (unsigned int i = 0; i < dataset.size(); i++) {
+        for (int i = 0; i < dataset.size(); i++) {
             REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
             REQUIRE(loaded_dataset.y(i) == dataset.y(i));
         }
@@ -136,9 +136,9 @@ TEST_CASE("DATReader: different unit") {
     }
 }
 
-auto vec_approx = [](const auto& v1, const auto& v2) {
-    REQUIRE(v1.size() == v2.size());
-    for (unsigned int i = 0; i < v1.size(); i++) {
+static auto vec_approx = [](const auto& v1, const auto& v2) {
+    REQUIRE(static_cast<int>(v1.size()) == static_cast<int>(v2.size()));
+    for (int i = 0; i < v1.size(); i++) {
         CHECK_THAT(v1[i], Catch::Matchers::WithinAbs(v2[i], 1e-6));
     }
 };

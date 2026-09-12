@@ -1,10 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/ExvTable.h>
-#include <constants/Constants.h>
+#include <form_factor/lookup/ExvTableManager.h>
+#include <numbers>
 
 using namespace ausaxs;
 using namespace form_factor;
@@ -183,7 +183,7 @@ TEST_CASE("ExvTableManager::get_current_exv_form_factor_set") {
 
     SECTION("all form factors evaluate properly") {
         const auto& set = ExvTableManager::get_current_exv_form_factor_set();
-        for (unsigned int i = 1; i < total_ff_count; ++i) {
+        for (int i = 1; i < total_ff_count; ++i) {
             const ExvFormFactor& exv = set.get(static_cast<form_factor_t>(i));
             if (exv.is_initialized()) {
                 CHECK_THAT(exv.evaluate_normalized(0), Catch::Matchers::WithinAbs(1.0, 1e-10));

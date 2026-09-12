@@ -2,21 +2,23 @@
 // Author: Kristian Lytje
 
 #include <io/File.h>
+
 #include <utility/Exceptions.h>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::io;
 
-File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {}
+File::File(io::Folder folder, std::string_view name, std::string_view extension) : dir(std::move(folder)), name(name), ext(extension) {}
 File::File(std::string_view name, std::string_view extension) : File(Folder(), name, extension) {}
 
 File::File(std::string_view path) {
     auto[dir, file, ext] = split(path);
-    this->dir = std::move(dir);
+    this->dir = dir;
     this->name = std::move(file);
     this->ext = std::move(ext);
 }

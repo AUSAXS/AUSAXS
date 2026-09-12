@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <plots/Plot.h>
 #include <mini/MiniFwd.h>
+#include <plots/Plot.h>
 
 namespace ausaxs::plots {
     /**

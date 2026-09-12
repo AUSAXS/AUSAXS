@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <io/pdb/PDBWater.h>
-#include <constants/Constants.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
@@ -16,11 +15,11 @@ TEST_CASE_METHOD(fixture, "PDBWater::PDBWater") {
         PDBWater w1(std::move(a1));
         CHECK(w1.serial == 1);
         CHECK(w1.name == "C");
-        CHECK(w1.altLoc == "");
+        CHECK(w1.altLoc.empty());
         CHECK(w1.resName == "HOH");
         CHECK(w1.chainID == 'A');
         CHECK(w1.resSeq == 1);
-        CHECK(w1.iCode == "");
+        CHECK(w1.iCode.empty());
         CHECK(w1.coords == Vector3<double>{-1, -1, -1});
         CHECK(w1.occupancy == 1);
         CHECK(w1.tempFactor == 0);
@@ -33,11 +32,11 @@ TEST_CASE_METHOD(fixture, "PDBWater::PDBWater") {
         PDBWater w1(a1);
         CHECK(w1.serial == 1);
         CHECK(w1.name == "C");
-        CHECK(w1.altLoc == "");
+        CHECK(w1.altLoc.empty());
         CHECK(w1.resName == "HOH");
         CHECK(w1.chainID == 'A');
         CHECK(w1.resSeq == 1);
-        CHECK(w1.iCode == "");
+        CHECK(w1.iCode.empty());
         CHECK(w1.coords == Vector3<double>{-1, -1, -1});
         CHECK(w1.occupancy == 1);
         CHECK(w1.tempFactor == 0);
@@ -50,11 +49,11 @@ TEST_CASE_METHOD(fixture, "PDBWater::PDBWater") {
         PDBWater w2(w1);
         CHECK(w2.serial == 1);
         CHECK(w2.name == "C");
-        CHECK(w2.altLoc == "");
+        CHECK(w2.altLoc.empty());
         CHECK(w2.resName == "LYS");
         CHECK(w2.chainID == 'A');
         CHECK(w2.resSeq == 1);
-        CHECK(w2.iCode == "");
+        CHECK(w2.iCode.empty());
         CHECK(w2.coords == Vector3<double>{-1, -1, -1});
         CHECK(w2.occupancy == 1);
         CHECK(w2.tempFactor == 0);
@@ -84,16 +83,16 @@ TEST_CASE("PDBWater::create_new_water") {
     PDBWater w1 = PDBWater::create_new_water(Vector3<double>{1, 2, 3});
     CHECK(w1.serial == -1);
     CHECK(w1.name == "O");
-    CHECK(w1.altLoc == "");
+    CHECK(w1.altLoc.empty());
     CHECK(w1.resName == "HOH");
     CHECK(w1.chainID == ' ');
     CHECK(w1.resSeq == -1);
-    CHECK(w1.iCode == "");
+    CHECK(w1.iCode.empty());
     CHECK(w1.coords == Vector3<double>{1, 2, 3});
     CHECK(w1.occupancy == 1);
     CHECK(w1.tempFactor == 0);
     CHECK(w1.element == constants::atom_t::O);
-    CHECK(w1.charge == "");
+    CHECK(w1.charge.empty());
     CHECK(w1.get_type() == RecordType::WATER);
     CHECK(w1.is_water() == true);
 }
@@ -104,16 +103,16 @@ TEST_CASE("PDBWater::operator=") {
     w2 = w3;
     CHECK(w2.serial == -1);
     CHECK(w2.name == "O");
-    CHECK(w2.altLoc == "");
+    CHECK(w2.altLoc.empty());
     CHECK(w2.resName == "HOH");
     CHECK(w2.chainID == ' ');
     CHECK(w2.resSeq == -1);
-    CHECK(w2.iCode == "");
+    CHECK(w2.iCode.empty());
     CHECK(w2.coords == Vector3<double>{1, 2, 3});
     CHECK(w2.occupancy == 1);
     CHECK(w2.tempFactor == 0);
     CHECK(w2.element == constants::atom_t::O);
-    CHECK(w2.charge == "");
+    CHECK(w2.charge.empty());
     CHECK(w2.get_type() == RecordType::WATER);
     CHECK(w2.is_water() == true);
 }

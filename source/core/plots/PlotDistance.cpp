@@ -2,10 +2,11 @@
 // Author: Kristian Lytje
 
 #include <plots/PlotDistance.h>
-#include <plots/PlotDataset.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/distribution/Distribution1D.h>
+
 #include <dataset/SimpleDataset.h>
+#include <hist/distribution/Distribution1D.h>  // IWYU pragma: keep
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <plots/PlotDataset.h>
 
 using namespace ausaxs::plots;
 
@@ -21,7 +22,7 @@ void PlotDistance::quick_plot(observer_ptr<hist::DistanceHistogram> d, const io:
 
     PlotDataset plot;
     plot.plot(p,  plots::PlotOptions("lines", {{"color", style::color::black}, {"legend", "total"}, {"xlabel", "Distance [$\\AA$]"}, {"ylabel", "Count"}}));
-    if (auto cast = dynamic_cast<hist::ICompositeDistanceHistogram*>(d)) {
+    if (auto* cast = dynamic_cast<hist::ICompositeDistanceHistogram*>(d)) {
         SimpleDataset pp(distances, cast->get_aa_counts());
         SimpleDataset ph(distances, cast->get_aw_counts());
         SimpleDataset hh(distances, cast->get_ww_counts());

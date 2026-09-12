@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <grid/detail/GridSurfaceDetection.h>
-#include <grid/detail/GridMember.h>
+
 #include <grid/Grid.h>
 #include <settings/GridSettings.h>
 
@@ -11,7 +11,7 @@
 using namespace ausaxs;
 using namespace ausaxs::grid::detail;
 
-GridSurfaceDetection::GridSurfaceDetection(observer_ptr<grid::Grid> grid) : RadialLineGenerator(grid, {std::sqrt(grid->get_width())+1e-3, 2*grid->get_width(), 3*grid->get_width(), 4*grid->get_width()}), grid(grid) {}
+GridSurfaceDetection::GridSurfaceDetection(observer_ptr<grid::Grid> grid) : RadialLineGenerator({std::sqrt(grid::Grid::get_width())+1e-3, 2*grid::Grid::get_width(), 3*grid::Grid::get_width(), 4*grid::Grid::get_width()}), grid(grid) {}
 
 GridSurfaceDetection::~GridSurfaceDetection() = default;
 
@@ -28,7 +28,7 @@ bool GridSurfaceDetection::collision_check(const Vector3<int>& loc) const {
         return false;
     };
 
-    for (unsigned int i = 0; i < rot_locs_abs.size(); i++) {
+    for (int i = 0; i < static_cast<int>(rot_locs_abs.size()); i++) {
         {   // check for collisions at 1r
             auto xr = loc.x() + rot_bins_1[i].x();
             auto yr = loc.y() + rot_bins_1[i].y();
@@ -78,55 +78,13 @@ bool GridSurfaceDetection::collision_check(const Vector3<int>& loc) const {
     return score < 42;
 }
 
-std::vector<Vector3<double>> GridSurfaceDetection::determine_vacuum_holes() const {
-    assert(!grid->w_members.empty() && "grid must first be hydrated to determine vacuum holes");
-
-    int empty_limit = std::round(3*constants::radius::get_vdw_radius(constants::atom_t::O)/settings::grid::cell_width);
-    int stride = std::round(settings::grid::exv::width/settings::grid::cell_width);
-    auto& gobj = grid->grid;
-    auto[vmin, vmax] = grid->bounding_box_index();
-    std::vector<Vector3<double>> vacuum_voxels;
-    for (int i = vmin.x(); i < vmax.x(); i += stride) {
-        for (int j = vmin.y(); j < vmax.y(); j += stride) {
-            int k = vmin.z();
-
-            // skip empty voxels outside the surface
-            while (gobj.is_empty_or_water(i, j, ++k) && ++k < vmax.z()) {}
-
-            // the following finds and fills one strip of connected empty voxels
-            while (k < vmax.z()) {
-                // skip all non-empty voxels
-                while (!gobj.is_empty(i, j, k) && ++k < vmax.z()) {continue;}
-
-                // count the number of connected empty voxels
-                int empty = 0;
-                while (gobj.is_empty(i, j, k) && ++k < vmax.z()) {
-                    if (gobj.is_water_area(i, j, k)) {empty = 1e6; break;}
-                    ++empty;
-                }
-
-                // if the gap is too big or we're at the boundary, skip
-                if (empty_limit < empty || k == vmax.z()) {continue;}
-
-                // otherwise fill this strip with vacuum voxels
-                for (int l = k-empty; l < k; ++l) {
-                    gobj.index(i, j, l) = grid::detail::VACUUM;
-                    vacuum_voxels.push_back(grid->to_xyz(i, j, l));
-                }
-            }
-        }
-    }
-
-    return vacuum_voxels;
-}
-
 template<bool detect_surface, bool unity_width>
 grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
     exv::GridExcludedVolume vol;
-    vol.interior.reserve(grid->get_volume());
+    vol.interior.reserve(static_cast<int>(grid->get_volume()));
 
-    int stride = std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width));
-    int buffer = std::max(1., std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width));
+    int stride = std::max<int>(1, static_cast<int>(std::round(settings::grid::exv::width/settings::grid::cell_width)));
+    int buffer = std::max<int>(1, static_cast<int>(std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
 
     const auto& axes = grid->get_axes();
     auto& gobj = grid->grid;
@@ -164,7 +122,7 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
     }
 
     if constexpr (!unity_width) {
-        int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width)/2;
+        int expand = static_cast<int>(std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width)/2);
         int expand2 = expand*expand;
         auto mark_adjacent = [&gobj, expand, expand2] (int i, int j, int k) {
             Vector3<int> origin{i, j, k};
@@ -227,7 +185,7 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::no_detect() const {
 }
 
 grid::exv::GridExcludedVolume GridSurfaceDetection::detect() const {
-    int expand = std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width);
+    int expand = static_cast<int>(std::round(settings::grid::exv::surface_thickness/settings::grid::cell_width));
     if (expand != 1) {
         return helper<true, false>();
     }

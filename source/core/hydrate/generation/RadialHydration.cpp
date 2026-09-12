@@ -2,16 +2,16 @@
 // Author: Kristian Lytje
 
 #include <hydrate/generation/RadialHydration.h>
+
+#include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
-#include <data/Molecule.h>
-#include <utility/Logging.h>
-#include <utility/Random.h>
-#include <constants/Constants.h>
 #include <settings/GridSettings.h>
 #include <settings/MoleculeSettings.h>
+#include <utility/Random.h>
 
 #include <cassert>
+#include <numbers>
 
 using namespace ausaxs;
 
@@ -20,12 +20,12 @@ std::function<Vector3<double>()> hydrate::RadialHydration::noise_generator = [] 
 };
 
 hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
-    initialize();
+    RadialHydration::initialize();
     prepare_rotations();
 }
 
 hydrate::RadialHydration::RadialHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy) : GridBasedHydration(protein, std::move(culling_strategy)) {
-    initialize();
+    RadialHydration::initialize();
     prepare_rotations();
 }
 
@@ -35,13 +35,13 @@ void hydrate::RadialHydration::initialize() {
     hydrate::GridBasedHydration::initialize();
 }
 
-void hydrate::RadialHydration::set_noise_generator(std::function<Vector3<double>()>&& f) {
-    noise_generator = std::move(f);
+void hydrate::RadialHydration::set_noise_generator(std::function<Vector3<double>()>&& noise_function) {
+    noise_generator = std::move(noise_function);
 }
 
 std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) {
     assert(protein != nullptr && "RadialHydration::generate_explicit_hydration: protein is nullptr.");
-    auto grid = protein->get_grid();
+    auto* grid = protein->get_grid();
     assert(grid != nullptr && "RadialHydration::generate_explicit_hydration: grid is nullptr.");
 
     // we define a helper lambda
@@ -51,19 +51,19 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
     };
 
     double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
-    std::size_t water_start = grid->w_members.size();
+    int water_start = static_cast<int>(grid->w_members.size());
     for (const auto& atom : atoms) {
         const auto& coords_abs = atom.get_atom().coordinates();
         double ra = grid->get_atomic_radius(atom.get_atom_type());
         double reff = ra + rh;
     
-        for (unsigned int i = 0; i < rot_locs.size(); i++) {
-            Vector3<double> exact_loc = coords_abs + rot_locs[i]*reff + noise_generator();
+        for (const auto& rot_loc : rot_locs) {
+            Vector3<double> exact_loc = coords_abs + rot_loc*reff + noise_generator();
             auto bins = grid->to_bins(exact_loc);
             if (!grid->is_valid_bin(bins)) {continue;}
 
             if (grid->grid.is_only_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check({bins.x(), bins.y(), bins.z()})) {
-                add_loc(std::move(exact_loc));
+                add_loc(exact_loc);
             }
         }
     }
@@ -71,8 +71,8 @@ std::span<grid::GridMember<data::Water>> hydrate::RadialHydration::generate_expl
 }
 
 void hydrate::RadialHydration::prepare_rotations(int divisions) {
-    auto grid = protein->get_grid();
-    double width = grid->get_width();
+    auto* grid = protein->get_grid();
+    double width = grid::Grid::get_width();
 
     std::vector<Vector3<int>> bins_1rh;
     std::vector<Vector3<int>> bins_3rh;
@@ -89,14 +89,14 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
             double x = std::cos(phi)*std::sin(theta);
             double y = std::sin(phi)*std::sin(theta);
             double z = std::cos(theta);
-            sphere.push_back({ x,  y,  z});
-            sphere.push_back({-x,  y,  z});
-            sphere.push_back({ x, -y,  z});
-            sphere.push_back({-x, -y,  z});
-            sphere.push_back({ x,  y, -z});
-            sphere.push_back({-x,  y, -z});
-            sphere.push_back({ x, -y, -z});
-            sphere.push_back({-x, -y, -z});
+            sphere.emplace_back( x,  y,  z);
+            sphere.emplace_back(-x,  y,  z);
+            sphere.emplace_back( x, -y,  z);
+            sphere.emplace_back(-x, -y,  z);
+            sphere.emplace_back( x,  y, -z);
+            sphere.emplace_back(-x,  y, -z);
+            sphere.emplace_back( x, -y, -z);
+            sphere.emplace_back(-x, -y, -z);
         }
     }
 
@@ -143,7 +143,7 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
 }
 
 bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
-    auto grid = protein->get_grid();
+    auto* grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     int score = 0;
@@ -156,8 +156,8 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
         return false;
     };
 
-    unsigned int inside_1rh = 0;
-    for (unsigned int i = 0; i < rot_locs.size(); i++) {
+    int inside_1rh = 0;
+    for (int i = 0; i < static_cast<int>(rot_locs.size()); i++) {
         {   // check for collisions at 1rh
             int xr = loc.x() + rot_bins_1rh[i].x();
             int yr = loc.y() + rot_bins_1rh[i].y();
@@ -205,9 +205,6 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
         }
     }
 
-    double max_points = 3*rot_bins_1rh.size();
-    if (score <= settings::grid::detail::min_score*max_points) {
-        return false;
-    }
-    return true;
+    auto max_points = static_cast<double>(3*rot_bins_1rh.size());
+    return settings::grid::detail::min_score*max_points < score;
 }

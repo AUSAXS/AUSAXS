@@ -3,7 +3,6 @@
 
 #include <fitter/FitResult.h>
 #include <mini/detail/Result.h>
-#include <mini/detail/FittedParameter.h>
 
 using namespace ausaxs;
 using namespace ausaxs::fitter;
@@ -95,6 +94,6 @@ TEST_CASE("FitResult::to_string") {
     REQUIRE(str.find("Fevals:") != std::string::npos);
     REQUIRE(str.find("chi2:") != std::string::npos);
     REQUIRE(str.find("dof:") != std::string::npos);
-    REQUIRE(str.find("a") != std::string::npos);
-    REQUIRE(str.find("b") != std::string::npos);
+    REQUIRE(str.find('a') != std::string::npos);
+    REQUIRE(str.find('b') != std::string::npos);
 }

@@ -3,12 +3,12 @@
 
 #pragma once
 
+#include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/distance_calculator/detail/TemplateHelperBase.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/WeightedDistribution2D.h>
-#include <hist/detail/CompactCoordinatesFF.h>
 
 namespace ausaxs::hist::detail {
     // Weighted distribution overloads

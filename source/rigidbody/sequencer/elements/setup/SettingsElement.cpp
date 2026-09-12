@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/setup/SettingsElement.h>
+
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <settings/SettingRef.h>
@@ -28,7 +29,7 @@ InlineSignature SettingsElement::_valid_inline_arguments() {
     return {.names = {"setting", "value"}, .min = 2, .max = 2};
 }
 
-std::unique_ptr<GenericElement> SettingsElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> SettingsElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     const std::string name = args.inlined[0];
     const auto& settings = settings::io::detail::ISettingRef::get_stored_settings();
     if (!settings.contains(name)) {

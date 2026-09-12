@@ -2,24 +2,22 @@
 // Author: Kristian Lytje
 
 #include <dataset/detail/DATReader.h>
-#include <dataset/Dataset.h>
-#include <dataset/SimpleDataset.h>
-#include <dataset/Dataset2D.h>
-#include <utility/StringUtils.h>
-#include <utility/Console.h>
-#include <utility/Exceptions.h>
-#include <math/Statistics.h>
-#include <settings/HistogramSettings.h>
-#include <settings/GeneralSettings.h>
-#include <settings/Flags.h>
 
-#include <vector>
-#include <string>
+#include <dataset/Dataset.h>
+#include <math/Statistics.h>
+#include <settings/Flags.h>
+#include <settings/GeneralSettings.h>
+#include <settings/HistogramSettings.h>
+#include <utility/Console.h>
+#include <utility/StringUtils.h>
+
 #include <fstream>
+#include <string>
+#include <vector>
 
 using namespace ausaxs;
 
-std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
+std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& path, int expected_cols) {
     console::print_info("\nReading dataset from \"" + path.str() + "\"");
     console::indent();
 
@@ -30,7 +28,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     std::string line;
     std::vector<std::string> header;
     std::vector<std::vector<double>> row_data;
-    std::vector<unsigned int> col_number;
+    std::vector<int> col_number;
     while(getline(input, line)) {
         // skip empty lines
         if (line.empty()) {continue;}
@@ -41,19 +39,19 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
         // remove empty tokens
         {
             std::vector<std::string> new_tokens;
-            for (unsigned int i = 0; i < tokens.size(); i++) {
-                if (tokens[i].empty()) {
+            for (const auto& token : tokens) {
+                if (token.empty()) {
                     continue;
                 }
-                new_tokens.push_back(tokens[i]);
+                new_tokens.push_back(token);
             }
             tokens = std::move(new_tokens);
         }
 
         // check if all tokens are numbers
         bool skip = false;
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
+        for (const auto& token : tokens) {
+            if (token.find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
                 skip = true;
             }
         }
@@ -64,15 +62,15 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
 
         // add values to dataset
         std::vector<double> vals(tokens.size());
-        for (unsigned int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < static_cast<int>(tokens.size()); i++) {
             vals[i] = std::stod(tokens[i]);
         }
         row_data.push_back(vals);
-        col_number.push_back(vals.size());
+        col_number.push_back(static_cast<int>(vals.size()));
     }
 
     // determine the most common number of columns, since that will likely be the data
-    unsigned int mode = stats::mode(col_number);
+    int mode = stats::mode(col_number);
     switch (mode) {
         case 2: 
             console::print_text("2 columns detected. Assuming the format is [q | I]");
@@ -91,25 +89,25 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
 
     // copy the data to the dataset
     std::unique_ptr<Dataset> dataset;
-    unsigned int count = 0;
+    int count = 0;
     {
         // first copy all rows with the most common number of columns to a temporary vector
         std::vector<std::vector<double>> data_cols;
-        for (unsigned int i = 0; i < row_data.size(); i++) {
-            if (row_data[i].size() != mode) {continue;}     // skip rows with the wrong number of columns
+        for (auto& row : row_data) {
+            if (static_cast<int>(row.size()) != mode) {continue;}     // skip rows with the wrong number of columns
             if (count++ < settings::axes::skip) {continue;}  // skip the first few rows if requested
-            data_cols.push_back(std::move(row_data[i]));
+            data_cols.emplace_back(std::move(row));
         }
 
         // having too many columns is not a problem, but we should inform the user and then ignore the extra columns
         if (expected_cols != 0 && mode != expected_cols) {
             // shorten the data to the expected number of columns
-            for (unsigned int i = 0; i < data_cols.size(); i++) {
+            for (auto& col : data_cols) {
                 std::vector<double> row(expected_cols);
-                for (unsigned int j = 0; j < expected_cols; j++) {
-                    row[j] = data_cols[i][j];
+                for (int j = 0; j < expected_cols; j++) {
+                    row[j] = col[j];
                 }
-                data_cols[i] = std::move(row);
+                col = std::move(row);
             }
             mode = expected_cols; // update mode to the number of columns we actually have
         }
@@ -117,8 +115,8 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
         // add the data to the dataset
         // dataset = std::make_shared<Dataset>(std::move(data_cols));
         dataset = std::make_unique<Dataset>(0, mode);
-        for (unsigned int i = 0; i < data_cols.size(); i++) {
-            dataset->push_back(data_cols[i]);
+        for (const auto& col : data_cols) {
+            dataset->push_back(col);
         }
     }
 
@@ -144,7 +142,8 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
                 unit = settings::general::QUnit::NM;
                 found = true;
                 break;
-            } else if ((s.starts_with("[A]") || s.starts_with("[A^-1]"))) {
+            }
+            if ((s.starts_with("[A]") || s.starts_with("[A^-1]"))) {
                 if (settings::general::helper::is_nanometers(settings::general::input_q_unit)) {
                     console::print_warning("Warning: File contains unit [A], but default is set to [nm]. Assuming [A] is correct.");
                 }
@@ -167,7 +166,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     }
     if (settings::general::helper::is_nanometers(unit)) {
         console::print_text("Scaling all q-values by 1/10 to convert from inverse [nm] to inverse [A].");
-        for (unsigned int i = 0; i < dataset->size_rows(); i++) {
+        for (int i = 0; i < dataset->size_rows(); i++) {
             dataset->index(i, 0) /= 10;
         }
         settings::flags::last_parsed_unit = static_cast<char>(settings::general::QUnit::NM);
@@ -175,7 +174,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
 
     // remove all rows outside the specified q-range
     if (settings::axes::clamp_to_qrange) {
-        unsigned int N = dataset->size_rows();
+        int N = dataset->size_rows();
         dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
         if (N != dataset->size_rows()) {
             console::print_text(
@@ -189,7 +188,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     if (dataset->size_rows() > 300) {
         // reread first line
         input.clear();
-        input.seekg(0, input.beg);
+        input.seekg(0, std::ifstream::beg);
         getline(input, line);
 
         // check if file has already been rebinned

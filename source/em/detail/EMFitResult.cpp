@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <em/detail/EMFitResult.h>
+
 #include <utility/Utility.h>
 
 using namespace ausaxs::fitter;

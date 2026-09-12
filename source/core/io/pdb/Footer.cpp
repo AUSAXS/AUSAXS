@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <io/pdb/Footer.h>
+
 #include <utility/StringUtils.h>
 
 using namespace ausaxs;
@@ -19,9 +20,9 @@ void Footer::remove(const std::string& type) {
     auto t = type + std::string(6 - type.size(), ' ');
     std::vector<std::string> new_contents;
     new_contents.reserve(contents.size());
-    for (unsigned int i = 0; i < contents.size(); i++) {
-        if (contents[i].substr(0, 6) != t) {
-            new_contents.push_back(contents[i]);
+    for (const auto& content : contents) {
+        if (content.substr(0, 6) != t) {
+            new_contents.push_back(content);
         }
     }
     contents = std::move(new_contents);

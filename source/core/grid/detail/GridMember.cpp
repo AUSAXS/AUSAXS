@@ -16,13 +16,13 @@ template<grid_member_t T>
 GridMember<T>::GridMember(const GridMember<T>& gm) : atom(gm.atom), loc(gm.loc), expanded_volume(gm.expanded_volume) {}
 
 template<grid_member_t T>
-GridMember<T>::GridMember(const GridMember<T>&& gm) noexcept : atom(std::move(gm.atom)), loc(std::move(gm.loc)), expanded_volume(std::move(gm.expanded_volume)) {}
+GridMember<T>::GridMember(const GridMember<T>&& gm) noexcept : atom(std::move(gm.atom)), loc(gm.loc), expanded_volume(gm.expanded_volume) {}
 
 template<grid_member_t T>
-GridMember<T>::GridMember(const T& atom, Vector3<int> loc) : atom(atom), loc(std::move(loc)) {}
+GridMember<T>::GridMember(const T& atom, Vector3<int> loc) : atom(atom), loc(loc) {}
 
 template<grid_member_t T>
-GridMember<T>::GridMember(T&& atom, Vector3<int> loc) : atom(std::move(atom)), loc(std::move(loc)) {}
+GridMember<T>::GridMember(T&& atom, Vector3<int> loc) : atom(std::move(atom)), loc(loc) {}
 
 template<grid_member_t T>
 Vector3<int>& GridMember<T>::get_bin_loc() {return loc;}

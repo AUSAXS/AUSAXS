@@ -12,10 +12,10 @@ template<>
 search::ArgResult<std::string> search::get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, ParsedArgs::Args>& args, const std::string& default_value) {
     for (const auto& name : names) {
         if (args.contains(name)) {
-            return {args.at(name)[0].str, true};
+            return {.value=args.at(name)[0].str, .found=true};
         }
     }
-    return {default_value, false};
+    return {.value=default_value, .found=false};
 }
 
 template<>
@@ -24,10 +24,10 @@ search::ArgResult<std::vector<std::string>> search::get_arg(std::vector<std::str
         if (args.contains(name)) {
             std::vector<std::string> result;
             for (const auto& arg : args.at(name).args) {result.push_back(arg.str);}
-            return {std::move(result), true};
+            return {.value=std::move(result), .found=true};
         }
     }
-    return {default_value, false};
+    return {.value=default_value, .found=false};
 }
 
 template<>
@@ -35,13 +35,13 @@ search::ArgResult<int> search::get_arg(std::vector<std::string>& names, const st
     for (const auto& name : names) {
         if (args.contains(name)) {
             try {
-                return {std::stoi(args.at(name)[0].str), true};
+                return {.value=std::stoi(args.at(name)[0].str), .found=true};
             } catch (std::exception&) {
                 throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[0].str + "\" cannot be interpreted as an integer.");
             }
         }
     }
-    return {default_value, false};
+    return {.value=default_value, .found=false};
 }
 
 template<>
@@ -54,10 +54,10 @@ search::ArgResult<std::vector<int>> search::get_arg(std::vector<std::string>& na
             } catch (std::exception&) {
                 throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name).args[values.size()].str + "\" cannot be interpreted as an integer.");
             }
-            return {std::move(values), true};
+            return {.value=std::move(values), .found=true};
         }
     }
-    return {default_value, false};
+    return {.value=default_value, .found=false};
 }
 
 template<>
@@ -65,11 +65,11 @@ search::ArgResult<double> search::get_arg(std::vector<std::string>& names, const
     for (const auto& name : names) {
         if (args.contains(name)) {
             try {
-                return {std::stod(args.at(name)[0].str), true};
+                return {.value=std::stod(args.at(name)[0].str), .found=true};
             } catch (std::exception&) {
                 throw except::invalid_argument("SequenceParser::get_arg: \"" + args.at(name)[0].str + "\" cannot be interpreted as a decimal value.");
             }
         }
     }
-    return {default_value, false};
+    return {.value=default_value, .found=false};
 }

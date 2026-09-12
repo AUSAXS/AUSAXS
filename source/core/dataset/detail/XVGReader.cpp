@@ -2,110 +2,113 @@
 // Author: Kristian Lytje
 
 #include <dataset/detail/XVGReader.h>
+
 #include <dataset/Dataset.h>
-#include <dataset/SimpleDataset.h>
-#include <dataset/Dataset2D.h>
-#include <utility/Console.h>
-#include <utility/StringUtils.h>
-#include <utility/Exceptions.h>
 #include <math/Statistics.h>
+#include <settings/Flags.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
-#include <settings/Flags.h>
+#include <utility/Console.h>
+#include <utility/StringUtils.h>
 
-#include <vector>
-#include <string>
 #include <fstream>
+#include <string>
+#include <vector>
 
 using namespace ausaxs;
 
-std::unique_ptr<Dataset> parse_data(std::vector<std::string>&& header, std::vector<unsigned int>&& col_number, std::vector<std::vector<double>>&& row_data, const io::ExistingFile& path, unsigned int expected_cols) {
-    unsigned int mode = stats::mode(col_number);
+namespace {
+    std::unique_ptr<Dataset> parse_data(
+        const std::vector<std::string>& header, const std::vector<int>& col_number, std::vector<std::vector<double>>& row_data, 
+        const io::ExistingFile& path, int expected_cols
+    ) {
+        int mode = stats::mode(col_number);
 
-   // sanity check: comparing the detected number of columns with the header
-    if (!header.empty() && header.back().find("type") != std::string::npos) {
-        std::string type = header.back().substr(6);
-        if (mode == 2) {
-            if (type != "xy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I].");}
-        }
-        else if (mode == 3) {
-            if (type != "xydy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I | Ierr].");}
-        }
-        else if (mode == 4) {
-            if (type != "xydxdy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I | Ierr | qerr].");}
-        }
-    }
-
-    // check that we have at least the expected number of columns
-    if (expected_cols != 0 && mode < expected_cols) {
-        throw except::io_error("XVGReader::parse_data: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
-    }
-
-    // copy the data to the dataset
-    std::unique_ptr<Dataset> dataset;
-    unsigned int count = 0;
-    {
-        // first copy all rows with the most common number of columns to a temporary vector
-        std::vector<std::vector<double>> data_cols;
-        for (unsigned int i = 0; i < row_data.size(); i++) {
-            if (row_data[i].size() != mode) {continue;}     // skip rows with the wrong number of columns
-            if (count++ < settings::axes::skip) {continue;}  // skip the first few rows if requested
-            data_cols.push_back(std::move(row_data[i]));
-        }
-
-        // having too many columns is not a problem, but we should inform the user and then ignore the extra columns
-        if (expected_cols != 0 && mode != expected_cols) {
-            // shorten the data to the expected number of columns
-            for (unsigned int i = 0; i < data_cols.size(); i++) {
-                std::vector<double> row(expected_cols);
-                for (unsigned int j = 0; j < expected_cols; j++) {
-                    row[j] = data_cols[i][j];
-                }
-                data_cols[i] = std::move(row);
+        // sanity check: comparing the detected number of columns with the header
+        if (!header.empty() && header.back().find("type") != std::string::npos) {
+            std::string type = header.back().substr(6);
+            if (mode == 2) {
+                if (type != "xy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I].");}
             }
-            mode = expected_cols;
+            else if (mode == 3) {
+                if (type != "xydy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I | Ierr].");}
+            }
+            else if (mode == 4) {
+                if (type != "xydxdy") {console::print_warning("The column format of the file \"" + path.str() + "\" may be incompatible. Ensure it is of the form [q | I | Ierr | qerr].");}
+            }
         }
 
-        // add the data to the dataset
-        // dataset = std::make_shared<Dataset>(std::move(data_cols));
-        dataset = std::make_unique<Dataset>(0, mode);
-        for (unsigned int i = 0; i < data_cols.size(); i++) {
-            dataset->push_back(data_cols[i]);
+        // check that we have at least the expected number of columns
+        if (expected_cols != 0 && mode < expected_cols) {
+            throw except::io_error("XVGReader::parse_data: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
         }
-    }
 
-    // skip the first few rows if requested
-    if (settings::axes::skip != 0) {
-        console::print_text("Skipped " + std::to_string(count - dataset->size_rows()) + " data points from beginning of file.");
-    }
+        // copy the data to the dataset
+        std::unique_ptr<Dataset> dataset;
+        int count = 0;
+        {
+            // first copy all rows with the most common number of columns to a temporary vector
+            std::vector<std::vector<double>> data_cols;
+            for (auto& row : row_data) {
+                if (static_cast<int>(row.size()) != mode) {continue;}     // skip rows with the wrong number of columns
+                if (count++ < settings::axes::skip) {continue;}  // skip the first few rows if requested
+                data_cols.emplace_back(std::move(row));
+            }
 
-    // verify that at least one row was read correctly
-    if (dataset->empty()) {
-        throw except::io_error("XVGReader::parse_data: No data could be read from the file.");
-    }
+            // having too many columns is not a problem, but we should inform the user and then ignore the extra columns
+            if (expected_cols != 0 && mode != expected_cols) {
+                // shorten the data to the expected number of columns
+                for (auto& col : data_cols) {
+                    std::vector<double> row(expected_cols);
+                    for (int j = 0; j < expected_cols; j++) {
+                        row[j] = col[j];
+                    }
+                    col = std::move(row);
+                }
+                mode = expected_cols;
+            }
 
-    // unit conversion
-    console::print_text("Assuming q is given in units of [nm].");
-    for (unsigned int i = 0; i < dataset->size_rows(); i++) {
-        dataset->index(i, 0) /= 10;
-    }
-    
-    // remove all rows outside the specified q-range
-    if (settings::axes::clamp_to_qrange) {
-        unsigned int N = dataset->size_rows();
-        dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
-        if (N != dataset->size_rows()) {
-            console::print_text(
-                "Removed " + std::to_string(N - dataset->size_rows()) + " data points outside specified q-range "
-                "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(settings::axes::qmax) + "]."
-            );
+            // add the data to the dataset
+            // dataset = std::make_shared<Dataset>(std::move(data_cols));
+            dataset = std::make_unique<Dataset>(0, mode);
+            for (const auto& data_col : data_cols) {
+                dataset->push_back(data_col);
+            }
         }
-    }
 
-    return dataset;
-};
+        // skip the first few rows if requested
+        if (settings::axes::skip != 0) {
+            console::print_text("Skipped " + std::to_string(count - dataset->size_rows()) + " data points from beginning of file.");
+        }
 
-std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
+        // verify that at least one row was read correctly
+        if (dataset->empty()) {
+            throw except::io_error("XVGReader::parse_data: No data could be read from the file.");
+        }
+
+        // unit conversion
+        console::print_text("Assuming q is given in units of [nm].");
+        for (int i = 0; i < dataset->size_rows(); i++) {
+            dataset->index(i, 0) /= 10;
+        }
+        
+        // remove all rows outside the specified q-range
+        if (settings::axes::clamp_to_qrange) {
+            int N = dataset->size_rows();
+            dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
+            if (N != dataset->size_rows()) {
+                console::print_text(
+                    "Removed " + std::to_string(N - dataset->size_rows()) + " data points outside specified q-range "
+                    "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(settings::axes::qmax) + "]."
+                );
+            }
+        }
+
+        return dataset;
+    };
+}
+
+std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& path, int expected_cols) {
     console::print_info("\nReading dataset from \"" + path.str() + "\"");
     console::indent();
 
@@ -116,7 +119,7 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
     std::string line;
     std::vector<std::string> header;
     std::vector<std::vector<double>> row_data;
-    std::vector<unsigned int> col_number;
+    std::vector<int> col_number;
     while(getline(input, line)) {
         if (line.empty()) {continue;}                           // skip empty lines
         if (line[0] == '#') {continue;}                         // skip comments
@@ -128,19 +131,19 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
         // remove empty tokens
         {
             std::vector<std::string> new_tokens;
-            for (unsigned int i = 0; i < tokens.size(); i++) {
-                if (tokens[i].empty()) {
+            for (const auto& token : tokens) {
+                if (token.empty()) {
                     continue;
                 }
-                new_tokens.push_back(tokens[i]);
+                new_tokens.emplace_back(token);
             }
             tokens = std::move(new_tokens);
         }
 
         // check if all tokens are numbers
         bool skip = false;
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
+        for (const auto& token : tokens) {
+            if (token.find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
                 skip = true;
             }
         }
@@ -148,19 +151,19 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
 
         // add values to dataset
         std::vector<double> vals(tokens.size());
-        for (unsigned int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < static_cast<int>(tokens.size()); i++) {
             vals[i] = std::stod(tokens[i]);
         }
         row_data.push_back(vals);
-        col_number.push_back(vals.size());
+        col_number.push_back(static_cast<int>(vals.size()));
     }
 
-    auto dataset = parse_data(std::move(header), std::move(col_number), std::move(row_data), path, expected_cols);
+    auto dataset = parse_data(header, col_number, row_data, path, expected_cols);
     // check if the file is abnormally large
     if (dataset->size_rows() > 300) {
         // reread first line
         input.clear();
-        input.seekg(0, input.beg);
+        input.seekg(0, std::ifstream::beg);
         getline(input, line);
 
         // check if file has already been rebinned
@@ -189,11 +192,11 @@ std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(con
     std::string line;
     std::vector<std::string> header;
     std::vector<std::vector<double>> row_data;
-    std::vector<unsigned int> col_number;
+    std::vector<int> col_number;
     std::vector<std::unique_ptr<Dataset>> datasets;
     while(getline(input, line)) {
         if (line.find("@type") == std::string::npos) {continue;}
-        else {header.push_back(line);}
+        header.emplace_back(line);
 
         while (getline(input, line) && line[0] != '&') {
             // remove leading whitespace
@@ -202,19 +205,19 @@ std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(con
             // remove empty tokens
             {
                 std::vector<std::string> new_tokens;
-                for (unsigned int i = 0; i < tokens.size(); i++) {
-                    if (tokens[i].empty()) {
+                for (const auto& token : tokens) {
+                    if (token.empty()) {
                         continue;
                     }
-                    new_tokens.push_back(tokens[i]);
+                    new_tokens.push_back(token);
                 }
                 tokens = std::move(new_tokens);
             }
 
             // check if all tokens are numbers
             bool skip = false;
-            for (unsigned int i = 0; i < tokens.size(); i++) {
-                if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
+            for (const auto& token : tokens) {
+                if (token.find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
                     skip = true;
                 }
             }
@@ -222,14 +225,14 @@ std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(con
 
             // add values to dataset
             std::vector<double> vals(tokens.size());
-            for (unsigned int i = 0; i < tokens.size(); i++) {
+            for (int i = 0; i < static_cast<int>(tokens.size()); i++) {
                 vals[i] = std::stod(tokens[i]);
             }
             row_data.push_back(vals);
-            col_number.push_back(vals.size());
+            col_number.push_back(static_cast<int>(vals.size()));
         }
 
-        datasets.push_back(parse_data(std::move(header), std::move(col_number), std::move(row_data), path, 0));
+        datasets.push_back(parse_data(header, col_number, row_data, path, 0));
         header.clear();
         row_data.clear();
         col_number.clear();

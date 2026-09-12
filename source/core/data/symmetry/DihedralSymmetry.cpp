@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/DihedralSymmetry.h>
+
 #include <math/MatrixUtils.h>
 
 #include <numbers>

@@ -8,11 +8,11 @@
 
 namespace ausaxs::rigidbody::transform {
     struct BackupBody {
-        BackupBody(const data::Body& body, unsigned int index, const parameter::BodyTransformParametersAbsolute& params) 
-            : index(index), body(body), params(params) 
+        BackupBody(data::Body body, int index, parameter::BodyTransformParametersAbsolute params) 
+            : index(index), body(std::move(body)), params(std::move(params))
         {}
 
-        unsigned int index;
+        int index;
         data::Body body;
         parameter::BodyTransformParametersAbsolute params;
     };

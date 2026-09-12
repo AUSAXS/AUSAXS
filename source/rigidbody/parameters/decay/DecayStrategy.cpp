@@ -2,13 +2,14 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/parameters/decay/DecayStrategy.h>
+
 #include <utility/Console.h>
 
 #include <string>
 
 using namespace ausaxs::rigidbody::parameter::decay;
 
-unsigned int DecayStrategy::next_draw() {
+int DecayStrategy::next_draw() {
     if (iterations != 0 && draws == iterations && !overdrawn_warning_issued) {
         overdrawn_warning_issued = true;
         console::print_warning(

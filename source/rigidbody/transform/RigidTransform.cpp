@@ -2,22 +2,22 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/transform/RigidTransform.h>
-#include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/transform/BackupBody.h>
+
+#include <data/Body.h>
+#include <grid/Grid.h>
+#include <math/MatrixUtils.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/Rigidbody.h>
-#include <grid/detail/GridMember.h>
-#include <grid/Grid.h>
-#include <data/Body.h>
-#include <math/MatrixUtils.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/transform/BackupBody.h>  // IWYU pragma: keep
+#include <rigidbody/transform/TransformGroup.h>
 
 #include <algorithm>
-#include <unordered_set>
 #include <functional>
 #include <numeric>
+#include <unordered_set>
 
 using namespace ausaxs::rigidbody::transform;
 
@@ -26,7 +26,7 @@ RigidTransform::RigidTransform(observer_ptr<Rigidbody> rigidbody) : TransformStr
 RigidTransform::~RigidTransform() = default;
 
 void RigidTransform::apply(
-    parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int ibody
+    const parameter::BodyTransformParametersRelative& par, observer_ptr<const constraints::IDistanceConstraint> constraint, int ibody
 ) {
     auto group = get_connected(constraint);
     backup(group); //? can be move-optimized?
@@ -34,12 +34,11 @@ void RigidTransform::apply(
     // the symmetry deltas were generated from body ibody's own symmetry list, so ibody is the only body they can be applied to. Only one branch of the
     // constraint is transformed, so ibody may well sit outside the group, in which case it needs its own backup entry and grid round-trip - the grid tracks
     // the symmetry copies of every body, so changing them invalidates its contribution. The entry is appended so bodybackup stays parallel to group.bodies.
-    bool symmetry_outside_group = par.symmetry_pars.has_value()
-        && std::find(group.indices.begin(), group.indices.end(), ibody) == group.indices.end();
+    bool symmetry_outside_group = par.symmetry_pars.has_value() && std::ranges::find(group.indices, ibody) == group.indices.end();
 
     // remove bodies from grid since it does not track transforms
-    auto grid = rigidbody->molecule.get_grid();
-    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {grid->remove(*group.bodies[i]);}
+    auto* grid = rigidbody->molecule.get_grid();
+    for (auto & body : group.bodies) {grid->remove(*body);}
     if (symmetry_outside_group) {
         bodybackup.emplace_back(
             rigidbody->molecule.get_body(ibody), ibody, rigidbody->conformation->absolute_parameters.parameters[ibody]
@@ -64,7 +63,7 @@ void RigidTransform::apply(
     // reconstruct bodies from initial conformation using absolute parameters
     if (par.rotation.has_value() || par.translation.has_value()) {
         for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {
-            unsigned int igroup = group.indices[i];
+            int igroup = group.indices[i];
             auto& body_params = rigidbody->conformation->absolute_parameters.parameters[igroup];
             *group.bodies[i] = rigidbody->conformation->initial_conformation[igroup];
             rotate_and_translate(matrix::rotation_matrix(body_params.rotation), body_params.translation, group.bodies[i]->get_cm(), *group.bodies[i]);
@@ -78,13 +77,13 @@ void RigidTransform::apply(
     // re-add bodies and refresh grid
     rigidbody->refresh_grid();
     // refresh_grid may reallocate the grid, so re-fetch the pointer
-    for (int i = 0; i < static_cast<int>(group.bodies.size()); ++i) {rigidbody->molecule.get_grid()->add(*group.bodies[i]);}
+    for (auto & bodie : group.bodies) {rigidbody->molecule.get_grid()->add(*bodie);}
     if (symmetry_outside_group) {rigidbody->molecule.get_grid()->add(rigidbody->molecule.get_body(ibody));}
 }
 
 TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDistanceConstraint> pivot) {
     // explore the graph of bodies connected to 'ibody'
-    std::function<void(unsigned int, std::unordered_set<unsigned int>&)> explore_branch = [&] (unsigned int ibody, std::unordered_set<unsigned int>& indices) {
+    std::function<void(int, std::unordered_set<int>&)> explore_branch = [&] (int ibody, std::unordered_set<int>& indices) {
         // if we've already explored this branch, return
         if (indices.contains(ibody)) {
             return;
@@ -94,7 +93,7 @@ TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDi
 
         // explore all bodies connected to this body
         for (const auto& constraint : rigidbody->constraints->get_body_constraints(ibody)) {
-            if (constraint->ibody1 == static_cast<int>(ibody)) {
+            if (constraint->ibody1 == ibody) {
                 explore_branch(constraint->ibody2, indices);
             } else {
                 explore_branch(constraint->ibody1, indices);
@@ -104,20 +103,20 @@ TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDi
     };
 
     // explore all branches
-    std::unordered_set<unsigned int> _path1({static_cast<unsigned int>(pivot->ibody2)});
-    std::unordered_set<unsigned int> _path2({static_cast<unsigned int>(pivot->ibody1)});
+    std::unordered_set<int> _path1({static_cast<int>(pivot->ibody2)});
+    std::unordered_set<int> _path2({static_cast<int>(pivot->ibody1)});
     explore_branch(pivot->ibody1, _path1);
     explore_branch(pivot->ibody2, _path2);
-    _path1.erase(static_cast<unsigned int>(pivot->ibody2));
-    _path2.erase(static_cast<unsigned int>(pivot->ibody1));
-    std::vector<unsigned int> path1(_path1.begin(), _path1.end());
-    std::vector<unsigned int> path2(_path2.begin(), _path2.end());
+    _path1.erase(static_cast<int>(pivot->ibody2));
+    _path2.erase(static_cast<int>(pivot->ibody1));
+    std::vector<int> path1(_path1.begin(), _path1.end());
+    std::vector<int> path2(_path2.begin(), _path2.end());
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size() && path1 == path2) {
         return TransformGroup(
-            {&rigidbody->molecule.get_body(static_cast<unsigned int>(pivot->ibody1))}, 
-            {static_cast<unsigned int>(pivot->ibody1)}, 
+            {&rigidbody->molecule.get_body(static_cast<int>(pivot->ibody1))}, 
+            {static_cast<int>(pivot->ibody1)}, 
             pivot, 
             pivot->get_atom1().coordinates()
         );
@@ -129,21 +128,20 @@ TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDi
     for (const auto& ibody : path2) {bodies2.push_back(&rigidbody->molecule.get_body(ibody));}
 
     // check if the system is overconstrained
-    if (0.5*rigidbody->molecule.size_body() < path1.size() && 0.5*rigidbody->molecule.size_body() < path2.size()) {
+    if (0.5*rigidbody->molecule.size_body() < static_cast<double>(path1.size()) && 0.5*rigidbody->molecule.size_body() < static_cast<double>(path2.size())) {
         throw except::size_error("RigidTransform::get_connected: The system is overconstrained. Use a different TransformStrategy.");
     }
 
-    unsigned int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
+    int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (int sum, int ibody) {
         return sum + rigidbody->molecule.get_body(ibody).size_atom();
     });
-    unsigned int N2 = std::accumulate(path2.begin(), path2.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
+    int N2 = std::accumulate(path2.begin(), path2.end(), 0, [&] (int sum, int ibody) {
         return sum + rigidbody->molecule.get_body(ibody).size_atom();
     });
 
     // return the path with the least atoms, since that will be the cheapest to transform
     if (N1 < N2) {
-        return TransformGroup(std::move(bodies1), std::move(path1), pivot, pivot->get_atom2().coordinates());
-    } else {
-        return TransformGroup(std::move(bodies2), std::move(path2), pivot, pivot->get_atom1().coordinates());
+        return {std::move(bodies1), std::move(path1), pivot, pivot->get_atom2().coordinates()};
     }
+    return {std::move(bodies2), std::move(path2), pivot, pivot->get_atom1().coordinates()};
 }

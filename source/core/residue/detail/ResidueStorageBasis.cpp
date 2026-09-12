@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <residue/detail/ResidueStorageBasis.h>
+
 #include <settings/GeneralSettings.h>
 
-#include <string>
 #include <fstream>
-
-namespace ausaxs::residue::detail {
-    void write_master_basis();
-}
+#include <string>
 
 void ausaxs::residue::detail::write_master_basis() {
     std::string basis = R"(
@@ -325,7 +323,6 @@ cl cl 0
 CIP
 na na 0
 )";
-
     std::string path = settings::general::residue_folder;
     std::ofstream file(path + "master.dat");
     file << basis;

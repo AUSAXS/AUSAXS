@@ -2,17 +2,19 @@
 // Author: Kristian Lytje
 
 #include <fitter/SmartFitter.h>
+
+#include <constants/ConstantsFitParameters.h>
+#include <dataset/SimpleDataset.h>
 #include <fitter/FitResult.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <dataset/SimpleDataset.h>
 #include <math/CubicSpline.h>
-#include <mini/All.h>
+#include <mini/MinimizerFactory.h>
 #include <settings/FitSettings.h>
-#include <constants/ConstantsFitParameters.h>
 #include <utility/Console.h>
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::fitter;
@@ -20,9 +22,10 @@ using namespace ausaxs::fitter;
 namespace {
     void warn_if_parameter_on_bound(const std::vector<mini::Parameter>& guess, const mini::Result& res) {
         constexpr double rel_tol = 1e-3;    // fraction of the allowed range counted as "on the bound"
-        for (unsigned int i = 0; i < guess.size(); ++i) {
-            if (!guess[i].has_bounds()) {continue;}
-            const auto& bounds = guess[i].bounds.value();
+        for (int i = 0; i < static_cast<int>(guess.size()); ++i) {
+            const auto& param = guess[i];
+            if (!param.bounds.has_value()) {continue;}
+            const auto& bounds = param.bounds.value();
             double span = bounds.span();
             if (!(0 < span)) {continue;}
             double value = res.get_parameter(i).value;
@@ -31,7 +34,7 @@ namespace {
             bool on_upper = bounds.max - tol <= value;
             if (!on_lower && !on_upper) {continue;}
             console::print_warning(
-                "Warning: the fitted parameter \"" + guess[i].name + "\" converged to its " + (on_lower ? "lower" : "upper") + 
+                "Warning: the fitted parameter \"" + param.name + "\" converged to its " + (on_lower ? "lower" : "upper") + 
                 " bound (" + std::to_string(value) + " in [" + std::to_string(bounds.min) + ", " + std::to_string(bounds.max) + "])."
             );
         }
@@ -53,11 +56,11 @@ SmartFitter::EnabledFitParameters SmartFitter::EnabledFitParameters::initialize_
     };
 }
 
-unsigned int SmartFitter::EnabledFitParameters::get_enabled_pars_count() const {return hydration+excluded_volume+solvent_density+atomic_debye_waller+exv_debye_waller;}
+int SmartFitter::EnabledFitParameters::get_enabled_pars_count() const {return static_cast<int>(hydration)+static_cast<int>(excluded_volume)+static_cast<int>(solvent_density)+static_cast<int>(atomic_debye_waller)+static_cast<int>(exv_debye_waller);}
 
-void SmartFitter::EnabledFitParameters::apply_pars(const std::vector<double>& params, observer_ptr<hist::DistanceHistogram> model) {
+void SmartFitter::EnabledFitParameters::apply_pars(const std::vector<double>& params, observer_ptr<hist::DistanceHistogram> model) const {
     assert(
-        params.size() == get_enabled_pars_count()
+        static_cast<int>(params.size()) == get_enabled_pars_count()
         && "SmartFitter::EnabledFitParameters::apply_pars: Invalid number of parameters."
     );
 
@@ -96,74 +99,66 @@ void SmartFitter::EnabledFitParameters::validate_model(observer_ptr<hist::Distan
     }
 }
 
-SmartFitter::SmartFitter(const SimpleDataset& data) : data(data) {
+SmartFitter::SmartFitter(SimpleDataset data) : data(std::move(data)) {
     enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();
     solvent_density_warned = false;
 }
 
-SmartFitter::SmartFitter(const SimpleDataset& saxs, std::unique_ptr<hist::DistanceHistogram> h) : SmartFitter(saxs) {
+SmartFitter::SmartFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> h) : SmartFitter(data) {
     enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();
     set_model(std::move(h));
     solvent_density_warned = false;
 }
 
-observer_ptr<hist::ICompositeDistanceHistogramExv> cast_exv(observer_ptr<hist::DistanceHistogram> hist) {
-    return static_cast<hist::ICompositeDistanceHistogramExv*>(hist);
-}
+namespace {
+    observer_ptr<hist::ICompositeDistanceHistogramExv> cast_exv(observer_ptr<hist::DistanceHistogram> hist) {
+        return static_cast<hist::ICompositeDistanceHistogramExv*>(hist);
+    }
 
-observer_ptr<hist::ICompositeDistanceHistogram> cast_h(observer_ptr<hist::DistanceHistogram> hist) {
-    return static_cast<hist::ICompositeDistanceHistogram*>(hist);
+    observer_ptr<hist::ICompositeDistanceHistogram> cast_h(observer_ptr<hist::DistanceHistogram> hist) {
+        return static_cast<hist::ICompositeDistanceHistogram*>(hist);
+    }
 }
 
 std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     std::vector<mini::Parameter> guess;
     if (enabled_fit_parameters.hydration) {
         guess.emplace_back(
-            mini::Parameter{
-                constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), 
-                1, 
-                cast_h(model.get())->get_water_scaling_factor_limits()
-            }
+            constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), 
+            1, 
+            cast_h(model.get())->get_water_scaling_factor_limits()
         );
     }
 
     if (enabled_fit_parameters.excluded_volume) {
         guess.emplace_back(
-            mini::Parameter{
-                constants::fit::to_string(constants::fit::Parameters::SCALING_EXV), 
-                1, 
-                cast_exv(model.get())->get_excluded_volume_scaling_factor_limits()
-            }
+            constants::fit::to_string(constants::fit::Parameters::SCALING_EXV), 
+            1, 
+            cast_exv(model.get())->get_excluded_volume_scaling_factor_limits()
         );
     }
 
     if (enabled_fit_parameters.solvent_density) {
         guess.emplace_back(
-            mini::Parameter{
-                constants::fit::to_string(constants::fit::Parameters::SCALING_RHO), 
-                1, 
-                cast_exv(model.get())->get_solvent_density_scaling_factor_limits()
-            }
+            constants::fit::to_string(constants::fit::Parameters::SCALING_RHO), 
+            1, 
+            cast_exv(model.get())->get_solvent_density_scaling_factor_limits()
         );
     }
 
     if (enabled_fit_parameters.atomic_debye_waller) {
         guess.emplace_back(
-            mini::Parameter{
-                constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC), 
-                0, 
-                cast_exv(model.get())->get_debye_waller_factor_limits()
-            }
+            constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC), 
+            0, 
+            cast_exv(model.get())->get_debye_waller_factor_limits()
         );
     }
 
     if (enabled_fit_parameters.exv_debye_waller) {
         guess.emplace_back(
-            mini::Parameter{
-                constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV), 
-                0, 
-                cast_exv(model.get())->get_debye_waller_factor_limits()
-            }
+            constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV), 
+            0, 
+            cast_exv(model.get())->get_debye_waller_factor_limits()
         );
     }
     return guess;
@@ -171,11 +166,11 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
 
 fitter::detail::LinearLeastSquares SmartFitter::prepare_linear_fitter(const std::vector<double>& params) {
     assert(
-        params.size() == enabled_fit_parameters.get_enabled_pars_count()
+        static_cast<int>(params.size()) == enabled_fit_parameters.get_enabled_pars_count()
         && "SmartFitter::get_model_curve: Invalid number of parameters."
     );
     enabled_fit_parameters.apply_pars(params, model.get());
-    return detail::LinearLeastSquares(splice(model->debye_transform().get_counts()), data.y(), data.yerr());
+    return {splice(model->debye_transform().get_counts()), data.y(), data.yerr()};
 }
 
 std::unique_ptr<FitResult> SmartFitter::fit() {
@@ -188,7 +183,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
         return linear_fitter.fit();    
     }
 
-    auto f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
+    auto f = [this] (const std::vector<double>& params) {return chi2(params);};
     auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
     auto res = mini->minimize();
     warn_if_parameter_on_bound(guess, res);
@@ -214,7 +209,7 @@ std::vector<double> SmartFitter::fit_params_only() {
     enabled_fit_parameters.validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
-    std::function<double(std::vector<double>)> f = std::bind(&SmartFitter::chi2, this, std::placeholders::_1);
+    std::function<double(std::vector<double>)> f = [this](auto && PH1) { return chi2(std::forward<decltype(PH1)>(PH1)); };
     auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
     return mini->minimize().get_parameter_values();
 }
@@ -237,24 +232,24 @@ SimpleDataset SmartFitter::get_data() const {
     return data;
 }
 
-unsigned int SmartFitter::size() const {
+int SmartFitter::size() const {
     return data.size();
 }
 
-unsigned int SmartFitter::dof() const {
+int SmartFitter::dof() const {
     return data.size() - 2 - enabled_fit_parameters.get_enabled_pars_count();
 }
 
-void SmartFitter::set_guess(std::vector<mini::Parameter>&& guess) {
-    if (unsigned int N = enabled_fit_parameters.get_enabled_pars_count(); guess.size() != N) {
+void SmartFitter::set_guess(const std::vector<mini::Parameter>& guess) {
+    if (int N = enabled_fit_parameters.get_enabled_pars_count(); static_cast<int>(guess.size()) != N) {
         throw except::invalid_argument("SmartFitter::set_guess: Invalid number of parameters. Got " + std::to_string(guess.size()) + ", expected " + std::to_string(N) + ".");
     }
 
     // validate and reorder the parameters
     // note: 'order' pairs the canonical slot of each supplied parameter with its index in the input,
     //       so that sorting it yields the permutation taking the input into canonical order
-    std::vector<std::pair<int, unsigned int>> order;
-    for (unsigned int i = 0; i < guess.size(); ++i) {
+    std::vector<std::pair<int, int>> order;
+    for (int i = 0; i < static_cast<int>(guess.size()); ++i) {
         if (guess[i].name == constants::fit::to_string(constants::fit::Parameters::SCALING_WATER)) {
             if (!enabled_fit_parameters.hydration) {throw except::invalid_argument("SmartFitter::set_guess: Cannot set hydration scaling factor when hydration is disabled.");}
             order.emplace_back(0, i);
@@ -274,15 +269,15 @@ void SmartFitter::set_guess(std::vector<mini::Parameter>&& guess) {
             throw except::invalid_argument("SmartFitter::set_guess: Unknown parameter name: \"" + guess[i].name + "\"");
         }
     }
-    std::sort(order.begin(), order.end());
+    std::ranges::sort(order);
     assert(
-        std::adjacent_find(order.begin(), order.end(), [] (const auto& a, const auto& b) {return a.first == b.first;}) == order.end()
+        std::ranges::adjacent_find(order, [] (const auto& a, const auto& b) {return a.first == b.first;}) == order.end()
         && "SmartFitter::set_guess: The same parameter was supplied more than once."
     );
 
     this->guess.clear();
     this->guess.reserve(order.size());
-    std::for_each(order.begin(), order.end(), [&] (const auto& o) {this->guess.push_back(std::move(guess[o.second]));});
+    std::ranges::for_each(order, [&] (const auto& o) {this->guess.push_back(std::move(guess[o.second]));});
 }
 
 void SmartFitter::set_model(std::unique_ptr<hist::DistanceHistogram> h) {
@@ -291,8 +286,8 @@ void SmartFitter::set_model(std::unique_ptr<hist::DistanceHistogram> h) {
 
 std::vector<double> SmartFitter::splice(const std::vector<double>& ym) const {
     std::vector<double> Im(data.size()); // spliced model values
-    math::CubicSpline s(model->get_q_axis(), ym);
-    for (unsigned int i = 0; i < data.size(); ++i) {
+    math::CubicSpline s(hist::DistanceHistogram::get_q_axis(), ym);
+    for (int i = 0; i < data.size(); ++i) {
         Im[i] = s.spline(data.x(i));
     }
     return Im;

@@ -4,19 +4,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <rigidbody/selection/SymmetryTargets.h>
-#include <rigidbody/selection/RandomBodySelect.h>
-#include <rigidbody/selection/SequentialBodySelect.h>
-#include <rigidbody/selection/ManualSelect.h>
-#include <rigidbody/selection/ParameterMask.h>
-#include <rigidbody/selection/ParameterMaskStrategy.h>
-#include <rigidbody/Rigidbody.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <data/symmetry/BodySymmetryFacade.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <data/symmetry/ReferenceSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/selection/ManualSelect.h>
+#include <rigidbody/selection/ParameterMask.h>
+#include <rigidbody/selection/ParameterMaskStrategy.h>
+#include <rigidbody/selection/RandomBodySelect.h>
+#include <rigidbody/selection/SequentialBodySelect.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <settings/All.h>
 
 #include <memory>
@@ -34,6 +33,7 @@ namespace {
         settings::molecule::implicit_hydrogens = false;
 
         std::vector<Body> bodies;
+        bodies.reserve(nbodies);
         for (int i = 0; i < nbodies; ++i) {
             bodies.emplace_back(std::vector{AtomFF({5.0*i, 0, 0}, form_factor::form_factor_t::C)});
         }
@@ -48,7 +48,7 @@ namespace {
         rb.molecule.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(
             symmetry::get(base), participants, std::vector<int>(participants.size(), 0), &rb.molecule
         ));
-        for (std::size_t b = 1; b < rb.molecule.size_body(); ++b) {
+        for (int b = 1; b < rb.molecule.size_body(); ++b) {
             rb.molecule.get_body(b).symmetry().add(std::make_unique<symmetry::ReferenceSymmetryView>(&rb.molecule, 0, 0));
         }
         rb.symmetry_targets->invalidate();
@@ -81,15 +81,15 @@ TEST_CASE("SymmetryTargets: only the owning slot of a shared symmetry is drivabl
     share_symmetry(*rb, symmetry::type::c2);
 
     // every body declares one symmetry, but only body 0 owns it
-    for (std::size_t b = 0; b < rb->molecule.size_body(); ++b) {
+    for (int b = 0; b < rb->molecule.size_body(); ++b) {
         REQUIRE(rb->molecule.get_body(b).size_symmetry() == 1);
     }
     REQUIRE(rb->symmetry_targets->size() == 1);
     CHECK(rb->symmetry_targets->all()[0].ibody == 0);
     CHECK(rb->symmetry_targets->all()[0].isymmetry == 0);
 
-    CHECK(rb->symmetry_targets->body_targets(0) == std::vector<unsigned int>{0});
-    for (unsigned int b = 1; b < rb->molecule.size_body(); ++b) {
+    CHECK(rb->symmetry_targets->body_targets(0) == std::vector<int>{0});
+    for (int b = 1; b < rb->molecule.size_body(); ++b) {
         CHECK(rb->symmetry_targets->body_targets(b).empty());
     }
 }
@@ -169,7 +169,7 @@ TEST_CASE("SymmetryTargets::resolve maps a shared symmetry onto the body owning 
     }
 
     SECTION("every participant resolves to the owner, so any of their names reaches the same parameters") {
-        for (unsigned int b = 1; b < rb->molecule.size_body(); ++b) {
+        for (int b = 1; b < rb->molecule.size_body(); ++b) {
             auto target = rb->symmetry_targets->resolve(b, 0);
             REQUIRE(target.has_value());
             CHECK(target->ibody == 0);
@@ -188,7 +188,7 @@ TEST_CASE("ManualSelect: naming a shared symmetry through any participant drives
     share_symmetry(*rb, symmetry::type::c2);
 
     // b2s1 / b2s1r2 resolve to {body 1, symmetry 0}, which is only a view; the parameters live on body 0
-    auto named_through = GENERATE(0u, 1u, 2u);
+    auto named_through = GENERATE(0, 1, 2);
     ManualSelect selector(rb.get(), named_through, 0);
     selector.set_mask_strategy(std::make_unique<SymmetryOnlyMaskStrategy>());
 

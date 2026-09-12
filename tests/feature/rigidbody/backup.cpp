@@ -1,19 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/BodySplitter.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
-#include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/transform/TransformStrategy.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/IDistanceConstraint.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <math/MatrixUtils.h>
+#include <rigidbody/BodySplitter.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>  // IWYU pragma: keep
+#include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -30,7 +29,7 @@ TEST_CASE("Backup: Parameters restored after undo") {
     rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
     
-    unsigned int ibody = 0;
+    int ibody = 0;
     auto& transformer = rigidbody.transformer;
     auto& param_gen = rigidbody.parameter_generator;
 
@@ -41,7 +40,7 @@ TEST_CASE("Backup: Parameters restored after undo") {
 
     // Apply transformation
     auto new_params = param_gen->next(ibody);
-    transformer->apply(std::move(new_params), ibody);
+    transformer->apply(new_params, ibody);
     transformer->undo();
 
     // Verify parameters were restored
@@ -68,13 +67,13 @@ TEST_CASE("Backup: Body positions match parameters after transformation") {
     rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
 
-    unsigned int ibody = 0;
+    int ibody = 0;
     auto& transformer = rigidbody.transformer;
     auto& param_gen = rigidbody.parameter_generator;
 
     // Apply transformation
     auto new_params = param_gen->next(ibody);
-    transformer->apply(std::move(new_params), ibody);
+    transformer->apply(new_params, ibody);
 
     // Reconstruct body from original + parameters
     auto& original_body = rigidbody.conformation->initial_conformation[ibody];
@@ -90,7 +89,7 @@ TEST_CASE("Backup: Body positions match parameters after transformation") {
 
     INFO("Body positions should match reconstruction from original + parameters");
     REQUIRE(actual_body.size_atom() == reconstructed_body.size_atom());
-    for (unsigned int i = 0; i < actual_body.size_atom(); ++i) {
+    for (int i = 0; i < actual_body.size_atom(); ++i) {
         auto& actual_atom = actual_body.get_atom(i);
         auto& reconstructed_atom = reconstructed_body.get_atom(i);
 
@@ -113,9 +112,9 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         rigidbody.molecule.generate_new_hydration();
 
-        unsigned int ibody = 0;
+        int ibody = 0;
         auto& transformer = rigidbody.transformer;
-        auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
+        auto* constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
         // Store original parameters
         auto original_params = rigidbody.conformation->absolute_parameters.parameters;
@@ -132,13 +131,13 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         Vector3<double> pivot = constraint->get_atom2().coordinates();
         auto expected_translation = R_delta * (original_params[ibody].translation - pivot) + pivot + delta_translation;
         
-        transformer->apply(std::move(delta_params), constraint, ibody);
+        transformer->apply(delta_params, constraint, ibody);
 
         // Verify the selected body's parameters were updated
         auto& updated_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
         INFO("SingleTransform should update only the selected body's parameters");
-        for (unsigned int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 3; ++i) {
             if (i == ibody) continue;
             auto& other_params = rigidbody.conformation->absolute_parameters.parameters[i];
             REQUIRE((other_params.rotation == original_params[i].rotation && other_params.translation == original_params[i].translation));
@@ -164,21 +163,21 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         rigidbody.molecule.generate_new_hydration();
 
-        unsigned int ibody = 1; // Middle body
+        int ibody = 1; // Middle body
         auto& transformer = rigidbody.transformer;
         auto& param_gen = rigidbody.parameter_generator;
-        auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
+        auto* constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
 
         // Store original parameters for all bodies
         std::vector<rigidbody::parameter::BodyTransformParametersAbsolute> original_params = rigidbody.conformation->absolute_parameters.parameters;
 
         // Apply rigid transformation
         auto new_params = param_gen->next(ibody);
-        transformer->apply(std::move(new_params), constraint, ibody);
+        transformer->apply(new_params, constraint, ibody);
 
         // At least one body should have updated parameters
         bool any_updated = false;
-        for (unsigned int i = 0; i < rigidbody.molecule.size_body(); ++i) {
+        for (int i = 0; i < rigidbody.molecule.size_body(); ++i) {
             auto& updated = rigidbody.conformation->absolute_parameters.parameters[i];
             auto& original = original_params[i];
 
@@ -203,7 +202,7 @@ TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
     rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     rigidbody.molecule.generate_new_hydration();
 
-    unsigned int ibody = 0;
+    int ibody = 0;
     auto& transformer = rigidbody.transformer;
     auto& param_gen = rigidbody.parameter_generator;
 
@@ -213,7 +212,7 @@ TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
 
     // Apply transformation
     auto new_params = param_gen->next(ibody);
-    transformer->apply(std::move(new_params), ibody);
+    transformer->apply(new_params, ibody);
     auto state1_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
     // Verify transformation happened
@@ -233,7 +232,7 @@ TEST_CASE("Backup: Apply-undo-apply cycle maintains consistency") {
 
     // Apply a new transformation
     auto new_params2 = param_gen->next(ibody);
-    transformer->apply(std::move(new_params2), ibody);
+    transformer->apply(new_params2, ibody);
     auto state2_params = rigidbody.conformation->absolute_parameters.parameters[ibody];
 
     INFO("After undo and new apply, we should be in a different state");

@@ -1,11 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <fitter/FitReporter.h>
-#include <plots/PlotOptions.h>
 #include <plots/PlotDataset.h>
-#include <utility/Utility.h>
-#include <utility/StringUtils.h>
-#include <settings/GeneralSettings.h>
-#include <plots/All.h>
+#include <plots/PlotOptions.h>
 
 #include <support/temp_file.h>
 
@@ -13,7 +9,7 @@ using namespace ausaxs;
 
 TEST_CASE("fitreporter", "[manual]") {
     fitter::FitResult fit;
-    fit.status = true;
+    fit.status = 1;
     fit.fevals = 100;
     fit.fval = 1000;
     fit.dof = 3;
@@ -30,7 +26,7 @@ TEST_CASE("fitreporter", "[manual]") {
 
     SECTION("Multi") {
         fitter::FitResult fit2;
-        fit.status = false;
+        fit.status = 0;
         fit2.fevals = 20;
         fit2.fval = 200;
         fit2.dof = 6;

@@ -2,11 +2,13 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/DistanceConstraintFunctions.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/constraints/DistanceConstraintFunctions.h>
 
 #include <array>
+#include <cassert>
 #include <limits>
 #include <optional>
 
@@ -17,9 +19,13 @@ namespace {
     // Indices of the first and last C-alpha atoms of a body, i.e. its terminal backbone atoms. A backbone bond can only ever attach at these, 
     // so they are the only selection candidates. Returns {-1, -1} if the body contains no C-alpha atoms.
     std::pair<int, int> terminal_calphas(const data::Body& body) {
-        const auto& backbone = *body.get_metadata()->backbone;
+        const auto& md = body.get_metadata();
+        assert(md.has_value() && "terminal_calphas: the body must carry metadata.");
+        const auto& field = md->backbone;
+        assert(field.has_value() && "terminal_calphas: the body must carry backbone metadata.");
+        const auto& backbone = *field;
         int first = -1, last = -1;
-        for (int i = 0; i < static_cast<int>(body.size_atom()); ++i) {
+        for (int i = 0; i < body.size_atom(); ++i) {
             if (backbone[i] != data::backbone_t::c_alpha) {continue;}
             if (first == -1) {first = i;}
             last = i;
@@ -28,7 +34,7 @@ namespace {
     }
 
     // Residue sequence id of atom i, if sequence metadata is available for this body.
-    std::optional<int> residue_seq(const data::Body& body, unsigned int i) {
+    std::optional<int> residue_seq(const data::Body& body, int i) {
         const auto& md = body.get_metadata();
         if (md && md->residue_seq) {return (*md->residue_seq)[i];}
         return std::nullopt;
@@ -71,7 +77,10 @@ namespace {
             double distance = distance_between(molecule, ibody1, i, ibody2, j);
             bool sequential = false;
             if (have_seq) {
-                int s1 = *residue_seq(body1, i), s2 = *residue_seq(body2, j);
+                // have_seq was established from the endpoints of these same two bodies, and the metadata is per-body, so both are engaged here.
+                auto seq1 = residue_seq(body1, i), seq2 = residue_seq(body2, j);
+                assert(seq1.has_value() && seq2.has_value() && "find_bond: residue metadata is per-body, so it cannot vanish between two atoms of one body.");
+                int s1 = *seq1, s2 = *seq2;
                 sequential = (s1 - s2 == 1 || s2 - s1 == 1);
             }
             if ((have_seq && !sequential) || distance >= best_distance) {continue;}
@@ -108,8 +117,8 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
         case BondSearch::Failure::NotAdjacent:
             throw except::invalid_argument("DistanceConstraintBond::DistanceConstraintBond: The two bodies are not backbone-adjacent; no sequential C-alpha pair could be found!");
         case BondSearch::Failure::TooFar: {
-            auto& atom1 = body1.get_atom(result.iatom1);
-            auto& atom2 = body2.get_atom(result.iatom2);
+            const auto& atom1 = body1.get_atom(result.iatom1);
+            const auto& atom2 = body2.get_atom(result.iatom2);
             throw except::invalid_argument(
                 "DistanceConstraint::DistanceConstraint: The atoms being constrained are too far apart!\n"
                 "Atom 1: " + form_factor::to_string(atom1.form_factor_type()) + " in body " + std::to_string(ibody1) + " at " + atom1.coordinates().to_string() + "\n"

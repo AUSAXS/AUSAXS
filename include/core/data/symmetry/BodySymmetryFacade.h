@@ -6,11 +6,11 @@
 #include <data/DataFwd.h>
 #include <data/detail/SimpleBody.h>
 #include <data/symmetry/ISymmetry.h>
-#include <data/symmetry/SymmetryStorage.h>
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <utility/observer_ptr.h>
+#include <data/symmetry/SymmetryStorage.h>
 #include <io/IOFwd.h>
 #include <math/Matrix.h>
+#include <utility/observer_ptr.h>
 
 //? GCC and probably also Clang do not like how this class is used as a temporary front for access into the symmetries
 //? of a body. Specifically, the dangling reference warning is triggered by the chain 'body->symmetry()->get()'
@@ -54,18 +54,18 @@ namespace ausaxs::symmetry::detail {
              * @brief Get the symmetry at the specified index.
              *        This will also mark the symmetry as modified. Use the const version to avoid this signal. 
              */
-            [[nodiscard]] observer_ptr<symmetry::ISymmetry> get(unsigned int index) requires (NONCONST);
+            [[nodiscard]] observer_ptr<symmetry::ISymmetry> get(int index) requires (NONCONST);
 
             /**
              * @brief Get the symmetry at the specified index.
              */
-            [[nodiscard]] observer_ptr<const symmetry::ISymmetry> get(unsigned int index) const;
+            [[nodiscard]] observer_ptr<const symmetry::ISymmetry> get(int index) const;
 
             /**
              * @brief Get the transform generating copy @p rep of symmetry @p index from the body's current coordinates.
              *        This accounts for possible changes to the body's orientation since the symmetry was defined.
              */
-            [[nodiscard]] symmetry::AffineTransform get_transform(unsigned int index, const Vector3<double>& cm, int rep = 1) const;
+            [[nodiscard]] symmetry::AffineTransform get_transform(int index, const Vector3<double>& cm, int rep = 1) const;
 
             /**
              * @brief Tell the symmetries which orientation their parameters are relative to.
@@ -94,12 +94,12 @@ namespace ausaxs::symmetry::detail {
             /**
              * @brief Get the total number of atoms in the body, including all symmetries.
              */
-            std::size_t size_atom_total() const; 
+            int size_atom_total() const; 
 
             /**
              * @brief Get the total number of water molecules in the body, including all symmetries.
              */
-            std::size_t size_water_total() const;
+            int size_water_total() const;
 
             /**
              * @brief Set the symmetry storage object.

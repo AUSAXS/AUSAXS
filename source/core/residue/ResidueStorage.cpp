@@ -2,20 +2,21 @@
 // Author: Kristian Lytje
 
 #include <residue/ResidueStorage.h>
-#include <residue/detail/ResidueMap.h>
-#include <residue/detail/InvalidResidueMap.h>
-#include <residue/detail/ResidueStorageBasis.h>
-#include <io/ExistingFile.h>
-#include <utility/Curl.h>
-#include <utility/Console.h>
-#include <settings/GeneralSettings.h>
-#include <constants/Constants.h>
 
-#include <fstream>
+#include <constants/Constants.h>
+#include <io/ExistingFile.h>
+#include <residue/detail/InvalidResidueMap.h>
+#include <residue/detail/ResidueMap.h>
+#include <residue/detail/ResidueStorageBasis.h>
+#include <settings/GeneralSettings.h>
+#include <utility/Console.h>
+#include <utility/Curl.h>
+
 #include <filesystem>
-#include <unordered_map>
-#include <regex>
+#include <fstream>
 #include <iostream>
+#include <regex>
+#include <unordered_map>
 
 using namespace ausaxs;
 using namespace ausaxs::residue;
@@ -25,8 +26,8 @@ ResidueStorage::ResidueStorage() = default;
 
 ResidueStorage::~ResidueStorage() = default;
 
-void ResidueStorage::insert(const std::string& name, const ResidueMap& residue) {
-    data.emplace(name, residue);
+void ResidueStorage::insert(const std::string& name, ResidueMap&& residue) {
+    data.emplace(name, std::move(residue));
 }
 
 bool ResidueStorage::contains(const std::string& name) {
@@ -36,7 +37,7 @@ bool ResidueStorage::contains(const std::string& name) {
 
 ResidueMap& ResidueStorage::get(const std::string& name) {
     if (!initialized) {initialize();}
-    if (data.find(name) == data.end()) {
+    if (!data.contains(name)) {
         bool downloaded = false;
 
         // small cache to avoid spamming the console with the same download
@@ -75,32 +76,31 @@ void ResidueStorage::initialize() {
         std::getline(file, line);
 
         // skip until we reach the start of a residue
-        if (line.find("#") == std::string::npos) {
+        if (line.find('#') == std::string::npos) {
             continue;
-        } else {
-            // the line following the # is the name of the residue
-            std::getline(file, line);
-            std::string residue = line;
-
-            // prepare map
-            std::unordered_map<AtomKey, int> map;
-            while (file.peek() != EOF) {
-                std::getline(file, line);
-                // stop if we reach the start of a new residue
-                if (line.empty() || line.find("#") != std::string::npos) {
-                    break;
-                }
-
-                // lines are of the form "element atom hydrogens"
-                std::vector<std::string> tokens = utility::split(line, " \n\r");
-                if (tokens.size() != 3) {throw except::io_error("ResidueStorage::initialize: Invalid line in master file: " + line + ". Perhaps the file is corrupted. Delete it to regenerate.");}
-                std::string element = tokens[0];
-                std::string atom = tokens[1];
-                int hydrogens = std::stoi(tokens[2]);
-                map.emplace(AtomKey(atom, constants::symbols::parse_element_string(element)), hydrogens);
-            }
-            insert(residue, std::move(map));
         }
+        // the line following the # is the name of the residue
+        std::getline(file, line);
+        std::string residue = line;
+
+        // prepare map
+        std::unordered_map<AtomKey, int> map;
+        while (file.peek() != EOF) {
+            std::getline(file, line);
+            // stop if we reach the start of a new residue
+            if (line.empty() || line.find('#') != std::string::npos) {
+                break;
+            }
+
+            // lines are of the form "element atom hydrogens"
+            std::vector<std::string> tokens = utility::split(line, " \n\r");
+            if (tokens.size() != 3) {throw except::io_error("ResidueStorage::initialize: Invalid line in master file: " + line + ". Perhaps the file is corrupted. Delete it to regenerate.");}
+            const std::string& element = tokens[0];
+            const std::string& atom = tokens[1];
+            int hydrogens = std::stoi(tokens[2]);
+            map.emplace(AtomKey(atom, constants::symbols::parse_element_string(element)), hydrogens);
+        }
+        insert(residue, std::move(map));
     }
 }
 
@@ -134,7 +134,7 @@ bool ResidueStorage::update_or_download_residue(const std::string& name) {
             curl::download("files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif");
             map = Residue::parse(path + name + ".cif").to_map();
         }
-        insert(name, map);
+        insert(name, std::move(map));
 
         // write the residue to the master file
         write_residue(name);

@@ -3,22 +3,23 @@
 
 #pragma once
 
-#include <hist/histogram_manager/HistogramManager.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
+#include <hist/histogram_manager/HistogramManager.h>
 
 namespace ausaxs::hist {
 	/**
 	 * @brief Common machinery for the form factor-aware multithreaded histogram managers.
 	 */
 	template<bool weighted_bins, bool variable_bin_width>
+	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class HistogramManagerMTFFBase : public HistogramManager<weighted_bins, variable_bin_width> {
 		public:
 			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
 
-			virtual ~HistogramManagerMTFFBase() override;
+			~HistogramManagerMTFFBase() override;
 
 		protected:
 			/**
@@ -29,7 +30,7 @@ namespace ausaxs::hist {
 				typename GenericDistribution2D<weighted_bins>::type p_aw; // ff_type, distance
 				typename GenericDistribution1D<weighted_bins>::type p_ww; // distance
 				typename GenericDistribution1D<weighted_bins>::type p_tot;
-				unsigned int max_bin;
+				int max_bin;
 			};
 
 			/**

@@ -19,19 +19,19 @@ namespace ausaxs::hist {
          * @brief Get a signalling object for signalling a change of state. 
          *        Each body is supposed to hold one of these, and trigger it when they change state. 
          */
-        std::shared_ptr<signaller::Signaller> get_probe(unsigned int i);
+        std::shared_ptr<signaller::Signaller> get_probe(int i) const;
 
         /**
          * @brief Signal that the hydration layer was modified. 
          *        This is supposed to be used only by the Protein class, which has direct access to this object. Thus a signalling object is unnecessary. 
          */
-        void signal_modified_hydration_layer();
+        void signal_modified_hydration_layer() const;
 
         observer_ptr<const state::StateManager> get_state_manager() const;
 
         observer_ptr<state::StateManager> get_state_manager();
 
-        const unsigned int body_size;                       // number of managed bodies
+        const int body_size;                                // number of managed bodies
         std::unique_ptr<state::StateManager> statemanager;  // a helper which keeps track of state changes in each body
     };
 }

@@ -3,10 +3,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <settings/All.h>
 #include <io/ExistingFile.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 
@@ -25,7 +25,7 @@ struct SequenceParserQuotingFixture {
         settings::general::output = "output/";
     }
 
-    std::unique_ptr<Sequencer> parse(const std::string& content) {
+    static std::unique_ptr<Sequencer> parse(const std::string& content) {
         test::TempFile config(".conf", content);
         SequenceParser parser;
         return parser.parse_file(config);

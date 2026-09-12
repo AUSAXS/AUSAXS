@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/RandomBodySelect.h>
+
 #include <utility/Random.h>
 
 #include <random>
@@ -19,6 +20,6 @@ BodySelectStrategy::Target RandomBodySelect::next(const ParameterMask& mask) {
 
     // rebuild the distribution each call against the live body count
     std::uniform_int_distribution<int> distribution(0, size_body()-1);
-    unsigned int ibody = distribution(random::generator());
-    return {ibody, random_constraint(ibody), -1};
+    int ibody = distribution(random::generator());
+    return {.ibody=ibody, .iconstraint=random_constraint(ibody), .isymmetry=-1};
 }

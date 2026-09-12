@@ -2,11 +2,10 @@
 // Author: Kristian Lytje
 
 #include <mini/Golden.h>
-#include <mini/detail/Parameter.h>
+
 #include <mini/detail/FittedParameter.h>
-#include <mini/detail/Evaluation.h>
+#include <mini/detail/Parameter.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
 
 using namespace ausaxs;
 using namespace ausaxs::mini;
@@ -16,11 +15,11 @@ Golden::Golden(double(&func)(std::vector<double>)) : Minimizer(func) {}
 Golden::Golden(std::function<double(std::vector<double>)> func) : Minimizer(std::move(func)) {}
 
 Golden::Golden(double(&func)(std::vector<double>), const Parameter& param) : Minimizer(func) {
-    add_parameter(param);
+    Golden::add_parameter(param);
 }
 
 Golden::Golden(std::function<double(std::vector<double>)> func, const Parameter& param) : Minimizer(std::move(func)) {
-    add_parameter(param);
+    Golden::add_parameter(param);
 }
 
 Limit Golden::search(Limit bounds) const {
@@ -34,18 +33,18 @@ Limit Golden::search(Limit bounds) const {
 
     double diff = b - a;
     if (diff < tol) [[unlikely]] {
-        return Limit(a, b);
+        return {a, b};
     }
 
     // expected number of steps to reach tolerance
-    unsigned int n = std::ceil(std::log(tol/diff)/std::log(invphi));
+    int n = std::ceil(std::log(tol/diff)/std::log(invphi));
 
     double c = a + invphi2*diff;
     double d = a + invphi*diff;
     double fc = function({c});
     double fd = function({d});
 
-    for (unsigned int k = 0; k < n-1; k++) {
+    for (int k = 0; k < n-1; k++) {
         if (fc < fd) {
             b = d;
             d = c;
@@ -64,14 +63,15 @@ Limit Golden::search(Limit bounds) const {
     }
 
     if (fc < fd) {
-        return Limit(a, d);
-    } else {
-        return Limit(c, b);
+        return {a, d};
     }
+    return {c, b};
 }
 
 Result Golden::minimize_override() {
-    Limit optimal_interval = search(parameters[0].bounds.value());
+    const auto& bounds = parameters[0].bounds;
+    if (!bounds.has_value()) {throw except::bad_order("Golden::minimize: The minimized parameter must be bounded.");}
+    Limit optimal_interval = search(*bounds);
     FittedParameter p(parameters[0], optimal_interval.center(), optimal_interval-optimal_interval.center());
     return Result(p, function({p.value}), fevals);
 }

@@ -8,7 +8,7 @@ namespace ausaxs::mini {
     struct FittedParameter;
     class Landscape;
 
-    enum class algorithm {
+    enum class algorithm { //NOLINT
         GOLDEN,
         MINIMUM_EXPLORER,
         SCAN,

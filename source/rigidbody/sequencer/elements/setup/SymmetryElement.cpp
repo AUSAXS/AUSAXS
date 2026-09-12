@@ -1,20 +1,18 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
+
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
-#include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/ReferenceSymmetry.h>
-#include <data/symmetry/PredefinedSymmetries.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <settings/HistogramSettings.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
 
 #include <cassert>
 #include <utility>
@@ -61,11 +59,11 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 
 void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<std::unique_ptr<symmetry::ISymmetry>> symmetries) {
     assert(names.size() == symmetries.size() && "SymmetryElement::_add: The number of names and symmetries must be equal.");
-    auto molecule = owner->_get_molecule();
-    auto rigidbody = owner->_get_rigidbody();
+    auto* molecule = owner->_get_molecule();
+    auto* rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
 
-    for (unsigned int i = 0; i < names.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(names.size()); ++i) {
         int ibody = setup._get_body(names[i]);
 
         // install the symmetry on the live body and the stored initial conformation
@@ -98,8 +96,8 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
 
 void SymmetryElement::_add_reference(const std::vector<std::string>& body_names, const std::string& reference_symmetry) {
     assert(2 <= body_names.size() && "SymmetryElement::_add_reference: a reference symmetry needs at least two bodies.");
-    auto molecule = owner->_get_molecule();
-    auto rigidbody = owner->_get_rigidbody();
+    auto* molecule = owner->_get_molecule();
+    auto* rigidbody = owner->_get_rigidbody();
     auto& setup = owner->setup();
 
     // resolve the participating body indices, preserving the declared order (first = primary)
@@ -120,7 +118,7 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     // the slot each body's reference symmetry/view will occupy is its current symmetry count (we append exactly one to each participating body below)
     std::vector<int> slots(bodies.size());
     for (std::size_t k = 0; k < bodies.size(); ++k) {
-        slots[k] = static_cast<int>(molecule->get_body(bodies[k]).size_symmetry());
+        slots[k] = molecule->get_body(bodies[k]).size_symmetry();
     }
     int primary_slot = slots.front();
 
@@ -128,8 +126,8 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     molecule->get_body(primary).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(base_sym->clone(), bodies, slots, molecule));
     rigidbody->conformation->initial_conformation[primary].symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(std::move(base_sym), bodies, slots, molecule));
 
-    auto mol_ref = static_cast<symmetry::ReferenceSymmetry*>(molecule->get_body(primary).symmetry().get(primary_slot));
-    auto conf_ref = static_cast<symmetry::ReferenceSymmetry*>(
+    auto* mol_ref = static_cast<symmetry::ReferenceSymmetry*>(molecule->get_body(primary).symmetry().get(primary_slot));
+    auto* conf_ref = static_cast<symmetry::ReferenceSymmetry*>(
         rigidbody->conformation->initial_conformation[primary].symmetry().get(primary_slot)
     );
 
@@ -148,8 +146,7 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     // register names and per-body symmetry parameters for every participating body; as in _add, each replica's permanent tag is always "<base>sYrZ",
     // built from the base body's own permanent default name
     auto& name_map = setup._body_name_registry();
-    for (std::size_t k = 0; k < bodies.size(); ++k) {
-        int b = bodies[k];
+    for (int b : bodies) {
         int isymmetry = molecule->get_body(b).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::_add_reference: Inconsistent data structures.");
         int reps = molecule->get_body(b).symmetry().get(isymmetry)->repetitions();
@@ -179,7 +176,7 @@ InlineSignature SymmetryElement::_valid_inline_arguments() {
     return {.names = {"bodies...", "symmetry"}, .min = 1, .max = unbounded_inline_args};
 }
 
-std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     // usage pattern: [bodies...] [symmetry]. The trailing token is always the symmetry name; every token before it names a
     // body. To give several bodies a symmetry each, repeat the element - it does all its work on construction, so the
     // declarations accumulate.

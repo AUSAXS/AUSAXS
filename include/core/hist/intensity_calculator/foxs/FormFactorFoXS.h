@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <form_factor/FormFactorType.h>
-#include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/FormFactorManager.h>
 #include <container/ArrayContainer2D.h>
+#include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 
 #include <cmath>
 
@@ -28,32 +28,32 @@ namespace ausaxs::form_factor::foxs {
         namespace atomic {
             static FormFactorFoXS get_form_factor(form_factor_t type) {
                 switch (type) {
-                    case form_factor_t::H:                  return FormFactorFoXS(0.999953);
-                    case form_factor_t::C:                  return FormFactorFoXS(5.9992);
-                    case form_factor_t::N:                  return FormFactorFoXS(6.9946);
-                    case form_factor_t::O:                  return FormFactorFoXS(7.9994);
-                    case form_factor_t::S:                  return FormFactorFoXS(15.9998);
-                    case form_factor_t::CH:                 return FormFactorFoXS(6.99915);
-                    case form_factor_t::CH2:                return FormFactorFoXS(7.99911);
-                    case form_factor_t::CH3:                return FormFactorFoXS(8.99906);
-                    case form_factor_t::NH:                 return FormFactorFoXS(7.99455);
-                    case form_factor_t::NH2:                return FormFactorFoXS(8.99451);
-                    case form_factor_t::NH3:                return FormFactorFoXS(9.99446);
-                    case form_factor_t::OH:                 return FormFactorFoXS(8.99935);
-                    case form_factor_t::SH:                 return FormFactorFoXS(16.9998);
-                    case form_factor_t::OTHER:              return FormFactorFoXS(17.99);
-                    case form_factor_t::EXCLUDED_VOLUME:    return FormFactorFoXS(0);
+                    case form_factor_t::H:                  return {0.999953};
+                    case form_factor_t::C:                  return {5.9992};
+                    case form_factor_t::N:                  return {6.9946};
+                    case form_factor_t::O:                  return {7.9994};
+                    case form_factor_t::S:                  return {15.9998};
+                    case form_factor_t::CH:                 return {6.99915};
+                    case form_factor_t::CH2:                return {7.99911};
+                    case form_factor_t::CH3:                return {8.99906};
+                    case form_factor_t::NH:                 return {7.99455};
+                    case form_factor_t::NH2:                return {8.99451};
+                    case form_factor_t::NH3:                return {9.99446};
+                    case form_factor_t::OH:                 return {8.99935};
+                    case form_factor_t::SH:                 return {16.9998};
+                    case form_factor_t::OTHER:              return {17.99};
+                    case form_factor_t::EXCLUDED_VOLUME:    return {0};
                     default:
                         throw ausaxs::except::runtime_error("form_factor::foxs::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
             }
 
             [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> generate_table() {
-                auto ff_tables = form_factor::manager::get_active_product_tables();
+                const auto* ff_tables = form_factor::manager::get_active_product_tables();
                 auto ff_indices = ff_tables->ff_indices;
                 container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> table;
-                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
-                    for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
+                for (int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
+                    for (int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
                             get_form_factor(static_cast<form_factor_t>(ff_indices[i])), 
                             get_form_factor(static_cast<form_factor_t>(ff_indices[j]))
@@ -72,31 +72,31 @@ namespace ausaxs::form_factor::foxs {
         namespace exv {
             static FormFactorFoXS get_form_factor(form_factor_t type) {
                 switch (type) {
-                    case form_factor_t::H:      return FormFactorFoXS(1.7201);
-                    case form_factor_t::C:      return FormFactorFoXS(5.49096);
-                    case form_factor_t::N:      return FormFactorFoXS(0.83166);
-                    case form_factor_t::O:      return FormFactorFoXS(3.04942);
-                    case form_factor_t::S:      return FormFactorFoXS(6.63324);
-                    case form_factor_t::CH:     return FormFactorFoXS(7.21106);
-                    case form_factor_t::CH2:    return FormFactorFoXS(8.93116);
-                    case form_factor_t::CH3:    return FormFactorFoXS(10.6513);
-                    case form_factor_t::NH:     return FormFactorFoXS(2.55176);
-                    case form_factor_t::NH2:    return FormFactorFoXS(4.27186);
-                    case form_factor_t::NH3:    return FormFactorFoXS(5.99196);
-                    case form_factor_t::OH:     return FormFactorFoXS(4.76952);
-                    case form_factor_t::SH:     return FormFactorFoXS(8.35334);
-                    case form_factor_t::OTHER:  return FormFactorFoXS(1.399);
+                    case form_factor_t::H:      return {1.7201};
+                    case form_factor_t::C:      return {5.49096};
+                    case form_factor_t::N:      return {0.83166};
+                    case form_factor_t::O:      return {3.04942};
+                    case form_factor_t::S:      return {6.63324};
+                    case form_factor_t::CH:     return {7.21106};
+                    case form_factor_t::CH2:    return {8.93116};
+                    case form_factor_t::CH3:    return {10.6513};
+                    case form_factor_t::NH:     return {2.55176};
+                    case form_factor_t::NH2:    return {4.27186};
+                    case form_factor_t::NH3:    return {5.99196};
+                    case form_factor_t::OH:     return {4.76952};
+                    case form_factor_t::SH:     return {8.35334};
+                    case form_factor_t::OTHER:  return {1.399};
                     default:
                         throw ausaxs::except::runtime_error("form_factor::foxs::storage::exv::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
             }
 
             [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> generate_table() {
-                auto ff_tables = form_factor::manager::get_active_product_tables();
+                const auto* ff_tables = form_factor::manager::get_active_product_tables();
                 auto ff_indices = ff_tables->ff_indices;
                 container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> table;
-                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
-                    for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
+                for (int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
+                    for (int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
                             get_form_factor(static_cast<form_factor_t>(ff_indices[i])), 
                             get_form_factor(static_cast<form_factor_t>(ff_indices[j]))
@@ -114,11 +114,11 @@ namespace ausaxs::form_factor::foxs {
 
         namespace cross {
             [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> generate_table() {
-                auto ff_tables = form_factor::manager::get_active_product_tables();
+                const auto* ff_tables = form_factor::manager::get_active_product_tables();
                 auto ff_indices = ff_tables->ff_indices;
                 container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> table;
-                for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
-                    for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < ff_tables->active_count; ++j) {
+                for (int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
+                    for (int j = form_factor::start_index_for_explicit_exv(); j < ff_tables->active_count; ++j) {
                         table.index(i, j) = FormFactorProduct(
                             atomic::get_form_factor(static_cast<form_factor_t>(ff_indices[i])), 
                             exv::get_form_factor(static_cast<form_factor_t>(ff_indices[j]))

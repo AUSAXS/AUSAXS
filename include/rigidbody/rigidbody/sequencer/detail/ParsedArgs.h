@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
     namespace search {
@@ -53,7 +53,7 @@ namespace ausaxs::rigidbody::sequencer {
 
     namespace search {
         template<typename T>
-        ArgResult<T> get_arg(std::vector<std::string>& valid_keys, const std::unordered_map<std::string, ParsedArgs::Args>& args, const T& default_value = T());
+        ArgResult<T> get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, ParsedArgs::Args>& args, const T& default_value = T());
     }
 }
 

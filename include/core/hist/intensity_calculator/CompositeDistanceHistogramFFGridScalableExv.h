@@ -9,9 +9,9 @@
 namespace ausaxs::hist {
     class CompositeDistanceHistogramFFGridScalableExv : public CompositeDistanceHistogramFFGrid {
         public:
-            CompositeDistanceHistogramFFGridScalableExv(CompositeDistanceHistogramFFGrid&& cdh, std::function<std::unique_ptr<CompositeDistanceHistogramFFGrid>(double)> eval_scaled_exv);
+            CompositeDistanceHistogramFFGridScalableExv(CompositeDistanceHistogramFFGrid&& res, std::function<std::unique_ptr<CompositeDistanceHistogramFFGrid>(double)> eval_scaled_exv);
             void apply_excluded_volume_scaling_factor(double k) override;
-            virtual double exv_factor(double) const override {return 1;}
+            double exv_factor(double /*q*/) const override {return 1;}
 
         private:
             std::function<std::unique_ptr<CompositeDistanceHistogramFFGrid>(double)> eval_scaled_exv;

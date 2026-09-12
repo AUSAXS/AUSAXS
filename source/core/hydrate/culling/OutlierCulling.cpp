@@ -1,28 +1,29 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include "form_factor/FormFactorType.h"
 #include <hydrate/culling/OutlierCulling.h>
+
+#include <data/Molecule.h>
+#include <form_factor/FormFactorType.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
-#include <data/Molecule.h>
-#include <constants/Constants.h>
 
+#include <algorithm>
 #include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;
 
 void OutlierCulling::cull(std::span<grid::GridMember<data::Water>>& placed_water) const {
-    auto grid = molecule->get_grid();
+    auto* grid = molecule->get_grid();
 
     if (target_count == 0) {return;}
 
     std::vector<std::pair<grid::GridMember<data::Water>, int>> v(placed_water.size());
-    int r = 3*grid->get_atomic_radius(form_factor::form_factor_t::C)/grid->get_width(); // use 2*atomic_radius as the boundary
+    int r = static_cast<int>(3*grid->get_atomic_radius(form_factor::form_factor_t::C)/grid::Grid::get_width()); // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();
     const grid::detail::GridObj& gref = grid->grid;
-    unsigned int index = 0;
+    int index = 0;
     for (const auto& water : placed_water) {
         const int x = water.get_bin_loc().x(), y = water.get_bin_loc().y(), z = water.get_bin_loc().z();
         int score = 0;
@@ -44,13 +45,13 @@ void OutlierCulling::cull(std::span<grid::GridMember<data::Water>>& placed_water
     }
 
     // sort the scores
-    std::sort(v.begin(), v.end(), [](auto &left, auto &right) {return left.second < right.second;});
+    std::ranges::sort(v, [](auto &left, auto &right) {return left.second < right.second;});
 
     // copy the first target_count entries in the sorted vector
     std::vector<bool> to_remove(placed_water.size() - target_count, false);
-    unsigned int n = 0;
+    int n = 0;
     while (n < target_count) {n++;}
-    for (; n < placed_water.size(); n++) {
+    for (; n < static_cast<int>(placed_water.size()); n++) {
         to_remove[n] = true;
     }
     grid->remove_waters(to_remove);

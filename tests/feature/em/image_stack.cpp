@@ -2,15 +2,14 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Molecule.h>
 #include <em/ImageStack.h>
 #include <em/detail/header/MRCHeader.h>
 #include <em/manager/SmartProteinManager.h>
-#include <settings/All.h>
-#include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <plots/All.h>
+#include <settings/All.h>
 
 #include <map>
 
@@ -28,16 +27,16 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
     double radius2 = radius*radius;
     auto axes = grid.get_axes();
     Vector3<double> center = grid.to_xyz(grid.get_center());
-    for (unsigned int i = 0; i < axes.x.bins; ++i) {
-        for (unsigned int j = 0; j < axes.y.bins; ++j) {
-            for (unsigned int k = 0; k < axes.z.bins; ++k) {
+    for (int i = 0; i < axes.x.bins; ++i) {
+        for (int j = 0; j < axes.y.bins; ++j) {
+            for (int k = 0; k < axes.z.bins; ++k) {
                 if (grid.to_xyz(i, j, k).distance2(center) < radius2) {
                     grid.grid.index(i, j, k) = grid::detail::VOLUME;
                 }
             }
         }
     }
-    auto loc = "temp/tests/em/sphere.pdb";
+    const auto* loc = "temp/tests/em/sphere.pdb";
     grid.save(loc);
 
     data::Molecule protein(loc);
@@ -46,20 +45,20 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
 
     std::unique_ptr<em::detail::header::MRCHeader> header = std::make_unique<em::detail::header::MRCHeader>();
     std::unique_ptr<em::detail::header::MRCData> header_data = std::make_unique<em::detail::header::MRCData>();
-    header_data->cella_x = axes.x.span();
-    header_data->cella_y = axes.y.span();
-    header_data->cella_z = axes.z.span();
+    header_data->cella_x = static_cast<float>(axes.x.span());
+    header_data->cella_y = static_cast<float>(axes.y.span());
+    header_data->cella_z = static_cast<float>(axes.z.span());
     header_data->nx = axes.x.bins;
     header_data->ny = axes.y.bins;
     header_data->nz = axes.z.bins;
 
-    std::vector<em::Image> images(lims.z.span()/settings::grid::cell_width, Matrix<float>(0, 0));
-    for (unsigned int k = 0; k < images.size(); ++k) {
+    std::vector<em::Image> images(static_cast<std::size_t>(lims.z.span()/settings::grid::cell_width), Matrix<float>(0, 0));
+    for (int k = 0; k < static_cast<int>(images.size()); ++k) {
         Matrix<float> data(axes.x.bins, axes.y.bins);
-        for (unsigned int i = 0; i < axes.x.bins; ++i) {
-            for (unsigned int j = 0; j < axes.y.bins; ++j) {
+        for (int i = 0; i < axes.x.bins; ++i) {
+            for (int j = 0; j < axes.y.bins; ++j) {
                 double dist = std::sqrt(grid.to_xyz(i, j, k).distance2(center));
-                data.index(i, j) = radius/dist;
+                data.index(i, j) = static_cast<float>(radius/dist);
             }
         }
         images[k] = em::Image(data, header.get(), k);
@@ -90,11 +89,11 @@ TEST_CASE("ImageStack::get_protein") {
             header->set_data(std::move(header_data));
             images.set_header(std::move(header));
 
-            auto protein = images.get_protein(1);
+            auto* protein = images.get_protein(1);
             REQUIRE(protein->size_atom() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
-            std::map<float, unsigned int> counts = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}};
+            std::map<float, int> counts = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}};
             for (const auto& atom : protein->get_atoms()) {
-                ++counts[atom.weight()];
+                ++counts[static_cast<float>(atom.weight())];
             }
             REQUIRE(counts.at(1) == 2+0+1+1+1+2 + 2+1+2+1+3+2);
             REQUIRE(counts.at(2) == 0+0+0+0+0+0 + 2+1+1+1+1+1);
@@ -116,7 +115,7 @@ TEST_CASE("ImageStack::get_protein") {
             header->set_data(std::move(header_data));
             images.set_header(std::move(header));
             
-            auto protein = images.get_protein(1);
+            auto* protein = images.get_protein(1);
             REQUIRE(protein->get_atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
             for (const auto& atom : protein->get_atoms()) {
                 REQUIRE(atom.weight() == 1);
@@ -134,7 +133,7 @@ TEST_CASE("ImageStack::get_mass") {
     em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
     std::unordered_map<double, double> vals;
     for (int i = 5; i < 12; ++i) {vals[i] = images.get_mass(images.from_level(i));}
-    for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels += 10) {
+    for (int charge_levels = 10; charge_levels < 50; charge_levels += 10) {
         settings::em::charge_levels = charge_levels;
         images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
 

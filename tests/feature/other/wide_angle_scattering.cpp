@@ -2,13 +2,11 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <dataset/SimpleDataset.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <plots/PlotDataset.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
+#include <hist/hist_test_helper.h>
 
-#include <support/temp_file.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

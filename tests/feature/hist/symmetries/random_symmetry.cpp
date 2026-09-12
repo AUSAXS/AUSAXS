@@ -2,19 +2,16 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/IcosahedralSymmetry.h>
+#include <data/symmetry/OctahedralSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/TetrahedralSymmetry.h>
-#include <data/symmetry/OctahedralSymmetry.h>
-#include <data/symmetry/IcosahedralSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
-#include "settings/HistogramSettings.h"
+#include <hist/hist_test_helper.h>
+#include <settings/HistogramSettings.h>
 
 #include <numbers>
 #include <random>
@@ -44,8 +41,8 @@ namespace {
     std::unique_ptr<symmetry::ISymmetry> rnd_cyclic(int max_n) {
         int n = rndi(2, max_n);
         return std::make_unique<symmetry::CyclicSymmetry>(
-            symmetry::CyclicSymmetry::_Relation{rnd_vec(8)},
-            symmetry::CyclicSymmetry::_Repeat{rnd_axis(), 2*std::numbers::pi/n},
+            symmetry::CyclicSymmetry::Relation{rnd_vec(8)},
+            symmetry::CyclicSymmetry::Repeat{rnd_axis(), 2*std::numbers::pi/n},
             n-1
         );
     }
@@ -82,8 +79,8 @@ namespace {
             case 4: {                                                          // a stack of light cyclic/point symmetries
                 int budget = 10;                                               // keep self-scale = 1 + sum(copies) <= 11
                 for (int k = 0; k < 3; ++k) {
-                    auto s = rndi(0, 1) ? rnd_cyclic(3) : rnd_point();
-                    int copies = static_cast<int>(s->repetitions());
+                    auto s = (rndi(0, 1) != 0) ? rnd_cyclic(3) : rnd_point();
+                    int copies = s->repetitions();
                     if (copies > budget) {break;}
                     budget -= copies;
                     body.symmetry().add(std::move(s));
@@ -91,6 +88,7 @@ namespace {
                 if (body.size_symmetry() == 0) {body.symmetry().add(rnd_point());}
                 break;
             }
+            default: break;
         }
     }
 
@@ -100,7 +98,7 @@ namespace {
             std::vector<Body> bodies;
             for (int b = 0; b < n_bodies; ++b) {
                 std::vector<AtomFF> atoms;
-                for (int j = 0, na = rndi(1, 3); j < na; ++j) {atoms.push_back(AtomFF(rnd_vec(8), form_factor::form_factor_t::C));}
+                for (int j = 0, na = rndi(1, 3); j < na; ++j) {atoms.emplace_back(rnd_vec(8), form_factor::form_factor_t::C);}
                 bodies.emplace_back(std::move(atoms));
             }
             Molecule m(std::move(bodies));

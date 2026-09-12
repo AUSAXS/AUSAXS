@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <hist/histogram_manager/IHistogramManager.h>
-#include <hist/HistFwd.h>
 #include <data/DataFwd.h>
+#include <hist/HistFwd.h>
+#include <hist/histogram_manager/IHistogramManager.h>
 
 #include <memory>
 

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <grid/detail/GridExcludedVolume.h>
+#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 
 namespace ausaxs::hist {
     /**
@@ -12,11 +12,12 @@ namespace ausaxs::hist {
      *        Due to the highly ordered grid structure, weighted bins is required to use this class. 
      */
     template<bool variable_bin_width>
+    // NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
     class HistogramManagerMTFFGrid : public HistogramManagerMTFFAvg<true, variable_bin_width> {
         public:
             using HistogramManagerMTFFAvg<true, variable_bin_width>::HistogramManagerMTFFAvg;
 
-            virtual ~HistogramManagerMTFFGrid() override;
+            ~HistogramManagerMTFFGrid() override;
 
             /**
              * @brief Calculate only the total scattering histogram. 

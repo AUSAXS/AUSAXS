@@ -1,8 +1,8 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 
 #include <container/Container2D.h>
 
-#include <algorithm>
 
 using namespace ausaxs;
 using namespace container;
@@ -14,18 +14,18 @@ TEST_CASE("Container2D::Container2D") {
         CHECK(container.size_y() == 0);
     }
 
-    SECTION("unsigned int, unsigned int, unsigned int") {
+    SECTION("int, int, int") {
         Container2D<int> container(2, 3);
         CHECK(container.size_x() == 2);
         CHECK(container.size_y() == 3);
     }
 
-    SECTION("unsigned int, unsigned int, unsigned int, const T&") {
+    SECTION("int, int, int, const T&") {
         Container2D<int> container(2, 3, 5);
         CHECK(container.size_x() == 2);
         CHECK(container.size_y() == 3);
-        for (unsigned int i = 0; i < container.size_x(); ++i) {
-            for (unsigned int j = 0; j < container.size_y(); ++j) {
+        for (int i = 0; i < container.size_x(); ++i) {
+            for (int j = 0; j < container.size_y(); ++j) {
                 CHECK(container(i, j) == 5);
             }
         }
@@ -36,9 +36,9 @@ TEST_CASE("Container3D::iterators") {
     SECTION("default") {
         Container2D<int> container1(2, 3, 5);
         Container2D<int> container2(2, 3);
-        std::copy(container1.begin(), container1.end(), container2.begin());
-        for (unsigned int i = 0; i < container2.size_x(); ++i) {
-            for (unsigned int j = 0; j < container2.size_y(); ++j) {
+        std::ranges::copy(container1, container2.begin());
+        for (int i = 0; i < container2.size_x(); ++i) {
+            for (int j = 0; j < container2.size_y(); ++j) {
                 CHECK(container2(i, j) == 5);
             }
         }
@@ -49,16 +49,16 @@ TEST_CASE("Container3D::iterators") {
             Container2D<int> container(2, 3, 5);
             std::vector<int> dest(3, 0);
             std::copy(container.begin(0), container.end(0), dest.begin());
-            for (unsigned int i = 0; i < dest.size(); ++i) {
-                CHECK(dest[i] == 5);
+            for (int i : dest) {
+                CHECK(i == 5);
             }
         }
 
         SECTION("different vals") {
             Container2D<int> container(2, 3);
             int c = 0;
-            for (unsigned int i = 0; i < container.size_x(); ++i) {
-                for (unsigned int j = 0; j < container.size_y(); ++j) {
+            for (int i = 0; i < container.size_x(); ++i) {
+                for (int j = 0; j < container.size_y(); ++j) {
                     container(i, j) = c++;
                 }
             }
@@ -75,8 +75,8 @@ TEST_CASE("Container3D::iterators") {
 TEST_CASE("Container2D::resize") {
     Container2D<double> container(3, 4);
     {
-        unsigned int i = 0;
-        std::transform(container.begin(), container.end(), container.begin(), [&i](double) {return i++;});
+        int i = 0;
+        std::ranges::transform(container, container.begin(), [&i](double) {return i++;});
     }
 
     SECTION("larger") {
@@ -84,9 +84,9 @@ TEST_CASE("Container2D::resize") {
         CHECK(container.size_x() == 3);
         CHECK(container.size_y() == 5);
 
-        unsigned int c = 0;
-        for (unsigned int i = 0; i < container.size_x(); ++i) {
-            for (unsigned int j = 0; j < 4; ++j) {
+        int c = 0;
+        for (int i = 0; i < container.size_x(); ++i) {
+            for (int j = 0; j < 4; ++j) {
                 CHECK(container(i, j) == c++);
             }
             CHECK(container(i, 4) == 0);
@@ -98,9 +98,9 @@ TEST_CASE("Container2D::resize") {
         CHECK(container.size_x() == 3);
         CHECK(container.size_y() == 3);
 
-        unsigned int c = 0;
-        for (unsigned int i = 0; i < container.size_x(); ++i) {
-            for (unsigned int j = 0; j < container.size_y(); ++j) {
+        int c = 0;
+        for (int i = 0; i < container.size_x(); ++i) {
+            for (int j = 0; j < container.size_y(); ++j) {
                 CHECK(container(i, j) == c++);
             }
             c++;

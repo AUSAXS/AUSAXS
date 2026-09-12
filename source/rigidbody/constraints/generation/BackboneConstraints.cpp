@@ -2,12 +2,12 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/generation/BackboneConstraints.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
+
+#include <data/Molecule.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
 
 #include <string>
 #include <vector>
@@ -21,9 +21,9 @@ std::vector<std::unique_ptr<IDistanceConstraint>> BackboneConstraints::generate(
     std::vector<std::unique_ptr<IDistanceConstraint>> constraints;
 
     // check every pair of bodies and keep the ones that bond.
-    auto& protein = *manager->molecule;
-    for (unsigned int ibody1 = 0; ibody1 < protein.size_body(); ibody1++) {
-        for (unsigned int ibody2 = ibody1 + 1; ibody2 < protein.size_body(); ibody2++) {
+    const auto& protein = *manager->molecule;
+    for (int ibody1 = 0; ibody1 < protein.size_body(); ibody1++) {
+        for (int ibody2 = ibody1 + 1; ibody2 < protein.size_body(); ibody2++) {
             if (!DistanceConstraintBond::can_bond(manager->molecule, ibody1, ibody2)) {continue;}
             auto constraint = std::make_unique<DistanceConstraintBond>(manager->molecule, ibody1, ibody2);
             logging::log(
@@ -44,8 +44,8 @@ std::vector<std::unique_ptr<IDistanceConstraint>> BackboneConstraints::generate(
     // therefore form a forest, for which the number of connected groups is exactly (bodies - bonds) — every bond short of the N-1 a single
     // chain needs leaves one more group behind. A detached group drifts freely, so its position against the data is meaningless; this is
     // reported rather than thrown, since a genuinely multi-chain system is legitimate.
-    int nbodies = static_cast<int>(protein.size_body());
-    std::vector<unsigned int> links(nbodies, 0);
+    int nbodies = protein.size_body();
+    std::vector<int> links(nbodies, 0);
     for (const auto& constraint : constraints) {
         ++links[constraint->ibody1];
         ++links[constraint->ibody2];

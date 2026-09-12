@@ -2,21 +2,21 @@
 // Author: Kristian Lytje
 
 #include <data/Body.h>
-#include <data/state/UnboundSignaller.h>
-#include <grid/Grid.h>
+
 #include <constants/Constants.h>
-#include <math/Matrix.h>
-#include <math/MatrixUtils.h>
-#include <math/Vector3.h>
+#include <data/state/UnboundSignaller.h>
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/ImplicitHydration.h>
 #include <io/Reader.h>
+#include <math/Matrix.h>
+#include <math/Vector3.h>
 #include <settings/MoleculeSettings.h>
 
-#include <vector>
-#include <utility>
 #include <algorithm>
+#include <numbers>
 #include <numeric>
+#include <utility>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -41,16 +41,18 @@ Body::Body(const io::File& path) : uid(uid_counter++) {
     initialize();
 }
 
-auto convert_atom_atomff = [] (const std::vector<data::Atom>& atoms) {
-    std::vector<data::AtomFF> atoms_ff;
-    atoms_ff.reserve(atoms.size());
-    for (auto& a : atoms) {
-        // Assign UNKNOWN form factor when no form factor information is available
-        // This will trigger an error if the form factor is actually used in calculations
-        atoms_ff.emplace_back(a, form_factor::form_factor_t::UNKNOWN);
-    }
-    return atoms_ff;
-};
+namespace {
+    auto convert_atom_atomff = [] (const std::vector<data::Atom>& atoms) {
+        std::vector<data::AtomFF> atoms_ff;
+        atoms_ff.reserve(atoms.size());
+        for (const auto& a : atoms) {
+            // Assign UNKNOWN form factor when no form factor information is available
+            // This will trigger an error if the form factor is actually used in calculations
+            atoms_ff.emplace_back(a, form_factor::form_factor_t::UNKNOWN);
+        }
+        return atoms_ff;
+    };
+}
 
 template<AtomVectorFF T>
 Body::Body(T&& atoms) 
@@ -103,9 +105,9 @@ void Body::initialize() {
     signal = std::make_shared<signaller::UnboundSignaller>();
 }
 
-symmetry::detail::BodySymmetryFacade<Body> Body::symmetry() {return symmetry::detail::BodySymmetryFacade<Body>(this);}
+symmetry::detail::BodySymmetryFacade<Body> Body::symmetry() {return {this};}
 
-symmetry::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return symmetry::detail::BodySymmetryFacade<const Body>(this);}
+symmetry::detail::BodySymmetryFacade<const Body> Body::symmetry() const {return {this};}
 
 Vector3<double> Body::get_cm(bool include_water) const {
     Vector3<double> cm{0, 0, 0};
@@ -119,7 +121,7 @@ Vector3<double> Body::get_cm(bool include_water) const {
     };
     weighted_sum(atoms);
     if (!include_water) {return cm/M;}
-    if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+    if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         weighted_sum(h->waters);
     }
     return cm/M;
@@ -134,10 +136,10 @@ double Body::get_volume_vdw() const {
 
 void Body::translate(Vector3<double> v) {
     signal->modified_external();
-    std::for_each(atoms.begin(), atoms.end(), [v] (data::AtomFF& atom) {atom.coordinates() += v;});
-    if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+    std::ranges::for_each(atoms, [v] (data::AtomFF& atom) {atom.coordinates() += v;});
+    if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         signal->modified_hydration();
-        std::for_each(h->waters.begin(), h->waters.end(), [v] (data::Water& atom) {atom.coordinates() += v;});
+        std::ranges::for_each(h->waters, [v] (data::Water& atom) {atom.coordinates() += v;});
     }
 }
 
@@ -147,7 +149,7 @@ void Body::rotate(const Matrix<double>& R) {
         atom.coordinates().rotate(R);
     }
 
-    if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+    if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         signal->modified_hydration();
         for (auto& atom : h->waters) {
             atom.coordinates().rotate(R);
@@ -165,10 +167,10 @@ double Body::get_molar_mass(bool include_waters) const {
 
 double Body::get_absolute_mass(bool include_waters) const {
     double M = 0;
-    std::for_each(atoms.begin(), atoms.end(), [&M] (const data::AtomFF& a) {M += constants::mass::get_mass(a.form_factor_type());});
+    std::ranges::for_each(atoms, [&M] (const data::AtomFF& a) {M += constants::mass::get_mass(a.form_factor_type());});
     if (!include_waters) {return M;}
-    if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
-        std::for_each(h->waters.begin(), h->waters.end(), [&M] (const data::Water& a) {M += constants::mass::get_mass(a.form_factor_type());});
+    if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+        M += static_cast<double>(size_water())*constants::mass::get_mass(Water::form_factor_type());
     }
     return M;
 }
@@ -186,11 +188,13 @@ Body& Body::operator=(Body&& rhs) noexcept {
 }
 
 Body& Body::operator=(const Body& rhs) {
+    if (this == &rhs) {return *this;}
+
     atoms = rhs.atoms;
     metadata = rhs.metadata;
-    if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); h) {
+    if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); h) {
         hydration = std::make_unique<hydrate::ExplicitHydration>(*h);
-    } else if (auto h = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); h) {
+    } else if (auto* h = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); h) {
         throw ausaxs::except::runtime_error("Body::operator=: Implicit hydration is not implemented.");
     }
     symmetries = rhs.symmetries->clone();
@@ -206,20 +210,19 @@ bool Body::operator==(const Body& rhs) const {
 
 bool Body::equals_content(const Body& rhs) const {
     if (atoms != rhs.atoms) {return false;}
-    if (auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
-        if (auto r = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); r) {
+    if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+        if (auto* r = dynamic_cast<hydrate::ExplicitHydration*>(rhs.hydration.get()); r) {
             if (h->waters != r->waters) {
                 return false;
             }
         } else {
             return false;
         }
-    } else if (auto h = dynamic_cast<hydrate::ImplicitHydration*>(hydration.get()); h) {
-        if (auto r = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); r) {
+    } else if (auto* h = dynamic_cast<hydrate::ImplicitHydration*>(hydration.get()); h) {
+        if (auto* r = dynamic_cast<hydrate::ImplicitHydration*>(rhs.hydration.get()); r) {
             throw ausaxs::except::runtime_error("Body::equals_content: Implicit hydration is not implemented.");
-        } else {
-            return false;
         }
+        return false;
     }
     if (symmetries->get() != rhs.symmetries->get()) {return false;}
     return true;
@@ -241,19 +244,19 @@ std::vector<data::AtomFF>& Body::get_atoms() {return atoms;}
 
 std::optional<std::reference_wrapper<const std::vector<data::Water>>> Body::get_waters() const {
     assert(hydration != nullptr && "Body::get_waters: hydration is nullptr.");
-    auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
-    return h ? std::optional(std::cref(h->waters)) : std::nullopt;
+    auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
+    return (h != nullptr) ? std::optional(std::cref(h->waters)) : std::nullopt;
 }
 
 std::optional<std::reference_wrapper<std::vector<data::Water>>> Body::get_waters() {
     assert(hydration != nullptr && "Body::get_waters: hydration is nullptr.");
-    auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
-    return h ? std::optional(std::ref(h->waters)) : std::nullopt;
+    auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
+    return (h != nullptr) ? std::optional(std::ref(h->waters)) : std::nullopt;
 }
 
 bool Body::waters_expanded_across_symmetry() const {
     assert(hydration != nullptr && "Body::waters_expanded_across_symmetry: hydration is nullptr.");
-    auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
+    auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
     return h != nullptr && h->expanded_across_symmetry;
 }
 
@@ -273,23 +276,23 @@ const std::optional<AtomMetadata>& Body::get_metadata() const {return metadata;}
 
 void Body::set_metadata(AtomMetadata metadata) {this->metadata = std::move(metadata);}
 
-data::AtomFF& Body::get_atom(unsigned int index) {return atoms[index];}
+data::AtomFF& Body::get_atom(int index) {return atoms[index];}
 
-const data::AtomFF& Body::get_atom(unsigned int index) const {return atoms[index];}
+const data::AtomFF& Body::get_atom(int index) const {return atoms[index];}
 
 int Body::get_uid() const {return uid;}
 
-std::size_t Body::size_atom() const {return atoms.size();}
+int Body::size_atom() const {return static_cast<int>(atoms.size());}
 
-std::size_t Body::size_water() const {
-    auto h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
-    if (h) {return h->waters.size();}
+int Body::size_water() const {
+    auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get());
+    if (h != nullptr) {return static_cast<int>(h->waters.size());}
     return 0;
 }
 
-std::size_t Body::size_symmetry() const {return symmetries->get().size();}
+int Body::size_symmetry() const {return static_cast<int>(symmetries->get().size());}
 
-std::size_t Body::size_symmetry_total() const {
+int Body::size_symmetry_total() const {
     return std::accumulate(
         symmetries->get().begin(), 
         symmetries->get().end(), 

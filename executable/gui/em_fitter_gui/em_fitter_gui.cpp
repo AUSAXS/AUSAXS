@@ -15,22 +15,22 @@ static struct _dummy{
 } _dummy_instance;
 #endif
 
+#include <constants/ValidFileExtensions.h>
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <utility/Logging.h>
 #include <fitter/FitReporter.h>
-#include <constants/ValidFileExtensions.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
+#include <utility/Logging.h>
 
 #include <gui/helper.h>
 #include <gui/logo.h>
 #include <gui/resources.h>
 
+#include <bitset>
 #include <iostream>
 #include <memory>
 #include <thread>
-#include <bitset>
 
 namespace gui = cycfi::elements;
 
@@ -79,7 +79,7 @@ auto io_menu(gui::view& view) {
 			map_box_bg = bg_color_accent;
 		}
 
-		static unsigned int last_size = 0;
+		static int last_size = 0;
 		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::em_map.check(p);});
 		if (!fill.first.empty()) {map_box.second->set_text(fill.first);}
 		if (fill.second) {map_box.second->on_enter(fill.first);}
@@ -140,7 +140,7 @@ auto io_menu(gui::view& view) {
 			saxs_box_bg = bg_color_accent;
 		}
 
-		static unsigned int last_size = 0;
+		static int last_size = 0;
 		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::saxs_data.check(p);});
 		if (!fill.first.empty()) {saxs_box.second->set_text(fill.first);}
 		if (fill.second) {saxs_box.second->on_enter(fill.first);}

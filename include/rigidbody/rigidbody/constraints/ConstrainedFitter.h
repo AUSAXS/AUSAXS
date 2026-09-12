@@ -25,8 +25,8 @@ namespace ausaxs::fitter {
         ConstrainedFitter& operator=(ConstrainedFitter&& other) noexcept = delete;
         ConstrainedFitter& operator=(const ConstrainedFitter& other) = delete;
 
-        template <typename... Args, typename = std::enable_if_t<std::is_constructible_v<SmartFitter, Args...>>>
-        ConstrainedFitter(observer_ptr<rigidbody::constraints::ConstraintManager> constraints, Args&&... args) : SmartFitter(std::forward<Args>(args)...), constraints(constraints) {
+        template <typename... Args>
+        ConstrainedFitter(observer_ptr<rigidbody::constraints::ConstraintManager> constraints, Args&&... args) requires (std::is_constructible_v<SmartFitter, Args...>) : SmartFitter(std::forward<Args>(args)...), constraints(constraints) {
             assert(constraints != nullptr && "ConstrainedFitter: Constraint manager must not be null.");
         }
 

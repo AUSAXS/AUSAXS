@@ -6,10 +6,10 @@
 #include <math/MathConcepts.h>
 
 #include <algorithm>
+#include <cassert>
+#include <cmath>
 #include <math/Exceptions.h>
 #include <vector>
-#include <cmath>
-#include <cassert>
 
 namespace ausaxs::stats {
     /**
@@ -19,7 +19,7 @@ namespace ausaxs::stats {
     double weighted_mean(const T& x, const Q& xerr) noexcept {
         double sum_wx = 0;
         double sum_w = 0;
-        for (unsigned int i = 0; i < x.size(); i++) {
+        for (int i = 0; i < static_cast<int>(x.size()); i++) {
             double w = 1.0/(xerr[i]*xerr[i]);
             sum_wx += w*x[i];
             sum_w += w;
@@ -34,7 +34,7 @@ namespace ausaxs::stats {
     template<container_type T>
     double weighted_mean_error(const T& xerr) noexcept {
         double sum = 0;
-        for (unsigned int i = 0; i < xerr.size(); i++) {
+        for (int i = 0; i < static_cast<int>(xerr.size()); i++) {
             double w = 1.0/(xerr[i]*xerr[i]);
             sum += w;
         }
@@ -48,7 +48,7 @@ namespace ausaxs::stats {
     template<container_type T>
     double mean(const T& v) noexcept {
         double sum = 0;
-        for (unsigned int i = 0; i < v.size(); i++) {
+        for (int i = 0; i < static_cast<int>(v.size()); i++) {
             sum += v[i];
         }
         return sum/v.size();
@@ -58,10 +58,10 @@ namespace ausaxs::stats {
      * @brief Calculate the variance of a container class.
      */
     template<container_type T>
-    double var(const T& v, unsigned int ddof = 1) noexcept {
+    double var(const T& v, int ddof = 1) noexcept {
         double mu = mean(v);
         double sum = 0;
-        for (unsigned int i = 0; i < v.size(); i++) {
+        for (int i = 0; i < static_cast<int>(v.size()); i++) {
             sum += std::pow(v[i] - mu, 2);
         }
         return sum/(v.size() - ddof);
@@ -71,7 +71,7 @@ namespace ausaxs::stats {
      * @brief Calculate the standard deviation of a container class.
      */
     template<container_type T>
-    double std(const T& v, unsigned int ddof = 1) noexcept {
+    double std(const T& v, int ddof = 1) noexcept {
         return std::sqrt(var(v, ddof));
     }
 
@@ -81,14 +81,14 @@ namespace ausaxs::stats {
     template<numeric T>
     T mode(const std::vector<T>& v) {
         if (v.empty()) {
-            throw ausaxs::except::invalid_argument("stats::mode: Vector is empty.");
+            throw ausaxs::math::except::invalid_argument("stats::mode: Vector is empty.");
         }
         std::vector<T> v_copy = v;
         std::sort(v_copy.begin(), v_copy.end());
         T mode = v_copy[0];
-        unsigned int max_count = 0;
-        unsigned int count = 1;
-        for (unsigned int i = 1; i < v_copy.size(); i++) {
+        int max_count = 0;
+        int count = 1;
+        for (int i = 1; i < static_cast<int>(v_copy.size()); i++) {
             if (v_copy[i] == v_copy[i - 1]) {
                 count++;
             } else {
@@ -109,7 +109,7 @@ namespace ausaxs::stats {
 
     template<numeric T>
     struct Measurement {
-        Measurement() {}
+        Measurement() = default;
         Measurement(const std::vector<T>& vals) : vals(vals) {}
 
         double mean() const noexcept {return mean(vals);}

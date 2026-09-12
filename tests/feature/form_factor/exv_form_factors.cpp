@@ -1,20 +1,17 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/NormalizedFormFactor.h>
-#include <form_factor/ExvFormFactor.h>
-#include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/lookup/ExvTableManager.h>
-#include <constants/Constants.h>
 #include <dataset/SimpleDataset.h>
+#include <form_factor/ExvFormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
+#include <form_factor/lookup/ExvTableManager.h>
 #include <plots/PlotDataset.h>
 
-#include <support/temp_file.h>
 
 using namespace ausaxs;
 using namespace ausaxs::form_factor;
 
-const auto& q_vals = constants::axes::q_vals;
+static const auto& q_vals = constants::axes::q_vals;
 TEST_CASE("ExvFormFactor::evaluate") {}
 
 // compare the excluded volume form factors with the average one derived by Jan
@@ -30,7 +27,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
     }
 
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-    for (unsigned int ff = 1; ff < form_factor::total_ff_count; ++ff) {
+    for (int ff = 1; ff < form_factor::total_ff_count; ++ff) {
         const form_factor::ExvFormFactor& ff_obj = exv_set.get(static_cast<form_factor::form_factor_t>(ff));
         SimpleDataset dataset;
         for (const double& q : q_vals) {
@@ -44,7 +41,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
 // compare each exv form factor with its real one
 TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-    for (unsigned int ffi = 1; ffi < form_factor::total_ff_count; ++ffi) {
+    for (int ffi = 1; ffi < form_factor::total_ff_count; ++ffi) {
         const form_factor::NormalizedFormFactor& ff = form_factor::lookup::atomic::normalized::get(static_cast<form_factor::form_factor_t>(ffi));
         const form_factor::ExvFormFactor& ffx = exv_set.get(static_cast<form_factor::form_factor_t>(ffi));
 

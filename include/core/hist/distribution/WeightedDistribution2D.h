@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <container/Container2D.h>
 #include <constants/ConstantsAxes.h>
+#include <container/Container2D.h>
 #include <hist/distribution/detail/WeightedEntry.h>
-#include <utility/TypeTraits.h>
 #include <settings/Flags.h>
+#include <utility/TypeTraits.h>
 
 #include <cmath>
 

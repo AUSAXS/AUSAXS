@@ -8,8 +8,8 @@
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <grid/expansion/SphericalExpander.h>
-#include <utility/observer_ptr.h>
 #include <settings/GridSettings.h>
+#include <utility/observer_ptr.h>
 
 #include <utility/Exceptions.h>
 

@@ -17,13 +17,13 @@ namespace ausaxs {
 	 */
 	class QRDecomposition : public Decomposition {
 		public: 
-			QRDecomposition(const Matrix<double>& A) : Q(A) {decompose();}
+			QRDecomposition(const Matrix<double>& A) : Q(A) {QRDecomposition::decompose();}
 
 			Matrix<double> inverse() const {
 				// basically we just solve m equations of the form Ax = e_i, and construct A^-1 from the m solutions to this equation
 				Matrix<double> A(Q.M, Q.N);
 				Vector<double> e(Q.N);
-				for (size_t i = 0; i < Q.N; i++) {
+				for (int i = 0; i < Q.N; i++) {
 					e[i] = 1;
 					A.col(i) = solve(e);
 					e[i] = 0;
@@ -37,7 +37,7 @@ namespace ausaxs {
 				Vector<double> x(b.size());
 				for (int i = x.size()-1; i >= 0; i--) {
 					x[i] = b[i];
-					for (size_t j = i+1; j < b.size(); j++)
+					for (int j = i+1; j < b.size(); j++)
 						x[i] -= R[i][j]*x[j];
 					x[i] /= R[i][i];
 				}
@@ -47,7 +47,7 @@ namespace ausaxs {
 			// up to a sign
 			double abs_determinant() const {
 				double det = R[0][0];
-				for (size_t i = 1; i < R.N; i++) {
+				for (int i = 1; i < R.N; i++) {
 					det *= R[i][i];
 				}
 				return det;
@@ -56,8 +56,8 @@ namespace ausaxs {
 			void decompose() override {
 				R = Matrix<double>(Q.N, Q.M);
 				double ujvi, ujuj;
-				for (size_t i = 0; i < Q.M; i++) {
-					for (size_t j = 0; j < i; j++) {
+				for (int i = 0; i < Q.M; i++) {
+					for (int j = 0; j < i; j++) {
 						ujvi = Q.col(j).dot(Q.col(i)); 
 						ujuj = Q.col(j).dot(Q.col(j));
 						R[j][i] = ujvi/ujuj; // a_ij
@@ -66,7 +66,7 @@ namespace ausaxs {
 					}
 					R[i][i] = Q.col(i).norm();
 				}
-				for (size_t i = 0; i < Q.M; i++) {
+				for (int i = 0; i < Q.M; i++) {
 					Q.col(i) = Q.col(i)/R[i][i];
 				}
 			}

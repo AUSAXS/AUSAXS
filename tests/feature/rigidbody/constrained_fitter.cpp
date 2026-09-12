@@ -1,13 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Body.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <math/Vector3.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <hist//intensity_calculator/ICompositeDistanceHistogram.h>
-#include <fitter/SmartFitter.h>
-#include <rigidbody/Rigidbody.h>
-#include <math/Vector3.h>
-#include <data/Body.h>
 #include <settings/All.h>
 
 #include <support/rb_metadata.h>

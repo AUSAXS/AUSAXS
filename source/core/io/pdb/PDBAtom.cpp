@@ -5,51 +5,35 @@
     #pragma warning(disable:4996) // disable sscanf deprecation warning on MSVC
 #endif
 
-#include <io/pdb/PDBAtom.h>
 #include <constants/Constants.h>
-#include <form_factor/FormFactor.h>
-#include <utility/Utility.h>
-#include <utility/Console.h>
+#include <io/pdb/PDBAtom.h>
 #include <settings/MoleculeSettings.h>
+#include <utility/Console.h>
+#include <utility/Utility.h>
 
-#include <utility>
+#include <cassert>
 #include <iomanip>
 #include <iostream>
-#include <cassert>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
 
 PDBAtom::PDBAtom() : uid(uid_counter++) {}
 
-PDBAtom::PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& resName, int serial) : uid(uid_counter++) {
-    // we use our setters so we can validate the input if necessary
-    this->coords = v;
-    this->occupancy = occupancy;
-    this->element = element;
-    this->resName = resName;
-    this->serial = serial;
-    this->effective_charge = constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown));
-}
+PDBAtom::PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element, std::string resName, int serial) : 
+    coords(v), resName(std::move(resName)), element(element), occupancy(occupancy), serial(serial), 
+    effective_charge(constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown))), uid(uid_counter++)
+{}
 
-PDBAtom::PDBAtom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
-    Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge) : uid(uid_counter++) 
-{
-    this->serial = serial;
-    this->name = name;
-    this->altLoc = altLoc;
-    this->resName = resName;
-    this->chainID = chainID;
-    this->resSeq = resSeq;
-    this->iCode = iCode;
-    this->coords = coords;
-    this->occupancy = occupancy;
-    this->tempFactor = tempFactor;
-    this->element = element;
-    this->charge = charge;
-    this->effective_charge = constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown));
-    atomic_group = constants::atomic_group_t::unknown;
-}
+PDBAtom::PDBAtom(int serial, std::string name, std::string altLoc, std::string resName, char chainID, int resSeq, std::string iCode, 
+    Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, std::string charge)
+: 
+    coords(coords), name(std::move(name)), altLoc(std::move(altLoc)), resName(std::move(resName)), iCode(std::move(iCode)), charge(std::move(charge)), chainID(chainID),
+    element(element), occupancy(occupancy), tempFactor(tempFactor), serial(serial), resSeq(resSeq), 
+    effective_charge(constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown))),
+    uid(uid_counter++)
+{}
 
 form_factor::form_factor_t PDBAtom::get_form_factor_type() const {
     return form_factor::get_type(element, atomic_group);
@@ -91,7 +75,7 @@ void PDBAtom::parse_pdb(const std::string& str) {
 
     // sanity check
     if (!(Record::get_type(recName) == RecordType::ATOM)) [[unlikely]] {
-        throw except::parse_error("PDBAtom::parse_pdb: input std::string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
+        throw except::parse_error(R"(PDBAtom::parse_pdb: input std::string is not "ATOM  " or "HETATM" ()" + recName + ").");
     }
 
     // remove any spaces from the numbers
@@ -108,7 +92,7 @@ void PDBAtom::parse_pdb(const std::string& str) {
 
     // sometimes people use the first character of x for some other purpose.
     // if it is a digit, the following won't work. On the other hand they're kinda asking for it then. Follow the standard, people. 
-    if (!(std::isdigit(x[0]) || x[0] == '-')) {
+    if (!utility::isdigit(x[0]) && x[0] != '-') {
         x = x.substr(1, x.size()-1);
     }
 
@@ -126,7 +110,7 @@ void PDBAtom::parse_pdb(const std::string& str) {
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {
             // if the element is not set, we can try to infer it from the name
-            if (auto s = this->name.substr(0, 1); !std::isdigit(s[0])) [[likely]] {
+            if (auto s = this->name.substr(0, 1); !utility::isdigit(s[0])) [[likely]] {
                 set_element(s);
             } else {
                 set_element(this->name.substr(1, 1)); // sometimes the first character is a number
@@ -158,10 +142,12 @@ void PDBAtom::add_implicit_hydrogens() {
     }
 }
 
-// two-char element symbols are right-aligned in the PDB format, so we need to add a space in front of one-char symbols
-static std::string name_field(const std::string& name, constants::atom_t element) {
-    if (name.size() < 4 && constants::symbols::to_string(element).size() < 2) {return " " + name;}
-    return name;
+namespace {
+    // two-char element symbols are right-aligned in the PDB format, so we need to add a space in front of one-char symbols
+    std::string name_field(const std::string& name, constants::atom_t element) {
+        if (name.size() < 4 && constants::symbols::to_string(element).size() < 2) {return " " + name;}
+        return name;
+    }
 }
 
 using std::left, std::right, std::setw;
@@ -214,32 +200,32 @@ const Vector3<double>& PDBAtom::coordinates() const {return coords;}
 
 double PDBAtom::get_mass() const {
     if (settings::molecule::implicit_hydrogens) {
-        #ifdef DEBUG
+        // Neither lookup below can name the other's half of a failure: get_mass knows only the element, and the residue storage knows only 
+        // the residue. PDBAtom holds both, so the check lives here, where the atom can be identified completely.
+        assert([&]() -> bool {
             try {
-                return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
+                constants::mass::get_mass(element);
+                constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+                return true;
             } catch (const std::exception& e) {
-                console::print_critical(e.what());
-                throw except::invalid_argument("PDBAtom::get_mass: The mass of element " + constants::symbols::to_string(element) + " (serial " + std::to_string(serial) + ") is not defined.");
+                console::print_critical(
+                    std::string("PDBAtom::get_mass: ") + e.what() + "\n"
+                    "\tatom \"" + this->name + "\" (serial " + std::to_string(serial) + ") "
+                    "in residue \"" + this->resName + "\" with element " + constants::symbols::to_string(element)
+                );
+                return false;
             }
-        #endif
+        }() && "PDBAtom::get_mass: the mass of this atom is not defined.");
+
         // mass of this nucleus + mass of attached H atoms
         return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
-    } else {
-        #ifdef DEBUG
-            if (element == constants::atom_t::unknown) [[unlikely]] {
-                throw except::invalid_argument("PDBAtom::get_mass: Attempted to get atomic mass, but the element was not set!");
-            }
-        #endif
-        return constants::mass::get_mass(element);
     }
+    assert(element != constants::atom_t::unknown && "PDBAtom::get_mass: Attempted to get atomic mass, but the element was not set!");
+    return constants::mass::get_mass(element);
 }
 
-unsigned int PDBAtom::Z() const {
-    #ifdef DEBUG
-        if (element == constants::atom_t::unknown) [[unlikely]] {
-            throw except::invalid_argument("PDBAtom::get_Z: Attempted to get atomic charge, but the element was not set!");
-        }
-    #endif
+int PDBAtom::Z() const {
+    assert(element != constants::atom_t::unknown && "PDBAtom::get_Z: Attempted to get atomic charge, but the element was not set!");
     return constants::charge::nuclear::get_charge(element);
 }
 

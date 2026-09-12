@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <math/MatrixUtils.h>
 #include <math/Matrix.h>
+#include <math/MatrixUtils.h>
 #include <math/Vector3.h>
 
 #include <numbers>
@@ -31,8 +31,8 @@ TEST_CASE("matrix::identity") {
         Matrix<double> I = matrix::identity(4);
         REQUIRE(I.N == 4);
         REQUIRE(I.M == 4);
-        for (unsigned int i = 0; i < 4; ++i) {
-            for (unsigned int j = 0; j < 4; ++j) {
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
                 if (i == j) {
                     REQUIRE(I[i][j] == 1);
                 } else {

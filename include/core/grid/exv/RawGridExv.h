@@ -5,8 +5,8 @@
 
 #include <grid/Grid.h>
 #include <grid/detail/GridObj.h>
-#include <utility/observer_ptr.h>
 #include <settings/GridSettings.h>
+#include <utility/observer_ptr.h>
 
 namespace ausaxs::grid::exv {
     struct RawGridExv {

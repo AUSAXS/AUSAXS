@@ -1,10 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/FormFactorType.h>
+#include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
-#include <data/Body.h>
+#include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <settings/All.h>
 
 #include <numeric>
@@ -12,7 +12,7 @@
 using namespace ausaxs;
 using namespace ausaxs::form_factor;
 
-const std::vector<int>& identity() {
+static const std::vector<int>& identity() {
     static std::vector<int> identity;
     if (identity.empty()) {
         identity = std::vector<int>(total_ff_count);
@@ -22,7 +22,7 @@ const std::vector<int>& identity() {
 }
 
 TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
-    auto* tables = manager::get_active_product_tables();
+    const auto* tables = manager::get_active_product_tables();
     REQUIRE(tables != nullptr);
 
     SECTION("active_count equals total_ff_count for identity set") {
@@ -30,7 +30,7 @@ TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
     }
 
     SECTION("ff_indices are identity") {
-        for (unsigned int i = 0; i < form_factor::total_ff_count; ++i) {
+        for (int i = 0; i < form_factor::total_ff_count; ++i) {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(i));
         }
     }
@@ -69,7 +69,7 @@ TEST_CASE("form_factor_manager::get_active_mapping default") {
     REQUIRE(mapping.size() == total_ff_count);
 
     SECTION("identity mapping") {
-        for (unsigned int i = 0; i < total_ff_count; ++i) {
+        for (int i = 0; i < total_ff_count; ++i) {
             REQUIRE(mapping[i] == static_cast<int>(i));
         }
     }
@@ -117,7 +117,7 @@ TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
         static_cast<int>(form_factor_t::N)
     });
 
-    auto* tables = manager::get_active_product_tables();
+    const auto* tables = manager::get_active_product_tables();
 
     SECTION("active_count reflects explicit count plus the appended OTHER") {
         REQUIRE(tables->active_count == 5);
@@ -135,7 +135,7 @@ TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
     }
 
     SECTION("trailing slots are padded with OTHER") {
-        for (unsigned int i = 5; i < form_factor::total_ff_count; ++i) {
+        for (int i = 5; i < form_factor::total_ff_count; ++i) {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(form_factor_t::OTHER));
         }
     }
@@ -147,7 +147,7 @@ TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
     data::Molecule molecule("tests/files/2epe.pdb");
     manager::use_form_factors(molecule);
 
-    auto* tables = manager::get_active_product_tables();
+    const auto* tables = manager::get_active_product_tables();
 
     SECTION("EXV is always slot 0") {
         REQUIRE(tables->ff_indices[0] == static_cast<int>(form_factor_t::EXCLUDED_VOLUME));
@@ -168,7 +168,7 @@ TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
             ++counts[static_cast<int>(a.form_factor_type())];
         }
 
-        unsigned int expected = 3; // EXV and WATER are forced to the front, OTHER to the back
+        int expected = 3; // EXV and WATER are forced to the front, OTHER to the back
         for (int t = 0; t < static_cast<int>(total_ff_count); ++t) {
             if (t == static_cast<int>(form_factor_t::EXCLUDED_VOLUME)) {continue;}
             if (t == static_cast<int>(form_factor_t::WATER)) {continue;}
@@ -202,14 +202,14 @@ TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables
     });
 
     auto indices_before = manager::get_active_product_tables()->ff_indices;
-    unsigned int count_before = manager::get_active_product_tables()->active_count;
+    int count_before = manager::get_active_product_tables()->active_count;
 
     // capture one exv table value before rebuild
     double exv_val_before = manager::get_active_product_tables()->raw_exv_table.index(0, 0).evaluate(0);
 
     manager::rebuild();
 
-    auto* tables = manager::get_active_product_tables();
+    const auto* tables = manager::get_active_product_tables();
 
     SECTION("ff_indices unchanged after rebuild") {
         REQUIRE(tables->ff_indices == indices_before);

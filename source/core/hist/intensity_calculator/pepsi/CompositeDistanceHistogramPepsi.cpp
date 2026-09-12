@@ -5,7 +5,7 @@
 
 using namespace ausaxs;
 
-double hist::CompositeDistanceHistogramPepsi::exv_factor(double, double cx) {
+double hist::CompositeDistanceHistogramPepsi::exv_factor(double /*unused*/, double cx) {
     // Approximation of the G(q) factor from the Pepsi-SAXS paper, doi: 10.1107/S2059798317005745
     // This is just a Maclaurin expansion of the original expression, containing only the linear terms and no q-dependence
     // double magic_constant = 1/(4*constants::pi*constants::pi);

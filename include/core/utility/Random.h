@@ -11,7 +11,7 @@ namespace ausaxs::random {
     namespace detail {
         inline std::mt19937& get_generator() {
             static std::mt19937 gen = [](){
-                int seed = std::random_device{}();
+                int seed = static_cast<int>(std::random_device{}());
                 logging::log("RNG: Initializing random number generator with seed: " + std::to_string(seed));
                 return std::mt19937(seed);
             }();

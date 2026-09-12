@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include <form_factor/ExvFormFactor.h>
 #include <form_factor/FormFactor.h>
 
 #include <utility/Exceptions.h>
 
 namespace ausaxs::form_factor {
     struct NormalizedFormFactor : public FormFactor {
-        constexpr NormalizedFormFactor(ExvFormFactor&& ffx) : FormFactor(std::move(ffx)) {set_normalization(1);}
         constexpr NormalizedFormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : FormFactor(a, b, c) {set_normalization(1);}
-        constexpr NormalizedFormFactor(FormFactor&& ff) : FormFactor(std::move(ff)) {set_normalization(1);}
+        constexpr NormalizedFormFactor(const ExvFormFactor& ffx) : FormFactor(ffx) {set_normalization(1);}
         constexpr NormalizedFormFactor(const FormFactor& ff) : FormFactor(ff) {set_normalization(1);}
     };
 

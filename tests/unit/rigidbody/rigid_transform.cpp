@@ -1,14 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/transform/RigidTransform.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/detail/SystemSpecification.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <math/MatrixUtils.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/transform/RigidTransform.h>
 #include <settings/All.h>
 
 #include <support/rb_metadata.h>
@@ -38,7 +37,7 @@ TEST_CASE("RigidTransform::apply single body group") {
         );
         
         transform::RigidTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         auto cm0_before = rigidbody.molecule.get_body(0).get_cm();
         auto cm1_before = rigidbody.molecule.get_body(1).get_cm();
@@ -89,7 +88,7 @@ TEST_CASE("RigidTransform::apply multi-body group") {
         
         // Transform at constraint 1 (between bodies 1 and 2)
         // Should move the smaller group
-        auto constraint = rigidbody.constraints->discoverable_constraints[1].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[1].get();
         
         auto cm0_before = rigidbody.molecule.get_body(0).get_cm();
         auto cm1_before = rigidbody.molecule.get_body(1).get_cm();
@@ -133,7 +132,7 @@ TEST_CASE("RigidTransform::apply multi-body group") {
         transform::RigidTransform transformer(&rigidbody);
         
         // Transform at constraint 1 - should rotate bodies 0 and 1 together
-        auto constraint = rigidbody.constraints->discoverable_constraints[1].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[1].get();
         
         // Store initial distance between bodies 0 and 1
         auto initial_dist = (rigidbody.molecule.get_body(0).get_cm() - 
@@ -186,7 +185,7 @@ TEST_CASE("RigidTransform::apply branched structure") {
         transform::RigidTransform transformer(&rigidbody);
         
         // Transform at constraint 0 - should move only body 0
-        auto constraint0 = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint0 = rigidbody.constraints->discoverable_constraints[0].get();
         transformer.apply({{0, 2, 0}, {0, 0, 0}}, constraint0, constraint0->ibody1);
         
         // Body 0 moved
@@ -223,7 +222,7 @@ TEST_CASE("RigidTransform::undo") {
         );
         
         transform::RigidTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[1].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[1].get();
         
         auto cm0_before = rigidbody.molecule.get_body(0).get_cm();
         auto cm1_before = rigidbody.molecule.get_body(1).get_cm();

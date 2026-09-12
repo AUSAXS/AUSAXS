@@ -1,14 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/transform/SingleTransform.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/detail/SystemSpecification.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <math/MatrixUtils.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/transform/SingleTransform.h>
 #include <settings/All.h>
 
 #include <support/rb_metadata.h>
@@ -38,7 +38,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         );
         
         transform::SingleTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply translation
         transformer.apply({{0, 1, 0}, {0, 0, 0}}, constraint, constraint->ibody1);
@@ -63,7 +63,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         );
         
         transform::SingleTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply 90-degree rotation around z-axis
         transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint, constraint->ibody1);
@@ -88,7 +88,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
         );
         
         transform::SingleTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply rotation then translation
         transformer.apply({{1, 1, 0}, {0, 0, std::numbers::pi/2}}, constraint, constraint->ibody1);
@@ -119,7 +119,7 @@ TEST_CASE("SingleTransform::undo") {
         );
         
         transform::SingleTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         auto original_cm = rigidbody.molecule.get_body(0).get_cm();
         auto original_params = rigidbody.conformation->absolute_parameters.parameters[0];
@@ -165,7 +165,7 @@ TEST_CASE("SingleTransform::reconstructed body from stored parameters matches tr
         );
         
         transform::SingleTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply transformation
         transformer.apply({{1, 2, 3}, {0.5, 0.3, 0.1}}, constraint, constraint->ibody1);
@@ -207,7 +207,7 @@ TEST_CASE("SingleTransform::apply multiple sequential transformations") {
         );
         
         transform::SingleTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply first transformation
         transformer.apply({{0, 0, 0}, {0, 0, std::numbers::pi/4}}, constraint, constraint->ibody1);
@@ -250,7 +250,7 @@ TEST_CASE("SingleTransform::apply only affects single body") {
         );
         
         transform::SingleTransform transformer(&rigidbody);
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         auto body1_cm_before = rigidbody.molecule.get_body(1).get_cm();
         auto body2_cm_before = rigidbody.molecule.get_body(2).get_cm();

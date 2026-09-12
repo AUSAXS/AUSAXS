@@ -5,8 +5,8 @@
 
 #include <hist/distribution/DistributionFwd.h>
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
 #include <form_factor/lookup/FormFactorLookupFwd.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
 
 namespace ausaxs::hist {
     /**
@@ -16,6 +16,7 @@ namespace ausaxs::hist {
      *        For more information, see CompositeDistanceHistogram.
      */
     template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
+    // NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
     class CompositeDistanceHistogramFFExplicitBase : public CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType> {
         public: 
             CompositeDistanceHistogramFFExplicitBase();
@@ -23,7 +24,7 @@ namespace ausaxs::hist {
             CompositeDistanceHistogramFFExplicitBase(CompositeDistanceHistogramFFExplicitBase&&) noexcept;
             CompositeDistanceHistogramFFExplicitBase& operator=(CompositeDistanceHistogramFFExplicitBase&&) noexcept;
             CompositeDistanceHistogramFFExplicitBase& operator=(const CompositeDistanceHistogramFFExplicitBase&);
-            virtual ~CompositeDistanceHistogramFFExplicitBase() override;
+            ~CompositeDistanceHistogramFFExplicitBase() override;
 
             /**
              * @brief Create a new unweighted composite distance histogram with form factors.

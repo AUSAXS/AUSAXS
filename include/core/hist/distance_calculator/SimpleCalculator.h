@@ -7,6 +7,7 @@
 #include <hist/distance_calculator/SimpleGPU.h>
 #include <settings/GeneralSettings.h>
 
+#include <cassert>
 #include <optional>
 
 namespace ausaxs::hist::distance_calculator {
@@ -25,7 +26,7 @@ namespace ausaxs::hist::distance_calculator {
             /**
              * @brief Construct a calculator whose result histograms span @a bin_count bins.
              */
-            explicit SimpleCalculator(unsigned int bin_count) {
+            explicit SimpleCalculator(int bin_count) {
                 if (settings::general::gpu) {gpu.emplace(bin_count);}
                 else {cpu.emplace(bin_count);}
             }
@@ -41,6 +42,7 @@ namespace ausaxs::hist::distance_calculator {
              * @return The index of the data in the result vector.
              */
             int enqueue_calculate_self(const CompactCoordinates_t& a, int scaling = 1, int merge_id = -1) {
+                assert((cpu.has_value() || gpu.has_value()) && "SimpleCalculator: the constructor engages exactly one backend.");
                 return cpu ? cpu->enqueue_calculate_self(a, scaling, merge_id)
                            : gpu->enqueue_calculate_self(a, scaling, merge_id);
             }
@@ -56,6 +58,7 @@ namespace ausaxs::hist::distance_calculator {
              * @return The index of the data in the result vector.
              */
             int enqueue_calculate_cross(const CompactCoordinates_t& a1, const CompactCoordinates_t& a2, int scaling = 1, int merge_id = -1) {
+                assert((cpu.has_value() || gpu.has_value()) && "SimpleCalculator: the constructor engages exactly one backend.");
                 return cpu ? cpu->enqueue_calculate_cross(a1, a2, scaling, merge_id)
                            : gpu->enqueue_calculate_cross(a1, a2, scaling, merge_id);
             }
@@ -79,8 +82,8 @@ namespace ausaxs::hist::distance_calculator {
             /**
              * @brief Get the current size of the result vector.
              */
-            int size_self_result() const {return cpu ? cpu->size_self_result() : gpu->size_self_result();}
-            int size_cross_result() const {return cpu ? cpu->size_cross_result() : gpu->size_cross_result();} //< @copydoc size_self_result
+            int size_self_result() const {assert((cpu.has_value() || gpu.has_value()) && "SimpleCalculator: the constructor engages exactly one backend."); return cpu ? cpu->size_self_result() : gpu->size_self_result();}
+            int size_cross_result() const {assert((cpu.has_value() || gpu.has_value()) && "SimpleCalculator: the constructor engages exactly one backend."); return cpu ? cpu->size_cross_result() : gpu->size_cross_result();} //< @copydoc size_self_result
 
             /**
              * @brief Calculate the queued histograms.
@@ -88,7 +91,7 @@ namespace ausaxs::hist::distance_calculator {
              *
              * @return The calculated histograms.
              */
-            run_result run() {return cpu ? cpu->run() : gpu->run();}
+            run_result run() {assert((cpu.has_value() || gpu.has_value()) && "SimpleCalculator: the constructor engages exactly one backend."); return cpu ? cpu->run() : gpu->run();}
 
         private:
             // exactly one of these is engaged, as decided by the constructor

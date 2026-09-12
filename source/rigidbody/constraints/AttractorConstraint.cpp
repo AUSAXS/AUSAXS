@@ -2,8 +2,9 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/AttractorConstraint.h>
-#include <rigidbody/constraints/DistanceConstraintFunctions.h>
+
 #include <data/Molecule.h>
+#include <rigidbody/constraints/DistanceConstraintFunctions.h>
 
 using namespace ausaxs::rigidbody::constraints;
 

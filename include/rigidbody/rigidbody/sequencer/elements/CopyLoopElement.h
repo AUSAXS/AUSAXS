@@ -14,7 +14,7 @@ namespace ausaxs::rigidbody::sequencer {
     class CopyLoopElement : public GenericElement {
         public:
             CopyLoopElement(observer_ptr<LoopElement> owner, observer_ptr<LoopElement> target);
-            virtual ~CopyLoopElement();
+            ~CopyLoopElement() override;
 
             void run() override;
 

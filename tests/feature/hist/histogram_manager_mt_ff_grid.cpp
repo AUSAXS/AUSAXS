@@ -1,25 +1,25 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/histogram_manager/HistogramManagerMT.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <grid/Grid.h>
 #include <grid/exv/RawGridExv.h>
+#include <hist/histogram_manager/HistogramManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 #include <utility/Utility.h>
 
-#include "hist_test_helper.h"
-#include "grid/grid_debug.h"
+#include <grid/grid_debug.h>
+#include <hist/hist_test_helper.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -27,14 +27,14 @@ using namespace ausaxs::data;
 
 // Test that compares FFGrid histograms against a simple HistogramManager using normalized (raw) counts.
 // This validates the histogram binning is correct for the excluded volume grid representation.
-auto test_normalized = [] (Molecule& protein, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
+static auto test_normalized = [] (Molecule& protein, const std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)>& calculate) {
     settings::molecule::center = false; // to avoid rounding errors
     auto h = calculate(protein);
 
     // convert the grid to water atoms with unit weight for normalized comparison
     auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
     std::vector<Water> waters(exv_grid.interior.size());
-    for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
+    for (int i = 0; i < static_cast<int>(exv_grid.interior.size()); i++) {
         waters[i] = Water(exv_grid.interior[i]);
         waters[i].weight() = 1;
     }
@@ -45,13 +45,13 @@ auto test_normalized = [] (Molecule& protein, std::function<std::unique_ptr<ICom
     set_unity_charge(exv);
 
     // calculate the xx, ax, aa distributions from FFGrid (raw counts)
-    auto h_cast = static_cast<CompositeDistanceHistogramFFGridBase*>(h.get());
+    auto* h_cast = static_cast<CompositeDistanceHistogramFFGridBase*>(h.get());
     hist::Distribution1D xx1, ax1, aa1;
     {
         auto aa = h_cast->get_raw_aa_counts_by_ff();
         hist::Distribution1D temp_aa(aa.size_z()), temp_ax(aa.size_z()), temp_xx(aa.size_z());
-        for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
-            for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < form_factor::total_ff_count; ++j) {
+        for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
+            for (int j = form_factor::start_index_for_explicit_exv(); j < form_factor::total_ff_count; ++j) {
                 std::transform(aa.begin(i, j), aa.end(i, j), temp_aa.begin(), temp_aa.begin(), std::plus<>());
             }
             // atom-exv cross term (multiplied by 2 for symmetry)
@@ -71,13 +71,13 @@ auto test_normalized = [] (Molecule& protein, std::function<std::unique_ptr<ICom
     auto aa2 = h_exv->get_aa_counts();
 
     if (xx1.size() < xx2.size()) {
-        for (unsigned int i = xx1.size(); i < xx2.size(); ++i) {
+        for (int i = xx1.size(); i < xx2.size(); ++i) {
             REQUIRE(xx2.index(i) == 0);
             REQUIRE(ax2.index(i) == 0);
             REQUIRE(aa2.index(i) == 0);
         }
     } else {
-        for (unsigned int i = xx2.size(); i < xx1.size(); ++i) {
+        for (int i = xx2.size(); i < xx1.size(); ++i) {
             REQUIRE(xx1.index(i) == 0);
             REQUIRE(ax1.index(i) == 0);
             REQUIRE(aa1.index(i) == 0);
@@ -91,18 +91,18 @@ auto test_normalized = [] (Molecule& protein, std::function<std::unique_ptr<ICom
 
 // Test that compares atom-atom histograms on absolute scale (with form factor weighting).
 // This validates that the form factor weighting is correct, without the complexity of the excluded volume.
-auto test_absolute_aa = [] (Molecule& protein, std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)> calculate) {
+static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)>& calculate) {
     settings::molecule::center = false;
     auto h = calculate(protein);
 
     // Get atom-atom histogram from FFGrid with form factor weighting
-    auto h_cast = static_cast<CompositeDistanceHistogramFFGridBase*>(h.get());
+    auto* h_cast = static_cast<CompositeDistanceHistogramFFGridBase*>(h.get());
     auto aa_by_ff = h_cast->get_aa_counts_by_ff();
     
     // Sum all form factor contributions
     hist::Distribution1D aa1(aa_by_ff.size_z());
-    for (unsigned int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
-        for (unsigned int j = form_factor::start_index_for_explicit_exv(); j < form_factor::total_ff_count; ++j) {
+    for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
+        for (int j = form_factor::start_index_for_explicit_exv(); j < form_factor::total_ff_count; ++j) {
             std::transform(aa_by_ff.begin(i, j), aa_by_ff.end(i, j), aa1.begin(), aa1.begin(), std::plus<>());
         }
     }
@@ -164,7 +164,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
 }
 
 template<typename H, typename C>
-auto test_derived = [] () {
+static auto test_derived = [] () {
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;
     settings::general::verbose = false;
@@ -201,7 +201,7 @@ auto test_derived = [] () {
         auto h_grid  = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto h_grids = H(&protein).calculate_all();
 
-        auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
+        auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
         auto aa1 = h_grid_cast->get_raw_aa_counts_by_ff();
         auto ax1 = h_grid_cast->get_raw_aw_counts_by_ff();
         auto xx1 = h_grid_cast->get_raw_ww_counts_by_ff();
@@ -212,7 +212,7 @@ auto test_derived = [] () {
         auto xx2 = h_grids_cast->get_raw_ww_counts_by_ff();
 
         CHECK(xx1.size() == xx2.size());
-        for (unsigned int k = 0; k < xx1.size(); ++k) {
+        for (int k = 0; k < xx1.size(); ++k) {
             if (!utility::approx(xx1.index(k), xx2.index(k), 1e-3, 0)) {
                 std::cout << "histogram_manager_mt_ff_grid failed at index " << k << std::endl;
                 REQUIRE_THAT(xx2.index(k), Catch::Matchers::WithinAbs(xx1.index(k), 1e-3));
@@ -221,8 +221,8 @@ auto test_derived = [] () {
         }
 
         CHECK((ax1.size_x() == ax2.size_x() && ax1.size_y() == ax2.size_y()));
-        for (unsigned int k = 0; k < ax2.size_y(); ++k) {
-            for (unsigned int j = 0; j < ax2.size_x(); ++j) {
+        for (int k = 0; k < ax2.size_y(); ++k) {
+            for (int j = 0; j < ax2.size_x(); ++j) {
                 if (!utility::approx(ax2.index(j, k), ax1.index(j, k), 1e-3, 0)) {
                     std::cout << "histogram_manager_mt_ff_grid failed at index " << j << ", " << k << std::endl;
                     REQUIRE_THAT(ax2.index(j, k), Catch::Matchers::WithinAbs(ax1.index(j, k), 1e-3));
@@ -232,9 +232,9 @@ auto test_derived = [] () {
         }
 
         CHECK((aa1.size_x() == aa2.size_x() && aa1.size_y() == aa2.size_y() && aa1.size_z() == aa2.size_z()));
-        for (unsigned int k = 0; k < aa2.size_z(); ++k) {
-            for (unsigned int j = 0; j < aa2.size_y(); ++j) {
-                for (unsigned int i = 0; i < aa2.size_x(); ++i) {
+        for (int k = 0; k < aa2.size_z(); ++k) {
+            for (int j = 0; j < aa2.size_y(); ++j) {
+                for (int i = 0; i < aa2.size_x(); ++i) {
                     if (!utility::approx(aa2.index(i, j, k), aa1.index(i, j, k), 1e-3, 0)) {
                         std::cout << "histogram_manager_mt_ff_grid failed at index " << i << ", " << j << ", " << k << std::endl;
                         REQUIRE_THAT(aa2.index(i, j, k), Catch::Matchers::WithinAbs(aa1.index(i, j, k), 1e-3));
@@ -276,7 +276,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
 
         auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
         std::vector<AtomFF> atoms(exv_grid.interior.size());
-        for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
+        for (int i = 0; i < static_cast<int>(exv_grid.interior.size()); i++) {
             atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::C);
         }
         Molecule exv({Body{std::vector{atoms}}});
@@ -287,9 +287,9 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         auto h_exv   = hist::HistogramManagerMT<true, false>(&exv).calculate_all();
         auto h_atom  = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
 
-        auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-        auto h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grids.get());
-        auto h_gridsx_cast = static_cast<CompositeDistanceHistogramFFGridScalableExv*>(h_gridsx.get());
+        auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
+        auto* h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grids.get());
+        auto* h_gridsx_cast = static_cast<CompositeDistanceHistogramFFGridScalableExv*>(h_gridsx.get());
 
         CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
         CHECK(compare_hist(h_grids_cast->get_d_axis(),  h_atom->get_d_axis()));
@@ -304,12 +304,12 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         settings::grid::min_exv_radius = 0;
         std::vector<AtomFF> atoms = SimpleCube::get_atoms();
         atoms.push_back(AtomFF({0, 0, 0}, form_factor::form_factor_t::C));
-        std::for_each(atoms.begin(), atoms.end(), [](AtomFF& a) {a.weight() = 1;});
+        std::ranges::for_each(atoms, [](AtomFF& a) {a.weight() = 1;});
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation
         auto h = DebugHistogramManagerMTFFGrid<false>(&protein).calculate_all();
-        auto h_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h.get());
+        auto* h_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h.get());
 
         // check the distance axes
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
@@ -320,7 +320,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     SECTION("real data") {
         auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
         std::vector<AtomFF> atoms(exv_grid.interior.size());
-        for (unsigned int i = 0; i < exv_grid.interior.size(); i++) {
+        for (int i = 0; i < static_cast<int>(exv_grid.interior.size()); i++) {
             atoms[i] = AtomFF(exv_grid.interior[i], form_factor::form_factor_t::C);
         }
         Molecule exv({Body{atoms}});
@@ -332,9 +332,9 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         auto h_exv   = hist::HistogramManagerMT<true, false>(&exv).calculate_all();
         auto h_atom  = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
 
-        auto h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-        auto h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grid.get());
-        auto h_gridsx_cast = static_cast<CompositeDistanceHistogramFFGridScalableExv*>(h_grid.get());
+        auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
+        auto* h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grid.get());
+        auto* h_gridsx_cast = static_cast<CompositeDistanceHistogramFFGridScalableExv*>(h_grid.get());
 
         CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
         CHECK(compare_hist(h_grids_cast->get_d_axis(),  h_atom->get_d_axis()));

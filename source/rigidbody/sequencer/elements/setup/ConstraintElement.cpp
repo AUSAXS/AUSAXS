@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
+
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintFactory.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/constraints/ConstraintFactory.h>
-#include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -51,7 +51,7 @@ InlineSignature ConstraintElement::_valid_inline_arguments() {
 }
 
 // constrain { first [body], second [body], type [type], plus whatever extra arguments that type requires }
-void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     auto body1 = args.get<std::string>(args_map[Args::body1]);
     auto body2 = args.get<std::string>(args_map[Args::body2]);
     auto type  = args.get<std::string>(args_map[Args::type]);
@@ -78,7 +78,7 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
     switch (type_enum) {
         case ConstraintChoice::Bond:
             if (iatom1.found || iatom2.found || distance.found) {
-                throw except::parse_error("constraint", "Constraint of type \"bond\" cannot be provided with arguments \"iatom1\", \"iatom2\" or \"distance\".");
+                throw except::parse_error("constraint", R"(Constraint of type "bond" cannot be provided with arguments "iatom1", "iatom2" or "distance".)");
             }
             constraint = factory::create_constraint_bond(
                 owner->_get_molecule(),
@@ -89,7 +89,7 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
 
         case ConstraintChoice::BodyCM:
             if (iatom1.found || iatom2.found || distance.found) {
-                throw except::parse_error("constraint", "Constraint of type \"cm\" cannot be provided with arguments \"iatom1\", \"iatom2\" or \"distance\".");
+                throw except::parse_error("constraint", R"(Constraint of type "cm" cannot be provided with arguments "iatom1", "iatom2" or "distance".)");
             }
             constraint = factory::create_constraint_cm(
                 owner->_get_molecule(),
@@ -100,9 +100,9 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
 
         case ConstraintChoice::BodyCMAttractor:
             if (iatom1.found || iatom2.found) {
-                throw except::parse_error("constraint", "Constraint of type \"attract\" cannot be provided with arguments \"iatom1\" or \"iatom2\".");
+                throw except::parse_error("constraint", R"(Constraint of type "attract" cannot be provided with arguments "iatom1" or "iatom2".)");
             }
-            if (!distance.found) {throw except::parse_error("constraint", "Constraint of type \"attract\" requires argument \"distance\".");}
+            if (!distance.found) {throw except::parse_error("constraint", R"(Constraint of type "attract" requires argument "distance".)");}
             constraint = factory::create_constraint_attractor(
                 owner->_get_molecule(),
                 owner->_get_sequencer()->setup()._get_body_index(body1.value),
@@ -113,9 +113,9 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
 
         case ConstraintChoice::BodyCMRepeller:
             if (iatom1.found || iatom2.found) {
-                throw except::parse_error("constraint", "Constraint of type \"repel\" cannot be provided with arguments \"iatom1\" or \"iatom2\".");
+                throw except::parse_error("constraint", R"(Constraint of type "repel" cannot be provided with arguments "iatom1" or "iatom2".)");
             }
-            if (!distance.found) {throw except::parse_error("constraint", "Constraint of type \"repel\" requires argument \"distance\".");}
+            if (!distance.found) {throw except::parse_error("constraint", R"(Constraint of type "repel" requires argument "distance".)");}
             constraint = factory::create_constraint_repeller(
                 owner->_get_molecule(),
                 owner->_get_sequencer()->setup()._get_body_index(body1.value),
@@ -125,8 +125,8 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
             break;
 
         case ConstraintChoice::SpecificAtoms:
-            if (distance.found) {throw except::parse_error("constraint", "Constraint of type \"specific_atoms\" cannot be provided with argument \"distance\".");}
-            if (!(iatom1.found && iatom2.found)) {throw except::parse_error("constraint", "Constraint of type \"specific_atoms\" requires arguments \"iatom1\" and \"iatom2\".");}
+            if (distance.found) {throw except::parse_error("constraint", R"(Constraint of type "specific_atoms" cannot be provided with argument "distance".)");}
+            if (!(iatom1.found && iatom2.found)) {throw except::parse_error("constraint", R"(Constraint of type "specific_atoms" requires arguments "iatom1" and "iatom2".)");}
             constraint = factory::create_constraint(
                 owner->_get_molecule(),
                 owner->_get_sequencer()->setup()._get_body_index(body1.value),

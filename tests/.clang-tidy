@@ -1,0 +1,23 @@
+# Test-suite overrides. Everything is inherited from the project-root .clang-tidy; the
+# checks below are the ones that are meaningful for the library but not for the tests.
+
+InheritParentConfig: true
+
+Checks: >
+  -bugprone-unchecked-optional-access,
+  -misc-use-anonymous-namespace,
+
+#   bugprone-unchecked-optional-access
+#       70 of the 85 tree-wide hits are here, and in a test an access to an optional the
+#       test itself arranged to be engaged *is* the assertion: if it is empty the test
+#       fails, which is the outcome being asked for. Satisfying the check means either
+#       restating that assertion as a presence check, or wrapping the access in an `if`
+#       that turns a failure into a silently skipped branch -- strictly worse than the
+#       access it replaces. The 15 hits under source/ and include/ are unaffected and
+#       stay reported, which is where an empty optional is a latent bug rather than a
+#       failing assertion.
+#   misc-use-anonymous-namespace
+#       See the note in the root config: the check reports at the macro expansion site, so
+#       Catch2's TEST_CASE lands a report on the test's own line that no edit here can
+#       satisfy, and there is no check option to exempt it. Every test binary links
+#       independently, so the ODR hazard the check exists to prevent does not arise here.

@@ -2,9 +2,8 @@
 // Author: Kristian Lytje
 
 #include <fitter/FitReporter.h>
+
 #include <utility/Exceptions.h>
-#include <mini/detail/FittedParameter.h>
-#include <mini/detail/Evaluation.h>
 
 #include <fstream>
 #include <iostream>
@@ -20,14 +19,14 @@ void FitReporter::report(const std::vector<FitResult>& fits, const std::vector<s
     if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("FitReporter::report: Size of fits and titles must be equal.");}
 
     auto title_reporter = get_title_reporter(titles);
-    for (unsigned int i = 0; i < fits.size(); i++) {
+    for (int i = 0; i < static_cast<int>(fits.size()); i++) {
         std::string title = titles.empty() ? "" : titles[i];
         std::cout << title_reporter(std::move(title));
         std::cout << fits[i].to_string() << std::endl;
     }
 }
 
-void FitReporter::save(const observer_ptr<FitResult> fit, const io::File& path, int argc, char const* argv[]) {
+void FitReporter::save(const observer_ptr<FitResult> fit, const io::File& path, int argc, char const* const* argv) {
     std::string cmd_line;
     for (int i = 0; i < argc; ++i) {cmd_line.append(argv[i]).append(" ");}
     save(fit, path, cmd_line);
@@ -51,7 +50,7 @@ void FitReporter::save(const std::vector<FitResult>& fits, const io::File& path,
     if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path.str() + "\".");}
 
     auto title_reporter = get_title_reporter(titles);
-    for (unsigned int i = 0; i < fits.size(); i++) {
+    for (int i = 0; i < static_cast<int>(fits.size()); i++) {
         std::string title = titles.empty() ? "" : titles[i];
         out << title_reporter(std::move(title));
         out << fits[i].to_string() << std::endl;
@@ -68,7 +67,7 @@ std::function<std::string(std::string)> FitReporter::get_title_reporter(const st
             std::string output;
             output += "\n+----------------------------------------------------------+";
 
-            int spaces = (60 - title.size())/2 - 1;
+            int spaces = static_cast<int>((60 - title.size())/2 - 1);
             std::string spacing(spaces, ' ');
             output += "\n|" + spacing + title + (title.size() % 2 == 0 ? spacing : spacing + " ") + "|\n";
             return output;

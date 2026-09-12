@@ -2,7 +2,6 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
-#include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

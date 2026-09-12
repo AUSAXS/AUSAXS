@@ -2,10 +2,10 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
+#include <constants/Constants.h>
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
 #include <settings/All.h>
-#include <constants/Constants.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;

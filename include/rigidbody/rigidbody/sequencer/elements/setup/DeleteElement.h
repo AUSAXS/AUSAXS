@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
-#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -20,7 +20,7 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Delete one or more existing bodies.
              */
-            DeleteElement(observer_ptr<Sequencer> owner, std::vector<std::string> names);
+            DeleteElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names);
 
             ~DeleteElement() override;
 

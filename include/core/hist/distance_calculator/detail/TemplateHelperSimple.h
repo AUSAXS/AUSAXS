@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <hist/distance_calculator/detail/TemplateHelperBase.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFF.h>
+#include <hist/distance_calculator/detail/TemplateHelperBase.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 

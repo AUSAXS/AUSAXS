@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/Rigidbody.h>
-#include <hydrate/generation/HydrationFactory.h>
-#include <hydrate/culling/CullingFactory.h>
-#include <hydrate/culling/BodyCounterCulling.h>
-#include <hydrate/generation/GridBasedHydration.h>
+
 #include <data/Molecule.h>
+#include <hydrate/culling/BodyCounterCulling.h>
+#include <hydrate/culling/CullingFactory.h>
+#include <hydrate/generation/GridBasedHydration.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 
 #include <cassert>
 #include <map>
@@ -98,7 +97,7 @@ InlineSignature RelativeHydrationElement::_valid_inline_arguments() {
 }
 
 // relative_hydration [body] [hydration level] - level is one of: min, low, normal, high, max
-std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     static const std::unordered_map<std::string, Options> options = {
         {"max",     Options::Maximum},
         {"maximum", Options::Maximum},

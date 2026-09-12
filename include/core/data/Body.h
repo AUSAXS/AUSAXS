@@ -3,21 +3,21 @@
 
 #pragma once
 
+#include <data/DataFwd.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/AtomMetadata.h>
 #include <data/atoms/Water.h>
 #include <data/state/DataStateFwd.h>
-#include <data/DataFwd.h>
-#include <data/symmetry/SymmetryStorage.h>
 #include <data/symmetry/BodySymmetryFacade.h>
-#include <io/IOFwd.h>
+#include <data/symmetry/SymmetryStorage.h>
 #include <grid/GridFwd.h>
-#include <math/MathFwd.h>
 #include <hydrate/HydrationFwd.h>
+#include <io/IOFwd.h>
+#include <math/MathFwd.h>
 
-#include <vector>
 #include <memory>
 #include <optional>
+#include <vector>
 
 namespace ausaxs::data {
 	class Body {
@@ -98,8 +98,8 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get a reference to the specified atom.
 			 */
-			[[nodiscard]] data::AtomFF& get_atom(unsigned int index);
-			[[nodiscard]] const data::AtomFF& get_atom(unsigned int index) const;
+			[[nodiscard]] data::AtomFF& get_atom(int index);
+			[[nodiscard]] const data::AtomFF& get_atom(int index) const;
 
 			/** 
 			 * @brief Calculate the center-of-mass coordinates for the body.
@@ -162,23 +162,23 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get the total number of constituent atoms, excluding waters. 
 			 */
-			[[nodiscard]] std::size_t size_atom() const;
+			[[nodiscard]] int size_atom() const;
 
 			/**
 			 * @brief Get the total number of water molecules.
 			 */
-			[[nodiscard]] std::size_t size_water() const;
+			[[nodiscard]] int size_water() const;
 			
 			/**
 			 * @brief Get the number of symmetries defined for this body.
 			 */
-			[[nodiscard]] std::size_t size_symmetry() const;
+			[[nodiscard]] int size_symmetry() const;
 
 			/**
 			 * @brief Get the number of symmetry duplicates of this body.
 			 * 		  This accounts for repeating symmetries. 
 			 */
-			[[nodiscard]] std::size_t size_symmetry_total() const;
+			[[nodiscard]] int size_symmetry_total() const;
 
 			/**
 			 * @brief Access the symmetry operations of this body.
@@ -203,7 +203,7 @@ namespace ausaxs::data {
 			std::unique_ptr<symmetry::SymmetryStorage> 	symmetries;
 
 			int uid;
-			inline static unsigned int uid_counter = 0;
+			inline static int uid_counter = 0;
 
 			// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
 			mutable std::shared_ptr<signaller::Signaller> signal;

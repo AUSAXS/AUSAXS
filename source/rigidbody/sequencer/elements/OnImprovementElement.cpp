@@ -2,8 +2,9 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/OnImprovementElement.h>
-#include <rigidbody/sequencer/elements/OptimizeStepElement.h>
+
 #include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/elements/OptimizeStepElement.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -30,10 +31,10 @@ InlineSignature OnImprovementElement::_valid_inline_arguments() {
 }
 
 // on_improvement - opens a block run whenever a step improves the fit; only valid inside an optimize_step block
-std::unique_ptr<GenericElement> OnImprovementElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&&) {
+std::unique_ptr<GenericElement> OnImprovementElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& /*unused*/) {
     observer_ptr<OptimizeStepElement> optimize_step = nullptr;
-    if (optimize_step = dynamic_cast<OptimizeStepElement*>(owner); !optimize_step) {
-        throw except::parse_error("on_improvement", "\"on_improvement\" must be inside an \"optimize_step\" block.");
+    if (optimize_step = dynamic_cast<OptimizeStepElement*>(owner); optimize_step == nullptr) {
+        throw except::parse_error("on_improvement", R"("on_improvement" must be inside an "optimize_step" block.)");
     }
     return std::make_unique<OnImprovementElement>(optimize_step);
 }

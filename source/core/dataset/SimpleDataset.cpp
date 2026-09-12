@@ -2,33 +2,40 @@
 // Author: Kristian Lytje
 
 #include <dataset/SimpleDataset.h>
+
 #include <dataset/DatasetFactory.h>
 #include <hist/Histogram.h>
 #include <math/Statistics.h>
-#include <utility/Exceptions.h>
-#include <utility/Console.h>
-#include <utility/Random.h>
 #include <settings/GeneralSettings.h>
+#include <utility/Console.h>
+#include <utility/Exceptions.h>
+#include <utility/Random.h>
 
-#include <vector>
+#include <algorithm>
+#include <cassert>
 #include <string>
+#include <vector>
+
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
+#endif
 
 using namespace ausaxs;
 
 SimpleDataset::SimpleDataset() : SimpleDataset(0) {}
 SimpleDataset::SimpleDataset(const SimpleDataset& d) = default;
-SimpleDataset::SimpleDataset(SimpleDataset&& d) = default;
+SimpleDataset::SimpleDataset(SimpleDataset&& d) noexcept = default;
 SimpleDataset& SimpleDataset::operator=(const SimpleDataset& other) = default;
 SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = default;
 SimpleDataset::~SimpleDataset() = default;
 
 SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
-    if (d.data.M <= 1) {
-        throw except::invalid_argument("SimpleDataset::SimpleDataset: Dataset must have at least two columns.");
-    } else if (d.data.M == 3) {
+    if (d.data.M <= 1) {throw except::invalid_argument("SimpleDataset::SimpleDataset: Dataset must have at least two columns.");}
+
+    if (d.data.M == 3) {
         data = d.data;
     } else {
-        for (unsigned int i = 0; i < data.N; i++) {
+        for (int i = 0; i < data.N; i++) {
             row(i) = {d.x(i), d.y(i), 0};
         }
     }
@@ -36,13 +43,13 @@ SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
 
 SimpleDataset::SimpleDataset(const hist::Histogram& h) : SimpleDataset(h.as_dataset()) {}
 
-SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : SimpleDataset(x.size()) {initialize(x, y, yerr);}
+SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : SimpleDataset(static_cast<int>(x.size())) {initialize(x, y, yerr);}
 
-SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y) : SimpleDataset(x.size()) {initialize(x, y);}
+SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y) : SimpleDataset(static_cast<int>(x.size())) {initialize(x, y);}
 
-SimpleDataset::SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
+SimpleDataset::SimpleDataset(int N, int M) : Dataset(N, M) {}
 
-SimpleDataset::SimpleDataset(unsigned int rows) noexcept : Dataset(rows, 3) {}
+SimpleDataset::SimpleDataset(int rows) noexcept : Dataset(rows, 3) {}
 
 SimpleDataset::SimpleDataset(const io::ExistingFile& path) : SimpleDataset() {
     auto data = factory::DatasetFactory::construct(path, 3);
@@ -50,28 +57,28 @@ SimpleDataset::SimpleDataset(const io::ExistingFile& path) : SimpleDataset() {
 }
 
 void SimpleDataset::initialize(const std::vector<double>& x, const std::vector<double>& y) {
-    #if DEBUG
-        if (x.size() != y.size()) {
-            throw except::size_error("SimpleDataset::SimpleDataset: x and y must have the same size (" + std::to_string(x.size()) + ", " + std::to_string(y.size()) + ").");
-        }
-    #endif
-    for (unsigned int i = 0; i < x.size(); i++) {
+    assert([&]() -> bool {
+        if (x.size() == y.size()) {return true;}
+        std::cout << "SimpleDataset::initialize: x and y must have the same size (" << x.size() << ", " << y.size() << ")." << std::endl;
+        return false;
+    }() && "SimpleDataset::initialize: x and y must have the same size.");
+    for (int i = 0; i < static_cast<int>(x.size()); i++) {
         row(i) = {x[i], y[i], 0};
     }
 }
 
 void SimpleDataset::initialize(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) {
-    #if DEBUG
-        if (x.size() != y.size() || x.size() != yerr.size()) {
-            throw except::size_error("SimpleDataset::SimpleDataset: x, y, and yerr must have the same size (" + std::to_string(x.size()) + ", " + std::to_string(y.size()) + ", " + std::to_string(yerr.size()) + ".");
-        }
-    #endif
-    for (unsigned int i = 0; i < x.size(); i++) {
+    assert([&]() -> bool {
+        if (x.size() == y.size() && x.size() == yerr.size()) {return true;}
+        std::cout << "SimpleDataset::initialize: x, y, and yerr must have the same size (" << x.size() << ", " << y.size() << ", " << yerr.size() << ")." << std::endl;
+        return false;
+    }() && "SimpleDataset::initialize: x, y, and yerr must have the same size.");
+    for (int i = 0; i < static_cast<int>(x.size()); i++) {
         row(i) = {x[i], y[i], yerr[i]};
     }
 }
 
-void SimpleDataset::reduce(unsigned int target, bool log) {
+void SimpleDataset::reduce(int target, bool log) {
     if (size() < target) {
         if (settings::general::verbose) {
             console::print_warning("Warning in SimpleDataset::reduce: Dataset is already smaller than target size.");
@@ -87,8 +94,8 @@ void SimpleDataset::reduce(unsigned int target, bool log) {
         double width = (end - start)/(target-1);
 
         reduced.push_back(row(0));
-        unsigned int j = 1;
-        for (unsigned int i = 1; i < size(); i++) {
+        int j = 1;
+        for (int i = 1; i < size(); i++) {
             double val = std::log10(x(i));
 
             // find the first x-value higher than our next sampling point
@@ -103,9 +110,9 @@ void SimpleDataset::reduce(unsigned int target, bool log) {
             }
         }
     } else {
-        unsigned int j = 0;
+        int j = 0;
         double ratio = double(size())/target;
-        for (unsigned int i = 0; i < size(); i++) {
+        for (int i = 0; i < size(); i++) {
             if (i >= j*ratio) {
                 reduced.push_back(row(i));
                 j++;
@@ -115,28 +122,29 @@ void SimpleDataset::reduce(unsigned int target, bool log) {
     *this = std::move(reduced);
 }
 
-void SimpleDataset::operator=(Matrix<double>&& other) {
+SimpleDataset& SimpleDataset::operator=(Matrix<double>&& other) { // NOLINT - only the matrix contents are moved
     if (other.M != data.M) {throw except::invalid_operation("SimpleDataset::operator=: Matrix has wrong number of columns.");}
     this->data.data = std::move(other.data);
     this->data.N = other.N;
+    return *this;
 }
 
 Limit SimpleDataset::span_x() const noexcept {
-    if (size() == 0) {
-        return Limit(0, 0);
+    if (empty()) {
+        return {0, 0};
     }
     auto x = this->x();
-    auto[min, max] = std::minmax_element(x.begin(), x.end());
-    return Limit(*min, *max);
+    auto[min, max] = std::ranges::minmax_element(x);
+    return {*min, *max};
 }
 
 Limit SimpleDataset::span_y() const noexcept {
-    if (size() == 0) {
-        return Limit(0, 0);
+    if (empty()) {
+        return {0, 0};
     }
     auto y = this->y();
-    auto[min, max] = std::minmax_element(y.begin(), y.end());
-    return Limit(*min, *max);
+    auto[min, max] = std::ranges::minmax_element(y);
+    return {*min, *max};
 }
 
 Limit SimpleDataset::get_xlimits() const noexcept {return span_x();}
@@ -145,13 +153,13 @@ Limit SimpleDataset::get_ylimits() const noexcept {return span_y();}
 
 Limit SimpleDataset::span_y_positive() const noexcept {
     auto y = this->y();
-    if (size() == 0) {
-        return Limit(0, 0);
+    if (empty()) {
+        return {0, 0};
     }
 
     Limit limits;
     // find first non-zero y value
-    unsigned int i = 0;
+    int i = 0;
     for (; i < size(); i++) {
         if (0 < y[i]) {
             limits.min = y[i];
@@ -171,20 +179,20 @@ Limit SimpleDataset::span_y_positive() const noexcept {
     return limits;
 }
 
-SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double val) {
+SimpleDataset SimpleDataset::generate_random_data(int size, double val) {
     return generate_random_data(size, -val, val);
 }
 
-SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double min, double max) {
+SimpleDataset SimpleDataset::generate_random_data(int size, double min, double max) {
     auto uniform = std::uniform_real_distribution<double>(min, max);
 
     std::vector<double> x(size), y(size), yerr(size);
-    for (unsigned int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         x[i] = i;
         y[i] = uniform(random::generator());
         yerr[i] = y[i]*0.1;
     }
-    return SimpleDataset(x, y, yerr);
+    return {x, y, yerr};
 }
 
 void SimpleDataset::push_back(double x, double y, double yerr) {
@@ -200,14 +208,14 @@ double SimpleDataset::normalize(double y0) {
 
 void SimpleDataset::scale_errors(double factor) {
     auto yerr = this->yerr();
-    std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});
+    std::ranges::transform(yerr, yerr.begin(), [&factor] (double val) {return factor*val;});
 }
 
 void SimpleDataset::scale_y(double factor) {
     auto y = this->y();
     auto yerr = this->yerr();
-    std::transform(y.begin(), y.end(), y.begin(), [&factor] (double val) {return val*factor;});
-    std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});
+    std::ranges::transform(y, y.begin(), [&factor] (double val) {return val*factor;});
+    std::ranges::transform(yerr, yerr.begin(), [&factor] (double val) {return factor*val;});
 }
 
 void SimpleDataset::simulate_noise() {
@@ -217,11 +225,11 @@ void SimpleDataset::simulate_noise() {
 
     auto y = this->y();
     auto yerr = this->yerr();
-    std::transform(y.begin(), y.end(), yerr.begin(), y.begin(), fun);
+    std::ranges::transform(y, yerr, y.begin(), fun);
 }
 
 void SimpleDataset::simulate_errors() {
-    if (size() == 0) {
+    if (empty()) {
         if (settings::general::verbose) {
             console::print_warning("Warning in SimpleDataset::simulate_errors: Dataset is empty.");
         }
@@ -234,17 +242,17 @@ void SimpleDataset::simulate_errors() {
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*x, 0.85);});
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y, 0.15)*std::pow(y0, 0.35)*std::pow(x, -0.85)/10000 + std::pow(x, 5)/100;});
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y/x*1e-4 + 1e-4;});
-    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double, double x) {return y0*(1 + 0.1/std::pow(x, 1.2))*1e-4;});
+    std::ranges::transform(y, x, yerr.begin(), [&y0] (double, double x) {return y0*(1 + 0.1/std::pow(x, 1.2))*1e-4;});
 }
 
-Point2D SimpleDataset::get_point(unsigned int index) const {
-    if (data.M < 3) {return Point2D(x(index), y(index));}
-    else {           return Point2D(x(index), y(index), yerr(index));}
+Point2D SimpleDataset::get_point(int index) const {
+    if (data.M < 3) {return {x(index), y(index)};}
+    return {x(index), y(index), yerr(index)};
 }
 
 Point2D SimpleDataset::find_minimum() const {
     auto res = Dataset::find_minimum(1);
-    return Point2D(res[0], res[1], res[2]);
+    return {res[0], res[1], res[2]};
 }
 
 void SimpleDataset::push_back(const Point2D& point) noexcept {
@@ -254,9 +262,9 @@ void SimpleDataset::push_back(const Point2D& point) noexcept {
 void SimpleDataset::rebin() noexcept {
     SimpleDataset newdata; // rebinned dataset
 
-    std::function<void(unsigned int, unsigned int&)> func;
+    std::function<void(int, int&)> func;
     if (std::accumulate(yerr().begin(), yerr().end(), 0.0) == 0) {
-        func = [&newdata, this] (unsigned int nfold, unsigned int& index) {
+        func = [&newdata, this] (int nfold, int& index) {
             double wsum = 0, qsum = 0, folds = 0;
             for (; (folds < nfold) && (index < size()); folds++) {
                 wsum += y(index);
@@ -266,7 +274,7 @@ void SimpleDataset::rebin() noexcept {
             newdata.push_back(qsum/folds, wsum/folds, 0);
         };
     } else {
-        func = [&newdata, this] (unsigned int nfold, unsigned int& index) {
+        func = [&newdata, this] (int nfold, int& index) {
             double siginv = 0, wsum = 0, qsum = 0, folds = 0;
             for (; (folds < nfold) && (index < size()); folds++) {
                 siginv += (std::pow(yerr(index), -2));
@@ -279,9 +287,9 @@ void SimpleDataset::rebin() noexcept {
     }
 
     // note: func() advances 'i' past every point it consumed, so the loop must not increment it again
-    for (unsigned int i = 0; i < size(); ) {
+    for (int i = 0; i < size(); ) {
         // determine how many data points to fold into one
-        unsigned int fold;
+        int fold;
         if (0.1 < x(i)) {fold = 8;}
         else if (0.06 < x(i)) {fold = 4;}
         else if (0.03 < x(i)) {fold = 2;}
@@ -299,7 +307,7 @@ void SimpleDataset::load(const io::ExistingFile& path) {
 }
 
 void SimpleDataset::remove_consecutive_duplicates() {
-    if (size() == 0) {
+    if (empty()) {
         console::print_warning("Warning in SimpleDataset::remove_consecutive_duplicates: Dataset is empty.");
         return;
     }
@@ -307,9 +315,9 @@ void SimpleDataset::remove_consecutive_duplicates() {
     Matrix<double> new_data(data.N, data.M);
     new_data.row(0) = this->row(0);
 
-    unsigned int index = 1;
+    int index = 1;
     double v = y(0);
-    for (unsigned int i = 1; i < size(); i++) {
+    for (int i = 1; i < size(); i++) {
         if (y(i) != v) {
             new_data.row(index++) = this->row(i);
             v = y(i);

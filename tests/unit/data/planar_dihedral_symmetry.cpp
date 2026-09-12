@@ -2,8 +2,8 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/symmetry/PlanarDihedralSymmetry.h>
 #include <data/symmetry/DihedralSymmetry.h>
+#include <data/symmetry/PlanarDihedralSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <math/MatrixUtils.h>
 
@@ -26,7 +26,7 @@ namespace {
     // positions of a single body point p under {original + all copies}, for a body centred at cm
     std::vector<Vector3<double>> copy_positions(const IPolyhedralSymmetry& s, Vector3<double> cm, Vector3<double> p) {
         std::vector<Vector3<double>> out = {p};
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {out.push_back(s._get_transform(cm, rep)(p));}
+        for (int rep = 1; rep <= s.repetitions(); ++rep) {out.push_back(s._get_transform(cm, rep)(p));}
         return out;
     }
 

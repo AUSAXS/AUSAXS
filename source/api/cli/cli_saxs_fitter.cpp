@@ -2,28 +2,26 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_saxs_fitter.h>
+
 #include <CLI/CLI.hpp>
 
-#include <data/Body.h>
-#include <data/Molecule.h>
-#include <grid/Grid.h>
-#include <fitter/SmartFitter.h>
-#include <fitter/FitReporter.h>
-#include <plots/All.h>
-#include <settings/All.h>
-#include <io/ExistingFile.h>
 #include <constants/Constants.h>
-#include <mini/detail/Evaluation.h>
-#include <mini/detail/FittedParameter.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <data/Molecule.h>
+#include <fitter/FitReporter.h>
+#include <fitter/SmartFitter.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <grid/Grid.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <io/ExistingFile.h>
+#include <plots/PlotDistance.h>
+#include <plots/PlotProfiles.h>
+#include <settings/All.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
-#include <vector>
-#include <string>
 #include <iostream>
+#include <string>
+#include <vector>
 
 using namespace ausaxs;
 
@@ -34,8 +32,8 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
 
     CLI::App app{"Perform SAXS fitting for a given structure and measurement."};
     app.fallthrough();
-    auto input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
-    auto input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
+    auto* input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
+    auto* input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
@@ -51,13 +49,13 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     app.add_flag("--gpu", settings::general::gpu, "Use GPU acceleration if available.")->default_val(settings::general::gpu);
 
     // config subcommands
-    auto sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
-    auto p_settings = sub_config->add_option("--file,-f", settings, "The configuration file to use.")->check(CLI::ExistingFile);
+    auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
+    auto* p_settings = sub_config->add_option("--file,-f", settings, "The configuration file to use.")->check(CLI::ExistingFile);
     sub_config->add_flag("--save", save_settings, "Save the settings to a file.");
     sub_config->add_flag_callback("--log", [] () {logging::start("saxs_fitter");}, "Enable logging to a file.");
 
     // data subcommands
-    auto sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
+    auto* sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
     sub_data->add_option(
         "--qmax", 
         settings::axes::qmax, 
@@ -79,14 +77,14 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins);
 
     // molecule subcommands
-    auto sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
+    auto* sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
     sub_mol->add_flag("--center,!--no-center", settings::molecule::center, 
         "Decides whether the protein will be centered.")->default_val(settings::molecule::center);
     sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, 
         "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy);
 
     // exv subcommands
-    auto sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
+    auto* sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
     sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) 
         {settings::detail::parse_option("exv_model", {s});}, 
         "The excluded volume model to use. Options: Simple, Fraser, Grid.");
@@ -100,7 +98,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness, 
         "The thickness of the surface layer in Ångström."
     )->default_val(settings::grid::exv::surface_thickness)->group("");
-    auto sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width, 
+    auto* sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width, 
         "The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Ångström."
     )->default_val(settings::grid::exv::width);
     sub_exv->add_flag("--save", save_exv, 
@@ -111,7 +109,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     )->check(CLI::ExistingFile);
 
     // solvation subcommands
-    auto sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
+    auto* sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
     sub_water->add_option_function<std::string>("--model,-m", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, 
         "The hydration model to use. Options: Radial, Axes, None.");
     sub_water->add_flag("--keep,!--discard", use_existing_hydration, 
@@ -122,15 +120,15 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         "Fit the hydration shell.")->default_val(settings::fit::fit_hydration);
 
     // hydrogen subcommands
-    auto sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
+    auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
     sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
 
     // grid subcommands
-    auto sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
+    auto* sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
     sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
         "The radius of the excluded volume sphere around each atom."
     )->default_val(settings::grid::min_exv_radius);
-    auto sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
+    auto* sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width);
     sub_grid->add_flag("--save", save_grid, 
@@ -241,7 +239,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
                 saxs_data.save(settings::general::output + "rebinned.dat");
             }
     
-            fitter::SmartFitter fitter(std::move(saxs_data), protein.get_histogram());
+            fitter::SmartFitter fitter(saxs_data, protein.get_histogram());
             auto result = fitter.fit();
             fitter::FitReporter::report(result.get());
             fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);

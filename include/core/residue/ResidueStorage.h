@@ -40,7 +40,7 @@ namespace ausaxs::residue {
             /**
              * @brief Insert a residue into the storage. 
              */
-            void insert(const std::string& name, const detail::ResidueMap& residue);
+            void insert(const std::string& name, detail::ResidueMap&& residue);
 
         private: 
             /**

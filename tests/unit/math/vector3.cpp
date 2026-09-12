@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <math/Vector3.h>
-#include <math/Vector.h>
 #include <math/Matrix.h>
+#include <math/Vector.h>
+#include <math/Vector3.h>
 
 #include <numbers>
 

@@ -5,12 +5,17 @@
 
 #include <math/Exceptions.h>
 
-#include <string>
-
 /**
- * @brief This namespace contains all custom exceptions for this project. 
+ * @brief This namespace contains all custom exceptions for this project.
  */
 namespace ausaxs::except {
+    using ausaxs::math::except::base;
+    using ausaxs::math::except::runtime_error;
+    using ausaxs::math::except::invalid_argument;
+    using ausaxs::math::except::out_of_range;
+    using ausaxs::math::except::logic_error;
+    using ausaxs::math::except::io_error;
+
     // Missing argument. Used whenever a required option is missing.
     struct missing_option : public base {using base::base;};
 

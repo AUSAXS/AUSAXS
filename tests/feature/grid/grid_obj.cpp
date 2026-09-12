@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <utility/Limit3D.h>
 #include <grid/Grid.h>
+#include <utility/Limit3D.h>
 
 using namespace ausaxs;
 using namespace ausaxs::grid;

@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <dataset/SimpleDataset.h>
 #include <dataset/PointSet.h>
+#include <dataset/SimpleDataset.h>
 #include <utility/Limit.h>
 
 using namespace ausaxs;
@@ -10,7 +10,7 @@ using namespace ausaxs;
 TEST_CASE("SimpleDataset::SimpleDataset") {
     SECTION("default constructor") {
         SimpleDataset dataset;
-        CHECK(dataset.size() == 0);
+        CHECK(dataset.empty());
         CHECK(dataset.size_rows() == 0);
         CHECK(dataset.size_cols() == 3);
     }
@@ -29,7 +29,7 @@ TEST_CASE("SimpleDataset::SimpleDataset") {
         CHECK(d2.y() == std::vector{4, 5, 6});
     }
 
-    SECTION("unsigned int") {
+    SECTION("int") {
         SimpleDataset dataset(10);
         CHECK(dataset.size() == 10);
         CHECK(dataset.size_rows() == 10);
@@ -269,7 +269,7 @@ TEST_CASE("SimpleDataset::generate_random_data") {
         CHECK(dataset.size() == 10);
         CHECK(dataset.size_cols() == 3);
         
-        for (unsigned int i = 0; i < dataset.size(); i++) {
+        for (int i = 0; i < dataset.size(); i++) {
             CHECK(dataset.x(i) == i);
             CHECK(dataset.y(i) >= -5);
             CHECK(dataset.y(i) <= 5);
@@ -281,7 +281,7 @@ TEST_CASE("SimpleDataset::generate_random_data") {
         CHECK(dataset.size() == 10);
         CHECK(dataset.size_cols() == 3);
         
-        for (unsigned int i = 0; i < dataset.size(); i++) {
+        for (int i = 0; i < dataset.size(); i++) {
             CHECK(dataset.x(i) == i);
             CHECK(dataset.y(i) >= -3);
             CHECK(dataset.y(i) <= 7);

@@ -2,15 +2,15 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/BodySplitter.h>
+
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/atoms/AtomMetadata.h>
+#include <io/Reader.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBStructure.h>
 #include <settings/MoleculeSettings.h>
 #include <utility/Exceptions.h>
-#include <io/pdb/PDBStructure.h>
-#include <io/pdb/PDBAtom.h>
-#include <io/pdb/PDBWater.h>
-#include <io/Reader.h>
 
 #include <algorithm>
 #include <cassert>
@@ -27,9 +27,9 @@ namespace {
     // Splitting by residue requires the residue ids to be retained as metadata. The operation is meaningless without them, so the file-based overloads force 
     // retention on for the duration of the load rather than failing on a configuration the caller has no reason to think about.
     struct residue_seq_guard {
-        residue_seq_guard() : previous(AtomMetadata::store_residue_seq) {AtomMetadata::store_residue_seq = true;}
+        residue_seq_guard() {AtomMetadata::store_residue_seq = true;}
         ~residue_seq_guard() {AtomMetadata::store_residue_seq = previous;}
-        bool previous;
+        bool previous = AtomMetadata::store_residue_seq; // initialised before the constructor body flips the flag
     };
 }
 
@@ -79,7 +79,10 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
     }
 
     auto slice = [&atoms, &metadata] (std::size_t begin, std::size_t end) -> Body {
-        Body b(std::vector<AtomFF>(atoms.begin()+begin, atoms.begin()+end), std::vector<data::Water>{});
+        Body b(
+            std::vector<AtomFF>(atoms.begin()+static_cast<std::ptrdiff_t>(begin), atoms.begin()+static_cast<std::ptrdiff_t>(end)),
+            std::vector<data::Water>{}
+        );
 
         AtomMetadata m = metadata->subrange(begin, end);
         if (!m.empty()) {b.set_metadata(std::move(m));}
@@ -121,18 +124,18 @@ data::Molecule BodySplitter::split(const io::File& input) {
     std::vector<Body> bodies;
     auto begin = atoms.begin();
     char current_id = atoms[0].chainID;
-    for (unsigned int i = 0; i < atoms.size(); i++) {
+    for (int i = 0; i < static_cast<int>(atoms.size()); i++) {
         if (atoms[i].chainID != current_id) {
             std::vector<PDBAtom> a(begin, atoms.begin() + i);
             auto reduced = PDBStructure(a, {}).reduced_representation();
-            bodies.push_back(Body(reduced.atoms, reduced.waters));
+            bodies.emplace_back(reduced.atoms, reduced.waters);
             if (reduced.metadata) {bodies.back().set_metadata(std::move(*reduced.metadata));}
             begin = atoms.begin() + i;
             current_id = atoms[i].chainID;
         }
     }
     auto reduced = PDBStructure(std::vector<PDBAtom>(begin, atoms.end()), {}).reduced_representation();
-    bodies.push_back(Body(reduced.atoms, reduced.waters));
+    bodies.emplace_back(reduced.atoms, reduced.waters);
     if (reduced.metadata) {bodies.back().set_metadata(std::move(*reduced.metadata));}
     return Molecule(bodies);
 }

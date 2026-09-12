@@ -8,9 +8,9 @@
 
 namespace ausaxs::settings {
     struct EXPORT em {
-        static unsigned int sample_frequency; // How often a bin is sampled in any direction.
+        static int sample_frequency; // How often a bin is sampled in any direction.
         static double concentration;          // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
-        static unsigned int charge_levels;    // The number of partial histograms to utilize.
+        static int charge_levels;    // The number of partial histograms to utilize.
 
         static bool hydrate;                  // Whether to hydrate the protein in the EM algorithm.
         static bool mass_axis;                // Whether to use a mass axis in place of the threshold axis. 

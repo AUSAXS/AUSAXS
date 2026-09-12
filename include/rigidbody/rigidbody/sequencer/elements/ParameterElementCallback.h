@@ -3,15 +3,15 @@
 
 #pragma once
 
+#include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
-#include <rigidbody/parameters/decay/DecayStrategy.h>
 
 namespace ausaxs::rigidbody::sequencer {
     class ParameterElementCallback : public LoopElementCallback {
         public:
             ParameterElementCallback(ParameterElement* caller);
-            virtual ~ParameterElementCallback() override;
+            ~ParameterElementCallback() override;
 
             ParameterElement& max_rotation_angle(double radians);
 

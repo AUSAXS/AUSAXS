@@ -12,8 +12,8 @@ namespace ausaxs {
      */
     class Decomposition {
         public: 
-            Decomposition() {}
-            virtual ~Decomposition() {}
+            Decomposition() = default;
+            virtual ~Decomposition() = default;
             virtual void decompose() = 0;
 
         protected:

@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <math/PeakFinder.h>
+
 #include <algorithm>
 #include <math/Exceptions.h>
 
@@ -12,11 +13,11 @@ using namespace ausaxs;
         Connect all local maxima with a line. This is essentially what we're doing now anyway, except we're doing it in a more complicated roundabout way.
 */
 
-namespace peak_finder {struct Limit {double min = 0, max = 0;};}
-std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const std::vector<double>& y, unsigned int min_spacing, double min_prominence) {
-    if (x.size() != y.size()) {throw except::invalid_argument("math::find_minima: x and y must have the same size.");}
+namespace peak_finder {struct Limit {int min = 0, max = 0;};}
+std::vector<int> math::find_minima(const std::vector<double>& x, const std::vector<double>& y, int min_spacing, double min_prominence) {
+    if (x.size() != y.size()) {throw math::except::invalid_argument("math::find_minima: x and y must have the same size.");}
     if (x.size() < 3) {return {};}
-	unsigned int size = x.size();
+	int size = static_cast<int>(x.size());
 
     /**
      * @brief Get the linear equation of the line between the bounds of a local minimum
@@ -53,7 +54,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
      * @param bound The bounds of the local minimum.
      * @param index The index of the local minimum.
      */
-    auto relax_bound = [&] (peak_finder::Limit& bound, unsigned int index) {
+    auto relax_bound = [&] (peak_finder::Limit& bound, int index) {
         if (bound.max - bound.min < 5) {return;}
         if (bound.min == 0 || bound.max == size-1) {return;}
 
@@ -108,11 +109,11 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     //######################################################//
     //###                FIND ALL MINIMA                 ###//
     //######################################################//
-    std::vector<unsigned int> local_minima;
+    std::vector<int> local_minima;
     {
         // special cases: first and last point
         if (y[0] < y[1]) {local_minima.push_back(0);}
-        for (unsigned int i = 1; i < size-1; i++) {
+        for (int i = 1; i < size-1; i++) {
             if (y[i] < y[i-1] && y[i] < y[i+1]) {
                 local_minima.push_back(i);
             }
@@ -153,7 +154,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                 int decreasing_right = 0;              	    // how many points in a row are lower than the maximal found point
                 int right = std::min<int>(index+1, size-1);	// the index of the point we are currently looking at
                 double max_diff = 0;                        // the highest point we have found so far
-                while (decreasing_right < 3 && right < int(size)) {
+                while (decreasing_right < 3 && right < size) {
                     double diff = y[right] - y[index];
                     if (diff < max_diff*math::detail::min_slope) { // we want at least a 0% increase for every point
                         decreasing_right++;
@@ -193,9 +194,9 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
 
             local_minima_bounds.push_back(std::move(bounds));
 			#if DEBUG_PLOT
-                for (unsigned int i = 0; i < local_minima.size(); i++) {
+                for (int i = 0; i < local_minima.size(); i++) {
                     Limit& bound = local_minima_bounds[i];
-                    unsigned int index = local_minima[i];
+                    int index = local_minima[i];
 
                     // bounds
     				SimpleDataset dummy1({x[bounds.min], x[bounds.max]}, {y[bounds.min], y[bounds.max]});
@@ -214,14 +215,14 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     //######################################################//
     if (local_minima_bounds.size() > 1) {
         std::vector<peak_finder::Limit> merged_bounds;
-        std::vector<unsigned int> merged_minima;
+        std::vector<int> merged_minima;
         merged_bounds.reserve(local_minima.size());
-        for (unsigned int i = 0; i < local_minima_bounds.size(); i++) {
+        for (int i = 0; i < static_cast<int>(local_minima_bounds.size()); i++) {
             peak_finder::Limit bounds = local_minima_bounds[i];
 
             // go through all bounds and merge with the next one if they overlap
-            unsigned int merge_count = 0;
-            for (; i+merge_count+1 < local_minima_bounds.size(); ++merge_count) {
+            int merge_count = 0;
+            for (; i+merge_count+1 < static_cast<int>(local_minima_bounds.size()); ++merge_count) {
                 if (bounds.max <= local_minima_bounds[i+merge_count+1].min) {break;}
                 bounds.max = local_minima_bounds[i+merge_count+1].max;
             }
@@ -234,8 +235,8 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
             }
 
             // go through all merged minima and find the one with the lowest y value
-            unsigned int merged_minima_index = local_minima[i];
-            for (unsigned int j = 1; j <= merge_count; j++) {
+            int merged_minima_index = local_minima[i];
+            for (int j = 1; j <= merge_count; j++) {
                 if (y[local_minima[i+j]] < y[merged_minima_index]) {
                     merged_minima_index = local_minima[i+j];
                 }
@@ -256,7 +257,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     //###                  RELAX BOUNDS                  ###//
     //######################################################//
     auto original_bounds = local_minima_bounds;
-    for (unsigned int i = 0; i < local_minima.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(local_minima.size()); ++i) {
         relax_bound(local_minima_bounds[i], local_minima[i]);
     }
 
@@ -266,17 +267,17 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     if (0 < min_prominence) {
         // calculate all prominences
         std::vector<double> prominences(local_minima.size());
-        for (unsigned int i = 0; i < local_minima.size(); i++) {
+        for (int i = 0; i < static_cast<int>(local_minima.size()); i++) {
             prominences[i] = calc_prominence(local_minima_bounds[i], x[local_minima[i]], y[local_minima[i]]);
         }
 
         // update minimum prominence
-        min_prominence *= *std::max_element(prominences.begin(), prominences.end());
+        min_prominence *= *std::ranges::max_element(prominences);
 
         // filter out all local minima with a prominence smaller than the minimum prominence
-        std::vector<unsigned int> filtered_minima;
+        std::vector<int> filtered_minima;
         std::vector<peak_finder::Limit> filtered_bounds;
-        for (unsigned int i = 0; i < local_minima.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(local_minima.size()); ++i) {
             // if the prominence is smaller than the minimum prominence, we remove it
             if (prominences[i] < min_prominence) {
 
@@ -287,7 +288,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                     // restore original bounds and merge
                     new_bounds.min = original_bounds[i-1].min;
                     new_bounds.max = original_bounds[i].max;
-                    unsigned int new_minima = y[local_minima[i-1]] < y[local_minima[i]] ? local_minima[i-1] : local_minima[i];
+                    int new_minima = y[local_minima[i-1]] < y[local_minima[i]] ? local_minima[i-1] : local_minima[i];
                     relax_bound(new_bounds, new_minima);
 
                     // recalculate prominence
@@ -324,7 +325,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                     // restore original bounds and merge
                     new_bounds.min = original_bounds[i].min;
                     new_bounds.max = original_bounds[i+1].max;
-                    unsigned int new_minima = y[local_minima[i+1]] < y[local_minima[i]] ? local_minima[i+1] : local_minima[i];
+                    int new_minima = y[local_minima[i+1]] < y[local_minima[i]] ? local_minima[i+1] : local_minima[i];
                     relax_bound(new_bounds, new_minima);
 
                     // recalculate prominence
@@ -355,7 +356,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
 
     // now we want to filter out the ones that are too close to each other
     if (0 != min_spacing) {
-        std::vector<unsigned int> filtered_minima = {local_minima.front()};
+        std::vector<int> filtered_minima = {local_minima.front()};
         for (int i : local_minima) {
             if (min_spacing <= i - filtered_minima.back()) {
                 filtered_minima.push_back(i);

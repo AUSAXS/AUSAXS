@@ -1,17 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <settings/SettingsHelper.h>
-#include <settings/HistogramSettings.h>
-#include <settings/Flags.h>
 #include <constants/ConstantsAxes.h>
-#include <utility/Utility.h>
+#include <settings/Flags.h>
+#include <settings/HistogramSettings.h>
+#include <settings/SettingsHelper.h>
 
 using namespace ausaxs;
 
 TEST_CASE("Setting<T>::on_change_and_assignment") {
 	SECTION("on_change is called and can modify assigned value") {
-		settings::detail::Setting<int> s{0, nullptr};
+		settings::detail::Setting<int> s{.value=0, .on_change=nullptr};
 		bool called = false;
 
 		// on_change will clamp the value to [0, 10] and mark called
@@ -32,7 +31,7 @@ TEST_CASE("Setting<T>::on_change_and_assignment") {
 	}
 
 	SECTION("operator= returns reference to stored value") {
-		settings::detail::Setting<int> s{5, nullptr};
+		settings::detail::Setting<int> s{.value=5, .on_change=nullptr};
 		int& r = (s = 42);
 		r = 7;
 		CHECK(static_cast<int>(s) == 7);
@@ -40,7 +39,7 @@ TEST_CASE("Setting<T>::on_change_and_assignment") {
 }
 
 TEST_CASE("Setting<T>::conversion_operator") {
-	settings::detail::Setting<double> sd{3.14, nullptr};
+	settings::detail::Setting<double> sd{.value=3.14, .on_change=nullptr};
 	double x = sd; // conversion operator
     CHECK_THAT(x, Catch::Matchers::WithinAbs(3.14, 1e-9));
 }

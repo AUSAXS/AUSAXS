@@ -1,29 +1,20 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <hist/histogram_manager/HistogramManager.h>
-#include <hist/histogram_manager/HistogramManagerMT.h>
-#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
-#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
-#include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/histogram_manager/PartialHistogramManagerMT.h>
-#include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
+#include <hist/hist_test_helper.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::data;
 
 template<template<bool, bool> class MANAGER>
-void run_nongrid_test1(const Molecule& protein, std::size_t expected_bins) {
+static void run_nongrid_test1(const Molecule& protein, std::size_t expected_bins) {
     auto h1 = MANAGER<false, false>(&protein).calculate_all();
     REQUIRE(h1->get_d_axis().size() == expected_bins);
     auto h2 = MANAGER<true, false>(&protein).calculate_all();
@@ -35,7 +26,7 @@ void run_nongrid_test1(const Molecule& protein, std::size_t expected_bins) {
 }
 
 template<template<bool> class MANAGER>
-void run_grid_test1(const Molecule& protein, std::size_t min_bins) {
+static void run_grid_test1(const Molecule& protein, std::size_t min_bins) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(h1->get_d_axis().size() >= min_bins);
     auto h2 = MANAGER<true>(&protein).calculate_all();
@@ -44,7 +35,7 @@ void run_grid_test1(const Molecule& protein, std::size_t min_bins) {
 TEST_CASE("Deduced bin count: axis covers the structure") {
     settings::general::verbose = false;
     double max_dist = GENERATE(250., 500., 1000.);
-    std::size_t expected_bins = std::round(max_dist/settings::axes::bin_width) + 1;
+    auto expected_bins = static_cast<std::size_t>(std::round(max_dist/settings::axes::bin_width) + 1);
 
     settings::grid::min_exv_radius = 0;
     std::vector atoms = {
@@ -74,7 +65,7 @@ TEST_CASE("Deduced bin count: axis covers the structure") {
 }
 
 template<template<bool, bool> class MANAGER>
-void run_test2(const Molecule& protein) {
+static void run_test2(const Molecule& protein) {
     auto h1 = MANAGER<false, false>(&protein).calculate_all();
     REQUIRE_THAT(h1->get_d_axis()[1] - h1->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
     auto h2 = MANAGER<true, false>(&protein).calculate_all();
@@ -86,7 +77,7 @@ void run_test2(const Molecule& protein) {
 }
 
 template<template<bool> class MANAGER>
-void run_test2(const Molecule& protein) {
+static void run_test2(const Molecule& protein) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE_THAT(h1->get_d_axis()[1] - h1->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
     auto h2 = MANAGER<true>(&protein).calculate_all();
@@ -109,12 +100,12 @@ TEST_CASE("Custom bin width: respected by managers") {
 }
 
 template<template<bool> class MANAGER>
-void run_test3(const Molecule& protein, const auto& target) {
+static void run_test3(const Molecule& protein, const auto& target) {
     auto h2 = MANAGER<true>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
 }
 template<template<bool, bool> class MANAGER>
-void run_test3(const Molecule& protein, const auto& target) {
+static void run_test3(const Molecule& protein, const auto& target) {
     auto h3 = MANAGER<false, true>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h3.get()), target));
     auto h4 = MANAGER<true, true>(&protein).calculate_all();
@@ -124,11 +115,11 @@ TEST_CASE("Custom bin width: varying widths agree with analytical result") {
     settings::general::verbose = false;
 
     static auto calc_exp = [] (double width) {
-        std::vector<double> res(std::round(3.5/width)+1);
+        std::vector<double> res(static_cast<std::size_t>(std::round(3.5/width)+1));
         res[0] = 8;
-        res[std::round(2/width)] += 8*3;
-        res[std::round(std::sqrt(8)/width)] += 8*3;
-        res[std::round(std::sqrt(12)/width)] += 8*1;
+        res[static_cast<std::size_t>(std::round(2/width))] += 8*3;
+        res[static_cast<std::size_t>(std::round(std::sqrt(8)/width))] += 8*3;
+        res[static_cast<std::size_t>(std::round(std::sqrt(12)/width))] += 8*1;
         return res;
     };
 
@@ -148,14 +139,14 @@ TEST_CASE("Custom bin width: varying widths agree with analytical result") {
 }
 
 template<template<bool> class MANAGER>
-void run_test4(const Molecule& protein) {
+static void run_test4(const Molecule& protein) {
     auto iq = MANAGER<false>(&protein).calculate_all()->debye_transform();
     settings::axes::bin_width = constants::axes::d_axis.width();
     auto iq2 = MANAGER<true>(&protein).calculate_all()->debye_transform();
     REQUIRE(compare_hist(iq, iq2, 1e-6, 0.005));
 }
 template<template<bool, bool> class MANAGER>
-void run_test4(const Molecule& protein) {
+static void run_test4(const Molecule& protein) {
     settings::axes::bin_width = constants::axes::d_axis.width();
 
     auto iq = MANAGER<false, false>(&protein).calculate_all()->debye_transform();
@@ -180,15 +171,15 @@ TEST_CASE("Custom bin width: fixed and variable widths agree") {
     );
 }
 
-auto avg_deviation = [] (const std::vector<double>& a, const std::vector<double>& b) {
+static auto avg_deviation = [] (const std::vector<double>& a, const std::vector<double>& b) {
     double total_dev = 0;
     for (std::size_t i = 0; i < a.size(); ++i) {
         total_dev += std::abs(a[i]-b[i])/b[i];
     }
-    return total_dev/a.size();
+    return total_dev/static_cast<double>(a.size());
 };
 template<template<bool, bool> class MANAGER>
-void run_test5(const Molecule& protein, const std::vector<double>& exact) {
+static void run_test5(const Molecule& protein, const std::vector<double>& exact) {
     settings::axes::bin_width = 0.5;
     auto target_dev = avg_deviation(
         MANAGER<true, false>(&protein).calculate_all()->debye_transform().get_counts(),

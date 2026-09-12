@@ -2,8 +2,6 @@
 // Author: Kristian Lytje
 
 #include <io/pdb/PDBWater.h>
-#include <constants/Constants.h>
-#include <utility/Concepts.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
@@ -24,7 +22,7 @@ PDBWater PDBWater::create_new_water() {
 }
 
 PDBWater PDBWater::create_new_water(const Vector3<double>& coords) {
-    return PDBWater(-1, "O", "", "HOH", ' ', -1, "", coords, 1, 0, constants::atom_t::O, "");
+    return {-1, "O", "", "HOH", ' ', -1, "", coords, 1, 0, constants::atom_t::O, ""};
 }
 
 bool PDBWater::operator==(const PDBWater& rhs) const {

@@ -12,11 +12,11 @@ namespace ausaxs::rigidbody::parameter::decay {
     class NoDecay : public DecayStrategy {
         public:
             NoDecay() = default;
-            ~NoDecay() = default;
+            ~NoDecay() override = default;
 
             double next() override {return 1;}
 
         private:
-            void set_characteristic_time(unsigned int) override {}
+            void set_characteristic_time(int /*iterations*/) override {}
     };
 }

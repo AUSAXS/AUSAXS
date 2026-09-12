@@ -4,12 +4,14 @@
 
 #include <math/Vector.h>
 
+#include <cmath>
+
 using namespace ausaxs;
 
 TEST_CASE("Vector::Vector") {
     SECTION("empty") {
         Vector<double> x;
-        REQUIRE(x.size() == 0);
+        REQUIRE(x.empty());
     }
 
     SECTION("initializer_list") {
@@ -42,7 +44,7 @@ TEST_CASE("Vector::Vector") {
     SECTION("size constructor") {
         Vector<double> x(5);
         REQUIRE(x.size() == 5);
-        for (unsigned int i = 0; i < 5; ++i) {
+        for (int i = 0; i < 5; ++i) {
             REQUIRE(x[i] == 0);
         }
     }
@@ -223,7 +225,7 @@ TEST_CASE("Vector::dot") {
 TEST_CASE("Vector::norm") {
     Vector<double> x = {1, 2, 3, 4};
     double result = x.norm();
-    REQUIRE(result == sqrt(1+4+9+16));
+    REQUIRE(result == std::sqrt(1+4+9+16));
 }
 
 TEST_CASE("Vector::distance") {
@@ -231,7 +233,7 @@ TEST_CASE("Vector::distance") {
     Vector<double> y = {2, 3, 4, 5};
     
     double result = x.distance(y);
-    REQUIRE(result == sqrt(1+1+1+1));
+    REQUIRE(result == std::sqrt(1+1+1+1));
 }
 
 TEST_CASE("Vector::distance2") {
@@ -247,7 +249,7 @@ TEST_CASE("Vector::size") {
     REQUIRE(x.size() == 4);
 
     Vector<double> y;
-    REQUIRE(y.size() == 0);
+    REQUIRE(y.empty());
 }
 
 TEST_CASE("Vector::begin/end") {

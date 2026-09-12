@@ -4,8 +4,8 @@
 #pragma once
 
 #include <data/symmetry/ISymmetry.h>
-#include <math/Vector3.h>
 #include <math/Matrix.h>
+#include <math/Vector3.h>
 
 namespace ausaxs::symmetry {
     /**
@@ -13,7 +13,7 @@ namespace ausaxs::symmetry {
      */
     struct IPolyhedralSymmetry : public ISymmetry {
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
-        unsigned int repetitions() const override;
+        int repetitions() const override;
         bool is_closed() const override;
 
         std::span<double> span_translation() override;

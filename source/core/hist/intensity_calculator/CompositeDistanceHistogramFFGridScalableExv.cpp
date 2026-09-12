@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
+
 #include <form_factor/ExvFormFactor.h>
 #include <settings/GridSettings.h>
 
@@ -19,7 +20,7 @@ void CompositeDistanceHistogramFFGridScalableExv::apply_excluded_volume_scaling_
     distance_axes = std::move(h->distance_axes);
     sinc_tables = std::move(h->sinc_tables);
     p = std::move(h->p);
-    axis = std::move(h->axis);
+    axis = h->axis;
     cache.sinqd.valid = false;
     auto V = std::pow(settings::grid::exv::width*k, 3);
     regenerate_ff_table(form_factor::ExvFormFactor(V));

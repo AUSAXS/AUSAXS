@@ -13,11 +13,12 @@ namespace ausaxs::hist {
 	 * To use unique excluded volumes for each atom, see HistogramManagerMTFFExplicit. 
 	 */
 	template<bool weighted_bins, bool variable_bin_width>
+	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class HistogramManagerMTFFAvg : public HistogramManagerMTFFBase<weighted_bins, variable_bin_width> {
 		public:
 			using HistogramManagerMTFFBase<weighted_bins, variable_bin_width>::HistogramManagerMTFFBase;
 
-			virtual ~HistogramManagerMTFFAvg() override;
+			~HistogramManagerMTFFAvg() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 

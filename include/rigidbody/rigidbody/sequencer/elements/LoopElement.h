@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <data/DataFwd.h>
+#include <fitter/FitterFwd.h>
+#include <io/IOFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <utility/observer_ptr.h>
-#include <fitter/FitterFwd.h>
-#include <data/DataFwd.h>
-#include <io/IOFwd.h>
 
 #include <atomic>
 #include <memory>
@@ -24,15 +24,15 @@ namespace ausaxs::rigidbody::sequencer {
     class LoopElement : public GenericElement {
         friend class OptimizeStepElement;
         public:
-            LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats);
-            virtual ~LoopElement();
+            LoopElement(observer_ptr<LoopElement> owner, int repeats);
+            ~LoopElement() override;
 
             virtual std::shared_ptr<fitter::FitResult> execute();
 
             /**
              * @brief Create a nested loop.
              */
-            LoopElement& loop(unsigned int repeats);
+            LoopElement& loop(int repeats);
 
             /**
              * @brief Set the parameter strategy.
@@ -69,7 +69,7 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Perform the subroutines for every n iterations of this loop.
              */
-            EveryNStepElement& every(unsigned int n);
+            EveryNStepElement& every(int n);
 
             /**
              * @brief Run an iteration of this loop. 
@@ -87,7 +87,7 @@ namespace ausaxs::rigidbody::sequencer {
             virtual observer_ptr<Sequencer> _get_sequencer();
 
             std::vector<std::unique_ptr<GenericElement>>& _get_elements();
-            unsigned int _get_loop_iterations() const;
+            int _get_loop_iterations() const;
 
             observer_ptr<LoopElement> _get_owner() const;
 
@@ -103,8 +103,8 @@ namespace ausaxs::rigidbody::sequencer {
             static bool _stop_requested();
             static void _clear_stop_request();
 
-            static unsigned int _get_current_iteration();
-            static unsigned int _get_total_iterations();
+            static int _get_current_iteration();
+            static int _get_total_iterations();
             /**
              * @brief Recalculate the total number of optimization steps the given element tree will perform.
              *
@@ -120,13 +120,13 @@ namespace ausaxs::rigidbody::sequencer {
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         protected: 
-            unsigned int iterations = 1;
+            int iterations = 1;
             std::vector<std::unique_ptr<GenericElement>> elements;
 
         private:
             observer_ptr<LoopElement> owner;
-            inline static unsigned int total_loop_count = 0;
-            inline static unsigned int global_counter = 0;
+            inline static int total_loop_count = 0;
+            inline static int global_counter = 0;
             inline static std::atomic<bool> stop_flag = false;
     };
 }

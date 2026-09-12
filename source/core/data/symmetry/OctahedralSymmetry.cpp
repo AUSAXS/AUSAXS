@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/OctahedralSymmetry.h>
+
 #include <math/MatrixUtils.h>
 
 #include <numbers>

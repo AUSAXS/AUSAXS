@@ -2,12 +2,13 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/MessageElement.h>
+
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
-#include <rigidbody/Rigidbody.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 #include <utility/StringUtils.h>
@@ -60,7 +61,7 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
                     parts.back() += placeholder; // unknown placeholder, keep as is
                 }
                 i = end; // skip the placeholder
-                last_pos = i+1;
+                last_pos = static_cast<int>(i+1);
             }
         }
     }
@@ -117,7 +118,7 @@ InlineSignature MessageElement::_valid_inline_arguments() {
     return {.names = {"color", "message"}, .min = 0, .max = 2};
 }
 
-std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     auto message = args.get<std::string>(args_map[Args::message]);
     auto color = args.get<std::string>(args_map[Args::color], "white");
 

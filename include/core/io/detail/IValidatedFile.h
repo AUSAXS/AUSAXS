@@ -24,7 +24,7 @@ namespace ausaxs::io::detail {
             IValidatedFile(IValidatedFile&&) noexcept = default;
             IValidatedFile& operator=(const IValidatedFile&) = default;
             IValidatedFile& operator=(IValidatedFile&&) noexcept = default;
-            virtual ~IValidatedFile() = default;
+            ~IValidatedFile() override = default;
 
             IValidatedFile(const File& file) : File(file) {F::validate(this);}
             IValidatedFile(File&& file) : File(std::move(file)) {F::validate(this);}

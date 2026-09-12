@@ -15,23 +15,23 @@ static struct _dummy{
 } _dummy_instance;
 #endif
 
-#include <io/File.h>
 #include <constants/Constants.h>
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <fitter/FitReporter.h>
 #include <fitter/SmartFitter.h>
-#include <utility/Logging.h>
-#include <settings/All.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <io/File.h>
 #include <plots/All.h>
+#include <settings/All.h>
+#include <utility/Logging.h>
 
 #include <gui/helper.h>
 #include <gui/logo.h>
 #include <gui/resources.h>
 
 #include <bitset>
-#include <thread>
 #include <string_view>
+#include <thread>
 
 using namespace ausaxs;
 namespace gui = cycfi::elements;
@@ -193,7 +193,7 @@ auto io_menu(gui::view& view) {
 			pdb_box_bg.get() = ColorManager::get_color_accent();
 		}
 
-		static unsigned int last_size = 0;
+		static int last_size = 0;
 		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::structure.check(p);});
 		if (!fill.first.empty()) {pdb_box.second->set_text(fill.first);}
 		if (fill.second) {pdb_box.second->on_enter(fill.first);}
@@ -251,7 +251,7 @@ auto io_menu(gui::view& view) {
 			saxs_box_bg.get() = ColorManager::get_color_accent();
 		}
 
-		static unsigned int last_size = 0;
+		static int last_size = 0;
 		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::saxs_data.check(p);});
 		if (!fill.first.empty()) {saxs_box.second->set_text(fill.first);}
 		if (fill.second) {saxs_box.second->on_enter(fill.first);}

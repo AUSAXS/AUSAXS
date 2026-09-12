@@ -27,7 +27,7 @@ namespace ausaxs::rigidbody::parameter {
              * @param iterations The expected number of iterations. This is used to determine the linear decay rate.
              * @param amplitudes The maximum amplitude of each parameter component. Components with a zero amplitude are not generated.
              */
-            ParameterGenerationStrategy(observer_ptr<const Rigidbody> molecule, unsigned int iterations, const ParameterAmplitudes& amplitudes);
+            ParameterGenerationStrategy(observer_ptr<const Rigidbody> rigidbody, int iterations, const ParameterAmplitudes& amplitudes);
 
             /**
              * @brief Construct a new parameter generation strategy.
@@ -35,7 +35,7 @@ namespace ausaxs::rigidbody::parameter {
              * @param decay_strategy The decay strategy to use.
              * @param amplitudes The maximum amplitude of each parameter component. Components with a zero amplitude are not generated.
              */
-            ParameterGenerationStrategy(observer_ptr<const Rigidbody> molecule, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, const ParameterAmplitudes& amplitudes);
+            ParameterGenerationStrategy(observer_ptr<const Rigidbody> rigidbody, std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy, const ParameterAmplitudes& amplitudes);
 
             virtual ~ParameterGenerationStrategy();
 

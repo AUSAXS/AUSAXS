@@ -2,14 +2,14 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/RandomConstraintSelect.h>
+
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/Rigidbody.h>
 #include <utility/Exceptions.h>
 #include <utility/Random.h>
 
 #include <random>
-#include <utility>
 
 using namespace ausaxs::rigidbody::selection;
 
@@ -27,16 +27,16 @@ BodySelectStrategy::Target RandomConstraintSelect::next(const ParameterMask& mas
     }
 
     // rebuild the distribution each call against the live constraint count
-    std::uniform_int_distribution<int> distribution(0, rigidbody->constraints->discoverable_constraints.size()-1);
-    unsigned int iconstraint = distribution(random::generator());
+    std::uniform_int_distribution<int> distribution(0, static_cast<int>(rigidbody->constraints->discoverable_constraints.size())-1);
+    int iconstraint = distribution(random::generator());
     const auto& constraint = rigidbody->constraints->discoverable_constraints[iconstraint];
-    unsigned int ibody = constraint->ibody1;
+    int ibody = constraint->ibody1;
 
     // find the index of the constraint in the list of constraints for the body
-    for (unsigned int i = 0; i < rigidbody->constraints->get_body_constraints(ibody).size(); i++) {
+    for (int i = 0; i < static_cast<int>(rigidbody->constraints->get_body_constraints(ibody).size()); i++) {
         // address comparison since the DistanceConstraint comparison operator is a weak equality comparing only its contents
         if (rigidbody->constraints->get_body_constraints(ibody).at(i) == constraint.get()) {
-            return {ibody, static_cast<int>(i), -1};
+            return {.ibody=ibody, .iconstraint=i, .isymmetry=-1};
         }
     }
     throw except::invalid_argument("RandomConstraintSelect::next: Constraint " + std::to_string(iconstraint) + " not found");

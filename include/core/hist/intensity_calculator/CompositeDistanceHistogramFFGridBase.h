@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
-#include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/FormFactorLookupFwd.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorLookupFwd.h>
+#include <form_factor/lookup/FormFactorProduct.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
 #include <table/DebyeTableManager.h>
 #include <utility/observer_ptr.h>
 

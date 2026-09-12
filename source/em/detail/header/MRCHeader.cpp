@@ -2,9 +2,10 @@
 // Author: Kristian Lytje
 
 #include <em/detail/header/MRCHeader.h>
-#include <utility/Exceptions.h>
-#include <utility/Axis3D.h>
+
 #include <io/ExistingFile.h>
+#include <utility/Axis3D.h>
+#include <utility/Exceptions.h>
 
 #include <iostream>
 #include <sstream>
@@ -43,20 +44,20 @@ std::string MRCHeader::to_string() const {
     return s.str();
 }
 
-unsigned int MRCHeader::get_header_size() const {
+int MRCHeader::get_header_size() const {
     return sizeof(MRCData);
 }
 
 Axis3D MRCHeader::get_axes() const noexcept {
     auto& p = cast_data();
-    return Axis3D(
+    return {
         Axis(0, p.cella_x, p.nx),
         Axis(0, p.cella_y, p.ny),
         Axis(0, p.cella_z, p.nz)
-    );
+    };
 }
 
-std::tuple<unsigned int, unsigned int, unsigned int> MRCHeader::get_axis_order() const noexcept {
+std::tuple<int, int, int> MRCHeader::get_axis_order() const noexcept {
     auto& p = cast_data();
     return std::make_tuple(p.mapc, p.mapr, p.maps);
 }

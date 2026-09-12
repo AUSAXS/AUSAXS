@@ -2,32 +2,21 @@
 // Author: Kristian Lytje
 
 #include <mini/detail/Parameter.h>
+
 #include <mini/detail/FittedParameter.h>
 
 using namespace ausaxs::mini;
 
 Parameter::Parameter() = default;
 
-Parameter::Parameter(const std::string& name, const Limit& bounds) noexcept: name(name), bounds(bounds) {}
+Parameter::Parameter(std::string  name, const Limit& bounds) noexcept: name(std::move(name)), bounds(bounds) {}
 
-Parameter::Parameter(const std::string& name, double guess) noexcept: Parameter(name, guess, {0, 0}) {}
+Parameter::Parameter(std::string name, double guess) noexcept: Parameter(std::move(name), guess, {0, 0}) {}
 
-Parameter::Parameter(const std::string& name, double guess, const Limit& bounds) noexcept: name(name), guess(guess), bounds(bounds) {}
+Parameter::Parameter(std::string  name, double guess, const Limit& bounds) noexcept: name(std::move(name)), guess(guess), bounds(bounds) {}
 
 Parameter::Parameter(const mini::FittedParameter& p) noexcept {
     *this = p;
-}
-
-bool Parameter::has_bounds() const noexcept {
-    return bounds.has_value();
-}
-
-bool Parameter::has_guess() const noexcept {
-    return guess.has_value();
-}
-
-bool Parameter::has_name() const noexcept {
-    return !name.empty();
 }
 
 bool Parameter::empty() const noexcept {
@@ -36,8 +25,8 @@ bool Parameter::empty() const noexcept {
 
 std::string Parameter::to_string() const {
     std::string s = name;
-    if (has_guess()) {s += " guess " + std::to_string(guess.value());}
-    if (has_bounds()) {s += " bounds [" + std::to_string(bounds.value().min) + std::to_string(bounds.value().max) + "]";}
+    if (guess.has_value()) {s += " guess " + std::to_string(*guess);}
+    if (bounds.has_value()) {s += " bounds [" + std::to_string(bounds->min) + std::to_string(bounds->max) + "]";}
     return s;
 }
 

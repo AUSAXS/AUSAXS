@@ -6,6 +6,7 @@
 #include <constants/Constants.h>
 
 #include <array>
+#include <numbers>
 
 // Five-Gaussian form factor table values. See each nested namespace for the source.
 namespace ausaxs::constants::form_factor {
@@ -17,7 +18,7 @@ namespace ausaxs::constants::form_factor {
          *        This is purely for convenience, such that the tabulated values are easier to read.
          */
         constexpr std::array<double, 5> s_to_q(std::array<double, 5> a) {
-            for (unsigned int i = 0; i < 5; ++i) {
+            for (int i = 0; i < 5; ++i) {
                 a[i] *= s_to_q_factor;
             }
             return a;
@@ -154,7 +155,7 @@ namespace ausaxs::constants::form_factor {
     namespace NH2_plus {
         constexpr std::array<double, 5> a =        { 3.823896, 0.531490,  1.713620,  0.322552, 1.287502};
         constexpr std::array<double, 5> b = s_to_q({10.305028, 25.631593, 30.215026, 3.576178, 0.506824});
-        constexpr double c = 0.317728;
+        constexpr double c = std::numbers::inv_pi;
     }
 
     // Grudinin, Garkavenko, & Kazennov, https://doi.org/10.1107/s2059798317005745

@@ -15,8 +15,8 @@ namespace ausaxs::em::grid {
     class EMGrid : public ausaxs::grid::Grid {
         public:
             using Grid::Grid;
-            ~EMGrid() = default;
+            ~EMGrid() override = default;
 
-            double get_atomic_radius(form_factor::form_factor_t) const override;
+            double get_atomic_radius(form_factor::form_factor_t /*atom*/) const override;
     };
 }

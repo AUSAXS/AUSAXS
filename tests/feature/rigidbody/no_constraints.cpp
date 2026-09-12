@@ -1,16 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/constraints/generation/BackboneConstraints.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/constraints/ConstraintManager.h>
 #include <data/Body.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
-#include <io/ExistingFile.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/RigidBodySettings.h>
-#include <settings/GeneralSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -32,11 +28,11 @@ TEST_CASE("NoConstraints::generate") {
         Body b4(std::vector<AtomFF>{a4});
         std::vector<Body> ap = {b1, b2, b3, b4};
         rigidbody::Rigidbody rigidbody(Molecule{ap});
-        REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 0);
+        REQUIRE(rigidbody.constraints->discoverable_constraints.empty());
     }
 
     SECTION("real data") {
         rigidbody::Rigidbody rigidbody = rigidbody::BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-        REQUIRE(rigidbody.constraints->discoverable_constraints.size() == 0);
+        REQUIRE(rigidbody.constraints->discoverable_constraints.empty());
     }
 }

@@ -3,13 +3,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/Rigidbody.h>
-#include <fitter/FitResult.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>
@@ -35,6 +34,7 @@ TEST_CASE("ConstraintManager: the per-body map covers bodies added after constru
     common_settings();
 
     std::vector<Body> bodies;
+    bodies.reserve(2);
     for (int i = 0; i < 2; ++i) {bodies.emplace_back(std::vector{AtomFF({5.0*i, 0, 0}, form_factor::form_factor_t::C)});}
     Rigidbody rb{Molecule{std::move(bodies)}};
     REQUIRE(rb.constraints->discoverable_constraints.empty());

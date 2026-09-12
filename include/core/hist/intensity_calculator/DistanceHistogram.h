@@ -3,18 +3,18 @@
 
 #pragma once
 
-#include <hist/Histogram.h>
+#include <constants/Constants.h>
+#include <dataset/DatasetFwd.h>
 #include <hist/HistFwd.h>
+#include <hist/Histogram.h>
 #include <hist/distribution/DistributionFwd.h>
 #include <table/DebyeTableManager.h>
-#include <dataset/DatasetFwd.h>
-#include <constants/Constants.h>
-#include <utility/observer_ptr.h>
-#include <utility/TypeTraits.h>
 #include <utility/Axis.h>
+#include <utility/TypeTraits.h>
+#include <utility/observer_ptr.h>
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace ausaxs::hist {
     /**
@@ -46,7 +46,7 @@ namespace ausaxs::hist {
              */
             DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh);
 
-            virtual ~DistanceHistogram() override;
+            ~DistanceHistogram() override;
 
             /**
              * @brief Perform the Fourier transform through the Debye equation.

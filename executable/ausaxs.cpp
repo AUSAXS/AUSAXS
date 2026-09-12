@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <api/cli/cli_saxs_fitter.h>
 #include <api/cli/cli_em_fitter.h>
 #include <api/cli/cli_rigidbody.h>
+#include <api/cli/cli_saxs_fitter.h>
 #include <utility/Console.h>
 
 #include <unordered_map>

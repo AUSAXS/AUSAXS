@@ -1,7 +1,8 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 
-#include <hist/Histogram.h>
 #include <dataset/SimpleDataset.h>
+#include <hist/Histogram.h>
 
 using namespace ausaxs;
 
@@ -122,7 +123,7 @@ TEST_CASE("Histogram::size") {
     SECTION("non-empty") {
         std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
         hist::Histogram hist(data);
-        CHECK(hist.size() == data.size());
+        CHECK(static_cast<int>(hist.size()) == static_cast<int>(data.size()));
     }
 }
 
@@ -206,14 +207,14 @@ TEST_CASE("Histogram::as_dataset") {
     SECTION("empty") {
         hist::Histogram hist;
         auto dataset = hist.as_dataset();
-        CHECK(dataset.size() == 0);
+        CHECK(dataset.empty());
     }
 
     SECTION("non-empty") {
         std::vector<double> data{0, 1, 2, 3, 4, 5, 6};
         hist::Histogram hist(data);
         auto dataset = hist.as_dataset();
-        CHECK(dataset.size() == data.size());
+        CHECK(static_cast<int>(dataset.size()) == static_cast<int>(data.size()));
         CHECK(dataset.x() == data);
         CHECK(dataset.y() == hist.get_counts());
     }
@@ -225,11 +226,11 @@ TEST_CASE("Histogram::normalize") {
     hist.normalize();
 
     double sum = std::accumulate(data.begin(), data.end(), 0.0);
-    std::transform(data.begin(), data.end(), data.begin(), [sum] (double x) {return x/sum;});
+    std::ranges::transform(data, data.begin(), [sum] (double x) {return x/sum;});
     CHECK(hist.get_counts() == data);
 
     hist.normalize(10);
-    std::transform(data.begin(), data.end(), data.begin(), [] (double x) {return x*10;});
+    std::ranges::transform(data, data.begin(), [] (double x) {return x*10;});
     CHECK(hist.get_counts() == data);
 }
 
@@ -238,12 +239,12 @@ TEST_CASE("Histogram::normalize_max") {
     hist::Histogram hist(data);
     hist.normalize_max();
 
-    double max = *std::max_element(data.begin(), data.end());
-    std::transform(data.begin(), data.end(), data.begin(), [max] (double x) {return x/max;});
+    double max = *std::ranges::max_element(data);
+    std::ranges::transform(data, data.begin(), [max] (double x) {return x/max;});
     CHECK(hist.get_counts() == data);
 
     hist.normalize_max(10);
-    std::transform(data.begin(), data.end(), data.begin(), [] (double x) {return x*10;});
+    std::ranges::transform(data, data.begin(), [] (double x) {return x*10;});
     CHECK(hist.get_counts() == data);
 }
 

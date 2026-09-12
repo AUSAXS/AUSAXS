@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hydrate/Hydration.h>
-#include <hydrate/ExplicitHydration.h>
-#include <hydrate/ImplicitHydration.h>
-#include <hydrate/EmptyHydration.h>
 #include <data/atoms/Water.h>
+#include <hydrate/EmptyHydration.h>
+#include <hydrate/ExplicitHydration.h>
+#include <hydrate/Hydration.h>
+#include <hydrate/ImplicitHydration.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;

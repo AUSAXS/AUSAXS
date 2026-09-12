@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <data/DataFwd.h>
+#include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::constraints {
@@ -18,7 +18,7 @@ namespace ausaxs::rigidbody::constraints {
              */
             DistanceConstraintBond(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2);
 
-            virtual ~DistanceConstraintBond() override = default;
+            ~DistanceConstraintBond() override = default;
 
             /**
              * @brief Check whether a backbone bond can be formed between the two bodies.

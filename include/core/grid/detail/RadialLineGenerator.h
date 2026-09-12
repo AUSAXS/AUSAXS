@@ -7,14 +7,14 @@
 #include <math/MathFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <vector>
 #include <array>
+#include <vector>
 
 namespace ausaxs::grid::detail {
     class RadialLineGenerator {
         public:
-            RadialLineGenerator(observer_ptr<grid::Grid> grid, double radius, int divisions = 8);
-            RadialLineGenerator(observer_ptr<grid::Grid> grid, std::array<double, 4> radii, int divisions = 8);
+            RadialLineGenerator(double radius, int divisions = 8);
+            RadialLineGenerator(std::array<double, 4> radii, int divisions = 8);
             virtual ~RadialLineGenerator();
 
             std::vector<Vector3<int>> rot_bins_1;

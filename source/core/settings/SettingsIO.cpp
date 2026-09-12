@@ -2,11 +2,12 @@
 // Author: Kristian Lytje
 
 #include <settings/SettingsIO.h>
-#include <settings/SettingsIORegistry.h>
-#include <utility/Exceptions.h>
-#include <utility/StringUtils.h>
-#include <utility/Console.h>
 
+#include <settings/SettingsIORegistry.h>
+#include <utility/Console.h>
+#include <utility/StringUtils.h>
+
+#include <algorithm>
 #include <fstream>
 #include <unordered_map>
 
@@ -80,13 +81,11 @@ void settings::write(const ::io::File& path) {
 }
 
 bool settings::discover(const ::io::Folder& path) {
-    static std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
-    for (const auto& e : valid_names) {
+    static const std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
+    return std::ranges::any_of(valid_names, [&path] (const std::string& e) {
         ::io::File file(path, e, ".txt");
-        if (file.exists()) {
-            settings::read(file);
-            return true;
-        }
-    }
-    return false;
+        if (!file.exists()) {return false;}
+        settings::read(file);
+        return true;
+    });
 }

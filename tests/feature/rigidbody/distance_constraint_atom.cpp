@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/constraints/DistanceConstraintAtom.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/symmetry/PredefinedSymmetries.h>
+#include <data/Molecule.h>
 #include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <settings/All.h>
 
 using namespace ausaxs;

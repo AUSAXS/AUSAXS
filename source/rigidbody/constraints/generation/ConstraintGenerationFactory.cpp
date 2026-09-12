@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
+
 #include <rigidbody/constraints/generation/BackboneConstraints.h>
 #include <rigidbody/constraints/generation/NoConstraints.h>
 #include <settings/RigidBodySettings.h>

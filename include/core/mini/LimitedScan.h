@@ -35,7 +35,7 @@ namespace ausaxs::mini {
              *        The scan will start at the maximum x value and work its way to the minimum.
              *        This will terminate early if the function value exceeds the limit.
              */
-            mini::Landscape landscape(unsigned int evals) override;
+            mini::Landscape landscape(int evals) override;
 
         private: 
             double limit = std::numeric_limits<double>::max();

@@ -1,25 +1,21 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <constants/Constants.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <form_factor/NormalizedFormFactor.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <io/ExistingFile.h>
-#include <utility/Utility.h>
-#include <table/DebyeTable.h>
 #include <settings/All.h>
-#include <constants/Constants.h>
 
-#include "hist/hist_test_helper.h"
+#include <hist/hist_test_helper.h>
 
 using namespace ausaxs;
 using namespace data;
 
 #define DEBYE_DEBUG 0
-// unsigned int qcheck = 0;
+// int qcheck = 0;
 TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
     auto ff_carbon = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
@@ -41,7 +37,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         double Z = protein.get_volume_grid()*constants::charge::density::water/9;
         protein.set_volume_scaling(1./Z);
 
-        for (unsigned int q = 0; q < q_axis.size(); ++q) {
+        for (int q = 0; q < static_cast<int>(q_axis.size()); ++q) {
             double aasum = 
                 9 + 
                 16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
@@ -98,7 +94,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         double Z = protein.get_volume_grid()*constants::charge::density::water/8;
         protein.set_volume_scaling(1./Z);
 
-        for (unsigned int q = 0; q < q_axis.size(); ++q) {
+        for (int q = 0; q < static_cast<int>(q_axis.size()); ++q) {
             double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
             double aasum = 
                 8 + 
@@ -155,7 +151,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 
         double ZX = protein.get_volume_grid()*constants::charge::density::water/8;
 
-        for (unsigned int q = 0; q < q_axis.size(); ++q) {
+        for (int q = 0; q < static_cast<int>(q_axis.size()); ++q) {
             double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
             double aasum = 
                 8 + 
@@ -212,8 +208,8 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     //     }
     //     auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
 
-    //     unsigned int N = protein.atom_size();
-    //     unsigned int M = protein.water_size();
+    //     int N = protein.atom_size();
+    //     int M = protein.water_size();
     //     REQUIRE_THAT(Iq[0], Catch::Matchers::WithinRel(std::pow(N*ZC + M*ZO - N*ZX, 2) + 2*N*ZC*ZX, 1e-3));
     // }
 }
@@ -222,13 +218,13 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     settings::general::verbose = false;
     data::Molecule protein("tests/files/2epe.pdb");
     auto hist_data = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
-    auto hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
+    auto* hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
     auto Iq = hist->debye_transform();
     auto profile_sum = 
           hist->get_profile_ww() - hist->get_profile_wx() + hist->get_profile_xx()
         + hist->get_profile_aw() - hist->get_profile_ax() + hist->get_profile_aa();
     REQUIRE(Iq.size() == profile_sum.size());
-    for (unsigned int i = 0; i < Iq.size(); ++i) {
+    for (int i = 0; i < Iq.size(); ++i) {
         REQUIRE_THAT(Iq[i], Catch::Matchers::WithinAbs(profile_sum[i], 1e-3));
     }
 }
@@ -237,7 +233,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: Debye-Waller factors") {
     settings::general::verbose = false;
     data::Molecule protein("tests/files/2epe.pdb");
     auto h = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
-    auto h_cast = static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
+    auto* h_cast = static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
 
     auto analytical = [&] (double Ba_, double Bx_) {
         h_cast->apply_atomic_debye_waller_factor(0);
@@ -249,7 +245,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: Debye-Waller factors") {
         auto ax = h_cast->get_profile_ax();
         auto wx = h_cast->get_profile_wx();
         auto Iq = std::vector<double>(aa.size(), 0);
-        for (unsigned int i = 0; i < Iq.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(Iq.size()); ++i) {
             double Ba = hist::CompositeDistanceHistogramFFAvg::get_atomic_debye_waller_factor(constants::axes::q_vals[i], Ba_);
             double Bx = hist::CompositeDistanceHistogramFFAvg::get_exv_debye_waller_factor(constants::axes::q_vals[i], Bx_);
             Iq[i] = Ba*Ba*aa[i] + Ba*aw[i] + ww[i] + Bx*Bx*xx[i] - Ba*Bx*ax[i] - Bx*wx[i];
@@ -307,14 +303,14 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: exv term normalization") {
     Molecule protein(a);
 
     auto hist_data = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
-    auto hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
+    auto* hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
     auto aa = hist->get_profile_aa();
     auto ax = hist->get_profile_ax();
     auto xx = hist->get_profile_xx();
     auto aw = hist->get_profile_aw();
     auto wx = hist->get_profile_wx();
 
-    for (unsigned int i = 0; i < aa.size(); ++i) {
+    for (int i = 0; i < aa.size(); ++i) {
         // aa = S_aa*fC^2, ax = S_aa*2*Z*fC*fx  =>  ax/(2aa) = Z*fx/fC, the exv-to-atom form factor ratio
         double ratio = ax[i]/(2*aa[i]);
 

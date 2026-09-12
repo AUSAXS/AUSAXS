@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <fitter/SmartFitter.h>
-#include <dataset/SimpleDataset.h>
-#include <mini/detail/Parameter.h>
 #include <constants/ConstantsFitParameters.h>
+#include <dataset/SimpleDataset.h>
+#include <fitter/SmartFitter.h>
+#include <mini/detail/Parameter.h>
 #include <utility/Exceptions.h>
 
 using namespace ausaxs;
@@ -31,7 +31,7 @@ TEST_CASE("SmartFitter::set_guess") {
     auto cr = name_of(constants::fit::Parameters::SCALING_RHO);
 
     SECTION("reorders into canonical order") {
-        auto probe = make_probe({true, true, true, false, false});
+        auto probe = make_probe({.hydration=true, .excluded_volume=true, .solvent_density=true, .atomic_debye_waller=false, .exv_debye_waller=false});
         probe.set_guess({
             mini::Parameter{cr, 3, {3.1, 3.2}},
             mini::Parameter{cw, 1, {1.1, 1.2}},
@@ -55,7 +55,7 @@ TEST_CASE("SmartFitter::set_guess") {
 
     SECTION("handles non-prefix parameter sets") {
         // hydration disabled, so the enabled slots are {1, 2} rather than {0, 1}
-        auto probe = make_probe({false, true, true, false, false});
+        auto probe = make_probe({.hydration=false, .excluded_volume=true, .solvent_density=true, .atomic_debye_waller=false, .exv_debye_waller=false});
         probe.set_guess({mini::Parameter{cx, 2}, mini::Parameter{cr, 3}});
 
         const auto& g = probe.get_guess();
@@ -67,7 +67,7 @@ TEST_CASE("SmartFitter::set_guess") {
     }
 
     SECTION("rejects disabled and unknown parameters") {
-        auto probe = make_probe({true, false, false, false, false});
+        auto probe = make_probe({.hydration=true, .excluded_volume=false, .solvent_density=false, .atomic_debye_waller=false, .exv_debye_waller=false});
         CHECK_THROWS_AS(probe.set_guess({mini::Parameter{cx, 1}}), except::invalid_argument);
         CHECK_THROWS_AS(probe.set_guess({mini::Parameter{"nonsense", 1}}), except::invalid_argument);
         CHECK_THROWS_AS(probe.set_guess({mini::Parameter{cw, 1}, mini::Parameter{cx, 2}}), except::invalid_argument);

@@ -2,10 +2,10 @@
 // Author: Kristian Lytje
 
 #include <io/detail/trajectory/XYZWriter.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <io/File.h>
-#include <utility/Exceptions.h>
 #include <utility/Console.h>
 
 #include <iomanip>
@@ -25,11 +25,11 @@ XYZWriter::~XYZWriter() {
     console::print_info("Trajectory written to " + path);
 }
 
-void XYZWriter::write_frame(observer_ptr<const data::Molecule> protein) {
-    static unsigned int frame = 0;
+void XYZWriter::write_frame(observer_ptr<const data::Molecule> molecule) {
+    static int frame = 0;
     std::vector<data::AtomFF> atoms;
-    atoms.reserve(protein->size_atom());
-    for (const auto& body : protein->get_bodies()) {
+    atoms.reserve(molecule->size_atom());
+    for (const auto& body : molecule->get_bodies()) {
         auto bsym = body.symmetry().explicit_structure();
         atoms.insert(atoms.end(), bsym.atoms.begin(), bsym.atoms.end());
     }

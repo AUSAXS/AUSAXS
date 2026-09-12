@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <math/MathConcepts.h>
 #include <math/Decomposition.h>
-#include <math/Vector.h>
+#include <math/MathConcepts.h>
 #include <math/MathFwd.h>
+#include <math/Vector.h>
 
 #include <memory>
 
@@ -30,7 +30,7 @@ namespace ausaxs {
 
             int permutations;
         private: 
-            Vector<double> P;
+            Vector<int> P;
             std::unique_ptr<Matrix<double>> Ap;
     };
 }

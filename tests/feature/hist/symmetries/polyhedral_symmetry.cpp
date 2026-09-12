@@ -4,28 +4,21 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/symmetry/CyclicSymmetry.h>
-#include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/TetrahedralSymmetry.h>
-#include <data/symmetry/OctahedralSymmetry.h>
 #include <data/symmetry/IcosahedralSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/ReferenceSymmetry.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/distribution/Distribution1D.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <data/symmetry/OctahedralSymmetry.h>
+#include <data/symmetry/TetrahedralSymmetry.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
-#include "settings/HistogramSettings.h"
+#include <hist/hist_test_helper.h>
+#include <settings/HistogramSettings.h>
 
+#include <numbers>
 #include <random>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
+static auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-10, 10);
@@ -42,6 +35,7 @@ auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoice choic
     // against the ground truth obtained by explicitly materialising every copy
     for (int i = 0; i < 3; ++i) {
         std::vector<AtomFF> atoms;
+        atoms.reserve(n_atoms);
         for (int j = 0; j < n_atoms; ++j) {
             atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));
         }
@@ -78,7 +72,7 @@ TEST_CASE("SymmetryManager: PolyhedralSymmetry") {
     }
 }
 
-auto test_polyhedral_symmetry_lysozyme = [] (settings::hist::HistogramManagerChoice choice) {
+static auto test_polyhedral_symmetry_lysozyme = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-10, 10);

@@ -1,10 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <grid/Grid.h>
-#include <grid/detail/GridMember.h>
+#include <grid/detail/GridMember.h>  // IWYU pragma: keep
 #include <hydrate/generation/RadialHydration.h>
 #include <settings/All.h>
 
@@ -28,8 +28,8 @@ namespace {
     }
 
     bool all_within(const std::vector<Water>& waters, double distance, const std::vector<Vector3<double>>& centers) {
-        return std::all_of(waters.begin(), waters.end(), [&] (const Water& w) {
-            return std::any_of(centers.begin(), centers.end(), [&] (const Vector3<double>& c) {
+        return std::ranges::all_of(waters, [&] (const Water& w) {
+            return std::ranges::any_of(centers, [&] (const Vector3<double>& c) {
                 return w.coordinates().distance(c) < distance;
             });
         });
@@ -56,8 +56,8 @@ TEST_CASE("GridBasedHydration::hydrate: each body is hydrated from its own atoms
     auto w1 = protein.get_body(1).get_waters();
     REQUIRE(w0.has_value());
     REQUIRE(w1.has_value());
-    REQUIRE(0 < w0.value().get().size());
-    REQUIRE(0 < w1.value().get().size());
+    REQUIRE(!w0.value().get().empty());
+    REQUIRE(!w1.value().get().empty());
 
     CHECK(all_within(w0.value().get(), 20, {{0, 0, 0}, {60, 0, 0}}));
     CHECK(all_within(w1.value().get(), 20, {{-60, 0, 0}}));

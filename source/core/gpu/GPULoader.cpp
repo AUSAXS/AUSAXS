@@ -2,10 +2,12 @@
 // Author: Kristian Lytje
 
 #include <gpu/GPULoader.h>
+
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
+#include <cassert>
 #include <filesystem>
 #include <vector>
 
@@ -59,12 +61,12 @@ namespace {
         void* find_symbol(handle_t handle, const char* name) {return dlsym(handle, name);}
         std::string open_error() {
             const char* error = dlerror();
-            return error ? error : "unknown error";
+            return (error != nullptr) ? error : "unknown error";
         }
 
         std::filesystem::path own_directory() {
             Dl_info info;
-            if (dladdr(reinterpret_cast<const void*>(&own_directory), &info) == 0 || !info.dli_fname) {return {};}
+            if (dladdr(reinterpret_cast<const void*>(&own_directory), &info) == 0 || (info.dli_fname == nullptr)) {return {};}
             return std::filesystem::path(info.dli_fname).parent_path();
         }
     #endif
@@ -93,7 +95,7 @@ namespace {
     bool resolve(handle_t handle, GPULoader::Backend& backend) {
         constexpr const char* not_a_backend = "the backend is missing one or more entry points; it is probably not a GPU backend";
         auto* abi_version = reinterpret_cast<abi::abi_version_fn>(find_symbol(handle, abi::symbol_abi_version));
-        if (!abi_version) {
+        if (abi_version == nullptr) {
             load_error = not_a_backend;
             return false;
         }
@@ -112,8 +114,8 @@ namespace {
         backend.finish_unweighted = reinterpret_cast<abi::finish_unweighted_fn>(find_symbol(handle, abi::symbol_finish_unweighted));
         backend.finish_weighted = reinterpret_cast<abi::finish_weighted_fn>(find_symbol(handle, abi::symbol_finish_weighted));
         if (
-            backend.available && backend.device_name && backend.last_error && backend.begin && 
-            backend.submit && backend.finish_unweighted && backend.finish_weighted) 
+            (backend.available != nullptr) && (backend.device_name != nullptr) && (backend.last_error != nullptr) && (backend.begin != nullptr) && 
+            (backend.submit != nullptr) && (backend.finish_unweighted != nullptr) && (backend.finish_weighted != nullptr)) 
         {
             return true;
         }
@@ -128,7 +130,7 @@ namespace {
         std::string attempts;
         for (const auto& path : candidate_paths()) {
             handle_t handle = open_library(path);
-            if (!handle) {
+            if (handle == nullptr) {
                 // the platform error already names the file it failed to open
                 attempts += "\n    " + open_error();
                 continue;
@@ -150,8 +152,12 @@ const GPULoader::Backend& GPULoader::get() {
     static const Backend backend = [] {
         Backend result = open();
         if (!result) {console::print_warning("no usable GPU backend: " + load_error);}
-        else if (!result.available()) {console::print_warning("no usable GPU backend: no usable device");}
-        else {console::print_info("Using GPU backend: " + std::string(result.device_name()));}
+        else {
+            // resolve() only keeps a Backend whose every entry point resolved, and zeroes it otherwise, so a truthy one has them all
+            assert(result.available != nullptr && result.device_name != nullptr && "GPULoader: an opened backend resolves every entry point.");
+            if (!result.available()) {console::print_warning("no usable GPU backend: no usable device");}
+            else {console::print_info("Using GPU backend: " + std::string(result.device_name()));}
+        }
         return result;
     }();
     return backend;
@@ -178,5 +184,6 @@ void GPULoader::report_failure(std::string_view action, abi::Status status) {
 std::string GPULoader::device_name() {
     const auto& backend = get();
     if (!backend) {return "none (no backend loaded)";}
+    assert(backend.device_name != nullptr && "GPULoader: an opened backend resolves every entry point.");
     return backend.device_name();
 }

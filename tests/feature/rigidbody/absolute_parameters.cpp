@@ -1,20 +1,19 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/BodySplitter.h>
-#include <rigidbody/controller/SimpleController.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
-#include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/transform/TransformStrategy.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
-#include <math/MatrixUtils.h>
-#include <settings/All.h>
+#include <data/Molecule.h>
 #include <io/ExistingFile.h>
+#include <math/MatrixUtils.h>
+#include <rigidbody/BodySplitter.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>  // IWYU pragma: keep
+#include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
+#include <settings/All.h>
 
 #include <support/rb_metadata.h>
 
@@ -25,8 +24,8 @@ using namespace ausaxs::rigidbody;
 /**
  * @brief Verify that applying configuration.parameters to original_conformation reproduces the current body state.
  */
-void verify_configuration_consistency(const Rigidbody& rigidbody) {
-    for (size_t ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
+static void verify_configuration_consistency(const Rigidbody& rigidbody) {
+    for (int ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
         const auto& current_body = rigidbody.molecule.get_body(ibody);
         const auto& original_body = rigidbody.conformation->initial_conformation[ibody];
         const auto& params = rigidbody.conformation->absolute_parameters.parameters[ibody];
@@ -53,7 +52,7 @@ void verify_configuration_consistency(const Rigidbody& rigidbody) {
 
         // individual atoms should match
         REQUIRE(reconstructed.size_atom() == current_body.size_atom());
-        for (size_t iatom = 0; iatom < current_body.size_atom(); ++iatom) {
+        for (int iatom = 0; iatom < current_body.size_atom(); ++iatom) {
             auto current_pos = current_body.get_atom(iatom).coordinates();
             auto reconstructed_pos = reconstructed.get_atom(iatom).coordinates();
 
@@ -123,9 +122,9 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
         auto& transformer = rigidbody.transformer;
         auto& param_gen = rigidbody.parameter_generator;
         for (int iter = 0; iter < 5; ++iter) {
-            for (size_t ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
+            for (int ibody = 0; ibody < rigidbody.molecule.size_body(); ++ibody) {
                 auto params = param_gen->next(ibody);
-                transformer->apply(std::move(params), ibody);
+                transformer->apply(params, ibody);
 
                 INFO("After iteration " << iter << ", body " << ibody);
                 verify_configuration_consistency(rigidbody);
@@ -146,11 +145,11 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
 
         for (int iter = 0; iter < 5; ++iter) {
             // transform the first constrained body
-            unsigned int ibody = 0;
-            auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
+            int ibody = 0;
+            auto* constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
             auto params = param_gen->next(ibody);
             
-            transformer->apply(std::move(params), constraint, ibody);
+            transformer->apply(params, constraint, ibody);
             
             INFO("After iteration " << iter << " with SingleTransform");
             verify_configuration_consistency(rigidbody);
@@ -170,11 +169,11 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
 
         for (int iter = 0; iter < 5; ++iter) {
             // transform the first constrained body
-            unsigned int ibody = 0;
-            auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
+            int ibody = 0;
+            auto* constraint = rigidbody.constraints->get_body_constraints(ibody).at(0);
             auto params = param_gen->next(ibody);
             
-            transformer->apply(std::move(params), constraint, ibody);
+            transformer->apply(params, constraint, ibody);
             
             INFO("After iteration " << iter << " with RigidTransform");
             verify_configuration_consistency(rigidbody);
@@ -193,7 +192,7 @@ TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
         
         Rigidbody rigidbody = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
-        auto controller = rigidbody.controller.get();
+        auto* controller = rigidbody.controller.get();
         controller->setup(io::ExistingFile("tests/files/LAR1-2.dat"));
 
         // run several optimization steps
@@ -211,7 +210,7 @@ TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
         
         Rigidbody rigidbody = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
-        auto controller = rigidbody.controller.get();
+        auto* controller = rigidbody.controller.get();
         controller->setup(io::ExistingFile("tests/files/LAR1-2.dat"));
 
         // run several optimization steps
@@ -247,9 +246,8 @@ TEST_CASE("AbsoluteParameters: Undo restores configuration.parameters") {
 
     // store the new parameters for comparison
     auto expected_new_translation = new_params.translation.value();
-    auto expected_new_rotation = new_params.rotation.value();
 
-    transformer->apply(std::move(new_params), 0u);
+    transformer->apply(new_params, 0u);
     
     // verify parameters were updated
     auto& updated_params = rigidbody.conformation->absolute_parameters.parameters[0];

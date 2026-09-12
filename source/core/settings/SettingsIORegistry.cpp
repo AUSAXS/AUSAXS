@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <settings/SettingsIORegistry.h>
-#include <utility/Exceptions.h>
+
 #include <utility/observer_ptr.h>
 
 using namespace ausaxs;
@@ -15,12 +15,12 @@ std::vector<observer_ptr<SettingSection>>& SettingSection::get_sections() {
 
 SettingSection::SettingSection(std::string_view name, std::initializer_list<std::shared_ptr<detail::ISettingRef>> settings) : name(name), settings(settings) {
     auto& stored_settings = detail::ISettingRef::get_stored_settings();
-    for (auto& setting : settings) {
+    for (const auto& setting : settings) {
         for (auto& name : setting->names) {
             if (stored_settings.contains(name)) {
                 throw ausaxs::except::runtime_error("Settings::add: Duplicate setting name: \"" + name + "\".");
             }
-            stored_settings[name] = std::move(setting);
+            stored_settings[name] = setting;
         }
     }
     get_sections().push_back(this);

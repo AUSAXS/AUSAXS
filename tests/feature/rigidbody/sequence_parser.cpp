@@ -1,10 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <fitter/FitResult.h>
-#include <settings/All.h>
+#include <fitter/FitResult.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <settings/All.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;

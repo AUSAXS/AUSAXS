@@ -2,16 +2,16 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/Sequencer.h>
+
+#include <data/Body.h>
+#include <data/atoms/AtomMetadata.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <hydrate/ExplicitHydration.h>
+#include <io/ExistingFile.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <rigidbody/Rigidbody.h>
-#include <grid/Grid.h>
-#include <io/ExistingFile.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hydrate/ExplicitHydration.h>
-#include <data/atoms/AtomMetadata.h>
 #include <utility/Console.h>
-#include <data/Body.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
@@ -100,7 +100,7 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     }
 
     // restore the best hydration shell before the final fit
-    auto best_conf = _get_best_conf();
+    auto* best_conf = _get_best_conf();
     if (!best_conf->waters.empty()) {
         rigidbody->molecule.clear_hydration();
         auto hydration = std::make_unique<hydrate::ExplicitHydration>(std::move(best_conf->waters));

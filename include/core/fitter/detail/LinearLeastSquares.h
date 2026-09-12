@@ -16,7 +16,7 @@ namespace ausaxs::fitter::detail {
             LinearLeastSquares() = default;
 
         public:
-            virtual ~LinearLeastSquares() override = default;
+            ~LinearLeastSquares() override = default;
 
             /**
              * @brief Prepare a linear least-squares fit with unity errors. 
@@ -36,8 +36,8 @@ namespace ausaxs::fitter::detail {
             LinearLeastSquares(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr);
 
             [[nodiscard]] std::unique_ptr<FitResult> fit() override;
-            [[nodiscard]] unsigned int dof() const override;
-            [[nodiscard]] unsigned int size() const override;
+            [[nodiscard]] int dof() const override;
+            [[nodiscard]] int size() const override;
             [[nodiscard]] std::vector<double> get_residuals(const std::vector<double>& params) override;
             [[nodiscard]] std::vector<double> get_residuals() {return get_residuals(fit_params_only());}
 

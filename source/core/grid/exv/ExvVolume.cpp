@@ -2,21 +2,19 @@
 // Author: Kristian Lytje
 
 #include <grid/exv/ExvVolume.h>
+
+#include <data/Molecule.h>
+#include <form_factor/lookup/ExvTableManager.h>
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
-#include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/ExvTableManager.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
-#include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <grid/Grid.h>
-#include <utility/observer_ptr.h>
-#include <settings/GridSettings.h>
+#include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 #include <settings/ExvSettings.h>
+#include <settings/GridSettings.h>
+#include <utility/observer_ptr.h>
 
 double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, double d) {
     assert(0 < m->size_atom() && "Molecule::get_volume_exv: Cannot compute excluded volume for an empty molecule.");
@@ -24,7 +22,7 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
         return form_factor::ExvTableManager::get_total_displaced_volume(m);
     };
 
-    auto grid = m->get_grid();
+    auto* grid = m->get_grid();
     switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::Simple:
         case settings::exv::ExvMethod::Average:
@@ -37,22 +35,22 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
         case settings::exv::ExvMethod::WAXSiS: {
             // note: not equivalent to grid volume! 
             // the grid can be finer than the resolution of the excluded volume, in which case every Nth bin is used
-            auto exv_atoms = exv::RawGridExv::create(grid).interior.size();
+            double exv_atoms = static_cast<double>(exv::RawGridExv::create(grid).interior.size());
             double single_vol = std::pow(settings::grid::cell_width, 3);
             return exv_atoms*single_vol;
         }
 
         case settings::exv::ExvMethod::GridScalable: {
             // scale the volume by the cubed factor
-            auto exv = exv::RawGridExv::create(grid).interior.size();
+            double exv = static_cast<double>(exv::RawGridExv::create(grid).interior.size());
             return exv*std::pow(settings::grid::cell_width*d, 3);
         }
 
         case settings::exv::ExvMethod::GridSurface: {
             // scale surface volumes by the factor
             auto exv = exv::RawGridWithSurfaceExv::create(grid);
-            unsigned int interior_atoms = exv.interior.size();
-            unsigned int exterior_atoms = exv.surface.size();
+            int interior_atoms = static_cast<int>(exv.interior.size());
+            int exterior_atoms = static_cast<int>(exv.surface.size());
             double interior_vol = std::pow(settings::grid::cell_width, 3);
             double exterior_vol = std::pow(settings::grid::cell_width, 3)*hist::CompositeDistanceHistogramFFGridSurface::exv_factor(0, d);
             return interior_atoms*interior_vol + exterior_atoms*exterior_vol;
@@ -60,8 +58,8 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
 
         case settings::exv::ExvMethod::CRYSOL: {
             assert(m->size_atom() != 0 && "ExvVolume::get_volume_exv: Division by zero. The molecule has no atoms.");
-            auto V = fraser_helper();
-            return V*hist::CompositeDistanceHistogramCrysol::exv_factor(0, d, V/m->size_atom());
+            double V = fraser_helper();
+            return V*hist::CompositeDistanceHistogramCrysol::exv_factor(0, d, V/static_cast<double>(m->size_atom()));
         }
 
         case settings::exv::ExvMethod::FoXS: {

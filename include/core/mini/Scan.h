@@ -15,23 +15,23 @@ namespace ausaxs::mini {
 		public:
 			Scan() = default;
 
-			Scan(double(&func)(std::vector<double>), unsigned int evals = 100);
+			Scan(double(&func)(std::vector<double>), int evals = 100);
 
-            Scan(std::function<double(std::vector<double>)> func, unsigned int evals = 100);
+            Scan(std::function<double(std::vector<double>)> func, int evals = 100);
 
-            Scan(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals = 100);
+            Scan(double(&func)(std::vector<double>), const Parameter& param, int evals = 100);
 
-            Scan(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals = 100);
+            Scan(std::function<double(std::vector<double>)> func, const Parameter& param, int evals = 100);
 
             /**
              * @brief Destructor.
              */
-            virtual ~Scan() override = default;
+            ~Scan() override = default;
 
             /**
              * @brief Generate a landscape of the function.
              */
-            mini::Landscape landscape(unsigned int evals) override;
+            mini::Landscape landscape(int evals) override;
 
 			void add_parameter(const Parameter& param) override;
 

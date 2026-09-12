@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <gui/plotting.h>
+
 #include <array>
 
 constexpr std::array<unsigned char, 3278> resources::plot_py = {

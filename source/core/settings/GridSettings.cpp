@@ -2,8 +2,8 @@
 // Author: Kristian Lytje
 
 #include <settings/GridSettings.h>
+
 #include <settings/SettingsIORegistry.h>
-#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 
@@ -12,7 +12,7 @@ double settings::grid::cell_width = 1;
 double settings::grid::scaling = 0.25;
 bool settings::grid::cubic = false;
 double settings::grid::min_exv_radius = 2.15;
-unsigned int settings::grid::min_bins = 0;
+int settings::grid::min_bins = 0;
 
 double settings::grid::exv::surface_thickness = 1;
 double settings::grid::exv::width = 1;
@@ -21,7 +21,8 @@ settings::grid::exv::ExvType settings::grid::exv::expansion_strategy = settings:
 
 double settings::grid::detail::min_score = 0.25;
 
-namespace ausaxs::settings::io {
+namespace {
+    using namespace ausaxs::settings;
     settings::io::SettingSection grid_section("Grid", {
         settings::io::create(grid::water_scaling, "water_scaling"),
         settings::io::create(grid::cell_width, "width"),

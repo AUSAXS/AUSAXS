@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <data/DataFwd.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <utility/observer_ptr.h>
 
 #include <utility>
@@ -56,7 +56,7 @@ namespace ausaxs::rigidbody::constraints {
                 const data::AtomFF& atom2
             );
 
-            virtual ~DistanceConstraintAtom() override = default;
+            ~DistanceConstraintAtom() override = default;
 
             /**
              * @brief Evaluate this constraint for the current positions. 

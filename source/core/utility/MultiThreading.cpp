@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <utility/MultiThreading.h>
+
 #include <settings/GeneralSettings.h>
 
 using namespace ausaxs;

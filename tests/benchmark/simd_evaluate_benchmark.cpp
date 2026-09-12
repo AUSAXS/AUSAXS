@@ -12,8 +12,8 @@
  *   ./bin/benchmark_histogram_<variant> [bench]
  */
 
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <data/Molecule.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>

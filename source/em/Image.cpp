@@ -2,31 +2,31 @@
 // Author: Kristian Lytje
 
 #include <em/Image.h>
+
 #include <em/detail/header/MapHeader.h>
+#include <hist/Histogram2D.h>
 #include <settings/EMSettings.h>
 #include <utility/Axis3D.h>
-#include <constants/Constants.h>
-#include <hist/Histogram2D.h>
 
 using namespace ausaxs;
 using namespace ausaxs::em;
 
-Image::Image(observer_ptr<em::detail::header::IMapHeader> header, unsigned int layer) : N(header->get_axes().x.bins), M(header->get_axes().y.bins), header(header), data(N, M), z(layer), bounds(N, M) {}
+Image::Image(observer_ptr<em::detail::header::IMapHeader> header, int layer) : N(header->get_axes().x.bins), M(header->get_axes().y.bins), header(header), data(N, M), z(layer), bounds(N, M) {}
 
 Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), header(nullptr), data(data), z(0), bounds(N, M) {}
 
-Image::Image(const Matrix<float>& data, observer_ptr<em::detail::header::IMapHeader> header, unsigned int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
+Image::Image(const Matrix<float>& data, observer_ptr<em::detail::header::IMapHeader> header, int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
 
 const Matrix<float>& Image::get_data() const {
     return data;
 }
 
-void Image::set_z(unsigned int z) {this->z = z;}
+void Image::set_z(int z) {this->z = z;}
 
-unsigned int Image::get_z() const {return z;}
+int Image::get_z() const {return z;}
 
-float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y);}
-float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
+float Image::index(int x, int y) const {return data.index(x, y);}
+float& Image::index(int x, int y) {return data.index(x, y);}
 
 std::list<data::EMAtom> Image::generate_atoms(double cutoff) const {
     if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::generate_atoms: Header must be initialized to use this method.");}
@@ -37,7 +37,7 @@ std::list<data::EMAtom> Image::generate_atoms(double cutoff) const {
     double xscale = map_axes.x.width();
     double yscale = map_axes.y.width();
     double zscale = map_axes.z.width();
-    int step = static_cast<int>(settings::em::sample_frequency);
+    int step = settings::em::sample_frequency;
     
     // define a weight function for more efficient switching. 
     auto weight = settings::em::fixed_weights ? 
@@ -55,8 +55,8 @@ std::list<data::EMAtom> Image::generate_atoms(double cutoff) const {
     return atoms;
 }
 
-unsigned int Image::count_voxels(double cutoff) const {
-    unsigned int count = 0;
+int Image::count_voxels(double cutoff) const {
+    int count = 0;
     int step = settings::em::sample_frequency;
     for (int x = 0; x < static_cast<int>(N); x += step) {
         for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
@@ -70,8 +70,8 @@ unsigned int Image::count_voxels(double cutoff) const {
 
 double Image::squared_sum() const {
     double sum = 0;
-    for (unsigned int x = 0; x < N; x++) {
-        for (unsigned int y = 0; y < M; y++) {
+    for (int x = 0; x < N; x++) {
+        for (int y = 0; y < M; y++) {
             sum += std::pow(index(x, y), 2);
         }
     }
@@ -83,8 +83,8 @@ hist::Histogram2D Image::as_hist() const {
     auto map_axes = header->get_axes();
     hist::Histogram2D hist(map_axes.x, map_axes.y);
 
-    for (unsigned int x = 0; x < N; x++) {
-        for (unsigned int y = 0; y < M; y++) {
+    for (int x = 0; x < N; x++) {
+        for (int y = 0; y < M; y++) {
             hist.data.index(x, y) = index(x, y);
         }
     }
@@ -93,8 +93,8 @@ hist::Histogram2D Image::as_hist() const {
 
 double Image::mean() const {
     double sum = 0;
-    for (unsigned int x = 0; x < N; x++) {
-        for (unsigned int y = 0; y < M; y++) {
+    for (int x = 0; x < N; x++) {
+        for (int y = 0; y < M; y++) {
             sum += index(x, y);
         }
     }
@@ -104,15 +104,15 @@ double Image::mean() const {
 
 Limit Image::limits() const {
     double min = 1e9, max = -1e9;
-    for (unsigned int x = 0; x < N; x++) {
-        for (unsigned int y = 0; y < M; y++) {
+    for (int x = 0; x < N; x++) {
+        for (int y = 0; y < M; y++) {
             double val = index(x, y);
             min = std::min(min, val);
             max = std::max(max, val);
         }
     }
 
-    return Limit(min, max);
+    return {min, max};
 }
 
 void Image::set_header(observer_ptr<em::detail::header::IMapHeader> header) {
@@ -124,10 +124,10 @@ const ObjectBounds2D& Image::get_bounds() const {
 }
 
 const ObjectBounds2D& Image::setup_bounds(double cutoff) {
-    for (unsigned int x = 0; x < N; x++) {
+    for (int x = 0; x < N; x++) {
         bounds.set_bounds(x, 0, 0);
         bool min_set = false;
-        for (unsigned int y = 0; y < M; y++) {
+        for (int y = 0; y < M; y++) {
             if (index(x, y) < cutoff) {continue;}
             if (!min_set) {
                 bounds.set_bounds(x, y, y+1); // update min val to this index, and also set max in case this is the only entry

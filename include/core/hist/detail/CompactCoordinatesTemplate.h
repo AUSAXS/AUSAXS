@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <hist/detail/data/CompactCoordinatesXYZW.h>
-#include <hist/detail/data/CompactCoordinatesXYZFF.h>
-#include <data/Body.h>
 #include <constants/Constants.h>
+#include <data/Body.h>
+#include <hist/detail/data/CompactCoordinatesXYZFF.h>
+#include <hist/detail/data/CompactCoordinatesXYZW.h>
 #include <utility/Concepts.h>
 
 #include <vector>
@@ -51,7 +51,7 @@ namespace ausaxs::hist::detail {
 
         public:
             CompactCoordinatesTemplate() = default;
-            CompactCoordinatesTemplate(const std::vector<data::AtomFF>& body);
+            CompactCoordinatesTemplate(const std::vector<data::AtomFF>& atoms);
             CompactCoordinatesTemplate(const std::vector<data::Body>& bodies);
             CompactCoordinatesTemplate(const std::vector<data::Water>& atoms);
 
@@ -63,16 +63,16 @@ namespace ausaxs::hist::detail {
             /**
              * @brief Get the non-coordinate (fourth-column) value. 
              */
-            NonCoordinateType get_non_coordinate_value(unsigned int i) const;
-            NonCoordinateType& get_non_coordinate_value(unsigned int i);
+            NonCoordinateType get_non_coordinate_value(int i) const;
+            NonCoordinateType& get_non_coordinate_value(int i);
 
             std::size_t size() const;
 
             std::vector<DataType>& get_data();
             const std::vector<DataType>& get_data() const;
 
-            DataType& operator[](unsigned int i);
-            const DataType& operator[](unsigned int i) const;
+            DataType& operator[](int i);
+            const DataType& operator[](int i) const;
 
         protected: 
             std::vector<DataType> data;
@@ -103,7 +103,7 @@ namespace ausaxs::hist::detail {
             return DataType(a.coordinates(), a.weight());
         } else {
             static_assert(std::is_same_v<CoordType, CoordinateTypeXYZFF>, "Type must be CoordinateTypeXYZFF");
-            return DataType(a.coordinates(), static_cast<int32_t>(a.form_factor_type()));
+            return DataType(a.coordinates(), static_cast<int32_t>(ausaxs::data::Water::form_factor_type()));
         }
     }
 }
@@ -111,14 +111,14 @@ namespace ausaxs::hist::detail {
 
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_non_coordinate_value(unsigned int i) const {
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_non_coordinate_value(int i) const {
     // reinterpret the fourth element of the data as the non-coordinate type
     // this must be done as the int32_t is stored as a float internally
     return *reinterpret_cast<const ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType*>(&data[i].data[3]);
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_non_coordinate_value(unsigned int i) {
+inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_non_coordinate_value(int i) {
     return *reinterpret_cast<ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::NonCoordinateType*>(&data[i].data[3]);
 }
 
@@ -126,15 +126,15 @@ inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
 inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::AtomFF>& atoms) : data(atoms.size()) {
-    for (unsigned int i = 0; i < size(); ++i) {
+    for (int i = 0; i < static_cast<int>(size()); ++i) {
         const auto& a = atoms[i]; 
         data[i] = GenericConstructor<CoordType, vbw>(a);
     }
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Body>& bodies) : data(std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.size_atom();})) {
-    unsigned int i = 0;
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Body>& bodies) : data(std::accumulate(bodies.begin(), bodies.end(), 0, [](int sum, const data::Body& body) {return sum + body.size_atom();})) {
+    int i = 0;
     for (const auto& body : bodies) {
         for (const auto& a : body.get_atoms()) {
             data[i++] = GenericConstructor<CoordType, vbw>(a);
@@ -144,7 +144,7 @@ inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::Compact
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
 inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Water>& atoms) : data(atoms.size()) {
-    for (unsigned int i = 0; i < size(); ++i) {
+    for (int i = 0; i < static_cast<int>(size()); ++i) {
         const auto& a = atoms[i]; 
         data[i] = GenericConstructor<CoordType, vbw>(a);
     }
@@ -170,7 +170,7 @@ template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
 inline std::size_t ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::size() const {return data.size();}
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::DataType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::operator[](unsigned int i) {return data[i];}
+inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::DataType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::operator[](int i) {return data[i];}
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline const typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::DataType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::operator[](unsigned int i) const {return data[i];}
+inline const typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::DataType& ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::operator[](int i) const {return data[i];}

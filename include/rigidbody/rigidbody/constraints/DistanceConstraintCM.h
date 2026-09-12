@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <data/DataFwd.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
 #include <utility/observer_ptr.h>
 
 #include <utility>
@@ -18,7 +18,7 @@ namespace ausaxs::rigidbody::constraints {
              * Complexity: O(n)
              */
             DistanceConstraintCM(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2, std::pair<int, int> isym1 = {-1, -1}, std::pair<int, int> isym2 = {-1, -1});
-            virtual ~DistanceConstraintCM() override = default;
+            ~DistanceConstraintCM() override = default;
 
             /**
              * @brief Evaluate this constraint for the current positions. 

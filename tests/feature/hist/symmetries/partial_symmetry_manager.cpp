@@ -4,17 +4,16 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/ReferenceSymmetry.h>
-#include <data/state/Signaller.h>
-#include <rigidbody/BodySplitter.h>
 #include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
-#include "settings/GridSettings.h"
+#include <hist/hist_test_helper.h>
+#include <settings/GridSettings.h>
 
 #include <numbers>
 #include <random>
@@ -22,17 +21,17 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-auto make_unique_cyclic_sym = [] (
+static auto make_unique_cyclic_sym = [] (
     const Vector3<double>& initial_relation, const Vector3<double>& per_step_translation, const Vector3<double>& axis, double angle, int repetitions = 1
 ) {
     return std::make_unique<symmetry::CyclicSymmetry>(initial_relation, per_step_translation, axis, angle, repetitions);
 };
 
-auto make_unique_point_sym = [] (const Vector3<double>& translation, const Vector3<double>& rotation) {
+static auto make_unique_point_sym = [] (const Vector3<double>& translation, const Vector3<double>& rotation) {
     return std::make_unique<symmetry::PointSymmetry>(translation, rotation);
 };
 
-auto test = [] (data::Molecule& protein) {
+static auto test = [] (data::Molecule& protein) {
     auto cast = [&protein](int body_idx, int sym_idx) {
         return static_cast<symmetry::CyclicSymmetry*>(protein.get_body(body_idx).symmetry().get(sym_idx));
     };
@@ -78,7 +77,7 @@ auto test = [] (data::Molecule& protein) {
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 };
 
-auto test_random = [] (data::Molecule& protein) {
+static auto test_random = [] (data::Molecule& protein) {
     auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = protein.get_histogram()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
@@ -197,7 +196,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
         static std::mt19937 gen(seed());
         static std::uniform_int_distribution<> ri(1, 10);
         static std::uniform_real_distribution<> rd(-10, 10);
-        for (unsigned int i = 0; i < protein.size_body(); ++i) {
+        for (int i = 0; i < protein.size_body(); ++i) {
             auto& body = protein.get_body(i);
             for (int j = 0; j < ri(gen); ++j) {
                 // symmetry with up to 4 repeats
@@ -210,7 +209,7 @@ TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
     }
 }
 
-auto test_point = [] (data::Molecule& protein) {
+static auto test_point = [] (data::Molecule& protein) {
     auto cast = [&protein](int body_idx, int sym_idx) {
         return static_cast<symmetry::PointSymmetry*>(protein.get_body(body_idx).symmetry().get(sym_idx));
     };
@@ -250,7 +249,7 @@ auto test_point = [] (data::Molecule& protein) {
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 };
 
-auto test_point_random = [] (data::Molecule& protein) {
+static auto test_point_random = [] (data::Molecule& protein) {
     auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = protein.get_histogram()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
@@ -363,7 +362,7 @@ TEST_CASE("PartialSymmetryManagerMT: PointSymmetry subsequent calculations") {
     }
 }
 
-auto test_reference = [] (data::Molecule& protein) {
+static auto test_reference = [] (data::Molecule& protein) {
     // fetching the symmetry through the (non-const) facade flags it as modified; for a shared
     // ReferenceSymmetry this must flag every participating body, including the linked view bodies
     auto ref = [&protein] {return static_cast<symmetry::ReferenceSymmetry*>(protein.get_body(0).symmetry().get(0));};

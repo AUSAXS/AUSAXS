@@ -1,10 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <em/Image.h>
 #include <em/ImageStack.h>
 #include <em/ObjectBounds3D.h>
-#include <utility/Limit.h>
 
 using namespace ausaxs;
 

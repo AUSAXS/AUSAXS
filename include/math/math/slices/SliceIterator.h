@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include<cstddef>
-#include<iterator>
+#include <cstddef>
+#include <iterator>
 
 namespace ausaxs {
     template <typename T>
@@ -17,11 +17,10 @@ namespace ausaxs {
             using reference = T&;
 
             SliceIterator() : m_ptr(nullptr), step(0) {}
-            SliceIterator(pointer ptr, unsigned int step) : m_ptr(ptr), step(step) {}
+            SliceIterator(pointer ptr, int step) : m_ptr(ptr), step(step) {}
 
-            // Dereference operators.
-            reference operator*() { return *m_ptr; }
-            pointer operator->() { return m_ptr; }
+            reference operator*() const { return *m_ptr; }
+            pointer operator->() const { return m_ptr; }
 
             // Increment/decrement operators.
             SliceIterator& operator++() { m_ptr += step; return *this; }
@@ -45,10 +44,10 @@ namespace ausaxs {
             bool operator>=(const SliceIterator& other) const { return m_ptr >= other.m_ptr; }
 
             // Swap two iterators.
-            void swap(SliceIterator& other) { std::swap(m_ptr, other.m_ptr); }
+            void swap(SliceIterator& other) noexcept { std::swap(m_ptr, other.m_ptr); }
 
         private:
             pointer m_ptr;
-            unsigned int step;
+            int step;
     };
 }

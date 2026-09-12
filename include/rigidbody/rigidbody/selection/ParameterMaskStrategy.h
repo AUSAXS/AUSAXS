@@ -75,7 +75,7 @@ namespace ausaxs::rigidbody::selection {
             return step_ ? ParameterMask::symmetry_only() : ParameterMask::symmetry_only_axis();
         }
         private:
-            int step_ = 0;
+            bool step_ = false;
     };
 
     /**
@@ -84,7 +84,7 @@ namespace ausaxs::rigidbody::selection {
     struct RandomMaskStrategy : ParameterMaskStrategy {
         ParameterMask next() override {
             static std::uniform_int_distribution<int> coin(0, 1);
-            return coin(random::generator()) ? ParameterMask::real_only() : ParameterMask::symmetry_only();
+            return (coin(random::generator()) != 0) ? ParameterMask::real_only() : ParameterMask::symmetry_only();
         }
     };
 }

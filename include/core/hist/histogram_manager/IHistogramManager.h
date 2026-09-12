@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hist/detail/BodyTracker.h>
 #include <hist/HistFwd.h>
+#include <hist/detail/BodyTracker.h>
 
 #include <memory>
 

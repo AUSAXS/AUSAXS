@@ -3,10 +3,6 @@
 
 #pragma once
 
-#include <vector>
-#include <array>
-#include <initializer_list>
-#include <math.h>
 #include <ostream>
 #include <string>
 

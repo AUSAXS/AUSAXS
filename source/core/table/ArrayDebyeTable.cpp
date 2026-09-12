@@ -9,10 +9,10 @@
 
     #if DEBUG 
         #include <iostream>
+        #include <settings/GeneralSettings.h>
+        #include <settings/HistogramSettings.h>
         #include <utility/Console.h>
         #include <utility/Utility.h>
-        #include <settings/HistogramSettings.h>
-        #include <settings/GeneralSettings.h>
     #endif
     void ArrayDebyeTable::check_default(const std::vector<double>& q, const std::vector<double>& d) {
         #if DEBUG 
@@ -20,7 +20,7 @@
             const Axis& axis = constants::axes::q_axis;
 
             auto qvals = axis.as_vector();
-            unsigned int i = 0;
+            int i = 0;
             for (; i < axis.bins; ++i) {
                 if (utility::approx(q.front(), qvals[i])) {break;}
             }

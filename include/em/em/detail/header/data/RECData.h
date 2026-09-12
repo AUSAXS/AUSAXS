@@ -14,7 +14,7 @@ namespace ausaxs::em::detail::header {
      */
     struct RECData {
         RECData();
-        ~RECData();
+        ~RECData() = default;
 
         //! members CANNOT be reordered!
         int nx;             // Number of points along x-axis.

@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <hist/histogram_manager/IPartialHistogramManager.h>
+#include <container/Container1D.h>
+#include <container/Container2D.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/SimpleExvModel.h>
-#include <container/Container1D.h>
-#include <container/Container2D.h>
+#include <hist/histogram_manager/IPartialHistogramManager.h>
 
 namespace ausaxs::hist {
 	/**
@@ -34,17 +34,17 @@ namespace ausaxs::hist {
 	class PartialHistogramManager : public IPartialHistogramManager {
 		public:
 			PartialHistogramManager(observer_ptr<const data::Molecule> protein); 
-			virtual ~PartialHistogramManager() override;
+			~PartialHistogramManager() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 
 			 */
-			virtual std::unique_ptr<DistanceHistogram> calculate() override;
+			std::unique_ptr<DistanceHistogram> calculate() override;
 
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
+			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
 			observer_ptr<const data::Molecule> protein;										// the molecule we are calculating the histogram for
@@ -73,12 +73,12 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 */
-			void calc_aa(unsigned int n, unsigned int m);
+			void calc_aa(int n, int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 */
-			void calc_aw(unsigned int index);
+			void calc_aw(int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
@@ -88,6 +88,6 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Calculate the self-correlation of a body. 
 			 */
-			void calc_self_correlation(unsigned int index);
+			void calc_self_correlation(int index);
 	};
 }

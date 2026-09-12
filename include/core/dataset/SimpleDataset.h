@@ -5,8 +5,8 @@
 
 #include <hist/HistFwd.h>
 
-#include <dataset/PointSet.h>
 #include <dataset/Dataset.h>
+#include <dataset/PointSet.h>
 
 namespace ausaxs {
     /**
@@ -18,12 +18,12 @@ namespace ausaxs {
              * @brief Construct a dataset with N rows and M columns. 
              *        This is protected because it should only be used by derived classes for supporting more columns.
              */
-            SimpleDataset(unsigned int N, unsigned int M);
+            SimpleDataset(int N, int M);
 
         public: 
             SimpleDataset();
             SimpleDataset(const SimpleDataset& d);
-            SimpleDataset(SimpleDataset&& d);
+            SimpleDataset(SimpleDataset&& d) noexcept ;
             SimpleDataset& operator=(const SimpleDataset& other);
             SimpleDataset& operator=(SimpleDataset&& other) noexcept;
             ~SimpleDataset() override;
@@ -34,7 +34,7 @@ namespace ausaxs {
             /**
              * @brief Construct a new empty dataset with the given number of rows. 
              */
-            SimpleDataset(unsigned int rows) noexcept;
+            SimpleDataset(int rows) noexcept;
 
             /**
              * @brief Construct a new dataset from two vectors.
@@ -52,21 +52,21 @@ namespace ausaxs {
             SimpleDataset(const io::ExistingFile& path);
 
             // Get the third column.
-            [[nodiscard]] const ConstColumn<double> yerr() const {return col(2);}
+            [[nodiscard]] ConstColumn<double> yerr() const {return col(2);}
 
             // Get the third column.
             [[nodiscard]] MutableColumn<double> yerr() {return col(2);}
 
             // Get the ith value in the third column.
-            [[nodiscard]] const double& yerr(unsigned int i) const {return data.index(i, 2);}
+            [[nodiscard]] const double& yerr(int i) const {return data.index(i, 2);}
 
             // Get the ith value in the third column.
-            [[nodiscard]] double& yerr(unsigned int i) {return data.index(i, 2);}
+            [[nodiscard]] double& yerr(int i) {return data.index(i, 2);}
 
             /**
              * @brief Load a dataset from the specified file. 
              */
-            virtual void load(const io::ExistingFile& path) override;
+            void load(const io::ExistingFile& path) override;
 
             /**
              * @brief Reduce the number of rows to the specified amount by uniformly removing points in x-space.
@@ -74,12 +74,12 @@ namespace ausaxs {
              * @param target The target number of points.
              * @param log If true, the points will be removed uniformly on a logarithmic scale.
              */
-            void reduce(unsigned int target, bool log = false);
+            void reduce(int target, bool log = false);
 
             /**
              * @brief Assign a Matrix to this dataset.
              */
-            void operator=(Matrix<double>&& other);
+            SimpleDataset& operator=(Matrix<double>&& other);
             
             bool operator==(const SimpleDataset& other) const;
 
@@ -144,7 +144,7 @@ namespace ausaxs {
             /**
              * @brief Get the point at a given index.
              */
-            Point2D get_point(unsigned int index) const;
+            Point2D get_point(int index) const;
 
             /**
              * @brief Get the point with the smallest y-value.
@@ -173,7 +173,7 @@ namespace ausaxs {
              * @param min Minimum generated value.
              * @param max Maxium generated value. 
              */
-            static SimpleDataset generate_random_data(unsigned int size, double min, double max);
+            static SimpleDataset generate_random_data(int size, double min, double max);
 
             /**
              * @brief Generate a randomized dataset.
@@ -185,7 +185,7 @@ namespace ausaxs {
              * @param size Size of the dataset.
              * @param val Maximum and minimum bound on the generated values. 
              */
-            static SimpleDataset generate_random_data(unsigned int size, double val);
+            static SimpleDataset generate_random_data(int size, double val);
 
             /**
              * @brief Get the mean of the y values.

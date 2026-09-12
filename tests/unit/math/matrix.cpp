@@ -3,8 +3,8 @@
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
 #include <math/Matrix.h>
-#include <math/Vector.h>
 #include <math/MatrixUtils.h>
+#include <math/Vector.h>
 
 using namespace ausaxs;
 

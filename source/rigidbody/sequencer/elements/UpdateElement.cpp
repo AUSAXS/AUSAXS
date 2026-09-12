@@ -2,17 +2,18 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/UpdateElement.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <data/Molecule.h>
-#include <data/symmetry/MoleculeSymmetryFacade.h>
-#include <data/detail/SimpleBody.h>
-#include <utility/MultiThreading.h>
-#include <utility/Console.h>
 
+#include <data/Molecule.h>
+#include <data/detail/SimpleBody.h>
+#include <data/symmetry/MoleculeSymmetryFacade.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
+#include <utility/Console.h>
+#include <utility/MultiThreading.h>
+
+#include <mutex>
 #include <string>
 #include <utility>
-#include <mutex>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -58,7 +59,10 @@ void UpdateElement::run() {
     );
 }
 
-std::mutex mutex;
+namespace {
+    std::mutex mutex;
+}
+
 void UpdateElement::lock() {
     mutex.lock();
 }
@@ -76,9 +80,9 @@ InlineSignature UpdateElement::_valid_inline_arguments() {
 }
 
 // update [target] - only "structure" is supported
-std::unique_ptr<GenericElement> UpdateElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> UpdateElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     if (std::string(args.inlined[0]) != "structure") {
-        throw except::parse_error("update", "Unsupported update target \"" + std::string(args.inlined[0]) + "\"; only \"structure\" is supported.");
+        throw except::parse_error("update", "Unsupported update target \"" + std::string(args.inlined[0]) + R"("; only "structure" is supported.)");
     }
     return std::make_unique<UpdateElement>(owner);
 }

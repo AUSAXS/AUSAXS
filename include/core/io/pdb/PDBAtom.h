@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <io/pdb/Record.h>
-#include <math/Vector3.h>
 #include <constants/ConstantsFwd.h>
 #include <form_factor/FormFactorType.h>
+#include <io/pdb/Record.h>
+#include <math/Vector3.h>
 
 #include <string>
 
@@ -29,15 +29,16 @@ namespace ausaxs::io::pdb {
              * @param name the molecule (e.g. HOH).
              * @param serial the serial number of this atom.
              */
-            PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& name, int serial);
+            PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element, std::string name, int serial);
 
             /**
              * @brief Construct a new Atom object.
              * 
              * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
              */
-            PDBAtom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, 
-                const std::string& iCode, Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge);
+            PDBAtom(int serial, std::string name, std::string altLoc, std::string resName, char chainID, int resSeq, 
+                std::string iCode, Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, std::string charge
+            );
 
             RecordType get_type() const override;
 
@@ -101,7 +102,7 @@ namespace ausaxs::io::pdb {
             /**
              * @brief Get the number of protons in this atom.
              */
-            unsigned int Z() const;
+            int Z() const;
 
             /**
              * @brief Comparison function to allow this class to be a map key. 

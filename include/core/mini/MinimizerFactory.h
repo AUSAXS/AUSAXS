@@ -3,14 +3,15 @@
 
 #pragma once
 
-#include <mini/dlibMinimizer.h>
 #include <mini/Golden.h>
+#include <mini/LimitedScan.h>
 #include <mini/MinimumExplorer.h>
 #include <mini/Scan.h>
-#include <mini/LimitedScan.h>
+#include <mini/dlibMinimizer.h>
 
-#include <memory>
+#include <algorithm>
 #include <functional>
+#include <memory>
 
 namespace ausaxs::mini {
     namespace detail {
@@ -64,7 +65,7 @@ namespace ausaxs::mini {
      */
     [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(algorithm t, std::function<double(std::vector<double>)> func, const std::vector<Parameter>& param) {
         auto minimizer = detail::create_minimizer(t, std::move(func));
-        std::for_each(param.begin(), param.end(), [&](const Parameter& p) { minimizer->add_parameter(p); });
+        std::ranges::for_each(param, [&](const Parameter& p) { minimizer->add_parameter(p); });
         return minimizer;
     }
 
@@ -76,7 +77,7 @@ namespace ausaxs::mini {
      * @param param The first parameter.
      * @param evals The number of evaluations to perform. Not supported by all minimizers.
      */
-    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(algorithm t, std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) {
+    [[maybe_unused]] inline std::shared_ptr<Minimizer> create_minimizer(algorithm t, std::function<double(std::vector<double>)> func, const Parameter& param, int evals) {
         auto minimizer = detail::create_minimizer(t, std::move(func));
         minimizer->add_parameter(param);
         minimizer->set_max_evals(evals);

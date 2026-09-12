@@ -17,7 +17,7 @@ namespace resources {
     inline io::ExistingFile generate_plotting_script() {
         io::File file("resources/plot.py");
         if (file.exists()) {return file;}
-        else {file.create();}
+        file.create();
 
         // plot.py
         std::ofstream out(file.path(), std::ios::binary);

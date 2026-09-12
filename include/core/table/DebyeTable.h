@@ -8,7 +8,7 @@
 namespace ausaxs::table {
     struct DebyeTable {
         //! note: constexpr destructor cannot be defaulted due to GCC bug 93413
-        constexpr virtual ~DebyeTable() noexcept {}
+        constexpr virtual ~DebyeTable() noexcept = default;
 
         [[nodiscard]] virtual constants::axes::d_type lookup(int q_index, int d_index) const = 0;
 

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <plots/PlotHistogram.h>
 #include <hist/HistFwd.h>
+#include <plots/PlotHistogram.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::plots {

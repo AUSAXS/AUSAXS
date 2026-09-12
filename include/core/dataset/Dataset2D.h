@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <io/IOFwd.h>
 #include <dataset/SimpleDataset.h>
+#include <io/IOFwd.h>
 
 namespace ausaxs {
     /**
@@ -20,7 +20,7 @@ namespace ausaxs {
             /**
              * @brief Construct a new empty dataset with the given number of rows.
              */
-            Dataset2D(unsigned int rows) noexcept;
+            Dataset2D(int rows) noexcept;
 
             /**
              * @brief Construct a new dataset with x and y values. The xerr and yerr columns will be initialized to 0.
@@ -70,16 +70,16 @@ namespace ausaxs {
             void scale_errors(double factor) override;
 
             // Get the fourth column.
-            [[nodiscard]] const ConstColumn<double> xerr() const {return col(3);}
+            [[nodiscard]] ConstColumn<double> xerr() const {return col(3);}
 
             // Get the fourth column.
             [[nodiscard]] MutableColumn<double> xerr() {return col(3);}
 
             // Get the ith value in the fourth column.
-            [[nodiscard]] const double& xerr(unsigned int i) const {return data.index(i, 3);}
+            [[nodiscard]] const double& xerr(int i) const {return data.index(i, 3);}
 
             // Get the ith value in the fourth column.
-            [[nodiscard]] double& xerr(unsigned int i) {return data.index(i, 3);}
+            [[nodiscard]] double& xerr(int i) {return data.index(i, 3);}
     };
 
     // Object conversion between Dataset2D and SimpleDataset is often used. This check ensures that the conversion is safe.

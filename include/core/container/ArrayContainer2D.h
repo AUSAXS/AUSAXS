@@ -4,9 +4,10 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 
-#if SAFE_MATH
-    #include <utility/Exceptions.h>
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
 #endif
 
 namespace ausaxs::container {
@@ -28,72 +29,60 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the beginning of the vector at index i.
              */
-            const typename std::array<T, M>::const_iterator begin(int i) const {
-                #if SAFE_MATH
-                    if (i >= static_cast<int>(N)) {
-                        throw except::out_of_range(
-                            "ArrayContainer2D::begin: Index out of bounds "
-                            "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
-                        );
-                    }
-                #endif
+            typename std::array<T, M>::const_iterator begin(int i) const {
+                assert([&]() -> bool {
+                    if (i < N) {return true;}
+                    std::cout << "ArrayContainer2D::begin: Index out of bounds (" << N << ") <= (" << i << ")" << std::endl;
+                    return false;
+                }() && "ArrayContainer2D::begin: Index out of bounds.");
                 return data.begin() + i*M;
             }
 
             /**
              * @brief Get an iterator to the end of the vector at index i.
              */
-            const typename std::array<T, M>::const_iterator end(unsigned int i) const {
-                #if SAFE_MATH
-                    if (i >= static_cast<int>(N)) {
-                        throw except::out_of_range(
-                            "ArrayContainer2D::end: Index out of bounds "
-                            "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
-                        );
-                    }
-                #endif
+            typename std::array<T, M>::const_iterator end(int i) const {
+                assert([&]() -> bool {
+                    if (i < N) {return true;}
+                    std::cout << "ArrayContainer2D::end: Index out of bounds (" << N << ") <= (" << i << ")" << std::endl;
+                    return false;
+                }() && "ArrayContainer2D::end: Index out of bounds.");
                 return data.begin() + i*M + M;
             }
 
             /**
              * @brief Get an iterator to the beginning of the vector at index i.
              */
-            typename std::array<T, M>::iterator begin(unsigned int i) {
-                #if SAFE_MATH
-                    if (i >= static_cast<int>(N)) {
-                        throw except::out_of_range(
-                            "ArrayContainer2D::begin: Index out of bounds "
-                            "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
-                        );
-                    }
-                #endif            
+            typename std::array<T, M>::iterator begin(int i) {
+                assert([&]() -> bool {
+                    if (i < N) {return true;}
+                    std::cout << "ArrayContainer2D::begin: Index out of bounds (" << N << ") <= (" << i << ")" << std::endl;
+                    return false;
+                }() && "ArrayContainer2D::begin: Index out of bounds.");
                 return data.begin() + i*M;
             }
 
             /**
              * @brief Get an iterator to the end of the vector at index i.
              */
-            typename std::array<T, M>::iterator end(unsigned int i) {
-                #if SAFE_MATH
-                    if (i >= static_cast<int>(N)) {
-                        throw except::out_of_range(
-                            "ArrayContainer2D::end: Index out of bounds "
-                            "(" + std::to_string(N) + ") <= (" + std::to_string(i) + ")"
-                        );
-                    }
-                #endif            
+            typename std::array<T, M>::iterator end(int i) {
+                assert([&]() -> bool {
+                    if (i < N) {return true;}
+                    std::cout << "ArrayContainer2D::end: Index out of bounds (" << N << ") <= (" << i << ")" << std::endl;
+                    return false;
+                }() && "ArrayContainer2D::end: Index out of bounds.");
                 return data.begin() + i*M + M;
             }
 
             /**
              * @brief Get an iterator to the beginning of the entire container.
              */
-            const typename std::array<T, M>::const_iterator begin() const {return data.begin();}
+            typename std::array<T, M>::const_iterator begin() const {return data.begin();}
 
             /**
              * @brief Get an iterator to the beginning of the entire container.
              */
-            const typename std::array<T, M>::const_iterator end() const {return data.end();}
+            typename std::array<T, M>::const_iterator end() const {return data.end();}
 
             /**
              * @brief Get an iterator to the beginning of the entire container.

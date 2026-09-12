@@ -32,7 +32,7 @@ namespace ausaxs::mini {
 			void add_parameter(const Parameter& param) override;
 
         private:
-            inline static const double phi = (1 + std::sqrt(5))/2;
+            inline static const double phi = std::numbers::phi;
             inline static const double invphi = 1/phi;
             inline static const double invphi2 = invphi*invphi;
 

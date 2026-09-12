@@ -2,14 +2,13 @@
 // Author: Kristian Lytje
 
 #if defined(DLIB_AVAILABLE)
-    #include <mini/dlibMinimizer.h>
-    #include <mini/detail/Parameter.h>
     #include <mini/detail/FittedParameter.h>
-    #include <mini/detail/Evaluation.h>
+    #include <mini/detail/Parameter.h>
+    #include <mini/dlibMinimizer.h>
     #include <utility/Console.h>
 
-    #include <dlib/optimization.h>
     #include <dlib/global_optimization.h>
+    #include <dlib/optimization.h>
 
     using namespace ausaxs;
     using namespace ausaxs::mini;
@@ -32,8 +31,8 @@
     }
 
     template<mini::algorithm algo>
-    dlibMinimizer<algo>::dlibMinimizer(std::function<double(std::vector<double>)> function, std::vector<Parameter> param) {
-        for (auto& p : param) {
+    dlibMinimizer<algo>::dlibMinimizer(std::function<double(std::vector<double>)> function, const std::vector<Parameter>& param) {
+        for (const auto& p : param) {
             add_parameter(p);
         }
         set_function(std::move(function));
@@ -52,23 +51,24 @@
         column_vector x(parameters.size());
         column_vector min(parameters.size());
         column_vector max(parameters.size());
-        for (unsigned int i = 0; i < parameters.size(); i++) {
-            if (parameters[i].has_guess()) {
-                x(i) = parameters[i].guess.value();
-            } else if (parameters[i].has_bounds()) {
-                x(i) = parameters[i].bounds->center();
+        for (int i = 0; i < static_cast<int>(parameters.size()); i++) {
+            const auto& param = parameters[i];
+            if (param.guess.has_value()) {
+                x(i) = *param.guess;
+            } else if (param.bounds.has_value()) {
+                x(i) = param.bounds->center();
             } else {
                 throw ausaxs::except::invalid_argument("dlibMinimizer::minimize: Either a guess or bounds must be supplied.");
             }
 
-            if (!parameters[i].has_bounds()) {
+            if (param.bounds.has_value()) {
+                min(i) = param.bounds->min;
+                max(i) = param.bounds->max;
+            } else {
                 bounds = false;
                 if (i != 0) {
                     console::print_warning("dlibMinimizer::minimize_override: Bounds supplied for some parameters, but not all. Disabling bounds.");
                 }
-            } else {
-                min(i) = parameters[i].bounds->min;
-                max(i) = parameters[i].bounds->max;
             }
         }
 
@@ -110,7 +110,7 @@
         res.fval = fmin;
         res.fevals = fevals;
         res.status = 0;
-        for (unsigned int i = 0; i < parameters.size(); i++) {
+        for (int i = 0; i < static_cast<int>(parameters.size()); i++) {
             FittedParameter param;
             param.name = parameters[i].name;
             param.value = x(i);

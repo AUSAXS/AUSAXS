@@ -2,14 +2,15 @@
 // Author: Kristian Lytje
 
 #include <grid/exv/RawGridExv.h>
-#include <utility/Logging.h>
+
 #include <settings/GridSettings.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs::grid::exv;
 
 GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
     std::vector<Vector3<double>> atoms;
-    atoms.reserve(grid->get_volume());
+    atoms.reserve(static_cast<std::size_t>(grid->get_volume()));
 
     auto acceptable_state = settings::grid::exv::expansion_strategy == settings::grid::exv::ExvType::AtomicOnly
         ? [] (const detail::State& state) -> bool {
@@ -32,8 +33,8 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
         }
     ;
 
-    int stride = std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width));
-    int buffer = std::max(1., std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width));
+    int stride = static_cast<int>(std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width)));
+    int buffer = static_cast<int>(std::max(1., std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
     const auto& axes = grid->get_axes();
 
     auto[imin, imax] = grid->bounding_box_index();
@@ -55,5 +56,5 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
         "RawGridExv::create: added " + std::to_string(atoms.size()) + "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
     );
 
-    return GridExcludedVolume{std::move(atoms), {}};
+    return GridExcludedVolume{.interior=std::move(atoms), .surface={}};
 }

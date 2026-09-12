@@ -15,8 +15,8 @@ namespace ausaxs::rigidbody::parameter::decay {
              * @brief Create a new LinearDecay object.
              *        The factor will be zero after the given number of maximum iterations.
              */
-            LinearDecay(unsigned int max_iterations);
-            ~LinearDecay();
+            LinearDecay(int max_iterations);
+            ~LinearDecay() override;
 
             double next() override;
         
@@ -24,7 +24,7 @@ namespace ausaxs::rigidbody::parameter::decay {
             /**
              * @brief Set the number of iterations required to reach an amplitude of 0.5.
              */
-            void set_characteristic_time(unsigned int iterations) override;
+            void set_characteristic_time(int iterations) override;
 
             double decay_rate = 0;
     };

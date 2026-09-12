@@ -2,22 +2,23 @@
 // Author: Kristian Lytje
 
 #include <hydrate/generation/AxesHydration.h>
+
+#include <constants/Constants.h>
+#include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
-#include <data/Molecule.h>
 #include <settings/MoleculeSettings.h>
-#include <constants/Constants.h>
 
 #include <cassert>
 
 using namespace ausaxs;
 
 hydrate::AxesHydration::AxesHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
-    initialize();
+    AxesHydration::initialize();
 }
 
 hydrate::AxesHydration::AxesHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy) : GridBasedHydration(protein, std::move(culling_strategy)) {
-    initialize();
+    AxesHydration::initialize();
 }
 
 hydrate::AxesHydration::~AxesHydration() = default;
@@ -28,20 +29,20 @@ void hydrate::AxesHydration::initialize() {
 
 std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) {
     assert(protein != nullptr && "AxesHydration::generate_explicit_hydration: protein is nullptr.");
-    auto grid = protein->get_grid();
+    auto* grid = protein->get_grid();
     assert(grid != nullptr && "AxesHydration::generate_explicit_hydration: grid is nullptr.");
 
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
     // short lambda to actually place the generated water molecules
-    auto add_loc = [&] (Vector3<double>&& exact_loc) {
-        data::Water a(std::move(exact_loc));
+    auto add_loc = [&] (const Vector3<double>& exact_loc) {
+        data::Water a(exact_loc);
         grid::GridMember<data::Water> gm = grid->add(std::move(a), true);
     };
 
     // loop over the location of all member atoms
-    std::size_t water_start = grid->w_members.size();
+    int water_start = static_cast<int>(grid->w_members.size());
     double rh = grid->get_hydration_radius() + settings::hydrate::shell_correction;
     for (const auto& atom : atoms) {
         double ra = grid->get_atomic_radius(atom.get_atom_type()); // radius of the atom
@@ -57,38 +58,38 @@ std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explic
         auto in_range = [&bins] (int bin, int axis) {return 0 <= bin && bin < bins[axis];};
 
         // check collisions for x ± r_eff
-        if (in_range(bin_min.x(), 0) && (gref.is_only_empty_or_volume(bin_min.x(), y, z)) && collision_check(Vector3<unsigned int>(bin_min.x(), y, z), ra)) {
+        if (in_range(bin_min.x(), 0) && (gref.is_only_empty_or_volume(bin_min.x(), y, z)) && collision_check(Vector3<int>(bin_min.x(), y, z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.x() -= r_eff_real;
-            add_loc(std::move(exact_loc));
+            add_loc(exact_loc);
         }
-        if (in_range(bin_max.x(), 0) && (gref.is_only_empty_or_volume(bin_max.x(), y, z)) && collision_check(Vector3<unsigned int>(bin_max.x(), y, z), ra)) {
+        if (in_range(bin_max.x(), 0) && (gref.is_only_empty_or_volume(bin_max.x(), y, z)) && collision_check(Vector3<int>(bin_max.x(), y, z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.x() += r_eff_real;
-            add_loc(std::move(exact_loc));
+            add_loc(exact_loc);
         }
 
         // check collisions for y ± r_eff
-        if (in_range(bin_min.y(), 1) && (gref.is_only_empty_or_volume(x, bin_min.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_min.y(), z), ra)) {
+        if (in_range(bin_min.y(), 1) && (gref.is_only_empty_or_volume(x, bin_min.y(), z)) && collision_check(Vector3<int>(x, bin_min.y(), z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.y() -= r_eff_real;
-            add_loc(std::move(exact_loc));
+            add_loc(exact_loc);
         }
 
-        if (in_range(bin_max.y(), 1) && (gref.is_only_empty_or_volume(x, bin_max.y(), z)) && collision_check(Vector3<unsigned int>(x, bin_max.y(), z), ra)) {
+        if (in_range(bin_max.y(), 1) && (gref.is_only_empty_or_volume(x, bin_max.y(), z)) && collision_check(Vector3<int>(x, bin_max.y(), z), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.y() += r_eff_real;
-            add_loc(std::move(exact_loc));
+            add_loc(exact_loc);
         }
 
         // check collisions for z ± r_eff
-        if (in_range(bin_min.z(), 2) && (gref.is_only_empty_or_volume(x, y, bin_min.z())) && collision_check(Vector3<unsigned int>(x, y, bin_min.z()), ra)) {
+        if (in_range(bin_min.z(), 2) && (gref.is_only_empty_or_volume(x, y, bin_min.z())) && collision_check(Vector3<int>(x, y, bin_min.z()), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.z() -= r_eff_real;
             add_loc(std::move(exact_loc));
         }
 
-        if (in_range(bin_max.z(), 2) && (gref.is_only_empty_or_volume(x, y, bin_max.z())) && collision_check(Vector3<unsigned int>(x, y, bin_max.z()), ra)) {
+        if (in_range(bin_max.z(), 2) && (gref.is_only_empty_or_volume(x, y, bin_max.z())) && collision_check(Vector3<int>(x, y, bin_max.z()), ra)) {
             Vector3 exact_loc = coords_abs;
             exact_loc.z() += r_eff_real;
             add_loc(std::move(exact_loc));
@@ -97,16 +98,16 @@ std::span<grid::GridMember<data::Water>> hydrate::AxesHydration::generate_explic
     return {grid->w_members.begin() + water_start, grid->w_members.end()};
 }
 
-bool hydrate::AxesHydration::collision_check(const Vector3<unsigned int>& loc, double ra) const {
+bool hydrate::AxesHydration::collision_check(const Vector3<int>& loc, double ra) const {
     static double rh = constants::radius::get_vdw_radius(constants::atom_t::O); // radius of a water molecule
-    auto grid = protein->get_grid();
+    auto* grid = protein->get_grid();
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     
     int x = loc.x(), y = loc.y(), z = loc.z();
 
     // loop over the box [x-r, x+r][y-r, y+r][z-r, z+r]
-    int r = gref.is_atom_center(x, y, z)*ra + gref.is_water_center(x, y, z)*rh;
+    int r = static_cast<int>(static_cast<double>(gref.is_atom_center(x, y, z))*ra + static_cast<double>(gref.is_water_center(x, y, z))*rh);
 
     // we use the range (x-r) to (x+r+1) since the first is inclusive and the second is exclusive. 
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) bins[0])-1; // xminus and xplus

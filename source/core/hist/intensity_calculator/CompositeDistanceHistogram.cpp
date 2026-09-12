@@ -2,9 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/Histogram.h>
-#include <table/ArrayDebyeTable.h>
-#include <constants/Constants.h>
+
 #include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
@@ -53,21 +51,23 @@ Distribution1D& CompositeDistanceHistogram::get_ww_counts() {
 }
 
 void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
-    for (unsigned int i = 0; i < p.size(); ++i) {p[i] = distance_profiles.aa.index(i) + k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
+    for (int i = 0; i < p.size(); ++i) {p[i] = distance_profiles.aa.index(i) + k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
 }
 
-auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::DebyeTable> sinqd_table) {
-    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    const auto& q_axis = constants::axes::q_vals;
+namespace {
+    auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::DebyeTable> sinqd_table) {
+        int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+        Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+        const auto& q_axis = constants::axes::q_vals;
 
-    std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
-        Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]);
-    }
-    return ScatteringProfile(std::move(Iq), debye_axis);
-};
+        std::vector<double> Iq(debye_axis.bins, 0);
+        for (int q = q0; q < q0+debye_axis.bins; ++q) {
+            Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
+            Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]);
+        }
+        return ScatteringProfile(std::move(Iq), debye_axis);
+    };
+}
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
     return partial_profile(get_aa_counts(), sinc_table.get_sinc_table());

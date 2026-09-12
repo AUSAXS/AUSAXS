@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hydrate/generation/GridBasedHydration.h>
 #include <data/DataFwd.h>
+#include <hydrate/generation/GridBasedHydration.h>
 #include <math/MathFwd.h>
 
 namespace ausaxs::hydrate {

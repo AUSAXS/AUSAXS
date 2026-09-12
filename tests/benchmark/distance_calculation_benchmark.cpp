@@ -1,12 +1,11 @@
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
+#include <catch2/catch_test_macros.hpp>
 
-#include <hist/histogram_manager/HistogramManagerFactory.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <data/atoms/AtomFF.h>
 #include <form_factor/FormFactorType.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
 #include <random>

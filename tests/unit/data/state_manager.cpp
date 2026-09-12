@@ -1,9 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/state/StateManager.h>
-#include <data/state/Signaller.h>
 #include <data/state/BoundSignaller.h>
+#include <data/state/StateManager.h>
 #include <data/state/UnboundSignaller.h>
 
 #include <memory>
@@ -20,10 +19,10 @@ struct fixture {
 
 TEST_CASE("StateManager::StateManager") {
     SECTION("uint") {
-        unsigned int size = 5;
+        int size = 5;
         StateManager manager(size);
-        REQUIRE(manager.get_internally_modified_bodies().size() == size);
-        CHECK(manager.get_probes().size() == size);
+        REQUIRE(static_cast<int>(manager.get_internally_modified_bodies().size()) == size);
+        CHECK(static_cast<int>(manager.get_probes().size()) == size);
         CHECK(manager.get_externally_modified_bodies() == std::vector{true, true, true, true, true});
         CHECK(manager.get_internally_modified_bodies() == std::vector{true, true, true, true, true});
         CHECK(manager.is_modified_hydration() == true);
@@ -99,7 +98,7 @@ TEST_CASE_METHOD(fixture, "StateManager::modified_hydration_layer") {
 }
 
 TEST_CASE("StateManager::reset_to_false") {
-    unsigned int size = 5;
+    int size = 5;
     StateManager manager(size);
     
     SECTION("reset after modifications") {
@@ -122,10 +121,10 @@ TEST_CASE("StateManager::reset_to_false") {
 }
 
 TEST_CASE("StateManager::get_probe") {
-    unsigned int size = 5;
+    int size = 5;
     StateManager manager(size);
 
-    for (unsigned int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         auto probe = std::dynamic_pointer_cast<signaller::BoundSignaller>(manager.get_probe(i));
         CHECK(probe != nullptr);
         CHECK(probe->get_id() == i);
@@ -133,11 +132,11 @@ TEST_CASE("StateManager::get_probe") {
 }
 
 TEST_CASE("StateManager::set_probe") {
-    unsigned int size = 5;
+    int size = 5;
     StateManager manager(size);
 
     SECTION("UnboundSignaller") {
-        for (unsigned int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             auto probe = std::make_shared<signaller::UnboundSignaller>();
             manager.set_probe(i, probe);
             CHECK(manager.get_probe(i) == probe);
@@ -145,7 +144,7 @@ TEST_CASE("StateManager::set_probe") {
     }
 
     SECTION("BoundSignaller") {
-        for (unsigned int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             auto probe = std::make_shared<signaller::BoundSignaller>(i, &manager);
             manager.set_probe(i, probe);
             CHECK(manager.get_probe(i) == probe);
@@ -154,12 +153,12 @@ TEST_CASE("StateManager::set_probe") {
 }
 
 TEST_CASE("StateManager::get_probes") {
-    unsigned int size = 3;
+    int size = 3;
     StateManager manager(size);
     
     auto probes = manager.get_probes();
-    CHECK(probes.size() == size);
-    for (unsigned int i = 0; i < size; i++) {
+    CHECK(static_cast<int>(probes.size()) == size);
+    for (int i = 0; i < size; i++) {
         CHECK(probes[i] != nullptr);
     }
 }

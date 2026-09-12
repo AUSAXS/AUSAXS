@@ -2,15 +2,16 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/ManualSelect.h>
-#include <rigidbody/selection/SymmetryTargets.h>
+
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/selection/SymmetryTargets.h>
 #include <utility/Exceptions.h>
 
 using namespace ausaxs::rigidbody::selection;
 
-ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int ibody) : BodySelectStrategy(rigidbody), ibody(ibody) {}
+ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, int ibody) : BodySelectStrategy(rigidbody), ibody(ibody) {}
 
-ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int ibody, unsigned int isymmetry) : BodySelectStrategy(rigidbody) {
+ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, int ibody, int isymmetry) : BodySelectStrategy(rigidbody) {
     // a body participating in a shared symmetry declares it as a view onto the owner's copy. Naming that slot means the shared symmetry, so follow the link
     // rather than refusing the only name the user has for this body. Anything genuinely undrivable is rejected here, before the optimizer spends its whole
     // budget on a move that cannot change anything.
@@ -21,13 +22,13 @@ ManualSelect::ManualSelect(observer_ptr<const Rigidbody> rigidbody, unsigned int
         );
     }
     this->ibody = target->ibody;
-    this->isymmetry = static_cast<int>(target->isymmetry);
+    this->isymmetry = target->isymmetry;
 }
 
 ManualSelect::~ManualSelect() = default;
 
 BodySelectStrategy::Target ManualSelect::next(const ParameterMask& mask) {
-    if (0 <= isymmetry) {return {ibody, -1, isymmetry};}
+    if (0 <= isymmetry) {return {.ibody=ibody, .iconstraint=-1, .isymmetry=isymmetry};}
 
     // selecting the body itself leaves target_symmetry unset, so all of its symmetries move together - which is what "optimize this body" should mean, and
     // harmless for the undrivable views among them as long as at least one slot can move. If none can, and the mask has frozen the pose as well, the whole
@@ -38,5 +39,5 @@ BodySelectStrategy::Target ManualSelect::next(const ParameterMask& mask) {
             "driven. Note that a symmetry shared between several bodies is only drivable through the body owning it."
         );
     }
-    return {ibody, random_constraint(ibody), -1};
+    return {.ibody=ibody, .iconstraint=random_constraint(ibody), .isymmetry=-1};
 }

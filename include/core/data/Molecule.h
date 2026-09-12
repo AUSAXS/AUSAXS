@@ -3,24 +3,24 @@
 
 #pragma once
 
-#include <hist/HistFwd.h>
 #include <data/DataFwd.h>
-#include <data/detail/AtomIterator.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
+#include <data/detail/AtomIterator.h>
 #include <data/symmetry/MoleculeSymmetryFacade.h>
-#include <math/MathFwd.h>
-#include <io/ExistingFile.h>
-#include <utility/observer_ptr.h>
 #include <dataset/DatasetFwd.h>
 #include <fitter/FitterFwd.h>
 #include <grid/GridFwd.h>
+#include <hist/HistFwd.h>
 #include <hydrate/HydrationFwd.h>
+#include <io/ExistingFile.h>
+#include <math/MathFwd.h>
 #include <settings/HistogramSettings.h>
+#include <utility/observer_ptr.h>
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace ausaxs::data {
 	/**
@@ -34,8 +34,8 @@ namespace ausaxs::data {
 			Molecule();
 			Molecule(const Molecule& other) = delete;
 			Molecule& operator=(const Molecule& other) = delete;
-			Molecule(Molecule&& other);
-			Molecule& operator=(Molecule&& other);
+			Molecule(Molecule&& other) noexcept ;
+			Molecule& operator=(Molecule&& other) noexcept ;
 			virtual ~Molecule();
 
 			explicit Molecule(std::vector<Body>&& bodies);
@@ -178,8 +178,8 @@ namespace ausaxs::data {
 			 * @brief Get a reference to the body at the given index. 
 			 * 		  Complexity: O(1)
 			 */
-			[[nodiscard]] Body& get_body(unsigned int index);
-			[[nodiscard]] const Body& get_body(unsigned int index) const; // @copydoc get_body(unsigned int)
+			[[nodiscard]] Body& get_body(int index);
+			[[nodiscard]] const Body& get_body(int index) const; // @copydoc get_body(int)
 
 			/**
 			 * @brief Get a reference to the bodies of this molecule. 
@@ -234,17 +234,17 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get the number of constituent bodies. 
 			 */
-			[[nodiscard]] std::size_t size_body() const;
+			[[nodiscard]] int size_body() const;
 
 			/**
 			 * @brief Get the total number of constituent atoms, excluding hydration. 
 			 */
-			[[nodiscard]] std::size_t size_atom() const;
+			[[nodiscard]] int size_atom() const;
 
 			/**
 			 * @brief Get the total number of water molecules.
 			 */
-			[[nodiscard]] std::size_t size_water() const;
+			[[nodiscard]] int size_water() const;
 
 			/**
 			 * @brief Bind the signaller objects in each body to the histogram manager. 
@@ -292,7 +292,7 @@ namespace ausaxs::data {
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 			mutable std::unique_ptr<grid::Grid> grid; 						// The grid representation of this body
-			mutable std::size_t grid_atom_count = 0;						// Total atom count (incl. symmetry copies) `grid` was last synchronised to; used to detect staleness
+			mutable int grid_atom_count = 0;								// Total atom count (incl. symmetry copies) `grid` was last synchronised to; used to detect staleness
 			mutable std::unique_ptr<hist::IHistogramManager> phm;			// The histogram manager of this molecule
 			std::unique_ptr<hydrate::HydrationStrategy> hydration_strategy; // The strategy used to generate the hydration layer
 
@@ -306,6 +306,6 @@ namespace ausaxs::data {
 			bool is_grid_stale() const;
 
 			// @brief Total atom count across all bodies, including symmetry copies.
-			std::size_t symmetry_atom_count() const;
+			int symmetry_atom_count() const;
 	};
 }

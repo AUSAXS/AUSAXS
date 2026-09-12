@@ -1,14 +1,14 @@
 #pragma once
 
 #include <constants/ConstantsAxes.h>
-#include <utility/Utility.h>
 #include <data/Molecule.h>
-#include <utility/Concepts.h>
 #include <settings/Flags.h>
+#include <utility/Concepts.h>
+#include <utility/Utility.h>
 
 #include <algorithm>
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <vector>
 
 using namespace ausaxs;
@@ -85,7 +85,7 @@ void set_unity_charge(T& protein) {
 }
 
 struct SimpleCube {
-    inline static std::vector<data::AtomFF> get_atoms() {
+    static std::vector<data::AtomFF> get_atoms() {
         return {
             data::AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), data::AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
             data::AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), data::AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),
@@ -94,7 +94,7 @@ struct SimpleCube {
         };
     }
 
-    inline static std::vector<data::Water> get_waters() {
+    static std::vector<data::Water> get_waters() {
         return {
             data::Water({-1, -1, -1}), data::Water({-1, 1, -1}),
             data::Water({ 1, -1, -1}), data::Water({ 1, 1, -1}),
@@ -122,15 +122,15 @@ struct SimpleCube {
     inline static auto width = constants::axes::d_axis.width();
     inline static std::vector<double> d = {
         0, 
-        constants::axes::d_vals[std::round(std::sqrt(3)/width)], 
-        constants::axes::d_vals[std::round(2./width)], 
-        constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
-        constants::axes::d_vals[std::round(std::sqrt(12)/width)]
+        constants::axes::d_vals[static_cast<std::size_t>(std::round(std::numbers::sqrt3/width))], 
+        constants::axes::d_vals[static_cast<std::size_t>(std::round(2./width))], 
+        constants::axes::d_vals[static_cast<std::size_t>(std::round(std::sqrt(8)/width))], 
+        constants::axes::d_vals[static_cast<std::size_t>(std::round(std::sqrt(12)/width))]
     };
 
     inline static std::vector<double> d_exact = {
         0, 
-        std::sqrt(3), 
+        std::numbers::sqrt3, 
         2, 
         std::sqrt(8), 
         std::sqrt(12)
@@ -141,7 +141,7 @@ struct SimpleCube {
             std::cout << "Failed on size: expected last index larger than 2Å, got: " << p.back() << std::endl;
             return false;
         }
-        for (unsigned int i = 0; i < p.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(p.size()); ++i) {
             if (p[i] != constants::axes::d_vals[i]) {
                 std::cout << "Failed on index " << i << ": expected: " << constants::axes::d_vals[i] << ", got: " << p[i] << std::endl;
                 return false;
@@ -152,8 +152,8 @@ struct SimpleCube {
 
     inline static auto check_exact = [] (const std::vector<double>& p) {
         for (auto e : d_exact) {
-            if (1e-6 < std::abs(p[std::round(e/constants::axes::d_axis.width())]-e)) {
-                std::cout << "Failed on index " << std::round(e/constants::axes::d_axis.width()) << ": expected: " << e << ", got: " << p[std::round(e/constants::axes::d_axis.width())] << std::endl;
+            if (1e-6 < std::abs(p[static_cast<std::size_t>(std::round(e/constants::axes::d_axis.width()))]-e)) {
+                std::cout << "Failed on index " << std::round(e/constants::axes::d_axis.width()) << ": expected: " << e << ", got: " << p[static_cast<std::size_t>(std::round(e/constants::axes::d_axis.width()))] << std::endl;
                 return false;
             }
         }
@@ -161,26 +161,29 @@ struct SimpleCube {
     };
 };
 
+#include <cassert>
+#include <catch2/catch_test_macros.hpp>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <hist/histogram_manager/SymmetryManagerMT.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <catch2/catch_test_macros.hpp>
+#include <numbers>
 
 inline auto get_raw_counts(hist::ICompositeDistanceHistogram* h) {
+    assert(h != nullptr && "get_raw_counts: the histogram must exist.");
     auto* exv_hist = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h);
-    if (exv_hist) {
+    if (exv_hist != nullptr) {
         return exv_hist->get_total_raw_counts();
-    } else { // assume `set_unity_charge` was used, so weights=1
-        return h->get_weighted_counts();
     }
+    // assume `set_unity_charge` was used, so weights=1
+    return h->get_weighted_counts();
 }
 
 // This function uses template magic to invoke a given function template for all histogram manager variants, including weighted/unweighted and variable/fixed bin width versions.
@@ -236,7 +239,7 @@ void invoke_for_all_grid_histogram_manager_variants(F1&& f1, Args&&... args) {
  *        Distances are binned the same way the histogram managers bin them (round(d * inv_bin_width)).
  */
 struct RES {
-    RES(double d, int v) : index(std::round(d*settings::flags::inv_bin_width)), val(v) {}
+    RES(double d, int v) : index(static_cast<int>(std::round(d*settings::flags::inv_bin_width))), val(v) {}
     int index;
     int val;
 };
@@ -251,7 +254,7 @@ struct RES {
  * computed histograms with compare_hist_approx instead.
  */
 inline void check_hist(const std::vector<double>& h, std::vector<RES> checks) {
-    std::sort(checks.begin(), checks.end(), [](const RES& a, const RES& b) {return a.index < b.index;});
+    std::ranges::sort(checks, [](const RES& a, const RES& b) {return a.index < b.index;});
     std::vector<RES> tmp;
     for (int i = 0; i < static_cast<int>(checks.size()); ++i) {
         if (i == 0 || checks[i].index != checks[i-1].index) {

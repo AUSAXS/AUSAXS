@@ -2,13 +2,15 @@
 // Author: Kristian Lytje
 
 #include <api/pyausaxs/api_iterative_fit.h>
+
 #include <api/ObjectStorage.h>
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <fitter/SmartFitter.h>
-#include <utility/Exceptions.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 
+#include <algorithm>
 #include <string>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -26,7 +28,7 @@ int iterative_fit_init(
     int molecule_id, 
     int* status
 ) {return execute_with_catch([&]() {
-    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->reset_histogram_manager();
     auto obj = _iterative_fit_state_obj(molecule);
@@ -40,7 +42,7 @@ int iterative_fit_init_userq(
     double* q, int n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     molecule->reset_histogram_manager();
     auto obj = _iterative_fit_state_obj(molecule);
@@ -55,14 +57,14 @@ void iterative_fit_evaluate(
     double* pars, int n_pars, 
     double** return_I, int* n_points,
     int* status
-) {return execute_with_catch([&]() {
-    auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
+) {execute_with_catch([&]() {
+    auto* iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
     if (!iterative_fit_state) {throw except::invalid_argument("Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\"");}
     if (iterative_fit_state->q.empty()) {
         iterative_fit_state->q = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
     }
     auto& enabled_pars = iterative_fit_state->enabled_pars;
-    if (n_pars != static_cast<int>(enabled_pars.get_enabled_pars_count())) {
+    if (n_pars != enabled_pars.get_enabled_pars_count()) {
         throw ausaxs::except::runtime_error(
             "Number of provided parameters (" + std::to_string(n_pars) + ") " 
             "does not match number of enabled fit parameters (" + std::to_string(enabled_pars.get_enabled_pars_count()) + ")"
@@ -83,11 +85,11 @@ void iterative_fit_evaluate_userq(
     double* pars, int n_pars, 
     double* q, double* I, int n_points,
     int* status
-) {return execute_with_catch([&]() {
-    auto iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
+) {execute_with_catch([&]() {
+    auto* iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
     if (!iterative_fit_state) {throw except::invalid_argument("Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\"");}
     auto& enabled_pars = iterative_fit_state->enabled_pars;
-    if (n_pars != static_cast<int>(enabled_pars.get_enabled_pars_count())) {
+    if (n_pars != enabled_pars.get_enabled_pars_count()) {
         throw ausaxs::except::runtime_error(
             "Number of provided parameters (" + std::to_string(n_pars) + ") " 
             "does not match number of enabled fit parameters (" + std::to_string(enabled_pars.get_enabled_pars_count()) + ")"
@@ -100,5 +102,5 @@ void iterative_fit_evaluate_userq(
 
     std::vector<double> q_vals(q, q + n_points);
     std::vector<double> I_vals = iterative_fit_state->hist->debye_transform(q_vals).y();
-    std::copy(I_vals.begin(), I_vals.end(), I);
+    std::ranges::copy(I_vals, I);
 }, status);}

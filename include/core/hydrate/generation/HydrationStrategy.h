@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hydrate/Hydration.h>
 #include <data/DataFwd.h>
+#include <hydrate/Hydration.h>
 
 namespace ausaxs::hydrate {
     class HydrationStrategy {

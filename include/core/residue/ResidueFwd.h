@@ -6,7 +6,7 @@
 namespace ausaxs::residue {
     class ResidueStorage;
     namespace detail {
-        struct Atom;
+        struct ResidueAtom;
         struct Bond;
         class Residue;
     }

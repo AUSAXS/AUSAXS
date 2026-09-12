@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 
 namespace ausaxs::rigidbody::detail {
     /**

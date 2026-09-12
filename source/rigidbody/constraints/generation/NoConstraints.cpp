@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/generation/NoConstraints.h>
+
 #include <rigidbody/constraints/IDistanceConstraint.h>
 
 using namespace ausaxs::rigidbody::constraints;

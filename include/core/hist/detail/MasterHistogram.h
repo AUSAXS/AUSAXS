@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hist/distribution/GenericDistribution1D.h>
 #include <hist/Histogram.h>
+#include <hist/distribution/GenericDistribution1D.h>
 #include <utility/Axis.h>
 
 namespace ausaxs::hist::detail {

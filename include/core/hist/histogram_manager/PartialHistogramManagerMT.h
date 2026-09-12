@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/MasterHistogram.h>
+#include <hist/distance_calculator/DistanceCalculatorFwd.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/distance_calculator/DistanceCalculatorFwd.h>
-#include <hist/detail/MasterHistogram.h>
-#include <hist/detail/CompactCoordinates.h>
 
 #include <memory>
 #include <mutex>
@@ -17,10 +17,11 @@ namespace ausaxs::hist {
 	 * @brief A multi-threaded smart distance calculator which efficiently calculates the simple distance histogram. 
 	 */
     template<bool weighted_bins, bool variable_bin_width> 
+	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class PartialHistogramManagerMT : public PartialHistogramManager<weighted_bins, variable_bin_width> {
 		public:
 			PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein);
-			virtual ~PartialHistogramManagerMT() override;
+			~PartialHistogramManagerMT() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 
@@ -73,13 +74,13 @@ namespace ausaxs::hist {
 			 */
 			void calc_ww(calculator_t calculator);
 
-			void combine_self_correlation(int index, GenericDistribution1D_t&&);
+			void combine_self_correlation(int index, GenericDistribution1D_t&& /*res*/);
 
-			void combine_aa(int n, int m, GenericDistribution1D_t&&);
+			void combine_aa(int n, int m, GenericDistribution1D_t&& /*res*/);
 
-			void combine_aw(int index, GenericDistribution1D_t&&);
+			void combine_aw(int index, GenericDistribution1D_t&& /*res*/);
 
-			void combine_ww(GenericDistribution1D_t&&);
+			void combine_ww(GenericDistribution1D_t&& /*res*/);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.

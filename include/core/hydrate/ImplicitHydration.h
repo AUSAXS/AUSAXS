@@ -10,7 +10,7 @@ namespace ausaxs::hydrate {
         public:
             ImplicitHydration();
 
-            ~ImplicitHydration();
+            ~ImplicitHydration() override;
 
             void clear() override;
 

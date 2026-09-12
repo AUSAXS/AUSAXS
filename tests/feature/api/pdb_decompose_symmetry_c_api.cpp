@@ -1,11 +1,10 @@
 // Exercises pdb_decompose_symmetry through the C API, as the GUI "view pdb" utility would.
 
+#include <api/api_pyausaxs.h>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <api/api_pyausaxs.h>
 
-#include <string>
 
 TEST_CASE("pdb_decompose_symmetry: real p2 dimer (SASDJG5)") {
     int status = 0;

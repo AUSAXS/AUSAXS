@@ -2,20 +2,20 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <form_factor/FormFactor.h>
-#include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 
 using namespace ausaxs;
 using namespace form_factor;
 
 TEST_CASE("FormFactorProduct::comprehensive_evaluation") {
     SECTION("all form factor products match direct calculation") {
-        for (unsigned int ff1 = 0; ff1 < total_ff_count; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < total_ff_count; ++ff2) {
+        for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
+            for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 const FormFactor& ff2_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff2));
                 FormFactorProduct ff(ff1_obj, ff2_obj);
-                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
@@ -27,12 +27,12 @@ TEST_CASE("FormFactorProduct::comprehensive_evaluation") {
 TEST_CASE("FormFactorProduct::table_comprehensive") {
     SECTION("all table entries match direct calculation") {
         const auto& table = manager::get_active_product_tables()->raw_atomic_table;
-        for (unsigned int ff1 = 0; ff1 < total_ff_count; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < total_ff_count; ++ff2) {
+        for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
+            for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 const FormFactor& ff2_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
-                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }

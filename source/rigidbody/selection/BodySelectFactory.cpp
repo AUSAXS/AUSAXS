@@ -2,12 +2,13 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/BodySelectFactory.h>
+
 #include <rigidbody/selection/ManualSelect.h>
+#include <rigidbody/selection/ParameterMaskStrategy.h>
 #include <rigidbody/selection/RandomBodySelect.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/selection/SequentialBodySelect.h>
 #include <rigidbody/selection/SequentialConstraintSelect.h>
-#include <rigidbody/selection/ParameterMaskStrategy.h>
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
@@ -41,29 +42,29 @@ namespace {
     }
 }
 
-std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const Rigidbody> body) {
-    return create_selection_strategy(body, settings::rigidbody::body_select_strategy, settings::rigidbody::parameter_mask_strategy);
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const Rigidbody> rigidbody) {
+    return create_selection_strategy(rigidbody, settings::rigidbody::body_select_strategy, settings::rigidbody::parameter_mask_strategy);
 }
 
-std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const Rigidbody> body, settings::rigidbody::BodySelectStrategyChoice choice) {
-    return create_selection_strategy(body, choice, settings::rigidbody::parameter_mask_strategy);
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const Rigidbody> rigidbody, settings::rigidbody::BodySelectStrategyChoice choice) {
+    return create_selection_strategy(rigidbody, choice, settings::rigidbody::parameter_mask_strategy);
 }
 
 std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(
-    observer_ptr<const Rigidbody> body,
+    observer_ptr<const Rigidbody> rigidbody,
     settings::rigidbody::BodySelectStrategyChoice body_choice,
     settings::rigidbody::ParameterMaskStrategyChoice mask_choice)
 {
     std::unique_ptr<BodySelectStrategy> strategy;
     switch (body_choice) {
         case settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect:
-            strategy = std::make_unique<RandomBodySelect>(body); break;
+            strategy = std::make_unique<RandomBodySelect>(rigidbody); break;
         case settings::rigidbody::BodySelectStrategyChoice::RandomConstraintSelect:
-            strategy = std::make_unique<RandomConstraintSelect>(body); break;
+            strategy = std::make_unique<RandomConstraintSelect>(rigidbody); break;
         case settings::rigidbody::BodySelectStrategyChoice::SequentialBodySelect:
-            strategy = std::make_unique<SequentialBodySelect>(body); break;
+            strategy = std::make_unique<SequentialBodySelect>(rigidbody); break;
         case settings::rigidbody::BodySelectStrategyChoice::SequentialConstraintSelect:
-            strategy = std::make_unique<SequentialConstraintSelect>(body); break;
+            strategy = std::make_unique<SequentialConstraintSelect>(rigidbody); break;
         case settings::rigidbody::BodySelectStrategyChoice::ManualSelect:
             throw except::unknown_argument("rigidbody::factory::create_selection_strategy: ManualSelect requires a target body; use create_manual_selection_strategy instead.");
         default:
@@ -73,24 +74,24 @@ std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strateg
     return strategy;
 }
 
-std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_strategy(observer_ptr<const Rigidbody> body, unsigned int ibody) {
-    return create_manual_selection_strategy(body, ibody, settings::rigidbody::parameter_mask_strategy);
+std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_strategy(observer_ptr<const Rigidbody> rigidbody, int ibody) {
+    return create_manual_selection_strategy(rigidbody, ibody, settings::rigidbody::parameter_mask_strategy);
 }
 
 std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_strategy(
-    observer_ptr<const Rigidbody> body, unsigned int ibody, settings::rigidbody::ParameterMaskStrategyChoice mask_choice)
+    observer_ptr<const Rigidbody> rigidbody, int ibody, settings::rigidbody::ParameterMaskStrategyChoice mask_choice)
 {
-    auto strategy = std::make_unique<ManualSelect>(body, ibody);
+    auto strategy = std::make_unique<ManualSelect>(rigidbody, ibody);
     strategy->set_mask_strategy(create_mask_strategy(mask_choice));
     return strategy;
 }
 
 std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_symmetry_selection_strategy(
-    observer_ptr<const Rigidbody> body, unsigned int ibody, unsigned int isymmetry)
+    observer_ptr<const Rigidbody> rigidbody, int ibody, int isymmetry)
 {
     // the target names the slot; the mask only has to say that the pose stays frozen. BodySelectStrategy::next_mask carries the slot into the mask, so no
     // mask strategy needs to know about it.
-    auto strategy = std::make_unique<ManualSelect>(body, ibody, isymmetry);
+    auto strategy = std::make_unique<ManualSelect>(rigidbody, ibody, isymmetry);
     strategy->set_mask_strategy(std::make_unique<SymmetryOnlyMaskStrategy>());
     return strategy;
 }

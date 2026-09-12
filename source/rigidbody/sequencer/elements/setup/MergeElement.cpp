@@ -2,13 +2,14 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/setup/MergeElement.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/detail/BodyIndexOps.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/BodyIndexOps.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <utility/observer_ptr.h>
 
 #include <algorithm>
@@ -28,7 +29,7 @@ namespace {
     }
 }
 
-MergeElement::MergeElement(observer_ptr<Sequencer> owner, std::string_view first_name, std::vector<std::string> other_names) {
+MergeElement::MergeElement(observer_ptr<Sequencer> owner, std::string_view first_name, const std::vector<std::string>& other_names) {
     detail::require_mutable_structure(owner, "merge");
     int i_first = owner->setup()._get_body(first_name);
 
@@ -79,7 +80,7 @@ InlineSignature MergeElement::_valid_inline_arguments() {
 }
 
 // merge [first] [others...] - merges every [others] body into [first]
-std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string first = args.inlined[0];
     if (!body_names.contains(first)) {throw except::parse_error("merge", "Body name \"" + first + "\" not found.");}
@@ -90,7 +91,7 @@ std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> o
         const std::string& name = args.inlined[i];
         if (name == first) {throw except::parse_error("merge", "Cannot merge body \"" + name + "\" into itself.");}
         if (!body_names.contains(name)) {throw except::parse_error("merge", "Body name \"" + name + "\" not found.");}
-        if (std::find(others.begin(), others.end(), name) != others.end()) {
+        if (std::ranges::find(others, name) != others.end()) {
             throw except::parse_error("merge", "Body name \"" + name + "\" was specified more than once.");
         }
         others.push_back(name);

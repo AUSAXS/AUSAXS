@@ -2,9 +2,10 @@
 // Author: Kristian Lytje
 
 #include <em/detail/header/RECHeader.h>
-#include <utility/Exceptions.h>
-#include <utility/Axis3D.h>
+
 #include <io/ExistingFile.h>
+#include <utility/Axis3D.h>
+#include <utility/Exceptions.h>
 
 #include <iostream>
 #include <sstream>
@@ -17,8 +18,7 @@ RECHeader::~RECHeader() = default;
 
 bool RECHeader::is_rec(const io::ExistingFile& file) {
     const auto& extension = file.extension();
-    if (extension == ".rec") {return true;}
-    return false;
+    return extension == ".rec";
 }
 
 std::string RECHeader::to_string() const {
@@ -40,20 +40,20 @@ std::string RECHeader::to_string() const {
     return s.str();
 }
 
-unsigned int RECHeader::get_header_size() const {
+int RECHeader::get_header_size() const {
     return sizeof(RECData);
 }
 
 Axis3D RECHeader::get_axes() const noexcept {
     auto& p = cast_data();
-    return Axis3D(
+    return {
         Axis(0, p.cella_x, p.nx),
         Axis(0, p.cella_y, p.ny),
         Axis(0, p.cella_z, p.nz)
-    );
+    };
 }
 
-std::tuple<unsigned int, unsigned int, unsigned int> RECHeader::get_axis_order() const noexcept {
+std::tuple<int, int, int> RECHeader::get_axis_order() const noexcept {
     auto& p = cast_data();
     return std::make_tuple(p.mapc, p.mapr, p.maps);
 }
@@ -69,9 +69,8 @@ em::detail::header::DataType RECHeader::get_data_type() const {
                 }
                 if (flag_signed_bytes()) {
                     return em::detail::header::DataType::int8;
-                } else {
-                    return em::detail::header::DataType::uint8;
                 }
+                return em::detail::header::DataType::uint8;
             }
             return em::detail::header::DataType::uint8;
 
@@ -109,10 +108,10 @@ bool RECHeader::flags_enabled() const noexcept {
 
 bool RECHeader::flag_signed_bytes() const noexcept {
     auto& p = cast_data();
-    return (p.imodflags & 1);
+    return (p.imodflags & 1) != 0;
 }
 
 bool RECHeader::flag_four_bit_vals() const noexcept {
     auto& p = cast_data();
-    return (p.imodflags & 16);
+    return (p.imodflags & 16) != 0;
 }

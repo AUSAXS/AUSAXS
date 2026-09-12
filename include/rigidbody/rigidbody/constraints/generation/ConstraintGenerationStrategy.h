@@ -6,8 +6,8 @@
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace ausaxs::rigidbody::constraints {
     class ConstraintGenerationStrategy {

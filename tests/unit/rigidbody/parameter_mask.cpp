@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/selection/ParameterMask.h>
-#include <rigidbody/parameters/BodyTransformParametersRelative.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <math/Vector3.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/selection/ParameterMask.h>
 
-#include <algorithm>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
@@ -32,7 +32,7 @@ namespace {
         bool zero = true;
         symmetry::for_each_leaf(sym, [&zero](symmetry::ISymmetry& leaf) {
             auto s = leaf.span_translation();
-            zero = zero && std::all_of(s.begin(), s.end(), [](double v) {return v == 0;});
+            zero = zero && std::ranges::all_of(s, [](double v) {return v == 0;});
         });
         return zero;
     }
@@ -41,7 +41,7 @@ namespace {
         bool zero = true;
         symmetry::for_each_leaf(sym, [&zero](symmetry::ISymmetry& leaf) {
             auto s = leaf.span_rotation();
-            zero = zero && std::all_of(s.begin(), s.end(), [](double v) {return v == 0;});
+            zero = zero && std::ranges::all_of(s, [](double v) {return v == 0;});
         });
         return zero;
     }
@@ -121,7 +121,7 @@ TEST_CASE("ParameterMask::apply untargeted") {
 
 namespace {
     // how a select strategy composes a targeted mask: the class of parameters comes from the mask strategy, the slot from the drawn target
-    ParameterMask targeting(ParameterMask mask, unsigned int isymmetry) {
+    ParameterMask targeting(ParameterMask mask, int isymmetry) {
         mask.target_symmetry = isymmetry;
         return mask;
     }
@@ -129,13 +129,13 @@ namespace {
 
 TEST_CASE("ParameterMask::apply targeted") {
     SECTION("only the targeted symmetry survives") {
-        for (unsigned int target : {0u, 1u, 2u}) {
+        for (int target : {0, 1, 2}) {
             auto params = make_params();
             targeting(ParameterMask::symmetry_only(), target).apply(params);
 
             REQUIRE(params.symmetry_pars.has_value());
             REQUIRE(params.symmetry_pars->size() == 3);
-            for (unsigned int i = 0; i < 3; ++i) {
+            for (int i = 0; i < 3; ++i) {
                 auto& sym = *params.symmetry_pars.value()[i];
                 CHECK(translation_all_zero(sym) == (i != target));
                 CHECK(rotation_all_zero(sym) == (i != target));
@@ -150,7 +150,7 @@ TEST_CASE("ParameterMask::apply targeted") {
 
         REQUIRE(params.symmetry_pars.has_value());
         REQUIRE(params.symmetry_pars->size() == 3);
-        for (unsigned int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 3; ++i) {
             auto& sym = *params.symmetry_pars.value()[i];
             CHECK(translation_all_zero(sym));               // axis-only, so no symmetry translates
             CHECK(rotation_all_zero(sym) == (i != 1));      // and only the targeted one rotates
@@ -182,7 +182,7 @@ TEST_CASE("ParameterMask::apply targeted") {
         auto rhs_t = untargeted.symmetry_pars.value()[0]->span_translation();
         auto lhs_r = targeted.symmetry_pars.value()[0]->span_rotation();
         auto rhs_r = untargeted.symmetry_pars.value()[0]->span_rotation();
-        CHECK(std::equal(lhs_t.begin(), lhs_t.end(), rhs_t.begin(), rhs_t.end()));
-        CHECK(std::equal(lhs_r.begin(), lhs_r.end(), rhs_r.begin(), rhs_r.end()));
+        CHECK(std::ranges::equal(lhs_t, rhs_t));
+        CHECK(std::ranges::equal(lhs_r, rhs_r));
     }
 }

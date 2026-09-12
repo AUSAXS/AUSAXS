@@ -6,11 +6,14 @@
 #include <exception>
 #include <string>
 
-namespace ausaxs::except {
+/**
+ * @brief The exceptions available to the math subproject.
+ */
+namespace ausaxs::math::except {
     struct base : public std::exception {
         base(const char* msg);
-        base(const std::string msg);
-        const char* what() const noexcept;
+        base(std::string msg);
+        const char* what() const noexcept override;
         const std::string msg;
     };
 

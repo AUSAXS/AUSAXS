@@ -2,25 +2,23 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerFactory.h>
+
+#include <data/Molecule.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <data/Molecule.h>
-#include <utility/Exceptions.h>
-#include <utility/Console.h>
-#include <settings/HistogramSettings.h>
-#include <settings/GeneralSettings.h>
-#include <settings/ExvSettings.h>
-#include <settings/FitSettings.h>
+#include <hist/histogram_manager/SymmetryManagerMT.h>
 #include <settings/Flags.h>
+#include <settings/HistogramSettings.h>
+#include <utility/Console.h>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist::factory;
@@ -57,28 +55,27 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
     return construct_histogram_manager(protein, choice, weighted_bins, variable_bin_width);
 }
 
-template<template<bool, bool> class MANAGER>
-std::unique_ptr<hist::IHistogramManager> create_manager(observer_ptr<const data::Molecule> protein, bool weighted_bins, bool variable_bin_width) {
-    if (weighted_bins) {
-        if (variable_bin_width) {
-            return std::make_unique<MANAGER<true, true>>(protein);
-        } else {
+namespace {
+    template<template<bool, bool> class MANAGER>
+    std::unique_ptr<hist::IHistogramManager> create_manager(observer_ptr<const data::Molecule> protein, bool weighted_bins, bool variable_bin_width) {
+        if (weighted_bins) {
+            if (variable_bin_width) {
+                return std::make_unique<MANAGER<true, true>>(protein);
+            }
             return std::make_unique<MANAGER<true, false>>(protein);
         }
-    } else {
+
         if (variable_bin_width) {
             return std::make_unique<MANAGER<false, true>>(protein);
-        } else {
-            return std::make_unique<MANAGER<false, false>>(protein);
         }
+        return std::make_unique<MANAGER<false, false>>(protein);
     }
-}
 
-template<template<bool> class MANAGER>
-std::unique_ptr<hist::IHistogramManager> create_manager(observer_ptr<const data::Molecule> protein, bool variable_bin_width) {
-    if (variable_bin_width) {
-        return std::make_unique<MANAGER<true>>(protein);
-    } else {
+    template<template<bool> class MANAGER>
+    std::unique_ptr<hist::IHistogramManager> create_manager(observer_ptr<const data::Molecule> protein, bool variable_bin_width) {
+        if (variable_bin_width) {
+            return std::make_unique<MANAGER<true>>(protein);
+        }
         return std::make_unique<MANAGER<false>>(protein);
     }
 }

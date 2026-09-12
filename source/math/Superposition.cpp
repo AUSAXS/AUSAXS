@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <math/Superposition.h>
+
 #include <math/SymmetricEigen.h>
 
 #include <cassert>
@@ -60,8 +61,8 @@ namespace ausaxs::matrix {
         for (std::size_t i = 0; i < n; ++i) {
             Vector3<double> f = from[i] - from_c;
             Vector3<double> t = to[i]   - to_c;
-            for (unsigned int r = 0; r < 3; ++r) {
-                for (unsigned int c = 0; c < 3; ++c) {H(r, c) += t[r]*f[c];}
+            for (int r = 0; r < 3; ++r) {
+                for (int c = 0; c < 3; ++c) {H(r, c) += t[r]*f[c];}
             }
         }
 

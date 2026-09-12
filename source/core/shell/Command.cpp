@@ -2,16 +2,18 @@
 // Author: Kristian Lytje
 
 #include <shell/Command.h>
+
 #include <utility/Exceptions.h>
 
+#include <array>
 #include <cstdio>
 #include <string>
-#include <array>
+#include <utility>
 
 using namespace ausaxs::shell;
 
 Command::Command() noexcept = default;
-Command::Command(const std::string& cmd) : cmd(cmd) {}
+Command::Command(std::string cmd) : cmd(std::move(cmd)) {}
 
 void Command::set(const std::string& cmd) {
     this->cmd = cmd;
@@ -65,5 +67,5 @@ CommandResult Command::execute() const {
         result += buffer.data();
     }
     int exit_code = pclose(pipe);
-    return {std::move(result), exit_code};
+    return {.out=std::move(result), .exit_code=exit_code};
 }

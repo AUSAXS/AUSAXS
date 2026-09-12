@@ -7,9 +7,9 @@
 #include <utility/UtilityFwd.h>
 #include <utility/observer_ptr.h>
 
+#include <iosfwd>
 #include <memory>
 #include <string>
-#include <iosfwd>
 
 namespace ausaxs::em::detail::header {
     class IMapHeader {
@@ -29,7 +29,7 @@ namespace ausaxs::em::detail::header {
             /**
              * @brief Get the size of the header.
              */
-            virtual unsigned int get_header_size() const = 0;
+            virtual int get_header_size() const = 0;
 
             /**
              * @brief Get the axes of this map.
@@ -41,7 +41,7 @@ namespace ausaxs::em::detail::header {
              * 
              * @return [x, y, z] where x, y, and z are the indices of the axes in the order they appear in the map.
              */
-            virtual std::tuple<unsigned int, unsigned int, unsigned int> get_axis_order() const noexcept = 0;
+            virtual std::tuple<int, int, int> get_axis_order() const noexcept = 0;
 
             /**
              * @brief Get a pointer to the start of the data section. 
@@ -51,16 +51,16 @@ namespace ausaxs::em::detail::header {
             /**
              * @brief Get the byte size of each voxel.
              */
-            unsigned int get_byte_size() const;
+            int get_byte_size() const;
 
-            std::ostream& operator<<(std::ostream& os);
+            std::ostream& operator<<(std::ostream& os) const;
     };
 
     template<class T>
     class MapHeader : public IMapHeader {
         public:
             MapHeader(std::unique_ptr<T> data);
-            virtual ~MapHeader() override;
+            ~MapHeader() override;
 
             /**
              * @brief Get the header data.

@@ -3,14 +3,13 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
-#include <settings/All.h>
+#include <data/Molecule.h>
 #include <io/ExistingFile.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 
@@ -26,7 +25,7 @@ struct SequenceParserMergeFixture {
         settings::grid::min_bins = 250;
     }
 
-    std::unique_ptr<Sequencer> parse(const std::string& content) {
+    static std::unique_ptr<Sequencer> parse(const std::string& content) {
         test::TempFile config(".conf", content);
         SequenceParser parser;
         return parser.parse_file(config);
@@ -52,7 +51,7 @@ TEST_CASE_METHOD(SequenceParserMergeFixture, "SequenceParser::MergeElement") {
             "merge b1 b2\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
 
         REQUIRE(rb->molecule.size_body() == 1);
@@ -68,7 +67,7 @@ TEST_CASE_METHOD(SequenceParserMergeFixture, "SequenceParser::MergeElement") {
             "merge b1 b2 b3\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         CHECK(rb->molecule.size_body() == 1);
     }
@@ -97,7 +96,7 @@ TEST_CASE_METHOD(SequenceParserMergeFixture, "SequenceParser::MergeElement") {
             "symmetry b3 c2\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         REQUIRE(rb->molecule.size_body() == 2);
 

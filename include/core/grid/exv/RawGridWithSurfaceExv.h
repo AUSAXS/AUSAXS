@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <grid/detail/GridExcludedVolume.h>
 #include <grid/GridFwd.h>
+#include <grid/detail/GridExcludedVolume.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::grid::exv {

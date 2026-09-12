@@ -15,7 +15,7 @@
             public:
                 dlibMinimizer();
 
-                dlibMinimizer(std::function<double(std::vector<double>)> function, std::vector<Parameter> param = {});
+                dlibMinimizer(std::function<double(std::vector<double>)> function, const std::vector<Parameter>& param = {});
 
                 dlibMinimizer(std::function<double(double)> function, const Parameter& param = Parameter());
 

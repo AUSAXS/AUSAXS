@@ -4,23 +4,23 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/PointSymmetry.h>
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <io/ExistingFile.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/elements/setup/ConvertToSymmetryElement.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <data/symmetry/CyclicSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/PredefinedSymmetries.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <math/MatrixUtils.h>
 #include <settings/All.h>
-#include <io/ExistingFile.h>
 
 #include <support/temp_file.h>
 
+#include <array>
 #include <cstdio>
 #include <numbers>
 #include <set>
@@ -57,6 +57,7 @@ namespace {
         for (int k = 1; k <= 2; ++k) {
             auto t = source._get_transform(cm, k);
             std::vector<Vector3<double>> chain;
+            chain.reserve(ref.size());
             for (const auto& a : ref) {chain.push_back(t(a));}
             chains.push_back(std::move(chain));
         }
@@ -74,11 +75,11 @@ namespace {
         int serial = 1;
         for (std::size_t i = 0; i < atoms.size(); ++i) {
             if (omit.contains(i)) {continue;}
-            char line[128];
-            std::snprintf(line, sizeof line,
+            std::array<char, 128> line{};
+            std::snprintf(line.data(), line.size(),
                 "ATOM  %5d  C   ALA A%4d    %8.3f%8.3f%8.3f  1.00  0.00           C\n",
                 serial, residues.empty() ? static_cast<int>(i) + 1 : residues[i], atoms[i].x(), atoms[i].y(), atoms[i].z());
-            out << line;
+            out << line.data();
             ++serial;
         }
         out << "END\n";
@@ -99,7 +100,8 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a cyclic assembly"
     auto chains = c3_assembly();
 
     std::vector<test::TempFile> files;
-    for (std::size_t i = 0; i < chains.size(); ++i) {files.push_back(write_pdb(chains[i]));}
+    files.reserve(chains.size());
+    for (const auto & chain : chains) {files.push_back(write_pdb(chain));}
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
     seq.setup().load(paths_of(files));
@@ -145,11 +147,13 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a composite p2-p2 
     for (int k = 1; k <= 3; ++k) {
         auto t = source->_get_transform(cm, k);
         std::vector<Vector3<double>> chain;
+        chain.reserve(ref.size());
         for (const auto& a : ref) {chain.push_back(t(a));}
         chains.push_back(std::move(chain));
     }
 
     std::vector<test::TempFile> files;
+    files.reserve(4);
     for (int i = 0; i < 4; ++i) {files.push_back(write_pdb(chains[i]));}
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
@@ -181,6 +185,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects an assembly that is 
     chains.push_back([&]{ auto c = ref; for (auto& p : c) {p += Vector3<double>{0, 15, 0};} return c; }());
 
     std::vector<test::TempFile> files;
+    files.reserve(3);
     for (int i = 0; i < 3; ++i) {files.push_back(write_pdb(chains[i]));}
 
     Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
@@ -195,6 +200,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement matches up copies modelled t
     const auto& ref = chains[0];
 
     std::vector<test::TempFile> files;
+    files.reserve(3);
     for (int i = 0; i < 3; ++i) {
         files.push_back(write_pdb(chains[i], {}, i == 0 ? std::set<std::size_t>{} : std::set<std::size_t>{2}));
     }
@@ -203,14 +209,14 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement matches up copies modelled t
     seq.setup().load(paths_of(files));
     auto* molecule = seq._get_molecule();
     REQUIRE(molecule->size_body() == 3);
-    REQUIRE(molecule->get_body(0).size_atom() == ref.size());
-    REQUIRE(molecule->get_body(1).size_atom() == ref.size() - 1);
+    REQUIRE(molecule->get_body(0).size_atom() == static_cast<int>(ref.size()));
+    REQUIRE(molecule->get_body(1).size_atom() == static_cast<int>(ref.size()) - 1);
 
     ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3");
 
     // the fit only saw the five shared residues, but the primary body is kept whole and is what the symmetry replicates
     REQUIRE(molecule->size_body() == 1);
-    REQUIRE(molecule->get_body(0).size_atom() == ref.size());
+    REQUIRE(molecule->get_body(0).size_atom() == static_cast<int>(ref.size()));
     REQUIRE(molecule->get_body(0).size_symmetry() == 1);
 
     auto expanded = molecule->get_body(0).symmetry().explicit_structure();
@@ -232,6 +238,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement drops residues modelled to d
     std::vector<int> residues{1, 1, 2, 2, 3, 3};
 
     std::vector<test::TempFile> files;
+    files.reserve(3);
     for (int i = 0; i < 3; ++i) {
         files.push_back(write_pdb(chains[i], residues, i == 1 ? std::set<std::size_t>{3} : std::set<std::size_t>{}));
     }
@@ -244,7 +251,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement drops residues modelled to d
     ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3");
 
     REQUIRE(molecule->size_body() == 1);
-    REQUIRE(molecule->get_body(0).size_atom() == ref.size());
+    REQUIRE(molecule->get_body(0).size_atom() == static_cast<int>(ref.size()));
     auto expanded = molecule->get_body(0).symmetry().explicit_structure();
     REQUIRE(expanded.atoms.size() == 3*ref.size());
     for (std::size_t copy = 0; copy < 3; ++copy) {
@@ -262,6 +269,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects copies that share no
     std::vector<test::TempFile> files;
     for (int i = 0; i < 3; ++i) {
         std::vector<int> residues;
+        residues.reserve(chains[i].size());
         for (std::size_t j = 0; j < chains[i].size(); ++j) {residues.push_back(100*i + static_cast<int>(j) + 1);}
         files.push_back(write_pdb(chains[i], residues));
     }
@@ -341,6 +349,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled bo
     for (int k = 1; k <= 2; ++k) {
         auto t = source._get_transform(cm, k);
         std::vector<Vector3<double>> chain;
+        chain.reserve(ref.size());
         for (const auto& a : ref) {chain.push_back(t(a));}
         assembly.insert(assembly.end(), chain.begin(), chain.end());
         chains.push_back(std::move(chain));
@@ -352,13 +361,13 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled bo
     seq.setup().load(std::vector<std::string>{file.str()});
     auto* molecule = seq._get_molecule();
     REQUIRE(molecule->size_body() == 1);
-    REQUIRE(molecule->get_body(0).size_atom() == 3*ref.size());
+    REQUIRE(molecule->get_body(0).size_atom() == 3*static_cast<int>(ref.size()));
 
     ConvertToSymmetryElement convert(&seq, {0}, "c3");
 
     // the body has been reduced to the first copy, and carries the symmetry generating the other two
     REQUIRE(molecule->size_body() == 1);
-    CHECK(molecule->get_body(0).size_atom() == ref.size());
+    CHECK(molecule->get_body(0).size_atom() == static_cast<int>(ref.size()));
     REQUIRE(molecule->get_body(0).size_symmetry() == 1);
     CHECK(molecule->get_body(0).symmetry().get(0)->repetitions() == 2);
 
@@ -374,7 +383,7 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled bo
 
     // the stored initial conformation must stay parallel-indexed to the live body and origin-centred, with the translation restoring the live position
     const auto& initial = seq._get_rigidbody()->conformation->initial_conformation[0];
-    REQUIRE(initial.size_atom() == ref.size());
+    REQUIRE(initial.size_atom() == static_cast<int>(ref.size()));
     CHECK_THAT(initial.get_cm().magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
     auto translation = seq._get_rigidbody()->conformation->absolute_parameters.parameters[0].translation;
     CHECK_THAT((translation - molecule->get_body(0).get_cm()).magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
@@ -383,7 +392,8 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled bo
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a single body that does not divide evenly") {
     // 7 atoms cannot be split into the 3 copies a c3 needs
     std::vector<Vector3<double>> atoms;
-    for (int i = 0; i < 7; ++i) {atoms.push_back({static_cast<double>(i), 0.5*i, static_cast<double>(-i)});}
+    atoms.reserve(7);
+    for (int i = 0; i < 7; ++i) {atoms.emplace_back(static_cast<double>(i), 0.5*i, static_cast<double>(-i));}
 
     auto file = write_pdb(atoms);
 

@@ -4,13 +4,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/Molecule.h>
-#include <settings/All.h>
 #include <io/ExistingFile.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 

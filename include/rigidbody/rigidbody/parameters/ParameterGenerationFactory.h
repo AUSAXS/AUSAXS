@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <settings/RigidBodySettings.h>
 
 #include <memory>
@@ -16,7 +16,7 @@ namespace ausaxs::rigidbody::factory {
     parameter::ParameterAmplitudes restrict_to(parameter::ParameterAmplitudes amplitudes, settings::rigidbody::ParameterGenerationStrategyChoice choice);
 
     std::unique_ptr<parameter::ParameterGenerationStrategy> create_parameter_strategy(
-        observer_ptr<const Rigidbody> molecule, unsigned int iterations, const parameter::ParameterAmplitudes& amplitudes
+        observer_ptr<const Rigidbody> molecule, int iterations, const parameter::ParameterAmplitudes& amplitudes
     );
 
     std::unique_ptr<parameter::ParameterGenerationStrategy> create_parameter_strategy(
@@ -28,6 +28,6 @@ namespace ausaxs::rigidbody::factory {
      * @brief Create the default strategy: every component at its default amplitude, restricted to the given choice.
      */
     std::unique_ptr<parameter::ParameterGenerationStrategy> create_parameter_strategy(
-        observer_ptr<const Rigidbody> molecule, unsigned int iterations, settings::rigidbody::ParameterGenerationStrategyChoice choice
+        observer_ptr<const Rigidbody> molecule, int iterations, settings::rigidbody::ParameterGenerationStrategyChoice choice
     );
 }

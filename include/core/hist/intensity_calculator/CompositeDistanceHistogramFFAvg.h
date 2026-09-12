@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {

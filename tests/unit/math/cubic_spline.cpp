@@ -50,7 +50,7 @@ TEST_CASE("CubicSpline::spline") {
         
         CubicSpline spline(x, y);
         
-        for (unsigned int i = 0; i < x.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(x.size()); ++i) {
             CHECK_THAT(spline.spline(x[i]), Catch::Matchers::WithinAbs(y[i], 1e-6));
         }
     }

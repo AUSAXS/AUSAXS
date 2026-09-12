@@ -2,18 +2,19 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/LoopElement.h>
+
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/elements/CopyLoopElement.h>
-#include <rigidbody/sequencer/elements/ParameterElement.h>
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
-#include <rigidbody/sequencer/elements/TransformElement.h>
-#include <rigidbody/sequencer/elements/OptimizeStepElement.h>
+#include <rigidbody/sequencer/elements/CopyLoopElement.h>
 #include <rigidbody/sequencer/elements/EveryNStepElement.h>
+#include <rigidbody/sequencer/elements/OptimizeStepElement.h>
+#include <rigidbody/sequencer/elements/ParameterElement.h>
 #include <rigidbody/sequencer/elements/SaveElement.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/sequencer/elements/TransformElement.h>
 
 #include <cassert>
 
@@ -25,7 +26,7 @@ namespace {
     observer_ptr<LoopElement> last_loop_element = nullptr;
 }
 
-LoopElement::LoopElement(observer_ptr<LoopElement> owner, unsigned int repeats) : iterations(repeats), owner(owner) {}
+LoopElement::LoopElement(observer_ptr<LoopElement> owner, int repeats) : iterations(repeats), owner(owner) {}
 
 void LoopElement::_reset_counters() {
     total_loop_count = 0;
@@ -46,7 +47,7 @@ std::shared_ptr<fitter::FitResult> LoopElement::execute() {
     return owner->execute(); // propagate upwards to the main Sequencer
 }
 
-LoopElement& LoopElement::loop(unsigned int repeats) {
+LoopElement& LoopElement::loop(int repeats) {
     elements.push_back(std::make_unique<LoopElement>(this, repeats));
     return *static_cast<LoopElement*>(elements.back().get());
 }
@@ -67,7 +68,7 @@ TransformElement& LoopElement::transform_strategy(std::unique_ptr<rigidbody::tra
 }
 
 void LoopElement::run() {
-    for (unsigned int i = 0; i < iterations; ++i) {
+    for (int i = 0; i < iterations; ++i) {
         // checked here rather than between the individual elements so a stopped iteration is never left half-finished
         if (_stop_requested()) {return;}
         for (auto& element : elements) {
@@ -114,7 +115,7 @@ std::vector<std::unique_ptr<GenericElement>>& LoopElement::_get_elements() {
     return elements;
 }
 
-unsigned int LoopElement::_get_loop_iterations() const {
+int LoopElement::_get_loop_iterations() const {
     return iterations;
 }
 
@@ -132,7 +133,7 @@ LoopElement& LoopElement::save(const io::File& path) {
     return *this;
 }
 
-EveryNStepElement& LoopElement::every(unsigned int n) {
+EveryNStepElement& LoopElement::every(int n) {
     elements.push_back(std::make_unique<EveryNStepElement>(this, n));
     return *static_cast<EveryNStepElement*>(elements.back().get());
 }
@@ -149,11 +150,11 @@ void LoopElement::_clear_stop_request() {
     stop_flag.store(false, std::memory_order_relaxed);
 }
 
-unsigned int LoopElement::_get_current_iteration() {
+int LoopElement::_get_current_iteration() {
     return global_counter;
 }
 
-unsigned int LoopElement::_get_total_iterations() {
+int LoopElement::_get_total_iterations() {
     return total_loop_count;
 }
 
@@ -161,10 +162,10 @@ namespace {
     // Number of optimization steps performed by a single full run of the given loop, where multiplier is the
     // number of times the loop body itself is run. Nested loops multiply the counter by their own iteration
     // count as they are entered, so a step deep in the tree is counted once for every time it is reached.
-    unsigned int count_optimization_steps(observer_ptr<LoopElement> loop, unsigned int multiplier, int depth = 0) {
+    int count_optimization_steps(observer_ptr<LoopElement> loop, int multiplier, int depth = 0) {
         if (100 < ++depth) {throw ausaxs::except::runtime_error("LoopElement::count_optimization_steps: element tree too deep");}
 
-        unsigned int steps = 0;
+        int steps = 0;
         for (auto& e : loop->_get_elements()) {
             // a copy loop runs its target in-place, so it contributes exactly what the target would here
             if (auto* copy = dynamic_cast<CopyLoopElement*>(e.get())) {
@@ -179,7 +180,7 @@ namespace {
             // an optimize element performs one step itself, and may still hold nested blocks below it
             if (dynamic_cast<OptimizeStepElement*>(nested) != nullptr) {steps += multiplier;}
 
-            unsigned int inner_multiplier = multiplier*nested->_get_loop_iterations();
+            int inner_multiplier = multiplier*nested->_get_loop_iterations();
 
             // an every-n block only runs its contents on every nth iteration of the surrounding loop
             if (auto* every = dynamic_cast<EveryNStepElement*>(nested)) {inner_multiplier /= every->_get_step_size();}
@@ -202,7 +203,7 @@ InlineSignature LoopElement::_valid_inline_arguments() {
     return {.names = {"name", "iterations"}, .min = 0, .max = 2};
 }
 
-std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     auto deduce_iteration_count = [&]() -> int {
         // find the last parameter element by traversing backwards and upwards through the owner chain
         auto find_last_parameter_element = [&]() -> observer_ptr<ParameterElement> {
@@ -233,7 +234,9 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
 
     if (args.inlined.empty()) { // pattern 1: [] - iteration count deduced from the last parameter element
         return std::make_unique<LoopElement>(owner, deduce_iteration_count());
-    } else if (args.inlined.size() == 1) {
+    }
+
+    if (args.inlined.size() == 1) {
         try { // pattern 2: [iterations]
             int iterations = std::stoi(args.inlined[0]);
             return std::make_unique<LoopElement>(owner, iterations);

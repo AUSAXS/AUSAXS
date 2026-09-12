@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
@@ -15,7 +15,7 @@ namespace ausaxs::hist {
     class CompositeDistanceHistogramFFGridSurface : public CompositeDistanceHistogramFFGridBase {
         public:
             struct XXContainer {
-                XXContainer(unsigned int size) : interior(size), surface(size), cross(size) {}
+                XXContainer(int size) : interior(size), surface(size), cross(size) {}
                 WeightedDistribution1D interior;
                 WeightedDistribution1D surface;
                 WeightedDistribution1D cross;
@@ -23,14 +23,14 @@ namespace ausaxs::hist {
             };
 
             struct AXContainer {
-                AXContainer(unsigned int ff, unsigned int size) : interior(ff, size), surface(ff, size) {}
+                AXContainer(int ff, int size) : interior(ff, size), surface(ff, size) {}
                 WeightedDistribution2D interior;
                 WeightedDistribution2D surface;
                 AXContainer operator+=(const AXContainer& other);
             };
 
             struct WXContainer {
-                WXContainer(unsigned int size) : interior(size), surface(size) {}
+                WXContainer(int size) : interior(size), surface(size) {}
                 WeightedDistribution1D interior;
                 WeightedDistribution1D surface;
                 WXContainer operator+=(const WXContainer& other);

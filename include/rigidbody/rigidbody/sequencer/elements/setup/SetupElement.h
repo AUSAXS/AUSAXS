@@ -3,21 +3,21 @@
 
 #pragma once
 
+#include <data/symmetry/PredefinedSymmetries.h>
+#include <io/ExistingFile.h>
+#include <io/Folder.h>
+#include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
-#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
-#include <rigidbody/RigidbodyFwd.h>
-#include <data/symmetry/PredefinedSymmetries.h>
 #include <string_view>
 #include <utility/observer_ptr.h>
-#include <io/ExistingFile.h>
-#include <io/Folder.h>
 
+#include <functional>
 #include <string>
 #include <vector>
-#include <functional>
 
 namespace ausaxs::rigidbody::sequencer {
     /**
@@ -28,7 +28,7 @@ namespace ausaxs::rigidbody::sequencer {
         public:
             SetupElement(observer_ptr<Sequencer> owner);
             SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs);
-            virtual ~SetupElement() = default;
+            ~SetupElement() override = default;
 
             /**
              * @brief End the setup phase and return to the main loop.
@@ -82,7 +82,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @param iatom1 Index of the first atom.
              * @param iatom2 Index of the second atom. 
              */
-            SetupElement& distance_constraint(unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
+            SetupElement& distance_constraint(int ibody1, int ibody2, int iatom1, int iatom2);
 
             /**
              * @brief Create a distance constraint between the two bodies at the specified atoms.
@@ -92,7 +92,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @param iatom1 Index of the first atom.
              * @param iatom2 Index of the second atom. 
              */
-            SetupElement& distance_constraint(const std::string& body1, const std::string& body2, unsigned int iatom1, unsigned int iatom2);
+            SetupElement& distance_constraint(const std::string& body1, const std::string& body2, int iatom1, int iatom2);
 
             /**
              * @brief Create a distance constraint between the two bodies at the closest atomic pair. 
@@ -100,7 +100,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @param body1 Index of the first body.
              * @param body2 Index of the second body.
              */
-            SetupElement& distance_constraint_closest(unsigned int ibody1, unsigned int ibody2);
+            SetupElement& distance_constraint_closest(int ibody1, int ibody2);
 
             /**
              * @brief Create a distance constraint between the two bodies at the closest atomic pair. 
@@ -116,7 +116,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @param body1 Index of the first body.
              * @param body2 Index of the second body.
              */
-            SetupElement& distance_constraint_center_mass(unsigned int ibody1, unsigned int ibody2);
+            SetupElement& distance_constraint_center_mass(int ibody1, int ibody2);
 
             /**
              * @brief Create a distance constraint between the two bodies at the center of masses. 
@@ -129,7 +129,7 @@ namespace ausaxs::rigidbody::sequencer {
             /**
              * @brief Create a fixed constraint for the currently active body. 
              */
-            SetupElement& fixed_constraint();
+            static SetupElement& fixed_constraint();
 
             /**
              * @brief Automatically create a bond constraint between every pair of backbone-adjacent bodies.

@@ -2,14 +2,13 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFBase.h>
-#include <hist/histogram_manager/detail/HistogramManagerMTFFHelpers.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
-#include <hist/detail/BinEstimate.h>
+
 #include <container/ThreadLocalWrapper.h>
+#include <data/Molecule.h>  // IWYU pragma: keep
 #include <form_factor/FormFactorType.h>
-#include <form_factor/lookup/FormFactorManager.h>
-#include <data/Molecule.h>
-#include <settings/HistogramSettings.h>
+#include <hist/detail/BinEstimate.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
+#include <hist/histogram_manager/detail/HistogramManagerMTFFHelpers.h>
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
 
@@ -30,7 +29,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     using GenericDistribution1D_t = typename GenericDistribution1D<wb>::type;
     using GenericDistribution2D_t = typename GenericDistribution2D<wb>::type;
     using GenericDistribution3D_t = typename GenericDistribution3D<wb>::type;
-    auto pool = utility::multi_threading::get_global_pool();
+    auto* pool = utility::multi_threading::get_global_pool();
 
     data_a_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(this->protein->get_bodies());
     data_w_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(this->protein->get_waters());
@@ -38,7 +37,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     auto& data_w = *data_w_ptr;
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
-    unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
+    int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
     //########################//
     // PREPARE MULTITHREADING //
@@ -117,17 +116,17 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     //##############//
     int job_size_a = settings::general::detail::get_job_size(data_a_size);
     int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
+    for (int i = 0; i < data_a_size; i+=job_size_a) {
         pool->detach_task(
             [&calc_aa, i, job_size_a, data_a_size] () {calc_aa(i, std::min(i+job_size_a, data_a_size));}
         );
     }
-    for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
+    for (int i = 0; i < data_a_size; i+=job_size_a) {
         pool->detach_task(
             [&calc_aw, i, job_size_a, data_a_size] () {calc_aw(i, std::min(i+job_size_a, data_a_size));}
         );
     }
-    for (int i = 0; i < (int) data_w_size; i+=job_size_w) {
+    for (int i = 0; i < data_w_size; i+=job_size_w) {
         pool->detach_task(
             [&calc_ww, i, job_size_w, data_w_size] () {calc_ww(i, std::min(i+job_size_w, data_w_size));}
         );
@@ -157,21 +156,21 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
 
     GenericDistribution1D_t p_tot(bin_count);
     {   // sum all elements to the total
-        unsigned int n_active = form_factor::get_active_count();
-        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {
-            for (unsigned int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < n_active; ++ff2) {
+        int n_active = form_factor::get_active_count();
+        for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {
+            for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < n_active; ++ff2) {
                 std::transform(p_tot.begin(), p_tot.end(), p_aa.begin(ff1, ff2), p_tot.begin(), std::plus<>());
             }
         }
-        for (unsigned int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {
+        for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_active; ++ff1) {
             std::transform(p_tot.begin(), p_tot.end(), p_aw.begin(ff1), p_tot.begin(), std::plus<>());
         }
         std::transform(p_tot.begin(), p_tot.end(), p_ww.begin(), p_tot.begin(), std::plus<>());
     }
 
     // downsize our axes to only the relevant area
-    unsigned int max_bin = 10; // minimum size is 10
-    for (unsigned int i = p_tot.size()-1; i >= 10; --i) {
+    int max_bin = 10; // minimum size is 10
+    for (int i = p_tot.size()-1; i >= 10; --i) {
         if (p_tot.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;

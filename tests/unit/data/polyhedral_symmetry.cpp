@@ -1,18 +1,18 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/symmetry/TetrahedralSymmetry.h>
-#include <data/symmetry/OctahedralSymmetry.h>
 #include <data/symmetry/IcosahedralSymmetry.h>
+#include <data/symmetry/OctahedralSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
+#include <data/symmetry/TetrahedralSymmetry.h>
 
-#include <algorithm>
 #include <array>
-#include <cmath>
-#include <memory>
-#include <vector>
 #include <functional>
+#include <memory>
+#include <numbers>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
@@ -43,7 +43,7 @@ namespace {
         auto A = build(repA), B = build(repB);
         std::vector<double> d;
         for (const auto& a : A) {for (const auto& b : B) {d.push_back((a-b).magnitude());}}
-        std::sort(d.begin(), d.end());
+        std::ranges::sort(d);
         return d;
     }
 
@@ -62,11 +62,11 @@ namespace {
     // |group| / |stabilizer of p|, so it collapses when p lies on a symmetry axis
     int orbit_size(const IPolyhedralSymmetry& s, Vector3<double> p) {
         std::vector<Vector3<double>> orbit = {p}; // rep 0 = the original atom
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {orbit.push_back(s._get_transform({0, 0, 0}, rep)(p));}
+        for (int rep = 1; rep <= s.repetitions(); ++rep) {orbit.push_back(s._get_transform({0, 0, 0}, rep)(p));}
         return count_distinct(orbit);
     }
 
-    const double phi = (1 + std::sqrt(5.0))/2; // golden ratio; (0, 1, phi) is an icosahedral 5-fold axis
+    const double phi = std::numbers::phi; // golden ratio; (0, 1, phi) is an icosahedral 5-fold axis
 }
 
 TEST_CASE("PolyhedralSymmetry: group order") {
@@ -78,7 +78,7 @@ TEST_CASE("PolyhedralSymmetry: group order") {
 TEST_CASE("PolyhedralSymmetry: pair schedule covers every copy-pair exactly once") {
     auto make = GENERATE(make_tetra, make_octa, make_icosa);
     auto s = make();
-    int n = static_cast<int>(s->repetitions()) + 1; // bodies including the original
+    int n = s->repetitions() + 1; // bodies including the original
 
     long total = 0;
     for (const auto& pair : s->internal_pair_schedule()) {
@@ -93,7 +93,7 @@ TEST_CASE("PolyhedralSymmetry: pair schedule covers every copy-pair exactly once
 TEST_CASE("PolyhedralSymmetry: schedule representatives reproduce all inter-copy distances") {
     auto make = GENERATE(make_tetra, make_octa);
     auto s = make();
-    int n = static_cast<int>(s->repetitions()) + 1;
+    int n = s->repetitions() + 1;
 
     // brute-force multiset of every inter-copy distance
     std::vector<double> brute;
@@ -103,7 +103,7 @@ TEST_CASE("PolyhedralSymmetry: schedule representatives reproduce all inter-copy
             brute.insert(brute.end(), d.begin(), d.end());
         }
     }
-    std::sort(brute.begin(), brute.end());
+    std::ranges::sort(brute);
 
     // reconstruct it from the schedule: one representative per class, weighted by scale
     std::vector<double> reconstructed;
@@ -111,7 +111,7 @@ TEST_CASE("PolyhedralSymmetry: schedule representatives reproduce all inter-copy
         auto d = cross_distances(*s, pair.repA, pair.repB);
         for (int k = 0; k < pair.scale; ++k) {reconstructed.insert(reconstructed.end(), d.begin(), d.end());}
     }
-    std::sort(reconstructed.begin(), reconstructed.end());
+    std::ranges::sort(reconstructed);
 
     REQUIRE(reconstructed.size() == brute.size());
     for (std::size_t k = 0; k < brute.size(); ++k) {
@@ -124,7 +124,7 @@ TEST_CASE("PolyhedralSymmetry::_get_transform: copies are proper rotations about
     auto s = make();
 
     SECTION("every copy is a proper rotation about the group centre") {
-        for (int rep = 1; rep <= static_cast<int>(s->repetitions()); ++rep) {
+        for (int rep = 1; rep <= s->repetitions(); ++rep) {
             auto f = s->_get_transform({0, 0, 0}, rep);
             // with no offset the group centre is the origin, which every rotation fixes
             CHECK(f({0, 0, 0}) == Vector3<double>(0, 0, 0));
@@ -181,7 +181,7 @@ TEST_CASE("PolyhedralSymmetry: a rigid line shows the rotation of each copy") {
     const std::array<Vector3<double>, 3> line = {p0, p0 + step, p0 + 2*step};
 
     std::vector<Vector3<double>> heads = {line[0]}; // rep 0 = the original arrow
-    for (int rep = 1; rep <= static_cast<int>(s->repetitions()); ++rep) {
+    for (int rep = 1; rep <= s->repetitions(); ++rep) {
         auto t = s->_get_transform({0, 0, 0}, rep);
         Vector3<double> q0 = t(line[0]), q1 = t(line[1]), q2 = t(line[2]);
 

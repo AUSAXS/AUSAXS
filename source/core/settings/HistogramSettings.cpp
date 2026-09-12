@@ -1,26 +1,25 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <hist/detail/SimpleExvModel.h>
-#include <hist/detail/data/CompactCoordinatesXYZW.h>
-#include <utility/Exceptions.h>
-#include <utility/Console.h>
-#include <constants/Constants.h>
 #include <settings/HistogramSettings.h>
-#include <settings/GeneralSettings.h>
+
+#include <hist/detail/SimpleExvModel.h>
 #include <settings/ExvSettings.h>
 #include <settings/FitSettings.h>
 #include <settings/Flags.h>
+#include <settings/GeneralSettings.h>
 #include <settings/SettingsIORegistry.h>
+#include <utility/Console.h>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 
-unsigned int settings::axes::skip = 0;
+int settings::axes::skip = 0;
 
 // qmin
 settings::detail::Setting<double> settings::axes::qmin = {
-    constants::axes::q_axis.min,
-    [](double& new_qmin) {
+    .value=constants::axes::q_axis.min,
+    .on_change=[](double& new_qmin) {
         if (new_qmin < 0. || new_qmin > constants::axes::q_axis.max) {
             console::print_warning(
                 "settings::axes::qmin: qmin must be in the range "
@@ -34,8 +33,8 @@ settings::detail::Setting<double> settings::axes::qmin = {
 
 // qmax
 settings::detail::Setting<double> settings::axes::qmax = {
-    0.5,
-    [](double& new_qmax) {
+    .value=0.5,
+    .on_change=[](double& new_qmax) {
         if (new_qmax < 0. || new_qmax > constants::axes::q_axis.max) {
             console::print_warning(
                 "settings::axes::qmax: qmax must be in the range" 
@@ -49,20 +48,17 @@ settings::detail::Setting<double> settings::axes::qmax = {
 
 // bin_width
 settings::detail::Setting<double> settings::axes::bin_width = {
-    constants::axes::d_axis.width(),
-    [](double& new_width) {
-        if (std::abs(constants::axes::d_axis.width() - new_width) < 1e-6) {
-            settings::flags::custom_bin_width = false;
-        } else {
-            settings::flags::custom_bin_width = true;
-        }
+    .value=constants::axes::d_axis.width(),
+    .on_change=[](double& new_width) {
+        settings::flags::custom_bin_width = std::abs(constants::axes::d_axis.width() - new_width) >= 1e-6;
         settings::flags::inv_bin_width = 1./new_width;
     }
 };
 
 bool settings::axes::clamp_to_qrange = true;
 
-namespace ausaxs::settings::io {
+namespace {
+    using namespace ausaxs::settings;
     settings::io::SettingSection axes_section("Axes", {
         settings::io::create(axes::skip, "skip"),
         settings::io::create(axes::qmin, "qmin"),

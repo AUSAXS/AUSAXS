@@ -2,17 +2,16 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/SaveElement.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/Rigidbody.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <dataset/SimpleDataset.h>
-#include <plots/PlotDataset.h>
-#include <settings/GeneralSettings.h>
+
 #include <io/detail/trajectory/XYZWriter.h>
+#include <plots/PlotDataset.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
+#include <settings/GeneralSettings.h>
 
 #include <unordered_map>
+#include <utility>
 
 using namespace ausaxs::rigidbody::sequencer;
 
@@ -23,7 +22,10 @@ namespace {
     std::unordered_map<std::string, ausaxs::io::detail::xyz::XYZWriter> writers;
 }
 
-SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, const io::File& path) : LoopElementCallback(owner), path(path) {}
+SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, io::File path) 
+    : LoopElementCallback(owner), path(std::move(path)) 
+{}
+
 SaveElement::~SaveElement() {
     reset_statics();
 }
@@ -68,7 +70,7 @@ void SaveElement::run() {
                 style::draw::errors, {
                     {"color", style::color::black}, {"logx", true}, {"logy", true}, {"xlabel", "q [$\\AA$]"}, {"ylabel", "$I(q)$"}, {"zorder", -1},
                     {"legend", "chi2=" + std::to_string(result->fval/result->dof) + ", dof=" + std::to_string(result->dof)},
-                    {"title", "Iteration " + std::to_string(owner->_get_current_iteration())}
+                    {"title", "Iteration " + std::to_string(ausaxs::rigidbody::sequencer::LoopElement::_get_current_iteration())}
                 }
             )
         );
@@ -96,6 +98,6 @@ InlineSignature SaveElement::_valid_inline_arguments() {
 }
 
 // save [path] - resolved relative to the output folder
-std::unique_ptr<GenericElement> SaveElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> SaveElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     return std::make_unique<SaveElement>(owner, settings::general::output + args.inlined[0]);
 }

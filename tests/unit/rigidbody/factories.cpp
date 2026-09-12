@@ -1,21 +1,20 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/controller/ControllerFactory.h>
+#include <rigidbody/controller/SimpleController.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
-#include <rigidbody/parameters/decay/LinearDecay.h>
 #include <rigidbody/parameters/decay/ExponentialDecay.h>
+#include <rigidbody/parameters/decay/LinearDecay.h>
 #include <rigidbody/parameters/decay/NoDecay.h>
-#include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/selection/RandomBodySelect.h>
 #include <rigidbody/selection/SequentialBodySelect.h>
-#include <rigidbody/transform/TransformFactory.h>
-#include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/transform/RigidTransform.h>
-#include <rigidbody/controller/ControllerFactory.h>
-#include <rigidbody/controller/SimpleController.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
+#include <rigidbody/transform/SingleTransform.h>
+#include <rigidbody/transform/TransformFactory.h>
 #include <settings/All.h>
 
 using namespace ausaxs;

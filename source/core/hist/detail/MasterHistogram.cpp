@@ -3,6 +3,8 @@
 
 #include <hist/detail/MasterHistogram.h>
 
+#include <algorithm>
+
 using namespace ausaxs;
 using namespace ausaxs::hist::detail;
 
@@ -17,7 +19,7 @@ MasterHistogram<use_weighted_distribution>::MasterHistogram(const std::vector<do
 
 template<>
 MasterHistogram<true>& MasterHistogram<true>::operator+=(const GenericDistribution1D_t& rhs) {
-    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::plus<>());
+    std::ranges::transform(*this, rhs, this->begin(), std::plus<>());
     return *this; 
 }
 

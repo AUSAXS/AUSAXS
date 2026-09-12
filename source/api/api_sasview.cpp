@@ -2,17 +2,14 @@
 // Author: Kristian Lytje
 
 #include <api/api_sasview.h>
-#include <settings/All.h>
-#include <dataset/SimpleDataset.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <dataset/SimpleDataset.h>
 #include <hist/detail/SimpleExvModel.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <fitter/SmartFitter.h>
-#include <fitter/FitReporter.h>
-#include <constants/Constants.h>
-#include <utility/Utility.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <settings/All.h>
+
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -21,11 +18,12 @@ void test_integration(int* test_value) {
     *test_value += 1;
 }
 
-struct {
-    std::unique_ptr<data::Molecule> protein;
-    std::unique_ptr<SimpleDataset> data;
-} iterative_fit_state;
-
+namespace {
+    struct {
+        std::unique_ptr<data::Molecule> protein;
+        std::unique_ptr<SimpleDataset> data;
+    } iterative_fit_state;
+}
 // void iterative_fit_start(
 //     double* _data_q, double* _data_I, double* _data_Ierr, int _n_data,
 //     double* _pdb_x,  double* _pdb_y,  double* _pdb_z, 
@@ -212,13 +210,13 @@ void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int
     auto Iq = dist->debye_transform(q);
 
     // sanity check - the number of q values should match the number of I(q) values
-    if ((int) Iq.size() != _nq) {
+    if (Iq.size() != _nq) {
         *_return_status = 5;
         return;
     }
 
     // remove the form factor applied by the debye transform
-    for (unsigned int i = 0; i < Iq.size(); ++i) {
+    for (int i = 0; i < Iq.size(); ++i) {
         _return_Iq[i] =  Iq.y(i) / std::exp(-std::pow(Iq.x(i), 2));
     }
     *_return_status = 0;

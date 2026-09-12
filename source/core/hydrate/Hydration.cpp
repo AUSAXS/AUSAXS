@@ -2,9 +2,10 @@
 // Author: Kristian Lytje
 
 #include <hydrate/Hydration.h>
+
+#include <hydrate/EmptyHydration.h>
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/ImplicitHydration.h>
-#include <hydrate/EmptyHydration.h>
 
 namespace ausaxs::hydrate {
     template<data::WaterVector T>

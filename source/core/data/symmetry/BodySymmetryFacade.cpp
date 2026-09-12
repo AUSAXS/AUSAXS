@@ -2,10 +2,11 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/BodySymmetryFacade.h>
-#include <data/state/Signaller.h>
+
 #include <data/Body.h>
-#include <io/pdb/PDBStructure.h>
+#include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <io/Writer.h>
+#include <io/pdb/PDBStructure.h>
 
 #include <span>
 
@@ -31,7 +32,7 @@ void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::add(symmetry::type sy
 
 template<typename BODY, bool NONCONST>
 std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get() requires (NONCONST) {
-    for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
+    for (int i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
     return body->symmetries->get();
 }
 
@@ -41,15 +42,15 @@ const std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry::detail::BodyS
 }
 
 template<typename BODY, bool NONCONST>
-observer_ptr<symmetry::ISymmetry> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) requires (NONCONST) {
-    assert(index < body->symmetries->get().size());
+observer_ptr<symmetry::ISymmetry> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(int index) requires (NONCONST) {
+    assert(index < static_cast<int>(body->symmetries->get().size()));
     body->get_signaller()->modified_symmetry(index);
     return body->symmetries->get(index);
 }
 
 template<typename BODY, bool NONCONST>
-observer_ptr<const symmetry::ISymmetry> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(unsigned int index) const {
-    assert(index < body->symmetries->get().size());
+observer_ptr<const symmetry::ISymmetry> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get(int index) const {
+    assert(index < static_cast<int>(body->symmetries->get().size()));
     return body->symmetries->get(index);
 }
 
@@ -81,22 +82,22 @@ symmetry::ISymmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front
 
 template<typename BODY, bool NONCONST>
 ausaxs::symmetry::AffineTransform symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get_transform(
-    unsigned int index, const Vector3<double>& cm, int rep
+    int index, const Vector3<double>& cm, int rep
 ) const {
     const auto& storage = *body->symmetries;
-    assert(index < storage.get().size() && "BodySymmetryFacade::get_transform: symmetry index out of range.");
+    assert(index < static_cast<int>(storage.get().size()) && "BodySymmetryFacade::get_transform: symmetry index out of range.");
     return storage.get(index)->_get_transform(cm, storage.orientation, rep);
 }
 
 template<typename BODY, bool NONCONST>
 void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::set_orientation(const Matrix<double>& orientation) requires (NONCONST) {
-    for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
+    for (int i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
     body->symmetries->orientation = orientation;
 }
 
 template<typename BODY, bool NONCONST>
 observer_ptr<symmetry::SymmetryStorage> symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get_obj() requires (NONCONST) {
-    for (std::size_t i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
+    for (int i = 0; i < body->size_symmetry(); ++i) {body->get_signaller()->modified_symmetry(i);}
     return body->symmetries.get();
 }
 
@@ -111,12 +112,12 @@ void symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::set_obj(std::unique_p
 }
 
 template<typename BODY, bool NONCONST>
-std::size_t symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_atom_total() const {
+int symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_atom_total() const {
     return body->size_atom()*(body->size_symmetry_total()+1);
 }
 
 template<typename BODY, bool NONCONST>
-std::size_t symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_water_total() const {
+int symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::size_water_total() const {
     if (body->waters_expanded_across_symmetry()) {return body->size_water();}
     return body->size_water()*(body->size_symmetry_total()+1);
 }
@@ -129,7 +130,7 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
     }();
 
     if (body->size_symmetry() == 0) {
-        return data::detail::SimpleBody(std::move(atoms), std::move(waters));
+        return {std::move(atoms), std::move(waters)};
     }
 
     atoms.reserve((1+body->size_symmetry_total())*body->size_atom());
@@ -140,7 +141,7 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
 
     std::span<AtomFF> atom_span(atoms); // static spans for iteration
     std::span<Water> water_span(waters);
-    for (unsigned int isym = 0; isym < body->size_symmetry(); ++isym) {
+    for (int isym = 0; isym < body->size_symmetry(); ++isym) {
         assert(atom_span.data() == atoms.data() && "atoms span has been reallocated and invalidated atom_span");
         assert((!duplicate_waters || water_span.data() == waters.data()) && "waters span has been reallocated and invalidated water_span");
         for (int i = 0; i < static_cast<int>(get(isym)->repetitions()); ++i) {
@@ -159,7 +160,7 @@ data::detail::SimpleBody symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::e
     assert(atoms.capacity() == atoms.size() && "atomic loop was not executed the expected number of times");
     assert((!duplicate_waters || waters.capacity() == waters.size()) && "water loop was not executed the expected number of times");
 
-    return data::detail::SimpleBody(atoms, waters);
+    return {atoms, waters};
 }
 
 template<typename BODY, bool NONCONST>

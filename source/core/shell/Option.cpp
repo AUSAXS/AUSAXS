@@ -6,7 +6,7 @@
 using namespace ausaxs::shell;
 
 Option::Option() noexcept = default;
-Option::Option(const std::string& name, const std::string& value) : name(name), value(value) {}
+Option::Option(std::string name, std::string value) : name(std::move(name)), value(std::move(value)) {}
 Option::~Option() = default;
 
 std::string Option::get() const {
@@ -18,6 +18,5 @@ std::string Option::get() const {
 Argument::Argument(const std::string& name, const std::string& value) : Option(name, value) {}
 Argument::Argument(const std::string& name, double value) : Option(name, std::to_string(value)) {}
 Argument::Argument(const std::string& name, int value) : Option(name, std::to_string(value)) {}
-Argument::Argument(const std::string& name, unsigned int value) : Option(name, std::to_string(value)) {}
 
 Flag::Flag(const std::string& name) : Option(name, "") {}

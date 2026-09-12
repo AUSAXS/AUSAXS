@@ -2,11 +2,12 @@
 // Author: Kristian Lytje
 
 #include <table/DebyeTableManager.h>
+
 #include <table/ArrayDebyeTable.h>
 #include <utility/Exceptions.h>
 
-#include <numeric>
 #include <cassert>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::table;
@@ -16,6 +17,7 @@ DebyeTableManager::DebyeTableManager(const DebyeTableManager& table) {*this = ta
 DebyeTableManager::DebyeTableManager(DebyeTableManager&&) noexcept = default; 
 DebyeTableManager& DebyeTableManager::operator=(DebyeTableManager&&) noexcept = default;
 DebyeTableManager& DebyeTableManager::operator=(const DebyeTableManager& table) {
+    if (this == &table) {return *this;}
     q = table.q;
     d = table.d;
     use_custom_table = table.use_custom_table;
@@ -30,7 +32,9 @@ observer_ptr<const table::DebyeTable> DebyeTableManager::get_sinc_table() const 
         if (recalculate) {
             if (q.defaulted && d.defaulted) {
                 throw except::runtime_error("DebyeTableManager::get_sinc_table(): both q-axis and d-axis are defaulted, but custom table requested.");
-            } else if (q.defaulted) {
+            }
+            
+            if (q.defaulted) {
                 custom_sinc_table = std::make_unique<table::VectorDebyeTable>(d.axis, constants::axes::q_vals);
             } else if (d.defaulted) {
                 custom_sinc_table = std::make_unique<table::VectorDebyeTable>(constants::axes::d_vals, q.axis);
@@ -40,9 +44,8 @@ observer_ptr<const table::DebyeTable> DebyeTableManager::get_sinc_table() const 
             recalculate = false;
         }
         return custom_sinc_table.get();
-    } else {
-        return &ArrayDebyeTable::get_default_table();
     }
+    return &ArrayDebyeTable::get_default_table();
 }
 
 void DebyeTableManager::reset_to_default() {
@@ -51,27 +54,33 @@ void DebyeTableManager::reset_to_default() {
     use_custom_table = false;
 }
 
-bool appears_identical(const std::vector<double>& a, const std::vector<double>& b) {
-    if (a.size() != b.size()) {return false;}
-    if (a.size() > 10) {
-        for (size_t i = 0; i < 5; ++i) {
-            if (a[i] != b[i]) {return false;}
+namespace {
+    bool appears_identical(const std::vector<double>& a, const std::vector<double>& b) {
+        if (a.size() != b.size()) {return false;}
+        if (a.size() > 10) {
+            for (size_t i = 0; i < 5; ++i) {
+                if (a[i] != b[i]) {return false;}
+            }
+            for (size_t i = a.size()-5; i < a.size(); ++i) {
+                if (a[i] != b[i]) {return false;}
+            }
         }
-        for (size_t i = a.size()-5; i < a.size(); ++i) {
-            if (a[i] != b[i]) {return false;}
-        }
-    }
 
-    // extra assert in debug mode. if the above is not sufficient, this should catch it during testing
-    assert(
-        std::abs(std::accumulate(a.begin(), a.end(), 0.0) - std::accumulate(b.begin(), b.end(), 0.0)) < 1e-9 
-        && "appears_identical: Sums do not match"
-    );
-    return true;
+        // extra assert in debug mode. if the above is not sufficient, this should catch it during testing
+        assert(
+            std::abs(std::accumulate(a.begin(), a.end(), 0.0) - std::accumulate(b.begin(), b.end(), 0.0)) < 1e-9 
+            && "appears_identical: Sums do not match"
+        );
+        return true;
+    }
 }
 
-template<typename T, typename>
-void DebyeTableManager::set_q_axis(T&& q_axis) {
+template<typename T>
+void DebyeTableManager::set_q_axis(T&& q_axis) requires (std::disjunction_v<
+    std::is_rvalue_reference<T&&>,
+    std::is_same<T, const std::vector<double>&>,
+    std::is_same<T, std::vector<double>&>
+>) {
     if (appears_identical(q.axis, q_axis)) {return;} // no change
     q.axis = std::forward<T>(q_axis);
     q.defaulted = false;
@@ -79,8 +88,12 @@ void DebyeTableManager::set_q_axis(T&& q_axis) {
     recalculate = true;
 }
 
-template<typename T, typename>
-void DebyeTableManager::set_d_axis(T&& d_axis) {
+template<typename T>
+void DebyeTableManager::set_d_axis(T&& d_axis) requires (std::disjunction_v<
+    std::is_rvalue_reference<T&&>,
+    std::is_same<T, const std::vector<double>&>,
+    std::is_same<T, std::vector<double>&>
+>) {
     if (appears_identical(d.axis, d_axis)) {return;} // no change
     d.axis = std::forward<T>(d_axis);
     d.defaulted = false;

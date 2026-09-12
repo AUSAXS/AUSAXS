@@ -1,14 +1,13 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/detail/data/CompactCoordinatesXYZFF.h>
-#include <constants/Constants.h>
 #include <math/Vector3.h>
-#include <form_factor/FormFactorType.h>
 
-#include <algorithm>
 #include <array>
 #include <functional>
+#include <numbers>
 #include <numeric>
 #include <span>
 #include <vector>
@@ -60,13 +59,13 @@ using CC = CompactCoordinatesXYZFF<vbw>;
 
 // SIMD backends may reorder output elements; sort by distance and compare as sets
 template<std::size_t N>
-void check_unordered(
+static void check_unordered(
     const std::array<float, N>& actual_dist,
     const std::array<int32_t, N>& actual_ff,
     std::vector<std::pair<double, int32_t>> expected,
     double tol)
 {
-    std::sort(expected.begin(), expected.end());
+    std::ranges::sort(expected);
     std::array<std::size_t, N> idx;
     std::iota(idx.begin(), idx.end(), 0);
     std::sort(idx.begin(), idx.end(), [&](auto a, auto b) { return actual_dist[a] < actual_dist[b]; });
@@ -77,12 +76,12 @@ void check_unordered(
 }
 
 template<std::size_t N>
-void check_unordered_rounded(
+static void check_unordered_rounded(
     const std::array<int32_t, N>& actual_dist,
     const std::array<int32_t, N>& actual_ff,
     std::vector<std::pair<int32_t, int32_t>> expected)
 {
-    std::sort(expected.begin(), expected.end());
+    std::ranges::sort(expected);
     std::array<std::size_t, N> idx;
     std::iota(idx.begin(), idx.end(), 0);
     std::sort(idx.begin(), idx.end(), [&](auto a, auto b) { return actual_dist[a] < actual_dist[b]; });
@@ -93,7 +92,7 @@ void check_unordered_rounded(
 }
 
 template<bool vbw>
-void single_tests(std::function<EvaluatedResult(const DebugData<vbw>&, const DebugData<vbw>&)> evaluate) {
+static void single_tests(const std::function<EvaluatedResult(const DebugData<vbw>&, const DebugData<vbw>&)>& evaluate) {
     SECTION("single distance") {
         DebugData<vbw> data1(Vector3<double>{1, 1, 1}, 2);
         DebugData<vbw> data2(Vector3<double>{2, 1, 1}, 4);
@@ -109,7 +108,7 @@ void single_tests(std::function<EvaluatedResult(const DebugData<vbw>&, const Deb
 }
 
 template<bool vbw>
-void single_tests_rounded(std::function<EvaluatedResultRounded(const DebugData<vbw>&, const DebugData<vbw>&)> evaluate) {
+static void single_tests_rounded(const std::function<EvaluatedResultRounded(const DebugData<vbw>&, const DebugData<vbw>&)>& evaluate) {
     SECTION("single distance") {
         double width = constants::axes::d_axis.width();
         DebugData<vbw> data1(Vector3<double>{1, 1, 1}, 2);
@@ -126,7 +125,7 @@ void single_tests_rounded(std::function<EvaluatedResultRounded(const DebugData<v
 }
 
 template<bool vbw>
-void quad_tests(std::function<QuadEvaluatedResult(const DebugData<vbw>&, const std::array<CC<vbw>, 4>&)> evaluate) {
+static void quad_tests(const std::function<QuadEvaluatedResult(const DebugData<vbw>&, const std::array<CC<vbw>, 4>&)>& evaluate) {
     SECTION("four distances") {
         DebugData<vbw> data(Vector3<double>{1, 1, 1}, 2);
         std::array<CC<vbw>, 4> others = {
@@ -137,14 +136,14 @@ void quad_tests(std::function<QuadEvaluatedResult(const DebugData<vbw>&, const s
         };
         auto result = evaluate(data, others);
         check_unordered<4>(result.distances, result.ff_bins, {
-            {1.0, ff_bin_index(2, 4)}, {std::sqrt(3.0), ff_bin_index(2, 8)},
+            {1.0, ff_bin_index(2, 4)}, {std::numbers::sqrt3, ff_bin_index(2, 8)},
             {std::sqrt(12.0), ff_bin_index(2, 16)}, {std::sqrt(27.0), ff_bin_index(2, 3)}
         }, 1e-6);
     }
 }
 
 template<bool vbw>
-void quad_tests_rounded(std::function<QuadEvaluatedResultRounded(const DebugData<vbw>&, const std::array<CC<vbw>, 4>&)> evaluate) {
+static void quad_tests_rounded(const std::function<QuadEvaluatedResultRounded(const DebugData<vbw>&, const std::array<CC<vbw>, 4>&)>& evaluate) {
     SECTION("four distances") {
         double width = constants::axes::d_axis.width();
         DebugData<vbw> data(Vector3<double>{1, 1, 1}, 2);
@@ -157,7 +156,7 @@ void quad_tests_rounded(std::function<QuadEvaluatedResultRounded(const DebugData
         auto result = evaluate(data, others);
         check_unordered_rounded<4>(result.distances, result.ff_bins, {
             {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index(2, 4)},
-            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index(2, 8)},
+            {static_cast<int32_t>(std::round(std::numbers::sqrt3/width)), ff_bin_index(2, 8)},
             {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index(2, 16)},
             {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index(2, 3)}
         });
@@ -165,7 +164,7 @@ void quad_tests_rounded(std::function<QuadEvaluatedResultRounded(const DebugData
 }
 
 template<bool vbw>
-void octo_tests(std::function<OctoEvaluatedResult(const DebugData<vbw>&, const std::array<CC<vbw>, 8>&)> evaluate) {
+static void octo_tests(const std::function<OctoEvaluatedResult(const DebugData<vbw>&, const std::array<CC<vbw>, 8>&)>& evaluate) {
     SECTION("eight distances") {
         DebugData<vbw> data(Vector3<double>{1, 1, 1}, 2);
         std::array<CC<vbw>, 8> others = {
@@ -180,7 +179,7 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData<vbw>&, const s
         };
         auto result = evaluate(data, others);
         check_unordered<8>(result.distances, result.ff_bins, {
-            {1.0, ff_bin_index(2, 4)}, {std::sqrt(3.0), ff_bin_index(2, 8)},
+            {1.0, ff_bin_index(2, 4)}, {std::numbers::sqrt3, ff_bin_index(2, 8)},
             {std::sqrt(12.0), ff_bin_index(2, 16)}, {std::sqrt(27.0), ff_bin_index(2, 32)},
             {std::sqrt(48.0), ff_bin_index(2, 64)}, {std::sqrt(75.0), ff_bin_index(2, 128)},
             {std::sqrt(108.0), ff_bin_index(2, 15)}, {std::sqrt(147.0), ff_bin_index(2, 5)}
@@ -189,7 +188,7 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData<vbw>&, const s
 }
 
 template<bool vbw>
-void octo_tests_rounded(std::function<OctoEvaluatedResultRounded(const DebugData<vbw>&, const std::array<CC<vbw>, 8>&)> evaluate) {
+static void octo_tests_rounded(const std::function<OctoEvaluatedResultRounded(const DebugData<vbw>&, const std::array<CC<vbw>, 8>&)>& evaluate) {
     SECTION("eight distances") {
         double width = constants::axes::d_axis.width();
         DebugData<vbw> data(Vector3<double>{1, 1, 1}, 2);
@@ -206,7 +205,7 @@ void octo_tests_rounded(std::function<OctoEvaluatedResultRounded(const DebugData
         auto result = evaluate(data, others);
         check_unordered_rounded<8>(result.distances, result.ff_bins, {
             {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index(2, 4)},
-            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index(2, 8)},
+            {static_cast<int32_t>(std::round(std::numbers::sqrt3/width)), ff_bin_index(2, 8)},
             {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index(2, 16)},
             {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index(2, 32)},
             {static_cast<int32_t>(std::round(std::sqrt(48.0)/width)), ff_bin_index(2, 64)},
@@ -218,7 +217,7 @@ void octo_tests_rounded(std::function<OctoEvaluatedResultRounded(const DebugData
 }
 
 template<bool vbw>
-void hexa_tests(std::function<HexaEvaluatedResult(const DebugData<vbw>&, const std::array<CC<vbw>, 16>&)> evaluate) {
+static void hexa_tests(const std::function<HexaEvaluatedResult(const DebugData<vbw>&, const std::array<CC<vbw>, 16>&)>& evaluate) {
     SECTION("sixteen distances") {
         DebugData<vbw> data(Vector3<double>{1, 1, 1}, 2);
         std::array<CC<vbw>, 16> others = {
@@ -241,7 +240,7 @@ void hexa_tests(std::function<HexaEvaluatedResult(const DebugData<vbw>&, const s
         };
         auto result = evaluate(data, others);
         check_unordered<16>(result.distances, result.ff_bins, {
-            {1.0, ff_bin_index(2, 4)}, {std::sqrt(3.0), ff_bin_index(2, 8)},
+            {1.0, ff_bin_index(2, 4)}, {std::numbers::sqrt3, ff_bin_index(2, 8)},
             {std::sqrt(12.0), ff_bin_index(2, 3)}, {std::sqrt(27.0), ff_bin_index(2, 5)},
             {std::sqrt(48.0), ff_bin_index(2, 6)}, {std::sqrt(75.0), ff_bin_index(2, 7)},
             {std::sqrt(108.0), ff_bin_index(2, 1)}, {std::sqrt(147.0), ff_bin_index(2, 9)},
@@ -254,7 +253,7 @@ void hexa_tests(std::function<HexaEvaluatedResult(const DebugData<vbw>&, const s
 }
 
 template<bool vbw>
-void hexa_tests_rounded(std::function<HexaEvaluatedResultRounded(const DebugData<vbw>&, const std::array<CC<vbw>, 16>&)> evaluate) {
+static void hexa_tests_rounded(const std::function<HexaEvaluatedResultRounded(const DebugData<vbw>&, const std::array<CC<vbw>, 16>&)>& evaluate) {
     SECTION("sixteen distances") {
         double width = constants::axes::d_axis.width();
         DebugData<vbw> data(Vector3<double>{1, 1, 1}, 2);
@@ -279,7 +278,7 @@ void hexa_tests_rounded(std::function<HexaEvaluatedResultRounded(const DebugData
         auto result = evaluate(data, others);
         check_unordered_rounded<16>(result.distances, result.ff_bins, {
             {static_cast<int32_t>(std::round(1.0/width)), ff_bin_index(2, 4)},
-            {static_cast<int32_t>(std::round(std::sqrt(3.0)/width)), ff_bin_index(2, 8)},
+            {static_cast<int32_t>(std::round(std::numbers::sqrt3/width)), ff_bin_index(2, 8)},
             {static_cast<int32_t>(std::round(std::sqrt(12.0)/width)), ff_bin_index(2, 3)},
             {static_cast<int32_t>(std::round(std::sqrt(27.0)/width)), ff_bin_index(2, 5)},
             {static_cast<int32_t>(std::round(std::sqrt(48.0)/width)), ff_bin_index(2, 6)},
@@ -299,7 +298,7 @@ void hexa_tests_rounded(std::function<HexaEvaluatedResultRounded(const DebugData
 }
 
 template<bool vbw>
-void run_tests() {
+static void run_tests() {
     SECTION("scalar") {
         single_tests<vbw>([](const DebugData<vbw>& d1, const DebugData<vbw>& d2) { return d1.evaluate_scalar(d2); });
         quad_tests<vbw>([](const DebugData<vbw>& d, const std::array<CC<vbw>, 4>& o) { return d.evaluate_4_scalar(std::span<const CC<vbw>, 4>(o)); });

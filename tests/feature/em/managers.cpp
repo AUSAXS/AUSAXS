@@ -1,28 +1,23 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/state/Signaller.h>
+#include <data/state/StateManager.h>
+#include <em/ImageStack.h>
 #include <em/detail/header/MRCHeader.h>
-#include <em/manager/ProteinManagerFactory.h>
 #include <em/manager/ProteinManager.h>
+#include <em/manager/ProteinManagerFactory.h>
 #include <em/manager/SimpleProteinManager.h>
 #include <em/manager/SmartProteinManager.h>
-#include <em/ImageStack.h>
-#include <em/Image.h>
-#include <data/state/StateManager.h>
-#include <data/state/Signaller.h>
-#include <data/state/BoundSignaller.h>
-#include <data/state/UnboundSignaller.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <hist/histogram_manager/HistogramManager.h>
+#include <hist/HistFwd.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/HistFwd.h>
 #include <settings/All.h>
 
 #include <memory>
-#include <iostream>
 
 #include <hist/hist_test_helper.h>
 
@@ -34,10 +29,10 @@ TEST_CASE("managers: EM: partial_histogram_manager_works") {
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
-    auto phm = protein.get_histogram_manager();
-    auto phm_cast = dynamic_cast<hist::IPartialHistogramManager*>(phm);
+    auto* phm = protein.get_histogram_manager();
+    auto* phm_cast = dynamic_cast<hist::IPartialHistogramManager*>(phm);
     REQUIRE(phm_cast != nullptr);
-    auto manager = phm_cast->get_state_manager();
+    auto* manager = phm_cast->get_state_manager();
 
     manager->reset_to_false();
     phm_cast->get_probe(0)->modified_external();
@@ -51,10 +46,10 @@ TEST_CASE("managers: EM: protein_manager") {
     Molecule protein(bodies);
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
 
-    auto phm = protein.get_histogram_manager();
-    auto phm_cast = dynamic_cast<hist::IPartialHistogramManager*>(phm);
+    auto* phm = protein.get_histogram_manager();
+    auto* phm_cast = dynamic_cast<hist::IPartialHistogramManager*>(phm);
     REQUIRE(phm_cast != nullptr);
-    auto manager = phm_cast->get_state_manager();
+    auto* manager = phm_cast->get_state_manager();
 
     manager->reset_to_false();
     CHECK(manager->get_externally_modified_bodies() == std::vector{false, false, false, false, false});
@@ -92,7 +87,7 @@ TEST_CASE("managers: EM: em_partial_histogram_manager") {
     settings::em::hydrate = false;
     settings::grid::min_bins = 100;
 
-    auto compare = [] (std::shared_ptr<em::managers::ProteinManager> manager1, std::shared_ptr<em::managers::ProteinManager> manager2, double cutoff) {
+    auto compare = [] (const std::shared_ptr<em::managers::ProteinManager>& manager1, const std::shared_ptr<em::managers::ProteinManager>& manager2, double cutoff) {
         auto h1 = manager1->get_histogram(cutoff);
         auto h2 = manager2->get_histogram(cutoff);
         return compare_hist_approx(h1->get_weighted_counts(), h2->get_weighted_counts());
@@ -115,7 +110,7 @@ TEST_CASE("managers: EM: em_partial_histogram_manager") {
 
         auto manager = em::factory::create_manager(&images);
         manager->set_charge_levels({2, 4, 6, 8});
-        auto protein = manager->get_protein(0);
+        auto* protein = manager->get_protein(0);
 
         REQUIRE(protein->size_body() == 5);
         CHECK(protein->get_body(0).size_atom() == 3);
@@ -190,7 +185,7 @@ TEST_CASE("managers: EM: em_partial_histogram_manager") {
 //     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
 //     settings::em::sample_frequency = 2;
 //     plots::PlotDataset comparison, waters;
-//     for (unsigned int charge_levels = 25; charge_levels <= 100; charge_levels += 25) {
+//     for (int charge_levels = 25; charge_levels <= 100; charge_levels += 25) {
 //         settings::em::charge_levels = charge_levels;
 //         // em::ImageStack images("tests/files/A2M_2020_Q4.ccp4");
 //         em::ImageStack images("data/emd_24889/emd_24889.map");

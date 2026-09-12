@@ -3,18 +3,18 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/detail/ParsedArgs.h>
-#include <utility/observer_ptr.h>
 #include <io/File.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/LoopElementCallback.h>
+#include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
     class SaveElement : public LoopElementCallback, public GenericElement {
         public:
-            SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, const io::File& path);
+            SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, io::File path);
             ~SaveElement() override;
 
             void run() override;

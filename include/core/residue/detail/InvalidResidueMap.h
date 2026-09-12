@@ -9,9 +9,10 @@ namespace ausaxs::residue::detail {
     class InvalidResidueMap : public ResidueMap {
         public:
             InvalidResidueMap() = default;
+            ~InvalidResidueMap() override = default;
 
-            double get(const AtomKey&) override {return 0;}
+            double get(const AtomKey& /*key*/) override {return 0;}
 
-            constants::atomic_group_t get_atomic_group(const std::string&, constants::atom_t) override {return constants::atomic_group_t::unknown;}
+            constants::atomic_group_t get_atomic_group(const std::string& /*atom_name*/, constants::atom_t /*atom_type*/) override {return constants::atomic_group_t::unknown;}
     };
 }

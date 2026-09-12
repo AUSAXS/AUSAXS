@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/ParameterElementCallback.h>
+
 #include <rigidbody/sequencer/elements/ParameterElement.h>
 
 using namespace ausaxs::rigidbody::sequencer;

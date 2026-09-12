@@ -16,7 +16,7 @@ namespace ausaxs::em::detail::header {
 
             std::string to_string() const override;
 
-            unsigned int get_header_size() const override;
+            int get_header_size() const override;
 
             em::detail::header::DataType get_data_type() const override;
 

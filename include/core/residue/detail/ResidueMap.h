@@ -6,8 +6,9 @@
 #include <constants/ConstantsFwd.h>
 #include <residue/ResidueFwd.h>
 
-#include <unordered_map>
+#include <cstddef>
 #include <string>
+#include <unordered_map>
 
 namespace ausaxs::residue::detail {
     /**
@@ -27,7 +28,7 @@ namespace ausaxs::residue::detail {
 namespace std {
     template <>
     struct hash<ausaxs::residue::detail::AtomKey> {
-        unsigned int operator()(const ausaxs::residue::detail::AtomKey& k) const;
+        std::size_t operator()(const ausaxs::residue::detail::AtomKey& k) const;
     };
 }
 
@@ -41,11 +42,12 @@ namespace ausaxs::residue::detail {
         friend class Residue;
         public:
             ResidueMap();
+            virtual ~ResidueMap() = default;
 
             /**
              * @brief Construct a ResidueMap from an existing map.
              */
-            ResidueMap(const std::unordered_map<AtomKey, int>& map);
+            ResidueMap(std::unordered_map<AtomKey, int> map);
 
             /**
              * @brief Get a value from the storage. 
@@ -99,7 +101,7 @@ namespace ausaxs::residue::detail {
              * @param atom The atom type. This is required to avoid ambiguities since the name is always capitalized in PDB files, so otherwise we cannot distinguish between e.g. a C-alpha (CA) and a calcium (Ca).
              * @param value The number of bonds.
              */
-            void insert(const std::string& atom_name, constants::atom_t atom, int value);
+            void insert(const std::string& name, constants::atom_t symbol, int value);
 
             /**
              * @brief Calculate the average number of bonds for this residue. 

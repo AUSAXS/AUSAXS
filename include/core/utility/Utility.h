@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include <string>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
+#include <string>
+#include <utility>
 
 namespace ausaxs::utility {
     /**
@@ -13,15 +14,15 @@ namespace ausaxs::utility {
      */
     template<typename T>
     struct print_element {
-        print_element(const T& t, int width) : t(t), width(width) {}
+        print_element(T  t, int width) : t(std::move(t)), width(width) {}
 
-        friend std::ostream& operator<<(std::ostream& os, const print_element<T> e) noexcept {
+        friend std::ostream& operator<<(std::ostream& os, const print_element<T>& e) noexcept {
             std::ios state(nullptr);
             state.copyfmt(os);
 
             std::stringstream ss; ss << e.t;
             std::string val = ss.str();
-            if (val.size() > e.width) {val = val.substr(0, e.width);}
+            if (static_cast<int>(val.size()) > e.width) {val = val.substr(0, e.width);}
 
             os << std::left << std::setw(e.width) << e.t;
             os.copyfmt(state);
@@ -29,7 +30,7 @@ namespace ausaxs::utility {
         }
 
         T t;
-        unsigned int width;
+        int width;
     };
 
     /**
@@ -60,17 +61,17 @@ namespace ausaxs::utility {
     /**
      * @brief Round a number to a string.
      */
-    std::string round(double val, unsigned int decimals) noexcept;
+    std::string round(double val, int decimals) noexcept;
 
     namespace detail {
         // Dummy object for fixed-length printing of numbers. 
         // std::setprecision does *not* count leading zeros, which breaks our strict formatting.
-        struct __dummy {
+        struct _dummy {
             std::string s;
         };
 
-        std::ostream& operator<<(std::ostream& os, const __dummy& obj);
+        std::ostream& operator<<(std::ostream& os, const _dummy& obj);
     }
 
-    detail::__dummy fixedwidth(double number, unsigned int width);
+    detail::_dummy fixedwidth(double number, int width);
 }

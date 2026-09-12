@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/controller/ControllerFactory.h>
+
 #include <rigidbody/controller/SimpleController.h>
 #include <utility/Exceptions.h>
 

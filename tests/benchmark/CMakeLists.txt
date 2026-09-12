@@ -36,6 +36,7 @@ set(_hist_hot_src
 set(_hist_includes
     ${CMAKE_SOURCE_DIR}/include/core
     ${CMAKE_SOURCE_DIR}/include/math
+    ${CMAKE_SOURCE_DIR}/include/gpu
 )
 set(_base_flags -O3 -ffast-math -fno-finite-math-only)
 

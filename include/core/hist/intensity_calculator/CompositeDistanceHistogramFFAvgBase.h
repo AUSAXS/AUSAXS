@@ -5,11 +5,11 @@
 
 #include <hist/distribution/DistributionFwd.h>
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <constants/Constants.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
-#include <constants/Constants.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 
 #include <vector>
 
@@ -74,15 +74,15 @@ namespace ausaxs::hist {
                 hist::WeightedDistribution1D&& p_tot
             );
 
-            virtual ~CompositeDistanceHistogramFFAvgBase() override;
+            ~CompositeDistanceHistogramFFAvgBase() override;
 
-            virtual ScatteringProfile debye_transform() const override;
+            ScatteringProfile debye_transform() const override;
 
             void apply_water_scaling_factor(double k) override;
             void apply_excluded_volume_scaling_factor(double k) override;
             void apply_solvent_density_scaling_factor(double k) override;
-            void apply_atomic_debye_waller_factor(double B) override;
-            void apply_exv_debye_waller_factor(double B) override;
+            void apply_atomic_debye_waller_factor(double sigma) override;
+            void apply_exv_debye_waller_factor(double sigma) override;
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
@@ -146,12 +146,12 @@ namespace ausaxs::hist {
             const std::vector<double>& get_weighted_counts() const override;
             const std::vector<double>& get_total_raw_counts() const override;
 
-            virtual ScatteringProfile get_profile_aa() const override;
-            virtual ScatteringProfile get_profile_aw() const override;
-            virtual ScatteringProfile get_profile_ww() const override;
-            virtual ScatteringProfile get_profile_ax() const override;
-            virtual ScatteringProfile get_profile_xx() const override;
-            virtual ScatteringProfile get_profile_wx() const override;
+            ScatteringProfile get_profile_aa() const override;
+            ScatteringProfile get_profile_aw() const override;
+            ScatteringProfile get_profile_ww() const override;
+            ScatteringProfile get_profile_ax() const override;
+            ScatteringProfile get_profile_xx() const override;
+            ScatteringProfile get_profile_wx() const override;
 
             virtual const FormFactorTableType& get_ff_table() const = 0;
 
@@ -267,7 +267,7 @@ namespace ausaxs::hist {
             > apply_debye_waller_factors(std::tuple<
                 const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
                 const std::vector<double>&, const std::vector<double>&, const std::vector<double>& 
-            >) const;
+            > /*profiles*/) const;
             virtual void cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const;
             virtual void cache_refresh_distance_profiles() const;
             virtual void cache_refresh_sinqd() const;

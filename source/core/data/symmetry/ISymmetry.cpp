@@ -48,7 +48,7 @@ std::vector<SymmetricDuplicatePair> ISymmetry::internal_pair_schedule() const {
     // s and (R+1-s) coincide, which the +1 on the first entry and the reduced loop bound encode.
     std::vector<SymmetricDuplicatePair> out;
     bool closed = is_closed();
-    int reps = static_cast<int>(repetitions());
+    int reps = repetitions();
 
     // a closed 2-body symmetry (e.g. a 180-degree c2) is a special case: the cycle has a single
     // distinct pair, since the wrap-around pair {copy, original} coincides with {original, copy}

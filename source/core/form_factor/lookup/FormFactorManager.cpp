@@ -2,16 +2,11 @@
 // Author: Kristian Lytje
 
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/FormFactor.h>
-#include <form_factor/ExvFormFactor.h>
-#include <form_factor/NormalizedFormFactor.h>
-#include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/ExvTableManager.h>
+
+#include <data/Body.h>  // IWYU pragma: keep
+#include <data/Molecule.h>
 #include <form_factor/lookup/detail/FormFactorProductBase.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
-#include <container/Container2D.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
 #include <utility/Logging.h>
 
 #include <algorithm>
@@ -25,8 +20,8 @@ namespace {
     std::unique_ptr<manager::detail::ActiveTables> active_tables;
 }
 
-manager::detail::ActiveTables::ActiveTables(std::array<int, form_factor::total_ff_count>&& ff_indices, unsigned int active_count) 
-    : active_count(active_count), ff_indices(std::move(ff_indices))
+manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::total_ff_count>& ff_indices, int active_count) 
+    : active_count(active_count), ff_indices(ff_indices)
 {
     // must come first; the table generators below only fill the active sub-block, which they read from here
     form_factor::detail::active_ff_count = active_count;
@@ -41,7 +36,7 @@ observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_ta
     if (!active_tables) { // initialize default tables
         std::array<int, form_factor::total_ff_count> default_indices;
         std::iota(default_indices.begin(), default_indices.end(), 0);
-        active_tables = std::make_unique<detail::ActiveTables>(std::move(default_indices), form_factor::total_ff_count);
+        active_tables = std::make_unique<detail::ActiveTables>(default_indices, form_factor::total_ff_count);
     }
     return active_tables.get();
 }
@@ -49,7 +44,7 @@ observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_ta
 std::vector<int> manager::get_active_mapping() {
     auto ff_indices = get_active_product_tables()->ff_indices;
     std::vector<int> mapping(form_factor::total_ff_count, -1);
-    for (unsigned int i = 0; i < form_factor::get_active_count(); ++i) {
+    for (int i = 0; i < form_factor::get_active_count(); ++i) {
         mapping[ff_indices[i]] = i;
     }
 
@@ -68,15 +63,15 @@ void manager::detail::use_form_factors(std::vector<int> ff_indices) {
 
     // ensure form_factor_t::OTHER is always present
     constexpr int other = static_cast<int>(form_factor::form_factor_t::OTHER);
-    if (std::find(ff_indices.begin(), ff_indices.end(), other) == ff_indices.end()) {
+    if (std::ranges::find(ff_indices, other) == ff_indices.end()) {
         assert(ff_indices.size() < form_factor::total_ff_count && "Cannot append OTHER to a full form factor set.");
         ff_indices.push_back(other);
     }
 
     std::array<int, form_factor::total_ff_count> ff_indices_array;
-    std::copy(ff_indices.begin(), ff_indices.end(), ff_indices_array.begin());
+    std::ranges::copy(ff_indices, ff_indices_array.begin());
     std::fill(ff_indices_array.begin() + ff_indices.size(), ff_indices_array.end(), static_cast<int>(form_factor::form_factor_t::OTHER));
-    active_tables = std::make_unique<detail::ActiveTables>(std::move(ff_indices_array), ff_indices.size());
+    active_tables = std::make_unique<detail::ActiveTables>(ff_indices_array, ff_indices.size());
 }
 
 void manager::use_form_factors(data::Molecule& molecule) {
@@ -91,23 +86,23 @@ void manager::use_form_factors(data::Molecule& molecule) {
 
     std::vector<int> ff_indices(form_factor::total_ff_count);
     std::iota(ff_indices.begin(), ff_indices.end(), 0);
-    std::sort(ff_indices.begin(), ff_indices.end(), [&ff_counts](int a, int b) {return ff_counts[a] > ff_counts[b];});
+    std::ranges::sort(ff_indices, [&ff_counts](int a, int b) {return ff_counts[a] > ff_counts[b];});
 
     // Truncate to the form factors actually present. The sort above places EXCLUDED_VOLUME and WATER first (forced), then every type with a non-zero atom 
     // count in descending order, then the absent types, and finally OTHER. Everything from the first absent type onwards is dead weight and therefore removed. 
-    unsigned int n_present = 0;
-    for (unsigned int i = 2; i < ff_indices.size(); ++i) {
+    int n_present = 0;
+    for (int i = 2; i < static_cast<int>(ff_indices.size()); ++i) {
         if (ff_counts[ff_indices[i]] <= 0) {break;}
         ++n_present;
     }
-    ff_indices.resize(std::min<unsigned int>(2 + n_present + 1, form_factor::total_ff_count));
+    ff_indices.resize(std::min<int>(2 + n_present + 1, form_factor::total_ff_count));
     ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // OTHER will never be selected, so it is safe to assign it here
 
     if (logging::logging_enabled()) {
         std::string log_msg = "Setting form factors based on detected molecular composition:";
         log_msg += "\n\t" + form_factor::to_string(form_factor::form_factor_t::EXCLUDED_VOLUME) + " (forced)";
         log_msg += "\n\t" + form_factor::to_string(form_factor::form_factor_t::WATER) + " (forced)";
-        for (unsigned int i = 2; i < ff_indices.size()-1; ++i) {
+        for (int i = 2; i < static_cast<int>(ff_indices.size())-1; ++i) {
             log_msg += "\n\t" + form_factor::to_string(static_cast<form_factor_t>(ff_indices[i])) + " with count " + std::to_string(ff_counts[ff_indices[i]]);
         }
         log_msg += "\n\t" + form_factor::to_string(form_factor::form_factor_t::OTHER) + " (forced)";

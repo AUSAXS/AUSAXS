@@ -4,30 +4,21 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/TetrahedralSymmetry.h>
-#include <data/symmetry/OctahedralSymmetry.h>
-#include <data/symmetry/IcosahedralSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/ReferenceSymmetry.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/distribution/Distribution1D.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <numbers>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
-#include "settings/HistogramSettings.h"
+#include <hist/hist_test_helper.h>
+#include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-auto make_unique_point_sym = [] (const Vector3<double>& translation, const Vector3<double>& rotation) {
+static auto make_unique_point_sym = [] (const Vector3<double>& translation, const Vector3<double>& rotation) {
     return std::make_unique<symmetry::PointSymmetry>(translation, rotation);
 };
 
-auto test_point_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
+static auto test_point_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
     SECTION("one body with one atom") {
         // Atom at its own cm so copy is always at atom_pos + translation, independent of rotation
         AtomFF a({0, 0, 0}, form_factor::form_factor_t::C);
@@ -89,7 +80,7 @@ auto test_point_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
             m.get_body(0).symmetry().add(make_unique_point_sym({0, 1, 0}, {0, 0, 0}));
             // atoms: {0,0,0}, {1,0,0}, copy: {0,1,0}
             auto h = m.get_histogram()->get_weighted_counts();
-            check_hist(h, {RES(0, 3), RES(1, 4), RES(std::sqrt(2.0), 2)});
+            check_hist(h, {RES(0, 3), RES(1, 4), RES(std::numbers::sqrt2, 2)});
         }
 
         SECTION("copies on both bodies") {
@@ -100,7 +91,7 @@ auto test_point_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
             check_hist(h, {
                 RES(0, 4),
                 RES(1, 8),
-                RES(std::sqrt(2.0), 4)
+                RES(std::numbers::sqrt2, 4)
             });
         }
 

@@ -4,21 +4,20 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/selection/ManualSelect.h>
-#include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/transform/TransformStrategy.h>
-#include <rigidbody/detail/SystemSpecification.h>
 #include <data/Molecule.h>
-#include <data/Body.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/ISymmetry.h>
-#include <math/Vector3.h>
-#include <settings/All.h>
 #include <io/ExistingFile.h>
+#include <math/Vector3.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>  // IWYU pragma: keep
+#include <rigidbody/selection/ManualSelect.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 
@@ -37,7 +36,7 @@ struct SequenceParserSelectFixture {
         settings::grid::min_bins = 25;
     }
 
-    std::unique_ptr<Sequencer> parse(const std::string& content) {
+    static std::unique_ptr<Sequencer> parse(const std::string& content) {
         test::TempFile config(".conf", content);
         SequenceParser parser;
         return parser.parse_file(config);
@@ -69,7 +68,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         );
         REQUIRE(seq != nullptr);
         seq->execute();
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         REQUIRE(rb->body_selector != nullptr);
         CHECK(dynamic_cast<selection::ManualSelect*>(rb->body_selector.get()) != nullptr);
@@ -85,7 +84,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         );
         REQUIRE(seq != nullptr);
         seq->execute();
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         REQUIRE(rb->body_selector != nullptr);
         CHECK(dynamic_cast<selection::ManualSelect*>(rb->body_selector.get()) == nullptr);
@@ -123,7 +122,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         );
         REQUIRE(seq != nullptr);
         seq->execute();
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         REQUIRE(rb->body_selector != nullptr);
         REQUIRE(dynamic_cast<selection::ManualSelect*>(rb->body_selector.get()) != nullptr);
@@ -151,7 +150,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         );
         REQUIRE(seq != nullptr);
         seq->execute();
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         REQUIRE(rb->body_selector != nullptr);
 
@@ -178,7 +177,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         );
         REQUIRE(seq != nullptr);
         seq->execute();
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb->molecule.size_body() == 2);
 
         auto selection = rb->body_selector->next_mask();
@@ -221,7 +220,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         );
         REQUIRE(seq != nullptr);
         seq->execute();
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         REQUIRE(rb->body_selector != nullptr);
     }
@@ -241,7 +240,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         );
         REQUIRE(seq != nullptr);
         seq->execute();
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         REQUIRE(rb->body_selector != nullptr);
         CHECK(dynamic_cast<selection::ManualSelect*>(rb->body_selector.get()) == nullptr);
@@ -268,7 +267,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     );
     REQUIRE(seq != nullptr);
     seq->execute();
-    auto rb = seq->_get_rigidbody();
+    auto* rb = seq->_get_rigidbody();
     REQUIRE(rb != nullptr);
     REQUIRE(rb->body_selector != nullptr);
 
@@ -287,7 +286,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         REQUIRE(selection.iconstraint == -1);
         auto par = rb->parameter_generator->next(selection.ibody);
         selection.mask.apply(par);
-        rb->transformer->apply(std::move(par), selection.ibody);
+        rb->transformer->apply(par, selection.ibody);
     }
 
     // the targeted symmetry is the only thing that moved: the host body keeps its rigid pose...
@@ -316,7 +315,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         );
         REQUIRE(seq != nullptr);
         seq->execute(); // the parsed strategy is installed when the element runs
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         return rb->body_selector->next_mask().mask;
     };

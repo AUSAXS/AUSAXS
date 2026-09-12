@@ -2,8 +2,8 @@
 // Author: Kristian Lytje
 
 #include <io/Folder.h>
+
 #include <io/File.h>
-#include <utility/Exceptions.h>
 
 #include <filesystem>
 
@@ -12,13 +12,14 @@ using namespace ausaxs::io;
 
 Folder::Folder(std::string_view path) {*this = path;}
 
-void Folder::operator=(std::string_view path) {
-    if (path.empty()) {dir = "."; return;}
+Folder& Folder::operator=(std::string_view path) {
+    if (path.empty()) {dir = "."; return *this;}
     if (path.back() == '/') {
         dir = path.substr(0, path.size() - 1);
     } else {
         dir = path;
     }
+    return *this;
 }
 
 Folder::operator std::string() const {return dir;}
@@ -58,5 +59,5 @@ void Folder::create() const {
 template Folder::Folder(const char* const&);
 template Folder::Folder(const std::string&);
 template Folder::Folder(const std::string_view&);
-template void Folder::operator=(const std::string&);
-template void Folder::operator=(const std::string_view&);
+template Folder& Folder::operator=(const std::string&);
+template Folder& Folder::operator=(const std::string_view&);

@@ -2,11 +2,9 @@
 // Author: Kristian Lytje
 
 #include <constants/Constants.h>
-#include <constants/vdwTable.h>
-#include <utility/StringUtils.h>
-#include <io/ExistingFile.h>
 
-#include <utility/Exceptions.h>
+#include <constants/vdwTable.h>
+
 
 using namespace ausaxs;
 
@@ -65,7 +63,7 @@ constants::atom_t constants::symbols::parse_element_string(const std::string& el
     return constants::symbols::detail::string_to_atomt_map.get(element_string);
 }
 
-constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t atom_type, unsigned int hydrogens) {
+constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t atom_type, int hydrogens) {
     if (hydrogens == 0) {return constants::atomic_group_t::unknown;}
     switch (atom_type) {
         case constants::atom_t::C:
@@ -101,7 +99,7 @@ constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t
     return constants::atomic_group_t::unknown;
 }
 
-unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
+int constants::charge::nuclear::get_charge(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return 1;
         case atom_t::He: return 2;
@@ -184,7 +182,7 @@ unsigned int constants::charge::nuclear::get_charge(atom_t atom) {
     }
 }
 
-unsigned int constants::charge::ionic::get_charge(atom_t atom) {
+int constants::charge::ionic::get_charge(atom_t atom) {
     switch (atom) {
         case atom_t::Ca: return 2;
         case atom_t::Cl: return -1;
@@ -193,7 +191,7 @@ unsigned int constants::charge::ionic::get_charge(atom_t atom) {
     }
 }
 
-unsigned int constants::valence::get_valence(atom_t atom) {
+int constants::valence::get_valence(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return 1;
         case atom_t::C:  return 4;

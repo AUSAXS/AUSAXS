@@ -5,8 +5,8 @@
 
 #include <data/state/DataStateFwd.h>
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace ausaxs::state {
 	/**

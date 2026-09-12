@@ -56,12 +56,14 @@ namespace ausaxs::test {
             TempFile(const TempFile&) = delete;
             TempFile& operator=(const TempFile&) = delete;
 
+            // NOLINTNEXTLINE(bugprone-use-after-move) - owns is a member of TempFile, not of the io::File base the mem-initialiser above moves from
             TempFile(TempFile&& other) noexcept : io::File(std::move(other)), owns(std::exchange(other.owns, false)) {}
             TempFile& operator=(TempFile&& other) noexcept {
                 if (this != &other) {
                     if (owns) {remove();}
+                    bool other_owns = std::exchange(other.owns, false);
                     io::File::operator=(std::move(other));
-                    owns = std::exchange(other.owns, false);
+                    owns = other_owns;
                 }
                 return *this;
             }
