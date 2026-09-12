@@ -1,9 +1,10 @@
-#include <algorithm>
-#include <numeric>
 #include <catch2/catch_test_macros.hpp>
 
 #include <dataset/SimpleDataset.h>
 #include <hist/Histogram.h>
+
+#include <algorithm>
+#include <numeric>
 
 using namespace ausaxs;
 
