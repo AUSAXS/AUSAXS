@@ -4,8 +4,6 @@ Binaries
 - `saxs_fitter` — SAXS fitting command-line tool (see `executable/saxs_fitter.cpp`).
 - `em_fitter` — electron-microscopy fitting utility (see `executable/em_fitter.cpp`).
 - `rigidbody_optimizer` — rigid-body configuration optimizer (see `executable/rigidbody_optimizer.cpp`).
-- `saxs_fitter_gui` — GUI version of the SAXS fitting tool (see `executable/gui/saxs_fitter_gui.cpp`)
-- `em_fitter_gui` — GUI version of the electron-microscopy fitting tool (see `executable/gui/em_fitter_gui.cpp`)
 
 Build
 - All executables can be built by filename. 
