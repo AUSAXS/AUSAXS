@@ -1,21 +1,18 @@
 #pragma once
 
 #include <math/Vector3.h>
+#include <math/detail/Diagnostics.h>
 
 #include <cassert>
 #include <cmath>
-
-#ifndef NDEBUG
-    #include <iostream>  // only the asserts below print
-#endif
+#include <stdexcept>
 
 namespace ausaxs {
     template<numeric T>
     T Vector3<T>::operator[] (int i) const {
         assert([&]() -> bool {
             if (i < 3) {return true;}
-            std::cout << "Vector3::operator[]: Index out of bounds (" << i << " >= 3)" << std::endl;
-            return false;
+            return ausaxs::detail::report_index_1d("Vector3::operator[]", i, 3);
         }() && "Vector3::operator[]: Index out of bounds.");
         return data[i];
     }
@@ -24,8 +21,7 @@ namespace ausaxs {
     T& Vector3<T>::operator[] (int i) {
         assert([&]() -> bool {
             if (i < 3) {return true;}
-            std::cout << "Vector3::operator[]: Index out of bounds (" << i << " >= 3)" << std::endl;
-            return false;
+            return ausaxs::detail::report_index_1d("Vector3::operator[]", i, 3);
         }() && "Vector3::operator[]: Index out of bounds.");
         return data[i];
     }

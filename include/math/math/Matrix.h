@@ -9,12 +9,10 @@
 #include <math/indexers/Indexer2D.h>
 #include <math/slices/Slice.h>
 
+#include <math/detail/Diagnostics.h>
+
 #include <cassert>
 #include <initializer_list>
-
-#ifndef NDEBUG
-    #include <iostream>  // only the asserts below print
-#endif
 
 namespace ausaxs {
     /**
@@ -172,8 +170,7 @@ namespace ausaxs {
     Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
         assert([&]() -> bool {
             if (A.M == v.size()) {return true;}
-            std::cout << "Matrix::operator*: Invalid matrix dimensions (got: " << v.size() << ", expected: " << A.M << ")." << std::endl;
-            return false;
+            return ausaxs::detail::report_size_mismatch("Matrix::operator*", v.size(), A.M);
         }() && "Matrix::operator*: Invalid matrix dimensions.");
 
         Vector<Q> w(A.N);
@@ -191,8 +188,7 @@ namespace ausaxs {
     Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
         assert([&]() -> bool {
             if (A.M == B.N) {return true;}
-            std::cout << "Matrix::operator*: Invalid matrix dimensions (got: " << A.M << ", " << A.N << ", expected: " << B.N << ", " << B.M << ")." << std::endl;
-            return false;
+            return ausaxs::detail::report_dim_mismatch("Matrix::operator*", A.M, A.N, B.N, B.M);
         }() && "Matrix::operator*: Invalid matrix dimensions.");
 
         Matrix<Q> C(A.N, B.M);

@@ -5,6 +5,8 @@
 
 #include <mini/Minimizer.h>
 
+#include <numbers>
+
 namespace ausaxs::mini {
 	/**
 	 * @brief A bisection algorithm based on the golden ratio. This only supports unitary problems. 

@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <numbers>
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;

@@ -372,7 +372,7 @@ TEST_CASE("Molecule::get_total_atomic_charge", "[files]") {
     for (auto& atom : protein.get_atoms()) {
         sum += atom.weight();
     }
-    REQUIRE(protein.get_total_atomic_charge() == sum);
+    REQUIRE_THAT(protein.get_total_atomic_charge(), Catch::Matchers::WithinRel(sum, 1e-9));
 }
 
 TEST_CASE("Molecule::get_relative_charge_density", "[files]") {

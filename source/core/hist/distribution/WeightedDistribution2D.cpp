@@ -6,6 +6,8 @@
 #include <hist/distribution/Distribution2D.h>
 #include <settings/HistogramSettings.h>
 
+#include <cstdint>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 

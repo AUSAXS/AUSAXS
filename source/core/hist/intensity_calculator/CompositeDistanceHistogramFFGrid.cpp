@@ -7,6 +7,8 @@
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
 
+#include <numeric>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::form_factor;

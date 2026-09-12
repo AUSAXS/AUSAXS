@@ -9,6 +9,7 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/HistogramSettings.h>
 
+#include <numeric>
 #include <utility>
 
 using namespace ausaxs;

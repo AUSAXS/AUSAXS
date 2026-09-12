@@ -5,7 +5,7 @@
 
 #include <api/api_helper.h>
 
-extern "C" API using ausaxs_output_cb = void (*)(const char* str, int len);
+using ausaxs_output_cb = void (*)(const char* str, int len);
 
 extern "C" API void set_output_callback(ausaxs_output_cb cb);
 

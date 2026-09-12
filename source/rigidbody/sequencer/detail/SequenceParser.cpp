@@ -15,6 +15,7 @@
 #include <utility/observer_ptr.h>
 
 #include <fstream>
+#include <sstream>
 #include <unordered_map>
 
 using namespace ausaxs;

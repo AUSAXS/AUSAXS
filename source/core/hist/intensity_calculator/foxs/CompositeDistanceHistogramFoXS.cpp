@@ -3,6 +3,8 @@
 
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
 
+#include <numbers>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 

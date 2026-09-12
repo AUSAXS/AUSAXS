@@ -1,12 +1,9 @@
 set(CMAKE_CXX_FLAGS "")
 if (MSVC)
-	set(CMAKE_CXX_FLAGS_TEST "/O2 /W4 /permissive- /EHsc")
 	set(CMAKE_CXX_FLAGS "/EHsc")
+	set(AUSAXS_TEST_FLAGS /O2 /W4 /permissive-)
 else()
-	set(CMAKE_CXX_FLAGS_TEST
-		"-Os -Wpedantic -Wall -Wextra -Wno-nested-anon-types"
-		CACHE STRING "Flags used by the C++ compiler during test builds."
-	)
+	set(AUSAXS_TEST_FLAGS -Os -Wpedantic -Wall -Wextra -Wno-nested-anon-types)
 endif()
 
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL TRUE)

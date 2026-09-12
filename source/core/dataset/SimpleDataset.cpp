@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <numeric>
 #include <string>
 #include <vector>
 

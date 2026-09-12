@@ -9,6 +9,7 @@
 #include <settings/GeneralSettings.h>
 
 #include <fstream>
+#include <iostream>
 #include <utility>
 
 using namespace ausaxs;

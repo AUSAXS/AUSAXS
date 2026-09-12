@@ -12,6 +12,8 @@
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
 
+#include <cstdint>
+#include <numeric>
 #include <unordered_map>
 #include <vector>
 

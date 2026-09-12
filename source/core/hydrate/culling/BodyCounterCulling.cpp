@@ -9,6 +9,8 @@
 #include <grid/detail/GridMember.h>
 #include <hydrate/culling/CounterCulling.h>
 
+#include <numeric>
+
 using namespace ausaxs;
 
 void hydrate::BodyCounterCulling::set_body_ratios(const std::vector<double>& body_ratios) {

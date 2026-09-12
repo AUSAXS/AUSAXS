@@ -5,9 +5,7 @@
 
 #include <cassert>
 
-#ifndef NDEBUG
-    #include <iostream>  // only the asserts below print
-#endif
+#include <math/detail/Diagnostics.h>
 
 namespace ausaxs::utility::indexer {
     /**
@@ -23,8 +21,7 @@ namespace ausaxs::utility::indexer {
             constexpr const auto& index(int i, int j) const {
                 assert([&]() -> bool {
                     if (0 <= i && i < derived().N && 0 <= j && j < derived().M) {return true;}
-                    std::cout << "Indexer2D: Index out of bounds (" << i << ", " << j << ") should be less than (" << derived().N << ", " << derived().M << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_2d("Indexer2D", i, j, derived().N, derived().M);
                 }() && "Indexer2D: Index out of bounds.");
                 return derived().data[j + derived().M * i]; 
             }
@@ -32,8 +29,7 @@ namespace ausaxs::utility::indexer {
             constexpr auto& index(int i, int j) {
                 assert([&]() -> bool {
                     if (0 <= i && i < derived().N && 0 <= j && j < derived().M) {return true;}
-                    std::cout << "Indexer2D: Index out of bounds (" << i << ", " << j << ") should be less than (" << derived().N << ", " << derived().M << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_2d("Indexer2D", i, j, derived().N, derived().M);
                 }() && "Indexer2D: Index out of bounds.");
                 return derived().data[j + derived().M * i]; 
             }
@@ -41,8 +37,7 @@ namespace ausaxs::utility::indexer {
             constexpr const auto& linear_index(int i) const { 
                 assert([&]() -> bool {
                     if (0 <= i && i < derived().N*derived().M) {return true;}
-                    std::cout << "Indexer2D::linear_index: Index out of bounds (" << i << " should be less than " << derived().N*derived().M << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_1d("Indexer2D::linear_index", i, derived().N*derived().M);
                 }() && "Indexer2D::linear_index: Index out of bounds.");
                 return derived().data[i];
             }
@@ -50,8 +45,7 @@ namespace ausaxs::utility::indexer {
             constexpr auto& linear_index(int i) { 
                 assert([&]() -> bool {
                     if (0 <= i && i < derived().N*derived().M) {return true;}
-                    std::cout << "Indexer2D::linear_index: Index out of bounds (" << i << " should be less than " << derived().N*derived().M << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_1d("Indexer2D::linear_index", i, derived().N*derived().M);
                 }() && "Indexer2D::linear_index: Index out of bounds.");
                 return derived().data[i];
             }

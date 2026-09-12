@@ -9,13 +9,13 @@
 #include <math/MatrixUtils.h>
 #include <math/Vector.h>
 
+#include <math/detail/Diagnostics.h>
+
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <initializer_list>
-
-#ifndef NDEBUG
-    #include <iostream>  // only the asserts below print
-#endif
+#include <iosfwd>
 
 namespace ausaxs {
 	/**
@@ -163,8 +163,7 @@ namespace ausaxs {
 	Vector3<Q> operator*(const Matrix<T>& M, const Vector3<Q>& v) {
 		assert([&]() -> bool {
 		    if (M.M == v.size()) {return true;}
-		    std::cout << "Vector3::operator*: Invalid matrix dimensions (got: " << M.M << ", expected: " << v.size() << ")." << std::endl;
-		    return false;
+		    return ausaxs::detail::report_size_mismatch("Vector3::operator*", M.M, v.size());
 		}() && "Vector3::operator*: Invalid matrix dimensions.");
 
 		return {
@@ -178,11 +177,10 @@ namespace ausaxs {
 	bool operator==(const Vector3<T>& v, const Vector<Q>& w) {
 		assert([&]() -> bool {
 		    if (v.size() == w.size()) {return true;}
-		    std::cout << "Vector3::operator*: Invalid vector dimensions (got: " << v.size() << ", expected: " << w.size() << ")." << std::endl;
-		    return false;
+		    return ausaxs::detail::report_size_mismatch("Vector3::operator==", v.size(), w.size());
 		}() && "Vector3::operator*: Invalid vector dimensions.");
 
-		return abs(v.x() - w[0]) + abs(v.y() - w[1]) + abs(v.z() - w[2]) < Vector3<T>::precision;
+		return std::abs(v.x() - w[0]) + std::abs(v.y() - w[1]) + std::abs(v.z() - w[2]) < Vector3<T>::precision;
 	}
 
 	template<numeric T, numeric Q>
@@ -237,7 +235,7 @@ namespace ausaxs {
 	Vector3<T> operator/(double left, Vector3<T> right) {return Vector3<T>(left/right.x(), left/right.y(), left/right.z());}
 
 	template<numeric T>
-	std::ostream& operator<<(std::ostream& os, const Vector3<T>& v) {os << v.to_string(); return os;}
+	std::ostream& operator<<(std::ostream& os, const Vector3<T>& v);
 }
 
 namespace std { // to support structured bindings (auto [x, y, z] = Vector3)

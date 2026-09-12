@@ -2,12 +2,11 @@
 
 #include <math/LUPDecomposition.h>
 #include <math/Matrix.h>
+#include <math/detail/Diagnostics.h>
+#include <math/detail/Format.h>
 
 #include <cassert>
-#include <iomanip>
-#include <iostream>
 #include <numeric>
-#include <sstream>
 
 namespace ausaxs {
     template<numeric Q>
@@ -159,23 +158,15 @@ namespace ausaxs {
 
     template<numeric Q>
     std::string Matrix<Q>::to_string() const {
-        std::stringstream ss;
-        for (int i = 0; i < N; i++) {
-            ss << "\t" << std::setprecision(3);
-            for (int j = 0; j < M; j++) {
-                ss << std::setw(8) << index(i, j);
-            }
-            ss << std::endl;
-        }
-        return ss.str();
+        std::vector<double> tmp(data.begin(), data.end());
+        return ausaxs::detail::format_matrix(tmp.data(), N, M);
     }
 
     template<numeric Q> template<numeric R>
     void Matrix<Q>::compatibility_check([[maybe_unused]] const Matrix<R>& A) const {
         assert([&]() -> bool {
             if (N == A.N && M == A.M) {return true;}
-            std::cout << "Matrix::compatibility_check: Matrix dimensions do not match (got: [" << N << ", " << M << "] and [" << A.N << ", " << A.M << "])." << std::endl;
-            return false;
+            return ausaxs::detail::report_dim_mismatch("Matrix::compatibility_check", A.N, A.M, N, M);
         }() && "Matrix::compatibility_check: Matrix dimensions do not match.");
     }
 
@@ -183,8 +174,7 @@ namespace ausaxs {
     void Matrix<Q>::compatibility_check_N([[maybe_unused]] int N) const {
         assert([&]() -> bool {
             if (this->N == N) {return true;}
-            std::cout << "Matrix::compatibility_check: Matrix dimensions do not match (got: N = " << N << ", expected " << this->N << ")" << std::endl;
-            return false;
+            return ausaxs::detail::report_size_mismatch("Matrix::compatibility_check (N)", N, this->N);
         }() && "Matrix::compatibility_check: Matrix dimensions do not match.");
     }
 
@@ -192,8 +182,7 @@ namespace ausaxs {
     void Matrix<Q>::compatibility_check_M([[maybe_unused]] int M) const {
         assert([&]() -> bool {
             if (this->M == M) {return true;}
-            std::cout << "Matrix::compatibility_check: Matrix dimensions do not match (got: M = " << M << ", expected " << this->M << ")" << std::endl;
-            return false;
+            return ausaxs::detail::report_size_mismatch("Matrix::compatibility_check (M)", M, this->M);
         }() && "Matrix::compatibility_check: Matrix dimensions do not match.");
     }
 

@@ -5,9 +5,7 @@
 
 #include <cassert>
 
-#ifndef NDEBUG
-    #include <iostream>  // only the asserts below print
-#endif
+#include <math/detail/Diagnostics.h>
 
 namespace ausaxs::utility::indexer {
     /**
@@ -23,8 +21,7 @@ namespace ausaxs::utility::indexer {
             constexpr auto& index(int i) {
                 assert([&]() -> bool {
                     if (0 <= i && i < static_cast<int>(derived().size())) {return true;}
-                    std::cout << "Indexer1D: Index out of bounds (" << i << " should be less than " << static_cast<int>(derived().size()) << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_1d("Indexer1D", i, static_cast<int>(derived().size()));
                 }() && "Indexer1D: Index out of bounds.");
                 return derived().data[i]; 
             }
@@ -32,8 +29,7 @@ namespace ausaxs::utility::indexer {
             constexpr const auto& index(int i) const {
                 assert([&]() -> bool {
                     if (0 <= i && i < static_cast<int>(derived().size())) {return true;}
-                    std::cout << "Indexer1D: Index out of bounds (" << i << " should be less than " << static_cast<int>(derived().size()) << ")" << std::endl;
-                    return false;
+                    return ausaxs::detail::report_index_1d("Indexer1D", i, static_cast<int>(derived().size()));
                 }() && "Indexer1D: Index out of bounds.");
                 return derived().data[i];
             }

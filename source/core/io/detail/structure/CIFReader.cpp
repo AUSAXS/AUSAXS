@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <numeric>
 #include <unordered_map>
 
 using namespace ausaxs;
