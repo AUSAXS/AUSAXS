@@ -6,8 +6,6 @@
 #include <io/detail/structure/CIFReader.h>
 #include <utility/Curl.h>
 
-#include <support/temp_file.h>
-
 #include <map>
 #include <string>
 
