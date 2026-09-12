@@ -11,8 +11,8 @@ foreach(test ${TEST_SRC})
 	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/tests/unit" "${CMAKE_SOURCE_DIR}/tests")
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${TEST_BIN_DIR}"
-		COMPILE_FLAGS "${CMAKE_CXX_FLAGS_TEST}"
 	)
+	target_compile_options("${name}" PRIVATE ${AUSAXS_TEST_FLAGS})
 	add_dependencies(unit_tests "${name}")
 	catch_discover_tests("${name}" 
 		TEST_SPEC "~[slow] ~[broken] ~[manual]" 
