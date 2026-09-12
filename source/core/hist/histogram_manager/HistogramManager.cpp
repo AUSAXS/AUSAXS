@@ -6,6 +6,7 @@
 #include <data/Molecule.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/AtomOrdering.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/distribution/GenericDistribution1D.h>
@@ -41,7 +42,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);
-    int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w);
+    unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w);
+    hist::detail::decorrelate_order<weighted_bins>(bin_count, data_a, data_w);
 
     GenericDistribution1D_t p_aa(bin_count);
     GenericDistribution1D_t p_ww(bin_count);
@@ -108,8 +110,13 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     }
 
     // add self-correlation
-    double total_weight_aa = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const auto& val) {return sum + std::pow(val.value.w, 2);});
-    double total_weight_ww = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const auto& val) {return sum + std::pow(val.value.w, 2);});
+    auto sum_squared_weights = [] (const auto& set) {
+        double sum = 0;
+        for (unsigned int i = 0; i < set.size(); ++i) {sum += std::pow(set.get_weight(i), 2);}
+        return sum;
+    };
+    double total_weight_aa = sum_squared_weights(data_a);
+    double total_weight_ww = sum_squared_weights(data_w);
     if constexpr (weighted_bins) {
         p_aa.add_index(0, WeightedEntry(total_weight_aa, static_cast<int>(total_weight_aa), 0));
         p_ww.add_index(0, WeightedEntry(total_weight_ww, static_cast<int>(total_weight_ww), 0));

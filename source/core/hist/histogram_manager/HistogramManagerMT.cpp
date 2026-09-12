@@ -6,6 +6,7 @@
 #include <data/Molecule.h>  // IWYU pragma: keep
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/AtomOrdering.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -30,7 +31,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     hist::detail::CompactCoordinates<vbw> data_a(this->protein->get_bodies());
     hist::detail::CompactCoordinates<vbw> data_w(this->protein->get_waters());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, this->protein);
-    int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
+    unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
+    hist::detail::decorrelate_order<wb>(bin_count, data_a, data_w);
 
     hist::distance_calculator::SimpleCalculator<wb, vbw> calculator(bin_count);
     // all three are known up front, so they are held and dispatched as one unit
