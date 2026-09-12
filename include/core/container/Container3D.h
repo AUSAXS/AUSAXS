@@ -3,10 +3,14 @@
 
 #pragma once
 
-#include <utility/Exceptions.h>
 #include <math/indexers/Indexer3D.h>
 
+#include <cassert>
 #include <vector>
+
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
+#endif
 
 namespace ausaxs::container {
     /**
@@ -19,8 +23,8 @@ namespace ausaxs::container {
         friend class utility::indexer::Indexer3D<Container3D<T>>;
         public:
             Container3D() : N(0), M(0), L(0), data(0) {}
-            Container3D(unsigned int width, unsigned int height, unsigned int depth) : N(width), M(height), L(depth), data(width * height * depth) {}
-            Container3D(unsigned int width, unsigned int height, unsigned int depth, const T& value) : N(width), M(height), L(depth), data(width * height * depth, value) {}
+            Container3D(int width, int height, int depth) : N(width), M(height), L(depth), data(width * height * depth) {}
+            Container3D(int width, int height, int depth, const T& value) : N(width), M(height), L(depth), data(width * height * depth, value) {}
 
             using utility::indexer::Indexer3D<Container3D<T>>::index;
             using utility::indexer::Indexer3D<Container3D<T>>::linear_index;
@@ -39,24 +43,24 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the beginning of the vector at index i, j.
              */
-            const typename std::vector<T>::const_iterator begin(int i, int j) const {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || i < 0 || j < 0) {
-                        throw except::out_of_range("Container3D::begin: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
-                    }
-                #endif
+            typename std::vector<T>::const_iterator begin(int i, int j) const {
+                assert([&]() -> bool {
+                    if (0 <= i && i < N && 0 <= j && j < M) {return true;}
+                    std::cout << "Container3D::begin: Index out of bounds (" << N << ", " << M << ") <= (" << i << ", " << j << ")" << std::endl;
+                    return false;
+                }() && "Container3D::begin: Index out of bounds.");
                 return data.begin() + L*(j + M*i);
             }
 
             /**
              * @brief Get an iterator to the end of the vector at index i, j.
              */
-            const typename std::vector<T>::const_iterator end(int i, int j) const {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || i < 0 || j < 0) {
-                        throw except::out_of_range("Container3D::end: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
-                    }
-                #endif
+            typename std::vector<T>::const_iterator end(int i, int j) const {
+                assert([&]() -> bool {
+                    if (0 <= i && i < N && 0 <= j && j < M) {return true;}
+                    std::cout << "Container3D::end: Index out of bounds (" << N << ", " << M << ") <= (" << i << ", " << j << ")" << std::endl;
+                    return false;
+                }() && "Container3D::end: Index out of bounds.");
                 return data.begin() + L*(j + M*i) + L;
             }
 
@@ -64,11 +68,11 @@ namespace ausaxs::container {
              * @brief Get an iterator to the beginning of the vector at index i, j.
              */
             typename std::vector<T>::iterator begin(int i, int j) {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || i < 0 || j < 0) {
-                        throw except::out_of_range("Container3D::begin: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
-                    }
-                #endif
+                assert([&]() -> bool {
+                    if (0 <= i && i < N && 0 <= j && j < M) {return true;}
+                    std::cout << "Container3D::begin: Index out of bounds (" << N << ", " << M << ") <= (" << i << ", " << j << ")" << std::endl;
+                    return false;
+                }() && "Container3D::begin: Index out of bounds.");
                 return data.begin() + L*(j + M*i);
             }
 
@@ -76,23 +80,23 @@ namespace ausaxs::container {
              * @brief Get an iterator to the end of the vector at index i, j.
              */
             typename std::vector<T>::iterator end(int i, int j) {
-                #if (SAFE_MATH)
-                    if (i >= static_cast<int>(N) || j >= static_cast<int>(M) || i < 0 || j < 0) {
-                        throw except::out_of_range("Container3D::end: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
-                    }
-                #endif
+                assert([&]() -> bool {
+                    if (0 <= i && i < N && 0 <= j && j < M) {return true;}
+                    std::cout << "Container3D::end: Index out of bounds (" << N << ", " << M << ") <= (" << i << ", " << j << ")" << std::endl;
+                    return false;
+                }() && "Container3D::end: Index out of bounds.");
                 return data.begin() + L*(j + M*i) + L;
             }
 
             /**
              * @brief Get an iterator to the beginning of the entire container. 
              */
-            const typename std::vector<T>::const_iterator begin() const {return data.begin();}
+            typename std::vector<T>::const_iterator begin() const {return data.begin();}
 
             /**
              * @brief Get an iterator to the end of the entire container. 
              */
-            const typename std::vector<T>::const_iterator end() const {return data.end();}
+            typename std::vector<T>::const_iterator end() const {return data.end();}
 
             /**
              * @brief Get an iterator to the beginning of the entire container. 
@@ -107,25 +111,25 @@ namespace ausaxs::container {
             /**
              * @brief Get the number of elements in the x direction.
              */
-            std::size_t size_x() const {return N;}
+            int size_x() const {return N;}
 
             /**
              * @brief Get the number of elements in the y direction.
              */
-            std::size_t size_y() const {return M;}
+            int size_y() const {return M;}
 
             /**
              * @brief Get the length of each (x, y) element.
              */
-            std::size_t size_z() const {return L;}
+            int size_z() const {return L;}
 
             /**
              * @brief Resize the container to contain @a size elements for each (x, y) index.
              */
             void resize(int size) {
                 Container3D tmp(N, M, size);
-                for (int i = 0; i < static_cast<int>(N); i++) {
-                    for (int j = 0; j < static_cast<int>(M); j++) {
+                for (int i = 0; i < N; i++) {
+                    for (int j = 0; j < M; j++) {
                         std::move(begin(i, j), begin(i, j)+std::min<int>(size, L), tmp.begin(i, j));
                     }
                 }
@@ -139,7 +143,7 @@ namespace ausaxs::container {
             bool empty() const {return data.empty();}
 
         protected:
-            std::size_t N, M, L;
+            int N, M, L;
             std::vector<T> data;
     };
 }

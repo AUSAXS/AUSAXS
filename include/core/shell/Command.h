@@ -22,7 +22,7 @@ namespace ausaxs::shell {
     class Command {
         public:
             Command() noexcept;
-            Command(const std::string& cmd);
+            Command(std::string cmd);
 
             /// @brief Replace the command string with @p cmd.
             void set(const std::string& cmd);

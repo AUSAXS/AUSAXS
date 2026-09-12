@@ -1,11 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/FormFactor.h>
 #include <form_factor/ExvFormFactor.h>
-#include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/FormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
-#include <form_factor/ExvTable.h>
+#include <form_factor/lookup/FormFactorManager.h>
 
 using namespace ausaxs;
 using namespace form_factor;
@@ -13,13 +12,13 @@ using namespace form_factor;
 TEST_CASE("ExvFormFactorProduct::comprehensive_exv_evaluation") {
     SECTION("all exv form factor products match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        auto& table = manager::get_active_product_tables()->raw_exv_table;
-        for (unsigned int ff1 = 1; ff1 < form_factor::total_ff_count; ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
+        const auto& table = manager::get_active_product_tables()->raw_exv_table;
+        for (int ff1 = 1; ff1 < form_factor::total_ff_count; ++ff1) {
+            for (int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
                 ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
-                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = exv1.evaluate(constants::axes::q_vals[i]) * exv2.evaluate(constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
@@ -31,13 +30,13 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_exv_evaluation") {
 TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
     SECTION("all cross form factor products match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        auto& table = manager::get_active_product_tables()->raw_cross_table;
-        for (unsigned int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
+        const auto& table = manager::get_active_product_tables()->raw_cross_table;
+        for (int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
+            for (int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
-                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * exv2.evaluate(constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
@@ -49,13 +48,13 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
 TEST_CASE("ExvFormFactorProduct::exv_table_comprehensive") {
     SECTION("all exv table entries match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        auto& table = manager::get_active_product_tables()->raw_exv_table;
-        for (unsigned int ff1 = 1; ff1 < form_factor::total_ff_count; ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
+        const auto& table = manager::get_active_product_tables()->raw_exv_table;
+        for (int ff1 = 1; ff1 < form_factor::total_ff_count; ++ff1) {
+            for (int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
                 ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
-                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = exv1.evaluate(constants::axes::q_vals[i]) * exv2.evaluate(constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
@@ -67,13 +66,13 @@ TEST_CASE("ExvFormFactorProduct::exv_table_comprehensive") {
 TEST_CASE("ExvFormFactorProduct::cross_table_comprehensive") {
     SECTION("all cross table entries match direct calculation") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        auto& table = manager::get_active_product_tables()->raw_cross_table;
-        for (unsigned int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
-            for (unsigned int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
+        const auto& table = manager::get_active_product_tables()->raw_cross_table;
+        for (int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
+            for (int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
                 const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
-                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * exv2.evaluate(constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }

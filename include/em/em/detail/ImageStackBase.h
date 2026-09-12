@@ -3,10 +3,10 @@
 
 #pragma once
 
+#include <data/DataFwd.h>
 #include <em/EMFwd.h>
 #include <em/detail/EMInternalFwd.h>
 #include <hist/HistFwd.h>
-#include <data/DataFwd.h>
 #include <io/IOFwd.h>
 
 #include <em/Image.h>
@@ -14,8 +14,8 @@
 #include <em/detail/header/MapHeader.h>
 #include <utility/observer_ptr.h>
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace ausaxs::em {
     /**
@@ -49,14 +49,14 @@ namespace ausaxs::em {
              * 
              * @param layer The vertical location of the Image. 
              */
-            Image& image(unsigned int layer);
+            Image& image(int layer);
 
             /**
              * @brief Get a specific Image stored in this object. 
              * 
              * @param layer The vertical location of the Image. 
              */
-            const Image& image(unsigned int layer) const;
+            const Image& image(int layer) const;
 
             /**
              * @brief Prepare a ScatteringHistogram based on this object. 
@@ -66,12 +66,12 @@ namespace ausaxs::em {
             /**
              * @brief Count the number of voxels for a given cutoff.
              */
-            unsigned int count_voxels(double cutoff) const;
+            int count_voxels(double cutoff) const;
 
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(const std::shared_ptr<fitter::EMFitResult> res) const;
+            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(const std::shared_ptr<fitter::EMFitResult>& res) const;
 
             /**
              * @brief Get the protein generated with the chosen cutoff value.
@@ -91,7 +91,7 @@ namespace ausaxs::em {
             /**
              * @brief Get the number of images stored in this object.
              */
-            unsigned int size() const;
+            int size() const;
 
             /**
              * @brief Get a reference to all images stored in this object. 
@@ -141,13 +141,13 @@ namespace ausaxs::em {
             std::unique_ptr<detail::header::IMapHeader> header; // The header of the input file.
             std::unique_ptr<em::managers::ProteinManager> phm;  // The histogram manager. Manages both the backing protein & its scattering curve. 
             std::vector<Image> data;                            // The actual image data. 
-            unsigned int size_x, size_y, size_z;                // The number of pixels in each dimension.
+            int size_x, size_y, size_z;                         // The number of pixels in each dimension.
             mutable double _rms = 0;                            // The root-mean-square of the map.
             
             void read(std::ifstream& istream);
 
-            float& index(unsigned int x, unsigned int y, unsigned int z);
+            float& index(int x, int y, int z);
 
-            float index(unsigned int x, unsigned int y, unsigned int z) const;
+            float index(int x, int y, int z) const;
     };
 }

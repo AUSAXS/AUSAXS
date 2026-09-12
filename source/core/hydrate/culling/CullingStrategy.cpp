@@ -10,4 +10,4 @@ CullingStrategy::CullingStrategy(observer_ptr<data::Molecule> molecule) : molecu
 
 CullingStrategy::~CullingStrategy() = default;
 
-void CullingStrategy::set_target_count(unsigned int target_count) {this->target_count = target_count;}
+void CullingStrategy::set_target_count(int target_count) {this->target_count = target_count;}

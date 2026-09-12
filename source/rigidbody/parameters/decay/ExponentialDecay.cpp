@@ -8,8 +8,8 @@
 
 using namespace ausaxs::rigidbody::parameter::decay;
 
-ExponentialDecay::ExponentialDecay(unsigned int max_iterations) : DecayStrategy(max_iterations) {
-    set_characteristic_time(max_iterations/2);
+ExponentialDecay::ExponentialDecay(int max_iterations) : DecayStrategy(max_iterations) {
+    ExponentialDecay::set_characteristic_time(max_iterations/2);
 }
 
 ExponentialDecay::~ExponentialDecay() = default;
@@ -18,7 +18,7 @@ double ExponentialDecay::next() {
     return std::exp(-decay_rate*next_draw());
 }
 
-void ExponentialDecay::set_characteristic_time(unsigned int iterations) {
+void ExponentialDecay::set_characteristic_time(int iterations) {
     // guard against iterations = 1
-    decay_rate = 1.0/std::max(1u, iterations);
+    decay_rate = 1.0/std::max<int>(1, iterations);
 }

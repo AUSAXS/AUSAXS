@@ -2,28 +2,28 @@
 // Author: Kristian Lytje
 
 #include <em/ImageStack.h>
-#include <settings/All.h>
-#include <plots/All.h>
-#include <mini/All.h>
-#include <fitter/SmartFitter.h>
-#include <mini/detail/Parameter.h>
+
+#include <data/Molecule.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <em/manager/ProteinManager.h>
-#include <data/Molecule.h>
-#include <utility/Console.h>
-#include <utility/Limit.h>
-#include <utility/Utility.h>
-#include <utility/Logging.h>
-#include <constants/Constants.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <settings/EMSettings.h>
-#include <settings/HistogramSettings.h>
+#include <fitter/SmartFitter.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <hydrate/generation/RadialHydration.h>
 #include <math/Vector3.h>
+#include <mini/Golden.h>
+#include <mini/LimitedScan.h>
+#include <mini/MinimumExplorer.h>
+#include <mini/detail/Parameter.h>
+#include <plots/PlotDataset.h>
+#include <plots/PlotLandscape.h>
+#include <settings/All.h>
+#include <settings/EMSettings.h>
+#include <utility/Console.h>
+#include <utility/Limit.h>
+#include <utility/Logging.h>
 
-#include <fstream>
 #include <cassert>
+#include <fstream>
 
 using namespace ausaxs;
 using namespace ausaxs::em;
@@ -40,7 +40,7 @@ ImageStack::ImageStack(const std::vector<Image>& images) : ImageStackBase(images
 ImageStack::~ImageStack() = default;
 
 double ImageStack::get_mass(double cutoff) const {
-    auto p = get_protein_manager()->get_protein(cutoff);
+    auto* p = get_protein_manager()->get_protein(cutoff);
     p->clear_grid();
     return p->get_excluded_volume_mass()/1e3;
 }
@@ -52,13 +52,16 @@ std::unique_ptr<EMFitResult> ImageStack::fit(const io::ExistingFile& file) {
 }
 
 std::unique_ptr<EMFitResult> ImageStack::fit(const io::ExistingFile& file, mini::Parameter& param) {
+    if (!param.bounds.has_value()) {return fit(file);} // ensure parameter bounds are present
     logging::log("ImageStack: Preparing fit to file \"" + file.str() + "\" with cutoff bounds [" + std::to_string(param.bounds->min) + ", " + std::to_string(param.bounds->max) + "]");
-    if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
     std::unique_ptr<SmartFitter> fitter = std::make_unique<SmartFitter>(file);
     return fit_helper(std::move(fitter), param);
 }
 
-std::shared_ptr<FitResult> last_fit; //? not the prettiest option, but it works for now
+namespace {
+    std::shared_ptr<FitResult> last_fit; //? not the prettiest option, but it works for now
+}
+
 std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<SmartFitter> _fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
@@ -72,7 +75,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
     // stored vars for optimization
     static double last_c;
-    static unsigned int counter;
+    static int counter;
     last_c = 5;
     counter = 0;
 
@@ -90,12 +93,12 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             last_fit = fitter->fit();                                                                     // do the fit
             water_factors.push_back(last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER));  // record c value
             last_c = last_fit->get_parameter(constants::fit::Parameters::SCALING_WATER).value;            // update c for next iteration
-            evals.push_back(detail::ExtendedLandscape(params[0], mass, get_protein_manager()->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
+            evals.emplace_back(params[0], mass, get_protein_manager()->get_volume_grid(), std::move(last_fit->evaluated_points));  // record evaluated points
         } else {
             fitter->set_model(get_protein_manager()->get_histogram(params[0]));
             auto mass = get_protein_manager()->get_excluded_volume_mass()/1e3;      // mass in kDa
             last_fit = fitter->fit();
-            evals.push_back(detail::ExtendedLandscape(params[0], mass, get_protein_manager()->get_volume_grid(), std::move(last_fit->evaluated_points)));  // record evaluated points
+            evals.emplace_back(params[0], mass, get_protein_manager()->get_volume_grid(), std::move(last_fit->evaluated_points));  // record evaluated points
         }
 
         double val = last_fit->fval;
@@ -107,7 +110,8 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     }; 
 }
 
-std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter> fitter, mini::Parameter& param) {
+std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartFitter>& fitter, mini::Parameter& param) {
+    assert(param.bounds.has_value() && "ImageStack::fit_helper: The cutoff parameter must be bounded. Both fit() overloads guarantee this before calling.");
     //##########################################################//
     //###                       SETUP                        ###//
     //##########################################################//
@@ -119,7 +123,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     set_minimum_bounds(param.bounds->min);
     auto func = prepare_function(fitter);
     mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
-    unsigned int dof = fitter->dof()-1; // minus one because we're also fitting the cutoff
+    int dof = fitter->dof()-1; // minus one because we're also fitting the cutoff
     console::print_text("The mass range [" + std::to_string(get_mass(param.bounds->min)) + ", " + std::to_string(get_mass(param.bounds->max)) + "] kDa will be scanned."); 
 
     EMFitResult::EMFitInfo plots;
@@ -200,7 +204,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     // prepare the mass axis
     if (settings::em::mass_axis) {
         Dataset mass_data(this->evals.size(), 2);
-        for (unsigned int i = 0; i < this->evals.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(this->evals.size()); ++i) {
             mass_data.index(i, 0) = this->evals[i].cutoff;
             mass_data.index(i, 1) = this->evals[i].mass;
         }
@@ -209,7 +213,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     }
 
     { // remove minima that are too far away from the absolute minimum
-        std::vector<unsigned int> to_keep;
+        std::vector<int> to_keep;
         for (auto m : minima) {
             if (data_avg_int.y(m) < min_abs.y*2) {to_keep.push_back(m);}
         }
@@ -222,11 +226,11 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
 
     // save .pdb structures of the other minima
     if (settings::em::save_pdb && 1 < minima.size()) {
-        unsigned int enumerate = 0;
+        int enumerate = 0;
         std::string info;
         for (auto m : minima) {
             if (data_avg_int.x(m) == min_abs.x) {continue;}
-            auto temp_protein = get_protein_manager()->get_protein(data_avg_int.x(m));
+            auto* temp_protein = get_protein_manager()->get_protein(data_avg_int.x(m));
             if (settings::em::hydrate) {
                 temp_protein->clear_grid();
                 temp_protein->generate_new_hydration();
@@ -255,11 +259,11 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
             }
 
             // convert cutoff to std levels & normalize chi2
-            for (unsigned int i = 0; i < chi2_copy.size(); ++i) {
+            for (int i = 0; i < chi2_copy.size(); ++i) {
                 chi2_copy.x(i) = to_level(chi2_copy.x(i));
                 chi2_copy.y(i) /= dof;
             }
-            for (unsigned int i = 0; i < avg_copy.size(); ++i) {
+            for (int i = 0; i < avg_copy.size(); ++i) {
                 avg_copy.x(i) = to_level(avg_copy.x(i));
                 avg_copy.y(i) /= dof;
             }
@@ -307,7 +311,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
             { // chi2 landscape
                 auto l = evals.as_dataset();
                 l.sort_x();
-                for (unsigned int i = 0; i < l.size(); ++i) {
+                for (int i = 0; i < l.size(); ++i) {
                     l.x(i) = to_level(l.x(i));
                     l.y(i) /= dof;
                 }
@@ -322,8 +326,8 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
 
             // volume as a function of cutoff
             if (settings::general::supplementary_plots) {
-                SimpleDataset volume_data(this->evals.size()); 
-                for (unsigned int i = 0; i < this->evals.size(); ++i) {
+                SimpleDataset volume_data(static_cast<int>(this->evals.size())); 
+                for (int i = 0; i < static_cast<int>(this->evals.size()); ++i) {
                     volume_data.x(i) = to_level(this->evals[i].cutoff);
                     volume_data.y(i) = this->evals[i].mass;
                 }
@@ -431,11 +435,11 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     if (settings::em::plot_landscapes && settings::em::hydrate) {
         mini::Landscape l;
         l.evals.reserve(1000);
-        for (int i = 0; i < static_cast<int>(this->evals.size()); ++i) {
-            for (int j = 0; j < static_cast<int>(this->evals[i].strip.evals.size()); ++j) {
-                double x = this->evals[i].cutoff;
-                double y = this->evals[i].strip.evals[j].vals.front();
-                double z = this->evals[i].strip.evals[j].fval;
+        for (auto& eval : this->evals) {
+            for (int j = 0; j < static_cast<int>(eval.strip.evals.size()); ++j) {
+                double x = eval.cutoff;
+                double y = eval.strip.evals[j].vals.front();
+                double z = eval.strip.evals[j].fval;
                 l.evals.push_back(mini::Evaluation({x, y}, z));
             }
         }
@@ -459,13 +463,13 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(std::shared_ptr<SmartFitter>
     }
     emfit->add_fit(last_fit.get(), true);
     emfit->fval = fval;
-    emfit->fevals = evals.evals.size();
+    emfit->fevals = static_cast<int>(evals.evals.size());
     emfit->em_info = std::move(plots);
     emfit->evaluated_points = std::move(evals);
     emfit->level = to_level(min_abs.x);
     if (settings::em::mass_axis) {emfit->mass = data_avg_int.interpolate_x(min_abs.x, 2);}
     if (settings::em::save_pdb) {
-        auto temp_protein = get_protein_manager()->get_protein(min_abs.x);
+        auto* temp_protein = get_protein_manager()->get_protein(min_abs.x);
         if (settings::em::hydrate) {
             temp_protein->clear_grid();
             temp_protein->generate_new_hydration();
@@ -480,7 +484,7 @@ const std::vector<mini::FittedParameter>& ImageStack::get_fitted_water_factors()
 
 Dataset ImageStack::get_fitted_water_factors_dataset() const {
     std::vector<double> x(water_factors.size()), y(water_factors.size());
-    for (unsigned int i = 0; i < water_factors.size(); i++) {
+    for (int i = 0; i < static_cast<int>(water_factors.size()); i++) {
         x[i] = i;
         y[i] = water_factors[i].value;
     }
@@ -489,7 +493,8 @@ Dataset ImageStack::get_fitted_water_factors_dataset() const {
 
 void ImageStack::update_charge_levels(const Limit& limit) const noexcept {
     std::vector<double> levels;
-    for (unsigned int i = 0; i < settings::em::charge_levels; i++) {
+    levels.reserve(settings::em::charge_levels);
+    for (int i = 0; i < settings::em::charge_levels; i++) {
         levels.push_back(limit.min + i*limit.span()/settings::em::charge_levels);
     }
     get_protein_manager()->set_charge_levels(levels);

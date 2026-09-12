@@ -3,76 +3,56 @@
 
 #pragma once
 
-#if (SAFE_MATH) 
-    #include <math/Exceptions.h>
-    #include <string>
+#include <cassert>
+
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
 #endif
 
 namespace ausaxs::utility::indexer {
     /**
      * @brief CRTP mixin providing element access for a two-dimensional container.
-     *
-     * The deriving class must expose a contiguous @c data member (row-major, with row length @c M)
-     * and the dimensions @c N and @c M. Both 2D `(i, j)` and flat `linear_index(i)` access are
-     * offered. When the SAFE_MATH macro is set, every access is bounds-checked and throws
-     * ausaxs::except::out_of_range on failure; otherwise the checks compile away.
+     *        The deriving class must expose a contiguous @c data member (row-major, with row length @c M) and the dimensions @c N and @c M. 
      */
     template<typename Derived>
     class Indexer2D {
+        Indexer2D() = default;
+        friend Derived;
+
         protected:
             constexpr const auto& index(int i, int j) const {
-                #if (SAFE_MATH)
-                    int N = static_cast<int>(derived().N);
-                    int M = static_cast<int>(derived().M);
-                    if (i < 0 || N <= i || j < 0 || M <= j) {
-                        throw ausaxs::except::out_of_range(
-                            "Indexer2D: Index out of bounds "
-                            "(" + std::to_string(i) + ", " + std::to_string(j) + ") "
-                            "should be less than (" + std::to_string(N) + ", " + std::to_string(M) + ")"
-                        );
-                    }
-                #endif
+                assert([&]() -> bool {
+                    if (0 <= i && i < derived().N && 0 <= j && j < derived().M) {return true;}
+                    std::cout << "Indexer2D: Index out of bounds (" << i << ", " << j << ") should be less than (" << derived().N << ", " << derived().M << ")" << std::endl;
+                    return false;
+                }() && "Indexer2D: Index out of bounds.");
                 return derived().data[j + derived().M * i]; 
             }
 
             constexpr auto& index(int i, int j) {
-                #if (SAFE_MATH)
-                    int N = static_cast<int>(derived().N);
-                    int M = static_cast<int>(derived().M);
-                    if (i < 0 || N <= i || j < 0 || M <= j) {
-                        throw ausaxs::except::out_of_range(
-                            "Indexer2D: Index out of bounds "
-                            "(" + std::to_string(i) + ", " + std::to_string(j) + ") "
-                            "should be less than (" + std::to_string(N) + ", " + std::to_string(M) + ")"
-                        );
-                    }
-                #endif
+                assert([&]() -> bool {
+                    if (0 <= i && i < derived().N && 0 <= j && j < derived().M) {return true;}
+                    std::cout << "Indexer2D: Index out of bounds (" << i << ", " << j << ") should be less than (" << derived().N << ", " << derived().M << ")" << std::endl;
+                    return false;
+                }() && "Indexer2D: Index out of bounds.");
                 return derived().data[j + derived().M * i]; 
             }
 
             constexpr const auto& linear_index(int i) const { 
-                #if (SAFE_MATH)
-                    int size = static_cast<int>(derived().N * derived().M);
-                    if (i < 0 || size <= i) {
-                        throw ausaxs::except::out_of_range(
-                            "Indexer2D::linear_index: Index out of bounds "
-                            "(" + std::to_string(i) + " should be less than " + std::to_string(size) + ")"
-                        );
-                    }
-                #endif
+                assert([&]() -> bool {
+                    if (0 <= i && i < derived().N*derived().M) {return true;}
+                    std::cout << "Indexer2D::linear_index: Index out of bounds (" << i << " should be less than " << derived().N*derived().M << ")" << std::endl;
+                    return false;
+                }() && "Indexer2D::linear_index: Index out of bounds.");
                 return derived().data[i];
             }
 
             constexpr auto& linear_index(int i) { 
-                #if (SAFE_MATH)
-                    int size = static_cast<int>(derived().N * derived().M);
-                    if (i < 0 || size <= i) {
-                        throw ausaxs::except::out_of_range(
-                            "Indexer2D::linear_index: Index out of bounds "
-                            "(" + std::to_string(i) + " should be less than " + std::to_string(size) + ")"
-                        );
-                    }
-                #endif
+                assert([&]() -> bool {
+                    if (0 <= i && i < derived().N*derived().M) {return true;}
+                    std::cout << "Indexer2D::linear_index: Index out of bounds (" << i << " should be less than " << derived().N*derived().M << ")" << std::endl;
+                    return false;
+                }() && "Indexer2D::linear_index: Index out of bounds.");
                 return derived().data[i];
             }
 

@@ -2,23 +2,20 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
-#include <hist/detail/CompactCoordinates.h>
+
+#include <container/ThreadLocalWrapper.h>
+#include <data/Molecule.h>  // IWYU pragma: keep
+#include <form_factor/FormFactorType.h>
+#include <grid/exv/RawGridWithSurfaceExv.h>
 #include <hist/detail/BinEstimate.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
+#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <container/ThreadLocalWrapper.h>
-#include <data/Molecule.h>
-#include <grid/Grid.h>
-#include <grid/exv/RawGridWithSurfaceExv.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/GeneralSettings.h>
-#include <settings/GridSettings.h>
-#include <settings/HistogramSettings.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
-#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
-#include <form_factor/FormFactorType.h>
-#include <utility/MultiThreading.h>
 #include <utility/Logging.h>
+#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -42,7 +39,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     using XXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::XXContainer;
     using AXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::AXContainer;
     using WXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::WXContainer;
-    auto pool = utility::multi_threading::get_global_pool();
+    auto* pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
     hist::detail::CompactCoordinatesFF<variable_bin_width> data_x_i, data_x_s;
@@ -68,7 +65,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     int data_w_size = (int) data_w.size();
     int data_x_i_size = (int) data_x_i.size();
     int data_x_s_size = (int) data_x_s.size();
-    unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
+    int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
 
     //########################//
     // PREPARE MULTITHREADING //
@@ -232,31 +229,31 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     int job_size_xs = settings::general::detail::get_job_size(data_x_s_size);
     int job_size_a = settings::general::detail::get_job_size(data_a_size);
     int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < (int) data_x_i_size; i+=job_size_xi) {
+    for (int i = 0; i < data_x_i_size; i+=job_size_xi) {
         pool->detach_task(
             [&calc_xx_ii, i, job_size_xi, data_x_i_size] () {return calc_xx_ii(i, std::min(i+job_size_xi, data_x_i_size));}
         );
     }
 
-    for (int i = 0; i < (int) data_x_s_size; i+=job_size_xs) {
+    for (int i = 0; i < data_x_s_size; i+=job_size_xs) {
         pool->detach_task(
             [&calc_xx_ss, i, job_size_xs, data_x_s_size] () {return calc_xx_ss(i, std::min(i+job_size_xs, data_x_s_size));}
         );
     }
 
-    for (int i = 0; i < (int) data_x_i_size; i+=job_size_xi) {
+    for (int i = 0; i < data_x_i_size; i+=job_size_xi) {
         pool->detach_task(
             [&calc_xx_si, i, job_size_xi, data_x_i_size] () {return calc_xx_si(i, std::min(i+job_size_xi, data_x_i_size));}
         );
     }
 
-    for (int i = 0; i < (int) data_a_size; i+=job_size_a) {
+    for (int i = 0; i < data_a_size; i+=job_size_a) {
         pool->detach_task(
             [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
         );
     }
 
-    for (int i = 0; i < (int) data_w_size; i+=job_size_w) {
+    for (int i = 0; i < data_w_size; i+=job_size_w) {
         pool->detach_task(
             [&calc_wx, i, job_size_w, data_w_size] () {return calc_wx(i, std::min(i+job_size_w, data_w_size));}
         );
@@ -274,8 +271,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     p_xx.surface.add_index(0, detail::WeightedEntry(data_x_s_size, data_x_s_size, 0));
 
     // downsize our axes to only the relevant area
-    unsigned int max_bin = 10; // minimum size is 10
-    for (unsigned int i = p_xx.surface.size()-1; i >= 10; i--) {
+    int max_bin = 10; // minimum size is 10
+    for (int i = p_xx.surface.size()-1; i >= 10; i--) {
         if (p_xx.surface.index(i) != 0 || p_xx.interior.index(i) != 0 || p_wx.surface.index(i) != 0 || p_wx.interior.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
@@ -284,8 +281,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 
     // ensure that our new vectors are compatible with those from the base class
     // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
-    auto cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    WeightedDistribution1D p_tot = std::move(cast_res->get_weighted_counts());
+    auto* cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
+    WeightedDistribution1D p_tot = cast_res->get_weighted_counts();
     p_tot.set_bin_centers(cast_res->get_d_axis());
 
     Distribution3D p_aa = std::move(cast_res->get_raw_aa_counts_by_ff());
@@ -293,10 +290,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     Distribution1D p_ww = std::move(cast_res->get_raw_ww_counts_by_ff());
 
     // either xx or ww are largest of all components
-    max_bin = std::max<unsigned int>(max_bin, p_tot.size());
+    max_bin = std::max<int>(max_bin, p_tot.size());
 
     // downsize the axes to only the relevant area
-    if (base_res->get_d_axis().size() < max_bin) {
+    if (static_cast<int>(base_res->get_d_axis().size()) < max_bin) {
         p_aa.resize(max_bin);
         p_aw.resize(max_bin);
         p_ww.resize(max_bin);
@@ -307,20 +304,20 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     // calculate weighted distance bins
     p_tot.resize(max_bin);
     WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx.surface.size());
-    for (unsigned int i = 0; i < max_bin; ++i) {
+    for (int i = 0; i < max_bin; ++i) {
         p_tot_ax.add_index(i, p_wx.interior.index(i));
         p_tot_ax.add_index(i, p_wx.surface.index(i));
     }
 
-    for (unsigned int i = 0; i < p_ax.surface.size_x(); ++i) {
-        for (unsigned int j = 0; j < max_bin; ++j) {
+    for (int i = 0; i < p_ax.surface.size_x(); ++i) {
+        for (int j = 0; j < max_bin; ++j) {
             p_tot_ax.add_index(j, p_ax.interior.index(i, j));
             p_tot_ax.add_index(j, p_ax.surface.index(i, j));
         }
     }
 
     WeightedDistribution1D p_tot_xx = std::max<int>(max_bin, p_xx.surface.size());
-    for (unsigned int i = 0; i < max_bin; ++i) {
+    for (int i = 0; i < max_bin; ++i) {
         p_tot_xx.add_index(i, p_xx.interior.index(i));
         p_tot_xx.add_index(i, p_xx.surface.index(i));
         p_tot_xx.add_index(i, p_xx.cross.index(i));
@@ -328,7 +325,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 
     {   // delete the exv information from the HistogramManagerMTFFAvg data
         // we delegate this work to the DistanceHistogram class, since it must be able to do this anyway to vary the surface contribution
-        for (unsigned int i = 0; i < p_aa.size_x(); ++i) {
+        for (int i = 0; i < p_aa.size_x(); ++i) {
             std::for_each(p_aa.begin(i, form_factor::exv_bin), p_aa.end(i, form_factor::exv_bin) , [](auto& x) {x = 0;});
         }
         std::for_each(p_aw.begin(form_factor::exv_bin), p_aw.end(form_factor::exv_bin), [](auto& x) {x = 0;});

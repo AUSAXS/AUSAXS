@@ -2,13 +2,13 @@
 // Author: Kristian Lytje
 
 #include <hydrate/generation/GridBasedHydration.h>
+
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/culling/CullingFactory.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <utility/Console.h>
 #include <settings/GridSettings.h>
 
 #include <algorithm>
@@ -22,7 +22,7 @@ GridBasedHydration::GridBasedHydration(observer_ptr<data::Molecule> protein, std
 
 void GridBasedHydration::initialize() {
     protein->signal_modified_hydration_layer();
-    if (auto grid = protein->get_grid(); grid == nullptr) {protein->create_grid();}
+    if (auto* grid = protein->get_grid(); grid == nullptr) {protein->create_grid();}
     else {grid->clear_waters();}
 }
 
@@ -35,12 +35,12 @@ void GridBasedHydration::set_culling_strategy(std::unique_ptr<CullingStrategy> c
 void GridBasedHydration::hydrate() {
     assert(protein != nullptr && "GridBasedHydration::hydrate: protein is nullptr");
 
-    auto grid = protein->get_grid();
+    auto* grid = protein->get_grid();
     assert(grid != nullptr && "GridBasedHydration::hydrate: grid is nullptr");
 
     if (!culling_strategy) {culling_strategy = factory::construct_culling_strategy(protein, global());}
 
-    if (grid->w_members.size() != 0) {grid->clear_waters();}
+    if (!grid->w_members.empty()) {grid->clear_waters();}
     grid->expand_volume();
 
     // assume the protein is a perfect sphere. then we want the number of water molecules to be proportional to the surface area
@@ -51,7 +51,7 @@ void GridBasedHydration::hydrate() {
 
     auto to_atoms = [] (std::span<grid::GridMember<data::Water>> waters) {
         std::vector<data::Water> remaining_waters(waters.size());
-        std::transform(waters.begin(), waters.end(), remaining_waters.begin(), 
+        std::ranges::transform(waters, remaining_waters.begin(), 
             [] (const auto& water) {return water.get_atom();}
         );
         return remaining_waters;
@@ -59,7 +59,7 @@ void GridBasedHydration::hydrate() {
 
     if (global()) { // global hydration
         auto waters = generate_explicit_hydration(grid->a_members);
-        culling_strategy->set_target_count(target);
+        culling_strategy->set_target_count(static_cast<int>(target));
         culling_strategy->cull(waters);
         auto hydration = std::make_unique<ExplicitHydration>(to_atoms(waters));
         hydration->expanded_across_symmetry = true; // spans grid->a_members, i.e. every body's symmetry copies
@@ -67,18 +67,18 @@ void GridBasedHydration::hydrate() {
         return;
     }
 
-    for (int i = 0; i < static_cast<int>(protein->size_body()); i++) {
+    for (int i = 0; i < protein->size_body(); i++) {
         assert(grid->body_start.contains(protein->get_body(i).get_uid()) && "GridBasedHydration::hydrate: body_start does not contain body uid");
         int start = grid->body_start.at(protein->get_body(i).get_uid());
         int end = start + protein->get_body(i).symmetry().size_atom_total();
         assert(end <= static_cast<int>(grid->a_members.size()) && "GridBasedHydration::hydrate: Contained bodies have been modified after being added to the grid.");
-        assert(std::none_of(grid->body_start.begin(), grid->body_start.end(), [&] (const auto& kv) {
+        assert(std::ranges::none_of(grid->body_start, [&] (const auto& kv) {
             return kv.first != protein->get_body(i).get_uid() && start < kv.second && kv.second < end;
         }) && "GridBasedHydration::hydrate: computed atom span overlaps another body's block.");
 
         auto atoms = std::span(grid->a_members.begin() + start, grid->a_members.begin() + end);
         auto waters = generate_explicit_hydration(atoms);
-        culling_strategy->set_target_count(target);
+        culling_strategy->set_target_count(static_cast<int>(target));
         culling_strategy->cull(waters);
         auto hydration = std::make_unique<ExplicitHydration>(to_atoms(waters));
         hydration->expanded_across_symmetry = true; // span includes this body's own symmetry copies

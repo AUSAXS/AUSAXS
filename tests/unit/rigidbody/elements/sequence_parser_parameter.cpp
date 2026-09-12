@@ -4,16 +4,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <io/ExistingFile.h>
+#include <rigidbody/parameters/ParameterAmplitudes.h>
+#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/ParameterElement.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/parameters/ParameterAmplitudes.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
 #include <settings/All.h>
-#include <io/ExistingFile.h>
 
 #include <support/temp_file.h>
 
@@ -30,7 +27,7 @@ struct ParameterParseFixture {
         settings::grid::min_bins = 250;
     }
 
-    std::unique_ptr<Sequencer> parse(const std::string& content) {
+    static std::unique_ptr<Sequencer> parse(const std::string& content) {
         test::TempFile config(".conf", content);
         SequenceParser parser;
         return parser.parse_file(config);
@@ -47,7 +44,7 @@ struct ParameterParseFixture {
     static std::string load_with_symmetry() {return load() + "symmetry c2\n";}
 
     // the amplitudes the parsed "parameter" element ended up with
-    parameter::ParameterAmplitudes amplitudes_of(const std::string& script) {
+    static parameter::ParameterAmplitudes amplitudes_of(const std::string& script) {
         auto seq = parse(script);
         REQUIRE(seq != nullptr);
         for (auto& element : seq->_get_elements()) {

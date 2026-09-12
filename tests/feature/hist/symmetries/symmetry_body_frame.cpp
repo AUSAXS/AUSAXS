@@ -1,18 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/ReferenceSymmetry.h>
+#include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
+#include <hist/hist_test_helper.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

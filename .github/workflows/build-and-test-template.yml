@@ -12,46 +12,42 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  check-draft:
-    name: "Check if PR is draft"
-    runs-on: ubuntu-latest
-    outputs:
-      is-draft: ${{ steps.check.outputs.is-draft }}
-    steps:
-      - name: Check draft status
-        id: check
-        run: |
-          if [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
-            echo "This is a draft PR. Skipping build." >> $GITHUB_STEP_SUMMARY
-            echo "is-draft=true" >> $GITHUB_OUTPUT
-          else
-            echo "This is not a draft PR. Proceeding with build."
-            echo "is-draft=false" >> $GITHUB_OUTPUT
-          fi
-
-  check-headers:
-    name: "Check that all file headers include a license and author"
-    needs: check-draft
-    if: needs.check-draft.outputs.is-draft == 'false'
+  check-sources:
+    name: "Check the source conventions"
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
+      # depth 2 gets the pull request's merge commit and its parents, so HEAD^ is the
+      # base branch and HEAD^..HEAD is exactly what the pull request changes
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # the two cheap checks run first so a failure reports before anything is installed
       - name: Check headers
         run: python .github/check_headers.py
 
-  check-exceptions:
-    name: "Check that no files bypass the ausaxs::except:: hierarchy"
-    needs: check-draft
-    if: needs.check-draft.outputs.is-draft == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - name: Check exceptions
         run: python .github/check_exceptions.py
 
+      # the tree holds over 500 translation units, so only the files this pull request
+      # touches are analysed; deletions are dropped as they no longer exist to analyse.
+      - name: Check clang-tidy
+        run: |
+          files=$(git diff --name-only --diff-filter=d HEAD^ HEAD -- '*.cpp' '*.h' '*.tpp' | tr '\n' ' ')
+          if [ -z "$files" ]; then
+            echo "No C++ files were changed."
+            exit 0
+          fi
+          echo "Changed files: $files"
+          sudo apt-get update
+          sudo apt-get install libcurl4-openssl-dev clang-tidy
+          cmake -B build -S . -DGUI=OFF
+          python scripts/run_clang_tidy.py --summary="$GITHUB_STEP_SUMMARY" $files
+
   build-win:
     name: "Windows MSVC"
-    needs: [check-headers, check-exceptions]
+    needs: check-sources
     runs-on: windows-latest
     env:
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,${{ inputs.package_permission && 'readwrite' || 'read' }}"
@@ -111,7 +107,7 @@ jobs:
 
   build-mac:
     name: "MacOS universal"
-    needs: [check-headers, check-exceptions]
+    needs: check-sources
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
@@ -159,7 +155,7 @@ jobs:
 
   build-mac-gui:
     name: "${{ matrix.name }}"
-    needs: [check-headers, check-exceptions]
+    needs: check-sources
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -251,7 +247,7 @@ jobs:
 
   build-ubuntu:
     name: ${{ matrix.name }}
-    needs: [check-headers, check-exceptions]
+    needs: check-sources
     runs-on: ${{ matrix.os }}
     strategy: 
       fail-fast: false

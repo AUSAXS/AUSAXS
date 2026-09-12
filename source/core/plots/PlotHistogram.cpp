@@ -2,8 +2,9 @@
 // Author: Kristian Lytje
 
 #include <plots/PlotHistogram.h>
-#include <hist/Histogram.h>
+
 #include <dataset/SimpleDataset.h>
+#include <hist/Histogram.h>
 
 using namespace ausaxs::plots;
 

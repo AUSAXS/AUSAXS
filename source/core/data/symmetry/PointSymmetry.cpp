@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/PointSymmetry.h>
+
 #include <math/MatrixUtils.h>
 
 #include <cassert>
@@ -11,10 +12,7 @@ using namespace ausaxs::symmetry;
 
 PointSymmetry::PointSymmetry() = default;
 
-PointSymmetry::PointSymmetry(const Vector3<double>& translation, const Vector3<double>& rotation) {
-    this->translation = translation;
-    this->rotation  = rotation;
-}
+PointSymmetry::PointSymmetry(const Vector3<double>& translation, const Vector3<double>& rotation) : translation(translation), rotation(rotation) {}
 
 bool PointSymmetry::is_closed() const { return false; }
 std::string PointSymmetry::type_name() const { return "p2"; }
@@ -23,23 +21,23 @@ std::unique_ptr<ISymmetry> PointSymmetry::clone() const {
     return std::make_unique<PointSymmetry>(*this);
 }
 
-AffineTransform PointSymmetry::_make_transform(const Vector3<double>& cm, int rep) const {
+AffineTransform PointSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
     assert(rep <= 1 && "PointSymmetry always generates exactly one copy (rep must be 1).");
     if (rep == 0) {return {};} // identity
 
     // final transform is v' = R*(v - cm) + cm + d
     //                       = R*v + (cm + d - R*cm)
     auto R = matrix::rotation_matrix<double>(rotation);
-    auto T = cm + translation - R*cm;
-    return {std::move(R), std::move(T)};
+    auto T = anchor + translation - R*anchor;
+    return {.rotation=std::move(R), .translation=T};
 }
 
-unsigned int PointSymmetry::repetitions() const {return 1;}
-std::span<double> PointSymmetry::span_translation() {return std::span<double>(translation.begin(), translation.end());}
-std::span<double> PointSymmetry::span_rotation() {return std::span<double>(rotation.begin(), rotation.end());}
+int PointSymmetry::repetitions() const {return 1;}
+std::span<double> PointSymmetry::span_translation() {return {translation.begin(), translation.end()};}
+std::span<double> PointSymmetry::span_rotation() {return {rotation.begin(), rotation.end()};}
 
 ISymmetry& PointSymmetry::add(observer_ptr<const ISymmetry> other) {
-    auto cast = dynamic_cast<const PointSymmetry*>(other);
+    const auto* cast = dynamic_cast<const PointSymmetry*>(other);
     assert(cast != nullptr && "Can only add PointSymmetry with another PointSymmetry.");
     this->translation += cast->translation;
     this->rotation += cast->rotation;

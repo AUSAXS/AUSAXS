@@ -1,19 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <em/ImageStack.h>
-#include <plots/All.h>
-#include <fitter/FitReporter.h>
-#include <utility/Utility.h>
-#include <settings/All.h>
-#include <hist/Histogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <data/Molecule.h>
-#include <data/Body.h>
-#include <em/detail/ExtendedLandscape.h>
 #include <fitter/SmartFitter.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <mini/detail/FittedParameter.h>
+#include <settings/All.h>
 
 using namespace ausaxs;
 using namespace data;
@@ -77,7 +70,7 @@ TEST_CASE("SmartFitter::fit") {
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
 
     SmartFitterDebug fitter({{}}, protein.get_histogram());
-    auto h = static_cast<hist::ICompositeDistanceHistogramExv*>(fitter.get_model());
+    auto* h = static_cast<hist::ICompositeDistanceHistogramExv*>(fitter.get_model());
 
     SECTION("hydration shell") {
         settings::fit::fit_hydration = true;
@@ -158,7 +151,7 @@ TEST_CASE("fitter: correct dof", "[files]") {
     Molecule protein("tests/files/2epe.pdb");
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
     SimpleDataset data("tests/files/2epe.dat");
-    unsigned int size = data.size();
+    int size = data.size();
 
     settings::fit::fit_hydration = false;
     settings::fit::fit_excluded_volume = false;
@@ -174,7 +167,7 @@ TEST_CASE("fitter: correct dof", "[files]") {
     }
 
     SECTION("SmartFitter") {
-        auto fit_and_check = [size, &protein, &data] (unsigned int dof) {
+        auto fit_and_check = [size, &protein, &data] (int dof) {
             fitter::SmartFitter fitter(data);
             REQUIRE(fitter.dof() == size-dof);
             fitter.set_model(protein.get_histogram());
@@ -281,6 +274,7 @@ TEST_CASE("SmartFitter: consistent fits using different q-ranges") {
             case static_cast<int>(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv):
             case static_cast<int>(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface):
                 continue; // these histogram managers currently pass, take too long to run, are somewhat unstable, and are not used that often anyway
+            default: break;
         }
         SECTION("Histogram manager: " + std::to_string(hm)) {
             protein.set_histogram_manager(static_cast<settings::hist::HistogramManagerChoice>(hm));

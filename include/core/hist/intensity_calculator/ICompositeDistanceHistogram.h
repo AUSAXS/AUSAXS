@@ -29,7 +29,7 @@ namespace ausaxs::hist {
             ICompositeDistanceHistogram(ICompositeDistanceHistogram&&) noexcept = default;
             ICompositeDistanceHistogram& operator=(const ICompositeDistanceHistogram&) = default;
             ICompositeDistanceHistogram& operator=(ICompositeDistanceHistogram&&) noexcept = default;
-            virtual ~ICompositeDistanceHistogram() = default;
+            ~ICompositeDistanceHistogram() override = default;
 
             /// @brief Get the partial distance histogram for atom-atom interactions.
             virtual const Distribution1D& get_aa_counts() const = 0;

@@ -1,0 +1,367 @@
+# clang-tidy configuration for AUSAXS.
+#
+# The check selection below was calibrated by running the full bugprone/modernize/
+# performance/readability/misc/portability/concurrency/clang-analyzer sets over a
+# sample of source files and disabling everything that produced systematic false
+# positives against this codebase's established conventions (see the comments on
+# each disabled check).
+#
+# Requires clang-tidy 19 or newer: misc-include-cleaner.MissingIncludes, which the
+# CheckOptions below depend on, does not exist in earlier releases and is silently
+# ignored there. scripts/run_clang_tidy.py enforces this.
+#
+# Usage:
+#   python scripts/run_clang_tidy.py            # whole project
+#   python scripts/run_clang_tidy.py source/rigidbody
+#   python scripts/run_clang_tidy.py --fix source/core/utility/Logging.cpp
+
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  concurrency-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  cppcoreguidelines-prefer-member-initializer,
+  cppcoreguidelines-rvalue-reference-param-not-moved,
+  cppcoreguidelines-slicing,
+  cppcoreguidelines-virtual-class-destructor,
+  llvm-include-order,
+
+  -bugprone-assert-side-effect,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-empty-catch,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-branch-clone,
+  -bugprone-virtual-near-miss,
+  -clang-analyzer-optin.core.EnumCastOutOfRange,
+  -clang-analyzer-security.FloatLoopCounter,
+  -concurrency-mt-unsafe,
+  -misc-const-correctness,
+  -misc-header-include-cycle,
+  -misc-no-recursion,
+  -misc-non-private-member-variables-in-classes,
+  -modernize-use-integer-sign-comparison,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  -performance-avoid-endl,
+  -performance-enum-size,
+  -performance-inefficient-string-concatenation,
+  -portability-avoid-pragma-once,
+  -portability-simd-intrinsics,
+  -portability-template-virtual-member-function,
+  -readability-avoid-nested-conditional-operator,
+  -readability-braces-around-statements,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-identifier-naming,
+  -readability-isolate-declaration,
+  -readability-magic-numbers,
+  -readability-math-missing-parentheses,
+  -readability-uppercase-literal-suffix,
+  -readability-use-concise-preprocessor-directives,
+
+# Rationale for the disabled checks (all verified against real hits in this tree):
+#
+#   bugprone-assert-side-effect
+#       Incompatible with the immediately-invoked-lambda assert idiom this codebase
+#       uses for multi-step sanity checks (CompositeSymmetry's constructor,
+#       CyclicSymmetry::sanity_checks, TransformStrategy::add_symmetries), and which
+#       we intend to keep using. Writing the check inline inside the assert is what
+#       guarantees it costs nothing under NDEBUG; hoisting the lambda out to a local
+#       to satisfy the check would give that property up, which is the entire point
+#       of the idiom. The check flags any ++/-- or assignment anywhere below the
+#       assert condition, including inside a lambda body, where the effect cannot
+#       escape the lambda at all -- so any such assert containing a loop trips it
+#       (a range-for on its implicit `++__begin`). There is no option to stop it
+#       descending into lambdas, and with CheckFunctionCalls left at its default
+#       `false` the only thing it still catches is a literal `assert(x = 5)`.
+#   bugprone-easily-swappable-parameters
+#       Geometry and histogram APIs legitimately take runs of same-typed scalars,
+#       e.g. Limit3D(double xmin, double xmax, ...), Grid::to_xyz(int i, int j, int k).
+#   bugprone-empty-catch
+#       The few empty handlers in the tree are deliberate and already carry a comment
+#       saying why, e.g. source/api/api_helper.cpp, where the handler reporting a
+#       failure across the C ABI must not itself throw out of the handler that called
+#       it. The check cannot be satisfied without either logging from a path that must
+#       not log or re-throwing from one that must not throw.
+#   bugprone-implicit-widening-of-multiplication-result
+#       The products it flags are bounded by construction, so the widening it warns
+#       about can never lose information: std::array<T, N*M> in
+#       include/core/container/ArrayContainer2D.h multiplies two `int` template
+#       arguments, where an overflowing product would not compile in the first place.
+#       The fixit only asks for a static_cast on operands that are already known small.
+#   bugprone-virtual-near-miss
+#       Renames a derived method whose name is within a small edit distance of a base
+#       class virtual with the same signature, assuming the near-match was a typo. The
+#       partial scattering profile accessors are deliberately one character apart --
+#       get_profile_aa/aw/ww on ICompositeDistanceHistogram and get_profile_ax/xx/wx on
+#       ICompositeDistanceHistogramExv, named for the pair of species whose interaction
+#       each one describes -- so every one of them is a "near miss" of the others.
+#       Whether a wrong rename lands is decided by an implementation detail: run with
+#       --fix, get_profile_ax is reported against both get_profile_aa and get_profile_aw,
+#       the two fixits overlap and clang-tidy applies neither, so ax survives; but
+#       get_profile_wx (water-(excluded volume)) matches only get_profile_ww
+#       (water-water), nothing overlaps, and the rename is applied. The result compiles,
+#       because the renamed declaration is a valid override of the base method it was
+#       renamed onto -- it merely deletes the wx accessor from the interface and
+#       redeclares ww. It is a physics error wearing the shape of a typo fix, and the
+#       check has no options (CheckOptions is empty for it), so no name can be exempted
+#       and no distance threshold raised.
+#   clang-analyzer-optin.core.EnumCastOutOfRange
+#       Reports a cast to an enum whose value is not one of the enumerators. That is the normal state
+#       of affairs for a flag set, which is what grid::detail::State is (see its declaration: "We use
+#       bit flags to allow more efficient bitwise operations on them"), so every combination of two or
+#       more flags and every complement produced by the operator|/&/^/~ overloads is reported. None of
+#       it is undefined: State fixes its underlying type to uint8_t, which makes the whole 0-255 range
+#       a valid value of the enumeration type. The remaining hits are inside Catch2's own
+#       catch_result_type.hpp, doing the same thing to its ResultDisposition::Flags, where no
+#       annotation of ours can reach -- the analyzer reports along a bug path, so the header filters
+#       that keep the rest of _deps out do not apply to it.
+#   clang-analyzer-security.FloatLoopCounter
+#       CERT FLP30-C: do not use a floating-point variable as a loop counter. All 35 hits are
+#       deliberate sweeps of a continuous domain, which is what the rule has no way to express:
+#       angles (`for (double theta = 0; theta <= pi*0.5; theta += ang)` in the polyhedral symmetry
+#       and radial-line generators), q-values, grid coordinates, and the parameter scans the
+#       minimizers are built out of (`for (double val = bounds.min; val < bounds.max; val +=
+#       bounds.span()/evals)` in Scan and LimitedScan). Rewriting those as integer loops would
+#       change how many evaluations a scan performs and therefore change fit results, so the fix
+#       the rule asks for is not available to us; several of the hits are not even inexact
+#       (`for (double x = -1; x <= 1; x += 1)` over the grid neighbourhood steps through
+#       exactly-representable integers). No hit anywhere in the tree was a counter that was meant
+#       to be integral.
+#   concurrency-mt-unsafe
+#       Fires on std::getenv in source/core/settings/GeneralSettings.cpp, which reads
+#       HOME/LOCALAPPDATA/XDG_CACHE_HOME to locate the cache directory. That runs once
+#       during start-up, before any thread is spawned, and there is no portable
+#       thread-safe replacement.
+#   misc-const-correctness
+#       2811 hits, all of them `const` on ordinary local variables. Pure style with
+#       no defect-finding value, and the fixit writes east const (`std::string const
+#       tool`), which matches nothing else in the tree. At that volume it buries the
+#       findings that are actually bugs.
+#   misc-header-include-cycle
+#       Fires on the Foo.h <-> Foo.tpp template-definition idiom (math/Matrix.tpp).
+#   misc-no-recursion
+#       Tree/graph traversals in the rigidbody and grid code are recursive by design.
+#   misc-non-private-member-variables-in-classes
+#       Public data members are deliberate on hot data structures (Grid::grid,
+#       Grid::a_members, Limit3D::x/y/z).
+#   modernize-use-integer-sign-comparison
+#       Rewrites a mixed-sign comparison into std::cmp_less and friends. Nearly every
+#       hit was a symptom rather than a defect: the operand was `unsigned int` only
+#       because the surrounding API had not been converted to signed indices yet, and
+#       once it was, the comparison became int-to-int and the rewrite pure obfuscation.
+#       Where a genuinely unsigned std type is on one side -- container .size(), almost
+#       always -- an explicit static_cast<int> at the boundary states the narrowing in
+#       terms of the type the rest of the code already uses, and reads as an ordinary
+#       comparison; std::cmp_less hides the operator behind a call and applies equally
+#       to both operands whether or not either needs it. Note this is unrelated to
+#       readability-redundant-casting, which flags static_cast<T> on something already
+#       of type T; that one stays enabled and is worth keeping.
+#   modernize-use-nodiscard
+#       [[nodiscard]] is applied deliberately and selectively; the check wants it
+#       on essentially every const method.
+#   modernize-use-trailing-return-type
+#       The codebase uses leading return types throughout.
+#   performance-avoid-endl
+#       `std::endl` is `'\n'` *plus* a flush; the fixit drops the flush silently.
+#       The console output helpers (utility/ConsoleColor.h, Logging) rely on that
+#       flush so progress and warnings appear immediately when stdout is a pipe or
+#       a file rather than a tty. 121 hits, each a potential behaviour change that
+#       no test would catch.
+#   performance-inefficient-string-concatenation
+#       Flags `a = a + b` in favour of `+=`/append(). The concatenation in this tree is
+#       almost entirely one-shot message building for a throw or a log line, where the
+#       chain is evaluated once and the temporaries never appear in a loop. The check
+#       does not fire on that shape at all -- it requires the result to be assigned back
+#       to an operand -- so what it can still reach here is a small number of
+#       accumulation loops, against a rewrite that reads worse than the expression it
+#       replaces. Not worth the enforcement on a codebase that does no heavy string work.
+#   performance-enum-size
+#       Enum underlying types are pinned explicitly (`enum class form_factor_t : int`)
+#       because they index into fixed-layout tables.
+#   portability-avoid-pragma-once
+#       Every header in the project uses `#pragma once`; 288 hits, all deliberate.
+#   portability-simd-intrinsics
+#       The histogram kernels use x86 intrinsics on purpose
+#       (hist/detail/data/CompactCoordinatesXYZFF.h and friends).
+#   portability-template-virtual-member-function
+#       Speculative ("might be instantiated with a different compiler") and noisy
+#       against the templated histogram hierarchy.
+#   readability-use-concise-preprocessor-directives
+#       Pure style churn: rewrites the codebase's dominant `#if defined(X)` spelling
+#       into `#ifdef X` with no defect-finding value.
+#   readability-avoid-nested-conditional-operator
+#   readability-math-missing-parentheses
+#   readability-magic-numbers
+#       All three fire constantly on numerical kernels and physical constants.
+#   readability-braces-around-statements
+#       Single-line `if (cond) return x;` is an accepted style here
+#       (see form_factor::from_string).
+#   readability-function-cognitive-complexity
+#       Numerical kernels are intentionally long and branchy.
+#   readability-identifier-length
+#       Single-letter math names (i, j, k, q, r, v, x, y, z) are idiomatic.
+#   readability-isolate-declaration
+#       Runs of same-typed locals are declared on one line throughout, e.g. the
+#       io::ExistingFile option variables at the top of the api/cli entry points.
+#       The fixit splits each into its own statement, which is pure line-count churn.
+#   cppcoreguidelines-pro-type-member-init (not enabled)
+#       Its fixit adds a brace-or-equal-initializer to every member a constructor does
+#       not initialize, which makes the class no longer trivially default constructible.
+#       That is a measurable pessimisation on the hot value types, not a safety gain:
+#       form_factor::FormFactorProduct holds a std::array<double, q_axis.bins> that is
+#       fully overwritten by its own constructor, and the tables in
+#       container/ArrayContainer2D.h hold those by value, so zero-initialising the array
+#       first is pure duplicated work. The check also reports uninitialised *locals* of
+#       record or array type ("uninitialized record type: 'x'"), which is the same
+#       trade in function scope -- the array locals it flags in FormFactorManager.cpp
+#       and IPolyhedralSymmetry.cpp are filled completely by the loop that follows.
+#       Genuine uninitialised *reads* are caught by clang-analyzer-core.*, which stays
+#       enabled and reasons about actual data flow rather than about syntax.
+#   cppcoreguidelines-pro-type-static-cast-downcast (not enabled)
+#       The sequencer's owner chain downcasts through statically known element
+#       types; dynamic_cast there would be both slower and less correct.
+#   readability-identifier-naming
+#       See the CheckOptions block below; enabled naming enforcement is not
+#       currently viable because domain identifiers (chemical element symbols such
+#       as `H`, `Ca`, `Fe` in vdwTable.h, SI constants, the `SI` namespace) are
+#       correct as written but unrepresentable as a case rule.
+
+# llvm-include-order sorts the #includes of each blank-line-separated block independently, so the
+# project-headers/std-headers split this codebase uses is preserved rather than merged. Within a
+# block the order is a plain byte-wise sort of the include path, which puts `Rigidbody.h` ahead of
+# `constraints/ConstraintManager.h` because uppercase sorts before lowercase.
+#
+# The check pins a translation unit's own header to the top of the file, but only recognises it when
+# it is spelled as a quoted include -- every include in this tree is angled, so nothing is ever
+# pinned and a bare sort would bury e.g. data/Body.h among Body.cpp's other includes. The convention
+# is kept instead by giving that header a block of its own: a block holding one include is sorted by
+# construction, so the check is satisfied and the header stays first. That placement is convention,
+# not enforcement -- what the check guarantees is the ordering within each block.
+
+# misc-use-anonymous-namespace is enabled here but switched off for tests/ by
+# tests/.clang-tidy. The check has no options (CheckOptions is empty for it) and reports at
+# the macro *expansion* site, so a diagnostic from Catch2's TEST_CASE lands on the test's own
+# line in the .cpp and neither ExcludeHeaderFilterRegex nor the _deps exclusion above can
+# reach it: INTERNAL_CATCH_TESTCASE2 emits a file-scope `static void dummyFunction<N>()`,
+# naming a symbol that does not appear in the source. Measured over the whole tree it is 970
+# such reports plus 263 on file-scope helpers the tests write themselves, against 0 anywhere
+# under include/, source/ or executable/ -- so scoping the check to the library costs nothing
+# today and still guards it, which is the point: a `static` at file scope in the library is an
+# ODR hazard, while every test binary links independently.
+
+HeaderFilterRegex: '.*/(include|source|tests|executable)/.*'
+ExcludeHeaderFilterRegex: '.*/(build|_deps)/.*'
+
+WarningsAsErrors: ''
+FormatStyle: none
+SystemHeaders: false
+
+CheckOptions:
+  # Only the unused-include half of include-cleaner is meaningful here. The
+  # missing-include half demands that every transitively-used symbol have its
+  # defining header included directly, which is incompatible with the *Fwd.h
+  # forward-declaration headers: a file that includes <data/Body.h> (which pulls
+  # in DataFwd.h) gets told to also include the defining header of every type it
+  # touches. Measured over source/core/data + source/core/hist that is 652
+  # missing-include reports against 69 unused-include reports, and the unused
+  # ones are real (e.g. Body.cpp includes grid/Grid.h and math/MatrixUtils.h
+  # without using either). No Fwd.h header was ever reported as unused, so the
+  # forward-declaration idiom is safe under the unused-only half.
+  misc-include-cleaner.UnusedIncludes: 'true'
+  misc-include-cleaner.MissingIncludes: 'false'
+
+  # An umbrella header is the documented entry point to its library (CLI/CLI.hpp,
+  # dlib/optimization.h, sycl/sycl.hpp), but include-cleaner attributes each symbol to the
+  # individual header behind the umbrella, so it reports the umbrella as unused and wants the
+  # headers it wraps included directly. Exempt the dependencies we do not control.
+  #
+  # sycl/sycl.hpp is the strictest case of the three: the SYCL specification defines it as the
+  # single header an implementation must provide, and names no other, so the headers behind it
+  # are an implementation detail that differs between toolchains. Taking the fixit in
+  # source/gpu/SYCL/SYCLBackend.cpp would pin that file to whichever implementation was
+  # installed when clang-tidy last ran.
+  #
+  # settings/All.h is exempt too: working out which of the thirteen settings headers a
+  # test needs is a nightmare, so they include the lot, and the include is cheap anyway. plots/All.h
+  # and mini/All.h are the same shape (a file of includes and nothing else), and api/api_pyausaxs.h is
+  # the documented single entry point to the C ABI, so the tests that exercise it include the umbrella
+  # while include-cleaner attributes each entry point to the individual api/pyausaxs/ header behind it.
+  #
+  # The sequencer's elements/All.h is exempt for a stronger reason than convenience. The parser
+  # dispatches on the element name it reads from the config script, so the set of headers it
+  # needs is the set of elements that exist, not the set any one function mentions -- and the
+  # symbols it uses them through are the factory and the base-class pointers, which belong to
+  # other headers. include-cleaner therefore reports the umbrella as unused in
+  # SequenceParser.cpp even though dropping it would break the next element added to it.
+  misc-include-cleaner.IgnoreHeaders: 'catch2/.*;CLI/.*;dlib/.*;curl/.*;sycl/.*;backward\.hpp;BS_thread_pool\.hpp;gcem\.hpp;settings/All\.h;plots/All\.h;mini/All\.h;api/api_pyausaxs\.h;rigidbody/sequencer/elements/All\.h'
+
+  # The conventions below were inferred from the codebase. They are inert while
+  # readability-identifier-naming is disabled above; drop the `-` from that entry
+  # to turn enforcement on. Enum, template-parameter, and type-alias naming is
+  # deliberately left unconstrained because the codebase mixes CamelCase
+  # (BodySelectStrategyChoice) with snake_case_t (form_factor_t, atom_t).
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.FunctionCase: lower_case
+  readability-identifier-naming.MethodCase: lower_case
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.MemberCase: lower_case
+  readability-identifier-naming.EnumConstantCase: UPPER_CASE
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+
+  # Loop counters, indices and math symbols are short on purpose.
+  readability-inconsistent-declaration-parameter-name.Strict: false
+
+  # The project targets C++20.
+  modernize-use-std-print.ReplacementPrintFunction: std::print
+  modernize-loop-convert.MinConfidence: reasonable
+  modernize-use-override.AllowOverrideAndFinal: true
+
+  # std::move is used here as a statement of intent -- "this is the last use of x" --
+  # not as a request for a specific optimization. That reading is enforced, not merely
+  # documentary: bugprone-use-after-move keys off the std::move call in the AST rather
+  # than off whether a move occurs, so it flags a later use of the object even when the
+  # type is trivially copyable and nothing was moved. The trivially-copyable half of
+  # move-const-arg contradicts that convention directly -- it asks for the annotation to
+  # be deleted on exactly the types where the annotation is all there is -- and it is
+  # what fires on the array-backed value types (anything wrapping std::array or a raw
+  # array, e.g. the Container*D/ArrayContainer2D family). Turned off.
+  #
+  # The other half is kept on, and finds real defects rather than style: it reports a
+  # std::move whose result cannot be moved from, where the intended optimization is
+  # silently absent. Two shapes, both worth seeing:
+  #   - a const *variable*, where the fixit's second suggestion ("or make the variable
+  #     non-const") is usually the actual bug;
+  #   - a const *expression*, i.e. an accessor returning const T&, where no caller can
+  #     ever obtain ownership. HistogramManagerMTFFGridSurface had
+  #     `std::move(cast_res->get_weighted_counts())` against a `const std::vector<double>&`
+  #     accessor; it bound to the copy constructor, and the comment above it asserted a
+  #     move-ordering constraint on p_tot that therefore never existed.
+  # CheckMoveToConstRef (std::move into a const& parameter) stays on for the same reason.
+  performance-move-const-arg.CheckTriviallyCopyableMove: 'false'
+  performance-move-const-arg.CheckMoveToConstRef: 'true'
+
+  # An inheriting-constructor declaration (`using Base::Base;`) is reported as an
+  # rvalue-ref parameter that is never moved from, naming the parameter as ''. There is
+  # no function body in the derived class to move anything in, so the report is not
+  # actionable by any edit short of NOLINT; 11 of the 61 tree-wide hits were of this
+  # shape, all on the histogram and io hierarchies that inherit their base constructors
+  # (ICompositeDistanceHistogram, CompositeDistanceHistogramFFGridBase, Distribution1D,
+  # ExistingFile and friends). Suppressing unnamed parameters removes exactly those and
+  # leaves every named-parameter report intact.
+  cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreUnnamedParams: 'true'
+
+  # Hot numerical code passes small POD vectors (Vector3<double>) by value.
+  performance-unnecessary-value-param.AllowedTypes: 'Vector3<.*>;Limit;Limit3D'
+  performance-for-range-copy.AllowedTypes: 'Vector3<.*>'
+
+  # Matches the [[nodiscard]]-heavy interface style without demanding it everywhere.
+  bugprone-argument-comment.StrictMode: false

@@ -1,15 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <grid/Grid.h>
-#include <grid/detail/GridSurfaceDetection.h>
-#include <grid/exv/RawGridExv.h>
-#include <grid/exv/RawGridWithSurfaceExv.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <grid/Grid.h>
+#include <grid/exv/RawGridWithSurfaceExv.h>
 #include <settings/All.h>
- 
+
+#include <numbers>
 #include <vector>
-#include <string>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -18,7 +16,7 @@ class GridDebug : public grid::Grid {
     public: 
         using Grid::Grid;
 
-		double get_atomic_radius(form_factor::form_factor_t) const override {return ra;}
+		double get_atomic_radius(form_factor::form_factor_t /*atom*/) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
         void set_hydration_radius(double rh) {this->rh = rh;}
@@ -41,7 +39,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     settings::molecule::center = true;
 
     SECTION("Single with radius") {
-        settings::grid::min_exv_radius = std::sqrt(3)+1e-3;
+        settings::grid::min_exv_radius = std::numbers::sqrt3+1e-3;
 
         Molecule protein({Body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}}});
         GridDebug::generate_debug_grid(protein);
@@ -52,7 +50,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("Two atoms with radius") {
-        settings::grid::min_exv_radius = std::sqrt(2)+1e-3;
+        settings::grid::min_exv_radius = std::numbers::sqrt2+1e-3;
         std::vector<AtomFF> atoms = {
             AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
             AtomFF({1, 0, 0}, form_factor::form_factor_t::C)
@@ -87,7 +85,7 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
     }
 
     SECTION("2x2x2 interior advanced") {
-        settings::grid::min_exv_radius = std::sqrt(2)+1e-3;
+        settings::grid::min_exv_radius = std::numbers::sqrt2+1e-3;
         std::vector<AtomFF> atoms;
         for (double x = 0; x <= 1; x+=1) {
             for (double y = 0; y <= 1; y+=1) {

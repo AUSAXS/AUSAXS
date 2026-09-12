@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <table/Table.h>
 
 #include <unordered_map>
@@ -43,13 +44,13 @@ namespace ausaxs::table {
                 data.resize(N*M);
 
                 Tmap.reserve(N);
-                for (unsigned int i = 0; i < N; i++) {
+                for (int i = 0; i < N; i++) {
                     Tmap.emplace(rows[i], i);
                     // Tmap[rows[i]] = i;
                 }
 
                 Qmap.reserve(M);
-                for (unsigned int i = 0; i < M; i++) {
+                for (int i = 0; i < M; i++) {
                     Qmap.emplace(columns[i], i);
                     // Qmap[columns[i]] = i;
                 }
@@ -67,7 +68,7 @@ namespace ausaxs::table {
              * @param i The integer row index.
              * @param j The integer column index.
              */
-            double lookup_index(unsigned int i, unsigned int j) const {
+            double lookup_index(int i, int j) const {
                 return index(i, j);}
 
             /**
@@ -76,12 +77,8 @@ namespace ausaxs::table {
              * @param row The row element index.
              * @param col The column element index.
              */
-            double lookup(const T row, const Q col) const {
-                #ifdef DEBUG
-                    if (!Tmap.contains(row) || !Qmap.contains(col)) {
-                        throw ausaxs::except::out_of_range("LookupTable::lookup: Index out of range.");
-                    }
-                #endif
+            double lookup(const T& row, const Q& col) const {
+                assert(Tmap.contains(row) && Qmap.contains(col) && "LookupTable::lookup: Index out of range.");
                 return index(Tmap.at(row), Qmap.at(col));}
 
             /**
@@ -92,7 +89,7 @@ namespace ausaxs::table {
              * @param j The integer column index.
              * @param val The value to store at this location. 
              */
-            void assign_index(unsigned int i, unsigned int j, double val) {index(i, j) = val;}
+            void assign_index(int i, int j, double val) {index(i, j) = val;}
 
             /**
              * @brief Assign to a given index in the table. 
@@ -101,16 +98,12 @@ namespace ausaxs::table {
              * @param col The column element index.
              * @param val The value to store at this location. 
              */
-            void assign(const T row, const Q col, double val) {
-                #ifdef DEBUG
-                    if (!Tmap.contains(row) || !Qmap.contains(col)) {
-                        throw ausaxs::except::out_of_range("LookupTable::assign: Index out of range.");
-                    }
-                #endif
+            void assign(const T& row, const Q& col, double val) {
+                assert(Tmap.contains(row) && Qmap.contains(col) && "LookupTable::assign: Index out of range.");
                 index(Tmap.at(row), Qmap.at(col)) = val;}
 
         private:
-            std::unordered_map<T, unsigned int> Tmap; // A map from row element indices to actual indices.
-            std::unordered_map<Q, unsigned int> Qmap; // A map from column element indices to actual indices. 
+            std::unordered_map<T, int> Tmap; // A map from row element indices to actual indices.
+            std::unordered_map<Q, int> Qmap; // A map from column element indices to actual indices. 
     };    
 }

@@ -2,8 +2,9 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/IDistanceConstraint.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
 
 #include <cassert>
 

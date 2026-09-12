@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <container/Container1D.h>
 #include <container/Container2D.h>
 #include <container/Container3D.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 
 namespace ausaxs::hist {
     class ICompositeDistanceHistogramExv : public ICompositeDistanceHistogram {
@@ -17,7 +17,7 @@ namespace ausaxs::hist {
             ICompositeDistanceHistogramExv(ICompositeDistanceHistogramExv&&) noexcept = default;
             ICompositeDistanceHistogramExv& operator=(const ICompositeDistanceHistogramExv&) = default;
             ICompositeDistanceHistogramExv& operator=(ICompositeDistanceHistogramExv&&) noexcept = default;
-            virtual ~ICompositeDistanceHistogramExv() = default;
+            ~ICompositeDistanceHistogramExv() override = default;
 
             /**
              * @brief Apply a scaling factor to the excluded volume partial distance histogram.

@@ -8,17 +8,17 @@ using namespace utility;
 TEST_CASE("remove_all") {
     SECTION("empty") {
         std::string result = utility::remove_all("", "");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("single") {
         std::string result = utility::remove_all("a", "a");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("multiple") {
         std::string result = utility::remove_all("aaa", "a");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("multiple in middle") {
@@ -50,17 +50,17 @@ TEST_CASE("remove_all") {
 TEST_CASE("StringUtils::remove_spaces") {
     SECTION("empty") {
         std::string result = utility::remove_spaces("");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("single") {
         std::string result = utility::remove_spaces(" ");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("multiple") {
         std::string result = utility::remove_spaces("   ");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("single at start") {
@@ -97,7 +97,7 @@ TEST_CASE("StringUtils::remove_spaces") {
 TEST_CASE("StringUtils::remove_quotation_marks") {
     SECTION("empty") {
         std::string result = utility::remove_quotation_marks("");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("single") {
@@ -106,7 +106,7 @@ TEST_CASE("StringUtils::remove_quotation_marks") {
     }
 
     SECTION("multiple") {
-        std::string result = utility::remove_quotation_marks("\"\"\"");
+        std::string result = utility::remove_quotation_marks(R"(""")");
         REQUIRE(result == "\"");
     }
 
@@ -126,7 +126,7 @@ TEST_CASE("StringUtils::remove_quotation_marks") {
     }
 
     SECTION("multiple at start and end") {
-        std::string result = utility::remove_quotation_marks("\"\"\"abc\"\"\"");
+        std::string result = utility::remove_quotation_marks(R"("""abc""")");
         REQUIRE(result == "\"\"abc\"\"");
     }
 }
@@ -154,7 +154,7 @@ TEST_CASE("StringUtils::split_quoted") {
 
     // a backslash is a path separator, not an escape: the closing quote must still close
     SECTION("quoted windows path ending in a separator") {
-        auto result = utility::split_quoted("output \"C:\\my folder\\\"", " \t");
+        auto result = utility::split_quoted(R"(output "C:\my folder\")", " \t");
         REQUIRE(result == std::vector<std::string>{"output", "C:\\my folder\\"});
     }
 
@@ -179,20 +179,20 @@ TEST_CASE("StringUtils::quote_if_needed") {
     }
 
     SECTION("round-trips through split_quoted") {
-        std::string path = "C:\\my folder\\out\\";
+        std::string path = R"(C:\my folder\out\)";
         auto result = utility::split_quoted("output " + utility::quote_if_needed(path, " \t"), " \t");
         REQUIRE(result == std::vector<std::string>{"output", path});
     }
 
     SECTION("empty") {
-        REQUIRE(utility::quote_if_needed("", " \t") == "");
+        REQUIRE(utility::quote_if_needed("", " \t").empty());
     }
 }
 
 TEST_CASE("StringUtils::to_lowercase") {
     SECTION("empty") {
         std::string result = utility::to_lowercase("");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("single") {
@@ -210,7 +210,7 @@ TEST_CASE("StringUtils::split") {
     SECTION("single delimiter") {
         SECTION("empty") {
             std::vector<std::string> result = utility::split("", ',');
-            REQUIRE(result.size() == 0);
+            REQUIRE(result.empty());
         }
 
         SECTION("single") {
@@ -251,7 +251,7 @@ TEST_CASE("StringUtils::split") {
     SECTION("multiple delimiters") {
         SECTION("empty") {
             std::vector<std::string> result = utility::split("", ",");
-            REQUIRE(result.size() == 0);
+            REQUIRE(result.empty());
         }
 
         SECTION("single") {
@@ -298,7 +298,7 @@ TEST_CASE("StringUtils::split") {
 TEST_CASE("StringUtils::join") {
     SECTION("empty") {
         std::string result = utility::join({}, ",");
-        REQUIRE(result == "");
+        REQUIRE(result.empty());
     }
 
     SECTION("single") {
@@ -319,15 +319,15 @@ TEST_CASE("StringUtils::join") {
 
 TEST_CASE("StringUtils::remove_all") {
     SECTION("empty") {
-        REQUIRE(utility::remove_all("", "a") == "");
+        REQUIRE(utility::remove_all("", "a").empty());
     }
 
     SECTION("single") {
-        REQUIRE(utility::remove_all("a", "a") == "");
+        REQUIRE(utility::remove_all("a", "a").empty());
     }
 
     SECTION("multiple") {
-        REQUIRE(utility::remove_all("aaa", "a") == "");
+        REQUIRE(utility::remove_all("aaa", "a").empty());
     }
 
     SECTION("multiple with other") {

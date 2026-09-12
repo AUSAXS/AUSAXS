@@ -1,12 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <em/ObjectBounds3D.h>
 #include <em/ObjectBounds2D.h>
+#include <em/ObjectBounds3D.h>
 
 using namespace ausaxs;
 
 TEST_CASE("ObjectBounds3D::ObjectBounds3D") {
-    SECTION("unsigned int, unsigned int, unsigned int") {
+    SECTION("int, int, int") {
         em::ObjectBounds3D bounds(1, 2, 3);
         CHECK(bounds.size_x() == 1);
         CHECK(bounds.size_y() == 2);

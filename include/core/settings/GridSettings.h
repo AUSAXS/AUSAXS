@@ -25,7 +25,7 @@ namespace ausaxs::settings {
 
         // The minimum number of bins in each dimension of the grid. 
         // This is primarily intended for rigid body optimization, to ensure there's enough space for all possible conformations. A value of 0 means disabled. 
-        static unsigned int min_bins;
+        static int min_bins;
 
         // Grid-based excluded volume settings.
         struct exv {

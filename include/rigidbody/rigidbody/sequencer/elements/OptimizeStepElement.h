@@ -4,8 +4,8 @@
 #pragma once
 
 #include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
 
 namespace ausaxs::rigidbody::sequencer {
     class OnImprovementElement;

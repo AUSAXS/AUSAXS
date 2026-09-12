@@ -5,9 +5,9 @@
 
 #include <fitter/FitterFwd.h>
 
+#include <dataset/NamedDataset.h>
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Result.h>
-#include <dataset/NamedDataset.h>
 #include <utility/observer_ptr.h>
 
 #include <string>
@@ -16,7 +16,7 @@ namespace ausaxs::fitter {
     class FitResult : public mini::Result {
         public:
             FitResult() noexcept = default;
-            FitResult(const mini::Result& res, unsigned int dof) noexcept;
+            FitResult(const mini::Result& res, int dof) noexcept;
             ~FitResult() override = default;
             
             /**
@@ -46,6 +46,6 @@ namespace ausaxs::fitter {
 
             NamedDataset curves; // | q | data | data_err | interpolated model | residuals |
             mini::Landscape evaluated_points;
-            unsigned int dof;
+            int dof;
     };
 }

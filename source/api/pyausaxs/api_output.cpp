@@ -3,8 +3,8 @@
 
 #include <api/pyausaxs/api_output.h>
 
-#include <memory>
 #include <iostream>
+#include <memory>
 #include <streambuf>
 #include <string>
 
@@ -63,7 +63,7 @@ void set_output_callback(ausaxs_output_cb cb) {
         std::cout.rdbuf(g_current->original());
         g_current = nullptr;
     }
-    if (cb) {
+    if (cb != nullptr) {
         g_current = std::make_unique<CCallbackStreamBuf>(cb, std::cout.rdbuf());
         std::cout.rdbuf(g_current.get());
     }

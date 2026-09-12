@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <table/LookupTable.h>
 #include <settings/HistogramSettings.h>
+#include <table/LookupTable.h>
 
 using namespace ausaxs;
 
@@ -90,12 +90,12 @@ TEST_CASE("LookupTable::assign") {
 TEST_CASE("lookup_tables") {
     settings::axes::qmax = 1.001;
     SECTION("integer table") {
-        std::vector<unsigned int> rows = {1, 2, 3};
-        std::vector<unsigned int> cols = {1, 2, 3};
-        table::LookupTable<unsigned int, unsigned int> table(rows, cols);
+        std::vector<int> rows = {1, 2, 3};
+        std::vector<int> cols = {1, 2, 3};
+        table::LookupTable<int, int> table(rows, cols);
 
-        for (unsigned int r : rows) {
-            for (unsigned int c : cols) {
+        for (int r : rows) {
+            for (int c : cols) {
                 table.assign(r, c, r*c);
             }
         }

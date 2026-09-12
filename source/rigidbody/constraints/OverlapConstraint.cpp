@@ -2,9 +2,10 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/OverlapConstraint.h>
+
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <constants/ConstantsAxes.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
@@ -30,7 +31,7 @@ double OverlapConstraint::evaluate() const {
     if (target.empty()) [[unlikely]] {return 0;}
     auto current = molecule->get_total_histogram()->get_weighted_counts();
     double chi2 = 0;
-    for (unsigned int i = 1; i < target.size(); i++) { // skip the self-correlation bin
+    for (int i = 1; i < static_cast<int>(target.size()); i++) { // skip the self-correlation bin
         chi2 += std::pow((current[i] - target[i])*weights[i], 2);
     }
     return chi2;
@@ -50,13 +51,13 @@ void OverlapConstraint::initialize() const {
     weights.resize(axis.size());
 
     // calculate the weights and reduce their precision
-    for (unsigned int i = 0; i < axis.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(axis.size()); ++i) {
         weights[i] = weight(axis[i]);
         if (weights[i] < 1e-3) {weights[i] = 0;}
     }
 
     // find the last non-zero weight
-    unsigned int i = axis.size()-1;
+    int i = static_cast<int>(axis.size())-1;
     for (; i > 0; i--) {
         if (weights[i] != 0) {break;}
     }

@@ -4,8 +4,8 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace ausaxs::rigidbody::sequencer::detail {
     template<class Args>

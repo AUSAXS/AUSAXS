@@ -6,7 +6,7 @@
 using namespace ausaxs;
 
 TEST_CASE("ObjectBounds2D::ObjectBounds2D") {
-    SECTION("unsigned int, unsigned int") {
+    SECTION("int, int") {
         em::ObjectBounds2D bounds = em::ObjectBounds2D(1, 2);
         REQUIRE(bounds.size_x() == 1);
         REQUIRE(bounds.size_y() == 2);
@@ -40,7 +40,7 @@ TEST_CASE("ObjectBounds2D::set_max") {
 }
 
 TEST_CASE("ObjectBounds2D::set_bounds") {
-    SECTION("unsigned int, Limit") {
+    SECTION("int, Limit") {
         em::ObjectBounds2D bounds = em::ObjectBounds2D(2, 2);
         bounds.set_bounds(0, Limit(0, 1));
         bounds.set_bounds(1, Limit(1, 1));
@@ -54,7 +54,7 @@ TEST_CASE("ObjectBounds2D::set_bounds") {
         CHECK_THROWS(bounds.set_bounds(0, Limit(1, 3)));
     }
 
-    SECTION("unsigned int, unsigned int, unsigned int") {
+    SECTION("int, int, int") {
         em::ObjectBounds2D bounds = em::ObjectBounds2D(2, 2);
         bounds.set_bounds(0, 0, 1);
         bounds.set_bounds(1, 1, 1);

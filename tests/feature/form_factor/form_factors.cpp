@@ -1,20 +1,19 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/NormalizedFormFactor.h>
-#include <form_factor/FormFactorTable.h>
-#include <constants/Constants.h>
 #include <dataset/SimpleDataset.h>
-#include <plots/All.h>
+#include <form_factor/FormFactorTable.h>
+#include <form_factor/NormalizedFormFactor.h>
 
 #include <iostream>
+#include <numbers>
 
 using namespace ausaxs;
 using namespace form_factor;
 
 // Check that we have the correct conversion of the s-values. The form factors are not supposed to change a lot over the span of our q-values.
 TEST_CASE("NormalizedFormFactor::evaluate") {
-    for (unsigned int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
+    for (int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
         const NormalizedFormFactor& ff_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0.0), Catch::Matchers::WithinAbs(1, 1e-6));
         if (ff_obj.evaluate(0.5) < 0.95) {
@@ -27,7 +26,7 @@ TEST_CASE("NormalizedFormFactor::evaluate") {
 
 // Check that the form factors are normalized. 
 TEST_CASE("NormalizedFormFactor: normalized") {
-    for (unsigned int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
+    for (int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
         const NormalizedFormFactor& ff_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0), Catch::Matchers::WithinAbs(1, 1e-6));
     }
@@ -36,7 +35,7 @@ TEST_CASE("NormalizedFormFactor: normalized") {
 // Compare our five-Gaussian form factors with the more typical four-Gaussian form factors.
 // These are all taken from the table at https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php (International Tables for Crystallography)
 using constants::form_factor::s_to_q;
-const auto& q_vals = constants::axes::q_vals;
+static const auto& q_vals = constants::axes::q_vals;
 TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
     SECTION("oxygen") {
         std::array<double, 5> a =        {3.0485,  2.2868, 1.5463, 0.867,   0};
@@ -118,7 +117,7 @@ TEST_CASE("NormalizedFormFactor: comparison with Waasmeier & Kirfel") {
         ff_s.push_back(s, val);
     }
 
-    for (unsigned int i = 0; i < ff_q.size(); ++i) {
+    for (int i = 0; i < ff_q.size(); ++i) {
         REQUIRE_THAT(ff_q.y(i), Catch::Matchers::WithinAbs(ff_s.interpolate_x(ff_q.x(i), 1), 1e-3));
     }
 

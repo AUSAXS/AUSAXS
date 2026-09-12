@@ -2,12 +2,13 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
+
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/selection/BodySelectFactory.h>
-#include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
 
 #include <optional>
 
@@ -48,7 +49,7 @@ namespace {
     }
 }
 
-std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     // inlined usage patterns
     if (!args.inlined.empty()) {
         const std::string& token = args.inlined[0];

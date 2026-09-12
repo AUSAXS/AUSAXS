@@ -2,21 +2,23 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/controller/IController.h>
+
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/Rigidbody.h>
-#include <grid/Grid.h>
 
-#include <memory>
 #include <cassert>
+#include <memory>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::controller;
 
-std::unique_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> init_config(observer_ptr<Rigidbody> rigidbody) {
-    return std::make_unique<rigidbody::detail::MoleculeTransformParametersAbsolute>(rigidbody->conformation->absolute_parameters);
+namespace {
+    std::unique_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> init_config(observer_ptr<Rigidbody> rigidbody) {
+        return std::make_unique<rigidbody::detail::MoleculeTransformParametersAbsolute>(rigidbody->conformation->absolute_parameters);
+    }
 }
 
 IController::IController(observer_ptr<Rigidbody> rigidbody) : rigidbody(rigidbody), current_best_config(init_config(rigidbody)) {

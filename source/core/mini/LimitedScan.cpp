@@ -2,8 +2,9 @@
 // Author: Kristian Lytje
 
 #include <mini/LimitedScan.h>
+
+#include <mini/detail/Parameter.h>  // IWYU pragma: keep
 #include <utility/Limit.h>
-#include <mini/detail/Parameter.h>
 
 #include <limits>
 #include <list>
@@ -19,7 +20,7 @@ void LimitedScan::set_limit(double limit, bool minima_multiplier) noexcept {
     this->limit_is_minima_multiplier = minima_multiplier;
 }
 
-mini::Landscape LimitedScan::landscape(unsigned int evals) {
+mini::Landscape LimitedScan::landscape(int evals) {
     // check if the minimizer has already been called
     if (!evaluations.evals.empty()) {
         return evaluations; // if so, we can just reuse its result
@@ -38,10 +39,12 @@ mini::Landscape LimitedScan::landscape(unsigned int evals) {
     }
 
     if (parameters.size() == 1) {
-        const Limit& bounds = parameters[0].bounds.value();
-        unsigned int c = 0;
+        const auto& bounds_opt = parameters[0].bounds;
+        if (!bounds_opt.has_value()) {throw except::bad_order("LimitedScan::landscape: The scanned parameter must be bounded.");}
+        const Limit& bounds = *bounds_opt;
+        int c = 0;
         std::list<double> last_evals;
-        unsigned int count = 0;
+        int count = 0;
         for (double val = bounds.max; bounds.min < val; val -= bounds.span()/evals) {
             double fval = function({val});
             current_min = std::min(current_min, fval);
@@ -55,7 +58,7 @@ mini::Landscape LimitedScan::landscape(unsigned int evals) {
             }
             
             // calculate average of list
-            double avg = std::accumulate(last_evals.begin(), last_evals.end(), 0.0) / last_evals.size();
+            double avg = std::accumulate(last_evals.begin(), last_evals.end(), 0.0) / static_cast<double>(last_evals.size());
 
             // if we are more than half-way through the scan, we check for the stop condition
             if (evals*0.7 < ++c) {
@@ -74,7 +77,6 @@ mini::Landscape LimitedScan::landscape(unsigned int evals) {
         return get_evaluated_points();
     }
 
-    else { // parameters.size() <= 2 
-        throw ausaxs::except::runtime_error("LimitedScan::landscape: Using more than two parameters is currently not implemented.");
-    } 
+    // parameters.size() <= 2 
+    throw ausaxs::except::runtime_error("LimitedScan::landscape: Using more than two parameters is currently not implemented.");    
 }

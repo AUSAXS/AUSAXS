@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <settings/RigidBodySettings.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
+#include <settings/RigidBodySettings.h>
 
 #include <memory>
 
 namespace ausaxs::rigidbody::factory {
-    std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> create_decay_strategy(unsigned int iterations);
-    std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> create_decay_strategy(unsigned int iterations, settings::rigidbody::DecayStrategyChoice choice);
+    std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> create_decay_strategy(int iterations);
+    std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> create_decay_strategy(int iterations, settings::rigidbody::DecayStrategyChoice choice);
 }

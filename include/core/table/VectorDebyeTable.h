@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <table/Table.h>
 #include <table/DebyeTable.h>
+#include <table/Table.h>
 #include <utility/Concepts.h>
 
 namespace ausaxs::table {

@@ -4,9 +4,9 @@
 #pragma once
 
 #include <data/DataFwd.h>
-#include <utility/observer_ptr.h>
 #include <grid/GridFwd.h>
 #include <grid/detail/GridInternalFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <span>
 
@@ -17,7 +17,7 @@ namespace ausaxs::hydrate {
      */
     class CullingStrategy {
         public:
-            CullingStrategy(observer_ptr<data::Molecule> grid);
+            CullingStrategy(observer_ptr<data::Molecule> molecule);
             virtual ~CullingStrategy();
 
             /**
@@ -29,10 +29,10 @@ namespace ausaxs::hydrate {
              * @brief Set the desired number of water molecules after the culling. 
              * @param target_count The target number of water molecules. 
              */
-            void set_target_count(unsigned int target_count);
+            void set_target_count(int target_count);
 
         protected: 
-            unsigned int target_count = 0; // The desired number of molecules after the culling.
+            int target_count = 0; // The desired number of molecules after the culling.
             observer_ptr<data::Molecule> molecule;
     };
 }

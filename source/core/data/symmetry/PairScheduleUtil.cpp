@@ -20,8 +20,8 @@ namespace {
     TransformKey make_key(const Matrix<double>& R, const Vector3<double>& T) {
         TransformKey k;
         int idx = 0;
-        for (unsigned int i = 0; i < 3; ++i) {
-            for (unsigned int j = 0; j < 3; ++j) {
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
                 k[idx++] = std::llround(R(i, j)*key_resolution);
             }
         }
@@ -46,7 +46,7 @@ std::vector<SymmetricDuplicatePair> ausaxs::symmetry::compute_pair_schedule(cons
             Vector3<double> Dinv_T = -(Dinv_R*D_T);
 
             TransformKey key = std::min(make_key(D_R, D_T), make_key(Dinv_R, Dinv_T));
-            auto [it, inserted] = buckets.try_emplace(key, SymmetricDuplicatePair{i, j, 1});
+            auto [it, inserted] = buckets.try_emplace(key, SymmetricDuplicatePair{.repA=i, .repB=j, .scale=1});
             if (!inserted) {++it->second.scale;}
         }
     }

@@ -6,18 +6,20 @@
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
 
+#include <array>
+
 TEST_CASE("test_unknown_form_factor_c_api: UNKNOWN form factors with Fraser exv model via C API") {
     // Create atoms without form factor information (like molecule_from_arrays does)
-    double x[] = {0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, -1.0};
-    double y[] = {0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 1.0, -1.0};
-    double z[] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 1.0, -1.0};
-    double w[] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    std::array x = {0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, -1.0};
+    std::array y = {0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 1.0, -1.0};
+    std::array z = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 1.0, -1.0};
+    std::array w = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     int n_atoms = 9;
 
     int status = 0;
 
     // Create molecule from arrays
-    int mol_id = molecule_from_arrays(x, y, z, w, n_atoms, &status);
+    int mol_id = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), n_atoms, &status);
     REQUIRE(status == 0);
     REQUIRE(mol_id >= 0);
 

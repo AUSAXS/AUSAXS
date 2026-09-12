@@ -2,9 +2,9 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <rigidbody/Rigidbody.h>
+
 #include <data/Body.h>
-#include <data/atoms/Water.h>
+#include <rigidbody/Rigidbody.h>
 
 using namespace ausaxs;
 

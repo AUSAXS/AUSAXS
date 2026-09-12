@@ -7,8 +7,8 @@
 
 using namespace ausaxs::rigidbody::parameter::decay;
 
-LinearDecay::LinearDecay(unsigned int max_iterations) : DecayStrategy(max_iterations) {
-    set_characteristic_time(max_iterations/2);
+LinearDecay::LinearDecay(int max_iterations) : DecayStrategy(max_iterations) {
+    LinearDecay::set_characteristic_time(max_iterations/2);
 }
 
 LinearDecay::~LinearDecay() = default;
@@ -17,7 +17,7 @@ double LinearDecay::next() {
     return 1.0 - decay_rate*next_draw();
 }
 
-void LinearDecay::set_characteristic_time(unsigned int iterations) {
+void LinearDecay::set_characteristic_time(int iterations) {
     // guard against iterations = 1
-    decay_rate = 0.5/std::max(1u, iterations);
+    decay_rate = 0.5/std::max<int>(1, iterations);
 }

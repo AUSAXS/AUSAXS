@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/IcosahedralSymmetry.h>
+
 #include <math/MatrixUtils.h>
 
 #include <numbers>
@@ -13,7 +14,7 @@ using namespace ausaxs::symmetry;
 std::unique_ptr<ISymmetry> IcosahedralSymmetry::clone() const {return std::make_unique<IcosahedralSymmetry>(*this);}
 std::string IcosahedralSymmetry::type_name() const {return "icosahedral";}
 const IPolyhedralSymmetry::GroupData& IcosahedralSymmetry::group() const {
-    static const double phi = (1 + std::sqrt(5.0))/2;
+    static const double phi = std::numbers::phi;
     static const GroupData data = build({
         matrix::rotation_matrix<double>({0, 1, phi}, 2*std::numbers::pi/5), 
         matrix::rotation_matrix<double>({1, 0, 0}, std::numbers::pi), 

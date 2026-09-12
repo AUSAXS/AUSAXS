@@ -3,7 +3,6 @@
 
 #include <fitter/FitReporter.h>
 #include <fitter/FitResult.h>
-#include <mini/detail/FittedParameter.h>
 
 #include <support/temp_file.h>
 

@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "grid/detail/GridObj.h"
-#include <grid/Grid.h>
-#include <grid/detail/GridMember.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
-#include <utility/observer_ptr.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
+#include <grid/detail/GridObj.h>
 #include <settings/GridSettings.h>
+#include <utility/observer_ptr.h>
 
 #include <cmath>
 
@@ -27,18 +27,18 @@ namespace ausaxs::grid::volume {
     template<bool AtomicMinVol, bool WaterMinVol>
     struct SphericalExpander {
         static void expand_volume(observer_ptr<grid::Grid> grid, GridMember<data::AtomFF>& atom);
-        static void expand_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& atom);
+        static void expand_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& water);
 
         static void deflate_volume(observer_ptr<grid::Grid> grid, GridMember<data::AtomFF>& atom);
-        static void deflate_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& atom);
+        static void deflate_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& water);
     };
 
     using AtomicExpander         = SphericalExpander<true, false>;
     using AtomicAndWaterExpander = SphericalExpander<true, true>;
 }
 
-template<bool AMV, bool _>
-void ausaxs::grid::volume::SphericalExpander<AMV, _>::expand_volume(observer_ptr<grid::Grid> grid, GridMember<data::AtomFF>& atom) {
+template<bool AMV, bool B>
+void ausaxs::grid::volume::SphericalExpander<AMV, B>::expand_volume(observer_ptr<grid::Grid> grid, GridMember<data::AtomFF>& atom) {
     if (atom.is_expanded()) {return;} // check if this location has already been expanded
     atom.set_expanded(true); // mark this location as expanded
 
@@ -49,7 +49,7 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::expand_volume(observer_ptr
 
     int xm, xp, ym, yp, zm, zp;
     {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-        auto axes = grid->get_axes();
+        const auto& axes = grid->get_axes();
 
         // determine maximum bin radius to check
         double br;
@@ -59,10 +59,10 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::expand_volume(observer_ptr
             br = max_bin_radius(rvdw);
         }
 
-        auto [bx, by, bz] = atom.get_bin_loc();
-        xm = std::max<int>(bx - br, 0), xp = std::min<int>(bx + br + 1, axes.x.bins); // xminus and xplus
-        ym = std::max<int>(by - br, 0), yp = std::min<int>(by + br + 1, axes.y.bins); // yminus and yplus
-        zm = std::max<int>(bz - br, 0), zp = std::min<int>(bz + br + 1, axes.z.bins); // zminus and zplus    
+        auto[bx, by, bz] = atom.get_bin_loc();
+        xm = static_cast<int>(std::max<double>(bx - br, 0)), xp = static_cast<int>(std::min<double>(bx + br + 1, axes.x.bins)); // xminus and xplus
+        ym = static_cast<int>(std::max<double>(by - br, 0)), yp = static_cast<int>(std::min<double>(by + br + 1, axes.y.bins)); // yminus and yplus
+        zm = static_cast<int>(std::max<double>(bz - br, 0)), zp = static_cast<int>(std::min<double>(bz + br + 1, axes.z.bins)); // zminus and zplus    
     }
 
     // loop over each bin in the box
@@ -81,8 +81,8 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::expand_volume(observer_ptr
 
                 bool fill = dist <= rvdw2;
                 if (fill) {
-                    if (!grid->grid.is_empty_or_volume(bin)) {continue;}
-                    added_volume += !grid->grid.is_volume(bin); // only add to the volume if the bin is not already part of the volume
+                    if (!detail::GridObj::is_empty_or_volume(bin)) {continue;}
+                    added_volume += static_cast<int>(!detail::GridObj::is_volume(bin)); // only add to the volume if the bin is not already part of the volume
                     bin |= detail::A_AREA;
                 }
 
@@ -100,8 +100,8 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::expand_volume(observer_ptr
     grid->add_volume(added_volume);
 }
 
-template<bool _, bool WMV>
-void ausaxs::grid::volume::SphericalExpander<_, WMV>::expand_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& water) {
+template<bool B, bool WMV>
+void ausaxs::grid::volume::SphericalExpander<B, WMV>::expand_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& water) {
     if (water.is_expanded()) {return;} // check if this location has already been expanded
     water.set_expanded(true); // mark this location as expanded
 
@@ -112,7 +112,7 @@ void ausaxs::grid::volume::SphericalExpander<_, WMV>::expand_volume(observer_ptr
 
     int xm, xp, ym, yp, zm, zp;
     {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-        auto axes = grid->get_axes();
+        const auto& axes = grid->get_axes();
 
         // determine maximum bin radius to check
         double br;
@@ -123,9 +123,9 @@ void ausaxs::grid::volume::SphericalExpander<_, WMV>::expand_volume(observer_ptr
         }
 
         auto[bx, by, bz] = water.get_bin_loc();
-        xm = std::max<int>(bx - br, 0), xp = std::min<int>(bx + br + 1, axes.x.bins); // xminus and xplus
-        ym = std::max<int>(by - br, 0), yp = std::min<int>(by + br + 1, axes.y.bins); // yminus and yplus
-        zm = std::max<int>(bz - br, 0), zp = std::min<int>(bz + br + 1, axes.z.bins); // zminus and zplus    
+        xm = static_cast<int>(std::max<double>(bx - br, 0)), xp = static_cast<int>(std::min<double>(bx + br + 1, axes.x.bins)); // xminus and xplus
+        ym = static_cast<int>(std::max<double>(by - br, 0)), yp = static_cast<int>(std::min<double>(by + br + 1, axes.y.bins)); // yminus and yplus
+        zm = static_cast<int>(std::max<double>(bz - br, 0)), zp = static_cast<int>(std::min<double>(bz + br + 1, axes.z.bins)); // zminus and zplus    
     }
 
     // i, j, k *must* be ints to avoid unsigned underflow
@@ -156,8 +156,8 @@ void ausaxs::grid::volume::SphericalExpander<_, WMV>::expand_volume(observer_ptr
     }
 }
 
-template<bool AMV, bool _>
-void ausaxs::grid::volume::SphericalExpander<AMV, _>::deflate_volume(observer_ptr<grid::Grid> grid, GridMember<data::AtomFF>& atom) {
+template<bool AMV, bool B>
+void ausaxs::grid::volume::SphericalExpander<AMV, B>::deflate_volume(observer_ptr<grid::Grid> grid, GridMember<data::AtomFF>& atom) {
     if (!atom.is_expanded()) {return;} // check if this location has already been deflated
     atom.set_expanded(false); // mark the atom as deflated
 
@@ -171,12 +171,12 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::deflate_volume(observer_pt
 
     int xm, xp, ym, yp, zm, zp;
     {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-        auto axes = grid->get_axes();
+        const auto& axes = grid->get_axes();
         double br = max_bin_radius(rmax);
         auto [bx, by, bz] = atom.get_bin_loc();
-        xm = std::max<int>(bx - br, 0), xp = std::min<int>(bx + br + 1, axes.x.bins); // xminus and xplus
-        ym = std::max<int>(by - br, 0), yp = std::min<int>(by + br + 1, axes.y.bins); // yminus and yplus
-        zm = std::max<int>(bz - br, 0), zp = std::min<int>(bz + br + 1, axes.z.bins); // zminus and zplus    
+        xm = static_cast<int>(std::max<double>(bx - br, 0)), xp = static_cast<int>(std::min<double>(bx + br + 1, axes.x.bins)); // xminus and xplus
+        ym = static_cast<int>(std::max<double>(by - br, 0)), yp = static_cast<int>(std::min<double>(by + br + 1, axes.y.bins)); // yminus and yplus
+        zm = static_cast<int>(std::max<double>(bz - br, 0)), zp = static_cast<int>(std::min<double>(bz + br + 1, axes.z.bins)); // zminus and zplus    
     }
 
     // i, j, k *must* be ints due to avoid unsigned underflow
@@ -192,7 +192,7 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::deflate_volume(observer_pt
                 // determine if the bin is within a sphere centered on the atom
                 auto& bin = grid->grid.index(i, j, k);
                 if (dist <= rmax2) {
-                    removed_volume += grid->grid.contributes_volume_from_area_only(bin);
+                    removed_volume += static_cast<int>(grid->grid.contributes_volume_from_area_only(bin));
                     bin &= ~(detail::A_AREA | detail::VOLUME);
                 }
             }
@@ -201,8 +201,8 @@ void ausaxs::grid::volume::SphericalExpander<AMV, _>::deflate_volume(observer_pt
     grid->add_volume(-removed_volume); // only the actual atoms contributes to the volume
 }
 
-template<bool _, bool WMV>
-void ausaxs::grid::volume::SphericalExpander<_, WMV>::deflate_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& water) {
+template<bool B, bool WMV>
+void ausaxs::grid::volume::SphericalExpander<B, WMV>::deflate_volume(observer_ptr<grid::Grid> grid, GridMember<data::Water>& water) {
     if (!water.is_expanded()) {return;} // check if this location has already been deflated
     water.set_expanded(false); // mark the water as deflated
 
@@ -216,12 +216,12 @@ void ausaxs::grid::volume::SphericalExpander<_, WMV>::deflate_volume(observer_pt
 
     int xm, xp, ym, yp, zm, zp;
     {   // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-        auto axes = grid->get_axes();
+        const auto& axes = grid->get_axes();
         auto[bx, by, bz] = water.get_bin_loc();
         double r = max_bin_radius(rmax);
-        xm = std::max<int>(bx - r, 0), xp = std::min<int>(bx + r + 1, axes.x.bins); // xminus and xplus
-        ym = std::max<int>(by - r, 0), yp = std::min<int>(by + r + 1, axes.y.bins); // yminus and yplus
-        zm = std::max<int>(bz - r, 0), zp = std::min<int>(bz + r + 1, axes.z.bins); // zminus and zplus    
+        xm = static_cast<int>(std::max<double>(bx - r, 0)), xp = static_cast<int>(std::min<double>(bx + r + 1, axes.x.bins)); // xminus and xplus
+        ym = static_cast<int>(std::max<double>(by - r, 0)), yp = static_cast<int>(std::min<double>(by + r + 1, axes.y.bins)); // yminus and yplus
+        zm = static_cast<int>(std::max<double>(bz - r, 0)), zp = static_cast<int>(std::min<double>(bz + r + 1, axes.z.bins)); // zminus and zplus    
     }
 
     // i, j, k *must* be ints to avoid unsigned underflow

@@ -2,26 +2,29 @@
 // Author: Kristian Lytje
 
 #include <settings/ExvSettings.h>
+
+#include <form_factor/lookup/FormFactorManager.h>
 #include <settings/SettingsIORegistry.h>
 #include <utility/StringUtils.h>
-#include <utility/Exceptions.h>
-#include <form_factor/lookup/FormFactorManager.h>
 
 using namespace ausaxs;
 
 settings::exv::ExvMethod settings::exv::exv_method = settings::exv::ExvMethod::Simple;
 
 settings::detail::Setting<settings::exv::ExvSet> settings::exv::exv_set = {
-    settings::exv::ExvSet::Default,
-    [] (settings::exv::ExvSet&) {
+    .value=settings::exv::ExvSet::Default,
+    .on_change=[] (settings::exv::ExvSet&) {
         ausaxs::form_factor::manager::rebuild();
     }
 };
 
-settings::io::SettingSection exv_section("Excluded volume", {
-    settings::io::create(settings::exv::exv_method, "exv_model"),
-    settings::io::create(settings::exv::exv_set, "exv_volume")
-});
+namespace {
+    using namespace ausaxs::settings;
+    settings::io::SettingSection exv_section("Excluded volume", {
+        settings::io::create(settings::exv::exv_method, "exv_model"),
+        settings::io::create(settings::exv::exv_set, "exv_volume")
+    });
+}
 
 template<> std::string settings::io::detail::SettingRef<settings::exv::ExvMethod>::get() const {
     switch (settingref) {
@@ -53,7 +56,7 @@ template<> void settings::io::detail::SettingRef<settings::exv::ExvMethod>::set(
     else if (str == "pepsi") {settingref = settings::exv::ExvMethod::Pepsi;}
     else if (str == "waxsis") {settingref = settings::exv::ExvMethod::WAXSiS;}
     else if (str == "none") {settingref = settings::exv::ExvMethod::None;}
-    else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::exv::ExvMethod>(std::stoi(val[0]));}
+    else if (!val[0].empty() && utility::isdigit(val[0][0])) {settingref = static_cast<settings::exv::ExvMethod>(std::stoi(val[0]));}
     else {
         throw except::io_error("settings: Unknown excluded volume method \"" + str + "\". Did you forget to add parsing support for it in ExvSettings.cpp?");
     }
@@ -79,7 +82,7 @@ template<> void settings::io::detail::SettingRef<settings::exv::ExvSet>::set(con
     else if (str == "minimum_fluctuation_implicit_h" || str == "mf") {settingref = settings::exv::ExvSet::MinimumFluctutation_implicit_H;}
     else if (str == "minimum_fluctuation_explicit_h") {settingref = settings::exv::ExvSet::MinimumFluctutation_explicit_H;}
     else if (str == "vdw") {settingref = settings::exv::ExvSet::vdw;}
-    else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::exv::ExvSet>(std::stoi(val[0]));}
+    else if (!val[0].empty() && utility::isdigit(val[0][0])) {settingref = static_cast<settings::exv::ExvSet>(std::stoi(val[0]));}
     else {
         throw except::io_error("settings::molecule::displaced_volume_set: Unkown DisplacedVolumeSet \"" + str + "\". Did you forget to add parsing support for it in MoleculeSettings.cpp?");
     }

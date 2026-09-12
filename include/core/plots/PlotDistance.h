@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <plots/Plot.h>
-#include <hist/HistFwd.h>
 #include <data/DataFwd.h>
+#include <hist/HistFwd.h>
+#include <plots/Plot.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::plots {

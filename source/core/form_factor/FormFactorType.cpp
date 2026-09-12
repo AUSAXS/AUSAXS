@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <form_factor/FormFactorType.h>
+
 #include <form_factor/FormFactor.h>
 
 using namespace ausaxs::form_factor;

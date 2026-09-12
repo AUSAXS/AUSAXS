@@ -1,13 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/AtomMetadata.h>
-#include <rigidbody/BodySplitter.h>
-#include <io/pdb/PDBStructure.h>
-#include <io/pdb/PDBAtom.h>
 #include <io/Reader.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBStructure.h>
+#include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -15,14 +15,14 @@ using namespace ausaxs;
 TEST_CASE("BodySplitter::split") {
     settings::general::verbose = false;
 
-    auto test_splits = [] (std::string_view file, std::vector<int>&& splits) {
+    auto test_splits = [] (std::string_view file, const std::vector<int>& splits) {
         data::Molecule protein = rigidbody::BodySplitter::split(file, splits);
         io::pdb::PDBStructure data = io::Reader::read(file);
-        REQUIRE(protein.size_atom() == data.atoms.size());
+        REQUIRE(protein.size_atom() == static_cast<int>(data.atoms.size()));
         
-        std::vector<unsigned int> expected_sizes;
+        std::vector<int> expected_sizes;
         int count = 0;
-        for (int split = 0, i = 0; i < static_cast<int>(protein.size_atom()); ++i) {
+        for (int split = 0, i = 0; i < protein.size_atom(); ++i) {
             auto& ap = data.atoms[i];
             if (split < static_cast<int>(splits.size()) && ap.resSeq == splits[split]) {
                 expected_sizes.push_back(count);
@@ -34,16 +34,16 @@ TEST_CASE("BodySplitter::split") {
         }
         expected_sizes.push_back(count);
 
-        REQUIRE(protein.size_body() == expected_sizes.size());
+        REQUIRE(protein.size_body() == static_cast<int>(expected_sizes.size()));
         int index = 0;
-        for (unsigned int i = 0; i < expected_sizes.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(expected_sizes.size()); ++i) {
             auto& atoms = protein.get_body(i).get_atoms();
-            REQUIRE(atoms.size() == expected_sizes[i]);
+            REQUIRE(static_cast<int>(atoms.size()) == expected_sizes[i]);
 
             if (1 <= i) {
                 CHECK(data.atoms[index].resSeq == splits[i-1]);
             }
-            if (i < splits.size()) {
+            if (i < static_cast<int>(splits.size())) {
                 CHECK(data.atoms[index+expected_sizes[i]-1].resSeq == splits[i]-1);
             }
             index += expected_sizes[i];

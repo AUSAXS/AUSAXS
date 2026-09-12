@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <math/Vector.h>
 #include <dataset/DatasetFwd.h>
+#include <math/Vector.h>
 #include <utility/Axis.h>
 #include <utility/TypeTraits.h>
 
@@ -56,12 +56,12 @@ namespace ausaxs::hist {
              * @brief Reduce the view axis to show only the non-zero area. 
              *        Minimum size is 10 units.
              */
-            void shorten_axis(unsigned int min_size = 10);
+            void shorten_axis(int min_size = 10);
 
             /**
              * @brief Resize the number of bins in this histogram, keeping the width constant.
              */
-            void resize(unsigned int bins);
+            void resize(int bins);
 
             /**
              * @brief Automatically generate an axis containing all elements. 
@@ -86,17 +86,17 @@ namespace ausaxs::hist {
             /**
              * @brief Get the count at a specific bin.
              */
-            const double& get_count(unsigned int i) const;
+            const double& get_count(int i) const;
 
             /**
              * @brief Add a count to a specific bin.
              */
-            void add_count(unsigned int i, double count);
+            void add_count(int i, double count);
 
             /**
              * @brief Set the count at a specific bin.
              */
-            void set_count(unsigned int i, double count);
+            void set_count(int i, double count);
 
             /**
              * @brief Set the counts of this histogram.
@@ -118,11 +118,11 @@ namespace ausaxs::hist {
             /**
              * @brief Get the count at a specific bin.
              */
-            double& get_count(unsigned int i);
+            double& get_count(int i);
 
-            const double& index(unsigned int i) const; // @copydoc get_count(unsigned int i) const
+            const double& index(int i) const; // @copydoc get_count(int i) const
 
-            double& index(unsigned int i); // @copydoc get_count(unsigned int i)
+            double& index(int i); // @copydoc get_count(int i)
 
             /**
              * @brief Get the spanned range of this histogram. 
@@ -138,7 +138,7 @@ namespace ausaxs::hist {
             /**
              * @brief Get the size of this Histogram.
              */
-            [[nodiscard]] unsigned int size() const noexcept;
+            [[nodiscard]] int size() const noexcept;
 
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
@@ -157,7 +157,7 @@ namespace ausaxs::hist {
             /**
              * @brief Merge every n bins into one.
              */
-            void merge(unsigned int n);
+            void merge(int n);
 
             Histogram& operator+=(const Histogram& rhs);
             Histogram& operator-=(const Histogram& rhs);

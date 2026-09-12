@@ -2,16 +2,15 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/LinkConstraint.h>
-#include <settings/RigidBodySettings.h>
-#include <constants/Constants.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
+#include <data/Molecule.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::data;
 
-LinkConstraint::LinkConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2) 
+LinkConstraint::LinkConstraint(data::Molecule* protein, int ibody1, int ibody2) 
     : protein(protein), ibody1(ibody1), ibody2(ibody2) {
     const Body& body1 = protein->get_body(ibody1);
     const Body& body2 = protein->get_body(ibody2);
@@ -34,10 +33,10 @@ const Body& LinkConstraint::get_body2() const {
     return protein->get_body(ibody2);
 }
 
-Body& LinkConstraint::get_body1() {
+Body& LinkConstraint::get_body1() { // NOLINT
     return protein->get_body(ibody1);
 }
 
-Body& LinkConstraint::get_body2() {
+Body& LinkConstraint::get_body2() { // NOLINT
     return protein->get_body(ibody2);
 }

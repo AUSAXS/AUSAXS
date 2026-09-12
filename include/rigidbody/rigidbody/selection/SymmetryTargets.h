@@ -29,8 +29,8 @@ namespace ausaxs::rigidbody::selection {
              * @brief One drivable symmetry slot. Named apart from BodySelectStrategy::Target, which is a whole move rather than just the slot it acts on.
              */
             struct Slot {
-                unsigned int ibody;     //< the body declaring the symmetry
-                unsigned int isymmetry; //< the symmetry's slot within that body
+                int ibody;     //< the body declaring the symmetry
+                int isymmetry; //< the symmetry's slot within that body
             };
 
             /**
@@ -48,7 +48,7 @@ namespace ausaxs::rigidbody::selection {
             /**
              * @brief The drivable slots of a single body, or an empty vector if it has none.
              */
-            const std::vector<unsigned int>& body_targets(unsigned int ibody) const;
+            const std::vector<int>& body_targets(int ibody) const;
 
             /**
              * @brief Map a declared symmetry slot onto the drivable slot that actually backs it.
@@ -59,7 +59,7 @@ namespace ausaxs::rigidbody::selection {
              *
              * @return The drivable slot, or nullopt if the slot does not exist or nothing can drive it.
              */
-            std::optional<Slot> resolve(unsigned int ibody, unsigned int isymmetry) const;
+            std::optional<Slot> resolve(int ibody, int isymmetry) const;
 
             /**
              * @brief True if the molecule declares no drivable symmetry at all, in which case no symmetry-only step can accomplish anything.
@@ -78,7 +78,7 @@ namespace ausaxs::rigidbody::selection {
 
             // the pool is a cache of what the molecule already says, so reading it is a const operation even when it has to be rebuilt first
             mutable std::vector<Slot> targets;
-            mutable std::unordered_map<unsigned int, std::vector<unsigned int>> per_body;
+            mutable std::unordered_map<int, std::vector<int>> per_body;
             mutable bool dirty = true;
     };
 }

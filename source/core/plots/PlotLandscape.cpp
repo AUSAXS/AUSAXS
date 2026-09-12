@@ -2,8 +2,8 @@
 // Author: Kristian Lytje
 
 #include <plots/PlotLandscape.h>
+
 #include <mini/detail/Landscape.h>
-#include <mini/detail/Evaluation.h>
 
 using namespace ausaxs::plots;
 

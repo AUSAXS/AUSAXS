@@ -2,12 +2,13 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/constraints/ConstraintFactory.h>
-#include <rigidbody/constraints/DistanceConstraintCM.h>
+
+#include <data/Molecule.h>
+#include <rigidbody/constraints/AttractorConstraint.h>
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/AttractorConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <rigidbody/constraints/RepellerConstraint.h>
-#include <data/Molecule.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
@@ -45,7 +46,7 @@ std::unique_ptr<constraints::Constraint> factory::create_constraint_repeller(
 }
 
 std::unique_ptr<constraints::Constraint> factory::create_constraint(
-    observer_ptr<const data::Molecule> owner, BodySymmetrySelector body1, BodySymmetrySelector body2, unsigned int iatom1, unsigned int iatom2
+    observer_ptr<const data::Molecule> owner, BodySymmetrySelector body1, BodySymmetrySelector body2, int iatom1, int iatom2
 ) {
     return std::make_unique<constraints::DistanceConstraintAtom>(
         owner, body1.body, iatom1, body2.body, iatom2, 

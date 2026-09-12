@@ -2,10 +2,11 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/MoleculeSymmetryFacade.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
-#include <io/pdb/PDBStructure.h>
+#include <data/Molecule.h>
 #include <io/Writer.h>
+#include <io/pdb/PDBStructure.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

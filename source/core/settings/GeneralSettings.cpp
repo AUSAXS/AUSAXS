@@ -2,18 +2,19 @@
 // Author: Kristian Lytje
 
 #include <settings/GeneralSettings.h>
+
 #include <settings/SettingsIORegistry.h>
 #include <utility/StringUtils.h>
 
-#include <thread>
 #include <algorithm>
+#include <thread>
 
 using namespace ausaxs;
 
 bool settings::general::verbose = true;
 bool settings::general::warnings = true;
 bool settings::general::offline = false;
-unsigned int settings::general::threads = std::thread::hardware_concurrency()-1;
+int settings::general::threads = static_cast<int>(std::thread::hardware_concurrency())-1;
 std::string settings::general::output = "output/";
 bool settings::general::keep_hydrogens = false;
 bool settings::general::supplementary_plots = true;
@@ -21,7 +22,7 @@ bool settings::general::generate_plots = true;
 bool settings::general::gpu = false;
 settings::general::QUnit settings::general::input_q_unit = settings::general::QUnit::A;
 
-std::string settings::general::gpu_library = "";
+std::string settings::general::gpu_library;
 
 std::string settings::general::cache = [] () {
     const char* env_p = nullptr;
@@ -51,16 +52,17 @@ std::string settings::general::cache = [] () {
 }();
 std::string settings::general::residue_folder = cache + "residues/";
 
-unsigned int ausaxs::settings::general::detail::get_job_size(unsigned int n) {
-    constexpr unsigned int jobs_per_thread = 8; // aim for this many jobs per thread
-    constexpr unsigned int min_job_size = 64; // but never go below this to avoid excessive overhead from too many small jobs
-    constexpr unsigned int max_job_size = 512;
+int ausaxs::settings::general::detail::get_job_size(int n) {
+    constexpr int jobs_per_thread = 8; // aim for this many jobs per thread
+    constexpr int min_job_size = 64; // but never go below this to avoid excessive overhead from too many small jobs
+    constexpr int max_job_size = 512;
 
-    unsigned int threads = std::max(1u, settings::general::threads);
+    int threads = std::max<int>(1, settings::general::threads);
     return std::clamp(n/(jobs_per_thread*threads), min_job_size, max_job_size);
 }
 
-namespace ausaxs::settings::io {
+namespace {
+    using namespace ausaxs::settings;
     settings::io::SettingSection general_section("General", {
         settings::io::create(general::verbose, {"verbose", "v"}),
         settings::io::create(general::warnings, {"warnings", "w"}),
@@ -99,14 +101,14 @@ template<> std::string settings::io::detail::SettingRef<settings::general::QUnit
 
 bool ausaxs::settings::general::helper::is_angstroms(QUnit u) {
     // QUnit::USER_A follows from QUnit::A due to the bit manipulation
-    return static_cast<char>(u) & static_cast<char>(QUnit::A);
+    return static_cast<bool>(static_cast<char>(u) & static_cast<char>(QUnit::A));
 }
 
 bool ausaxs::settings::general::helper::is_nanometers(QUnit u) {
     // QUnit::USER_NM follows from QUnit::NM due to the bit manipulation
-    return static_cast<char>(u) & static_cast<char>(QUnit::NM);
+    return static_cast<bool>(static_cast<char>(u) & static_cast<char>(QUnit::NM));
 }
 
 bool ausaxs::settings::general::helper::is_user_defined(QUnit u) {
-    return static_cast<char>(u) & (1 << 3);
+    return static_cast<bool>(static_cast<char>(u) & (1 << 3));
 }

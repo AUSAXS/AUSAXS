@@ -3,15 +3,13 @@
 
 #pragma once
 
+#include <data/DataFwd.h>
 #include <hydrate/culling/CullingStrategy.h>
 #include <settings/MoleculeSettings.h>
-#include <data/DataFwd.h>
 
 #include <memory>
 
-namespace ausaxs::hydrate {
-    namespace factory {
-        std::unique_ptr<CullingStrategy> construct_culling_strategy(observer_ptr<data::Molecule> molecule, bool global);
-        std::unique_ptr<CullingStrategy> construct_culling_strategy(observer_ptr<data::Molecule> molecule, settings::hydrate::CullingStrategy choice);
-    }
+namespace ausaxs::hydrate::factory {
+    std::unique_ptr<CullingStrategy> construct_culling_strategy(observer_ptr<data::Molecule> molecule, bool global);
+    std::unique_ptr<CullingStrategy> construct_culling_strategy(observer_ptr<data::Molecule> molecule, settings::hydrate::CullingStrategy choice);
 }

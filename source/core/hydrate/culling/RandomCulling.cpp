@@ -2,11 +2,11 @@
 // Author: Kristian Lytje
 
 #include <hydrate/culling/RandomCulling.h>
+
+#include <grid/detail/GridMember.h>
+#include <hydrate/culling/BodyCounterCulling.h>
 #include <hydrate/culling/CounterCulling.h>
 #include <hydrate/culling/OutlierCulling.h>
-#include <hydrate/culling/BodyCounterCulling.h>
-#include <grid/detail/GridMember.h>
-#include <grid/Grid.h>
 #include <utility/Random.h>
 
 using namespace ausaxs;

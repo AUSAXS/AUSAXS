@@ -2,26 +2,25 @@
 // Author: Kristian Lytje
 
 #include <api/pyausaxs/api_rigidbody.h>
+
 #include <api/ObjectStorage.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/atoms/AtomMetadata.h>
+#include <data/detail/SimpleBody.h>
+#include <data/symmetry/BodySymmetryFacade.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/UpdateElement.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/detail/ValidElements.h>
+#include <rigidbody/constraints/AttractorConstraint.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/AttractorConstraint.h>
-#include <rigidbody/constraints/RepellerConstraint.h>
 #include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <data/atoms/AtomMetadata.h>
-#include <data/symmetry/BodySymmetryFacade.h>
-#include <data/detail/SimpleBody.h>
-#include <utility/Exceptions.h>
+#include <rigidbody/constraints/RepellerConstraint.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/ValidElements.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/sequencer/elements/UpdateElement.h>
 
 using namespace ausaxs;
 
@@ -68,18 +67,18 @@ int rigidbody_get_preview_structure(
     int** constraint_data, int* n_constraints,
     int* status
 ) {return execute_with_catch([&]() {
-    auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
+    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
 
     auto& sequencer = get_cached_sequencer(*script_obj);
-    auto molecule = sequencer._get_molecule();
+    auto* molecule = sequencer._get_molecule();
 
     _rigidbody_preview_structure_obj data;
     int bidx = 0;
     // flat index of atom 0 of each body's copy 0; used below to map constraint atom indices
     std::vector<int> body_atom0_starts;
     for (const auto& body : molecule->get_bodies()) {
-        int na = static_cast<int>(body.size_atom());
+        int na = body.size_atom();
 
         // each body's metadata is parallel-indexed to its own base atoms (symmetry copies reuse it)
         const auto& md = body.get_metadata();
@@ -124,13 +123,13 @@ int rigidbody_get_preview_structure(
         emit_constraint(c.get());
     }
     for (const auto& c : sequencer._get_rigidbody()->constraints->non_discoverable_constraints) {
-        if (auto* dc = dynamic_cast<const rigidbody::constraints::IDistanceConstraint*>(c.get())) {
+        if (const auto* dc = dynamic_cast<const rigidbody::constraints::IDistanceConstraint*>(c.get())) {
             emit_constraint(dc);
         }
     }
 
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_rigidbody_preview_structure_obj>(data_id);
+    auto* ref = api::ObjectStorage::get_object<_rigidbody_preview_structure_obj>(data_id);
     *x = ref->x.data();
     *y = ref->y.data();
     *z = ref->z.data();
@@ -165,7 +164,7 @@ int rigidbody_get_live_structure(
     rigidbody::sequencer::UpdateElement::unlock();
 
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_rigidbody_live_structure_obj>(data_id);
+    auto* ref = api::ObjectStorage::get_object<_rigidbody_live_structure_obj>(data_id);
     *x = ref->x.data();
     *y = ref->y.data();
     *z = ref->z.data();
@@ -191,7 +190,7 @@ void rigidbody_poll_live_structure(
     int* n_atoms, int* version,
     int* status
 ) {execute_with_catch([&]() {
-    auto poller = api::ObjectStorage::get_object<_rigidbody_live_poller_obj>(poller_id);
+    auto* poller = api::ObjectStorage::get_object<_rigidbody_live_poller_obj>(poller_id);
     if (!poller) {throw except::invalid_argument("Invalid live poller id: \"" + std::to_string(poller_id) + "\"");}
 
     // copied under the publisher's lock: the buffers are resized from a thread pool task, so reading them
@@ -216,8 +215,8 @@ void rigidbody_register_live_consumer(bool connected, int* status) {execute_with
 void rigidbody_validate(
     int rigidbody_id,
     int* status
-) {return execute_with_catch([&]() {
-    auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
+) {execute_with_catch([&]() {
+    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
     rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
 }, status);}
@@ -232,7 +231,7 @@ int rigidbody_run(
     double** q, double** I, double** I_err, double** I_interp, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
+    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
     auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
     sequencer->execute();
@@ -245,7 +244,7 @@ int rigidbody_run(
     data_obj.I_err = data.col(2);
     data_obj.I_inter = data.col(3);
     int data_id = api::ObjectStorage::register_object(std::move(data_obj));
-    auto ref = api::ObjectStorage::get_object<_rigidbody_get_data_obj>(data_id);
+    auto* ref = api::ObjectStorage::get_object<_rigidbody_get_data_obj>(data_id);
     *q = ref->q.data();
     *I = ref->I.data();
     *I_err = ref->I_err.data();
@@ -268,11 +267,12 @@ void rigidbody_get_valid_elements(
     static std::vector<std::string> valid_elements = rigidbody::sequencer::detail::valid_elements();
     static std::vector<const char*> valid_elements_cstr = [&] () {
         std::vector<const char*> cstrs;
+        cstrs.reserve(valid_elements.size());
         for (const auto& elem : valid_elements) {cstrs.push_back(elem.c_str());}
         return cstrs;
     }();
     *elements = valid_elements_cstr.data();
-    *size = valid_elements.size();
+    *size = static_cast<int>(valid_elements.size());
 }, status);}
 
 void rigidbody_get_valid_arguments(
@@ -291,7 +291,7 @@ void rigidbody_get_valid_arguments(
         valid_arguments_cstr_map[type] = cstrs;
     }
     *arguments = valid_arguments_cstr_map[type].data();
-    *size = valid_arguments_map[type].size();
+    *size = static_cast<int>(valid_arguments_map[type].size());
 }, status);}
 
 void rigidbody_get_valid_inline_arguments(
@@ -312,7 +312,7 @@ void rigidbody_get_valid_inline_arguments(
         signature_cstr_map[type] = cstrs;
     }
     *arguments = signature_cstr_map[type].data();
-    *size = signature_map[type].names.size();
+    *size = static_cast<int>(signature_map[type].names.size());
     *min_count = static_cast<int>(signature_map[type].min);
     *max_count = static_cast<int>(signature_map[type].max);
 }, status);}
@@ -323,7 +323,7 @@ void rigidbody_get_body_names(
     int* size,
     int* status
 ) {execute_with_catch([&]() {
-    auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
+    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
 
     auto& sequencer = get_cached_sequencer(*script_obj);
@@ -354,11 +354,11 @@ int rigidbody_get_symmetry_layout(
     int* n_replicas,
     int* status
 ) {return execute_with_catch([&]() {
-    auto script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
+    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
 
     auto& sequencer = get_cached_sequencer(*script_obj);
-    auto molecule = sequencer._get_molecule();
+    auto* molecule = sequencer._get_molecule();
     const auto& name_registry = sequencer.setup()._body_name_registry();
 
     _rigidbody_symmetry_layout_obj data;
@@ -369,7 +369,7 @@ int rigidbody_get_symmetry_layout(
         int copy_idx = 1;
         int isymmetry = 0;
         for (const auto& sym_ptr : body_obj.symmetry().get()) {
-            int reps = static_cast<int>(sym_ptr->repetitions());
+            int reps = sym_ptr->repetitions();
             std::string type_name = sym_ptr->type_name();
             for (int replica_idx = 1; replica_idx <= reps; ++replica_idx) {
                 data.body.push_back(bidx);
@@ -391,7 +391,7 @@ int rigidbody_get_symmetry_layout(
     for (const auto& s : data.name) {data.name_ptr.push_back(s.c_str());}
 
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_rigidbody_symmetry_layout_obj>(data_id);
+    auto* ref = api::ObjectStorage::get_object<_rigidbody_symmetry_layout_obj>(data_id);
     *body = ref->body.empty() ? nullptr : ref->body.data();
     *copy = ref->copy.empty() ? nullptr : ref->copy.data();
     *symmetry = ref->symmetry.empty() ? nullptr : ref->symmetry.data();

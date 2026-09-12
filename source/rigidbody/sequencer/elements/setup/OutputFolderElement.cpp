@@ -2,11 +2,11 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
-#include <rigidbody/sequencer/elements/setup/SetupElement.h>
+
+#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/elements/setup/SetupElement.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
 
@@ -15,7 +15,7 @@
 using namespace ausaxs::rigidbody::sequencer;
 
 OutputFolderElement::OutputFolderElement(observer_ptr<Sequencer> owner, const io::Folder& folder, Mode mode) : owner(owner) {
-    std::string prefix = "";
+    std::string prefix;
     auto path = folder.path();
     switch (mode) {
         case Mode::RELATIVE_TERMINAL:
@@ -60,7 +60,7 @@ InlineSignature OutputFolderElement::_valid_inline_arguments() {
     return {.names = {"path"}, .min = 0, .max = 1};
 }
 
-std::unique_ptr<GenericElement> OutputFolderElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> OutputFolderElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     auto path = args.get<std::string>(args_map[Args::path]);
     auto mode = args.get<std::string>(args_map[Args::mode], "relative_terminal");
 
@@ -72,11 +72,15 @@ std::unique_ptr<GenericElement> OutputFolderElement::_parse(observer_ptr<LoopEle
 
     if (mode.value == "relative" || mode.value == "relative_terminal") {
         return std::make_unique<OutputFolderElement>(owner->_get_sequencer(), io::Folder(path.value), OutputFolderElement::Mode::RELATIVE_TERMINAL);
-    } else if (mode.value == "relative_config") {
+    } 
+
+    if (mode.value == "relative_config") {
         return std::make_unique<OutputFolderElement>(owner->_get_sequencer(), io::Folder(path.value), OutputFolderElement::Mode::RELATIVE_CONFIG);
-    } else if (mode.value == "absolute") {
-        return std::make_unique<OutputFolderElement>(owner->_get_sequencer(), io::Folder(path.value), OutputFolderElement::Mode::ABSOLUTE);
-    } else {
-        throw except::parse_error("output", "Invalid argument for \"mode\": \"" + mode.value + "\". Expected one of {absolute, relative, relative_config}.");
     }
+
+    if (mode.value == "absolute") {
+        return std::make_unique<OutputFolderElement>(owner->_get_sequencer(), io::Folder(path.value), OutputFolderElement::Mode::ABSOLUTE);
+    }
+
+    throw except::parse_error("output", R"(Invalid argument for "mode": ")" + mode.value + "\". Expected one of {absolute, relative, relative_config}.");
 }

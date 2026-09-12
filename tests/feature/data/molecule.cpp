@@ -1,30 +1,30 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <grid/Grid.h>
-#include <grid/detail/GridMember.h>
 #include <constants/Constants.h>
-#include <utility/Utility.h>
-#include <utility/Random.h>
-#include <settings/All.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/symmetry/CyclicSymmetry.h>
 #include <fitter/SmartFitter.h>
-#include <hydrate/generation/RadialHydration.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>  // IWYU pragma: keep
 #include <hist/histogram_manager/HistogramManager.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <io/pdb/PDBStructure.h>
 #include <rigidbody/BodySplitter.h>
-#include <data/symmetry/CyclicSymmetry.h>
+#include <settings/All.h>
+#include <utility/Random.h>
+#include <utility/Utility.h>
 
 #include <support/temp_file.h>
 
-#include <vector>
-#include <string>
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include <string>
+#include <vector>
 
 using namespace ausaxs;
 using namespace data;
@@ -60,8 +60,8 @@ struct fixture {
  * @brief Compare two histograms. 
  *        Only indices [0, p1.size()] are checked.
  */
-bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    for (unsigned int i = 0; i < p1.size(); i++) {
+static bool compare_hist(Vector<double> p1, Vector<double> p2) {
+    for (int i = 0; i < p1.size(); i++) {
         if (!utility::approx(p1[i], p2[i])) {
             std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
             return false;
@@ -287,11 +287,15 @@ TEST_CASE("Molecule::save", "[files]") {
     REQUIRE(atoms1.size() == atoms2.size());
 
     // we have to manually compare the data since saving & loading will necessarily round the doubles
-    for (size_t i = 0; i < atoms1.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(atoms1.size()); ++i) {
         bool ok = true;
         auto& a1 = atoms1[i];
         auto& a2 = atoms2[i];
-        if (1e-3 < abs(a1.coordinates().x() - a2.coordinates().x()) + abs(a1.coordinates().y() - a2.coordinates().y()) + abs(a1.coordinates().z() - a2.coordinates().z())) {ok = false;}
+        if (
+            1e-3 < std::abs(a1.coordinates().x() - a2.coordinates().x()) + 
+            std::abs(a1.coordinates().y() - a2.coordinates().y()) + 
+            std::abs(a1.coordinates().z() - a2.coordinates().z())
+        ) {ok = false;}
         if (a1.form_factor_type() != a2.form_factor_type()) {ok = false;}
         REQUIRE(ok);
     }
@@ -357,9 +361,7 @@ TEST_CASE("Molecule::get_absolute_mass", "[files]") {
     for (auto& atom : protein.get_atoms()) {
         sum += constants::mass::get_mass(atom.form_factor_type());
     }
-    for (auto& water : protein.get_waters()) {
-        sum += constants::mass::get_mass(water.form_factor_type());
-    }
+    sum += protein.size_water()*constants::mass::get_mass(ausaxs::data::Water::form_factor_type());
     REQUIRE(protein.get_absolute_mass() == sum);
 }
 
@@ -510,14 +512,14 @@ TEST_CASE_METHOD(fixture, "Molecule::get_water") {
 TEST_CASE_METHOD(fixture, "Molecule::create_grid") {
     Molecule protein(bodies);
     protein.clear_grid();
-    auto grid = protein.get_grid();
+    auto* grid = protein.get_grid();
     protein.create_grid();
     REQUIRE(protein.get_grid() != grid);
 }
 
 // the Molecule is not notified of symmetries added through its bodies, so the only thing standing between it and a silently
 // corrupted grid is noticing that the atom count no longer matches
-auto add_symmetry_copy = [] (Molecule& protein) {
+static auto add_symmetry_copy = [] (Molecule& protein) {
     protein.get_body(0).symmetry().add(std::make_unique<symmetry::CyclicSymmetry>(
         Vector3<double>{0, 0, 0}, Vector3<double>{30, 0, 0}, Vector3<double>{0, 0, 1}, 0, 1
     ));
@@ -612,7 +614,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
 
         // create some water molecules
         std::vector<Water> ws(10);
-        for (size_t i = 0; i < ws.size(); i++) {
+        for (int i = 0; i < static_cast<int>(ws.size()); i++) {
             ws[i] = Water(Vector3<double>(i, i, i));
         }
 
@@ -630,7 +632,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
         const std::vector<double>& p_o = d_o->get_weighted_counts();
 
         // compare each entry
-        for (size_t i = 0; i < p_o.size(); i++) {
+        for (int i = 0; i < static_cast<int>(p_o.size()); i++) {
             if (!utility::approx(p_o[i], p_m[i])) {
                 cout << "Failed on index " << i << ". Values: " << p_m[i] << ", " << p_o[i] << endl;
                 REQUIRE(false);
@@ -645,8 +647,8 @@ TEST_CASE("Molecule::histogram", "[files]") {
         // We iterate through the protein data from the body, and split it into multiple pieces of size 100.  
         std::vector<Body> patoms;           // vector containing the pieces we split it into
         std::vector<AtomFF> p_current(100); // vector containing the current piece
-        unsigned int index = 0;             // current index in p_current
-        for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
+        int index = 0;             // current index in p_current
+        for (int i = 0; i < static_cast<int>(body.get_atoms().size()); i++) {
             p_current[index] = body.get_atom(i);
             index++;
             if (index == 100) { // if index is 100, reset to 0
@@ -664,7 +666,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
         // create the atom, and perform a sanity check on our extracted list
         Molecule protein(patoms);
         std::vector<AtomFF> protein_atoms = protein.get_atoms();
-        std::vector<AtomFF> body_atoms = body.get_atoms();
+        const std::vector<AtomFF>& body_atoms = body.get_atoms();
 
         // sizes must be equal. this also serves as a separate consistency check on the body generation. 
         if (protein_atoms.size() != body_atoms.size()) {
@@ -673,7 +675,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
         }
 
         // stronger consistency check - we check that all atoms are equal, and appear in the exact same order
-        for (unsigned int i = 0; i < protein_atoms.size(); i++) {
+        for (int i = 0; i < static_cast<int>(protein_atoms.size()); i++) {
             if (protein_atoms[i] != body_atoms[i]) {
                 cout << "Comparison failed on index " << i << endl;
                 cout << protein_atoms[i].coordinates() << endl;
@@ -694,7 +696,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
         const std::vector<double>& b_tot = d_b->get_weighted_counts();
 
         // compare each entry
-        for (unsigned int i = 0; i < b_tot.size(); i++) {
+        for (int i = 0; i < static_cast<int>(b_tot.size()); i++) {
             if (!utility::approx(p[i], b_tot[i])) {
                 cout << "Failed on index " << i << ". Values: " << p[i] << ", " << b_tot[i] << endl;
                 REQUIRE(false);
@@ -732,7 +734,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
         const std::vector<double>& p2 = h2->get_weighted_counts();
 
         // compare each entry
-        for (size_t i = 0; i < p1.size(); i++) {
+        for (int i = 0; i < static_cast<int>(p1.size()); i++) {
             if (!utility::approx(p1[i], p2[i])) {
                 cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << endl;
                 REQUIRE(false);
@@ -742,8 +744,8 @@ TEST_CASE("Molecule::histogram", "[files]") {
     }
 }
 
-#include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
+#include <data/state/StateManager.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
     settings::general::verbose = false;
@@ -754,14 +756,14 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
     SECTION("at construction") {
         auto& bodies = protein.get_bodies();
         REQUIRE(bodies.size() == 4);
-        auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
-        for (unsigned int i = 0; i < bodies.size(); ++i) {
+        auto* manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
+        for (int i = 0; i < static_cast<int>(bodies.size()); ++i) {
             CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies[i].get_signaller()) != nullptr);
             CHECK(manager->get_probe(i) == bodies[i].get_signaller());
         }
 
         manager->reset_to_false();
-        for (unsigned int i = 0; i < bodies.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(bodies.size()); ++i) {
             bodies[i].get_signaller()->modified_external();
             CHECK(manager->is_externally_modified(i));
         }
@@ -771,9 +773,9 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
         auto& bodies = protein.get_bodies();
         REQUIRE(bodies.size() == 4);
         protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
-        auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
+        auto* manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
 
-        for (unsigned int i = 0; i < bodies.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(bodies.size()); ++i) {
             CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies[i].get_signaller()) != nullptr);
             CHECK(manager->get_probe(i) == bodies[i].get_signaller());
         }
@@ -783,7 +785,7 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
 TEST_CASE_METHOD(fixture, "Molecule::signal_modified_hydration_layer") {
     Molecule protein(bodies);
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
-    auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
+    auto* manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
     manager->reset_to_false();
     REQUIRE(manager->is_modified_hydration() == false);
 
@@ -959,8 +961,8 @@ TEST_CASE("Molecule::iterate_waters") {
         auto waters = molecule.get_waters();
 
         // assign to individual bodies
-        int stride = waters.size() / molecule.size_body();
-        for (size_t i = 0; i < molecule.size_body()-1; i++) {
+        int stride = static_cast<int>(waters.size() / molecule.size_body());
+        for (int i = 0; i < molecule.size_body()-1; i++) {
             molecule.get_body(i).set_hydration(hydrate::Hydration::create(std::vector<Water>(waters.begin() + i*stride, waters.begin() + (i+1)*stride)));
         }
         // assign remainder to the last body

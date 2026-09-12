@@ -1,18 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hydrate/culling/CullingFactory.h>
-#include <hydrate/culling/CounterCulling.h>
+#include <data/Molecule.h>
 #include <hydrate/culling/BodyCounterCulling.h>
-#include <hydrate/culling/OutlierCulling.h>
+#include <hydrate/culling/CounterCulling.h>
+#include <hydrate/culling/CullingFactory.h>
 #include <hydrate/culling/NoCulling.h>
-#include <hydrate/generation/HydrationFactory.h>
-#include <hydrate/generation/RadialHydration.h>
+#include <hydrate/culling/OutlierCulling.h>
 #include <hydrate/generation/AxesHydration.h>
-#include <hydrate/generation/PepsiHydration.h>
+#include <hydrate/generation/HydrationFactory.h>
 #include <hydrate/generation/JanHydration.h>
 #include <hydrate/generation/NoHydration.h>
-#include <data/Molecule.h>
+#include <hydrate/generation/PepsiHydration.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <settings/MoleculeSettings.h>
 
 using namespace ausaxs;

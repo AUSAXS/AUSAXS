@@ -6,9 +6,9 @@
 #include <settings/SettingRef.h>
 #include <utility/observer_ptr.h>
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace ausaxs::settings::io {
     /**

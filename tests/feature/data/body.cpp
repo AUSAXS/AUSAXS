@@ -1,22 +1,17 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <constants/Constants.h>
-#include <utility/Console.h>
-#include <grid/Grid.h>
-#include <grid/detail/GridMember.h>
+#include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
-#include <settings/All.h>
-#include <data/Body.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
-#include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <io/Writer.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 
-#include <vector>
 #include <numbers>
+#include <vector>
 
 using namespace ausaxs;
 using namespace data;
@@ -114,7 +109,7 @@ TEST_CASE("Body::save") {
     Body body2(path);
 
     CHECK(body.size_atom() == body2.size_atom());
-    for (unsigned int i = 0; i < body.size_atom(); i++) {
+    for (int i = 0; i < body.size_atom(); i++) {
         CHECK(body.get_atom(i) == body2.get_atom(i));
     }
 }
@@ -132,7 +127,7 @@ TEST_CASE_METHOD(fixture, "Body::translate") {
     SECTION("informs manager") {
         auto protein = Molecule({body});
         protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
-        auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
+        auto* manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
         manager->reset_to_false();
         protein.get_body(0).translate(Vector3<double>(10, 0, 0));
         CHECK(protein.get_body(0).get_atom(0).coordinates() == Vector3<double>(9, -1, -1));
@@ -198,7 +193,6 @@ TEST_CASE("Body::rotate") {
 }
 
 #include <data/state/BoundSignaller.h>
-#include <data/state/StateManager.h>
 TEST_CASE("Body::register_probe") {
     Body body(std::vector<AtomFF>{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)});
     state::StateManager sm(1);
@@ -261,7 +255,7 @@ TEST_CASE_METHOD(fixture, "Body::state") {
     settings::flags::max_bin_count = constants::axes::d_axis.bins;
     auto protein = Molecule({body});
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
-    auto manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
+    auto* manager = static_cast<hist::IPartialHistogramManager*>(protein.get_histogram_manager())->get_state_manager();
     manager->reset_to_false();
 
     SECTION("Body::changed_external_state") {

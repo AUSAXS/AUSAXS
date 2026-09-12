@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace ausaxs::mini {
     struct Evaluation {

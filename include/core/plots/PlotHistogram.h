@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <hist/HistFwd.h>
 #include <plots/Plot.h>
 #include <utility/observer_ptr.h>
-#include <hist/HistFwd.h>
 
 namespace ausaxs::plots {
 	/**
@@ -15,7 +15,7 @@ namespace ausaxs::plots {
 		public:
 			PlotHistogram();
 
-			virtual ~PlotHistogram();
+			~PlotHistogram() override;
 
 			PlotHistogram(const hist::Histogram& h, const plots::PlotOptions& options);
 

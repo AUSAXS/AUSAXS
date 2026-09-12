@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/detail/BodyNameRegistry.h>
+
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 
 #include <algorithm>
@@ -75,14 +76,14 @@ void BodyNameRegistry::rename(std::string_view old_name, std::string_view new_na
 }
 
 void BodyNameRegistry::remove(std::vector<int> body_indices) {
-    std::sort(body_indices.begin(), body_indices.end());
+    std::ranges::sort(body_indices);
 
     // every surviving body shifts down by the number of erased bodies preceding it
     auto shift_of = [&] (int body) {
-        return static_cast<int>(std::distance(body_indices.begin(), std::lower_bound(body_indices.begin(), body_indices.end(), body)));
+        return static_cast<int>(std::distance(body_indices.begin(), std::ranges::lower_bound(body_indices, body)));
     };
     auto is_erased = [&] (int body) {
-        auto pos = std::lower_bound(body_indices.begin(), body_indices.end(), body);
+        auto pos = std::ranges::lower_bound(body_indices, body);
         return pos != body_indices.end() && *pos == body;
     };
 

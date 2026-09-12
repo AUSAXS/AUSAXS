@@ -2,14 +2,14 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/distribution/Distribution1D.h>
-#include <hist/Histogram.h>
-#include <table/ArrayDebyeTable.h>
-#include <table/VectorDebyeTable.h>
+
 #include <dataset/SimpleDataset.h>
+#include <hist/Histogram.h>
+#include <hist/distribution/Distribution1D.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/HistogramSettings.h>
-#include <constants/Constants.h>
+
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -20,14 +20,14 @@ DistanceHistogram::DistanceHistogram(DistanceHistogram&&) noexcept = default;
 DistanceHistogram& DistanceHistogram::operator=(DistanceHistogram&&) noexcept = default;
 DistanceHistogram& DistanceHistogram::operator=(const DistanceHistogram&) = default;
 
-DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram(
+DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram( // NOLINT - consumed piecewise below
     std::move(p_tot.get_data()), 
     Axis(0, p_tot.size()*settings::axes::bin_width, p_tot.size())
 ) {
     initialize();
 }
 
-DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot) : Histogram(
+DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot) : Histogram( // NOLINT - consumed piecewise below
     p_tot.get_content(), 
     Axis(0, p_tot.size()*settings::axes::bin_width, p_tot.size())
 ) {
@@ -35,7 +35,7 @@ DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot) : His
     sinc_table.set_d_axis(d_axis);
 }
 
-DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh) : Histogram(std::move(cdh->get_counts()), cdh->get_axis()) {
+DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh) : Histogram(cdh->get_counts(), cdh->get_axis()) {
     initialize();
 }
 
@@ -55,16 +55,16 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
     const auto& q_axis = constants::axes::q_vals;
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    auto sinqd_table = sinc_table.get_sinc_table();
+    const auto* sinqd_table = sinc_table.get_sinc_table();
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-    for (int q = q0; q < static_cast<int>(q0+debye_axis.bins); ++q) { // iterate through all q values
+    for (int q = q0; q < q0+debye_axis.bins; ++q) { // iterate through all q values
         Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
     }
-    return ScatteringProfile(Iq, debye_axis);
+    return {Iq, debye_axis};
 }
 
 SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
@@ -83,7 +83,7 @@ SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) c
         Iq[i] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(i), 0.0);
         Iq[i] *= std::exp(-q[i]*q[i]); // form factor
     }
-    return SimpleDataset(q, Iq);
+    return {q, Iq};
 }
 
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
@@ -103,8 +103,8 @@ bool DistanceHistogram::is_highly_ordered() const {
 bool DistanceHistogram::is_highly_ordered(const std::vector<double>& counts) {
     if (counts.size() < 3) {return false;}
 
-    unsigned int peaks = 0;
-    unsigned int non_zero = 0;
+    int peaks = 0;
+    int non_zero = 0;
     for (std::size_t i = 1; i + 1 < counts.size(); ++i) {
         if (counts[i] == 0) {continue;}
         if (counts[i] > 1.5*counts[i-1] && counts[i] > 1.5*counts[i+1]) {++peaks;}

@@ -2,12 +2,13 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/ParameterElement.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
+
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/parameters/ParameterGenerationFactory.h>
+#include <rigidbody/parameters/decay/DecayFactory.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/parameters/decay/DecayFactory.h>
-#include <rigidbody/parameters/ParameterGenerationFactory.h>
-#include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
@@ -75,7 +76,7 @@ InlineSignature ParameterElement::_valid_inline_arguments() {
 }
 
 // parameter { iterations [n], and any of: translate, rotate, sym_translate, sym_rotate, decay }
-std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     static auto get_decay_strategy = [] (std::string_view line) {
         if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
         if (line == "exponential") {return settings::rigidbody::DecayStrategyChoice::Exponential;}
@@ -96,13 +97,13 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
         .symmetry_rotation = args.get<double>(args_map[Args::sym_rotate], 0).value
     };
 
-    auto rigidbody = owner->_get_rigidbody();
+    auto* rigidbody = owner->_get_rigidbody();
     bool has_symmetries = rigidbody->molecule.symmetry().has_symmetries();
 
     // nothing was named: fall back to optimising the symmetries, the only thing that can be done without an amplitude
     if (amplitudes.translation == 0 && amplitudes.rotation == 0 && amplitudes.symmetry_translation == 0 && amplitudes.symmetry_rotation == 0) {
         if (!has_symmetries) {
-            throw except::parse_error("parameter", "Missing one of \"translate\", \"rotate\", \"sym_translate\", or \"sym_rotate\".");
+            throw except::parse_error("parameter", R"(Missing one of "translate", "rotate", "sym_translate", or "sym_rotate".)");
         }
         amplitudes.symmetry_translation = parameter::default_symmetry_translation(rigidbody);
         amplitudes.symmetry_rotation = parameter::default_symmetry_rotation();

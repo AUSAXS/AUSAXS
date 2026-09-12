@@ -2,27 +2,34 @@
 // Author: Kristian Lytje
 
 #include <mini/Minimizer.h>
+
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/Parameter.h>
-#include <mini/detail/FittedParameter.h>
-#include <utility/Exceptions.h>
 #include <settings/GeneralSettings.h>
+#include <utility/Exceptions.h>
 
 #include <functional>
 
 using namespace ausaxs;
 using namespace ausaxs::mini;
 
+namespace {
+    // a plain function has no state to own, so it is captured as a pointer rather than by reference
+    std::function<double(std::vector<double>)> as_function(double(&f)(std::vector<double>)) {
+        return [fp = &f] (std::vector<double> p) {return fp(std::move(p));};
+    }
+}
+
 Minimizer::Minimizer() = default;
 
 Minimizer::~Minimizer() = default;
 
 Minimizer::Minimizer(double(&f)(std::vector<double>)) {
-    set_function(f);
+    _set_function(as_function(f));
 }
 
 Minimizer::Minimizer(std::function<double(std::vector<double>)>&& f) {
-    set_function(std::move(f));
+    _set_function(std::move(f));
 }
 
 Result Minimizer::minimize() {
@@ -34,15 +41,18 @@ Result Minimizer::minimize() {
 }
 
 void Minimizer::set_function(double(&f)(std::vector<double>)) {
-    raw = std::bind(f, std::placeholders::_1);
-    set_function(std::move(raw));
+    set_function(as_function(f));
 }
 
 void Minimizer::set_function(std::function<double(std::vector<double>)>&& f) {
+    _set_function(std::move(f));
+}
+
+void Minimizer::_set_function(std::function<double(std::vector<double>)>&& f) {
     raw = std::move(f);
     wrapper = [this] (std::vector<double> p) {
         double fval = raw(p);
-        evaluations.evals.push_back(Evaluation(std::move(p), fval));
+        evaluations.evals.emplace_back(std::move(p), fval);
         fevals++;
         return fval;
     };
@@ -86,17 +96,21 @@ mini::Landscape Minimizer::get_evaluated_points() const {
     return evaluations;
 }
 
-mini::Landscape Minimizer::landscape(unsigned int bins) {
+mini::Landscape Minimizer::landscape(int bins) {
     if (parameters.empty()) {throw except::bad_order("Minimizer::landscape: No parameters were supplied.");}
 
     mini::Landscape l;
-    auto bx = parameters[0].bounds.value();
-    for (unsigned int i = 0; i < bins; i++) {
+    const auto& bx_opt = parameters[0].bounds;
+    if (!bx_opt.has_value()) {throw except::bad_order("Minimizer::landscape: Every scanned parameter must be bounded.");}
+    auto bx = *bx_opt;
+    for (int i = 0; i < bins; i++) {
         double vx = bx.min + i*bx.span()/(bins-1);
         double fval;
         if (parameters.size() == 2) {
-            auto by = parameters[1].bounds.value();
-            for (unsigned int j = 0; j < bins; j++) {
+            const auto& by_opt = parameters[1].bounds;
+            if (!by_opt.has_value()) {throw except::bad_order("Minimizer::landscape: Every scanned parameter must be bounded.");}
+            auto by = *by_opt;
+            for (int j = 0; j < bins; j++) {
                 double vy = by.min + j*by.span()/(bins-1);
                 fval = function({vx, vy});
                 l.evals.emplace_back(Evaluation{{vx, vy}, fval});
@@ -116,6 +130,6 @@ mini::Landscape Minimizer::landscape(unsigned int bins) {
     return l;
 }
 
-void Minimizer::set_max_evals(unsigned int max_evals) {
+void Minimizer::set_max_evals(int max_evals) {
     this->max_evals = max_evals;
 }

@@ -1,39 +1,36 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <hist/histogram_manager/IHistogramManager.h>
-#include <hist/histogram_manager/IPartialHistogramManager.h>
-#include <hist/histogram_manager/HistogramManagerFactory.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/distribution/Distribution1D.h>
 #include <data/Molecule.h>
+
+#include <constants/Constants.h>
 #include <data/Body.h>
-#include <data/state/BoundSignaller.h>
 #include <data/state/UnboundSignaller.h>
 #include <dataset/SimpleDataset.h>
-#include <io/ExistingFile.h>
-#include <constants/Constants.h>
 #include <grid/Grid.h>
 #include <grid/exv/ExvVolume.h>
-#include <hydrate/ExplicitHydration.h>
+#include <hist/distribution/Distribution1D.h>
+#include <hist/histogram_manager/HistogramManagerFactory.h>
+#include <hist/histogram_manager/IHistogramManager.h>
+#include <hist/histogram_manager/IPartialHistogramManager.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hydrate/generation/HydrationFactory.h>
-#include <hydrate/generation/GridBasedHydration.h>
 #include <io/Writer.h>
+#include <settings/All.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
-#include <settings/All.h>
 
-#include <numeric>
 #include <cassert>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::data;
 
-Molecule::Molecule() : bodies(), grid(nullptr), phm(nullptr), hydration_strategy(nullptr) {}
+Molecule::Molecule() : grid(nullptr), phm(nullptr), hydration_strategy(nullptr) {}
 
-Molecule::Molecule(Molecule&& other) {*this = std::move(other);}
+Molecule::Molecule(Molecule&& other) noexcept {*this = std::move(other);}
 
 Molecule::~Molecule() = default;
 
@@ -57,7 +54,7 @@ Molecule::Molecule(const std::vector<std::string>& input) : Molecule()  {
     initialize();
 }
 
-Molecule& Molecule::operator=(Molecule&& other) {
+Molecule& Molecule::operator=(Molecule&& other) noexcept {
     logging::log("Molecule move-assign");
     if (this == &other) {return *this;}
     bodies = std::move(other.bodies);
@@ -151,7 +148,7 @@ double Molecule::get_Rg(bool include_waters) const {
     double Rg = 0;
 
     // Rg is defined as the RMS average distance of each _electron_ from the center of mass, so multiply each atom by its effective charge
-    for (auto& a : iterate_atoms()) {
+    for (const auto& a : iterate_atoms()) {
         Rg += cm.distance2(a.coordinates())*a.weight();
     }
 
@@ -204,8 +201,8 @@ observer_ptr<grid::Grid> Molecule::create_grid() const {
     return grid.get();
 }
 
-std::size_t Molecule::symmetry_atom_count() const {
-    return std::accumulate(bodies.begin(), bodies.end(), std::size_t{0},
+int Molecule::symmetry_atom_count() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0,
         [] (std::size_t sum, const Body& body) {return sum + body.symmetry().size_atom_total();}
     );
 }
@@ -246,7 +243,7 @@ Vector3<double> Molecule::get_cm(bool include_water) const {
     }
     if (include_water) {
         for (const auto& water : this->iterate_waters()) {
-            double m = constants::mass::get_mass(water.form_factor_type());
+            double m = constants::mass::get_mass(ausaxs::data::Water::form_factor_type());
             M += m;
             cm += water.coords*m;
         }
@@ -320,16 +317,16 @@ void Molecule::clear_hydration() {
     signal_modified_hydration_layer();
 }
 
-std::size_t Molecule::size_body() const {
-    return bodies.size();
+int Molecule::size_body() const {
+    return static_cast<int>(bodies.size());
 }
 
-std::size_t Molecule::size_atom() const {
-    return std::accumulate(bodies.begin(), bodies.end(), std::size_t{ 0 }, [] (std::size_t sum, const Body& body) {return sum + body.size_atom(); });
+int Molecule::size_atom() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (std::size_t sum, const Body& body) {return sum + body.size_atom();});
 }
 
-std::size_t Molecule::size_water() const {
-    return std::accumulate(bodies.begin(), bodies.end(), std::size_t{ 0 }, [] (std::size_t sum, const Body& body) {return sum + body.size_water(); });
+int Molecule::size_water() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (std::size_t sum, const Body& body) {return sum + body.size_water();});
 }
 
 void Molecule::center() {
@@ -342,7 +339,7 @@ void Molecule::signal_modified_hydration_layer() const {
     if (phm == nullptr) {return;}
 
     // send signal to the histogram manager if relevant
-    if (auto cast = dynamic_cast<IPartialHistogramManager*>(phm.get()); cast) {
+    if (auto* cast = dynamic_cast<IPartialHistogramManager*>(phm.get()); cast) {
         cast->signal_modified_hydration_layer();
     }
 }
@@ -350,19 +347,19 @@ void Molecule::signal_modified_hydration_layer() const {
 void Molecule::bind_body_signallers() const {
     if (phm == nullptr) {return;}
 
-    auto cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
-    if (!cast) {
+    auto* cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
+    if (cast == nullptr) {
         // The caller requested the body signalling objects to be (re)bound, but the histogram manager
         // does not support this. To avoid leaving the bodies in a potentially dangerous state, we
         // register a new dummy signaller to all bodies. 
-        for (unsigned int i = 0; i < bodies.size(); i++) {
-            bodies[i].register_probe(std::make_shared<signaller::UnboundSignaller>());
+        for (const auto& body : bodies) {
+            body.register_probe(std::make_shared<signaller::UnboundSignaller>());
         }
         return;
     }
 
     assert(cast->body_size == size_body() && "Molecule::bind_body_signallers: body size mismatch.");
-    for (unsigned int i = 0; i < bodies.size(); i++) {
+    for (int i = 0; i < size_body(); i++) {
         bodies[i].register_probe(cast->get_probe(i));
     }
 }
@@ -387,15 +384,15 @@ void Molecule::set_histogram_manager(settings::hist::HistogramManagerChoice choi
     bind_body_signallers();
 }
 
-Body& Molecule::get_body(unsigned int index) {return bodies[index];}
-const Body& Molecule::get_body(unsigned int index) const {return bodies[index];}
+Body& Molecule::get_body(int index) {return bodies[index];}
+const Body& Molecule::get_body(int index) const {return bodies[index];}
 
 std::vector<Body>& Molecule::get_bodies() {return bodies;}
 
 const std::vector<Body>& Molecule::get_bodies() const {return bodies;}
 
 symmetry::detail::MoleculeSymmetryFacade Molecule::symmetry() const {
-    return symmetry::detail::MoleculeSymmetryFacade(this);
+    return {this};
 }
 
 bool Molecule::equals_content(const Molecule& other) const {
@@ -403,7 +400,7 @@ bool Molecule::equals_content(const Molecule& other) const {
         return false;
     }
 
-    for (unsigned int i = 0; i < size_body(); i++) {
+    for (int i = 0; i < size_body(); i++) {
         if (get_body(i).equals_content(other.get_body(i))) {
             return false;
         }

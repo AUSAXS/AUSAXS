@@ -2,13 +2,14 @@
 // Author: Kristian Lytje
 
 #include <settings/EMSettings.h>
+
 #include <settings/SettingsIORegistry.h>
 
 using namespace ausaxs;
 
-unsigned int settings::em::sample_frequency = 1;
+int settings::em::sample_frequency = 1;
 double settings::em::concentration = 1;
-unsigned int settings::em::charge_levels = 50;
+int settings::em::charge_levels = 50;
 bool settings::em::hydrate = true;
 bool settings::em::save_pdb = true;
 Limit settings::em::alpha_levels = {1, 10};
@@ -17,7 +18,8 @@ bool settings::em::plot_landscapes = false;
 bool settings::em::simulation::noise = true;
 bool settings::em::mass_axis = true;
 
-namespace ausaxs::settings::io {
+namespace {
+    using namespace ausaxs::settings;
     settings::io::SettingSection em_section("EM", {
         settings::io::create(em::sample_frequency, "sample_frequency"),
         settings::io::create(em::concentration, "concentration"),

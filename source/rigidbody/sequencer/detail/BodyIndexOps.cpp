@@ -2,13 +2,14 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/detail/BodyIndexOps.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/selection/SymmetryTargets.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/Rigidbody.h>
+
 #include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/selection/SymmetryTargets.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 
 #include <algorithm>
 
@@ -45,7 +46,7 @@ void ausaxs::rigidbody::sequencer::detail::erase_bodies(observer_ptr<Sequencer> 
     auto& molecule = *owner->_get_molecule();
     auto& conformation = *owner->_get_rigidbody()->conformation;
 
-    std::sort(indices.begin(), indices.end());
+    std::ranges::sort(indices);
     erase_indices(molecule.get_bodies(), indices);
     erase_indices(conformation.initial_conformation, indices);
     erase_indices(conformation.absolute_parameters.parameters, indices);

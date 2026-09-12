@@ -6,9 +6,9 @@
 #include <string>
 
 namespace ausaxs::style {
-    typedef std::string LineStyle;
-    typedef std::string DrawStyle;
-	typedef std::string Color;
+    using LineStyle = std::string;
+    using DrawStyle = std::string;
+	using Color = std::string;
 
     struct color {
         inline static const Color black =  "k";
@@ -25,7 +25,7 @@ namespace ausaxs::style {
 
 
         static Color next() {
-            static unsigned int i = 0;
+            static int i = 0;
             switch (++i % 11) {
                 case 1:  return orange;
                 case 2:  return blue;
@@ -44,9 +44,10 @@ namespace ausaxs::style {
 
     namespace color_map {
         struct ColorMap {
-            ColorMap(unsigned int n) : n(n) {}
+            ColorMap(int n) : n(n) {}
+            virtual ~ColorMap() = default;
             virtual std::string next() = 0;
-            unsigned int i = 0, n;
+            int i = 0, n;
         };
 
         struct Rainbow : public ColorMap {

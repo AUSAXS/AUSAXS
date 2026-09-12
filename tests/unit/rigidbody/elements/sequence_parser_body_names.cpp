@@ -3,15 +3,15 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
-#include <settings/All.h>
+#include <data/Molecule.h>
 #include <io/ExistingFile.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/BodyNameRegistry.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 
@@ -33,14 +33,14 @@ struct SequenceParserBodyNamesFixture {
         settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::NoStrategy;
     }
 
-    std::unique_ptr<Sequencer> parse(const std::string& content) {
+    static std::unique_ptr<Sequencer> parse(const std::string& content) {
         test::TempFile config(".conf", content);
         SequenceParser parser;
         return parser.parse_file(config);
     }
 
     // 2epe split into three bodies at load time, plus whatever script lines follow
-    std::unique_ptr<Sequencer> build(const std::string& extra = "") {
+    static std::unique_ptr<Sequencer> build(const std::string& extra = "") {
         return parse(
             "load {\n"
             "    pdb tests/files/2epe.pdb\n"

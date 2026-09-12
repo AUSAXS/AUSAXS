@@ -3,14 +3,14 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/Rigidbody.h>
 #include <data/Molecule.h>
-#include <settings/All.h>
 #include <io/ExistingFile.h>
 #include <io/Folder.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 

@@ -2,10 +2,10 @@
 // Author: Kristian Lytje
 
 #include <hydrate/generation/JanHydration.h>
-#include <grid/detail/GridMember.h>
-#include <grid/Grid.h>
+
 #include <data/Molecule.h>
-#include <constants/Constants.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 #include <settings/MoleculeSettings.h>
 
 #include <cassert>
@@ -20,14 +20,14 @@ hydrate::JanHydration::JanHydration(observer_ptr<data::Molecule> protein, std::u
     initialize();
 }
 
-std::span<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>>) {
+std::span<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> /*atoms*/) {
     assert(protein != nullptr && "JanHydration::generate_explicit_hydration: protein is nullptr.");
-    auto grid = protein->get_grid();
+    auto* grid = protein->get_grid();
     assert(grid != nullptr && "JanHydration::generate_explicit_hydration: grid is nullptr.");
 
     grid::detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
-    std::size_t water_start = grid->w_members.size();
+    int water_start = static_cast<int>(grid->w_members.size());
 
     auto add_loc = [&] (const Vector3<int>& v) {
         data::Water a(grid->to_xyz(v));
@@ -35,7 +35,7 @@ std::span<grid::GridMember<data::Water>> hydrate::JanHydration::generate_explici
     };
 
     // loop over the location of all member atoms
-    int r_eff = (grid->get_atomic_radius(form_factor::form_factor_t::C) + grid->get_hydration_radius() + settings::hydrate::shell_correction)/grid->get_width();
+    int r_eff = static_cast<int>((grid->get_atomic_radius(form_factor::form_factor_t::C) + grid->get_hydration_radius() + settings::hydrate::shell_correction)/grid::Grid::get_width());
     auto[min, max] = grid->bounding_box_index();
     for (int i = min.x(); i < max.x(); i++) {
         int im = std::max(i-r_eff, 0), ip = std::min(i+r_eff, bins.x()-1); // xminus and xplus

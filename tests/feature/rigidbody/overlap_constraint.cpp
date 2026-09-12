@@ -1,10 +1,10 @@
-#include "settings/MoleculeSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <settings/MoleculeSettings.h>
 
-#include <rigidbody/constraints/OverlapConstraint.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
 #include <settings/All.h>
 
 using namespace ausaxs;

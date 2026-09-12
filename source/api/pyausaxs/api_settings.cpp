@@ -2,11 +2,11 @@
 // Author: Kristian Lytje
 
 #include <api/pyausaxs/api_settings.h>
+
 #include <api/ObjectStorage.h>
-#include <settings/SettingsIO.h>
-#include <settings/SettingRef.h>
 #include <settings/All.h>
-#include <utility/Exceptions.h>
+#include <settings/SettingRef.h>
+#include <settings/SettingsIO.h>
 
 using namespace ausaxs;
 
@@ -30,7 +30,7 @@ int get_setting(
         .value = setting->get(),
         .type = setting->type()
     });
-    auto obj = api::ObjectStorage::get_object<_get_setting_obj>(obj_id);
+    auto* obj = api::ObjectStorage::get_object<_get_setting_obj>(obj_id);
     *value = obj->value.c_str();
     *type = obj->type.c_str();
     return obj_id;
@@ -40,7 +40,7 @@ void set_setting(
     const char* name,
     const char* value,
     int* status
-) {return execute_with_catch([&]() {
+) {execute_with_catch([&]() {
     const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
     if (!map.contains(name)) {throw except::invalid_argument("Unknown setting: \"" + std::string(name) + "\"");}
     map.at(name)->set({value});
@@ -49,13 +49,13 @@ void set_setting(
 void save_settings(
     const char* path,
     int* status
-) {return execute_with_catch([&]() {
+) {execute_with_catch([&]() {
     settings::write(io::File(path));
 }, status);}
 
 void load_settings(
     const char* path,
     int* status
-) {return execute_with_catch([&]() {
+) {execute_with_catch([&]() {
     settings::read(io::ExistingFile(path));
 }, status);}

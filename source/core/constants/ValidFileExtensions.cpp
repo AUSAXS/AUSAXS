@@ -2,8 +2,11 @@
 // Author: Kristian Lytje
 
 #include <constants/ValidFileExtensions.h>
-#include <utility/StringUtils.h>
+
 #include <io/File.h>
+#include <utility/StringUtils.h>
+
+#include <algorithm>
 
 using namespace ausaxs;
 
@@ -11,12 +14,7 @@ template<std::size_t N>
 bool constants::filetypes::detail::FileType<N>::check(const io::File& path) const {
     if (!path.exists()) {return false;}
     auto file_ext = utility::to_lowercase(path.extension()); 
-    for (const auto& ext : extensions) {
-        if (file_ext == ext) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(extensions, [&file_ext] (const auto& ext) {return file_ext == ext;});
 }
 
 std::string constants::filetypes::detail::guess_type(const io::File& path) {

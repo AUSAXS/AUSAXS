@@ -7,8 +7,8 @@
 #include <utility/Limit.h>
 #include <utility/TypeTraits.h>
 
-#include <string>
 #include <optional>
+#include <string>
 
 namespace ausaxs::mini {
     /**
@@ -24,7 +24,7 @@ namespace ausaxs::mini {
          * @param guess The guess value.
          * @param bounds The bounds. 
          */
-        Parameter(const std::string& name, double guess = 0) noexcept;
+        Parameter(std::string name, double guess = 0) noexcept;
 
         /**
          * @brief Create a Parameter with a guess value and bounds.
@@ -33,7 +33,7 @@ namespace ausaxs::mini {
          * @param guess The guess value.
          * @param bounds The bounds. 
          */
-        Parameter(const std::string& name, double guess, const Limit& bounds) noexcept;
+        Parameter(std::string name, double guess, const Limit& bounds) noexcept;
 
         /**
          * @brief Create a Parameter without a guess value.
@@ -41,7 +41,7 @@ namespace ausaxs::mini {
          * @param name The name of the parameter.
          * @param bounds The bounds.
          */
-        Parameter(const std::string& name, const Limit& bounds) noexcept;
+        Parameter(std::string name, const Limit& bounds) noexcept;
 
         /**
          * @brief Create a Parameter from a FittedParameter.
@@ -52,19 +52,19 @@ namespace ausaxs::mini {
          * @brief Check if this parameter is bounded.
          */
         [[nodiscard]]
-        bool has_bounds() const noexcept;
+        bool has_bounds() const noexcept {return bounds.has_value();}
 
         /**
          * @brief Check if this parameter has a guess value.
          */
         [[nodiscard]]
-        bool has_guess() const noexcept;
+        bool has_guess() const noexcept {return guess.has_value();}
 
         /**
          * @brief Check if this parameter is named.
          */
         [[nodiscard]]
-        bool has_name() const noexcept;
+        bool has_name() const noexcept {return !name.empty();}
 
         /**
          * @brief Check if this parameter has been initialized.

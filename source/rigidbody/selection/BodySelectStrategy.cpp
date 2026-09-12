@@ -2,10 +2,11 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/BodySelectStrategy.h>
+
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/selection/ParameterMaskStrategy.h>
 #include <rigidbody/selection/SymmetryTargets.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/Rigidbody.h>
 #include <utility/Exceptions.h>
 #include <utility/Random.h>
 
@@ -20,7 +21,7 @@ BodySelectStrategy::BodySelectStrategy(observer_ptr<const Rigidbody> rigidbody)
       mask_strategy(std::make_unique<AllMaskStrategy>())
 {}
 
-unsigned int BodySelectStrategy::size_body() const {
+int BodySelectStrategy::size_body() const {
     return rigidbody->molecule.size_body();
 }
 
@@ -32,7 +33,7 @@ const std::vector<SymmetryTargets::Slot>& BodySelectStrategy::symmetry_candidate
     return rigidbody->symmetry_targets->all();
 }
 
-const std::vector<unsigned int>& BodySelectStrategy::symmetry_candidates(unsigned int ibody) const {
+const std::vector<int>& BodySelectStrategy::symmetry_candidates(int ibody) const {
     return rigidbody->symmetry_targets->body_targets(ibody);
 }
 
@@ -45,7 +46,7 @@ BodySelectStrategy::Target BodySelectStrategy::random_symmetry_target() const {
     assert(!candidates.empty() && "BodySelectStrategy::random_symmetry_target: no drivable symmetry to draw from.");
     std::uniform_int_distribution<std::size_t> distribution(0, candidates.size()-1);
     const auto& slot = candidates[distribution(random::generator())];
-    return {slot.ibody, -1, static_cast<int>(slot.isymmetry)};
+    return {.ibody=slot.ibody, .iconstraint=-1, .isymmetry=static_cast<int>(slot.isymmetry)};
 }
 
 BodySelectStrategy::Target BodySelectStrategy::next_symmetry_target(std::size_t& cursor) const {
@@ -55,11 +56,11 @@ BodySelectStrategy::Target BodySelectStrategy::next_symmetry_target(std::size_t&
     // wrap on entry rather than after the increment: the pool can shrink between calls, so the cursor left behind last time may already be out of range
     cursor %= candidates.size();
     const auto& slot = candidates[cursor++];
-    return {slot.ibody, -1, static_cast<int>(slot.isymmetry)};
+    return {.ibody=slot.ibody, .iconstraint=-1, .isymmetry=static_cast<int>(slot.isymmetry)};
 }
 
-int BodySelectStrategy::random_constraint(unsigned int ibody) const {
-    unsigned int N = rigidbody->constraints->get_body_constraints(ibody).size();
+int BodySelectStrategy::random_constraint(int ibody) const {
+    int N = static_cast<int>(rigidbody->constraints->get_body_constraints(ibody).size());
     if (N == 0) {return -1;}
     if (N == 1) {return 0;}
     std::uniform_int_distribution<int> distribution(0, N-1);
@@ -85,14 +86,14 @@ BodySelectStrategy::SelectionResult BodySelectStrategy::next_mask() {
     assert(
         (target.isymmetry < 0 || [&] {
             const auto& drivable = symmetry_candidates(target.ibody);
-            return std::find(drivable.begin(), drivable.end(), static_cast<unsigned int>(target.isymmetry)) != drivable.end();
+            return std::ranges::find(drivable, static_cast<int>(target.isymmetry)) != drivable.end();
         }())
         && "BodySelectStrategy::next_mask: the strategy selected a symmetry that cannot be driven."
     );
 
     // the selector is the authority on which symmetry moves; the mask merely carries that decision to ParameterMask::apply
-    if (0 <= target.isymmetry) {mask.target_symmetry = static_cast<unsigned int>(target.isymmetry);}
-    return {target.ibody, target.iconstraint, std::move(mask)};
+    if (0 <= target.isymmetry) {mask.target_symmetry = target.isymmetry;}
+    return {.ibody=target.ibody, .iconstraint=target.iconstraint, .mask=std::move(mask)};
 }
 
 void BodySelectStrategy::set_mask_strategy(std::unique_ptr<ParameterMaskStrategy> strategy) {

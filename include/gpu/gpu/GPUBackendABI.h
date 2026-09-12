@@ -63,23 +63,23 @@ namespace ausaxs::gpu::abi {
         /**
          * @brief The version of this interface the backend was compiled against.
          */
-        typedef std::int32_t (*abi_version_fn)();
+        using abi_version_fn = std::int32_t (*)();
 
         /**
          * @brief Whether a usable device is present. Never fails.
          */
-        typedef bool (*available_fn)();
+        using available_fn = bool (*)();
 
         /**
          * @brief Name of the device the kernels run on, or "none" if there is no usable device.
          */
-        typedef const char* (*device_name_fn)();
+        using device_name_fn = const char* (*)();
 
         /**
          * @brief A message describing the most recent failure on the calling thread.
          *        Valid until the next call into the backend on that thread. Never null.
          */
-        typedef const char* (*last_error_fn)();
+        using last_error_fn = const char* (*)();
 
         /**
          * @brief Start a calculation, discarding anything left from a previous one.
@@ -90,7 +90,7 @@ namespace ausaxs::gpu::abi {
          *
          * @return ok, or the reason the calculation could not be started. Never throws.
          */
-        typedef Status (*begin_fn)(std::int32_t bin_count, float inv_width, bool weighted);
+        using begin_fn = Status (*)(std::int32_t bin_count, float inv_width, bool weighted);
 
         /**
          * @brief Queue correlations for evaluation. Returns without waiting for them.
@@ -100,7 +100,7 @@ namespace ausaxs::gpu::abi {
          *
          * @return ok, or the reason the work could not be queued.
          */
-        typedef Status (*submit_fn)(const Job* jobs, std::int32_t n_jobs);
+        using submit_fn = Status (*)(const Job* jobs, std::int32_t n_jobs);
 
         /**
          * @brief Wait for everything submitted since begin() and read the histograms back.
@@ -111,8 +111,8 @@ namespace ausaxs::gpu::abi {
          *
          * @return ok, or the reason the work could not be completed. Must match the @a weighted passed to begin(), or invalid_input is returned. Never throws.
          */
-        typedef Status (*finish_unweighted_fn)(std::int32_t n_slots, double* out);
-        typedef Status (*finish_weighted_fn)(std::int32_t n_slots, WeightedBin* out); //< @copydoc finish_unweighted_fn
+        using finish_unweighted_fn = Status (*)(std::int32_t n_slots, double* out);
+        using finish_weighted_fn = Status (*)(std::int32_t n_slots, WeightedBin* out); //< @copydoc finish_unweighted_fn
 
         /**
          * @brief The entry points a backend must export.

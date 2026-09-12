@@ -5,18 +5,18 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/sequencer/detail/SymmetryFit.h>
-#include <data/symmetry/CyclicSymmetry.h>
-#include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/DihedralSymmetry.h>
-#include <data/symmetry/PlanarDihedralSymmetry.h>
-#include <data/symmetry/TetrahedralSymmetry.h>
-#include <data/symmetry/OctahedralSymmetry.h>
-#include <data/symmetry/IcosahedralSymmetry.h>
-#include <data/symmetry/IPolyhedralSymmetry.h>
 #include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/DihedralSymmetry.h>
+#include <data/symmetry/IPolyhedralSymmetry.h>
+#include <data/symmetry/IcosahedralSymmetry.h>
+#include <data/symmetry/OctahedralSymmetry.h>
+#include <data/symmetry/PlanarDihedralSymmetry.h>
+#include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <math/MatrixUtils.h>
+#include <data/symmetry/TetrahedralSymmetry.h>
+#include <rigidbody/sequencer/detail/SymmetryFit.h>
+#include <utility/Random.h>
 
 #include <numbers>
 #include <random>
@@ -26,11 +26,11 @@ using namespace ausaxs::symmetry;
 using ausaxs::rigidbody::sequencer::detail::fit_symmetry;
 
 namespace {
-    std::vector<Vector3<double>> make_body(unsigned seed = 1, int n = 12) {
-        std::mt19937 gen(seed);
+    std::vector<Vector3<double>> make_body(int n = 12) {
         std::uniform_real_distribution<double> dist(-5, 5);
         std::vector<Vector3<double>> v;
-        for (int i = 0; i < n; ++i) {v.push_back({dist(gen), dist(gen), dist(gen)});}
+        v.reserve(n);
+        for (int i = 0; i < n; ++i) {v.emplace_back(dist(random::generator()), dist(random::generator()), dist(random::generator()));}
         return v;
     }
 
@@ -44,9 +44,10 @@ namespace {
     std::vector<std::vector<Vector3<double>>> expand(const ISymmetry& source, const std::vector<Vector3<double>>& body) {
         auto cm = centre_of(body);
         std::vector<std::vector<Vector3<double>>> copies{body};
-        for (unsigned int k = 1; k <= source.repetitions(); ++k) {
+        for (int k = 1; k <= source.repetitions(); ++k) {
             auto t = source._get_transform(cm, k);
             std::vector<Vector3<double>> copy;
+            copy.reserve(body.size());
             for (const auto& p : body) {copy.push_back(t(p));}
             copies.push_back(std::move(copy));
         }
@@ -192,8 +193,9 @@ TEST_CASE("fit_symmetry_best_order recovers a shuffled assembly") {
     auto body = make_body();
     auto cm = centre_of(body);
 
-    auto shuffle = [](std::vector<std::vector<Vector3<double>>> copies, std::vector<int> order) {
+    auto shuffle = [](std::vector<std::vector<Vector3<double>>> copies, const std::vector<int>& order) {
         std::vector<std::vector<Vector3<double>>> out;
+        out.reserve(order.size());
         for (int i : order) {out.push_back(copies[i]);}
         return out;
     };

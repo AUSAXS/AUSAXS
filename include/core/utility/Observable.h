@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <utility/observer_ptr.h>
 #include <utility/Observer.h>
+#include <utility/observer_ptr.h>
 
 #include <list>
 #include <memory>

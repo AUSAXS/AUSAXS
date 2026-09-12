@@ -1,16 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hydrate/generation/HydrationStrategy.h>
-#include <hydrate/generation/NoHydration.h>
-#include <hydrate/generation/GridBasedHydration.h>
-#include <hydrate/generation/RadialHydration.h>
-#include <hydrate/generation/AxesHydration.h>
-#include <hydrate/generation/PepsiHydration.h>
-#include <hydrate/generation/JanHydration.h>
-#include <hydrate/culling/NoCulling.h>
 #include <data/Molecule.h>
-#include <data/Body.h>
+#include <hydrate/culling/NoCulling.h>
+#include <hydrate/generation/AxesHydration.h>
+#include <hydrate/generation/JanHydration.h>
+#include <hydrate/generation/NoHydration.h>
+#include <hydrate/generation/PepsiHydration.h>
+#include <hydrate/generation/RadialHydration.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;

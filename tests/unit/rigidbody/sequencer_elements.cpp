@@ -1,14 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/All.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <fitter/FitResult.h>
-#include <settings/All.h>
+#include <fitter/FitResult.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
 #include <io/Folder.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/elements/All.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 

@@ -3,22 +3,22 @@
 
 #include <math/CubicSpline.h>
 
+#include <cmath>
 #include <math/Exceptions.h>
 #include <string>
-#include <cmath>
 
 using namespace ausaxs::math;
 
 CubicSpline::CubicSpline(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {setup();}
 
 double CubicSpline::spline(double z) const {
-    int i = search(0, x.size(), z);
+    int i = search(0, static_cast<int>(x.size()), z);
     if (i == int(x.size())-1) {i--;} // special case for interpolating outside the range
     return y[i] + b[i]*(z - x[i]) + c[i]*std::pow(z - x[i], 2) + d[i]*std::pow(z - x[i], 3);
 }
 
 void CubicSpline::setup() {
-    int n = x.size();
+    int n = static_cast<int>(x.size());
 
     if (n != int(y.size())) {throw except::invalid_argument("CubicSpline::setup: x and y must have the same size (" + std::to_string(n) + " != " + std::to_string(y.size()) + ").");}
     if (n < 4) {throw except::invalid_argument("CubicSpline::setup: x and y must have at least four elements.");}

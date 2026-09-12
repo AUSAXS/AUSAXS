@@ -10,6 +10,7 @@
 #include <utility/Console.h>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -19,8 +20,8 @@
 
 namespace ausaxs::hist::detail {
     namespace bin_estimate {
-        constexpr unsigned int min_bin_count = 10; // minimum number of bins for all returned histograms
-        constexpr unsigned int headroom = 2;       // extra bins on top of the geometric bound
+        constexpr int min_bin_count = 10; // minimum number of bins for all returned histograms
+        constexpr int headroom = 2;       // extra bins on top of the geometric bound
 
         // a set of coordinates that can be indexed directly
         template<typename T>
@@ -50,18 +51,18 @@ namespace ausaxs::hist::detail {
          */
         template<typename... Sets>
         double max_distance(const Sets&... sets) {
-            double lo[3] = {
+            std::array<double, 3> lo = {
                 std::numeric_limits<double>::max(),
                 std::numeric_limits<double>::max(),
                 std::numeric_limits<double>::max()
             };
-            double hi[3] = {
+            std::array<double, 3> hi = {
                 std::numeric_limits<double>::lowest(),
                 std::numeric_limits<double>::lowest(),
                 std::numeric_limits<double>::lowest()
             };
             auto expand = [&lo, &hi] (double x, double y, double z) {
-                const double p[3] = {x, y, z};
+                const std::array<double, 3> p = {x, y, z};
                 for (int k = 0; k < 3; ++k) {
                     lo[k] = std::min(lo[k], p[k]);
                     hi[k] = std::max(hi[k], p[k]);
@@ -70,7 +71,7 @@ namespace ausaxs::hist::detail {
             (for_each_point(expand, sets), ...);
             if (hi[0] < lo[0]) {return 0;} // no points were seen
 
-            const double centre[3] = {(lo[0]+hi[0])/2, (lo[1]+hi[1])/2, (lo[2]+hi[2])/2};
+            const std::array<double, 3> centre = {(lo[0]+hi[0])/2, (lo[1]+hi[1])/2, (lo[2]+hi[2])/2};
             double r2_max = 0;
             auto radius = [&r2_max, &centre] (double x, double y, double z) {
                 double dx = x-centre[0], dy = y-centre[1], dz = z-centre[2];
@@ -86,7 +87,7 @@ namespace ausaxs::hist::detail {
          * @brief The bin count for managers that cannot deduce one.
          * @return settings::flag::max_bin_count
          */
-        inline unsigned int configured_bin_count() {
+        inline int configured_bin_count() {
             assert(settings::flags::max_bin_count != 0 && "max_bin_count has not been set.");
 
             static bool warned = false;
@@ -99,7 +100,7 @@ namespace ausaxs::hist::detail {
                     std::to_string(int(constants::axes::d_axis.max)) + "Å. Larger structures will cause segfaults."
                 );
             }
-            return std::max(settings::flags::max_bin_count, min_bin_count);
+            return std::max<int>(settings::flags::max_bin_count, min_bin_count);
         }
     }
 
@@ -108,10 +109,10 @@ namespace ausaxs::hist::detail {
      * @param sets Any number of coordinate sets, or (possibly nested) containers of them.
      */
     template<bool variable_bin_width, typename... Sets>
-    unsigned int required_bin_count(const Sets&... sets) {
-        double inv_bin_width = static_cast<double>(WidthController<variable_bin_width>::get_inv_width());
+    int required_bin_count(const Sets&... sets) {
+        auto inv_bin_width = static_cast<double>(WidthController<variable_bin_width>::get_inv_width());
         double bins = std::ceil(bin_estimate::max_distance(sets...)*inv_bin_width) + bin_estimate::headroom;
         assert(std::isfinite(bins) && 0 < bins && "Determined bin count is not finite.");
-        return std::max<unsigned int>(static_cast<unsigned int>(bins), bin_estimate::min_bin_count);
+        return std::max<int>(static_cast<int>(bins), bin_estimate::min_bin_count);
     }
 }

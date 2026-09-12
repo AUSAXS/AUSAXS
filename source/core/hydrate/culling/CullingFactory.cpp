@@ -2,13 +2,13 @@
 // Author: Kristian Lytje
 
 #include <hydrate/culling/CullingFactory.h>
-#include <hydrate/culling/CounterCulling.h>
+
+#include <data/Molecule.h>
 #include <hydrate/culling/BodyCounterCulling.h>
+#include <hydrate/culling/CounterCulling.h>
+#include <hydrate/culling/NoCulling.h>
 #include <hydrate/culling/OutlierCulling.h>
 #include <hydrate/culling/RandomCulling.h>
-#include <hydrate/culling/NoCulling.h>
-#include <data/Molecule.h>
-#include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
 
 using namespace ausaxs;

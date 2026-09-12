@@ -3,20 +3,20 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/Sequencer.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
+#include <io/ExistingFile.h>
+#include <math/Vector3.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/parameters/UniformParameterGenerator.h>
-#include <rigidbody/transform/TransformStrategy.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/ReferenceSymmetry.h>
-#include <math/Vector3.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
-#include <io/ExistingFile.h>
 
 #include <support/temp_file.h>
 
@@ -34,7 +34,7 @@ struct SequenceParserSymmetryFixture {
         settings::grid::min_bins = 250;
     }
 
-    std::unique_ptr<Sequencer> parse(const std::string& content) {
+    static std::unique_ptr<Sequencer> parse(const std::string& content) {
         test::TempFile config(".conf", content);
         SequenceParser parser;
         return parser.parse_file(config);
@@ -51,7 +51,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "symmetry c2\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         CHECK(rb->molecule.get_body(0).size_symmetry() == 1);
     }
@@ -64,7 +64,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "}\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         CHECK(rb->molecule.get_body(0).size_symmetry() == 0);
     }
@@ -79,7 +79,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "symmetry c2\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         CHECK(rb->molecule.get_body(0).size_symmetry() == 2);
     }
@@ -93,7 +93,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "symmetry p2-c3\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
 
@@ -112,7 +112,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "symmetry b2 p2-c3\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         CHECK(rb->molecule.get_body(0).size_symmetry() == 0);
         REQUIRE(rb->molecule.get_body(1).size_symmetry() == 1);
@@ -131,7 +131,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "symmetry b1 b2 c3\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
 
         // the primary body owns a ReferenceSymmetry; the other holds a non-owning view of it
@@ -157,7 +157,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "symmetry b1 b2 d2\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
 
         REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
@@ -181,7 +181,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "symmetry b1 b2 p2-c3\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
 
         REQUIRE(rb->molecule.get_body(0).size_symmetry() == 1);
@@ -205,7 +205,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::SymmetryElement
             "symmetry b2 c2\n"
         );
         REQUIRE(seq != nullptr);
-        auto rb = seq->_get_rigidbody();
+        auto* rb = seq->_get_rigidbody();
         REQUIRE(rb != nullptr);
         CHECK(rb->molecule.get_body(0).size_symmetry() == 0);
         CHECK(rb->molecule.get_body(1).size_symmetry() == 1);
@@ -221,7 +221,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
         "symmetry b1 b2 c3\n"
     );
     REQUIRE(seq != nullptr);
-    auto rb = seq->_get_rigidbody();
+    auto* rb = seq->_get_rigidbody();
     REQUIRE(rb != nullptr);
 
     auto* ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb->molecule.get_body(0).symmetry().get(0));
@@ -232,7 +232,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
     rigidbody::parameter::UniformParameterGenerator gen(
         rb, settings::rigidbody::iterations, {.symmetry_translation = 5, .symmetry_rotation = 0.5}
     );
-    auto nonzero = [](std::span<double> s) {return std::any_of(s.begin(), s.end(), [](double v) {return v != 0;});};
+    auto nonzero = [](std::span<double> s) {return std::ranges::any_of(s, [](double v) {return v != 0;});};
 
     SECTION("the shared symmetry is optimisable, the view is inert") {
         // the primary body's symmetry is perturbed...
@@ -258,9 +258,9 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
         auto before = view->_get_transform({0, 0, 0}, 1)(probe);
 
         // transforming the primary body reallocates its symmetry objects; a cached raw pointer would dangle here, but the view re-resolves through the (stable) molecule
-        unsigned int primary = 0;
+        int primary = 0;
         auto params = gen.next(primary);
-        rb->transformer->apply(std::move(params), primary);
+        rb->transformer->apply(params, primary);
 
         auto after = view->_get_transform({0, 0, 0}, 1)(probe);
         CHECK((after - before).magnitude() > 1e-6); // the view reflects the updated shared symmetry
@@ -287,7 +287,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::ConstraintEleme
         "}\n"
     );
     REQUIRE(seq != nullptr);
-    auto rb = seq->_get_rigidbody();
+    auto* rb = seq->_get_rigidbody();
     REQUIRE(rb != nullptr);
     // non_discoverable_constraints[0] is the pre-added OverlapConstraint; ours is at the back
     REQUIRE(rb->constraints->non_discoverable_constraints.size() >= 2);
@@ -320,7 +320,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::ConstraintEleme
         "}\n"
     );
     REQUIRE(seq != nullptr);
-    auto rb = seq->_get_rigidbody();
+    auto* rb = seq->_get_rigidbody();
     REQUIRE(rb != nullptr);
     REQUIRE(rb->constraints->non_discoverable_constraints.size() >= 2);
     auto* c = dynamic_cast<IDistanceConstraint*>(rb->constraints->non_discoverable_constraints.back().get());
@@ -356,7 +356,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser::ConstraintEleme
         "}\n"
     );
     REQUIRE(seq != nullptr);
-    auto rb = seq->_get_rigidbody();
+    auto* rb = seq->_get_rigidbody();
     REQUIRE(rb != nullptr);
     REQUIRE(rb->constraints->non_discoverable_constraints.size() >= 2);
     auto* c = dynamic_cast<IDistanceConstraint*>(rb->constraints->non_discoverable_constraints.back().get());

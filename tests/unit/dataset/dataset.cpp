@@ -3,14 +3,13 @@
 
 #include <dataset/Dataset.h>
 #include <math/Matrix.h>
-#include <utility/Limit.h>
 
 using namespace ausaxs;
 
 TEST_CASE("Dataset::Dataset") {
     SECTION("default constructor") {
         Dataset dataset;
-        CHECK(dataset.size() == 0);
+        CHECK(dataset.empty());
         CHECK(dataset.size_rows() == 0);
         CHECK(dataset.empty());
     }
@@ -63,7 +62,7 @@ TEST_CASE("Dataset::Dataset") {
         CHECK(dataset.col(1) == Vector<double>{4, 5, 6});
     }
 
-    SECTION("unsigned int, unsigned int") {
+    SECTION("int, int") {
         Dataset dataset(2, 3);
         CHECK(dataset.size() == 2);
         CHECK(dataset.size_rows() == 2);
@@ -128,7 +127,7 @@ TEST_CASE("Dataset::y") {
 TEST_CASE("Dataset::size") {
     SECTION("empty dataset") {
         Dataset dataset;
-        CHECK(dataset.size() == 0);
+        CHECK(dataset.empty());
     }
 
     SECTION("non-empty dataset") {
@@ -153,7 +152,7 @@ TEST_CASE("Dataset::empty") {
 
 TEST_CASE("Dataset::push_back") {
     Dataset dataset(0, 3);
-    CHECK(dataset.size() == 0);
+    CHECK(dataset.empty());
 
     dataset.push_back({1, 2, 3});
     CHECK(dataset.size() == 1);

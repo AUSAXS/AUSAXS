@@ -2,9 +2,9 @@
 // Author: Kristian Lytje
 
 #include <form_factor/lookup/ExvTableManager.h>
-#include <form_factor/lookup/FormFactorManager.h>
+
+#include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
-#include <data/Body.h>
 #include <settings/ExvSettings.h>
 
 #include <unordered_map>
@@ -59,14 +59,15 @@ const form_factor::detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_
         //? add caching for custom tables? 
             available_sets.insert_or_assign(settings::exv::ExvSet::Custom, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
             return available_sets.at(settings::exv::ExvSet::Custom);
-    } else {
-        // check if the current set is already available, otherwise create it
-        if (auto it = available_sets.find(settings::exv::exv_set); it != available_sets.end()) {
-            return it->second;
-        }
-            available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
-            return available_sets.at(settings::exv::exv_set);
     }
+
+    // check if the current set is already available, otherwise create it
+    if (auto it = available_sets.find(settings::exv::exv_set); it != available_sets.end()) {
+        return it->second;
+    }
+    available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
+    return available_sets.at(settings::exv::exv_set);
+   
 }
 
 void ExvTableManager::set_custom_exv_table(const constants::exv::detail::ExvSet& set) {
@@ -87,5 +88,5 @@ double ExvTableManager::get_total_displaced_volume(observer_ptr<const data::Mole
 
 double ExvTableManager::get_average_displaced_volume(observer_ptr<const data::Molecule> molecule) {
     assert(molecule->size_atom() > 0 && "ExvTableManager::get_average_displaced_volume: Cannot compute average displaced volume for a molecule with no atoms.");
-    return get_total_displaced_volume(molecule)/molecule->size_atom();
+    return get_total_displaced_volume(molecule)/static_cast<double>(molecule->size_atom());
 }

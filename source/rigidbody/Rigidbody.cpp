@@ -2,24 +2,23 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/Rigidbody.h>
+
+#include <constants/ConstantsAxes.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <grid/Grid.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/controller/ControllerFactory.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/transform/TransformFactory.h>
-#include <rigidbody/parameters/ParameterGenerationFactory.h>
-#include <rigidbody/controller/ControllerFactory.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <fitter/SmartFitter.h>
-#include <fitter/FitResult.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <grid/Grid.h>
 #include <settings/ExvSettings.h>
 #include <settings/FitSettings.h>
-#include <settings/MoleculeSettings.h>
-#include <constants/ConstantsAxes.h>
 #include <settings/Flags.h>
 #include <settings/HistogramSettings.h>
+#include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
@@ -58,11 +57,11 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
     );
 }
 
-Rigidbody::Rigidbody(Rigidbody&& other) = default;
-Rigidbody& Rigidbody::operator=(Rigidbody&& other) = default;
+Rigidbody::Rigidbody(Rigidbody&& other) noexcept = default;
+Rigidbody& Rigidbody::operator=(Rigidbody&& other) noexcept = default;
 
 void Rigidbody::refresh_grid() {
-    auto grid = molecule.get_grid();
+    auto* grid = molecule.get_grid();
     // the atoms and the waters are tracked separately: the waters only have to fit, whereas the atoms must additionally leave
     // room along every face for the hydration shell that will be generated around them after this call
     std::pair<Vector3<double>, Vector3<double>> bounds, water_bounds;
@@ -83,10 +82,10 @@ void Rigidbody::refresh_grid() {
 
         // Account for symmetry bodies by computing their expected bounds
         auto cm = body.get_cm();
-        for (std::size_t j = 0; j < body.size_symmetry(); ++j) {
-            auto sym = body.symmetry().get(j);
+        for (int j = 0; j < body.size_symmetry(); ++j) {
+            const auto* sym = body.symmetry().get(j);
             
-            for (int rep = 1; rep <= static_cast<int>(sym->repetitions()); ++rep) {
+            for (int rep = 1; rep <= sym->repetitions(); ++rep) {
                 auto transform = body.symmetry().get_transform(j, cm, rep);
                 
                 // Transform the 8 corners of the bounding box to get symmetry-transformed bounds

@@ -2,35 +2,33 @@
 // Author: Kristian Lytje
 
 #include <mini/Scan.h>
+
 #include <mini/Golden.h>
 #include <mini/detail/Parameter.h>
-#include <mini/detail/FittedParameter.h>
-#include <mini/detail/Evaluation.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
 
 using namespace ausaxs;
 using namespace ausaxs::mini;
 
-Scan::Scan(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func) {
+Scan::Scan(double(&func)(std::vector<double>), int evals) : Minimizer(func) {
     set_max_evals(evals);
 }
 
-Scan::Scan(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(std::move(func)) {
+Scan::Scan(std::function<double(std::vector<double>)> func, int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
 }
 
-Scan::Scan(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals) : Minimizer(func) {
+Scan::Scan(double(&func)(std::vector<double>), const Parameter& param, int evals) : Minimizer(func) {
     set_max_evals(evals);
-    add_parameter(param);
+    Scan::add_parameter(param);
 }
 
-Scan::Scan(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(std::move(func)) {
+Scan::Scan(std::function<double(std::vector<double>)> func, const Parameter& param, int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
-    add_parameter(param);
+    Scan::add_parameter(param);
 }
 
-mini::Landscape Scan::landscape(unsigned int evals) {
+mini::Landscape Scan::landscape(int evals) {
     // check if the minimizer has already been called
     if (!evaluations.evals.empty()) {
         // if so, we can just reuse its result
@@ -38,20 +36,19 @@ mini::Landscape Scan::landscape(unsigned int evals) {
     }
 
     if (parameters.size() == 1) {
-        const Limit& bounds = parameters[0].bounds.value();
+        const auto& bounds_opt = parameters[0].bounds;
+        if (!bounds_opt.has_value()) {throw except::bad_order("Scan::landscape: The scanned parameter must be bounded.");}
+        const Limit& bounds = *bounds_opt;
         for (double val = bounds.min; val < bounds.max; val += bounds.span()/evals) {
             function({val});
         }
         return get_evaluated_points();
     } 
     
-    else if (parameters.size() == 2) {
+    if (parameters.size() == 2) {
         throw except::unexpected("Scan::landscape: Not implemented.");
     } 
-    
-    else {
-        throw except::unexpected("Scan::landscape: Not implemented.");
-    }
+    throw except::unexpected("Scan::landscape: Not implemented.");
 }
 
 void Scan::add_parameter(const Parameter& param) {
@@ -67,6 +64,7 @@ Result Scan::minimize_override() {
     // find local minimum
     auto width = data.span_x().span()/data.size(); // find width of each step
     auto prev_bounds = parameters[0].bounds;
+    if (!prev_bounds.has_value()) {throw except::bad_order("Scan::minimize: The scanned parameter must be bounded.");}
     parameters[0].bounds = Limit(std::max(min.x - width, prev_bounds->min), std::min(min.x + width, prev_bounds->max)); // update bounds
     parameters[0].guess = {}; // remove guess to avoid warning
 

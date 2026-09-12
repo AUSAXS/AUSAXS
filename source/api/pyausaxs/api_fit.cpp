@@ -2,9 +2,9 @@
 // Author: Kristian Lytje
 
 #include <api/pyausaxs/api_fit.h>
+
 #include <api/ObjectStorage.h>
-#include <fitter/SmartFitter.h>
-#include <utility/Exceptions.h>
+#include <fitter/FitResult.h>
 
 #include <string>
 
@@ -12,7 +12,7 @@ using namespace ausaxs;
 
 namespace {
 struct _fit_get_fit_info_obj {
-    explicit _fit_get_fit_info_obj(unsigned int n_pars) : 
+    explicit _fit_get_fit_info_obj(int n_pars) : 
         pars(n_pars), pars_ptr(n_pars), pvals(n_pars), perr_n(n_pars), perr_p(n_pars)
     {}
     std::vector<std::string> pars;
@@ -26,11 +26,11 @@ int fit_get_fit_info(
     double* chi_squared, int* dof,
     int* status
 ) {return execute_with_catch([&]() {
-    auto fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
+    auto* fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
     if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
 
-    _fit_get_fit_info_obj data(fit_result->parameters.size());
-    for (unsigned int i = 0; i < fit_result->parameters.size(); ++i) {
+    _fit_get_fit_info_obj data(static_cast<int>(fit_result->parameters.size()));
+    for (int i = 0; i < static_cast<int>(fit_result->parameters.size()); ++i) {
         const auto& par = fit_result->parameters[i];
         data.pars[i] = par.name;
         data.pvals[i] = par.value;
@@ -39,7 +39,7 @@ int fit_get_fit_info(
         data.pars_ptr[i] = data.pars[i].c_str();
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_fit_get_fit_info_obj>(data_id);
+    auto* ref = api::ObjectStorage::get_object<_fit_get_fit_info_obj>(data_id);
 
     *dof = fit_result->dof;
     *chi_squared = fit_result->fval;
@@ -53,7 +53,7 @@ int fit_get_fit_info(
 
 namespace {
 struct _fit_get_fit_curves_obj {
-    explicit _fit_get_fit_curves_obj(unsigned int size) :
+    explicit _fit_get_fit_curves_obj(int size) :
         q(size), I_data(size), I_err(size), I_model(size)
     {}
     std::size_t size() const {return q.size();}
@@ -65,17 +65,17 @@ int fit_get_fit_curves(
     double** q, double** I_data, double** I_err, double** I_model, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
+    auto* fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
     if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
     _fit_get_fit_curves_obj data(fit_result->curves.size_rows());
-    for (unsigned int i = 0; i < data.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(data.size()); ++i) {
         data.q[i]       = fit_result->curves.col(0)[i];
         data.I_data[i]  = fit_result->curves.col(1)[i];
         data.I_err[i]   = fit_result->curves.col(2)[i];
         data.I_model[i] = fit_result->curves.col(3)[i];
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto ref = api::ObjectStorage::get_object<_fit_get_fit_curves_obj>(data_id);
+    auto* ref = api::ObjectStorage::get_object<_fit_get_fit_curves_obj>(data_id);
     *q = ref->q.data();
     *I_data = ref->I_data.data();
     *I_err = ref->I_err.data();

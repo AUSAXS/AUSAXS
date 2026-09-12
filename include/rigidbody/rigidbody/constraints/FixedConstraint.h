@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <data/DataFwd.h>
 #include <rigidbody/constraints/Constraint.h>
 #include <utility/observer_ptr.h>
-#include <data/DataFwd.h>
 
 namespace ausaxs::rigidbody::constraints {
     /**
@@ -23,9 +23,9 @@ namespace ausaxs::rigidbody::constraints {
              * @param ibody1 The index of the first body.
              * @param ibody2 The index of the second body.
              */
-            FixedConstraint(observer_ptr<data::Molecule> protein, unsigned int ibody1, unsigned int ibody2);
+            FixedConstraint(observer_ptr<data::Molecule> protein, int ibody1, int ibody2);
 
-            virtual ~FixedConstraint() override = default;
+            ~FixedConstraint() override = default;
 
             /**
              * @brief Evaluate this constraint for the current positions. 
@@ -55,6 +55,6 @@ namespace ausaxs::rigidbody::constraints {
             data::Body& get_body2();
 
             observer_ptr<data::Molecule> protein;   // The protein this constraint belongs to.
-            unsigned int ibody1, ibody2;            // The indices of the bodies.
+            int ibody1, ibody2;                     // The indices of the bodies.
     };
 }

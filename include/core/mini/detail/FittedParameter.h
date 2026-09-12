@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <dataset/PointSet.h>
 #include <mini/MiniFwd.h>
 #include <utility/Limit.h>
-#include <dataset/PointSet.h>
 
 #include <string>
 
@@ -20,7 +20,7 @@ namespace ausaxs::mini {
          * @param value Optimal value of this parameter.
          * @param error Asymmetrical errors of this parameter.
          */
-        FittedParameter(const std::string& name, double value, const Limit& error) noexcept;
+        FittedParameter(std::string name, double value, const Limit& error) noexcept;
 
         /**
          * @brief Create a FittedParameter with symmetric errors.
@@ -29,7 +29,7 @@ namespace ausaxs::mini {
          * @param value Optimal value of this parameter.
          * @param error Symmetrical errors of this parameter.
          */
-        FittedParameter(const std::string& name, double value, double error) noexcept;
+        FittedParameter(std::string name, double value, double error) noexcept;
 
         /**
          * @brief Create a FittedParameter from a Parameter with asymmetric errors.
@@ -49,7 +49,7 @@ namespace ausaxs::mini {
          */
         FittedParameter(const Parameter& param, double value, double error) noexcept;
 
-        operator Point1D() const noexcept {return Point1D(value, mean_error());}
+        operator Point1D() const noexcept {return {value, mean_error()};}
 
         /**
          * @brief Convenience method for implicit conversion to double. 

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 
 #include <string>
 #include <string_view>

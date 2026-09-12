@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/distribution/DistributionFwd.h>
-#include <hist/distribution/Distribution1D.h>
 #include <container/Container1D.h>
+#include <hist/distribution/Distribution1D.h>
+#include <hist/distribution/DistributionFwd.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
@@ -19,7 +19,7 @@ namespace ausaxs::hist {
             CompositeDistanceHistogram(const CompositeDistanceHistogram&);
             CompositeDistanceHistogram(CompositeDistanceHistogram&&) noexcept;
             CompositeDistanceHistogram& operator=(CompositeDistanceHistogram&&) noexcept;
-            virtual ~CompositeDistanceHistogram() override;
+            ~CompositeDistanceHistogram() override;
 
             /**
              * @brief Create an unweighted composite distance histogram.
@@ -43,17 +43,17 @@ namespace ausaxs::hist {
                 hist::WeightedDistribution1D&& p_tot
             );
 
-            virtual const hist::Distribution1D& get_aa_counts() const override;
-            virtual hist::Distribution1D& get_aa_counts() override;
-            virtual const Distribution1D& get_aw_counts() const override;
-            virtual Distribution1D& get_aw_counts() override;
-            virtual const Distribution1D& get_ww_counts() const override;
-            virtual Distribution1D& get_ww_counts() override;
+            const hist::Distribution1D& get_aa_counts() const override;
+            hist::Distribution1D& get_aa_counts() override;
+            const Distribution1D& get_aw_counts() const override;
+            Distribution1D& get_aw_counts() override;
+            const Distribution1D& get_ww_counts() const override;
+            Distribution1D& get_ww_counts() override;
 
-            virtual void apply_water_scaling_factor(double k) override;
-            virtual ScatteringProfile get_profile_aa() const override;
-            virtual ScatteringProfile get_profile_aw() const override;
-            virtual ScatteringProfile get_profile_ww() const override;
+            void apply_water_scaling_factor(double k) override;
+            ScatteringProfile get_profile_aa() const override;
+            ScatteringProfile get_profile_aw() const override;
+            ScatteringProfile get_profile_ww() const override;
 
         private:
             mutable struct {Distribution1D aa, aw, ww;} distance_profiles;

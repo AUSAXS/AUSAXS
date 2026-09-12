@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <data/atoms/Atom.h>
-#include <settings/All.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <settings/All.h>
 
 using namespace ausaxs;
 

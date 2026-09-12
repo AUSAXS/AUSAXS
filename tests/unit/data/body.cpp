@@ -5,10 +5,9 @@
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
 #include <form_factor/FormFactorType.h>
-#include <constants/Constants.h>
-#include <settings/MoleculeSettings.h>
-#include <settings/GeneralSettings.h>
 #include <math/Vector3.h>
+#include <settings/GeneralSettings.h>
+#include <settings/MoleculeSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

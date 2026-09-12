@@ -2,25 +2,26 @@
 // Author: Kristian Lytje
 
 #include <em/detail/header/MapHeader.h>
+
+#include <em/detail/header/data/DummyData.h>
 #include <em/detail/header/data/MRCData.h>
 #include <em/detail/header/data/RECData.h>
-#include <em/detail/header/data/DummyData.h>
 #include <utility/Exceptions.h>
 
-#include <unordered_map>
 #include <iostream>
+#include <unordered_map>
 
 using namespace ausaxs;
 using namespace ausaxs::em::detail::header;
 
-unsigned int IMapHeader::get_byte_size() const {
-    if (byte_sizes.contains(get_data_type()) == false) {
+int IMapHeader::get_byte_size() const {
+    if (!byte_sizes.contains(get_data_type())) {
         throw except::parse_error("MRCHeader::get_byte_size: Unknown data type.");
     };
-    return byte_sizes.at(get_data_type());
+    return static_cast<int>(byte_sizes.at(get_data_type()));
 }
 
-std::ostream& IMapHeader::operator<<(std::ostream& os) {
+std::ostream& IMapHeader::operator<<(std::ostream& os) const {
     return os << this->to_string();
 }
 
@@ -33,9 +34,7 @@ void MapHeader<T>::set_data(std::unique_ptr<T> data) {this->data = std::move(dat
 
 
 template<class T>
-MapHeader<T>::MapHeader(std::unique_ptr<T> data) {
-    this->data = std::move(data);
-}
+MapHeader<T>::MapHeader(std::unique_ptr<T> data) : data(std::move(data)) {}
 
 template<class T>
 MapHeader<T>::~MapHeader() = default;

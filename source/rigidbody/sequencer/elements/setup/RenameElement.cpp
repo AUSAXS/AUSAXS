@@ -2,8 +2,9 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/setup/RenameElement.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
+
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <utility/observer_ptr.h>
 
 using namespace ausaxs;
@@ -26,7 +27,7 @@ InlineSignature RenameElement::_valid_inline_arguments() {
 }
 
 // rename [old name] [new name]
-std::unique_ptr<GenericElement> RenameElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> RenameElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::string old_name = args.inlined[0];
     std::string new_name = args.inlined[1];

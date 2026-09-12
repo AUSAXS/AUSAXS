@@ -9,21 +9,17 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
-#include <string>
 #include <iomanip>
 #include <sstream>
+#include <string>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
 using std::left, std::right, std::setw;
 
-Terminate::Terminate(int serial, const std::string& resName, char chainID, int resSeq, const std::string& iCode) {
-    this->serial = serial;
-    this->resName = resName;
-    this->chainID = chainID;
-    this->resSeq = resSeq;
-    this->iCode = iCode;
-}
+Terminate::Terminate(int serial, std::string resName, char chainID, int resSeq, std::string iCode) 
+    : serial(serial), resSeq(resSeq), resName(std::move(resName)), iCode(std::move(iCode)), chainID(std::move(chainID)) 
+{}
 
 RecordType Terminate::get_type() const {return RecordType::TERMINATE;}
 
@@ -37,7 +33,7 @@ void Terminate::parse_pdb(const std::string& s) {
     //                   RN SE S1 RN S2 CI RS iC
     //                   0     1     2        
     //                   0  6  1  8  0  1  2  6  7  
-    const char form[] = "%6c%5c%6c%3c%1c%1c%4c%1c";
+    const char* const form = "%6c%5c%6c%3c%1c%1c%4c%1c";
     std::string recName = "      ", serial = "     ", space1 = "      ", resName = "   ", space2 = " ", resSeq = "    ", iCode = " ";
     char chainID;
     sscanf(s.c_str(), form, recName.data(), serial.data(), space1.data(), resName.data(), 

@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <utility/observer_ptr.h>
 
@@ -15,7 +15,7 @@ namespace ausaxs::rigidbody::sequencer {
     class TransformElement : public LoopElementCallback, public GenericElement {
         public:
             TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
-            ~TransformElement();
+            ~TransformElement() override;
 
             void run() override;
 

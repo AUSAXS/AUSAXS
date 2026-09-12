@@ -2,10 +2,10 @@
 // Author: Kristian Lytje
 
 #include <hydrate/generation/PepsiHydration.h>
-#include <grid/detail/GridMember.h>
-#include <grid/Grid.h>
+
 #include <data/Molecule.h>
-#include <settings/GridSettings.h>
+#include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 #include <settings/MoleculeSettings.h>
 
 #include <cassert>
@@ -14,11 +14,11 @@ using namespace ausaxs;
 using namespace ausaxs::hydrate;
 
 PepsiHydration::PepsiHydration(observer_ptr<data::Molecule> protein) : GridBasedHydration(protein) {
-    initialize();
+    PepsiHydration::initialize();
 }
 
 PepsiHydration::PepsiHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy) : GridBasedHydration(protein, std::move(culling_strategy)) {
-    initialize();
+    PepsiHydration::initialize();
 }
 
 void PepsiHydration::initialize() {
@@ -29,9 +29,11 @@ void PepsiHydration::initialize() {
 PepsiHydration::~PepsiHydration() = default;
 
 // linear interpolation of the shell width as described in the paper
-auto get_shell_width(double Rg) {
-    double a = (5. - 3.)/(20.-15.);
-    return std::clamp(a*Rg, 3., 5.);
+namespace {
+    auto get_shell_width(double Rg) {
+        double a = (5. - 3.)/(20.-15.);
+        return std::clamp(a*Rg, 3., 5.);
+    }
 }
 
 std::span<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) {
@@ -39,7 +41,7 @@ std::span<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hydra
     double r = 3; // distance from the atom to the hydration shell
 
     assert(protein != nullptr && "PepsiHydration::generate_explicit_hydration: protein is nullptr.");
-    auto grid = protein->get_grid();
+    auto* grid = protein->get_grid();
     assert(grid != nullptr && "PepsiHydration::generate_explicit_hydration: grid is nullptr.");
 
     grid::detail::GridObj& gref = grid->grid;
@@ -48,7 +50,7 @@ std::span<grid::GridMember<data::Water>> PepsiHydration::generate_explicit_hydra
     std::vector<data::Water> placed_water;
     placed_water.reserve(atoms.size());
     auto add_loc = [&] (const Vector3<int>& v) {
-        placed_water.emplace_back(data::Water(grid->to_xyz(v)));
+        placed_water.emplace_back(grid->to_xyz(v));
     };
 
     // loop over the location of all member atoms

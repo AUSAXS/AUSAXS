@@ -2,11 +2,12 @@
 // Author: Kristian Lytje
 
 #include <em/manager/ProteinManager.h>
-#include <em/ImageStack.h>
+
 #include <data/Molecule.h>
-#include <utility/Axis.h>
+#include <em/detail/ImageStackBase.h>
 #include <settings/EMSettings.h>
 #include <settings/MoleculeSettings.h>
+#include <utility/Axis.h>
 
 using namespace ausaxs;
 using namespace ausaxs::em::managers;
@@ -19,17 +20,17 @@ ProteinManager::ProteinManager(observer_ptr<const em::ImageStackBase> images) : 
     double max = images->from_level(settings::em::alpha_levels.max);
     double min = images->from_level(settings::em::alpha_levels.min);
     Axis axis(min, max, settings::em::charge_levels);
-    set_charge_levels(axis.as_vector());
+    ProteinManager::set_charge_levels(axis.as_vector());
 }
 
 double ProteinManager::get_volume_grid() const {
-    auto protein = get_protein();
+    const auto* protein = get_protein();
     assert(protein != nullptr && "ProteinManager::get_volume_grid: protein is null");
     return protein->get_volume_grid();
 }
 
 double ProteinManager::get_excluded_volume_mass() const {
-    auto protein = get_protein();
+    const auto* protein = get_protein();
     assert(protein != nullptr && "ProteinManager::get_excluded_volume_mass: protein is null");
     return protein->get_excluded_volume_mass();
 }    

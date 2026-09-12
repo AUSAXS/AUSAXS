@@ -3,9 +3,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <settings/SettingsIO.h>
 #include <settings/GeneralSettings.h>
-#include <io/File.h>
+#include <settings/SettingsIO.h>
 
 #include <support/temp_file.h>
 

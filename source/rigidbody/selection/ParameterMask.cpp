@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/selection/ParameterMask.h>
+
 #include <data/symmetry/CompositeSymmetry.h>
 
 #include <cassert>
@@ -22,11 +23,11 @@ void ParameterMask::apply(parameter::BodyTransformParametersRelative& params) co
         else {
             auto& symmetries = params.symmetry_pars.value();
             assert(
-                (!target_symmetry.has_value() || *target_symmetry < symmetries.size())
+                (!target_symmetry.has_value() || *target_symmetry < static_cast<int>(symmetries.size()))
                 && "ParameterMask::apply: target_symmetry is out of range for the generated parameters."
             );
 
-            for (unsigned int i = 0; i < symmetries.size(); ++i) {
+            for (int i = 0; i < static_cast<int>(symmetries.size()); ++i) {
                 // a targeted mask freezes every symmetry but the targeted one; an untargeted one treats them all alike
                 bool active = !target_symmetry.has_value() || i == *target_symmetry;
                 bool translate = sym_translation && active;

@@ -12,6 +12,6 @@ namespace ausaxs::rigidbody::sequencer {
     class ConstraintIteratorElement : public LoopElementCallback {
         public:
             using LoopElementCallback::LoopElementCallback;
-            ~ConstraintIteratorElement() = default;
+            ~ConstraintIteratorElement() override = default;
     };
 }

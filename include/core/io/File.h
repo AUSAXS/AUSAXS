@@ -6,8 +6,8 @@
 #include <io/Folder.h>
 #include <utility/TypeTraits.h>
 
-#include <string_view>
 #include <iosfwd>
+#include <string_view>
 
 namespace ausaxs::io {
     class File {
@@ -17,7 +17,7 @@ namespace ausaxs::io {
             File(File&&) noexcept = default;
             File &operator=(const File&) = default;
             File &operator=(File&&) noexcept = default;
-            File(const io::Folder& folder, std::string_view name, std::string_view extension);
+            File(io::Folder folder, std::string_view name, std::string_view extension);
             File(std::string_view name, std::string_view extension);
 
             template<ausaxs::detail::string_like T>

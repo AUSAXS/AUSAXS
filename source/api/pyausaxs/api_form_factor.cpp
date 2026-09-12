@@ -2,13 +2,14 @@
 // Author: Kristian Lytje
 
 #include <api/pyausaxs/api_form_factor.h>
+
 #include <api/ObjectStorage.h>
-#include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorTable.h>
+#include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/ExvTableManager.h>
 
-#include <functional>
 #include <array>
+#include <functional>
 
 using namespace ausaxs;
 using namespace ausaxs::form_factor;
@@ -50,7 +51,7 @@ int ff_valid_form_factor_types(
     int* status
 ) {return execute_with_catch([&]() {
     _ff_valid_form_factor_types_obj obj;
-    for (unsigned int i = 0; i < form_factor::total_ff_count; ++i) {
+    for (int i = 0; i < form_factor::total_ff_count; ++i) {
         obj.types.emplace_back(form_factor::to_string(static_cast<form_factor::form_factor_t>(i)));
     }
     obj.types_ptr.resize(obj.types.size());
@@ -59,7 +60,7 @@ int ff_valid_form_factor_types(
     }
     *n_types = static_cast<int>(obj.types.size());
     int id = api::ObjectStorage::register_object(std::move(obj));
-    auto ref = api::ObjectStorage::get_object<_ff_valid_form_factor_types_obj>(id);
+    auto* ref = api::ObjectStorage::get_object<_ff_valid_form_factor_types_obj>(id);
     *types = ref->types_ptr.data();
     *status = 0;
     return id;
@@ -69,7 +70,7 @@ void ff_get_five_gaussian_coefficients(
     const char* element, 
     double* a, double* b, double* c,
     int* status
-) {return execute_with_catch([&]() {
+) {execute_with_catch([&]() {
     form_factor::form_factor_t type = from_string(element);
     auto[a_ref, b_ref, c_ref] = get_gaussian_coefficients(type);
     std::copy(a_ref.get().begin(), a_ref.get().end(), a);
@@ -81,7 +82,7 @@ void ff_get_current_exv_volume(
     const char* element,
     double* volume,
     int* status
-) {return execute_with_catch([&]() {
+) {execute_with_catch([&]() {
     form_factor::form_factor_t type = from_string(element);
     const auto& exv_table = ExvTableManager::get_current_exv_table();
     switch (type) {

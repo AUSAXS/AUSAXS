@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/transform/TransformFactory.h>
+
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/transform/SingleTransform.h>
 #include <settings/RigidBodySettings.h>

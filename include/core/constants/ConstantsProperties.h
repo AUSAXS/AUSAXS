@@ -9,24 +9,24 @@
 #include <cassert>
 #include <utility/Exceptions.h>
 
-namespace ausaxs::constants {
-    namespace mass {
-        /**
-         * @brief Get the mass of an atom in u.
-         */
-        constexpr double get_mass(atom_t atom);
 
-        /**
-         * @brief Get the mass of an atomic group in u.
-         */
-        constexpr double get_mass(atomic_group_t group); 
+namespace ausaxs::constants::mass {
+    /**
+     * @brief Get the mass of an atom in u.
+     */
+    constexpr double get_mass(atom_t atom);
 
-        namespace density {
-            constexpr double water = 0.9982067*SI::mass::gm/SI::volume::cm3;
-            constexpr double protein = 1.35*SI::mass::gm/SI::volume::cm3;
-        }
+    /**
+     * @brief Get the mass of an atomic group in u.
+     */
+    constexpr double get_mass(atomic_group_t group); 
+
+    namespace density {
+        constexpr double water = 0.9982067*SI::mass::gm/SI::volume::cm3;
+        constexpr double protein = 1.35*SI::mass::gm/SI::volume::cm3;
     }
 }
+
 
 constexpr double ausaxs::constants::mass::get_mass(atom_t atom) {
     switch(atom) {

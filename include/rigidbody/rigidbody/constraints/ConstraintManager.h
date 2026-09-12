@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
-#include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/RigidbodyFwd.h>
-#include <settings/RigidBodySettings.h>
 #include <data/DataFwd.h>
+#include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/constraints/IDistanceConstraint.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
+#include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
+#include <settings/RigidBodySettings.h>
 
 #include <memory>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace ausaxs::rigidbody::constraints {
     /**
@@ -53,7 +53,7 @@ namespace ausaxs::rigidbody::constraints {
         /**
          * @brief Get all discoverable distance constraints that involve the given body.
          */
-        const std::vector<observer_ptr<IDistanceConstraint>>& get_body_constraints(unsigned int ibody) const;
+        const std::vector<observer_ptr<IDistanceConstraint>>& get_body_constraints(int ibody) const;
 
         /**
          * @brief Mark the per-body map as stale, so the next access rebuilds it.
@@ -78,7 +78,7 @@ namespace ausaxs::rigidbody::constraints {
 
             // List of all discoverable constraints associated with each body. It is a cache of what the constraint list and molecule already say, so reading it
             // is a const operation even when it has to be rebuilt first.
-            mutable std::unordered_map<unsigned int, std::vector<observer_ptr<IDistanceConstraint>>> distance_constraints_map;
+            mutable std::unordered_map<int, std::vector<observer_ptr<IDistanceConstraint>>> distance_constraints_map;
             mutable bool dirty = true;
     };
 }

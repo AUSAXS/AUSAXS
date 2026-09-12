@@ -4,11 +4,11 @@
 #pragma once
 
 #include <dataset/DatasetFwd.h>
-#include <math/slices/Slice.h>
 #include <io/IOFwd.h>
+#include <math/slices/Slice.h>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace ausaxs {
     /**
@@ -20,8 +20,8 @@ namespace ausaxs {
 
         NamedWrapper() = default;
 
-        NamedWrapper(T&& d) : T(std::forward<T>(d)) {set_default_names();}
-        NamedWrapper(T&& d, const std::vector<std::string>& names) : T(std::forward<T>(d)), names(names) {}
+        NamedWrapper(T&& d) : T(std::move(d)) {set_default_names();}
+        NamedWrapper(T&& d, const std::vector<std::string>& names) : T(std::move(d)), names(names) {}
 
         /**
          * @brief Set default column names (col_0, col_1, ...).
@@ -36,7 +36,7 @@ namespace ausaxs {
         /**
          * @brief Set a single column name.
          */
-        void set_col_names(unsigned int i, const std::string& name);
+        void set_col_names(int i, const std::string& name);
 
         /**
          * @brief Get the column names.
@@ -46,7 +46,7 @@ namespace ausaxs {
         /**
          * @brief Get a single column name.
          */
-        std::string get_col_names(unsigned int i) const;
+        std::string get_col_names(int i) const;
 
         /**
          * @brief Check if this dataset has non-default named columns.
@@ -61,7 +61,7 @@ namespace ausaxs {
         /**
          * @brief Get a column based on its name.
          */
-        [[nodiscard]] const ConstColumn<double> col(std::string_view column) const;
+        [[nodiscard]] ConstColumn<double> col(std::string_view column) const;
         using T::col; // bring base class overloads into scope
 
         /**

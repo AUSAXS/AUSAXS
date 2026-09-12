@@ -1,12 +1,12 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Body.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
-#include <data/Body.h>
 
-#include <algorithm>
 #include <numbers>
 #include <vector>
 
@@ -17,7 +17,7 @@ using namespace ausaxs::data;
 namespace {
     std::unique_ptr<CyclicSymmetry> cyclic(double angle, int reps, Vector3<double> offset) {
         return std::make_unique<CyclicSymmetry>(
-            CyclicSymmetry::_Relation{offset}, CyclicSymmetry::_Repeat{{0, 0, 1}, angle}, reps
+            CyclicSymmetry::Relation{offset}, CyclicSymmetry::Repeat{{0, 0, 1}, angle}, reps
         );
     }
 }
@@ -62,14 +62,14 @@ namespace {
     // every placement of a test point under {original + all copies}
     std::vector<Vector3<double>> placements(ISymmetry& s, Vector3<double> cm, Vector3<double> p) {
         std::vector<Vector3<double>> out = {p};
-        for (int rep = 1; rep <= static_cast<int>(s.repetitions()); ++rep) {out.push_back(s._get_transform(cm, rep)(p));}
+        for (int rep = 1; rep <= s.repetitions(); ++rep) {out.push_back(s._get_transform(cm, rep)(p));}
         return out;
     }
 
-    bool same_set(std::vector<Vector3<double>> a, std::vector<Vector3<double>> b) {
+    bool same_set(const std::vector<Vector3<double>>& a, std::vector<Vector3<double>> b) {
         if (a.size() != b.size()) {return false;}
         for (const auto& x : a) {
-            auto it = std::find_if(b.begin(), b.end(), [&](const auto& y){return (x-y).magnitude() < 1e-9;});
+            auto it = std::ranges::find_if(b, [&](const auto& y){return (x-y).magnitude() < 1e-9;});
             if (it == b.end()) {return false;}
             b.erase(it);
         }
@@ -111,8 +111,8 @@ TEST_CASE("CompositeSymmetry: _get_transform composes outer after inner") {
 
     auto apply = [&](ISymmetry& s, int idx, Vector3<double> v) {return idx == 0 ? v : s._get_transform(cm, idx)(v);};
     std::vector<Vector3<double>> reference; // outer(k) after inner(j) over the whole grid, identity at index 0
-    for (int k = 0; k <= static_cast<int>(outer_ref->repetitions()); ++k) {
-        for (int j = 0; j <= static_cast<int>(inner_ref->repetitions()); ++j) {
+    for (int k = 0; k <= outer_ref->repetitions(); ++k) {
+        for (int j = 0; j <= inner_ref->repetitions(); ++j) {
             reference.push_back(apply(*outer_ref, k, apply(*inner_ref, j, p)));
         }
     }
@@ -135,9 +135,9 @@ TEST_CASE("CompositeSymmetry: _get_transform composes a 3-level nesting") {
 
     auto apply = [&](ISymmetry& s, int idx, Vector3<double> v) {return idx == 0 ? v : s._get_transform(cm, idx)(v);};
     std::vector<Vector3<double>> reference; // C(B(A(p))) over every (a, b, c) copy, identity at index 0
-    for (int kc = 0; kc <= static_cast<int>(C->repetitions()); ++kc) {
-        for (int jb = 0; jb <= static_cast<int>(B->repetitions()); ++jb) {
-            for (int ia = 0; ia <= static_cast<int>(A->repetitions()); ++ia) {
+    for (int kc = 0; kc <= C->repetitions(); ++kc) {
+        for (int jb = 0; jb <= B->repetitions(); ++jb) {
+            for (int ia = 0; ia <= A->repetitions(); ++ia) {
                 reference.push_back(apply(*C, kc, apply(*B, jb, apply(*A, ia, p))));
             }
         }
@@ -167,7 +167,7 @@ TEST_CASE("CompositeSymmetry: explicit_structure materialises every copy") {
     int na = static_cast<int>(base.size());
     REQUIRE(static_cast<int>(s.atoms.size()) == (1 + static_cast<int>(sym->repetitions()))*na); // 4 placements * 2 atoms
 
-    for (int rep = 0; rep <= static_cast<int>(sym->repetitions()); ++rep) {
+    for (int rep = 0; rep <= sym->repetitions(); ++rep) {
         for (int i = 0; i < na; ++i) {
             Vector3<double> expected = rep == 0 ? base[i].coordinates() : sym->_get_transform(cm, rep)(base[i].coordinates());
             CHECK((s.atoms[rep*na + i].coordinates() - expected).magnitude() < 1e-9);
@@ -182,7 +182,7 @@ TEST_CASE("CompositeSymmetry: pair schedule covers every copy-pair exactly once"
         std::make_unique<PointSymmetry>(Vector3<double>{4, 1, 0}, Vector3<double>{0, 0, 0}),
         cyclic(2*std::numbers::pi/3, 2, {6, 0, 0})
     );
-    int n = static_cast<int>(sym.repetitions()) + 1;
+    int n = sym.repetitions() + 1;
 
     long total = 0;
     for (const auto& pair : sym.internal_pair_schedule()) {
@@ -195,19 +195,20 @@ TEST_CASE("CompositeSymmetry: pair schedule covers every copy-pair exactly once"
 }
 
 TEST_CASE("CompositeSymmetry: schedule reproduces all inter-copy distances") {
-    const std::vector<Vector3<double>> body = {{1.0, 0.0, 0.0}, {0.3, 1.7, 0.2}, {-0.5, 0.4, 2.1}};
-    const Vector3<double> cm = {0.0, 0.0, 0.0};
+    std::vector<Vector3<double>> body = {{1.0, 0.0, 0.0}, {0.3, 1.7, 0.2}, {-0.5, 0.4, 2.1}};
+    Vector3<double> cm = {0.0, 0.0, 0.0};
 
     CompositeSymmetry sym(
         cyclic(std::numbers::pi, 1, {3, 0, 0}),          // inner c2
         cyclic(2*std::numbers::pi/3, 2, {7, 0, 0})       // outer c3
     );
-    int n = static_cast<int>(sym.repetitions()) + 1;
+    int n = sym.repetitions() + 1;
 
     auto placement = [&](int rep) {
         std::vector<Vector3<double>> out;
         if (rep == 0) {return body;}
         auto t = sym._get_transform(cm, rep);
+        out.reserve(body.size());
         for (const auto& v : body) {out.push_back(t(v));}
         return out;
     };
@@ -229,8 +230,8 @@ TEST_CASE("CompositeSymmetry: schedule reproduces all inter-copy distances") {
         auto d = cross(pair.repA, pair.repB);
         for (int k = 0; k < pair.scale; ++k) {reconstructed.insert(reconstructed.end(), d.begin(), d.end());}
     }
-    std::sort(brute.begin(), brute.end());
-    std::sort(reconstructed.begin(), reconstructed.end());
+    std::ranges::sort(brute);
+    std::ranges::sort(reconstructed);
 
     REQUIRE(reconstructed.size() == brute.size());
     for (std::size_t k = 0; k < brute.size(); ++k) {

@@ -2,11 +2,12 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/setup/DeleteElement.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/detail/BodyIndexOps.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/Rigidbody.h>
+
 #include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/BodyIndexOps.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <utility/observer_ptr.h>
 
 #include <algorithm>
@@ -14,7 +15,7 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
-DeleteElement::DeleteElement(observer_ptr<Sequencer> owner, std::vector<std::string> names) {
+DeleteElement::DeleteElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names) {
     detail::require_mutable_structure(owner, "delete");
     std::vector<int> indices;
     indices.reserve(names.size());
@@ -42,21 +43,21 @@ InlineSignature DeleteElement::_valid_inline_arguments() {
 }
 
 // delete [body names...] - at least one body must remain
-std::unique_ptr<GenericElement> DeleteElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> DeleteElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
     std::vector<std::string> names;
     names.reserve(args.inlined.size());
-    for (std::size_t i = 0; i < args.inlined.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(args.inlined.size()); ++i) {
         const std::string& name = args.inlined[i];
         if (!body_names.contains(name)) {throw except::parse_error("delete", "Body name \"" + name + "\" not found.");}
-        if (std::find(names.begin(), names.end(), name) != names.end()) {
+        if (std::ranges::find(names, name) != names.end()) {
             throw except::parse_error("delete", "Body name \"" + name + "\" was specified more than once.");
         }
         names.push_back(name);
     }
 
     auto total_bodies = owner->_get_sequencer()->_get_molecule()->size_body();
-    if (names.size() >= total_bodies) {throw except::parse_error("delete", "Cannot delete all bodies; at least one must remain.");}
+    if (static_cast<int>(names.size()) >= total_bodies) {throw except::parse_error("delete", "Cannot delete all bodies; at least one must remain.");}
 
     return std::make_unique<DeleteElement>(owner->_get_sequencer(), std::move(names));
 }

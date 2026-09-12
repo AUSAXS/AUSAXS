@@ -1,17 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/selection/ParameterMask.h>
-#include <rigidbody/selection/RandomConstraintSelect.h>
-#include <rigidbody/selection/RandomBodySelect.h>
-#include <rigidbody/selection/SequentialBodySelect.h>
-#include <rigidbody/selection/SequentialConstraintSelect.h>
 #include <data/Body.h>
 #include <rigidbody/Rigidbody.h>
-#include <settings/MoleculeSettings.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/selection/ParameterMask.h>
+#include <rigidbody/selection/RandomBodySelect.h>
+#include <rigidbody/selection/RandomConstraintSelect.h>
+#include <rigidbody/selection/SequentialBodySelect.h>
+#include <rigidbody/selection/SequentialConstraintSelect.h>
 #include <settings/GeneralSettings.h>
+#include <settings/MoleculeSettings.h>
 
 #include <support/rb_metadata.h>
 
@@ -32,9 +31,9 @@ TEST_CASE("BodySelectStrategy::next") {
     auto& manager = rigidbody.constraints;
 
     // add a varying number of constraints to each body
-    for (unsigned int i = 0; i < rigidbody.molecule.size_body(); i++) {
-        for (unsigned int j = i+1; j < rigidbody.molecule.size_body(); j++) {
-            for (unsigned int k = j; k < 5; k++) {
+    for (int i = 0; i < rigidbody.molecule.size_body(); i++) {
+        for (int j = i+1; j < rigidbody.molecule.size_body(); j++) {
+            for (int k = j; k < 5; k++) {
                 manager->add_constraint(std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, i, j));
             }
         }
@@ -42,11 +41,11 @@ TEST_CASE("BodySelectStrategy::next") {
 
     SECTION("SequentialConstraintSelect::next") {
         std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::SequentialConstraintSelect>(&rigidbody);
-        std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
+        std::unordered_map<int, std::unordered_map<int, int>> count;
 
         // check that the constraints are selected sequentially
-        for (unsigned int i = 0; i < rigidbody.molecule.size_body(); i++) {
-            for (unsigned int j = 0; j < rigidbody.constraints->get_body_constraints(i).size(); j++) {
+        for (int i = 0; i < rigidbody.molecule.size_body(); i++) {
+            for (int j = 0; j < static_cast<int>(rigidbody.constraints->get_body_constraints(i).size()); j++) {
                 auto[ibody, iconstraint, isymmetry] = strat->next(rigidbody::selection::ParameterMask::all());
                 REQUIRE(ibody == i);
                 REQUIRE(iconstraint == int(j));
@@ -61,11 +60,11 @@ TEST_CASE("BodySelectStrategy::next") {
 
     SECTION("SequentialBodySelect::next") {
         std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::SequentialBodySelect>(&rigidbody);
-        std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
+        std::unordered_map<int, std::unordered_map<int, int>> count;
 
         // check that the bodies are selected sequentially
-        for (unsigned int i = 0; i < rigidbody.molecule.size_body(); i++) {
-            auto[ibody, _, __] = strat->next(rigidbody::selection::ParameterMask::all());
+        for (int i = 0; i < rigidbody.molecule.size_body(); i++) {
+            [[maybe_unused]] auto[ibody, iconstraint, isymmetry] = strat->next(rigidbody::selection::ParameterMask::all());
             REQUIRE(ibody == i);
         }
 
@@ -76,11 +75,11 @@ TEST_CASE("BodySelectStrategy::next") {
 
     SECTION("RandomConstraintSelect::next") {
         std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::RandomConstraintSelect>(&rigidbody);
-        std::unordered_map<unsigned int, unsigned int> count;
+        std::unordered_map<int, int> count;
 
         // count how many times each constraint is selected
-        unsigned int iterations = 10000;
-        for (unsigned int i = 0; i < iterations; i++) {
+        int iterations = 10000;
+        for (int i = 0; i < iterations; i++) {
             auto[ibody, iconstraint, isymmetry] = strat->next(rigidbody::selection::ParameterMask::all());
             if (ibody >= rigidbody.molecule.size_body()) {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
@@ -91,26 +90,26 @@ TEST_CASE("BodySelectStrategy::next") {
                 REQUIRE(false);
             }
 
-            auto constraint = rigidbody.constraints->get_body_constraints(ibody).at(iconstraint);
-            for (unsigned int j = 0; j < rigidbody.constraints->discoverable_constraints.size(); j++) {
+            auto* constraint = rigidbody.constraints->get_body_constraints(ibody).at(iconstraint);
+            for (int j = 0; j < static_cast<int>(rigidbody.constraints->discoverable_constraints.size()); j++) {
                 if (rigidbody.constraints->discoverable_constraints[j].get() == constraint) {
                     count[j]++;
                 }
             }
         }
 
-        for (unsigned int i = 0; i < rigidbody.constraints->discoverable_constraints.size(); i++) {
+        for (int i = 0; i < static_cast<int>(rigidbody.constraints->discoverable_constraints.size()); i++) {
             REQUIRE(count[i] > 0.8*iterations/rigidbody.constraints->discoverable_constraints.size());
         }
     }
 
     SECTION("RandomBodySelect::next") {
         std::unique_ptr<rigidbody::selection::BodySelectStrategy> strat = std::make_unique<rigidbody::selection::RandomBodySelect>(&rigidbody);
-        std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
+        std::unordered_map<int, std::unordered_map<int, int>> count;
 
         // count how many times each body and constraint is selected
-        unsigned int iterations = 10000;
-        for (unsigned int i = 0; i < iterations; i++) {
+        int iterations = 10000;
+        for (int i = 0; i < iterations; i++) {
             auto[ibody, iconstraint, isymmetry] = strat->next(rigidbody::selection::ParameterMask::all());
             if (ibody >= rigidbody.molecule.size_body()) {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
@@ -123,10 +122,10 @@ TEST_CASE("BodySelectStrategy::next") {
             count[ibody][iconstraint]++;
         }
 
-        for (unsigned int i = 0; i < rigidbody.molecule.size_body(); i++) {
+        for (int i = 0; i < rigidbody.molecule.size_body(); i++) {
             // calculate how many times each body was selected
             double sum = 0;
-            for (unsigned int j = 0; j < rigidbody.constraints->get_body_constraints(i).size(); j++) {
+            for (int j = 0; j < static_cast<int>(rigidbody.constraints->get_body_constraints(i).size()); j++) {
                 sum += count[i][j];
             }
 
@@ -134,8 +133,8 @@ TEST_CASE("BodySelectStrategy::next") {
             REQUIRE(sum > iterations*0.2);
 
             // check that the constraints were randomly selected
-            for (unsigned int j = i; j < rigidbody.constraints->get_body_constraints(i).size(); j++) {
-                REQUIRE(count[i][j] > 0.7*sum/rigidbody.constraints->get_body_constraints(i).size());
+            for (int j = i; j < static_cast<int>(rigidbody.constraints->get_body_constraints(i).size()); j++) {
+                REQUIRE(count[i][j] > 0.7*sum/static_cast<int>(rigidbody.constraints->get_body_constraints(i).size()));
             }
         }
     }

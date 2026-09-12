@@ -2,10 +2,11 @@
 // Author: Kristian Lytje
 
 #include <grid/exv/GridExvStrategy.h>
+
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
-#include <utility/Logging.h>
 #include <settings/ExvSettings.h>
+#include <utility/Logging.h>
 
 using namespace ausaxs;
 using namespace ausaxs::grid::exv;
@@ -21,6 +22,6 @@ GridExcludedVolume grid::exv::create(observer_ptr<grid::Grid> grid) {
 
         default:
             logging::log("GridExvStrategy::create: Chosen exv model does not use a grid-based excluded volume. Returning empty object.");
-            return {{}, {}};
+            return {.interior={}, .surface={}};
     }
 }

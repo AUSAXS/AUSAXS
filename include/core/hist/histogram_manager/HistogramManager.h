@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hist/histogram_manager/IHistogramManager.h>
 #include <data/DataFwd.h>
+#include <hist/histogram_manager/IHistogramManager.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -21,18 +21,18 @@ namespace ausaxs::hist {
 	template<bool weighted_bins, bool variable_bin_width>
 	class HistogramManager : public IHistogramManager {
 		public:
-			virtual ~HistogramManager();
+			~HistogramManager() override;
 			HistogramManager(observer_ptr<const data::Molecule> protein); 
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 
 			 */
-			virtual std::unique_ptr<DistanceHistogram> calculate() override;
+			std::unique_ptr<DistanceHistogram> calculate() override;
 
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
+			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
 			observer_ptr<const data::Molecule> protein;

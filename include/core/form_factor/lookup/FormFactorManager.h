@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <container/ArrayContainer2D.h>
 #include <data/DataFwd.h>
 #include <form_factor/FormFactorType.h>
-#include <container/ArrayContainer2D.h>
 #include <form_factor/lookup/FormFactorLookupFwd.h>
 #include <utility/observer_ptr.h>
 
@@ -15,8 +15,8 @@
 namespace ausaxs::form_factor::manager {
     namespace detail {
         struct ActiveTables {
-            ActiveTables(std::array<int, form_factor::total_ff_count>&& ff_indices, unsigned int active_count);
-            unsigned int active_count;
+            ActiveTables(const std::array<int, form_factor::total_ff_count>& ff_indices, int active_count);
+            int active_count;
             std::array<int, form_factor::total_ff_count> ff_indices;
             lookup::table_t raw_exv_table;
             lookup::table_t raw_cross_table;

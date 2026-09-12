@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/elements/setup/LoadExistingElement.h>
+
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/Sequencer.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 

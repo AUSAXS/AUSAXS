@@ -2,9 +2,10 @@
 // Author: Kristian Lytje
 
 #include <settings/SettingRef.h>
-#include <utility/StringUtils.h>
+
 #include <utility/Exceptions.h>
 #include <utility/Limit.h>
+#include <utility/StringUtils.h>
 
 #include <algorithm>
 
@@ -18,7 +19,6 @@ std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRe
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::type() const {return "string";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<double>::type() const  {return "double";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<int>::type() const  {return "int";}
-template<> std::string ausaxs::settings::io::detail::SettingRef<unsigned int>::type() const  {return "uint";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::type() const  {return "bool";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<settings::hist::WeightedBins>::type() const {return "weighted-bins";}
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::type() const {return "vector-string";}
@@ -32,8 +32,7 @@ template<> bool ausaxs::settings::io::detail::SettingRef<std::string>::requires_
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const {return settingref;}
 template<> std::string settings::io::detail::SettingRef<double>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<int>::get() const {return std::to_string(settingref);}
-template<> std::string settings::io::detail::SettingRef<unsigned int>::get() const {return std::to_string(settingref);}
-template<> std::string settings::io::detail::SettingRef<bool>::get() const {return std::to_string(settingref);}
+template<> std::string settings::io::detail::SettingRef<bool>::get() const {return std::to_string(static_cast<int>(settingref));}
 template<> std::string settings::io::detail::SettingRef<settings::hist::WeightedBins>::get() const {
     switch (settingref.value) {
         case settings::hist::WeightedBins::Value::True: return "true";
@@ -45,17 +44,17 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Weighted
 template<> std::string settings::io::detail::SettingRef<Limit>::get() const {return std::to_string(settingref.min) + " " + std::to_string(settingref.max);}
 template<> std::string settings::io::detail::SettingRef<std::vector<std::string>>::get() const {
     std::string str;
-    std::for_each(settingref.begin(), settingref.end(), [&str] (const std::string& s) {str += s + " ";});
+    std::ranges::for_each(settingref, [&str] (const std::string& s) {str += s + " ";});
     return str;
 }
 template<> std::string settings::io::detail::SettingRef<std::vector<double>>::get() const {
     std::string str;
-    std::for_each(settingref.begin(), settingref.end(), [&str] (double s) {str += std::to_string(s) + " ";});
+    std::ranges::for_each(settingref, [&str] (double s) {str += std::to_string(s) + " ";});
     return str;
 }
 template<> std::string settings::io::detail::SettingRef<std::vector<int>>::get() const {
     std::string str;
-    std::for_each(settingref.begin(), settingref.end(), [&str] (int s) {str += std::to_string(s) + " ";});
+    std::ranges::for_each(settingref, [&str] (int s) {str += std::to_string(s) + " ";});
     return str;
 }
 
@@ -80,10 +79,6 @@ template<> void settings::io::detail::SettingRef<int>::set(const std::vector<std
     if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option \"" + get() + "\" received too many settings.");}
     settingref = std::stoi(str[0]); 
 }
-template<> void settings::io::detail::SettingRef<unsigned int>::set(const std::vector<std::string>& str) {
-    if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option \"" + get() + "\" received too many settings.");}
-    settingref = std::stoi(str[0]);
-}
 template<> void settings::io::detail::SettingRef<std::vector<std::string>>::set(const std::vector<std::string>& str) {
     settingref = str;
 }
@@ -96,7 +91,7 @@ template<> void settings::io::detail::SettingRef<Limit>::set(const std::vector<s
 
 template<> void settings::io::detail::SettingRef<std::vector<double>>::set(const std::vector<std::string>& str) {
     std::vector<double> new_val;
-    for (auto& s : str) {
+    for (const auto& s : str) {
         if (s.empty() || s == " ") {continue;}
         new_val.push_back(std::stod(s));
     }
@@ -105,7 +100,7 @@ template<> void settings::io::detail::SettingRef<std::vector<double>>::set(const
 }
 template<> void settings::io::detail::SettingRef<std::vector<int>>::set(const std::vector<std::string>& str) {
     std::vector<int> new_val;
-    for (auto& s : str) {
+    for (const auto& s : str) {
         if (s.empty() || s == " ") {continue;}
         new_val.push_back(std::stoi(s));
     }

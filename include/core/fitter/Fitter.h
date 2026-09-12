@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <fitter/FitterFwd.h>
 #include <fitter/FitResult.h>
+#include <fitter/FitterFwd.h>
 #include <mini/MiniFwd.h>
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace ausaxs::fitter {
     class Fitter {
@@ -33,13 +33,13 @@ namespace ausaxs::fitter {
             /**
              * @brief Get the number of degrees of freedom.
              */
-            [[nodiscard]] virtual unsigned int dof() const = 0;
-            [[nodiscard]] unsigned int degrees_of_freedom() const {return dof();} //< @copydoc dof
+            [[nodiscard]] virtual int dof() const = 0;
+            [[nodiscard]] int degrees_of_freedom() const {return dof();} //< @copydoc dof
 
             /**
              * @brief Get the total number of data points. 
              */
-            [[nodiscard]] virtual unsigned int size() const = 0;
+            [[nodiscard]] virtual int size() const = 0;
 
             /**
              * @brief Evaluate the chi2 for the given parameters.

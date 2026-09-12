@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <utility/observer_ptr.h>
+#include <data/DataFwd.h>
 #include <data/atoms/AtomFF.h>
 #include <data/detail/SimpleBody.h>
-#include <data/DataFwd.h>
+#include <utility/observer_ptr.h>
 
 namespace ausaxs::symmetry::detail {
     class MoleculeSymmetryFacade {

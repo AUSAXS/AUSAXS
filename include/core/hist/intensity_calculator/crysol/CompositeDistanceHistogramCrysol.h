@@ -17,7 +17,7 @@ namespace ausaxs::hist {
             CompositeDistanceHistogramCrysol(CompositeDistanceHistogramCrysol&&) noexcept;
             CompositeDistanceHistogramCrysol& operator=(CompositeDistanceHistogramCrysol&&) noexcept;
             CompositeDistanceHistogramCrysol& operator=(const CompositeDistanceHistogramCrysol&);
-            virtual ~CompositeDistanceHistogramCrysol() override;
+            ~CompositeDistanceHistogramCrysol() override;
 
             /**
              * @brief Create a new unweighted composite distance histogram with form factors.

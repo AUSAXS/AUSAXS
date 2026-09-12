@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <form_factor/FormFactorType.h>
-#include <form_factor/FormFactorTable.h>
-#include <form_factor/ExvFormFactor.h>
 #include <constants/ConstantsFwd.h>
 #include <data/DataFwd.h>
+#include <form_factor/ExvFormFactor.h>
+#include <form_factor/FormFactorTable.h>
+#include <form_factor/FormFactorType.h>
 
 #include <array>
 
@@ -24,7 +24,7 @@ namespace ausaxs::form_factor {
              *        This is only used to instantiate the average excluded volume form factor.
              *        Note that these excluded volume form factors are not normalized. 
              */
-            constexpr FormFactor(ExvFormFactor&& ffx) : a({ffx.q0, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0) {}
+            constexpr FormFactor(const ExvFormFactor& ffx) : a({ffx.q0, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0) {}
 
             /**
              * @brief Evaluate the form factor at a given q value.
@@ -32,7 +32,7 @@ namespace ausaxs::form_factor {
              */
             constexpr double evaluate(double q) const {
                 double sum = 0;
-                for (unsigned int i = 0; i < 5; ++i) {
+                for (int i = 0; i < 5; ++i) {
                     sum += a[i]*constexpr_math::exp(-b[i]*q*q);
                 }
                 return (sum + c)*q0;

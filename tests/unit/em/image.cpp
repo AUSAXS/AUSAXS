@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -62,8 +63,8 @@ TEST_CASE("Image::limits") {
     };
 
     em::Image image(data);
-    double min = *std::min_element(data.begin(), data.end());
-    double max = *std::max_element(data.begin(), data.end());
+    double min = *std::ranges::min_element(data);
+    double max = *std::ranges::max_element(data);
     CHECK(image.limits().min == min);
     CHECK(image.limits().max == max);
 }
@@ -166,9 +167,9 @@ TEST_CASE("Image::setup_bounds") {
         em::Image image(data);
 
         for (double cutoff : {1., 3., 5.}) {
-            unsigned int expected = 0;
-            for (unsigned int x = 0; x < data.N; x++) {
-                for (unsigned int y = 0; y < data.M; y++) {
+            int expected = 0;
+            for (int x = 0; x < data.N; x++) {
+                for (int y = 0; y < data.M; y++) {
                     if (cutoff <= data.index(x, y)) {expected++;}
                 }
             }
@@ -202,8 +203,8 @@ TEST_CASE("Image::index") {
     };
     em::Image image(data);
 
-    for (unsigned int i = 0; i < 6; i++) {
-        for (unsigned int j = 0; j < 6; j++) {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
             CHECK(image.index(i, j) == data.index(i, j));
         }
     }

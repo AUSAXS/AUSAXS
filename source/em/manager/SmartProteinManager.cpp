@@ -2,24 +2,24 @@
 // Author: Kristian Lytje
 
 #include <em/manager/SmartProteinManager.h>
-#include <em/detail/ImageStackBase.h>
-#include <em/detail/EMGrid.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/histogram_manager/PartialHistogramManagerMT.h>
-#include <data/Molecule.h>
+
+#include <constants/ConstantsAxes.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <em/detail/EMGrid.h>
+#include <em/detail/ImageStackBase.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <settings/EMSettings.h>
+#include <settings/Flags.h>
+#include <settings/GridSettings.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Console.h>
 #include <utility/Limit3D.h>
 #include <utility/Logging.h>
-#include <settings/HistogramSettings.h>
-#include <settings/ExvSettings.h>
-#include <settings/EMSettings.h>
-#include <settings/GridSettings.h>
-#include <settings/Flags.h>
-#include <constants/ConstantsAxes.h>
 
-#include <vector>
+#include <algorithm>
 #include <cassert>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::em::managers;
@@ -74,14 +74,14 @@ std::vector<EMAtom> SmartProteinManager::generate_atoms(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     std::list<EMAtom> atoms;
     const auto& imagestack = images->images();
-    unsigned int step = settings::em::sample_frequency;
-    for (unsigned int i = 0; i < imagestack.size(); i += step) {
+    int step = settings::em::sample_frequency;
+    for (int i = 0; i < static_cast<int>(imagestack.size()); i += step) {
         std::list<EMAtom> im_atoms = imagestack[i].generate_atoms(cutoff);
         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
     }
 
     // convert list to vector
-    return std::vector<EMAtom>(std::make_move_iterator(std::begin(atoms)), std::make_move_iterator(std::end(atoms)));
+    return {std::make_move_iterator(std::begin(atoms)), std::make_move_iterator(std::end(atoms))};
 }
 
 std::unique_ptr<data::Molecule> SmartProteinManager::generate_new_protein(double cutoff) const {
@@ -99,14 +99,14 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_new_protein(double
     }
 
     // sort vector so we can slice it into levels of charge density
-    std::sort(atoms.begin(), atoms.end(), [] (const EMAtom& atom1, const EMAtom& atom2) {return atom1.charge_density() < atom2.charge_density();});
+    std::ranges::sort(atoms, [] (const EMAtom& atom1, const EMAtom& atom2) {return atom1.charge_density() < atom2.charge_density();});
 
-    unsigned int charge_index = 0, atom_index = 0, current_index = 0;
+    int charge_index = 0, atom_index = 0, current_index = 0;
     double charge = charge_levels[charge_index]; // initialize charge
 
     while (atoms[atom_index].charge_density() < cutoff) {++atom_index;} // search for first atom with charge larger than the cutoff
     while (charge < cutoff) {charge = charge_levels[++charge_index];}   // search for first charge level larger than the cutoff 
-    while (atom_index < atoms.size()) {
+    while (atom_index < static_cast<int>(atoms.size())) {
         if (atoms[atom_index].charge_density() < charge) {
             current_atoms[current_index++] = atoms[atom_index++].get_atom_ff();
         } else {
@@ -119,7 +119,7 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_new_protein(double
             current_atoms.resize(atoms.size() - atom_index);
 
             // increment the charge level
-            if (charge_index+1 == charge_levels.size()) [[unlikely]] {
+            if (charge_index+1 == static_cast<int>(charge_levels.size())) [[unlikely]] {
                 throw except::unexpected("SmartProteinManager::generate_protein: Reached end of charge levels list.");
             }
             charge = charge_levels[++charge_index];
@@ -167,14 +167,14 @@ void SmartProteinManager::update_protein(double cutoff) {
         // since cutoff is smaller than previously, we have to change all bins in the range [cutoff, previous_cutoff]
 
         // skip all bins before the relevant range
-        unsigned int charge_index = 0;
+        int charge_index = 0;
         double current_cutoff = charge_levels[0];
-        while (current_cutoff < cutoff && charge_index < charge_levels.size()) {
+        while (current_cutoff < cutoff && charge_index < static_cast<int>(charge_levels.size())) {
             current_cutoff = charge_levels[++charge_index];
         }
 
         // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
-        for (; charge_index < charge_levels.size(); ++charge_index) {
+        for (; charge_index < static_cast<int>(charge_levels.size()); ++charge_index) {
             // check if the current bin is inside the range
             if (charge_levels[charge_index] < previous_cutoff) {
                 // if so, we replace it with the new contents
@@ -194,14 +194,14 @@ void SmartProteinManager::update_protein(double cutoff) {
         // since cutoff is larger than previously, we have to change all bins in the range [previous_cutoff, cutoff]
 
         // skip all bins before the relevant range
-        unsigned int charge_index = 0;
+        int charge_index = 0;
         double current_cutoff = charge_levels[0];
-        while (current_cutoff < previous_cutoff && charge_index < charge_levels.size()) {
+        while (current_cutoff < previous_cutoff && charge_index < static_cast<int>(charge_levels.size())) {
             current_cutoff = charge_levels[++charge_index];
         }
 
         // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
-        for (; charge_index < charge_levels.size(); ++charge_index) {
+        for (; charge_index < static_cast<int>(charge_levels.size()); ++charge_index) {
             // check if the current bin is inside the range
             if (charge_levels[charge_index] < cutoff) {
                 // if so, we replace it with the new contents

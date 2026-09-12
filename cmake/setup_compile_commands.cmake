@@ -15,11 +15,7 @@ function(setup_compile_commands)
     )
     mark_as_advanced(SAFE_CHECKS)
 
-    add_compile_definitions("$<$<OR:$<CONFIG:DEBUG>,$<BOOL:${SAFE_CHECKS}>>:DEBUG=1;SAFE_MATH=1>")
-
-    # DEBUG & SAFE_MATH revive the explicit bounds and sanity checks, but assert() is governed by
-    # NDEBUG, which CMake bakes into the optimized configurations. Strip it so SAFE_CHECKS covers
-    # asserts too. These are cache defaults, so the overrides have to be pushed to the caller.
+    add_compile_definitions("$<$<OR:$<CONFIG:DEBUG>,$<BOOL:${SAFE_CHECKS}>>:DEBUG=1>")
     if (SAFE_CHECKS)
         foreach(config RELEASE RELWITHDEBINFO MINSIZEREL)
             foreach(lang C CXX)

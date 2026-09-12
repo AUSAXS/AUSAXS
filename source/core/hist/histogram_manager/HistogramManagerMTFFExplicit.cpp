@@ -2,15 +2,15 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
-#include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
-#include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
-#include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
+
+#include <form_factor/lookup/ExvTableManager.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
-#include <form_factor/lookup/ExvTableManager.h>
-#include <data/Molecule.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
+#include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
+#include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 #include <settings/ExvSettings.h>
 #include <utility/Logging.h>
 

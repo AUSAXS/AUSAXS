@@ -2,10 +2,11 @@
 // Author: Kristian Lytje
 
 #include <hydrate/culling/CounterCulling.h>
+
 #include <data/Molecule.h>
 #include <data/atoms/Water.h>
-#include <grid/detail/GridMember.h>
 #include <grid/Grid.h>
+#include <grid/detail/GridMember.h>
 
 #include <cmath>
 
@@ -17,8 +18,8 @@ void hydrate::CounterCulling::cull(std::span<grid::GridMember<data::Water>>& pla
     if (factor < 2) {return;}
 
     std::vector<bool> remove(placed_water.size(), false); // the water molecules which will be removed
-    unsigned int pw_index = 0; // current index in placed_water
-    unsigned int counter = 0; // counter
+    int pw_index = 0; // current index in placed_water
+    int counter = 0; // counter
     for (int i = 0; i < static_cast<int>(placed_water.size()); ++i) {
         counter++;
         if (counter % factor != 0) {

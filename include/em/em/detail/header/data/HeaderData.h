@@ -9,8 +9,8 @@ namespace ausaxs::em::detail::header {
     enum class DataType {
         int8,       // int8 --> short int
         int16,      // int16 --> int
-        uint8,      // uint8 --> short unsigned int
-        uint16,     // uint16 --> unsigned int
+        uint8,      // uint8 --> short int
+        uint16,     // uint16 --> int
         float16,    // float16 --> float
         float32,    // float32 --> float
         complex32,  // complex32 (2x 16bit int)
@@ -18,5 +18,5 @@ namespace ausaxs::em::detail::header {
         NONE        // error type
     };
 
-    extern std::unordered_map<em::detail::header::DataType, unsigned int> byte_sizes;
+    extern std::unordered_map<em::detail::header::DataType, int> byte_sizes;
 }

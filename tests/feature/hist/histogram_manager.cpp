@@ -1,27 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <data/Molecule.h>
+#include <constants/ConstantsAxes.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <data/state/StateManager.h>
-#include <data/state/Signaller.h>
-#include <hist/histogram_manager/HistogramManager.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/histogram_manager/HistogramManagerMT.h>
-#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
-#include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/histogram_manager/PartialHistogramManagerMT.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <io/ExistingFile.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
-#include <constants/Constants.h>
 #include <utility/Random.h>
-#include <utility/Utility.h>
 
 #include <hist/hist_test_helper.h>
 
@@ -37,13 +24,13 @@ struct analytical_histogram {
     //          3 lines of length 2
     //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
     //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-    std::vector<double> calc_exp() {
+    static std::vector<double> calc_exp() {
         auto width = constants::axes::d_axis.width();
-        std::vector<double> res(std::round(3.5/width)+1);
+        std::vector<double> res(static_cast<std::size_t>(std::round(3.5/width)+1));
         res[0] = 8;
-        res[std::round(2/width)] += 8*3;
-        res[std::round(std::sqrt(8)/width)] += 8*3;
-        res[std::round(std::sqrt(12)/width)] += 8*1;
+        res[static_cast<std::size_t>(std::round(2/width))] += 8*3;
+        res[static_cast<std::size_t>(std::round(std::sqrt(8)/width))] += 8*3;
+        res[static_cast<std::size_t>(std::round(std::sqrt(12)/width))] += 8*1;
         return res;
     }
 
@@ -51,7 +38,7 @@ struct analytical_histogram {
 };
 
 template<template<bool> class MANAGER>
-void run_test1(const Molecule& protein, const auto& target) {
+static void run_test1(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h1.get()), target));
     
@@ -60,7 +47,7 @@ void run_test1(const Molecule& protein, const auto& target) {
 }
 
 template<template<bool, bool> class MANAGER>
-void run_test1(const Molecule& protein, const auto& target) {
+static void run_test1(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false, false>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h1.get()), target));
 
@@ -149,7 +136,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 }
 
 template<template<bool> class MANAGER>
-void run_test2(const Molecule& protein, const auto& target) {
+static void run_test2(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(compare_hist_approx(h1->get_weighted_counts(), target));
     
@@ -158,7 +145,7 @@ void run_test2(const Molecule& protein, const auto& target) {
 }
 
 template<template<bool, bool> class MANAGER>
-void run_test2(const Molecule& protein, const auto& target) {
+static void run_test2(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false, false>(&protein).calculate_all();
     REQUIRE(compare_hist_approx(h1->get_weighted_counts(), target));
 
@@ -173,7 +160,7 @@ void run_test2(const Molecule& protein, const auto& target) {
 }
 
 template<template<bool> class MANAGER>
-void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
+static void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
     auto h1 = MANAGER<false>(&original).calculate_all();
     auto h2 = MANAGER<false>(&permuted).calculate_all();
     REQUIRE(compare_hist(h1->debye_transform(), h2->debye_transform()));
@@ -184,7 +171,7 @@ void run_test_atom_order_invariance(const Molecule& original, const Molecule& pe
 }
 
 template<template<bool, bool> class MANAGER>
-void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
+static void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
     auto h1 = MANAGER<false, false>(&original).calculate_all();
     auto h2 = MANAGER<false, false>(&permuted).calculate_all();
     REQUIRE(compare_hist(h1->debye_transform(), h2->debye_transform()));
@@ -251,7 +238,7 @@ TEST_CASE("PartialHistogramManager::get_probe") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     auto phm = hist::PartialHistogramManager<false, false>(&protein);
-    auto sm = phm.get_state_manager();
+    auto* sm = phm.get_state_manager();
 
     // check the signalling object is correct
     CHECK(phm.get_probe(0) == sm->get_probe(0)); 
@@ -267,7 +254,7 @@ TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     auto phm = hist::PartialHistogramManager<false, false>(&protein);
-    auto sm = phm.get_state_manager();
+    auto* sm = phm.get_state_manager();
     sm->reset_to_false();
     phm.signal_modified_hydration_layer();
     CHECK(sm->is_modified_hydration());

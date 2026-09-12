@@ -6,14 +6,14 @@
 #include <elements.hpp>
 #include <nfd.hpp>
 
+#include <constants/Constants.h>
 #include <data/Molecule.h>
 #include <dataset/SimpleDataset.h>
+#include <gui/plotting.h>
+#include <settings/All.h>
 #include <shell/Command.h>
-#include <constants/Constants.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
-#include <settings/All.h>
-#include <gui/plotting.h>
 
 #include <list>
 
@@ -348,10 +348,10 @@ inline auto q_slider(gui::view& view) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(500));			
 			} while (extend_wait);
 
-			unsigned int removed_elements = 0;
+			int removed_elements = 0;
 			double qmin = qslider_axis_transform(qslider->value_first());
 			double qmax = qslider_axis_transform(qslider->value_second());
-			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
+			for (int i = 0; i < setup::saxs_dataset->size(); ++i) {
 				auto x = setup::saxs_dataset->x(i);
 				removed_elements += !(qmin < x && x < qmax);
 			}
@@ -489,7 +489,7 @@ inline auto q_slider(gui::view& view) {
  * If there is only a single match, the full path to the file is returned along with 'true'. 
  * If there are multiple matches, the longest common prefix is returned along with 'false'. 
  */
-inline auto autocomplete = [] (std::string_view path, unsigned int& last_size, std::function<bool(const io::File&)> cmp_func) {
+inline auto autocomplete = [] (std::string_view path, int& last_size, std::function<bool(const io::File&)> cmp_func) {
 	// prevent autocompletion when deleting text
 	if (path.size() < last_size) {
 		last_size = path.size();

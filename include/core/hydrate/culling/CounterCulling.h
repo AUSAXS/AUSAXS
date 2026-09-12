@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "grid/detail/GridMember.h"
+#include <grid/detail/GridMember.h>
 #include <hydrate/culling/CullingStrategy.h>
 
 namespace ausaxs::hydrate {

@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/parameters/decay/LinearDecay.h>
 #include <rigidbody/parameters/decay/ExponentialDecay.h>
+#include <rigidbody/parameters/decay/LinearDecay.h>
 
 #include <cmath>
 
@@ -16,7 +16,7 @@ TEST_CASE("LinearDecay::factor") {
     
     SECTION("Decay value " + std::to_string(val)) {
         parameter::decay::LinearDecay decay(val);
-        for (unsigned int i = val; i > 0; --i) {
+        for (int i = val; i > 0; --i) {
             REQUIRE_THAT(decay.next(), Catch::Matchers::WithinAbs(i*rate, 1e-6));
         }
     }

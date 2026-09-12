@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <utility/TypeTraits.h>
 #include <io/IOFwd.h>
+#include <utility/TypeTraits.h>
 
 #include <string>
 #include <vector>
@@ -34,8 +34,8 @@ namespace ausaxs::io {
             [[nodiscard]] bool exists() const noexcept;
 
             template<ausaxs::detail::string_like T>
-            void operator=(const T& path) {*this = std::string_view(path);}
-            void operator=(std::string_view path);
+            Folder& operator=(const T& path) {*this = std::string_view(path); return *this;}
+            Folder& operator=(std::string_view path);
             bool operator==(const Folder& other) const noexcept = default;
 
             [[nodiscard]] operator std::string() const;

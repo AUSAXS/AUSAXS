@@ -24,7 +24,7 @@ namespace ausaxs::symmetry {
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
         std::unique_ptr<ISymmetry> clone() const override;
-        unsigned int repetitions() const override;
+        int repetitions() const override;
         bool is_closed() const override;
         std::string type_name() const override;
 

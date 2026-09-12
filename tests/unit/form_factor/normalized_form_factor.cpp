@@ -1,10 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/NormalizedFormFactor.h>
-#include <form_factor/FormFactorTable.h>
 #include <form_factor/ExvFormFactor.h>
-#include <constants/Constants.h>
+#include <form_factor/NormalizedFormFactor.h>
 
 using namespace ausaxs;
 using namespace form_factor;
@@ -112,7 +110,7 @@ TEST_CASE("NormalizedFormFactor::set_normalization") {
 
 TEST_CASE("NormalizedFormFactor::storage::atomic") {
     SECTION("get_form_factor for all types") {
-        for (unsigned int i = 0; i < form_factor::total_ff_count; ++i) {
+        for (int i = 0; i < form_factor::total_ff_count; ++i) {
             const NormalizedFormFactor& ff = lookup::atomic::normalized::get(static_cast<form_factor_t>(i));
             CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
             CHECK(ff.I0() > 0);

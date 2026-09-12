@@ -8,7 +8,7 @@
 using namespace ausaxs;
 
 namespace ausaxs::em::detail::header {
-    std::unordered_map<em::detail::header::DataType, unsigned int> byte_sizes = {
+    std::unordered_map<em::detail::header::DataType, int> byte_sizes = {
         {em::detail::header::DataType::int8,    sizeof(int8_t)},
         {em::detail::header::DataType::int16,   sizeof(int16_t)},
         {em::detail::header::DataType::uint8,   sizeof(uint8_t)},

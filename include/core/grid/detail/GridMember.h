@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <form_factor/FormFactorType.h>
-#include <grid/detail/GridInternalFwd.h>
+#include <constants/Constants.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
+#include <form_factor/FormFactorType.h>
+#include <grid/detail/GridInternalFwd.h>
 #include <math/Vector3.h>
-#include <constants/Constants.h>
 #include <type_traits>
 
 namespace ausaxs::grid {

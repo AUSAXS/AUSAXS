@@ -1,23 +1,20 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>
 #include <hydrate/generation/RadialHydration.h>
-#include <hydrate/generation/HydrationStrategy.h>
-#include <hydrate/generation/HydrationFactory.h>
-#include <hydrate/culling/CullingStrategy.h>
 #include <math/Vector3.h>
-#include <constants/Constants.h>
 #include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 
+#include <string>
 #include <vector>
-#include <string> 
 
 using namespace ausaxs;
 using namespace ausaxs::grid;
@@ -30,7 +27,7 @@ class GridDebug : public grid::Grid {
         ~GridDebug() override = default;
         GridDebug(Limit3D axes) : Grid(axes) {}
 
-		double get_atomic_radius(form_factor::form_factor_t) const override {return ra;}
+		double get_atomic_radius(form_factor::form_factor_t /*atom*/) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
         void set_hydration_radius(double rh) {this->rh = rh;}
@@ -109,7 +106,7 @@ TEST_CASE("Grid::Grid") {
         // we only require that the atoms fit with room for the hydration shell, and that a molecule this small stays small
         auto func = [] (const Grid& grid) {
             double margin = Grid::get_minimum_edge_margin();
-            Axis3D axes = grid.get_axes();
+            const Axis3D& axes = grid.get_axes();
 
             CHECK(axes.x.min <=  0 - margin); CHECK(axes.x.max >= 5 + margin);
             CHECK(axes.y.min <= -5 - margin); CHECK(axes.y.max >= 1 + margin);
@@ -123,9 +120,9 @@ TEST_CASE("Grid::Grid") {
 
             // check that this is reflected in the grid itself
             const GridObj& g = grid.grid;
-            CHECK(g.size_x() == static_cast<unsigned int>(axes.x.bins));
-            CHECK(g.size_y() == static_cast<unsigned int>(axes.y.bins));
-            CHECK(g.size_z() == static_cast<unsigned int>(axes.z.bins));
+            CHECK(g.size_x() == static_cast<int>(axes.x.bins));
+            CHECK(g.size_y() == static_cast<int>(axes.y.bins));
+            CHECK(g.size_z() == static_cast<int>(axes.z.bins));
         };
 
         SECTION("single body") {
@@ -136,8 +133,9 @@ TEST_CASE("Grid::Grid") {
 
         SECTION("multiple bodies") {
             std::vector<Body> bodies; 
+            bodies.reserve(atoms.size());
             for (const auto& a : atoms) {
-                bodies.push_back(Body{std::vector{a}});
+                bodies.emplace_back(std::vector{a});
             }
 
             Grid grid(bodies);
@@ -358,9 +356,9 @@ TEST_CASE("Grid::expand_volume") {
 
                 auto axes = grid.get_axes();
                 double r = constants::radius::get_vdw_radius(form_factor::form_factor_t::C)/settings::grid::cell_width;
-                for (unsigned int i = 0; i < axes.x.bins; ++i) {
-                    for (unsigned int j = 0; j < axes.y.bins; ++j) {
-                        for (unsigned int k = 0; k < axes.z.bins; ++k) {
+                for (int i = 0; i < axes.x.bins; ++i) {
+                    for (int j = 0; j < axes.y.bins; ++j) {
+                        for (int k = 0; k < axes.z.bins; ++k) {
                             if (i == 10 && j == 10 && k == 10) {continue;}
                             double dist = grid.to_xyz(i, j, k).norm(); // dist from center
                             if (dist <= r) {
@@ -386,9 +384,9 @@ TEST_CASE("Grid::expand_volume") {
                 auto axes = grid.get_axes();
                 double rC = constants::radius::get_vdw_radius(form_factor::form_factor_t::C)/settings::grid::cell_width;
                 double rN = constants::radius::get_vdw_radius(form_factor::form_factor_t::N)/settings::grid::cell_width;
-                for (unsigned int i = 0; i < axes.x.bins; ++i) {
-                    for (unsigned int j = 0; j < axes.y.bins; ++j) {
-                        for (unsigned int k = 0; k < axes.z.bins; ++k) {
+                for (int i = 0; i < axes.x.bins; ++i) {
+                    for (int j = 0; j < axes.y.bins; ++j) {
+                        for (int k = 0; k < axes.z.bins; ++k) {
                             double dist1 = grid.to_xyz(i, j, k).distance(body.get_atom(0).coordinates());
                             double dist2 = grid.to_xyz(i, j, k).distance(body.get_atom(1).coordinates());
                             if (dist1 == 0 || dist2 == 0) {continue;}
@@ -413,9 +411,9 @@ TEST_CASE("Grid::expand_volume") {
 
             auto axes = grid.get_axes();
             double r = constants::radius::get_vdw_radius(form_factor::form_factor_t::C)/settings::grid::cell_width;
-            for (unsigned int i = 0; i < axes.x.bins; ++i) {
-                for (unsigned int j = 0; j < axes.y.bins; ++j) {
-                    for (unsigned int k = 0; k < axes.z.bins; ++k) {
+            for (int i = 0; i < axes.x.bins; ++i) {
+                for (int j = 0; j < axes.y.bins; ++j) {
+                    for (int k = 0; k < axes.z.bins; ++k) {
                         if (i == 10 && j == 10 && k == 10) {continue;}
                         double dist = grid.to_xyz(i, j, k).norm(); // dist from center
                         if (dist <= r) {
@@ -466,9 +464,9 @@ TEST_CASE("Grid::remove") {
         GridObj& g = grid.grid;
 
         auto axes = grid.get_axes();
-        for (unsigned int i = 0; i < axes.x.bins; i++) {
-            for (unsigned int j = 0; j < axes.y.bins; j++) {
-                for (unsigned int k = 0; k < axes.z.bins; k++) {
+        for (int i = 0; i < axes.x.bins; i++) {
+            for (int j = 0; j < axes.y.bins; j++) {
+                for (int k = 0; k < axes.z.bins; k++) {
                     REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
@@ -486,9 +484,9 @@ TEST_CASE("Grid::remove") {
         GridObj& g = grid.grid;
 
         auto axes = grid.get_axes();
-        for (unsigned int i = 0; i < axes.x.bins; i++) {
-            for (unsigned int j = 0; j < axes.y.bins; j++) {
-                for (unsigned int k = 0; k < axes.z.bins; k++) {
+        for (int i = 0; i < axes.x.bins; i++) {
+            for (int j = 0; j < axes.y.bins; j++) {
+                for (int k = 0; k < axes.z.bins; k++) {
                     REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
@@ -508,9 +506,9 @@ TEST_CASE("Grid::remove") {
         GridObj& g = grid.grid;
 
         auto axes = grid.get_axes();
-        for (unsigned int i = 0; i < axes.x.bins; i++) {
-            for (unsigned int j = 0; j < axes.y.bins; j++) {
-                for (unsigned int k = 0; k < axes.z.bins; k++) {
+        for (int i = 0; i < axes.x.bins; i++) {
+            for (int j = 0; j < axes.y.bins; j++) {
+                for (int k = 0; k < axes.z.bins; k++) {
                     REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
@@ -532,9 +530,9 @@ TEST_CASE("Grid::remove_waters") {
 
         REQUIRE(grid.get_waters().empty());
         auto axes = grid.get_axes();
-        for (unsigned int i = 0; i < axes.x.bins; i++) {
-            for (unsigned int j = 0; j < axes.y.bins; j++) {
-                for (unsigned int k = 0; k < axes.z.bins; k++) {
+        for (int i = 0; i < axes.x.bins; i++) {
+            for (int j = 0; j < axes.y.bins; j++) {
+                for (int k = 0; k < axes.z.bins; k++) {
                     REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
@@ -554,9 +552,9 @@ TEST_CASE("Grid::remove_waters") {
 
         REQUIRE(grid.get_waters().empty());
         auto axes = grid.get_axes();
-        for (unsigned int i = 0; i < axes.x.bins; i++) {
-            for (unsigned int j = 0; j < axes.y.bins; j++) {
-                for (unsigned int k = 0; k < axes.z.bins; k++) {
+        for (int i = 0; i < axes.x.bins; i++) {
+            for (int j = 0; j < axes.y.bins; j++) {
+                for (int k = 0; k < axes.z.bins; k++) {
                     REQUIRE(g.index(i, j, k) == EMPTY);
                 }
             }
@@ -635,11 +633,11 @@ TEST_CASE("Grid::get_volume") {
         grid.add(body, true);
         GridObj &g = grid.grid;
 
-        unsigned int count = 0;
+        int count = 0;
         auto axes = grid.get_axes();
-        for (unsigned int i = 0; i < axes.x.bins; i++) {
-            for (unsigned int j = 0; j < axes.y.bins; j++) {
-                for (unsigned int k = 0; k < axes.z.bins; k++) {
+        for (int i = 0; i < axes.x.bins; i++) {
+            for (int j = 0; j < axes.y.bins; j++) {
+                for (int k = 0; k < axes.z.bins; k++) {
                     if (g.index(i, j, k) != EMPTY) {
                         count++;
                     }
@@ -690,8 +688,8 @@ TEST_CASE("Grid::width") {
     Limit3D lims(-10, 10, -10, 10, -10, 10);
     Grid grid(lims);
 
-    auto axes = grid.get_axes();
-    for (unsigned int i = 0; i < axes.x.bins-1; ++i) {
+    const auto& axes = grid.get_axes();
+    for (int i = 0; i < axes.x.bins-1; ++i) {
         CHECK(grid.to_xyz(i, 0, 0).distance(grid.to_xyz(i+1, 0, 0)) == settings::grid::cell_width);
         CHECK(grid.to_xyz(0, i, 0).distance(grid.to_xyz(0, i+1, 0)) == settings::grid::cell_width);
         CHECK(grid.to_xyz(0, 0, i).distance(grid.to_xyz(0, 0, i+1)) == settings::grid::cell_width);
@@ -768,9 +766,9 @@ TEST_CASE("Grid::hydrate") {
             REQUIRE(g1.grid.size_z() == g2.grid.size_z());
 
             // check that the grids are the same
-            for (unsigned int i = 0; i < g1.grid.size_x(); i++) {
-                for (unsigned int j = 0; j < g1.grid.size_y(); j++) {
-                    for (unsigned int k = 0; k < g1.grid.size_z(); k++) {
+            for (int i = 0; i < g1.grid.size_x(); i++) {
+                for (int j = 0; j < g1.grid.size_y(); j++) {
+                    for (int k = 0; k < g1.grid.size_z(); k++) {
                         if (g1.grid.index(i, j, k) != g2.grid.index(i, j, k)) {
                             REQUIRE(g1.grid.index(i, j, k) != g2.grid.index(i, j, k));
                         }
@@ -795,7 +793,7 @@ TEST_CASE("Grid::hydrate") {
 
         // check that the hydration generation is deterministic
         REQUIRE(h1.size() == h2.size());
-        for (unsigned int i = 0; i < h1.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(h1.size()); ++i) {
             REQUIRE(h1[i].coords == h2[i].coords);
         }
     }
@@ -946,8 +944,8 @@ TEST_CASE("Grid: add and remove") {
         auto wa = grid.get_waters();
 
         // check sizes
-        REQUIRE(ga.size() == 0);
-        REQUIRE(wa.size() == 0);
+        REQUIRE(ga.empty());
+        REQUIRE(wa.empty());
 
         // check old centers
         GridObj &g = grid.grid;
@@ -978,7 +976,7 @@ TEST_CASE("Grid: add and remove") {
         grid.add(body);
         grid.clear_waters();
         REQUIRE(grid.a_members.size() == 3);
-        REQUIRE(grid.w_members.size() == 0);
+        REQUIRE(grid.w_members.empty());
     }
 }
 
@@ -1213,7 +1211,7 @@ TEST_CASE("Grid: hydration") {
     }
 
     // check that the waters have been expanded
-    GridDebug* g = static_cast<GridDebug*>(protein.get_grid());
+    auto* g = static_cast<GridDebug*>(protein.get_grid());
     for (const auto& w : g->get_member_waters()) {
         CHECK(w.is_expanded());
     }
@@ -1221,15 +1219,15 @@ TEST_CASE("Grid: hydration") {
     g->clear_waters();
     auto& gobj = g->grid;
     auto axes = g->get_axes();
-    for (unsigned int i = 0; i < axes.x.bins; i++) {
-        for (unsigned int j = 0; j < axes.y.bins; j++) {
-            for (unsigned int k = 0; k < axes.z.bins; k++) {
+    for (int i = 0; i < axes.x.bins; i++) {
+        for (int j = 0; j < axes.y.bins; j++) {
+            for (int k = 0; k < axes.z.bins; k++) {
                 auto index = gobj.index(i, j, k);
                 if (index != EMPTY) {
                     if (index == A_CENTER || index == A_AREA || index == VOLUME) {
                         continue;
                     }
-                    std::cout << "Failed on index " << i << ", " << j << ", " << k << " with " << index << std::endl;
+                    std::cout << "Failed on index " << i << ", " << j << ", " << k << " with " << static_cast<unsigned int>(index) << std::endl;
                     REQUIRE(false);
                 }
             }
@@ -1250,7 +1248,7 @@ TEST_CASE("Grid::add:remove") {
         REQUIRE(g.get_volume() != 0);
 
         g.remove(b);
-        REQUIRE(g.a_members.size() == 0);
+        REQUIRE(g.a_members.empty());
         REQUIRE(g.get_volume() == 0);
     }
 
@@ -1270,7 +1268,7 @@ TEST_CASE("Grid::add:remove") {
         grid.add(b4);
         REQUIRE(grid.a_members.size() == 8);
 
-        unsigned int vol = grid.get_volume();
+        int vol = static_cast<int>(grid.get_volume());
         grid.remove(b2);
         grid.add(b2);
         REQUIRE(grid.get_volume() == vol);
@@ -1278,7 +1276,7 @@ TEST_CASE("Grid::add:remove") {
         grid.force_expand_volume();
         REQUIRE(grid.a_members.size() == 6);
 
-        vol = grid.get_volume();
+        vol = static_cast<int>(grid.get_volume());
         grid.remove(b1);
         grid.add(b1);
         REQUIRE(grid.get_volume() == vol);
@@ -1286,7 +1284,7 @@ TEST_CASE("Grid::add:remove") {
         grid.force_expand_volume();
         REQUIRE(grid.a_members.size() == 4);
 
-        vol = grid.get_volume();
+        vol = static_cast<int>(grid.get_volume());
         grid.remove(b3);
         grid.add(b3);
         REQUIRE(grid.get_volume() == vol);
@@ -1308,41 +1306,41 @@ TEST_CASE("Grid::add:remove") {
     SECTION("real data") {
         settings::general::verbose = false;
         Molecule protein = rigidbody::BodySplitter::split("tests/files/2epe.pdb", {9, 99});
-        unsigned int N = protein.get_atoms().size();
-        auto grid = protein.get_grid();
-        CHECK(grid->a_members.size() == N);
+        int N = static_cast<int>(protein.get_atoms().size());
+        auto* grid = protein.get_grid();
+        CHECK(static_cast<int>(grid->a_members.size()) == N);
         CHECK(grid->get_volume() != 0);
 
         // body 1
-        int vol = grid->get_volume();
+        int vol = static_cast<int>(grid->get_volume());
         grid->remove(protein.get_body(0));
         grid->add(   protein.get_body(0));
         CHECK(grid->get_volume() == vol);
 
         grid->remove(protein.get_body(0));
         grid->force_expand_volume();
-        CHECK(grid->a_members.size() == N - protein.get_body(0).size_atom());
+        CHECK(static_cast<int>(grid->a_members.size()) == N - protein.get_body(0).size_atom());
         CHECK(grid->get_volume() != 0);
 
         // body 2
-        vol = grid->get_volume();
+        vol = static_cast<int>(grid->get_volume());
         grid->remove(protein.get_body(1));
         grid->add(   protein.get_body(1));
         CHECK(grid->get_volume() == vol);
 
         grid->remove(protein.get_body(1));        
         grid->force_expand_volume();
-        CHECK(grid->a_members.size() == N - protein.get_body(0).size_atom() - protein.get_body(1).size_atom());
+        CHECK(static_cast<int>(grid->a_members.size()) == N - protein.get_body(0).size_atom() - protein.get_body(1).size_atom());
         CHECK(grid->get_volume() != 0);
 
         // body 3
-        vol = grid->get_volume();
+        vol = static_cast<int>(grid->get_volume());
         grid->remove(protein.get_body(2));
         grid->add(   protein.get_body(2));
         CHECK(grid->get_volume() == vol);
 
         grid->remove(protein.get_body(2));
-        CHECK(grid->a_members.size() == 0);
+        CHECK(grid->a_members.empty());
         CHECK(grid->get_volume() == 0);
     }
 }

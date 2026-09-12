@@ -16,7 +16,7 @@ namespace ausaxs::hist::detail {
      */
     struct WeightedEntry {
         WeightedEntry();
-        WeightedEntry(constants::axes::d_type value, std::uint64_t count, double bin_center);
+        WeightedEntry(constants::axes::d_type value, std::int64_t count, double bin_center);
 
         /**
          * @brief Add the distance to this bin, and increase the counter by one.
@@ -46,7 +46,7 @@ namespace ausaxs::hist::detail {
         bool operator==(double other) const;
         
         constants::axes::d_type value = 0;
-        std::uint64_t count = 0;
+        std::int64_t count = 0;
         double bin_center = 0;
     };
 
@@ -59,7 +59,7 @@ static_assert(supports_nothrow_move_v<ausaxs::hist::detail::WeightedEntry>, "Wei
 
 
 inline ausaxs::hist::detail::WeightedEntry::WeightedEntry() = default;
-inline ausaxs::hist::detail::WeightedEntry::WeightedEntry(constants::axes::d_type value, std::uint64_t count, double bin_center) : value(value), count(count), bin_center(bin_center) {}
+inline ausaxs::hist::detail::WeightedEntry::WeightedEntry(constants::axes::d_type value, std::int64_t count, double bin_center) : value(value), count(count), bin_center(bin_center) {}
 
 template<int N>
 inline void ausaxs::hist::detail::WeightedEntry::increment(float distance) {
@@ -82,7 +82,7 @@ inline void ausaxs::hist::detail::WeightedEntry::add(float distance, double valu
 }
 
 inline ausaxs::hist::detail::WeightedEntry ausaxs::hist::detail::WeightedEntry::operator+(const WeightedEntry& other) const {
-    return WeightedEntry(value + other.value, count + other.count, bin_center + other.bin_center);
+    return {value + other.value, count + other.count, bin_center + other.bin_center};
 }
 
 inline ausaxs::hist::detail::WeightedEntry& ausaxs::hist::detail::WeightedEntry::operator+=(const WeightedEntry& other) {
@@ -93,7 +93,7 @@ inline ausaxs::hist::detail::WeightedEntry& ausaxs::hist::detail::WeightedEntry:
 }
 
 inline ausaxs::hist::detail::WeightedEntry ausaxs::hist::detail::WeightedEntry::operator-(const WeightedEntry& other) const {
-    return WeightedEntry(value - other.value, count - other.count, bin_center - other.bin_center);
+    return {value - other.value, count - other.count, bin_center - other.bin_center};
 }
 
 inline ausaxs::hist::detail::WeightedEntry& ausaxs::hist::detail::WeightedEntry::operator-=(const WeightedEntry& other) {
@@ -108,7 +108,7 @@ inline bool ausaxs::hist::detail::WeightedEntry::operator==(double other) const 
 }
 
 inline ausaxs::hist::detail::WeightedEntry ausaxs::hist::detail::operator*(const WeightedEntry& entry, double factor) {
-    return WeightedEntry(entry.value*factor, factor*entry.count, entry.bin_center*factor);
+    return {entry.value*factor, static_cast<std::int64_t>(factor*static_cast<double>(entry.count)), entry.bin_center*factor};
 }
 
 inline ausaxs::hist::detail::WeightedEntry ausaxs::hist::detail::operator*(double factor, const WeightedEntry& entry) {

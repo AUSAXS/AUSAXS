@@ -2,9 +2,9 @@
 // Author: Kristian Lytje
 
 #include <plots/PlotDataset.h>
-#include <plots/PlotOptions.h>
+
 #include <dataset/Dataset.h>
-#include <dataset/Multiset.h>
+#include <plots/PlotOptions.h>
 
 using namespace ausaxs::plots;
 

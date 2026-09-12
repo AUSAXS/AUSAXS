@@ -8,41 +8,39 @@
 
 #include <memory>
 
-namespace ausaxs::rigidbody {
-    namespace factory {
-        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(observer_ptr<const Rigidbody> molecule);
+namespace ausaxs::rigidbody::factory {
+    std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(observer_ptr<const Rigidbody> rigidbody);
 
-        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(
-            observer_ptr<const Rigidbody> molecule, settings::rigidbody::BodySelectStrategyChoice choice
-        );
+    std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(
+        observer_ptr<const Rigidbody> rigidbody, settings::rigidbody::BodySelectStrategyChoice choice
+    );
 
-        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(
-            observer_ptr<const Rigidbody> molecule,
-            settings::rigidbody::BodySelectStrategyChoice body_choice,
-            settings::rigidbody::ParameterMaskStrategyChoice mask_choice
-        );
+    std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(
+        observer_ptr<const Rigidbody> rigidbody,
+        settings::rigidbody::BodySelectStrategyChoice body_choice,
+        settings::rigidbody::ParameterMaskStrategyChoice mask_choice
+    );
 
-        /**
-         * @brief Create a ManualSelect strategy that always selects the given body.
-         *
-         * @param ibody The index of the body to select on every call.
-         */
-        std::unique_ptr<selection::BodySelectStrategy> create_manual_selection_strategy(
-            observer_ptr<const Rigidbody> molecule, unsigned int ibody
-        );
+    /**
+     * @brief Create a ManualSelect strategy that always selects the given body.
+     *
+     * @param ibody The index of the body to select on every call.
+     */
+    std::unique_ptr<selection::BodySelectStrategy> create_manual_selection_strategy(
+        observer_ptr<const Rigidbody> rigidbody, int ibody
+    );
 
-        std::unique_ptr<selection::BodySelectStrategy> create_manual_selection_strategy(
-            observer_ptr<const Rigidbody> molecule, unsigned int ibody, settings::rigidbody::ParameterMaskStrategyChoice mask_choice
-        );
+    std::unique_ptr<selection::BodySelectStrategy> create_manual_selection_strategy(
+        observer_ptr<const Rigidbody> rigidbody, int ibody, settings::rigidbody::ParameterMaskStrategyChoice mask_choice
+    );
 
-        /**
-         * @brief Create a ManualSelect strategy that always selects a single declared symmetry of the given body.
-         *
-         * @param ibody The index of the body hosting the symmetry.
-         * @param isymmetry The index of the symmetry within that body.
-         */
-        std::unique_ptr<selection::BodySelectStrategy> create_manual_symmetry_selection_strategy(
-            observer_ptr<const Rigidbody> molecule, unsigned int ibody, unsigned int isymmetry
-        );
-    }
+    /**
+     * @brief Create a ManualSelect strategy that always selects a single declared symmetry of the given body.
+     *
+     * @param ibody The index of the body hosting the symmetry.
+     * @param isymmetry The index of the symmetry within that body.
+     */
+    std::unique_ptr<selection::BodySelectStrategy> create_manual_symmetry_selection_strategy(
+        observer_ptr<const Rigidbody> rigidbody, int ibody, int isymmetry
+    );
 }

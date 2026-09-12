@@ -1,32 +1,34 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/intensity_calculator/ExactDebyeCalculator.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
+#include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
 
-#include "hist/hist_test_helper.h"
+#include <hist/hist_test_helper.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-auto exact = [] (const data::Molecule& molecule, const std::vector<double>& qvals) {
-    container::Container2D<double> distances(molecule.get_atoms().size(), molecule.get_atoms().size());
+static auto exact = [] (const data::Molecule& molecule, const std::vector<double>& qvals) {
+    container::Container2D<double> distances(
+        static_cast<int>(molecule.get_atoms().size()), static_cast<int>(molecule.get_atoms().size())
+    );
     auto atoms = molecule.get_atoms();
-    for (unsigned int i = 0; i < atoms.size(); ++i) {
-        for (unsigned int j = 0; j < atoms.size(); ++j) {
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        for (int j = 0; j < static_cast<int>(atoms.size()); ++j) {
             distances(i, j) = atoms[i].coordinates().distance(atoms[j].coordinates());
         }
     }
 
     std::vector<double> I(qvals);
-    for (unsigned int q = 0; q < qvals.size(); ++q) {
+    for (int q = 0; q < static_cast<int>(qvals.size()); ++q) {
         double sum = 0;
-        for (unsigned int i = 0; i < atoms.size(); ++i) {
-            for (unsigned int j = 0; j < atoms.size(); ++j) {
+        for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+            for (int j = 0; j < static_cast<int>(atoms.size()); ++j) {
                 double qd = qvals[q]*distances(i, j);
                 if (qd < 1e-9) {
                     sum += atoms[i].weight()*atoms[j].weight();
@@ -60,10 +62,10 @@ TEST_CASE("ExactDebyeCalculator: works") {
 // Test that the ExactDebyeCalculator agrees exactly with the analytical result for a simple system
 TEST_CASE("ExactDebyeCalculator: agrees with analytical result") {
     auto d = SimpleCube::d_exact;
-    static auto test_func = [&] (const auto& q_axis) {
+    auto test_func = [&] (const auto& q_axis) {
         std::vector<double> Iq_exp;
         Iq_exp.resize(q_axis.size(), 0);
-        for (unsigned int q = 0; q < q_axis.size(); ++q) {
+        for (int q = 0; q < static_cast<int>(q_axis.size()); ++q) {
             double dsum =
                 8 +
                 24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) +
@@ -85,7 +87,7 @@ TEST_CASE("ExactDebyeCalculator: agrees with analytical result") {
 
     SECTION("custom q-axis") {
         std::vector<double> q_axis(100);
-        for (unsigned int i = 0; i < q_axis.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(q_axis.size()); ++i) {
             q_axis[i] = (i+1)*0.1;
         }
         auto Iq_exp = test_func(q_axis);

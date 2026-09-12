@@ -2,29 +2,38 @@
 // Author: Kristian Lytje
 
 #include <utility/Axis3D.h>
+
+#include <math/Vector3.h>
 #include <utility/Exceptions.h>
 #include <utility/Limit3D.h>
-#include <math/Vector3.h>
 
 using namespace ausaxs;
 
-Axis3D::Axis3D() noexcept {}
+Axis3D::Axis3D() noexcept = default;
 
-Axis3D::Axis3D(const Axis3D& axis) noexcept : x(axis.x), y(axis.y), z(axis.z) {}
+Axis3D::Axis3D(const Axis3D& axis) noexcept  = default;
 
 Axis3D::Axis3D(const Axis& x, const Axis& y, const Axis& z) noexcept : x(x), y(y), z(z) {}
 
-Axis3D::Axis3D(const Limit3D& limits, double width) noexcept : x(limits.x, limits.x.span()/width), y(limits.y, limits.y.span()/width), z(limits.z, limits.z.span()/width) {}
+Axis3D::Axis3D(const Limit3D& limits, double width) noexcept : 
+    x(limits.x, static_cast<int>(limits.x.span()/width)), 
+    y(limits.y, static_cast<int>(limits.y.span()/width)), 
+    z(limits.z, static_cast<int>(limits.z.span()/width))
+{}
 
-Axis3D::Axis3D(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double width) noexcept : x(xmin, xmax, (xmax-xmin)/width), y(ymin, ymax, (ymax-ymin)/width), z(zmin, zmax, (zmax-zmin)/width) {}
-Axis3D::Axis3D(const Vector3<double>& min, const Vector3<double>& max, double width) noexcept : x(min[0], max[0], (max[0]-min[0])/width), y(min[1], max[1], (max[1]-min[1])/width), z(min[2], max[2], (max[2]-min[2])/width) {}
+Axis3D::Axis3D(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double width) noexcept : 
+    x(xmin, xmax, static_cast<int>((xmax-xmin)/width)), 
+    y(ymin, ymax, static_cast<int>((ymax-ymin)/width)), 
+    z(zmin, zmax, static_cast<int>((zmax-zmin)/width)) 
+{}
 
-Axis3D& Axis3D::operator=(const Axis3D& rhs) noexcept {
-    x = rhs.x;
-    y = rhs.y;
-    z = rhs.z;
-    return *this;
-}
+Axis3D::Axis3D(const Vector3<double>& min, const Vector3<double>& max, double width) noexcept : 
+    x(min[0], max[0], static_cast<int>((max[0]-min[0])/width)), 
+    y(min[1], max[1], static_cast<int>((max[1]-min[1])/width)), 
+    z(min[2], max[2], static_cast<int>((max[2]-min[2])/width)) 
+{}
+
+Axis3D& Axis3D::operator=(const Axis3D& rhs) noexcept = default;
 
 bool Axis3D::operator==(const Axis3D& rhs) const noexcept {
     if (x != rhs.x) {return false;}
@@ -42,9 +51,9 @@ std::string Axis3D::to_string() const noexcept {
 bool Axis3D::empty() const noexcept {return x.empty() || y.empty() || z.empty();}
 
 void Axis3D::rebin(double width) noexcept {
-    x.bins = (x.max - x.min)/width;
-    y.bins = (y.max - y.min)/width;
-    z.bins = (z.max - z.min)/width;
+    x.bins = static_cast<int>((x.max - x.min)/width);
+    y.bins = static_cast<int>((y.max - y.min)/width);
+    z.bins = static_cast<int>((z.max - z.min)/width);
 }
 
 double Axis3D::width() const {

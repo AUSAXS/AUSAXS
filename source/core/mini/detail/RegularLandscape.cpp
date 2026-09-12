@@ -2,9 +2,10 @@
 // Author: Kristian Lytje
 
 #include <mini/detail/RegularLandscape.h>
+
+#include <io/ExistingFile.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
-#include <io/ExistingFile.h>
 
 #include <fstream>
 
@@ -20,8 +21,8 @@ Evaluation RegularLandscape::find_min_val() const {
     }
 
     Evaluation min({x[0], y[0]}, z(0, 0));
-    for (unsigned int i = 0; i < x.size(); i++) {
-        for (unsigned int j = 0; j < y.size(); j++) {
+    for (int i = 0; i < static_cast<int>(x.size()); i++) {
+        for (int j = 0; j < static_cast<int>(y.size()); j++) {
             if (z(i, j) < min.fval) {
                 min.fval = z(i, j);
                 min.vals = {x[i], y[j]};
@@ -47,15 +48,15 @@ Evaluation RegularLandscape::find_min_eval() const {
     return min_e;
 }
 
-void RegularLandscape::save(std::string filename) const {
+void RegularLandscape::save(const std::string& filename) const {
     std::ofstream file(filename);
     if (!file.is_open()) {
         throw except::io_error("Landscape::save: Could not open file " + filename + " for writing.");
     }
 
     file << "matrix_size: " << x.size() << "\t" << y.size() << "\n";
-    for (unsigned int i = 0; i < x.size(); i++) {
-        for (unsigned int j = 0; j < y.size(); j++) {
+    for (int i = 0; i < static_cast<int>(x.size()); i++) {
+        for (int j = 0; j < static_cast<int>(y.size()); j++) {
             file << x[i] << "\t" << y[j] << "\t" << z(i, j) << std::endl;
         }
     }
@@ -67,7 +68,7 @@ RegularLandscape::RegularLandscape(const io::ExistingFile& file) {
     load(file);
 }
 
-void RegularLandscape::load(std::string filename) {
+void RegularLandscape::load(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         throw except::io_error("Landscape::load: Could not open file " + filename + " for reading.");
@@ -80,14 +81,14 @@ void RegularLandscape::load(std::string filename) {
         throw except::io_error("Landscape::load: Invalid file format.");
     }
 
-    unsigned int x_size = std::stoi(tokens[1]);
-    unsigned int y_size = std::stoi(tokens[2]);
+    int x_size = std::stoi(tokens[1]);
+    int y_size = std::stoi(tokens[2]);
     x.resize(x_size);
     y.resize(y_size);
     z = Matrix<double>(x_size, y_size);
 
-    for (unsigned int i = 0; i < x_size; i++) {
-        for (unsigned int j = 0; j < y_size; j++) {
+    for (int i = 0; i < x_size; i++) {
+        for (int j = 0; j < y_size; j++) {
             std::getline(file, line);
             tokens = utility::split(line, " \t");
             if (tokens.size() != 3) {

@@ -2,18 +2,19 @@
 // Author: Kristian Lytje
 
 #include <hist/distribution/WeightedDistribution1D.h>
+
 #include <hist/distribution/Distribution1D.h>
 #include <settings/HistogramSettings.h>
 
-#include <vector>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
 WeightedDistribution1D::WeightedDistribution1D(const Distribution1D& other) : Container1D(other.size()) {
-    for (std::size_t i = 0; i < other.size(); i++) {
+    for (int i = 0; i < other.size(); i++) {
         index(i).value = other.index(i);
     }
 }
@@ -30,7 +31,7 @@ void WeightedDistribution1D::clear(int32_t i) {
 
 std::vector<constants::axes::d_type> WeightedDistribution1D::get_content() const {
     std::vector<constants::axes::d_type> result(size());
-    for (std::size_t i = 0; i < size(); i++) {
+    for (int i = 0; i < size(); i++) {
         result[i] = index(i).value;
     }
     return result;
@@ -50,30 +51,30 @@ void WeightedDistribution1D::set_content(int i, constants::axes::d_type value) {
 
 std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
     auto d_vals = Axis(0, size()*settings::axes::bin_width, size()).as_vector();
-    Distribution1D weights(size());
-    for (std::size_t i = 0; i < size(); i++) {
-        // this is a small optimization to both avoid dividing by zero and correctly handle the case where count is zero
-        weights.index(i) = (!index(i).bin_center*d_vals[i] + index(i).bin_center)/(!index(i).count + index(i).count);
+    std::vector<double> weights(size());
+    for (int i = 0; i < size(); i++) {
+        // NOLINTNEXTLINE - this is a small optimization to both avoid dividing by zero and correctly handle the case where count is zero
+        weights[i] = (!index(i).bin_center*d_vals[i] + index(i).bin_center)/(!index(i).count + index(i).count);
     }
     return weights;
 }
 
 void WeightedDistribution1D::set_bin_centers(const std::vector<double>& centers) {
-    assert(centers.size() == size());
-    for (std::size_t i = 0; i < size(); i++) {
+    assert(size() == static_cast<int>(centers.size()));
+    for (int i = 0; i < size(); i++) {
         index(i).bin_center = centers[i];
     }
 }
 
 WeightedDistribution1D& WeightedDistribution1D::operator+=(const WeightedDistribution1D& rhs) {
     assert(this->size() == rhs.size());
-    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::plus<>());
+    std::ranges::transform(*this, rhs, this->begin(), std::plus<>());
     return *this;
 }
 
 WeightedDistribution1D& WeightedDistribution1D::operator-=(const WeightedDistribution1D& rhs) {
     assert(this->size() == rhs.size());
-    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::minus<>());
+    std::ranges::transform(*this, rhs, this->begin(), std::minus<>());
     return *this;
 }
 

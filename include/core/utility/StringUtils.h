@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <string_view>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace ausaxs::utility {
@@ -100,4 +100,14 @@ namespace ausaxs::utility {
      *        std::stoi is guaranteed to succeed.
      */
     bool isinteger(std::string_view s);
+
+    /**
+     * @brief True if the character is a digit, false otherwise. 
+     */
+    bool isdigit(char c);
+
+    /**
+     * @brief True if the character is an alphabetic character, false otherwise.
+     */
+    bool isalpha(char c);
 }

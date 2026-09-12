@@ -3,19 +3,10 @@
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
 #include <math/Matrix.h>
+#include <math/QRDecomposition.h>
 #include <math/Vector.h>
 #include <math/Vector3.h>
-#include <math/CubicSpline.h>
-#include <math/LUPDecomposition.h>
-#include <math/QRDecomposition.h>
-#include <math/Statistics.h>
-#include <dataset/SimpleDataset.h>
-#include <plots/PlotDataset.h>
 
-#include <vector>
-#include <iostream>
-
-using std::cout, std::endl;
 using namespace ausaxs;
 
 static double GenRandScalar() {
@@ -50,7 +41,7 @@ TEST_CASE("math: QRDecomposition") {
     REQUIRE_THAT(qr.abs_determinant(), Catch::Matchers::WithinAbs(2, 1e-3));
 
     // randomized tests on 5x5 matrices
-    srand(time(NULL)); // seed rng
+    srand(time(nullptr)); // seed rng
     for (int i = 0; i < 10; i++) {
         A = GenRandMatrix(5, 5);
         Vector b = GenRandVector(5);

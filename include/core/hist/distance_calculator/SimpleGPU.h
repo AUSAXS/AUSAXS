@@ -32,7 +32,7 @@ namespace ausaxs::hist::distance_calculator {
             /**
              * @brief Construct a kernel whose result histograms span @a bin_count bins.
              */
-            explicit SimpleGPU(unsigned int bin_count) : bin_count(bin_count) {
+            explicit SimpleGPU(int bin_count) : bin_count(bin_count) {
                 if (!gpu::GPULoader::available()) {switch_to_cpu();}
             }
 
@@ -114,10 +114,10 @@ namespace ausaxs::hist::distance_calculator {
                 int index;  // position among the results of its own kind, which is what callers index by
             };
 
-            unsigned int bin_count;                                 // bins spanned by every histogram in this batch
+            int bin_count;                                          // bins spanned by every histogram in this batch
             std::vector<gpu::abi::Job> queued;                      // held jobs, dispatched by release_hold()
-            std::vector<Job> self_jobs, cross_jobs;                 // kept only to replay on the cpu if the device fails
-            std::unordered_map<int, Slot> self_slots, cross_slots;  // merge id -> where its result is
+            std::vector<Job> self_jobs{}, cross_jobs{};                 // kept only to replay on the cpu if the device fails
+            std::unordered_map<int, Slot> self_slots{}, cross_slots{};  // merge id -> where its result is
             bool session_open = false;                              // whether begin() has been issued for the batch being built
             bool holding = false;                                   // whether jobs are being collected into a group, see hold()
             std::vector<double> diagonal;                           // per slot, the zero-distance contribution
@@ -190,7 +190,7 @@ namespace ausaxs::hist::distance_calculator {
             run_result read_back() {
                 if (!session_open) {return run_result{};}
 
-                const int bin_count = static_cast<int>(this->bin_count);
+                const int bin_count = this->bin_count;
                 const auto& backend = gpu::GPULoader::get();
                 std::vector<GenericDistribution1D_t> slots(next_slot);
 
@@ -204,13 +204,13 @@ namespace ausaxs::hist::distance_calculator {
                             const auto& bin = out[static_cast<std::size_t>(slot)*bin_count + i];
                             slots[slot].add_index(i, hist::detail::WeightedEntry{
                                 bin.value,
-                                static_cast<unsigned int>(bin.count),
+                                bin.count,
                                 bin.center
                             });
                         }
                         if (diagonal[slot] == 0) {continue;}
                         slots[slot].add_index(0, hist::detail::WeightedEntry{
-                            diagonal[slot], static_cast<unsigned int>(diagonal[slot]), 0
+                            diagonal[slot], static_cast<std::int64_t>(diagonal[slot]), 0
                         });
                     }
                 } else {

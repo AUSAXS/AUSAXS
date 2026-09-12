@@ -4,10 +4,10 @@
 #pragma once
 
 #ifdef CONSTEXPR_LOOKUP_TABLE
-    #include <container/ArrayContainer2D.h>
     #include <constants/Constants.h>
-    #include <table/DebyeTable.h>
+    #include <container/ArrayContainer2D.h>
     #include <math/ConstexprMath.h>
+    #include <table/DebyeTable.h>
 
     #include <cmath>
     #include <vector>

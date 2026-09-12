@@ -6,21 +6,21 @@
 #include <api/api_helper.h>
 
 extern "C" API bool io_is_pdb(
-    const char* script,
+    const char* path,
     int* status
 );
 
 extern "C" API bool io_is_saxs_data(
-    const char* script,
+    const char* path,
     int* status
 );
 
 extern "C" API bool io_is_em_map(
-    const char* script,
+    const char* path,
     int* status
 );
 
 extern "C" API bool io_is_rigidbody_config(
-    const char* script,
+    const char* path,
     int* status
 );

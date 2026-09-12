@@ -2,21 +2,22 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/transform/TransformStrategy.h>
-#include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/transform/BackupBody.h>
-#include <rigidbody/parameters/BodyTransformParametersRelative.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/Rigidbody.h>
-#include <grid/detail/GridMember.h>
-#include <grid/Grid.h>
-#include <data/state/BoundSignaller.h>
-#include <data/symmetry/CyclicSymmetry.h>
-#include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/IPolyhedralSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/ReferenceSymmetry.h>
-#include <math/MatrixUtils.h>
 
+#include <data/state/Signaller.h>  // IWYU pragma: keep
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/IPolyhedralSymmetry.h>
+#include <data/symmetry/PointSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
+#include <grid/Grid.h>
+#include <math/MatrixUtils.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/transform/BackupBody.h>
+#include <rigidbody/transform/TransformGroup.h>
+
+#include <algorithm>
 #include <vector>
 
 using namespace ausaxs;
@@ -49,20 +50,20 @@ namespace {
         auto dst_t = dst.span_translation();
         auto dst_r = dst.span_rotation();
         assert(src_t.size() == dst_t.size() && src_r.size() == dst_r.size() && "copy_symmetry_parameters: span size mismatch.");
-        std::copy(src_t.begin(), src_t.end(), dst_t.begin());
-        std::copy(src_r.begin(), src_r.end(), dst_r.begin());
+        std::ranges::copy(src_t, dst_t.begin());
+        std::ranges::copy(src_r, dst_r.begin());
     }
 }
 
 void TransformStrategy::apply_symmetry(const std::vector<std::unique_ptr<symmetry::ISymmetry>>& symmetry, data::Body& body) {
-    assert(symmetry.size() == body.size_symmetry());
-    for (int i = 0; i < static_cast<int>(body.size_symmetry()); ++i) {
+    assert(static_cast<int>(symmetry.size()) == body.size_symmetry());
+    for (int i = 0; i < body.size_symmetry(); ++i) {
         copy_symmetry_parameters(*body.symmetry().get(i), *symmetry[i]);
         body.get_signaller()->modified_symmetry(i);
     }
 }
 
-void TransformStrategy::restore_symmetry(unsigned int ibody) {
+void TransformStrategy::restore_symmetry(int ibody) {
     auto& body = rigidbody->molecule.get_body(ibody);
     if (body.size_symmetry() == 0) {return;}
     const auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
@@ -74,7 +75,7 @@ void TransformStrategy::restore_symmetry(unsigned int ibody) {
     apply_symmetry(body_params.symmetry_pars, body);
 }
 
-void TransformStrategy::apply_symmetry_delta(unsigned int ibody, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta) {
+void TransformStrategy::apply_symmetry_delta(int ibody, const std::vector<std::unique_ptr<symmetry::ISymmetry>>& delta) {
     auto& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
     add_symmetries(body_params.symmetry_pars, delta);
     apply_symmetry(body_params.symmetry_pars, rigidbody->molecule.get_body(ibody));
@@ -86,7 +87,7 @@ void TransformStrategy::add_symmetries(
     // sanity checks to ensure compatible symmetries are being added
     assert(current.size() == delta.size() && "TransformStrategy::add_symmetries: Symmetry parameter size mismatch.");
     assert([&]() -> bool {
-        for (unsigned int i = 0; i < current.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(current.size()); ++i) {
             assert(current[i] != nullptr && "TransformStrategy::add_symmetries: Current symmetry parameter cannot be null.");
             assert(delta[i] != nullptr && "TransformStrategy::add_symmetries: Delta symmetry parameter cannot be null.");
             if (       dynamic_cast<symmetry::CyclicSymmetry*>(current[i].get())) {
@@ -108,10 +109,10 @@ void TransformStrategy::add_symmetries(
         return true;
     }());
 
-    for (unsigned int i = 0; i < current.size(); ++i) {current[i]->add(delta[i].get());}
+    for (int i = 0; i < static_cast<int>(current.size()); ++i) {current[i]->add(delta[i].get());}
 }
 
-void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, unsigned int ibody) {
+void TransformStrategy::apply(const parameter::BodyTransformParametersRelative& par, int ibody) {
     assert(ibody < rigidbody->molecule.size_body() && "TransformStrategy::apply: Body index out of range.");
     assert(
         (par.rotation.has_value() || par.translation.has_value() || par.symmetry_pars.has_value()) 
@@ -119,7 +120,7 @@ void TransformStrategy::apply(parameter::BodyTransformParametersRelative&& par, 
     );
 
     // remove body from grid since it does not track transforms
-    auto grid = rigidbody->molecule.get_grid();
+    auto* grid = rigidbody->molecule.get_grid();
     {   // backup body and parameters for undo
         auto& body = rigidbody->molecule.get_body(ibody);
         grid->remove(body);

@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <io/ExistingFile.h>
 #include <math/Matrix.h>
 #include <utility/Limit.h>
-#include <io/ExistingFile.h>
 
 namespace ausaxs {
     /**
@@ -15,9 +15,9 @@ namespace ausaxs {
         public: 
             Dataset();
             Dataset(const Dataset& d);
-            Dataset(Dataset&& d);
+            Dataset(Dataset&& d) noexcept ;
             Dataset& operator=(const Dataset& other);
-            Dataset& operator=(Dataset&& other);
+            Dataset& operator=(Dataset&& other) noexcept ;
             virtual ~Dataset();
 
             template<typename ...Args> requires std::constructible_from<Matrix<double>, Args...>
@@ -32,37 +32,37 @@ namespace ausaxs {
             /**
              * @brief Get a column based on its index.
              */
-            [[nodiscard]] MutableColumn<double> col(unsigned int index);
+            [[nodiscard]] MutableColumn<double> col(int index);
 
             /**
              * @brief Get a column based on its index.
              */
-            [[nodiscard]] const ConstColumn<double> col(unsigned int index) const;
+            [[nodiscard]] ConstColumn<double> col(int index) const;
 
             /**
              * @brief Get a row based on its index.
              */
-            [[nodiscard]] MutableRow<double> row(unsigned int index);
+            [[nodiscard]] MutableRow<double> row(int index);
 
             /**
              * @brief Get a row based on its index.
              */
-            [[nodiscard]] const ConstRow<double> row(unsigned int index) const;
+            [[nodiscard]] ConstRow<double> row(int index) const;
 
             /**
              * @brief Get the number of points in the dataset.
              */
-            [[nodiscard]] unsigned int size() const noexcept;
+            [[nodiscard]] int size() const noexcept;
 
             /**
              * @brief Get the number of rows in the dataset.
              */
-            [[nodiscard]] unsigned int size_rows() const noexcept;
+            [[nodiscard]] int size_rows() const noexcept;
 
             /**
              * @brief Get the number of columns in the dataset.
              */
-            [[nodiscard]] unsigned int size_cols() const noexcept;
+            [[nodiscard]] int size_cols() const noexcept;
 
             /**
              * @brief Check if the dataset is empty.
@@ -80,12 +80,12 @@ namespace ausaxs {
             /**
             * @brief Create a new dataset with the specified columns.
             */
-            Dataset select_columns(const std::vector<unsigned int>& cols) const;
+            Dataset select_columns(const std::vector<int>& cols) const;
 
             /**
              * @brief Interpolate @a num points between each pair of points in the dataset.
              */
-            [[nodiscard]] Dataset interpolate(unsigned int num) const;
+            [[nodiscard]] Dataset interpolate(int num) const;
 
             /**
              * @brief Interpolate points to match the given x-values.
@@ -96,7 +96,7 @@ namespace ausaxs {
              * @brief Get the interpolated value of column @a col for the given x-value.
              *        This is not suitable for looping. Use instead the interpolate(const std::vector<double>&) method.
              */
-            [[nodiscard]] double interpolate_x(double x, unsigned int col) const;
+            [[nodiscard]] double interpolate_x(double x, int col) const;
 
             /**
              * @brief Get the weighted rolling average of this dataset. 
@@ -106,12 +106,12 @@ namespace ausaxs {
              * 
              * @return A new (x, y) dataset with the rolling average. 
              */
-            [[nodiscard]] Dataset rolling_average(unsigned int window) const;
+            [[nodiscard]] Dataset rolling_average(int window) const;
 
             /**
              * @brief Get the entry with the smallest value in column @a col.
              */
-            std::vector<double> find_minimum(unsigned int col) const;
+            std::vector<double> find_minimum(int col) const;
 
             /**
              * @brief Find the indices of minima in the dataset.
@@ -119,7 +119,7 @@ namespace ausaxs {
              * @param min_spacing The minimum spacing between minima.
              * @param prominence The minimum prominence of a minima as a percentage of the largest prominence. Higher values will result in fewer minima.
              */
-            std::vector<unsigned int> find_minima(unsigned int min_spacing = 0, double prominence = 0) const;
+            std::vector<int> find_minima(int min_spacing = 0, double prominence = 0) const;
 
             /**
              * @brief Find the indices of minima in the dataset.
@@ -127,7 +127,7 @@ namespace ausaxs {
              * @param min_spacing The minimum spacing between minima.
              * @param prominence The minimum prominence of a minima as a percentage of the largest prominence. Higher values will result in fewer minima. 
              */
-            std::vector<unsigned int> find_maxima(unsigned int min_spacing = 0, double prominence = 0) const;
+            std::vector<int> find_maxima(int min_spacing = 0, double prominence = 0) const;
 
             /**
              * @brief Append another dataset with the same number of rows to this one.
@@ -169,8 +169,8 @@ namespace ausaxs {
             /**
              * @brief Get the ith value in the dataset.
              */
-            [[nodiscard]] double index(unsigned int i, unsigned int j) const;
-            [[nodiscard]] double& index(unsigned int i, unsigned int j); //< @copydoc index(unsigned int, unsigned int) const
+            [[nodiscard]] double index(int i, int j) const;
+            [[nodiscard]] double& index(int i, int j); //< @copydoc index(int, int) const
 
             /**
              * @brief Add a new row to the dataset.
@@ -189,28 +189,28 @@ namespace ausaxs {
         //#####################//
 
             // Get the first column.
-            [[nodiscard]] const ConstColumn<double> x() const {return col(0);}
+            [[nodiscard]] ConstColumn<double> x() const {return col(0);}
 
             // Get the first column.
             [[nodiscard]] MutableColumn<double> x() {return col(0);}
 
             // Get the ith value in the first column.
-            [[nodiscard]] const double& x(unsigned int i) const {return data.index(i, 0);}
+            [[nodiscard]] const double& x(int i) const {return data.index(i, 0);}
 
             // Get the ith value in the first column.
-            [[nodiscard]] double& x(unsigned int i) {return data.index(i, 0);}
+            [[nodiscard]] double& x(int i) {return data.index(i, 0);}
 
             // Get the ith value in the second column.
-            [[nodiscard]] const ConstColumn<double> y() const {return col(1);}
+            [[nodiscard]] ConstColumn<double> y() const {return col(1);}
 
             // Get the ith value in the second column.
             [[nodiscard]] MutableColumn<double> y() {return col(1);}
 
             // Get the ith value in the second column.
-            [[nodiscard]] const double& y(unsigned int i) const {return data.index(i, 1);}
+            [[nodiscard]] const double& y(int i) const {return data.index(i, 1);}
 
             // Get the ith value in the second column.
-            [[nodiscard]] double& y(unsigned int i) {return data.index(i, 1);}
+            [[nodiscard]] double& y(int i) {return data.index(i, 1);}
 
             Matrix<double> data;
  

@@ -4,24 +4,21 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/distribution/Distribution1D.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
-#include "settings/HistogramSettings.h"
+#include <hist/hist_test_helper.h>
+#include <settings/HistogramSettings.h>
 
+#include <numbers>
 #include <random>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-auto test_composite_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
+static auto test_composite_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-8, 8);
@@ -34,14 +31,15 @@ auto test_composite_symmetry = [] (settings::hist::HistogramManagerChoice choice
 
     auto make_cyclic = [](double angle, int reps, Vector3<double> offset) {
         return std::make_unique<symmetry::CyclicSymmetry>(
-            symmetry::CyclicSymmetry::_Relation{offset},
-            symmetry::CyclicSymmetry::_Repeat{{0, 0, 1}, angle},
+            symmetry::CyclicSymmetry::Relation{offset},
+            symmetry::CyclicSymmetry::Repeat{{0, 0, 1}, angle},
             reps
         );
     };
 
     for (int i = 0; i < 3; ++i) {
         std::vector<AtomFF> atoms;
+        atoms.reserve(n_atoms);
         for (int j = 0; j < n_atoms; ++j) {
             atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));
         }

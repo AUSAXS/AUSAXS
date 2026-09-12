@@ -1,12 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/lookup/NormalizedFormFactorProduct.h>
-#include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/lookup/ExvTableManager.h>
-#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/ExvFormFactor.h>
-#include <constants/Constants.h>
+#include <form_factor/NormalizedFormFactor.h>
+#include <form_factor/lookup/ExvTableManager.h>
+#include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/NormalizedFormFactorProduct.h>
 
 using namespace ausaxs;
 using namespace form_factor;
@@ -44,7 +43,7 @@ TEST_CASE("NormalizedFormFactorProduct::evaluate") {
         const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
         
         NormalizedFormFactorProduct ff(C, H);
-        for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+        for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
             double expected = C.evaluate(constants::axes::q_vals[i]) * H.evaluate(constants::axes::q_vals[i]);
             CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
         }
@@ -57,7 +56,7 @@ TEST_CASE("NormalizedFormFactorProduct::evaluate") {
         NormalizedFormFactorProduct ff1(C, H);
         NormalizedFormFactorProduct ff2(H, C);
         
-        for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+        for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
             CHECK_THAT(ff1.evaluate(i), Catch::Matchers::WithinRel(ff2.evaluate(i), 1e-10));
         }
     }
@@ -66,7 +65,7 @@ TEST_CASE("NormalizedFormFactorProduct::evaluate") {
         const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
         
         NormalizedFormFactorProduct ff(C, C);
-        for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+        for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
             double c_val = C.evaluate(constants::axes::q_vals[i]);
             CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(c_val * c_val, 1e-10));
         }
@@ -75,13 +74,13 @@ TEST_CASE("NormalizedFormFactorProduct::evaluate") {
 
 TEST_CASE("NormalizedFormFactorProduct::all_pairs") {
     SECTION("all atomic form factor pairs") {
-        for (unsigned int ff1 = 0; ff1 < total_ff_count; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < total_ff_count; ++ff2) {
+        for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
+            for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
                 const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
                 const NormalizedFormFactor& ff2_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff2));
                 NormalizedFormFactorProduct ff(ff1_obj, ff2_obj);
                 
-                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
@@ -91,26 +90,26 @@ TEST_CASE("NormalizedFormFactorProduct::all_pairs") {
 }
 
 TEST_CASE("manager::raw_atomic_table") {
-    auto& table = manager::get_active_product_tables()->raw_atomic_table;
+    const auto& table = manager::get_active_product_tables()->raw_atomic_table;
     SECTION("single access") {
         const auto& ff = table.index(
-            static_cast<unsigned int>(form_factor_t::C),
-            static_cast<unsigned int>(form_factor_t::H)
+            static_cast<int>(form_factor_t::C),
+            static_cast<int>(form_factor_t::H)
         );
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("symmetric access") {
         const auto& ff1 = table.index(
-            static_cast<unsigned int>(form_factor_t::C),
-            static_cast<unsigned int>(form_factor_t::H)
+            static_cast<int>(form_factor_t::C),
+            static_cast<int>(form_factor_t::H)
         );
         const auto& ff2 = table.index(
-            static_cast<unsigned int>(form_factor_t::H),
-            static_cast<unsigned int>(form_factor_t::C)
+            static_cast<int>(form_factor_t::H),
+            static_cast<int>(form_factor_t::C)
         );
 
-        for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+        for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
             CHECK_THAT(ff1.evaluate(i), Catch::Matchers::WithinRel(ff2.evaluate(i), 1e-10));
         }
     }
@@ -118,31 +117,31 @@ TEST_CASE("manager::raw_atomic_table") {
 
 TEST_CASE("manager::normalized_atomic_table") {
     SECTION("table access") {
-        auto& table = manager::get_active_product_tables()->normalized_atomic_table;
+        const auto& table = manager::get_active_product_tables()->normalized_atomic_table;
 
         const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
         const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
 
         const auto& ff = table.index(
-            static_cast<unsigned int>(form_factor_t::C),
-            static_cast<unsigned int>(form_factor_t::H)
+            static_cast<int>(form_factor_t::C),
+            static_cast<int>(form_factor_t::H)
         );
 
-        for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+        for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
             double expected = C.evaluate(constants::axes::q_vals[i]) * H.evaluate(constants::axes::q_vals[i]);
             CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
         }
     }
 
     SECTION("table completeness") {
-        auto& table = manager::get_active_product_tables()->normalized_atomic_table;
-        for (unsigned int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < form_factor::total_ff_count; ++ff2) {
+        const auto& table = manager::get_active_product_tables()->normalized_atomic_table;
+        for (int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
+            for (int ff2 = 0; ff2 < form_factor::total_ff_count; ++ff2) {
                 const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
                 const NormalizedFormFactor& ff2_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff2));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 
-                for (unsigned int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }

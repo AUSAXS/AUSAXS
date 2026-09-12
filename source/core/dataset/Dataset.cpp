@@ -2,27 +2,28 @@
 // Author: Kristian Lytje
 
 #include <dataset/Dataset.h>
-#include <math/MovingAverager.h>
-#include <math/CubicSpline.h>
-#include <math/PeakFinder.h>
-#include <utility/Exceptions.h>
-#include <utility/StringUtils.h>
-#include <utility/Console.h>
-#include <dataset/DatasetFactory.h>
-#include <settings/GeneralSettings.h>
 
-#include <vector>
-#include <string>
+#include <dataset/DatasetFactory.h>
+#include <math/CubicSpline.h>
+#include <math/MovingAverager.h>
+#include <math/PeakFinder.h>
+#include <settings/GeneralSettings.h>
+#include <utility/Console.h>
+#include <utility/Exceptions.h>
+
+#include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 using namespace ausaxs;
 
 Dataset::Dataset() = default;
 Dataset::Dataset(const Dataset& d) = default;
-Dataset::Dataset(Dataset&& d) = default;
+Dataset::Dataset(Dataset&& d) noexcept = default;
 Dataset& Dataset::operator=(const Dataset& other) = default;
-Dataset& Dataset::operator=(Dataset&& other) = default;
+Dataset& Dataset::operator=(Dataset&& other) noexcept = default;
 
 Dataset::Dataset(const io::ExistingFile& path) : Dataset() {
     *this = std::move(*factory::DatasetFactory::construct(path));
@@ -39,9 +40,7 @@ void Dataset::assign_matrix(Matrix<double>&& m) {
 }
 
 void Dataset::force_assign_matrix(Matrix<double>&& m) {
-    data.data = std::move(m.data);
-    data.N = m.N;
-    data.M = m.M;
+    *this = std::move(m);
 }
 
 bool Dataset::empty() const noexcept {
@@ -53,10 +52,10 @@ void Dataset::limit_x(const Limit& limits) {
     if (limits.min < x(0) && x(size()-1) < limits.max) {return;}
 
     Matrix<double> limited(0, data.M); 
-    for (unsigned int i = 0; i < size(); i++) {
+    for (int i = 0; i < size(); i++) {
         double val = x(i);
         if (val < limits.min) {continue;}
-        else if (limits.max < val) {break;}
+        if (limits.max < val) {break;}
         limited.push_back(row(i));
     }
     assign_matrix(std::move(limited));
@@ -66,7 +65,7 @@ void Dataset::limit_y(const Limit& limits) {
     if (size() == 0) {return;}
 
     Matrix<double> limited(0, data.M);
-    for (unsigned int i = 0; i < size(); i++) {
+    for (int i = 0; i < size(); i++) {
         double val = y(i);
         if (val < limits.min || limits.max < val) {continue;}
         limited.push_back(row(i));
@@ -77,26 +76,26 @@ void Dataset::limit_y(const Limit& limits) {
 void Dataset::limit_x(double min, double max) {limit_x({min, max});}
 void Dataset::limit_y(double min, double max) {limit_y({min, max});}
 
-MutableColumn<double> Dataset::col(unsigned int index) {
+MutableColumn<double> Dataset::col(int index) {
     return data.col(index);
 }
 
-const ConstColumn<double> Dataset::col(unsigned int index) const {
+ConstColumn<double> Dataset::col(int index) const {
     return data.col(index);
 }
 
-MutableRow<double> Dataset::row(unsigned int index) {
+MutableRow<double> Dataset::row(int index) {
     return data.row(index);
 }
 
-const ConstRow<double> Dataset::row(unsigned int index) const {
+ConstRow<double> Dataset::row(int index) const {
     return data.row(index);
 }
 
-Dataset Dataset::select_columns(const std::vector<unsigned int>& cols) const {
-    if (cols.size() == 0) {throw except::invalid_argument("Dataset::select_columns: No columns selected.");}
+Dataset Dataset::select_columns(const std::vector<int>& cols) const {
+    if (cols.empty()) {throw except::invalid_argument("Dataset::select_columns: No columns selected.");}
     Dataset data(this->data.N, cols.size());
-    for (unsigned int i = 0; i < cols.size(); i++) {
+    for (int i = 0; i < static_cast<int>(cols.size()); i++) {
         data.col(i) = col(cols[i]);
     }
     return data;
@@ -116,11 +115,11 @@ void Dataset::save(const io::File& path, const std::string& header) const {
     output << std::endl;
 
     // write data
-    for (unsigned int i = 0; i < data.N; i++) {
-        for (unsigned int j = 0; j < data.M-1; j++) {
+    for (int i = 0; i < static_cast<int>(data.N); i++) {
+        for (int j = 0; j < static_cast<int>(data.M)-1; j++) {
             output << std::left << std::setw(16) << std::setprecision(8) << std::scientific << index(i, j) << "\t";
         }
-        output << index(i, data.M-1) << "\n";
+        output << index(i, static_cast<int>(data.M)-1) << "\n";
     }
     output.close();
 }
@@ -136,30 +135,30 @@ void Dataset::load(const io::ExistingFile& path) {
     *this = std::move(*dataset);
 }
 
-Dataset Dataset::rolling_average(unsigned int window_size) const {
+Dataset Dataset::rolling_average(int window_size) const {
     Dataset result(*this);
     result.y() = MovingAverage::average_half(y(), window_size);
     return result;
 }
 
-Dataset Dataset::interpolate(unsigned int n) const {
+Dataset Dataset::interpolate(int n) const {
     Matrix<double> interpolated(size()*(n+1)-n-1, data.M);
 
     std::vector<math::CubicSpline> splines;
-    for (unsigned int col_index = 1; col_index < data.M; ++col_index) {
-        splines.push_back(math::CubicSpline(x(), col(col_index)));
+    for (int col_index = 1; col_index < data.M; ++col_index) {
+        splines.emplace_back(x(), col(col_index));
     }
 
-    for (unsigned int i = 0; i < size()-1; i++) {
+    for (int i = 0; i < size()-1; i++) {
         double x = this->x(i);
         interpolated[i*(n+1)] = row(i);
 
         double x_next = this->x(i+1);
         double step = (x_next - x)/(n+1);
-        for (unsigned int j = 0; j < n; j++) {
+        for (int j = 0; j < n; j++) {
             std::vector<double> row_new(data.M);
             row_new[0] = x + (j+1)*step;;
-            for (unsigned int k = 1; k < data.M; k++) {
+            for (int k = 1; k < data.M; k++) {
                 row_new[k] = splines[k-1].spline(row_new[0]);
             }
             interpolated[i*(n+1) + j + 1] = row_new;
@@ -168,7 +167,7 @@ Dataset Dataset::interpolate(unsigned int n) const {
     return interpolated;
 }
 
-std::vector<double> Dataset::find_minimum(unsigned int col_i) const {
+std::vector<double> Dataset::find_minimum(int col_i) const {
     if (size() == 0) {
         if (settings::general::verbose) {
             console::print_warning("Warning in Dataset::find_minimum: Dataset is empty.");
@@ -176,9 +175,9 @@ std::vector<double> Dataset::find_minimum(unsigned int col_i) const {
         return std::vector<double>(data.M, 0);
     }
     
-    unsigned int min_index = 0;
+    int min_index = 0;
     double min_value = y(0);
-    for (unsigned int i = 1; i < size(); i++) {
+    for (int i = 1; i < size(); i++) {
         if (col(col_i)[i] < min_value) {
             min_index = i;
             min_value = col(col_i)[i];
@@ -188,17 +187,17 @@ std::vector<double> Dataset::find_minimum(unsigned int col_i) const {
 }
 
 Dataset Dataset::interpolate(const std::vector<double>& newx) const {
-    Matrix<double> interpolated(newx.size(), data.M);
+    Matrix<double> interpolated(static_cast<int>(newx.size()), data.M);
 
     std::vector<math::CubicSpline> splines;
-    for (unsigned int col_index = 1; col_index < data.M; ++col_index) {
-        splines.push_back(math::CubicSpline(x(), col(col_index)));
+    for (int col_index = 1; col_index < data.M; ++col_index) {
+        splines.emplace_back(x(), col(col_index));
     }
 
-    for (unsigned int i = 0; i < newx.size(); i++) {
+    for (int i = 0; i < static_cast<int>(newx.size()); i++) {
         std::vector<double> row_new(data.M);
         row_new[0] = newx[i];
-        for (unsigned int j = 0; j < splines.size(); j++) {
+        for (int j = 0; j < static_cast<int>(splines.size()); j++) {
             row_new[1+j] = splines[j].spline(newx[i]);
         }
         interpolated[i] = row_new;
@@ -206,7 +205,7 @@ Dataset Dataset::interpolate(const std::vector<double>& newx) const {
     return interpolated;
 }
 
-double Dataset::interpolate_x(double x, unsigned int col_index) const {
+double Dataset::interpolate_x(double x, int col_index) const {
     math::CubicSpline spline(this->x(), col(col_index));
     return spline.spline(x);
 }
@@ -214,19 +213,19 @@ double Dataset::interpolate_x(double x, unsigned int col_index) const {
 void Dataset::append(const Dataset& other) {
     if (this == &other) {throw except::invalid_argument("Dataset::append: Cannot append to itself.");}
     if (data.M != other.data.M) {throw except::invalid_argument("Dataset::append: Number of columns does not match.");}
-    unsigned int n = size();
+    int n = size();
     data.extend(other.size());
-    for (unsigned int i = 0; i < other.size(); i++) {
+    for (int i = 0; i < other.size(); i++) {
         row(n+i) = other.row(i);
     }
 }
 
 void Dataset::sort_x() {
     Matrix<double> newdata(data.N, data.M);
-    std::vector<unsigned int> indices(data.N);
+    std::vector<int> indices(data.N);
     std::iota(indices.begin(), indices.end(), 0);
-    std::sort(indices.begin(), indices.end(), [this] (unsigned int i, unsigned int j) {return x(i) < x(j);});
-    for (unsigned int i = 0; i < data.N; i++) {
+    std::ranges::sort(indices, [this] (int i, int j) {return x(i) < x(j);});
+    for (int i = 0; i < data.N; i++) {
         newdata.row(i) = this->row(indices[i]);
     }
     this->assign_matrix(std::move(newdata));
@@ -234,8 +233,8 @@ void Dataset::sort_x() {
 
 std::string Dataset::to_string() const {
     std::stringstream ss;
-    for (unsigned int i = 0; i < size(); i++) {
-        for (unsigned int j = 0; j < data.M; j++) {
+    for (int i = 0; i < size(); i++) {
+        for (int j = 0; j < data.M; j++) {
             ss << std::setw(16) << std::setprecision(8) << std::scientific << index(i, j) << " ";
         }
         ss << "\n";
@@ -243,11 +242,11 @@ std::string Dataset::to_string() const {
     return ss.str();
 }
 
-double Dataset::index(unsigned int i, unsigned int j) const {
+double Dataset::index(int i, int j) const {
     return data.index(i, j);
 }
 
-double& Dataset::index(unsigned int i, unsigned int j) {
+double& Dataset::index(int i, int j) {
     return data.index(i, j);
 }
 
@@ -255,23 +254,23 @@ void Dataset::push_back(const std::vector<double>& row) {
     data.push_back(row);
 }
 
-std::vector<unsigned int> Dataset::find_minima(unsigned int min_spacing, double min_prominence) const {
+std::vector<int> Dataset::find_minima(int min_spacing, double min_prominence) const {
     return math::find_minima(x(), y(), min_spacing, min_prominence);
 }
 
-std::vector<unsigned int> Dataset::find_maxima(unsigned int min_spacing, double min_prominence) const {
+std::vector<int> Dataset::find_maxima(int min_spacing, double min_prominence) const {
     return math::find_minima(x(), -y(), min_spacing, min_prominence);
 }
 
-unsigned int Dataset::size() const noexcept {
+int Dataset::size() const noexcept {
     return size_rows();
 }
 
-unsigned int Dataset::size_rows() const noexcept {
+int Dataset::size_rows() const noexcept {
     return data.N;
 }
 
-unsigned int Dataset::size_cols() const noexcept {
+int Dataset::size_cols() const noexcept {
     return data.M;
 }
 

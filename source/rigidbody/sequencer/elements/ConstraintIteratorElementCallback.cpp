@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/ConstraintIteratorElementCallback.h>
+
 #include <rigidbody/sequencer/elements/ConstraintIteratorElement.h>
 
 using namespace ausaxs::rigidbody::sequencer;

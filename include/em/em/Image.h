@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <math/Matrix.h>
-#include <em/ObjectBounds2D.h>
 #include <data/DataFwd.h>
-#include <em/detail/header/HeaderFwd.h>
+#include <em/ObjectBounds2D.h>
 #include <em/detail/EMAtom.h>
+#include <em/detail/header/HeaderFwd.h>
 #include <hist/HistFwd.h>
+#include <math/Matrix.h>
 #include <utility/observer_ptr.h>
 
 #include <list>
@@ -25,11 +25,11 @@ namespace ausaxs::em {
              * @param header Header of the parent ImageStack. 
              * @param layer The layer number of this Image. 
              */
-            Image(observer_ptr<em::detail::header::IMapHeader> header, unsigned int layer = 0);
+            Image(observer_ptr<em::detail::header::IMapHeader> header, int layer = 0);
 
             Image(const Matrix<float>& data);
 
-            Image(const Matrix<float>& data, observer_ptr<em::detail::header::IMapHeader> header, unsigned int layer);
+            Image(const Matrix<float>& data, observer_ptr<em::detail::header::IMapHeader> header, int layer);
             
             ~Image() = default;
 
@@ -40,17 +40,17 @@ namespace ausaxs::em {
             /**
              * @brief Count the number of voxels larger than a given cutoff value.
              */
-            unsigned int count_voxels(double cutoff) const;
+            int count_voxels(double cutoff) const;
 
             /**
              * @brief Set the z location of this object. 
              */
-            void set_z(unsigned int z);
+            void set_z(int z);
 
             /**
              * @brief Get the z location of this object. 
              */
-            unsigned int get_z() const;
+            int get_z() const;
 
             /**
              * @brief Get the mean density. 
@@ -82,8 +82,8 @@ namespace ausaxs::em {
              */
             const ObjectBounds2D& setup_bounds(double cutoff);
 
-            float index(unsigned int x, unsigned int y) const;
-            float& index(unsigned int x, unsigned int y);
+            float index(int x, int y) const;
+            float& index(int x, int y);
 
             /**
              * @brief Get the squared sum of all entries in this image. 
@@ -103,12 +103,12 @@ namespace ausaxs::em {
              */
             const Matrix<float>& get_data() const;
 
-            unsigned int N; // The number of rows.  
-            unsigned int M; // The number of columns.
+            int N; // The number of rows.  
+            int M; // The number of columns.
         private:
             observer_ptr<em::detail::header::IMapHeader> header; // Pointer to the header of the parent ImageStack.
             Matrix<float> data;                                  // The actual data storage. 
-            unsigned int z;                                      // The z-index of this image in the ImageStack. 
+            int z;                                               // The z-index of this image in the ImageStack. 
             ObjectBounds2D bounds;
     };
 }

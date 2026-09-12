@@ -8,7 +8,7 @@ using namespace ausaxs;
 TEST_CASE("Distribution1D::Distribution1D") {
     SECTION("default constructor") {
         hist::Distribution1D dist;
-        CHECK(dist.size() == 0);
+        CHECK(dist.empty());
     }
 
     SECTION("size constructor") {

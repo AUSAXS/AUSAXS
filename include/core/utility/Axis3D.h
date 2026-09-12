@@ -4,9 +4,9 @@
 #pragma once
 
 #include <math/MathConcepts.h>
+#include <math/MathFwd.h>
 #include <utility/Axis.h>
 #include <utility/UtilityFwd.h>
-#include <math/MathFwd.h>
 
 namespace ausaxs {
 	/**

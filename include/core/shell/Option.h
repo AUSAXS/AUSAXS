@@ -12,7 +12,7 @@ namespace ausaxs::shell {
     class Option {
         public:
             Option() noexcept;
-            Option(const std::string& name, const std::string& value);
+            Option(std::string name, std::string value);
             virtual ~Option();
 
             /// @brief Get the option formatted as a string for inclusion in a command.
@@ -30,7 +30,6 @@ namespace ausaxs::shell {
             Argument(const std::string& name, const std::string& value);
             Argument(const std::string& name, double value);
             Argument(const std::string& name, int value);
-            Argument(const std::string& name, unsigned int value);
     };
 
     /**

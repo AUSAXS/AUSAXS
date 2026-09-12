@@ -114,6 +114,6 @@ namespace ausaxs::rigidbody::sequencer::detail {
 
             std::map<int, Entry> entries;                //< the naming state, keyed and ordered by encoded index
             std::unordered_map<std::string, int> lookup; //< pure inverse of `entries`: every name they hold maps back to its index
-            unsigned int bodies_registered = 0;          //< monotonic; source of the "bN" default names. Never rewound, see add_body.
+            int bodies_registered = 0;          //< monotonic; source of the "bN" default names. Never rewound, see add_body.
     };
 }

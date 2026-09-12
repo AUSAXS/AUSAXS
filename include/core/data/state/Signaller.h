@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <cstddef>
-
 namespace ausaxs::signaller {
     /**
      * @brief A small probe for signalling changes which can be dispatched to other classes. 
@@ -37,11 +35,11 @@ namespace ausaxs::signaller {
             /**
              * @brief Set the number of symmetries to track. 
              */
-            virtual void set_symmetry_size(std::size_t size) const = 0;
+            virtual void set_symmetry_size(int size) const = 0;
 
             /**
              * @brief Get the number of symmetries being tracked. 
              */
-            virtual std::size_t get_symmetry_size() const = 0;
+            virtual int get_symmetry_size() const = 0;
     };
 }

@@ -18,6 +18,7 @@
 
 #include <sycl/sycl.hpp>
 
+#include <array>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
@@ -37,9 +38,9 @@ namespace {
     /**
      * @brief How many leading bins to keep in workgroup memory. This must be strictly less than the local memory limit. 
      */
-    std::uint32_t local_bin_capacity(std::size_t local_mem, int bin_count, bool weighted) {
+    int local_bin_capacity(std::size_t local_mem, int bin_count, bool weighted) {
         const std::size_t per_bin = (weighted ? 3 : 1)*sizeof(i64);
-        return static_cast<std::uint32_t>(sycl::min(static_cast<std::size_t>(bin_count), local_mem/per_bin));
+        return static_cast<int>(sycl::min(static_cast<std::size_t>(bin_count), local_mem/per_bin));
     }
 
     /**
@@ -100,10 +101,10 @@ namespace {
     struct Kernel {
         const TileRef* tiles;
         const DeviceJob* jobs;
-        i64* histograms;        // n_slots*bin_count values, or the same number of {value, count, center} triples
+        i64* histograms;         // n_slots*bin_count values, or the same number of {value, count, center} triples
         float inv_width;
-        std::uint32_t bin_count;
-        std::uint32_t local_bins; // leading bins held in workgroup memory; never exceeds bin_count
+        int bin_count;
+        int local_bins; // leading bins held in workgroup memory; never exceeds bin_count
 
         // workgroup-local accumulators; count and center are unused when not weighted
         using local_array = sycl::local_accessor<i64, 1>;
@@ -112,7 +113,7 @@ namespace {
         /**
          * @brief Accumulate one contribution, in workgroup memory if the bin is held there.
          */
-        void add_to_bin(std::uint32_t bin, float value, float center, std::uint32_t count, i64* global) const {
+        void add_to_bin(int bin, float value, float center, std::uint32_t count, i64* global) const {
             if (bin < local_bins) {
                 add_local(local_value[bin], to_fixed(value));
                 if constexpr (weighted) {
@@ -134,7 +135,7 @@ namespace {
             const int lid = static_cast<int>(item.get_local_id(0));
             const auto group = item.get_group();
 
-            for (auto bin = static_cast<std::uint32_t>(lid); bin < local_bins; bin += workgroup_size) {
+            for (int bin = lid; bin < local_bins; bin += workgroup_size) {
                 local_value[bin] = 0;
                 if constexpr (weighted) {
                     local_count[bin] = 0;
@@ -148,9 +149,9 @@ namespace {
             i64* global = histograms + static_cast<std::size_t>(job.slot)*bin_count*(weighted ? 3 : 1);
 
             // the atoms this thread keeps in registers for the whole tile
-            sycl::float4 held[rows_per_thread];
-            int index[rows_per_thread];
-            bool active[rows_per_thread];
+            std::array<sycl::float4, rows_per_thread> held;
+            std::array<int, rows_per_thread> index;
+            std::array<bool, rows_per_thread> active;
             for (int k = 0; k < rows_per_thread; ++k) {
                 const int local = lid + k*workgroup_size;
                 index[k] = static_cast<int>(tile.i_block)*tile_size + local;
@@ -178,14 +179,14 @@ namespace {
                     const float dz = held[k].z() - other.z();
                     const float d = sycl::sqrt(dx*dx + dy*dy + dz*dz);
                     add_to_bin(
-                        static_cast<std::uint32_t>(static_cast<int>(sycl::rint(inv_width*d))),
+                        static_cast<int>(sycl::rint(inv_width*d)),
                         w*held[k].w(), scale*d, count, global
                     );
                 }
             }
 
             sycl::group_barrier(group);
-            for (auto bin = static_cast<std::uint32_t>(lid); bin < local_bins; bin += workgroup_size) {
+            for (int bin = lid; bin < local_bins; bin += workgroup_size) {
                 if constexpr (weighted) {
                     if (i64 v = local_value[bin]; v != 0) {add_global(global[3*bin + 0], v);}
                     if (i64 c = local_count[bin]; c != 0) {add_global(global[3*bin + 1], c);}
@@ -217,8 +218,8 @@ namespace {
                 if (slab == slabs.size()) {
                     const std::size_t size = sycl::max(bytes, default_slab);
                     void* pointer = sycl::malloc_device(size, queue);
-                    if (!pointer) {throw std::runtime_error("sycl_backend: out of device memory");}
-                    slabs.push_back(Slab{pointer, size});
+                    if (pointer == nullptr) {throw std::runtime_error("sycl_backend: out of device memory");}
+                    slabs.push_back(Slab{.ptr=pointer, .size=size});
                     used = 0;
                 }
 
@@ -274,7 +275,7 @@ namespace {
             bool active = false;
             bool weighted = false;
             int bin_count = 0;
-            std::uint32_t local_bins = 0; // derived from local_mem and bin_count; see local_bin_capacity
+            int local_bins = 0; // derived from local_mem and bin_count; see local_bin_capacity
             float inv_width = 0;
             std::unordered_map<const float*, const sycl::float4*> uploaded; // host -> device, deduplicated
             std::vector<sycl::event> pending;                               // uploads the next kernel must wait for
@@ -307,10 +308,10 @@ namespace {
                 const std::size_t stride = weighted ? 3 : 1;
                 const std::size_t values = static_cast<std::size_t>(slots)*bin_count*stride;
                 auto* fresh = static_cast<i64*>(sycl::malloc_device(values*sizeof(i64), queue));
-                if (!fresh) {throw std::runtime_error("sycl_backend: out of device memory");}
+                if (fresh == nullptr) {throw std::runtime_error("sycl_backend: out of device memory");}
                 queue.fill(fresh, i64{0}, values).wait();
 
-                if (histograms) {
+                if (histograms != nullptr) {
                     queue.wait(); // in-flight kernels are still accumulating into the old buffer
                     const std::size_t old = static_cast<std::size_t>(slot_capacity)*bin_count*stride;
                     queue.memcpy(fresh, histograms, old*sizeof(i64)).wait();
@@ -354,7 +355,7 @@ namespace {
         std::vector<std::pair<const sycl::float4*, const sycl::float4*>> result(n_jobs);
         for (int i = 0; i < n_jobs; ++i) {
             const sycl::float4* a1 = upload(jobs[i].a1, jobs[i].n1);
-            result[i] = {a1, jobs[i].a2 ? upload(jobs[i].a2, jobs[i].n2) : a1};
+            result[i] = {a1, (jobs[i].a2 != nullptr) ? upload(jobs[i].a2, jobs[i].n2) : a1};
         }
         return result;
     }
@@ -373,15 +374,15 @@ namespace {
             if (jobs[i].a2 == nullptr) {
                 const std::uint32_t n = blocks(jobs[i].n1);
                 for (std::uint32_t p = 0; p < n; ++p) {
-                    diagonal.emplace_back(TileRef{job, p, p});
+                    diagonal.emplace_back(TileRef{.job=job, .i_block=p, .j_block=p});
                     for (std::uint32_t q = p + 1; q < n; ++q) {
-                        regular.emplace_back(TileRef{job, p, q});
+                        regular.emplace_back(TileRef{.job=job, .i_block=p, .j_block=q});
                     }
                 }
             } else {
                 for (std::uint32_t p = 0; p < blocks(jobs[i].n1); ++p) {
                     for (std::uint32_t q = 0; q < blocks(jobs[i].n2); ++q) {
-                        regular.emplace_back(TileRef{job, p, q});
+                        regular.emplace_back(TileRef{.job=job, .i_block=p, .j_block=q});
                     }
                 }
             }
@@ -391,7 +392,7 @@ namespace {
     template<bool weighted, bool diagonal>
     void launch(
         Context& context, const TileRef* tiles, std::size_t n_tiles, const DeviceJob* jobs,
-        i64* histograms, float inv_width, int bin_count, std::uint32_t local_bins,
+        i64* histograms, float inv_width, int bin_count, int local_bins, // NOLINT
         const std::vector<sycl::event>& wait_for
     ) {
         if (n_tiles == 0) {return;}
@@ -401,14 +402,15 @@ namespace {
 
             // the two the unweighted kernel never touches are left empty rather than given a token
             // element, so that the allocation is exactly what local_bin_capacity budgeted for
-            const auto shared = sycl::range<1>(weighted ? local_bins : 0);
-            sycl::local_accessor<i64, 1> value{sycl::range<1>(local_bins), handler};
+            const auto bins = static_cast<std::size_t>(local_bins);
+            const auto shared = sycl::range<1>(weighted ? bins : 0);
+            sycl::local_accessor<i64, 1> value{sycl::range<1>(bins), handler};
             sycl::local_accessor<i64, 1> count{shared, handler};
             sycl::local_accessor<i64, 1> center{shared, handler};
             handler.parallel_for(
                 sycl::nd_range<1>(n_tiles*workgroup_size, workgroup_size),
                 Kernel<weighted, diagonal>{
-                    tiles, jobs, histograms, inv_width, static_cast<std::uint32_t>(bin_count),
+                    tiles, jobs, histograms, inv_width, bin_count,
                     local_bins, value, count, center
                 }
             );
@@ -430,8 +432,8 @@ namespace {
         for (int i = 0; i < n_jobs; ++i) {
             const bool self = jobs[i].a2 == nullptr;
             device_jobs[i] = DeviceJob{
-                coordinates[i].first, coordinates[i].second, jobs[i].n1,
-                self ? jobs[i].n1 : jobs[i].n2, jobs[i].scaling, jobs[i].slot
+                .a1=coordinates[i].first, .a2=coordinates[i].second, .n1=jobs[i].n1,
+                .n2=self ? jobs[i].n1 : jobs[i].n2, .scaling=jobs[i].scaling, .slot=jobs[i].slot
             };
         }
 
@@ -510,7 +512,7 @@ namespace {
 
         // the layout of the output depends on both, so a change invalidates what is already allocated
         if (context.bin_count != bin_count || context.weighted != weighted) {
-            if (context.histograms) {sycl::free(context.histograms, context.queue);}
+            if (context.histograms != nullptr) {sycl::free(context.histograms, context.queue);}
             context.histograms = nullptr;
             context.slot_capacity = 0;
             context.dirty_slots = 0; // the replacement ensure_slots allocates below arrives cleared
@@ -535,17 +537,17 @@ namespace {
     void Context::warmup() {
         // one self and one cross job, so both the diagonal and the regular kernel are compiled
         const std::vector<float> atoms(4*tile_size, 1.f);
-        const Job jobs[2] = {
-            Job{atoms.data(), nullptr, tile_size, 0, 1, 0},
-            Job{atoms.data(), atoms.data(), tile_size, tile_size, 1, 0}
+        const std::array<Job, 2> jobs = {
+            Job{.a1=atoms.data(), .a2=nullptr, .n1=tile_size, .n2=0, .scaling=1, .slot=0},
+            Job{.a1=atoms.data(), .a2=atoms.data(), .n1=tile_size, .n2=tile_size, .scaling=1, .slot=0}
         };
         begin_on(*this, 8, 1.f, false);
-        submit_on<false>(*this, jobs, 2);
+        submit_on<false>(*this, jobs.data(), 2);
         std::vector<double> out_unweighted(8);
         finish_unweighted_on(*this, 1, out_unweighted.data());
 
         begin_on(*this, 8, 1.f, true);
-        submit_on<true>(*this, jobs, 2);
+        submit_on<true>(*this, jobs.data(), 2);
         std::vector<WeightedBin> out_weighted(8);
         finish_weighted_on(*this, 1, out_weighted.data());
     }
@@ -554,7 +556,7 @@ namespace {
 
 namespace {
     // the message belonging to the most recent failure on this thread, as returned by last_error()
-    thread_local std::string error_message = "";
+    thread_local std::string error_message;
 
     /**
      * @brief Translate any failure into a status code. This is required to avoid exceptions propagating across the ABI boundary. 
@@ -588,7 +590,7 @@ namespace {
 
     // Reject a call that cannot be served, before it reaches the device.
     Status check_finish(Context* context, bool weighted, int n_slots) {
-        if (!context || !context->active) {
+        if ((context == nullptr) || !context->active) {
             error_message = "sycl_backend: finish without a matching begin";
             return Status::invalid_input;
         }
@@ -621,7 +623,7 @@ bool ausaxs::gpu::abi::ausaxs_gpu_available() {
 
 const char* ausaxs::gpu::abi::ausaxs_gpu_device_name() {
     Context* context = Context::get();
-    return context ? context->name.c_str() : "none";
+    return (context != nullptr) ? context->name.c_str() : "none";
 }
 
 const char* ausaxs::gpu::abi::ausaxs_gpu_last_error() {
@@ -647,7 +649,7 @@ Status ausaxs::gpu::abi::ausaxs_gpu_submit(const Job* jobs, std::int32_t n_jobs)
             return Status::invalid_input;
         }
     }
-    if (Context* context = Context::get(); context && !context->active) {
+    if (Context* context = Context::get(); (context != nullptr) && !context->active) {
         error_message = "sycl_backend: submit without a matching begin";
         return Status::invalid_input;
     }

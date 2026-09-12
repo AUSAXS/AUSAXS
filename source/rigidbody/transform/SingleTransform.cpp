@@ -2,15 +2,15 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/transform/SingleTransform.h>
-#include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/transform/BackupBody.h>
-#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+
+#include <data/Body.h>
+#include <grid/Grid.h>
+#include <math/MatrixUtils.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/Rigidbody.h>
-#include <grid/Grid.h>
-#include <data/Body.h>
-#include <math/MatrixUtils.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/transform/BackupBody.h>  // IWYU pragma: keep
 
 using namespace ausaxs::rigidbody::transform;
 
@@ -19,11 +19,11 @@ SingleTransform::SingleTransform(observer_ptr<Rigidbody> rigidbody) : TransformS
 SingleTransform::~SingleTransform() = default;
 
 void SingleTransform::apply(
-    parameter::BodyTransformParametersRelative&& par, observer_ptr<const constraints::IDistanceConstraint> constraint, unsigned int isymmetry_body
+    const parameter::BodyTransformParametersRelative& par, observer_ptr<const constraints::IDistanceConstraint> constraint, int isymmetry_body
 ) {
     // remove body from grid since it does not track transforms
     int ibody = constraint->ibody1;
-    auto grid = rigidbody->molecule.get_grid();
+    auto* grid = rigidbody->molecule.get_grid();
     {   // backup body and parameters for undo
         auto& body = rigidbody->molecule.get_body(ibody);
         grid->remove(body);
@@ -33,7 +33,7 @@ void SingleTransform::apply(
 
     // the symmetry deltas were generated from isymmetry_body's own symmetry list, so that is the only body they can be applied to; it needs its own backup
     // entry and grid round-trip whenever it is not the transformed body itself (the grid tracks the symmetry copies of every body)
-    bool symmetry_other_body = par.symmetry_pars.has_value() && isymmetry_body != static_cast<unsigned int>(ibody);
+    bool symmetry_other_body = par.symmetry_pars.has_value() && isymmetry_body != ibody;
     if (symmetry_other_body) {
         bodybackup.emplace_back(
             rigidbody->molecule.get_body(isymmetry_body), isymmetry_body, rigidbody->conformation->absolute_parameters.parameters[isymmetry_body]

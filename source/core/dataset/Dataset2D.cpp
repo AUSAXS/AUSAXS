@@ -2,37 +2,38 @@
 // Author: Kristian Lytje
 
 #include <dataset/Dataset2D.h>
-#include <utility/Exceptions.h>
+
 #include <dataset/DatasetFactory.h>
 
+#include <algorithm>
 #include <vector>
 
 using namespace ausaxs;
 
 Dataset2D::Dataset2D() noexcept : SimpleDataset(0, 4) {}
 
-Dataset2D::Dataset2D(unsigned int rows) noexcept : SimpleDataset(rows, 4) {}
+Dataset2D::Dataset2D(int rows) noexcept : SimpleDataset(rows, 4) {}
 
-Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y) noexcept : Dataset2D(x.size()) {
-    for (unsigned int i = 0; i < x.size(); i++) {
+Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y) noexcept : Dataset2D(static_cast<int>(x.size())) {
+    for (int i = 0; i < static_cast<int>(x.size()); i++) {
         row(i) = {x[i], y[i], 0, 0};
     }
 }
 
-Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
-    for (unsigned int i = 0; i < x.size(); i++) {
+Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset2D(static_cast<int>(x.size())) {
+    for (int i = 0; i < static_cast<int>(x.size()); i++) {
         row(i) = {x[i], y[i], yerr[i], 0};
     }
 }
 
-Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
-    for (unsigned int i = 0; i < x.size(); i++) {
+Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept : Dataset2D(static_cast<int>(x.size())) {
+    for (int i = 0; i < static_cast<int>(x.size()); i++) {
         row(i) = {x[i], y[i], yerr[i], xerr[i]};
     }
 }
 
 Dataset2D::Dataset2D(const SimpleDataset& data) : Dataset2D(data.size()) {
-    for (unsigned int i = 0; i < data.size(); i++) {
+    for (int i = 0; i < data.size(); i++) {
         row(i) = {data.x(i), data.y(i), data.yerr(i), 0};
     }
 }
@@ -45,7 +46,7 @@ Dataset2D::Dataset2D(const io::ExistingFile& path) : Dataset2D() {
 
 void Dataset2D::scale_errors(double factor) {
     auto xerr = this->xerr();
-    std::transform(xerr.begin(), xerr.end(), xerr.begin(), [&factor] (double val) {return factor*val;});
+    std::ranges::transform(xerr, xerr.begin(), [&factor] (double val) {return factor*val;});
     SimpleDataset::scale_errors(factor);
 }
 

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -202,7 +203,7 @@ TEST_CASE("Slice::iterators") {
         
         SECTION("single transform") {
             auto r = A.row(0);
-            std::transform(r.begin(), r.end(), r.begin(), [](double x) { return x * 2; });
+            std::ranges::transform(r, r.begin(), [](double x) { return x * 2; });
             REQUIRE(r == Vector{2, 4, 4, 14});
             REQUIRE(A.row(0) == Vector{2, 4, 4, 14});
         }
@@ -210,7 +211,7 @@ TEST_CASE("Slice::iterators") {
         SECTION("double transform") {
             auto r1 = A.row(0);
             auto r2 = A.row(1);
-            std::transform(r1.begin(), r1.end(), r2.begin(), r1.begin(), std::plus<double>());
+            std::ranges::transform(r1, r2, r1.begin(), std::plus<>());
             REQUIRE(r1 == Vector{10, 7, 4, 8});
             REQUIRE(A.row(0) == Vector{10, 7, 4, 8});
         }

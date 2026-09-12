@@ -13,7 +13,7 @@ namespace ausaxs::settings {
         static bool offline;                // Whether to use the offline mode. This will prevent any network requests, but may result in less accurate results.
         static bool verbose;                // Whether to print out extra information.
         static bool warnings;               // Whether to print out warnings.
-        static unsigned int threads;        // The number of threads to use for parallelization.
+        static int threads;                 // The number of threads to use for parallelization.
         static std::string output;          // The output directory.
         static std::string cache;           // The cache directory.
         static bool keep_hydrogens;         // Whether to keep bound hydrogens when reading a structure.
@@ -26,7 +26,7 @@ namespace ausaxs::settings {
             /**
              * @brief Get the number of items a single thread-pool job should process, for a loop over @a n items.
              */
-            static unsigned int get_job_size(unsigned int n);
+            static int get_job_size(int n);
         };
 
         enum class QUnit : char {

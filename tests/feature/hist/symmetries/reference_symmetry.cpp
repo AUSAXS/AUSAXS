@@ -4,18 +4,14 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/symmetry/ReferenceSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/DihedralSymmetry.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
-#include <hist/distribution/Distribution1D.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/histogram_manager/PartialSymmetryManagerMT.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
 
-#include "hist/hist_test_helper.h"
-#include "settings/HistogramSettings.h"
+#include <hist/hist_test_helper.h>
+#include <settings/HistogramSettings.h>
 
 #include <numbers>
 #include <random>
@@ -23,7 +19,7 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
+static auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-8, 8);
@@ -38,6 +34,7 @@ auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice choice
     for (int i = 0; i < 3; ++i) {
         auto random_atoms = [&](int n) {
             std::vector<AtomFF> atoms;
+            atoms.reserve(n);
             for (int j = 0; j < n; ++j) {atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));}
             return atoms;
         };
@@ -46,8 +43,8 @@ auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice choice
         set_unity_charge(m);
 
         symmetry::CyclicSymmetry base(
-            symmetry::CyclicSymmetry::_Relation{{6, 0, 0}},
-            symmetry::CyclicSymmetry::_Repeat{{0, 0, 1}, angle},
+            symmetry::CyclicSymmetry::Relation{{6, 0, 0}},
+            symmetry::CyclicSymmetry::Repeat{{0, 0, 1}, angle},
             reps
         );
         // body 0 owns the shared symmetry; body 1 holds a view onto it (located by body+slot)
@@ -81,7 +78,7 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry") {
     }
 }
 
-auto test_reference_symmetry_dihedral = [] (settings::hist::HistogramManagerChoice choice) {
+static auto test_reference_symmetry_dihedral = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-8, 8);
@@ -90,6 +87,7 @@ auto test_reference_symmetry_dihedral = [] (settings::hist::HistogramManagerChoi
     for (int i = 0; i < 3; ++i) {
         auto random_atoms = [&](int n) {
             std::vector<AtomFF> atoms;
+            atoms.reserve(n);
             for (int j = 0; j < n; ++j) {atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));}
             return atoms;
         };
@@ -130,7 +128,7 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry with dihedral base") {
     }
 }
 
-auto test_reference_symmetry_after_transform = [] (settings::hist::HistogramManagerChoice choice) {
+static auto test_reference_symmetry_after_transform = [] (settings::hist::HistogramManagerChoice choice) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_real_distribution<> d(-8, 8);
@@ -143,6 +141,7 @@ auto test_reference_symmetry_after_transform = [] (settings::hist::HistogramMana
 
     auto random_atoms = [&](int n) {
         std::vector<AtomFF> atoms;
+        atoms.reserve(n);
         for (int j = 0; j < n; ++j) {atoms.push_back(AtomFF({d(gen), d(gen), d(gen)}, form_factor::form_factor_t::C));}
         return atoms;
     };
@@ -151,8 +150,8 @@ auto test_reference_symmetry_after_transform = [] (settings::hist::HistogramMana
     set_unity_charge(m);
 
     symmetry::CyclicSymmetry base(
-        symmetry::CyclicSymmetry::_Relation{{6, 0, 0}},
-        symmetry::CyclicSymmetry::_Repeat{{0, 0, 1}, angle},
+        symmetry::CyclicSymmetry::Relation{{6, 0, 0}},
+        symmetry::CyclicSymmetry::Repeat{{0, 0, 1}, angle},
         reps
     );
     m.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(
@@ -217,7 +216,7 @@ TEST_CASE("ReferenceSymmetry: combined centre of mass is mass-weighted, matching
     m_plain.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     set_unity_charge(m_plain);
     m_plain.get_body(0).symmetry().add(std::make_unique<symmetry::CyclicSymmetry>(
-        symmetry::CyclicSymmetry::_Relation{{6, 0, 0}}, symmetry::CyclicSymmetry::_Repeat{{0, 0, 1}, std::numbers::pi}, 1
+        symmetry::CyclicSymmetry::Relation{{6, 0, 0}}, symmetry::CyclicSymmetry::Repeat{{0, 0, 1}, std::numbers::pi}, 1
     ));
 
     // "reference": the same atoms split across two bodies sharing a ReferenceSymmetry with identical parameters
@@ -226,7 +225,7 @@ TEST_CASE("ReferenceSymmetry: combined centre of mass is mass-weighted, matching
     set_unity_charge(m_ref);
     m_ref.get_body(0).symmetry().add(std::make_unique<symmetry::ReferenceSymmetry>(
         std::make_unique<symmetry::CyclicSymmetry>(
-            symmetry::CyclicSymmetry::_Relation{{6, 0, 0}}, symmetry::CyclicSymmetry::_Repeat{{0, 0, 1}, std::numbers::pi}, 1
+            symmetry::CyclicSymmetry::Relation{{6, 0, 0}}, symmetry::CyclicSymmetry::Repeat{{0, 0, 1}, std::numbers::pi}, 1
         ),
         std::vector<int>{0, 1}, std::vector<int>{0, 0}, &m_ref
     ));

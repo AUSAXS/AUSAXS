@@ -6,4 +6,4 @@
 using namespace ausaxs;
 
 em::detail::header::RECData::RECData() = default;
-em::detail::header::RECData::~RECData() = default;
+

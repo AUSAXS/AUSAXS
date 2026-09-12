@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <rigidbody/RigidbodyFwd.h>
-#include <utility/observer_ptr.h>
 #include <fitter/FitterFwd.h>
 #include <io/IOFwd.h>
+#include <rigidbody/RigidbodyFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <memory>
 

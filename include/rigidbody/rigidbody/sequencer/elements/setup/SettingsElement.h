@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>

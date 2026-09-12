@@ -3,16 +3,16 @@
 
 #pragma once
 
+#include <settings/ExportMacro.h>
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
-#include <settings/ExportMacro.h>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace ausaxs::settings {
     struct EXPORT rigidbody {
-        static unsigned int iterations;   // The number of iterations to run the rigid body optimization for.
+        static int iterations;   // The number of iterations to run the rigid body optimization for.
         static double bond_distance;      // The maximum distance in Ångström between two atoms that allows for a constraint.
 
         struct detail {

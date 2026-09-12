@@ -1,30 +1,23 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/All.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/ReferenceSymmetry.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
-#include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
-#include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/transform/TransformStrategy.h>
-#include <data/symmetry/ReferenceSymmetry.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/elements/All.h>
 #include <settings/All.h>
-#include <io/ExistingFile.h>
 
 #include <hist/hist_test_helper.h>
 
-#include <algorithm>
 #include <random>
 
 using namespace ausaxs;
@@ -53,8 +46,8 @@ namespace {
         REQUIRE(metadata.has_value());
         REQUIRE(metadata->residue_seq.has_value());
         const auto& resseq = *metadata->residue_seq;
-        int min_id = *std::min_element(resseq.begin(), resseq.end());
-        int max_id = *std::max_element(resseq.begin(), resseq.end());
+        int min_id = *std::ranges::min_element(resseq);
+        int max_id = *std::ranges::max_element(resseq);
 
         std::vector<int> ids;
         for (int k = 1; k <= n_splits; ++k) {ids.push_back(min_id + (max_id - min_id)*k/(n_splits+1));}
@@ -70,7 +63,7 @@ namespace {
     // Translate every body of `molecule` by the identical vector. Moving a whole symmetric assembly this way must leave its scattering unchanged whether it is 
     // represented as one body carrying its own symmetry, or as several fragments sharing a ReferenceSymmetry. 
     void rigid_translate(data::Molecule& molecule, const Vector3<double>& t) {
-        for (std::size_t i = 0; i < molecule.size_body(); ++i) {molecule.get_body(i).translate(t);}
+        for (int i = 0; i < molecule.size_body(); ++i) {molecule.get_body(i).translate(t);}
     }
 
     // Assert that `unsplit` and `split` scatter identically, both immediately and after a handful of random rigid translations of the whole assembly.
@@ -101,21 +94,21 @@ TEST_CASE("SplitElement: splitting a symmetric body preserves scattering under r
     int n_splits = GENERATE(1, 2, 3);
 
     auto seq_unsplit = build(symmetry_name); // kept alive: it owns the rigidbody below
-    auto rb_unsplit = seq_unsplit->_get_rigidbody();
+    auto* rb_unsplit = seq_unsplit->_get_rigidbody();
     REQUIRE(rb_unsplit != nullptr);
     REQUIRE(rb_unsplit->molecule.size_body() == 1);
     rb_unsplit->molecule.get_body(0).clear_hydration();
 
     auto ids = equidistant_split_ids(rb_unsplit->molecule.get_body(0), n_splits);
     auto seq_split = build(symmetry_name, split_line(ids));
-    auto rb_split = seq_split->_get_rigidbody();
+    auto* rb_split = seq_split->_get_rigidbody();
     REQUIRE(rb_split != nullptr);
-    REQUIRE(rb_split->molecule.size_body() == static_cast<std::size_t>(n_splits+1));
+    REQUIRE(rb_split->molecule.size_body() == n_splits+1);
 
     // Split must tie every fragment into one shared symmetric assembly: the first fragment owns a ReferenceSymmetry, the rest hold non-owning views onto it. 
     auto* ref = dynamic_cast<symmetry::ReferenceSymmetry*>(rb_split->molecule.get_body(0).symmetry().get(0));
     REQUIRE(ref != nullptr);
-    for (std::size_t b = 1; b < rb_split->molecule.size_body(); ++b) {
+    for (int b = 1; b < rb_split->molecule.size_body(); ++b) {
         auto* view = dynamic_cast<symmetry::ReferenceSymmetryView*>(rb_split->molecule.get_body(b).symmetry().get(0));
         REQUIRE(view != nullptr);
         CHECK(view->target() == ref);
@@ -139,7 +132,7 @@ TEST_CASE("SplitElement: splitting a body with no symmetry yields independent fr
     int n_splits = GENERATE(1, 2, 3);
 
     auto seq_unsplit = build(""); // kept alive: it owns the rigidbody below
-    auto rb_unsplit = seq_unsplit->_get_rigidbody();
+    auto* rb_unsplit = seq_unsplit->_get_rigidbody();
     REQUIRE(rb_unsplit != nullptr);
     REQUIRE(rb_unsplit->molecule.size_body() == 1);
     rb_unsplit->molecule.get_body(0).clear_hydration();
@@ -149,12 +142,12 @@ TEST_CASE("SplitElement: splitting a body with no symmetry yields independent fr
 
     auto ids = equidistant_split_ids(rb_unsplit->molecule.get_body(0), n_splits);
     auto seq_split = build("", split_line(ids));
-    auto rb_split = seq_split->_get_rigidbody();
+    auto* rb_split = seq_split->_get_rigidbody();
     REQUIRE(rb_split != nullptr);
-    REQUIRE(rb_split->molecule.size_body() == static_cast<std::size_t>(n_splits+1));
+    REQUIRE(rb_split->molecule.size_body() == n_splits+1);
 
     // no shared symmetry is created when the base body carries none
-    for (std::size_t b = 0; b < rb_split->molecule.size_body(); ++b) {
+    for (int b = 0; b < rb_split->molecule.size_body(); ++b) {
         CHECK(rb_split->molecule.get_body(b).size_symmetry() == 0);
     }
 
@@ -176,13 +169,13 @@ TEST_CASE("SplitElement: constrained optimization steps of split symmetric fragm
     auto ids = equidistant_split_ids(seq_probe->_get_rigidbody()->molecule.get_body(0), 3);
 
     auto seq = build("c2", split_line(ids) + "autoconstrain backbone\n");
-    auto rb = seq->_get_rigidbody();
+    auto* rb = seq->_get_rigidbody();
     REQUIRE(rb != nullptr);
     REQUIRE(rb->molecule.size_body() == 4);
 
     // the fragments do not all carry the same kind of symmetry - the primary owns a ReferenceSymmetry while the others hold ReferenceSymmetryViews - so a delta
     // generated for one of them can only be applied to that very body, and never to whichever body the transformed branch happens to begin with
-    for (unsigned int ibody = 0; ibody < rb->molecule.size_body(); ++ibody) {
+    for (int ibody = 0; ibody < rb->molecule.size_body(); ++ibody) {
         const auto& constraints = rb->constraints->get_body_constraints(ibody);
         REQUIRE(!constraints.empty());
 
@@ -200,19 +193,19 @@ TEST_CASE("SplitElement: constrained optimization steps of split symmetric fragm
 
         auto par = rb->parameter_generator->next(ibody);
         REQUIRE(par.symmetry_pars.has_value());
-        REQUIRE(par.symmetry_pars->size() == rb->molecule.get_body(ibody).size_symmetry());
-        rb->transformer->apply(std::move(par), constraints[0], ibody);
+        REQUIRE(static_cast<int>(par.symmetry_pars->size()) == rb->molecule.get_body(ibody).size_symmetry());
+        rb->transformer->apply(par, constraints[0], ibody);
 
         // the shared symmetry is driven through its owner alone; a delta generated for one of the views must leave it untouched
         auto after = shared_parameters();
         REQUIRE(after.size() == before.size());
         bool changed = false;
-        for (std::size_t i = 0; i < after.size(); ++i) {changed |= after[i] != before[i];}
+        for (int i = 0; i < static_cast<int>(after.size()); ++i) {changed |= after[i] != before[i];}
         CHECK(changed == (ibody == 0));
 
         rb->transformer->undo();
         auto restored = shared_parameters();
         REQUIRE(restored.size() == before.size());
-        for (std::size_t i = 0; i < restored.size(); ++i) {CHECK(restored[i] == before[i]);}
+        for (int i = 0; i < static_cast<int>(restored.size()); ++i) {CHECK(restored[i] == before[i]);}
     }
 }

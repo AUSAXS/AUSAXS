@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <utility>
 
 #include <fitter/Fitter.h>
 #include <mini/MiniFwd.h>
@@ -10,7 +11,7 @@ using namespace ausaxs::fitter;
 class TestFitter : public Fitter {
 public:
     TestFitter(std::vector<double> data, std::vector<double> model) 
-        : data(data), model(model) {}
+        : data(std::move(data)), model(std::move(model)) {}
     
     std::unique_ptr<FitResult> fit() override {
         return std::make_unique<FitResult>();
@@ -20,12 +21,12 @@ public:
         return {1.0, 0.0};
     }
     
-    unsigned int dof() const override {
-        return data.size() - 2;
+    int dof() const override {
+        return static_cast<int>(data.size()) - 2;
     }
     
-    unsigned int size() const override {
-        return data.size();
+    int size() const override {
+        return static_cast<int>(data.size());
     }
     
     std::vector<double> get_residuals(const std::vector<double>& params) override {

@@ -4,9 +4,9 @@
 #pragma once
 
 #include <io/IOFwd.h>
-#include <mini/detail/Landscape.h>
-#include <mini/detail/Evaluation.h>
 #include <math/Matrix.h>
+#include <mini/detail/Evaluation.h>
+#include <mini/detail/Landscape.h>
 
 #include <string>
 
@@ -40,14 +40,14 @@ namespace ausaxs::mini {
          * @brief Save the landscape to a file.
          *        Only the raw data is saved, not the evaluated points.
          */
-        void save(std::string filename) const;
+        void save(const std::string& filename) const;
 
         /**
          * @brief Load a landscape from a file.
          * 
          * @param filename Path to the file.
          */
-        void load(std::string filename);
+        void load(const std::string& filename);
 
         std::vector<double> x, y;
         Matrix<double> z;

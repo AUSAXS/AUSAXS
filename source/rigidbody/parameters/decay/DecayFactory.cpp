@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/parameters/decay/DecayFactory.h>
+
 #include <rigidbody/parameters/decay/ExponentialDecay.h>
 #include <rigidbody/parameters/decay/LinearDecay.h>
 #include <rigidbody/parameters/decay/NoDecay.h>
@@ -10,11 +11,11 @@
 
 using namespace ausaxs;
 
-std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(unsigned int iterations) {
+std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(int iterations) {
     return create_decay_strategy(iterations, settings::rigidbody::decay_strategy);
 }
 
-std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(unsigned int iterations, settings::rigidbody::DecayStrategyChoice choice) {
+std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(int iterations, settings::rigidbody::DecayStrategyChoice choice) {
     switch (choice) {
         case settings::rigidbody::DecayStrategyChoice::Linear:
             return std::make_unique<rigidbody::parameter::decay::LinearDecay>(iterations);

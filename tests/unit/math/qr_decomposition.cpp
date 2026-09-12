@@ -1,10 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <math/QRDecomposition.h>
 #include <math/Matrix.h>
-#include <math/Vector.h>
 #include <math/MatrixUtils.h>
+#include <math/QRDecomposition.h>
+#include <math/Vector.h>
 
 using namespace ausaxs;
 
@@ -67,7 +67,7 @@ TEST_CASE("QRDecomposition::solve") {
         Vector<double> x = qr.solve(b);
         Vector<double> Ax = A * x;
         
-        for (unsigned int i = 0; i < 2; i++) {
+        for (int i = 0; i < 2; i++) {
             REQUIRE_THAT(Ax[i], Catch::Matchers::WithinAbs(b[i], 1e-6));
         }
     }
@@ -80,7 +80,7 @@ TEST_CASE("QRDecomposition::solve") {
         Vector<double> x = qr.solve(b);
         Vector<double> Ax = A * x;
         
-        for (unsigned int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             REQUIRE_THAT(Ax[i], Catch::Matchers::WithinAbs(b[i], 1e-6));
         }
         

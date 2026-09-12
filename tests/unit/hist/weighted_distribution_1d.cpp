@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/Distribution1D.h>
+#include <hist/distribution/WeightedDistribution1D.h>
 #include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
@@ -10,7 +10,7 @@ using namespace ausaxs;
 TEST_CASE("WeightedDistribution1D::WeightedDistribution1D") {
     SECTION("default constructor") {
         hist::WeightedDistribution1D dist;
-        CHECK(dist.size() == 0);
+        CHECK(dist.empty());
     }
 
     SECTION("size constructor") {
@@ -134,7 +134,7 @@ TEST_CASE("WeightedDistribution1D::get_weighted_axis") {
         
         // For empty bins (count=0), should return the default bin center
         for (size_t i = 0; i < weighted_bins.size(); ++i) {
-            double expected = i*settings::axes::bin_width;
+            double expected = static_cast<double>(i)*settings::axes::bin_width;
             REQUIRE_THAT(weighted_bins[i], Catch::Matchers::WithinAbs(expected, 1e-6));
         }
     }

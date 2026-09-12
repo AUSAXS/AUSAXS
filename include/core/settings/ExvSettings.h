@@ -54,7 +54,7 @@ namespace ausaxs::settings {
         static ExvMethod exv_method; // The method used to model the excluded volume.
 
         /// @brief The available sets of per-atom displaced solvent volumes.
-        enum class ExvSet {
+        enum class ExvSet { //NOLINT
             Traube,                         // Traube 1895 as used by CRYSOL, Pepsi-SAXS & FoXS
             Voronoi_implicit_H,             // Voronoi volume with implicit hydrogens from Schaefer et al.
             Voronoi_explicit_H,             // Voronoi volume with explicit hydrogens from Schaefer et al.

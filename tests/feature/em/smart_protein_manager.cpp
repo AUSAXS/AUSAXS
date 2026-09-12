@@ -1,13 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/distribution/Distribution1D.h>
-#include <hydrate/generation/RadialHydration.h>
+#include <data/Molecule.h>
+#include <em/ImageStack.h>
 #include <em/manager/SimpleProteinManager.h>
 #include <em/manager/SmartProteinManager.h>
-#include <em/ImageStack.h>
-#include <data/Molecule.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <settings/All.h>
 
 #include <hist/hist_test_helper.h>
@@ -38,7 +37,7 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::set_charge_levels") {
 
 TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein", "[files]") {
     // we just check the size of the returned protein
-    unsigned int size = manager->get_protein(2)->size_atom();
+    int size = manager->get_protein(2)->size_atom();
     CHECK(size != 0);
     CHECK(manager->get_protein(1)->size_atom() > size);
     CHECK(manager->get_protein(3)->size_atom() < size);
@@ -61,10 +60,10 @@ TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
     for (int alpha = 16; alpha < 24; ++alpha) {
         images.set_protein_manager(std::make_unique<em::managers::SimpleProteinManager>(&images));
         hist::ScatteringProfile hist = images.get_histogram(alpha)->debye_transform();
-        for (unsigned int charge_levels = 20; charge_levels < 100; charge_levels += 20) {
+        for (int charge_levels = 20; charge_levels < 100; charge_levels += 20) {
             settings::em::charge_levels = charge_levels;
             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
-            REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
+            REQUIRE(static_cast<int>(images.get_protein_manager()->get_charge_levels().size()) == charge_levels+1);
             auto hist2 = images.get_histogram(alpha);
             REQUIRE(compare_hist(hist, images.get_histogram(alpha)->debye_transform()));
         }
@@ -86,11 +85,11 @@ TEST_CASE("SmartProteinManager::update_protein", "[files]") {
         hists[alpha] = images.get_histogram(alpha)->debye_transform();
     }
 
-    for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels += 10) {
+    for (int charge_levels = 10; charge_levels < 50; charge_levels += 10) {
         for (int alpha = alpha_min; alpha < alpha_max; ++alpha) {
             settings::em::charge_levels = charge_levels;
             images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
-            REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
+            REQUIRE(static_cast<int>(images.get_protein_manager()->get_charge_levels().size()) == charge_levels+1);
             REQUIRE(compare_hist(hists.at(alpha), images.get_histogram(alpha)->debye_transform()));
         }
     }
@@ -108,10 +107,10 @@ TEST_CASE("SmartProteinManager: consistency", "[files]") {
     // we need a hydration-sensitive map for this test
     em::ImageStack images("tests/files/emd_24889.map");
     auto res = images.fit("tests/files/SASDJG5.dat");
-    for (unsigned int charge_levels = 10; charge_levels < 50; charge_levels+= 10) {
+    for (int charge_levels = 10; charge_levels < 50; charge_levels+= 10) {
         settings::em::charge_levels = charge_levels;
         images.set_protein_manager(std::make_unique<em::managers::SmartProteinManager>(&images));
-        REQUIRE(images.get_protein_manager()->get_charge_levels().size() == charge_levels+1);
+        REQUIRE(static_cast<int>(images.get_protein_manager()->get_charge_levels().size()) == charge_levels+1);
         REQUIRE_THAT(images.fit("tests/files/SASDJG5.dat")->fval, Catch::Matchers::WithinRel(res->fval, 1e-3));
     }
 }

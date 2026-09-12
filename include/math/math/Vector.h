@@ -8,9 +8,9 @@
 #include <math/indexers/Indexer1D.h>
 
 #include <initializer_list>
-#include <vector>
-#include <string>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace ausaxs {
     /**
@@ -47,7 +47,7 @@ namespace ausaxs {
             /**
              * @brief Construct an empty vector of a given size. 
              */
-            Vector(unsigned int n) : data(n) {}
+            Vector(int n) : data(n) {}
 
             Vector<T>& operator=(std::initializer_list<T> l);
 
@@ -66,8 +66,8 @@ namespace ausaxs {
             // Conversion to std::vector. This is a O(N) operation.
             operator std::vector<T>();
 
-            const T& operator[](unsigned int i) const;
-            T& operator[](unsigned int i);
+            const T& operator[](int i) const;
+            T& operator[](int i);
 
             // Approximate equality, w ~ v
             template<numeric Q>
@@ -110,8 +110,8 @@ namespace ausaxs {
              */
             std::string to_string() const;
 
-            const typename std::vector<T>::const_iterator begin() const;
-            const typename std::vector<T>::const_iterator end() const;
+            typename std::vector<T>::const_iterator begin() const;
+            typename std::vector<T>::const_iterator end() const;
             typename std::vector<T>::iterator begin();
             typename std::vector<T>::iterator end();
 
@@ -121,17 +121,17 @@ namespace ausaxs {
             /**
              * @brief Get the size of this Vector.
              */
-            unsigned int size() const;
+            int size() const;
 
             /**
              * @brief Get the dimension of this Vector.
              */
-            unsigned int dim() const;
+            int dim() const;
 
             /**
              * @brief Resize this Vector to the given size.
              */
-            void resize(unsigned int size);
+            void resize(int size);
 
             /**
              * @brief Check if this Vector is empty.
@@ -167,7 +167,7 @@ namespace ausaxs {
     Vector<T> operator/(Vector<T> left, double right) {return left /= right;}
 
     template<numeric T>
-    Vector<T> operator-(Vector<T> v) {return Vector<T>(v.size()) - v;}
+    Vector<T> operator-(const Vector<T>& v) {return Vector<T>(v.size()) - v;}
 
     template<numeric T> 
     std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {os << v.to_string(); return os;}

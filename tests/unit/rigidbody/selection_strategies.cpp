@@ -1,16 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <rigidbody/selection/RandomBodySelect.h>
-#include <rigidbody/selection/SequentialBodySelect.h>
-#include <rigidbody/selection/RandomConstraintSelect.h>
-#include <rigidbody/selection/SequentialConstraintSelect.h>
-#include <rigidbody/selection/ManualSelect.h>
-#include <rigidbody/Rigidbody.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <rigidbody/BodySplitter.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraintCM.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
+#include <rigidbody/selection/ManualSelect.h>
+#include <rigidbody/selection/RandomBodySelect.h>
+#include <rigidbody/selection/RandomConstraintSelect.h>
+#include <rigidbody/selection/SequentialBodySelect.h>
+#include <rigidbody/selection/SequentialConstraintSelect.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -57,7 +57,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::RandomBodySel
     SECTION("next returns valid body indices") {
         for (int i = 0; i < 10; ++i) {
             auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
-            CHECK(ibody < rb->molecule.get_bodies().size());
+            CHECK(ibody < static_cast<int>(rb->molecule.get_bodies().size()));
         }
     }
 }
@@ -89,9 +89,9 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::SequentialBod
     SequentialBodySelect selector(rb.get());
 
     SECTION("next cycles through bodies in order") {
-        unsigned int num_bodies = rb->molecule.get_bodies().size();
+        int num_bodies = static_cast<int>(rb->molecule.get_bodies().size());
 
-        for (unsigned int i = 0; i < num_bodies * 2; ++i) {
+        for (int i = 0; i < num_bodies * 2; ++i) {
             auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
             CHECK(ibody == i % num_bodies);
         }
@@ -107,7 +107,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
 
         for (int i = 0; i < 50; ++i) {
             auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
-            CHECK(ibody < rb->molecule.get_bodies().size());
+            CHECK(ibody < static_cast<int>(rb->molecule.get_bodies().size()));
         }
     }
 
@@ -117,7 +117,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
 
         for (int i = 0; i < 50; ++i) {
             auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
-            CHECK(ibody < rb->molecule.get_bodies().size());
+            CHECK(ibody < static_cast<int>(rb->molecule.get_bodies().size()));
         }
     }
 
@@ -136,7 +136,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
 
         for (int i = 0; i < 50; ++i) {
             auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
-            CHECK(ibody < local_rb.molecule.get_bodies().size());
+            CHECK(ibody < static_cast<int>(local_rb.molecule.get_bodies().size()));
         }
 
     }
@@ -156,7 +156,7 @@ TEST_CASE_METHOD(SelectionStrategiesFixture, "SelectionStrategies::stale body co
 
         for (int i = 0; i < 50; ++i) {
             auto [ibody, iconstraint, isymmetry] = selector.next(ParameterMask::all());
-            CHECK(ibody < rb->molecule.get_bodies().size());
+            CHECK(ibody < static_cast<int>(rb->molecule.get_bodies().size()));
         }
     }
 }

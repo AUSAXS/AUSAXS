@@ -3,19 +3,19 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/selection/BodySelectStrategy.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
     class BodySelectElement : public LoopElementCallback, public GenericElement {
         public:
             BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
-            ~BodySelectElement();
+            ~BodySelectElement() override;
 
             void run() override;
 

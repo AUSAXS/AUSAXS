@@ -27,7 +27,7 @@ namespace ausaxs::io::pdb {
 			 * @param resSeq The residue sequence identifier. 
 			 * @param iCode iCode. 
 			 */
-			Terminate(int serial, const std::string& resName, char chainID, int resSeq, const std::string& iCode);
+			Terminate(int serial, std::string resName, char chainID, int resSeq, std::string iCode);
 
 			/**
 			 * @brief Get the RecordType of this object.

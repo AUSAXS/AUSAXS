@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/distribution/GenericDistribution1D.h>
+#include <container/ThreadLocalWrapper.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>
-#include <container/ThreadLocalWrapper.h>
-#include <utility/MultiThreading.h>
-#include <settings/HistogramSettings.h>
+#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/GeneralSettings.h>
+#include <settings/HistogramSettings.h>
+#include <utility/MultiThreading.h>
 
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #define DEBUG_INFO false
 
@@ -46,7 +46,7 @@ namespace ausaxs::hist::distance_calculator {
             /**
              * @brief Construct a kernel whose result histograms span @a bin_count bins.
              */
-            explicit SimpleCPU(unsigned int bin_count) : bin_count(bin_count) {}
+            explicit SimpleCPU(int bin_count) : bin_count(bin_count) {}
 
             /**
              * @brief Drain the thread pool before any of this object's state is released.
@@ -56,7 +56,7 @@ namespace ausaxs::hist::distance_calculator {
              * would otherwise unwind past the results while the pool is still writing to them.
              */
             ~SimpleCPU() {
-                auto pool = utility::multi_threading::get_global_pool();
+                auto* pool = utility::multi_threading::get_global_pool();
                 pool->purge();
                 pool->wait();
             }
@@ -99,7 +99,7 @@ namespace ausaxs::hist::distance_calculator {
             run_result run();
 
         private:
-            unsigned int bin_count;
+            int bin_count;
             std::vector<std::unique_ptr<container::ThreadLocalWrapper<GenericDistribution1D_t>>> self_results, cross_results;
             std::unordered_map<int, int> self_merge_ids, cross_merge_ids;
 
@@ -116,7 +116,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_
     const hist::detail::CompactCoordinates<variable_bin_width>& data, 
     int merge_id
 ) {
-    auto pool = utility::multi_threading::get_global_pool();
+    auto* pool = utility::multi_threading::get_global_pool();
 
     int res_idx;
     if (!self_merge_ids.contains(merge_id)) {
@@ -172,7 +172,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_
             );
 
             if constexpr (weighted_bins) {
-                p_aa.add_index(0, detail::WeightedEntry(total_weight, total_weight, 0));
+                p_aa.add_index(0, detail::WeightedEntry(total_weight, static_cast<std::int64_t>(total_weight), 0));
             } else {
                 p_aa.add_index(0, total_weight);
             }
@@ -187,7 +187,7 @@ int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_wid
     const hist::detail::CompactCoordinates<variable_bin_width>& data_2, 
     int merge_id
 ) {
-    auto pool = utility::multi_threading::get_global_pool();
+    auto* pool = utility::multi_threading::get_global_pool();
 
     int res_idx;
     if (!cross_merge_ids.contains(merge_id)) {
@@ -246,7 +246,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_
 
 template<bool weighted_bins, bool variable_bin_width>
 inline typename ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::run_result ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::run() {
-    auto pool = utility::multi_threading::get_global_pool();
+    auto* pool = utility::multi_threading::get_global_pool();
     pool->wait();
     run_result result;
 
@@ -355,43 +355,43 @@ inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_
 // case 60 is included specifically for the icosahedral PolyhedralSymmetry (60 copies)
 template<bool weighted_bins, bool variable_bin_width>
 inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::enqueue_calculate_cross(
-    const hist::detail::CompactCoordinates<variable_bin_width>& data_1,
-    const hist::detail::CompactCoordinates<variable_bin_width>& data_2,
+    const hist::detail::CompactCoordinates<variable_bin_width>& a1,
+    const hist::detail::CompactCoordinates<variable_bin_width>& a2,
     int scaling,
     int merge_id
 ) {
     switch (scaling) {
-        case 1:  return enqueue_calculate_cross<1>(data_1, data_2, merge_id);
-        case 2:  return enqueue_calculate_cross<2>(data_1, data_2, merge_id);
-        case 3:  return enqueue_calculate_cross<3>(data_1, data_2, merge_id);
-        case 4:  return enqueue_calculate_cross<4>(data_1, data_2, merge_id);
-        case 5:  return enqueue_calculate_cross<5>(data_1, data_2, merge_id);
-        case 6:  return enqueue_calculate_cross<6>(data_1, data_2, merge_id);
-        case 7:  return enqueue_calculate_cross<7>(data_1, data_2, merge_id);
-        case 8:  return enqueue_calculate_cross<8>(data_1, data_2, merge_id);
-        case 9:  return enqueue_calculate_cross<9>(data_1, data_2, merge_id);
-        case 10: return enqueue_calculate_cross<10>(data_1, data_2, merge_id);
-        case 11: return enqueue_calculate_cross<11>(data_1, data_2, merge_id);
-        case 12: return enqueue_calculate_cross<12>(data_1, data_2, merge_id);
-        case 13: return enqueue_calculate_cross<13>(data_1, data_2, merge_id);
-        case 14: return enqueue_calculate_cross<14>(data_1, data_2, merge_id);
-        case 15: return enqueue_calculate_cross<15>(data_1, data_2, merge_id);
-        case 16: return enqueue_calculate_cross<16>(data_1, data_2, merge_id);
-        case 17: return enqueue_calculate_cross<17>(data_1, data_2, merge_id);
-        case 18: return enqueue_calculate_cross<18>(data_1, data_2, merge_id);
-        case 19: return enqueue_calculate_cross<19>(data_1, data_2, merge_id);
-        case 20: return enqueue_calculate_cross<20>(data_1, data_2, merge_id);
-        case 21: return enqueue_calculate_cross<21>(data_1, data_2, merge_id);
-        case 22: return enqueue_calculate_cross<22>(data_1, data_2, merge_id);
-        case 23: return enqueue_calculate_cross<23>(data_1, data_2, merge_id);
-        case 24: return enqueue_calculate_cross<24>(data_1, data_2, merge_id);
-        case 25: return enqueue_calculate_cross<25>(data_1, data_2, merge_id);
-        case 26: return enqueue_calculate_cross<26>(data_1, data_2, merge_id);
-        case 27: return enqueue_calculate_cross<27>(data_1, data_2, merge_id);
-        case 28: return enqueue_calculate_cross<28>(data_1, data_2, merge_id);
-        case 29: return enqueue_calculate_cross<29>(data_1, data_2, merge_id);
-        case 30: return enqueue_calculate_cross<30>(data_1, data_2, merge_id);
-        case 60: return enqueue_calculate_cross<60>(data_1, data_2, merge_id);
+        case 1:  return enqueue_calculate_cross<1>(a1, a2, merge_id);
+        case 2:  return enqueue_calculate_cross<2>(a1, a2, merge_id);
+        case 3:  return enqueue_calculate_cross<3>(a1, a2, merge_id);
+        case 4:  return enqueue_calculate_cross<4>(a1, a2, merge_id);
+        case 5:  return enqueue_calculate_cross<5>(a1, a2, merge_id);
+        case 6:  return enqueue_calculate_cross<6>(a1, a2, merge_id);
+        case 7:  return enqueue_calculate_cross<7>(a1, a2, merge_id);
+        case 8:  return enqueue_calculate_cross<8>(a1, a2, merge_id);
+        case 9:  return enqueue_calculate_cross<9>(a1, a2, merge_id);
+        case 10: return enqueue_calculate_cross<10>(a1, a2, merge_id);
+        case 11: return enqueue_calculate_cross<11>(a1, a2, merge_id);
+        case 12: return enqueue_calculate_cross<12>(a1, a2, merge_id);
+        case 13: return enqueue_calculate_cross<13>(a1, a2, merge_id);
+        case 14: return enqueue_calculate_cross<14>(a1, a2, merge_id);
+        case 15: return enqueue_calculate_cross<15>(a1, a2, merge_id);
+        case 16: return enqueue_calculate_cross<16>(a1, a2, merge_id);
+        case 17: return enqueue_calculate_cross<17>(a1, a2, merge_id);
+        case 18: return enqueue_calculate_cross<18>(a1, a2, merge_id);
+        case 19: return enqueue_calculate_cross<19>(a1, a2, merge_id);
+        case 20: return enqueue_calculate_cross<20>(a1, a2, merge_id);
+        case 21: return enqueue_calculate_cross<21>(a1, a2, merge_id);
+        case 22: return enqueue_calculate_cross<22>(a1, a2, merge_id);
+        case 23: return enqueue_calculate_cross<23>(a1, a2, merge_id);
+        case 24: return enqueue_calculate_cross<24>(a1, a2, merge_id);
+        case 25: return enqueue_calculate_cross<25>(a1, a2, merge_id);
+        case 26: return enqueue_calculate_cross<26>(a1, a2, merge_id);
+        case 27: return enqueue_calculate_cross<27>(a1, a2, merge_id);
+        case 28: return enqueue_calculate_cross<28>(a1, a2, merge_id);
+        case 29: return enqueue_calculate_cross<29>(a1, a2, merge_id);
+        case 30: return enqueue_calculate_cross<30>(a1, a2, merge_id);
+        case 60: return enqueue_calculate_cross<60>(a1, a2, merge_id);
         default: throw ausaxs::except::runtime_error("SimpleCPU::enqueue_calculate_cross: unsupported scaling factor (" + std::to_string(scaling) + ")");
     }
 }

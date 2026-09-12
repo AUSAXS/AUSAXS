@@ -10,7 +10,7 @@ TEST_CASE("find_minima") {
         std::vector<double> y = {16, 9, 4, 1, 0, 1, 4, 9, 16};
         
         auto minima = find_minima(x, y, 1, 0.1);
-        REQUIRE(minima.size() > 0);
+        REQUIRE(!minima.empty());
         CHECK(minima[0] == 4);
     }
 
@@ -19,7 +19,7 @@ TEST_CASE("find_minima") {
         std::vector<double> y = {10, 8, 5, 2, 5, 8, 10};
         
         auto minima = find_minima(x, y, 1, 0.5);
-        REQUIRE(minima.size() > 0);
+        REQUIRE(!minima.empty());
         CHECK(minima[0] == 3);
     }
 }

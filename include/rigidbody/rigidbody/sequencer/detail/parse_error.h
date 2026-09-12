@@ -6,8 +6,8 @@
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <utility/Exceptions.h>
 
-#include <string>
 #include <numeric>
+#include <string>
 
 namespace ausaxs::rigidbody::sequencer::except {
     struct parse_error : public ausaxs::except::base {

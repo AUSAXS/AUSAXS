@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <utility/Utility.h>
+
 #include <utility/Console.h>
 
 using namespace ausaxs;
@@ -15,40 +16,40 @@ bool utility::equal(double a, double b, double c) {
 }
 
 std::string utility::uid() {
-    static unsigned int i = 0;
+    static int i = 0;
     return std::to_string(i++);
 }
 
 std::string utility::uid(const std::string& s) {return s + uid();}
 
-std::ostream& utility::detail::operator<<(std::ostream& os, const __dummy& obj) {
+std::ostream& utility::detail::operator<<(std::ostream& os, const _dummy& obj) {
     os << obj.s;
     return os;
 }
 
-std::string utility::round(double val, unsigned int decimals) noexcept {
+std::string utility::round(double val, int decimals) noexcept {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(decimals) << val;
     return ss.str();
 }
 
-utility::detail::__dummy utility::fixedwidth(double number, unsigned int width) {
+utility::detail::_dummy utility::fixedwidth(double number, int width) {
     std::string s = std::to_string(number);
     // remove unnecessary 0s
-    unsigned int end = s.size();
-    for (unsigned int i = end; i > 0; i--) {
+    int end = static_cast<int>(s.size());
+    for (int i = end; i > 0; i--) {
         if (s[i-1] != '0') {
             end = i+1;
             break;
         }
     }
-    if (end < s.size()) {
+    if (end < static_cast<int>(s.size())) {
         s.resize(end);
     }
 
     std::string o;
-    for (unsigned int i = 0; i < width; i++) {
-        if (i < s.size()) {
+    for (int i = 0; i < width; i++) {
+        if (i < static_cast<int>(s.size())) {
             o += s[i];
         } else {
             o += ' ';

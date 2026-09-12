@@ -1,16 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/All.h>
+#include <data/Molecule.h>
+#include <fitter/FitResult.h>  // IWYU pragma: keep
+#include <io/ExistingFile.h>
+#include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/BodySplitter.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <data/Molecule.h>
-#include <fitter/FitResult.h>
+#include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/elements/All.h>
 #include <settings/All.h>
-#include <io/ExistingFile.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

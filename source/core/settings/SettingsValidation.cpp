@@ -2,10 +2,9 @@
 // Author: Kristian Lytje
 
 #include <settings/SettingsValidation.h>
+
 #include <settings/All.h>
-#include <constants/ConstantsAxes.h>
 #include <utility/Console.h>
-#include <utility/Logging.h>
 
 using namespace ausaxs;
 
@@ -52,16 +51,12 @@ void settings::validate_settings() {
 
     {   // check for grid cell width compatibility
         double grid_ratio = settings::grid::exv::width/settings::grid::cell_width;
-        if (std::abs(grid_ratio - int(grid_ratio))) {
+        if (std::abs(grid_ratio - int(grid_ratio)) != 0.0) {
             console::print_warning("Warning: The grid cell width is not a multiple of the excluded volume radius. This may lead to artifacts in the excluded volume calculation.");
         }
     }
 
     {   // if the user wants to keep hydrogens, they should be treated explicitly
-        if (settings::general::keep_hydrogens) {
-            settings::molecule::implicit_hydrogens = false;
-        } else {
-            settings::molecule::implicit_hydrogens = true;
-        }
+        settings::molecule::implicit_hydrogens = !settings::general::keep_hydrogens;
     }
 }

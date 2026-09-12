@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/parameters/ParameterAmplitudes.h>
+
 #include <rigidbody/Rigidbody.h>
 
 #include <numbers>

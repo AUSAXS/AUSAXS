@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/distribution/Distribution1D.h>
+
 #include <hist/distribution/WeightedDistribution1D.h>
 
 #include <algorithm>
@@ -36,12 +37,12 @@ void Distribution1D::clear(int32_t i) {
 }
 
 Distribution1D& Distribution1D::operator+=(const Distribution1D& rhs) {
-    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::plus<>());
+    std::ranges::transform(*this, rhs, this->begin(), std::plus<>());
     return *this;
 }
 
 Distribution1D& Distribution1D::operator-=(const Distribution1D& rhs) {
-    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::minus<>());
+    std::ranges::transform(*this, rhs, this->begin(), std::minus<>());
     return *this;
 }
 

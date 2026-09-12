@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <hist/histogram_manager/HistogramManager.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/histogram_manager/HistogramManager.h>
 
 namespace ausaxs::hist {
 	/**
@@ -14,10 +14,11 @@ namespace ausaxs::hist {
 	 * To implicitly include it, subtract the average excluded volume charge from each atom. 
 	 */
 	template<bool weighted_bins, bool variable_bin_width>
+	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class HistogramManagerMT : public HistogramManager<weighted_bins, variable_bin_width> {
 		public:
 			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
-			virtual ~HistogramManagerMT() override;
+			~HistogramManagerMT() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 

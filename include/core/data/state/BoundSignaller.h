@@ -16,22 +16,22 @@ namespace ausaxs::signaller {
 			BoundSignaller(BoundSignaller&& rhs) noexcept = default;
 			~BoundSignaller() override = default;
 
-            BoundSignaller(unsigned int id, state::StateManager* const owner);
+            BoundSignaller(int id, state::StateManager* owner);
 
             void modified_external() const override;
             void modified_internal() const override;
             void modified_symmetry(int i) const override;
             void modified_hydration() const override;
-            void set_symmetry_size(std::size_t size) const override;
-            virtual std::size_t get_symmetry_size() const override;
+            void set_symmetry_size(int size) const override;
+            int get_symmetry_size() const override;
 
             /**
              * @brief Get the id of this signaller. 
              */
-            unsigned int get_id() const;
+            int get_id() const;
 
         private: 
             state::StateManager* const owner;
-            unsigned int id;
+            int id;
     };
 }

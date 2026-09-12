@@ -4,8 +4,8 @@
 #include <plots/Styles.h>
 
 #include <array>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 using namespace ausaxs;
 

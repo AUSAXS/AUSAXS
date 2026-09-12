@@ -5,12 +5,11 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <math/MatrixUtils.h>
 #include <math/Superposition.h>
 #include <math/SymmetricEigen.h>
-#include <math/MatrixUtils.h>
 #include <math/Vector3.h>
 
-#include <numbers>
 #include <random>
 
 using namespace ausaxs;
@@ -22,14 +21,14 @@ namespace {
         std::uniform_real_distribution<double> dist(-8, 8);
         std::vector<Vector3<double>> v;
         v.reserve(n);
-        for (int i = 0; i < n; ++i) {v.push_back({dist(gen), dist(gen), dist(gen)});}
+        for (int i = 0; i < n; ++i) {v.emplace_back(dist(gen), dist(gen), dist(gen));}
         return v;
     }
 
     double matrix_diff(const Matrix<double>& A, const Matrix<double>& B) {
         double d = 0;
-        for (unsigned int i = 0; i < 3; ++i) {
-            for (unsigned int j = 0; j < 3; ++j) {d += std::abs(A(i, j) - B(i, j));}
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {d += std::abs(A(i, j) - B(i, j));}
         }
         return d;
     }
@@ -47,7 +46,7 @@ TEST_CASE("symmetric_eigen") {
     SECTION("eigenpairs satisfy A v = lambda v") {
         Matrix<double> A = {{4, 1, -2}, {1, 2, 0}, {-2, 0, 3}};
         auto e = symmetric_eigen(A);
-        for (unsigned int k = 0; k < 3; ++k) {
+        for (int k = 0; k < 3; ++k) {
             Vector3<double> v{e.vectors[k][0], e.vectors[k][1], e.vectors[k][2]};
             Vector3<double> Av = A*v;
             Vector3<double> lv = e.values[k]*v;
@@ -88,6 +87,7 @@ TEST_CASE("superpose") {
 
         auto from = random_points(1);
         std::vector<Vector3<double>> to;
+        to.reserve(from.size());
         for (const auto& p : from) {to.push_back(R*p + tr);}
 
         auto res = superpose(from, to);

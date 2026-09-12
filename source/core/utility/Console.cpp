@@ -2,13 +2,17 @@
 // Author: Kristian Lytje
 
 #include <utility/Console.h>
+
+#include <settings/GeneralSettings.h>
 #include <utility/ConsoleColor.h>
 #include <utility/Logging.h>
-#include <settings/GeneralSettings.h>
 
 using namespace ausaxs;
 
-std::string indentation = "";
+namespace {
+    std::string indentation;
+}
+
 void console::indent(int level) {
     indentation += std::string(level, '\t');
 }
@@ -60,7 +64,9 @@ void console::print_text(std::string_view text, color::color text_color) {
     console::print(indentation + std::string(text), text_color);
 }
 
-bool minor_messages = true;
+namespace {
+    bool minor_messages = true;
+}
 void console::print_text_minor(std::string_view text, color::color text_color) {
     logging::log_console(text);
     if (!minor_messages || !settings::general::verbose) {return;}

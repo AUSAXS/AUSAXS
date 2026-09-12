@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <io/pdb/PDBFwd.h>
-#include <io/pdb/Terminate.h>
-#include <io/pdb/Footer.h>
-#include <io/pdb/Header.h>
-#include <io/pdb/PDBAtom.h>
-#include <io/pdb/PDBWater.h>
-#include <utility/TypeTraits.h>
 #include <data/DataFwd.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/AtomMetadata.h>
 #include <data/atoms/Water.h>
+#include <io/pdb/Footer.h>
+#include <io/pdb/Header.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBFwd.h>
+#include <io/pdb/PDBWater.h>
+#include <io/pdb/Terminate.h>
+#include <utility/TypeTraits.h>
 
 #include <string>
 #include <vector>
@@ -36,21 +36,21 @@ namespace ausaxs::io::pdb {
             /**
              * @brief Construct a new PDBStructure based on two vectors of atoms. 
              * 
-             * @param protein_atoms A vector containing the constituent atoms of the molecule. 
-             * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
+             * @param atoms A vector containing the constituent atoms of the molecule. 
+             * @param waters A vector containing the water molecules for an existing hydration layer. 
              */
-            PDBStructure(const std::vector<PDBAtom>& protein_atoms, const std::vector<PDBWater>& hydration_atoms);
+            PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters);
 
             /**
              * @brief Construct a new PDBStructure based on two vectors of atoms. 
              * 
-             * @param protein_atoms A vector containing the constituent atoms of the molecule. 
-             * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
+             * @param atoms A vector containing the constituent atoms of the molecule. 
+             * @param waters A vector containing the water molecules for an existing hydration layer. 
              * @param header The header of this PDBStructure. 
              * @param footer The footer of this PDBStructure. 
              * @param terminate The terminate of this PDBStructure. 
              */
-            PDBStructure(const std::vector<PDBAtom>& protein_atoms, const std::vector<PDBWater>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate);
+            PDBStructure(const std::vector<PDBAtom>& atoms, const std::vector<PDBWater>& waters, Header header, Footer footer, Terminate terminate);
 
             PDBStructure(const data::Body& body);
             PDBStructure(const data::Molecule& molecule);

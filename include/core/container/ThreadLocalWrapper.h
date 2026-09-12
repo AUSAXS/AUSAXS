@@ -6,12 +6,12 @@
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
 
-#include <type_traits>
-#include <utility>
-#include <thread>
-#include <vector>
 #include <functional>
+#include <thread>
+#include <type_traits>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace ausaxs::container {
     template <typename X>
@@ -108,8 +108,8 @@ namespace ausaxs::container {
             std::unordered_map<std::thread::id, T> data;
     };
 
-    static_assert(!std::is_constructible<ThreadLocalWrapper<int&>>::value);
-    static_assert(!std::is_constructible<ThreadLocalWrapper<int*>>::value);    
-    static_assert(!std::is_constructible<ThreadLocalWrapper<const int&>>::value);
-    static_assert(!std::is_constructible<ThreadLocalWrapper<const int*>>::value);    
+    static_assert(!std::is_constructible_v<ThreadLocalWrapper<int&>>);
+    static_assert(!std::is_constructible_v<ThreadLocalWrapper<int*>>);    
+    static_assert(!std::is_constructible_v<ThreadLocalWrapper<const int&>>);
+    static_assert(!std::is_constructible_v<ThreadLocalWrapper<const int*>>);    
 }

@@ -2,15 +2,15 @@
 // Author: Kristian Lytje
 
 #include <hydrate/generation/HydrationFactory.h>
-#include <hydrate/generation/JanHydration.h>
-#include <hydrate/generation/RadialHydration.h>
-#include <hydrate/generation/AxesHydration.h>
-#include <hydrate/generation/PepsiHydration.h>
-#include <hydrate/generation/NoHydration.h>
+
 #include <hydrate/culling/CullingFactory.h>
+#include <hydrate/generation/AxesHydration.h>
+#include <hydrate/generation/JanHydration.h>
+#include <hydrate/generation/NoHydration.h>
+#include <hydrate/generation/PepsiHydration.h>
+#include <hydrate/generation/RadialHydration.h>
 #include <settings/MoleculeSettings.h>
 #include <utility/Exceptions.h>
-#include <math/Vector3.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;

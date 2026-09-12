@@ -2,8 +2,8 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/state/BoundSignaller.h>
-#include <data/state/UnboundSignaller.h>
 #include <data/state/StateManager.h>
+#include <data/state/UnboundSignaller.h>
 
 using namespace ausaxs;
 

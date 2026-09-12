@@ -12,11 +12,12 @@ namespace ausaxs::hist {
 	 *		  This is equivalent to the CRYSOL implementation. 
 	 */
 	template<bool weighted_bins, bool variable_bin_width>
+	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class HistogramManagerMTFFExplicit : public HistogramManagerMTFFBase<weighted_bins, variable_bin_width> {
 		public:
 			using HistogramManagerMTFFBase<weighted_bins, variable_bin_width>::HistogramManagerMTFFBase;
 
-			virtual ~HistogramManagerMTFFExplicit() override;
+			~HistogramManagerMTFFExplicit() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 

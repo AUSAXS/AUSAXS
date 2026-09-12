@@ -1,19 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/Molecule.h>
 #include <data/Body.h>
-#include <io/pdb/PDBStructure.h>
+#include <data/Molecule.h>
 #include <io/detail/structure/PDBReader.h>
 #include <io/detail/structure/PDBWriter.h>
-#include <utility/Console.h>
+#include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>
 
-#include <vector>
-#include <string>
 #include <iostream>
+#include <string>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -203,9 +202,9 @@ TEST_CASE("PDBWriter: writing multifile pdb") {
 
     Molecule protein4(base);
     REQUIRE(protein.size_body() == protein4.size_body());
-    for (unsigned int i = 0; i < protein.get_bodies().size(); ++i) {
+    for (int i = 0; i < static_cast<int>(protein.get_bodies().size()); ++i) {
         if (!protein.get_body(i).equals_content(protein4.get_body(i))) {
-            for (unsigned int j = 0; j < protein.get_body(i).size_atom(); ++j) {
+            for (int j = 0; j < protein.get_body(i).size_atom(); ++j) {
                 if (!(protein.get_body(i).get_atom(j) == protein4.get_body(i).get_atom(j))) {
                     std::cout << "Difference in body " << i << " atom " << j << std::endl;
                     std::cout << "  Original: " << protein.get_body(i).get_atom(j).coordinates() << " " << protein.get_body(i).get_atom(j).weight() << std::endl;
@@ -272,14 +271,14 @@ TEST_CASE("PDBStructure: save") {
     auto atoms2 = protein2.atoms;
 
     REQUIRE(atoms1.size() == atoms2.size());
-    for (unsigned int i = 0; i < atoms1.size(); i++) {
+    for (int i = 0; i < static_cast<int>(atoms1.size()); i++) {
         REQUIRE(atoms1[i].equals_content(atoms2[i]));
     }
 
     auto waters1 = protein.waters;
     auto waters2 = protein2.waters;
     REQUIRE(waters1.size() == waters2.size());
-    for (unsigned int i = 0; i < waters1.size(); i++) {
+    for (int i = 0; i < static_cast<int>(waters1.size()); i++) {
         REQUIRE(waters1[i].equals_content(waters2[i]));
     }
 }

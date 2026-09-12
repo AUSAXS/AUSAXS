@@ -18,7 +18,7 @@ namespace ausaxs::hydrate {
         public:
             AxesHydration(observer_ptr<data::Molecule> protein);
             AxesHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
-            virtual ~AxesHydration();
+            ~AxesHydration() override;
 
             std::span<grid::GridMember<data::Water>> generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) override;
 
@@ -32,6 +32,6 @@ namespace ausaxs::hydrate {
             * @param loc the location to be checked. 
             * @return True if this is an acceptable location, false otherwise.
             */
-            bool collision_check(const Vector3<unsigned int>& loc, double ra) const;
+            bool collision_check(const Vector3<int>& loc, double ra) const;
     };
 }

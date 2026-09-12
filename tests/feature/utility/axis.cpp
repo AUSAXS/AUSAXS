@@ -1,10 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <constants/ConstantsAxes.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Axis.h>
 #include <utility/Limit.h>
-#include <constants/Constants.h>
-#include <settings/HistogramSettings.h>
 
 #include <iostream>
 
@@ -140,7 +140,7 @@ TEST_CASE("Axis::get_bin") {
 
     SECTION("double") {
         Axis axis(1, 5, 20);
-        for (unsigned int i = 0; i < axis.bins; ++i) {
+        for (int i = 0; i < axis.bins; ++i) {
             if (axis.get_bin(axis.min + i*axis.width()) != i) {
                 std::cout << "i: " << i << std::endl;
                 std::cout << "\tget_bin(" << axis.min + i*axis.width() << "): " << axis.get_bin(axis.min + i*axis.width()) << std::endl;
@@ -161,7 +161,7 @@ TEST_CASE("Axis::get_bin_value") {
 
     SECTION("simple") {
         Axis axis(0, 10, 10);
-        for (unsigned int i = 0; i < axis.bins; ++i) {
+        for (int i = 0; i < axis.bins; ++i) {
             CHECK(axis.get_bin_value(i) == i);
         }        
 
@@ -174,15 +174,15 @@ TEST_CASE("Axis::get_bin_value") {
 
     SECTION("complex") {
         Axis axis(1, 5, 20);
-        for (unsigned int i = 0; i < axis.bins; ++i) {
+        for (int i = 0; i < axis.bins; ++i) {
             CHECK_THAT(axis.get_bin_value(i), Catch::Matchers::WithinAbs(axis.min + i*axis.width(), 1e-6));
         }
     }
 
     SECTION("d_axis") {
-        auto& d_axis = constants::axes::d_axis;
+        const auto& d_axis = constants::axes::d_axis;
         double spacing = constants::axes::d_vals[1] - constants::axes::d_vals[0];
-        for (unsigned int i = 0; i < d_axis.bins; ++i) {
+        for (int i = 0; i < d_axis.bins; ++i) {
             CHECK_THAT(d_axis.get_bin_value(i), Catch::Matchers::WithinAbs(spacing*i, 1e-6));
         }
     }
@@ -213,10 +213,10 @@ TEST_CASE("Axis::sub_axis") {
         // settings::axes::qmax is not an exact entry in constants::axes::q_axis, so we can only check that we are close
         CHECK_THAT(q_axis.max, Catch::Matchers::WithinAbs(settings::axes::qmax, 1e-2)); 
         CHECK(q_axis.min == settings::axes::qmin);
-        CHECK_THAT(q_axis.bins, Catch::Matchers::WithinAbs(constants::axes::q_axis.bins/2, 1.01)); 
+        CHECK_THAT(q_axis.bins, Catch::Matchers::WithinAbs(constants::axes::q_axis.bins/2., 1.01)); 
 
         auto qvals = q_axis.as_vector();
-        for (unsigned int i = 0; i < q_axis.bins; ++i) {
+        for (int i = 0; i < q_axis.bins; ++i) {
             CHECK_THAT(qvals[i], Catch::Matchers::WithinAbs(constants::axes::q_vals[i], 1e-6));
         }
     }

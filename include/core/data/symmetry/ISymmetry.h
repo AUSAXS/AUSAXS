@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <math/Vector3.h>
 #include <math/Matrix.h>
+#include <math/Vector3.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -72,7 +72,7 @@ namespace ausaxs::symmetry {
          * @brief True if the (repetitions+1)-th copy coincides with the original body.
          */
         virtual bool is_closed() const = 0;
-        virtual unsigned int repetitions() const = 0;
+        virtual int repetitions() const = 0;
         virtual std::unique_ptr<ISymmetry> clone() const = 0;
         bool operator==(const ISymmetry& rhs) const = delete;
 

@@ -2,9 +2,9 @@
 // Author: Kristian Lytje
 
 #include <em/manager/ProteinManagerFactory.h>
+
+#include <data/Molecule.h>  // IWYU pragma: keep
 #include <em/manager/SmartProteinManager.h>
-#include <em/manager/SimpleProteinManager.h>
-#include <data/Molecule.h>
 
 using namespace ausaxs;
 

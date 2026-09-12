@@ -22,9 +22,9 @@ extern "C" API int molecule_from_arrays(
 
 extern "C" API int molecule_get_data(
     int molecule_id,
-    double** ax, double** ay, double** az, double** aw, const char*** aff,
-    double** wx, double** wy, double** wz, double** ww,
-    int* an, int* wn, int* status
+    double** ax_out, double** ay_out, double** az_out, double** aw_out, const char*** aform_factors_out,
+    double** wx_out, double** wy_out, double** wz_out, double** ww_out,
+    int* na, int* nw, int* status
 );
 
 extern "C" API void molecule_hydrate(

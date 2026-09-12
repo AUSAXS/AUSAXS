@@ -1,26 +1,32 @@
 #pragma once
 
 #include <math/Vector3.h>
-#include <math.h>
+
+#include <cassert>
+#include <cmath>
+
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
+#endif
 
 namespace ausaxs {
     template<numeric T>
-    T Vector3<T>::operator[] (unsigned int i) const {
-        #if (SAFE_MATH) 
-            if (i >= 3) [[unlikely]] {
-                throw std::invalid_argument("Vector3::operator[]: Index out of bounds (" + std::to_string(i) + " >= 3)");
-            }
-        #endif
+    T Vector3<T>::operator[] (int i) const {
+        assert([&]() -> bool {
+            if (i < 3) {return true;}
+            std::cout << "Vector3::operator[]: Index out of bounds (" << i << " >= 3)" << std::endl;
+            return false;
+        }() && "Vector3::operator[]: Index out of bounds.");
         return data[i];
     }
 
     template<numeric T>
-    T& Vector3<T>::operator[] (unsigned int i) {
-        #if (SAFE_MATH) 
-            if (i >= 3) [[unlikely]] {
-                throw std::invalid_argument("Vector3::operator[]: Index out of bounds (" + std::to_string(i) + " >= 3)");
-            }
-        #endif
+    T& Vector3<T>::operator[] (int i) {
+        assert([&]() -> bool {
+            if (i < 3) {return true;}
+            std::cout << "Vector3::operator[]: Index out of bounds (" << i << " >= 3)" << std::endl;
+            return false;
+        }() && "Vector3::operator[]: Index out of bounds.");
         return data[i];
     }
 
@@ -132,7 +138,7 @@ namespace ausaxs {
     }
 
     template<numeric T>
-    std::string Vector3<T>::to_string(std::string message) const {
+    std::string Vector3<T>::to_string(const std::string& message) const {
         return message + "(" + std::to_string(x()) + ", " + std::to_string(y()) + ", " + std::to_string(z()) + ")";
     }
 
@@ -152,20 +158,20 @@ namespace ausaxs {
     }
 
     template<numeric T>
-    size_t Vector3<T>::size() const {return 3;}
+    int Vector3<T>::size() const {return 3;}
 
     template<numeric T>
     Vector3<T> Vector3<T>::copy() const {
         return Vector3<T>(x(), y(), z());
     }
 
-    template<numeric T> template<size_t i> T& Vector3<T>::get() {
+    template<numeric T> template<int i> T& Vector3<T>::get() {
         if constexpr (i == 0) {return x();}
         else if constexpr (i == 1) {return y();}
         else if constexpr (i == 2) {return z();}
     }
 
-    template<numeric T> template<size_t i> const T& Vector3<T>::get() const {
+    template<numeric T> template<int i> const T& Vector3<T>::get() const {
         if constexpr (i == 0) {return x();}
         else if constexpr (i == 1) {return y();}
         else if constexpr (i == 2) {return z();}
@@ -173,8 +179,8 @@ namespace ausaxs {
 
     template<numeric T> typename std::array<T, 3>::iterator Vector3<T>::begin() {return data.begin();}
     template<numeric T> typename std::array<T, 3>::iterator Vector3<T>::end() {return data.end();}
-    template<numeric T> const typename std::array<T, 3>::const_iterator Vector3<T>::begin() const {return data.begin();}
-    template<numeric T> const typename std::array<T, 3>::const_iterator Vector3<T>::end() const {return data.end();}
+    template<numeric T> typename std::array<T, 3>::const_iterator Vector3<T>::begin() const {return data.begin();}
+    template<numeric T> typename std::array<T, 3>::const_iterator Vector3<T>::end() const {return data.end();}
 
     template<numeric T> T& Vector3<T>::x() {return data[0];}
     template<numeric T> const T& Vector3<T>::x() const {return data[0];}

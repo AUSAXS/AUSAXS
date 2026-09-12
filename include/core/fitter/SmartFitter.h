@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <fitter/detail/LinearLeastSquares.h>
 #include <dataset/SimpleDataset.h>
-#include <mini/detail/Parameter.h>
+#include <fitter/detail/LinearLeastSquares.h>
 #include <hist/HistFwd.h>
+#include <mini/detail/Parameter.h>
 
 namespace ausaxs::fitter {
     /**
@@ -26,34 +26,34 @@ namespace ausaxs::fitter {
              */
             struct EnabledFitParameters {
                 bool hydration, excluded_volume, solvent_density, atomic_debye_waller, exv_debye_waller;
-                unsigned int get_enabled_pars_count() const;
-                void apply_pars(const std::vector<double>& params, observer_ptr<hist::DistanceHistogram> model);
+                int get_enabled_pars_count() const;
+                void apply_pars(const std::vector<double>& params, observer_ptr<hist::DistanceHistogram> model) const;
                 void validate_model(observer_ptr<hist::DistanceHistogram> h);
                 static EnabledFitParameters initialize_from_settings();
             } enabled_fit_parameters;
 
-            virtual ~SmartFitter() override;
+            ~SmartFitter() override;
             SmartFitter(SmartFitter&&) noexcept;
             SmartFitter& operator=(SmartFitter&&) noexcept;
 
             /**
              * @brief Prepare a fit of the measured values in @a input to a model to be defined later. 
              */
-            SmartFitter(const SimpleDataset& data);
+            SmartFitter(SimpleDataset data);
 
             /**
              * @brief Prepare a fit of the measured values in @a input to the model described by @a h.
              */
             SmartFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> h);
 
-            [[nodiscard]] virtual std::unique_ptr<FitResult> fit() override;
-            [[nodiscard]] unsigned int dof() const override;
-            [[nodiscard]] unsigned int size() const override;
+            [[nodiscard]] std::unique_ptr<FitResult> fit() override;
+            [[nodiscard]] int dof() const override;
+            [[nodiscard]] int size() const override;
 
             /**
              * @brief Set the guess values for the fit. 
              */
-            void set_guess(std::vector<mini::Parameter>&& guess);
+            void set_guess(const std::vector<mini::Parameter>& guess);
 
 			/**
 			 * @brief Set the scattering histogram used for the fit. 

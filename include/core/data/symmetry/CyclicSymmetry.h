@@ -18,36 +18,36 @@ namespace ausaxs::symmetry {
      *   repeat_relation.translation  — optional per-step axial translation (screw symmetries).
      */
     struct CyclicSymmetry : public ISymmetry {
-        struct _Relation {
-            _Relation() : translation{0, 0, 0} {}
-            _Relation(const Vector3<double>& t) : translation(t) {}
+        struct Relation {
+            Relation() : translation{0, 0, 0} {}
+            Relation(const Vector3<double>& t) : translation(t) {}
+
             Vector3<double> translation;
-            bool operator==(const _Relation&) const = default;
+            bool operator==(const Relation&) const = default;
         };
 
-        struct _Repeat {
-            _Repeat() : translation{0, 0, 0}, axis{0, 0, 1}, angle(0) {}
-            _Repeat(const Vector3<double>& t, const Vector3<double>& ax, double ang)
-                : translation(t), axis(ax), angle(ang) {}
-            _Repeat(const Vector3<double>& ax, double ang)
-                : translation{0, 0, 0}, axis(ax), angle(ang) {}
+        struct Repeat {
+            Repeat() : translation{0, 0, 0}, axis{0, 0, 1} {}
+            Repeat(const Vector3<double>& t, const Vector3<double>& ax, double ang) : translation(t), axis(ax), angle(ang) {}
+            Repeat(const Vector3<double>& ax, double ang) : translation{0, 0, 0}, axis(ax), angle(ang) {}
+
             Vector3<double> translation;
             Vector3<double> axis;
             double          angle = 0;
-            bool operator==(const _Repeat&) const = default;
+            bool operator==(const Repeat&) const = default;
         };
 
-        _Relation _initial_relation;
-        _Repeat   _repeat_relation;
-        int       _repetitions = 1;
+        Relation _initial_relation;
+        Repeat   _repeat_relation;
+        int      _repetitions = 1;
 
         CyclicSymmetry();
-        CyclicSymmetry(_Relation initial_relation, _Repeat repeat_relation, int repetitions = 1);
+        CyclicSymmetry(Relation initial_relation, Repeat repeat_relation, int repetitions = 1);
         CyclicSymmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions = 1);
 
         ISymmetry& add(observer_ptr<const ISymmetry> other) override;
         std::unique_ptr<ISymmetry> clone() const override;
-        unsigned int repetitions() const override;
+        int repetitions() const override;
         bool is_closed() const override;
         std::string type_name() const override;
 

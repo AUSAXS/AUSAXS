@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/CyclicSymmetry.h>
+
 #include <math/MatrixUtils.h>
 
 #include <cassert>
@@ -9,38 +10,34 @@
 using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
-bool sanity_checks(const CyclicSymmetry& s) {
-    assert(1 <= s._repetitions && "Zero or negative repeats does not make sense.");
-    assert(s._initial_relation.translation.dot(s._repeat_relation.translation) == 0 && "The translation vectors must be orthogonal.");
-    assert([&]() -> bool {
-        if (1e-6 < std::abs(s._repeat_relation.angle)) { return 1e-6 < s._repeat_relation.axis.magnitude(); }
+namespace {
+    bool sanity_checks(const CyclicSymmetry& s) {
+        assert(1 <= s._repetitions && "Zero or negative repeats does not make sense.");
+        assert(s._initial_relation.translation.dot(s._repeat_relation.translation) == 0 && "The translation vectors must be orthogonal.");
+        assert([&]() -> bool {
+            if (1e-6 < std::abs(s._repeat_relation.angle)) { return 1e-6 < s._repeat_relation.axis.magnitude(); }
+            return true;
+        }() && "Rotation angle is non-zero but rotation axis is zero vector.");
+        assert([&]() -> bool {
+            auto normed_axis = s._repeat_relation.axis / s._repeat_relation.axis.magnitude();
+            auto R_r = matrix::rotation_matrix<double>(normed_axis, s._repeat_relation.angle);
+            return std::abs(s._repeat_relation.angle) < 1e-6 || R_r*s._repeat_relation.translation == s._repeat_relation.translation;
+        }() && "The translation vector must lie in the invariant space of the rotation matrix.");
         return true;
-    }() && "Rotation angle is non-zero but rotation axis is zero vector.");
-    assert([&]() -> bool {
-        auto normed_axis = s._repeat_relation.axis / s._repeat_relation.axis.magnitude();
-        auto R_r = matrix::rotation_matrix<double>(normed_axis, s._repeat_relation.angle);
-        return std::abs(s._repeat_relation.angle) < 1e-6 || R_r*s._repeat_relation.translation == s._repeat_relation.translation;
-    }() && "The translation vector must lie in the invariant space of the rotation matrix.");
-    return true;
+    }
 }
 
 CyclicSymmetry::CyclicSymmetry() = default;
-CyclicSymmetry::CyclicSymmetry(_Relation initial_relation, _Repeat repeat_relation, int repetitions) {
-    this->_initial_relation = initial_relation;
-    this->_repeat_relation  = repeat_relation;
-    this->_repetitions      = repetitions;
-    assert(sanity_checks(*this));
-}
+CyclicSymmetry::CyclicSymmetry(Relation initial_relation, Repeat repeat_relation, int repetitions) 
+    : _initial_relation(initial_relation), _repeat_relation(repeat_relation), _repetitions(repetitions) 
+{assert(sanity_checks(*this));}
 
-CyclicSymmetry::CyclicSymmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions) {
-    this->_initial_relation = _Relation{offset};
-    this->_repeat_relation  = _Repeat{repeat_translation, repeat_axis, repeat_rotation};
-    this->_repetitions      = repetitions;
-    assert(sanity_checks(*this));
-}
+CyclicSymmetry::CyclicSymmetry(Vector3<double> offset, Vector3<double> repeat_translation, Vector3<double> repeat_axis, double repeat_rotation, int repetitions) 
+    : _initial_relation(Relation{offset}), _repeat_relation(Repeat{repeat_translation, repeat_axis, repeat_rotation}), _repetitions(repetitions)
+{assert(sanity_checks(*this));}
 
 ISymmetry& CyclicSymmetry::add(observer_ptr<const ISymmetry> other) {
-    auto cast = dynamic_cast<const CyclicSymmetry*>(other);
+    const auto* cast = dynamic_cast<const CyclicSymmetry*>(other);
     assert(cast != nullptr && "Can only add Symmetry with another Symmetry.");
     this->_initial_relation.translation += cast->_initial_relation.translation;
     this->_repeat_relation.axis += cast->_repeat_relation.axis;
@@ -50,7 +47,7 @@ ISymmetry& CyclicSymmetry::add(observer_ptr<const ISymmetry> other) {
 
 std::unique_ptr<ISymmetry> CyclicSymmetry::clone() const { return std::make_unique<CyclicSymmetry>(*this); }
 
-AffineTransform CyclicSymmetry::_make_transform(const Vector3<double>& cm, int rep) const {
+AffineTransform CyclicSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
     Matrix<double>  R_final;
     Vector3<double> T_final;
 
@@ -72,7 +69,7 @@ AffineTransform CyclicSymmetry::_make_transform(const Vector3<double>& cm, int r
         //   R_k    = r_r^k
         //   T_k    = r_r * T_{k-1} + base_T,   T_1 = base_T
         auto R_r = matrix::rotation_matrix<double>(normed_axis, _repeat_relation.angle);
-        auto base_T = cm - R_r * cm + (R_r * t_i + t_r - t_i);
+        auto base_T = anchor - R_r * anchor + (R_r * t_i + t_r - t_i);
         R_final = R_r;
         T_final = base_T;
         for (int i = 1; i < rep; ++i) {
@@ -81,13 +78,13 @@ AffineTransform CyclicSymmetry::_make_transform(const Vector3<double>& cm, int r
         }
     }
 
-    return {std::move(R_final), std::move(T_final)};
+    return {.rotation=std::move(R_final), .translation=T_final};
 }
 
-unsigned int CyclicSymmetry::repetitions() const {return _repetitions;}
+int CyclicSymmetry::repetitions() const {return _repetitions;}
 std::string CyclicSymmetry::type_name() const {return "c" + std::to_string(_repetitions + 1);}
-std::span<double> CyclicSymmetry::span_translation() {return std::span<double>(_initial_relation.translation.begin(), _initial_relation.translation.end());}
-std::span<double> CyclicSymmetry::span_rotation() {return std::span<double>(_repeat_relation.axis.begin(), _repeat_relation.axis.end());}
+std::span<double> CyclicSymmetry::span_translation() {return {_initial_relation.translation.begin(), _initial_relation.translation.end()};}
+std::span<double> CyclicSymmetry::span_rotation() {return {_repeat_relation.axis.begin(), _repeat_relation.axis.end()};}
 
 ausaxs::Vector3<double> CyclicSymmetry::rotation_from_angle(double angle, const Vector3<double>& direction) const {
     // unlike the symmetries parameterised by Euler angles, the free rotational parameter here is the axis direction alone;

@@ -2,12 +2,17 @@
 
 #include <math/Vector.h>
 
-#include <functional>
 #include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <functional>
+#include <iomanip>
 #include <numeric>
 #include <sstream>
-#include <iomanip>
-#include <math.h>
+
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
+#endif
 
 namespace ausaxs {
     template<numeric T>
@@ -19,33 +24,33 @@ namespace ausaxs {
     template<numeric T> template<numeric Q>
     Vector<T>& Vector<T>::operator+=(const Vector<Q>& v) {
         compatibility_check(v);
-        std::transform(begin(), end(), v.begin(), begin(), std::plus<double>()); 
+        std::ranges::transform(*this, v, begin(), std::plus<>()); 
         return *this;
     }
 
     template<numeric T> template<numeric Q>
     Vector<T>& Vector<T>::operator-=(const Vector<Q>& v) {
         compatibility_check(v);
-        std::transform(begin(), end(), v.begin(), begin(), std::minus<double>()); 
+        std::ranges::transform(*this, v, begin(), std::minus<>()); 
         return *this;
     }
 
     template<numeric T>
     Vector<T>& Vector<T>::operator/=(double a) {
-        std::transform(begin(), end(), begin(), [&a] (T x) {return x/a;});
+        std::ranges::transform(*this, begin(), [&a] (T x) {return x/a;});
         return *this;
     }
 
     template<numeric T>
     Vector<T>& Vector<T>::operator*=(double a) {
-        std::transform(begin(), end(), begin(), [&a] (T x) {return x*a;});
+        std::ranges::transform(*this, begin(), [&a] (T x) {return x*a;});
         return *this;
     }
 
     template<numeric T> template<numeric Q>
     Vector<T>& Vector<T>::operator*=(const Vector<Q>& v) {
         compatibility_check(v);
-        std::transform(begin(), end(), v.begin(), begin(), std::multiplies<T>());
+        std::ranges::transform(*this, v, begin(), std::multiplies<T>());
         return *this;
     }
 
@@ -55,10 +60,10 @@ namespace ausaxs {
     }
 
     template<numeric T>
-    const T& Vector<T>::operator[](unsigned int i) const {return this->index(i);}
+    const T& Vector<T>::operator[](int i) const {return this->index(i);}
 
     template<numeric T>
-    T& Vector<T>::operator[](unsigned int i) {return this->index(i);}
+    T& Vector<T>::operator[](int i) {return this->index(i);}
 
     template<numeric T> template<numeric Q>
     bool Vector<T>::operator==(const Vector<Q>& v) const {
@@ -77,20 +82,20 @@ namespace ausaxs {
     }
 
     template<numeric T>
-    double Vector<T>::norm() const {return sqrt(dot(*this));}
+    double Vector<T>::norm() const {return std::sqrt(dot(*this));}
 
     template<numeric T>
     double Vector<T>::magnitude() const {return norm();}
 
     template<numeric T> template<numeric Q>
-    double Vector<T>::distance(const Vector<Q>& v) const {return sqrt(distance2(v));}
+    double Vector<T>::distance(const Vector<Q>& v) const {return std::sqrt(distance2(v));}
 
     template<numeric T> template<numeric Q>
     double Vector<T>::distance2(const Vector<Q>& v) const {
         compatibility_check(v);
         Vector<T> w(size());
-        std::transform(begin(), end(), v.begin(), w.begin(), [] (T x1, Q x2) {return pow((x1-x2), 2);});
-        return std::accumulate(w.begin(), w.end(), 0);
+        std::ranges::transform(*this, v, w.begin(), [] (T x1, Q x2) {return std::pow((x1-x2), 2);});
+        return std::accumulate(w.begin(), w.end(), 0.0);
     }
 
     template<numeric T>
@@ -104,10 +109,10 @@ namespace ausaxs {
     }
 
     template<numeric T>
-    const typename std::vector<T>::const_iterator Vector<T>::begin() const {return data.cbegin();}
+    typename std::vector<T>::const_iterator Vector<T>::begin() const {return data.cbegin();}
 
     template<numeric T>
-    const typename std::vector<T>::const_iterator Vector<T>::end() const {return data.cend();}
+    typename std::vector<T>::const_iterator Vector<T>::end() const {return data.cend();}
 
     template<numeric T>
     typename std::vector<T>::iterator Vector<T>::begin() {return data.begin();}
@@ -119,13 +124,13 @@ namespace ausaxs {
     void Vector<T>::push_back(T val) {data.push_back(val);}
 
     template<numeric T>
-    unsigned Vector<T>::size() const {return data.size();}
+    int Vector<T>::size() const {return data.size();}
 
     template<numeric T>
-    unsigned Vector<T>::dim() const {return size();}
+    int Vector<T>::dim() const {return size();}
 
     template<numeric T>
-    void Vector<T>::resize(unsigned int size) {
+    void Vector<T>::resize(int size) {
         data.resize(size);
     }
 
@@ -134,10 +139,10 @@ namespace ausaxs {
 
     template<numeric T> template<numeric Q>
     void Vector<T>::compatibility_check([[maybe_unused]] const Vector<Q>& v) const {
-        #if (SAFE_MATH)
-            if (size() != v.size()) [[unlikely]] {
-                throw std::invalid_argument("Vector::compatibility_check: Vector dimensions do not match (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(size()) + ").");
-            }
-        #endif
+        assert([&]() -> bool {
+            if (size() == v.size()) {return true;}
+            std::cout << "Vector::compatibility_check: Vector dimensions do not match (got: " << v.size() << ", expected: " << size() << ")." << std::endl;
+            return false;
+        }() && "Vector::compatibility_check: Vector dimensions do not match.");
     }
 }

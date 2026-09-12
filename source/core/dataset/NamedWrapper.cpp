@@ -2,28 +2,29 @@
 // Author: Kristian Lytje
 
 #include <dataset/NamedWrapper.h>
+
 #include <dataset/Dataset.h>
 #include <dataset/Dataset2D.h>
 #include <dataset/SimpleDataset.h>
-#include <utility/Exceptions.h>
 #include <io/File.h>
+#include <utility/Exceptions.h>
 
-#include <string>
 #include <fstream>
+#include <string>
 
 using namespace ausaxs;
 
 template<typename T>
 void NamedWrapper<T>::set_default_names() {
     names.resize(this->size_cols());
-    for (unsigned int i = 0; i < this->size_cols(); i++) {
+    for (int i = 0; i < this->size_cols(); i++) {
         names[i] = "col_" + std::to_string(i);
     }
 }
 
 template<typename T>
 void NamedWrapper<T>::set_col_names(const std::vector<std::string>& new_names) {
-    if (new_names.size() != this->size_cols()) {
+    if (static_cast<int>(new_names.size()) != this->size_cols()) {
         throw except::invalid_operation(
             "NamedWrapper::set_col_names: Number of names does not match number of columns. "
             "(" + std::to_string(new_names.size()) + " != " + std::to_string(this->size_cols()) + ")"
@@ -33,7 +34,7 @@ void NamedWrapper<T>::set_col_names(const std::vector<std::string>& new_names) {
 }
 
 template<typename T>
-void NamedWrapper<T>::set_col_names(unsigned int i, const std::string& name) {
+void NamedWrapper<T>::set_col_names(int i, const std::string& name) {
     names[i] = name;
 }
 
@@ -43,13 +44,13 @@ std::vector<std::string> NamedWrapper<T>::get_col_names() const {
 }
 
 template<typename T>
-std::string NamedWrapper<T>::get_col_names(unsigned int i) const {
+std::string NamedWrapper<T>::get_col_names(int i) const {
     return names[i];
 }
 
 template<typename T>
 bool NamedWrapper<T>::is_named() const noexcept {
-    for (unsigned int i = 0; i < this->size_cols(); i++) {
+    for (int i = 0; i < this->size_cols(); i++) {
         if (names[i] != "col_" + std::to_string(i)) {
             return true;
         }
@@ -59,7 +60,7 @@ bool NamedWrapper<T>::is_named() const noexcept {
 
 template<typename T>
 MutableColumn<double> NamedWrapper<T>::col(std::string_view column) {
-    for (unsigned int i = 0; i < names.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(names.size()); ++i) {
         if (names[i] == column) {
             return this->col(i);
         }
@@ -68,8 +69,8 @@ MutableColumn<double> NamedWrapper<T>::col(std::string_view column) {
 }
 
 template<typename T>
-const ConstColumn<double> NamedWrapper<T>::col(std::string_view column) const {
-    for (unsigned int i = 0; i < names.size(); ++i) {
+ConstColumn<double> NamedWrapper<T>::col(std::string_view column) const {
+    for (int i = 0; i < static_cast<int>(names.size()); ++i) {
         if (names[i] == column) {
             return this->col(i);
         }
@@ -79,9 +80,9 @@ const ConstColumn<double> NamedWrapper<T>::col(std::string_view column) const {
 
 template<typename T>
 NamedWrapper<Dataset> NamedWrapper<T>::select_columns(std::initializer_list<std::string_view> cols) const {
-    std::vector<unsigned int> indices(cols.size());
+    std::vector<int> indices(cols.size());
     std::transform(cols.begin(), cols.end(), indices.begin(), [this](std::string_view name) {
-        for (unsigned int i = 0; i < names.size(); i++) {
+        for (int i = 0; i < static_cast<int>(names.size()); i++) {
             if (names[i] == name) {return i;}
         }
         throw except::invalid_argument("NamedWrapper::select_columns: Column \"" + std::string(name) + "\" not found.");
@@ -89,7 +90,7 @@ NamedWrapper<Dataset> NamedWrapper<T>::select_columns(std::initializer_list<std:
     
     NamedWrapper<Dataset> new_dataset = this->select_columns(indices);
     std::vector<std::string> col_names(cols.size());
-    for (unsigned int i = 0; i < cols.size(); i++) {
+    for (int i = 0; i < static_cast<int>(cols.size()); i++) {
         col_names[i] = names[indices[i]];
     }
     new_dataset.names = std::move(col_names);
@@ -111,20 +112,20 @@ void NamedWrapper<T>::save(const io::File& path, const std::string& header) cons
     }
 
     // write column titles
-    if (names.size() < this->size_cols()) {
+    if (static_cast<int>(names.size()) < this->size_cols()) {
         throw except::unexpected(
             "NamedWrapper::save: Number of column names (" + std::to_string(names.size()) + ") "
             "does not match number of columns (" + std::to_string(this->size_cols()) + ")."
         );
     }
-    for (unsigned int j = 0; j < this->size_cols(); j++) {
+    for (int j = 0; j < this->size_cols(); j++) {
         output << std::left << std::setw(16) << names[j] << "\t";
     }
     output << std::endl;
 
     // write data
-    for (unsigned int i = 0; i < this->size_rows(); i++) {
-        for (unsigned int j = 0; j < this->size_cols()-1; j++) {
+    for (int i = 0; i < this->size_rows(); i++) {
+        for (int j = 0; j < this->size_cols()-1; j++) {
             output << std::left << std::setw(16) << std::setprecision(8) << std::scientific << this->index(i, j) << "\t";
         }
         output << this->index(i, this->size_cols()-1) << "\n";

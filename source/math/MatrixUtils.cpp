@@ -2,20 +2,23 @@
 // Author: Kristian Lytje
 
 #include <math/MatrixUtils.h>
-#include <math/Vector3.h>
-#include <math/Matrix.h>
 
-#include <math.h>
+#include <math/Matrix.h>
+#include <math/Vector3.h>
+
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <utility>
 
 using namespace ausaxs;
 
-template<numeric T>
-bool is_rotation_matrix(const Matrix<T>& R) {
-    Matrix<T> should_be_identity = R.transpose() * R;
-    return std::accumulate(should_be_identity.begin(), should_be_identity.end(), 0.0, [] (double acc, double val) {return acc + std::abs(val);}) - 3 < 1e-6;
+namespace {
+    template<numeric T>
+    bool is_rotation_matrix(const Matrix<T>& R) {
+        Matrix<T> should_be_identity = R.transpose() * R;
+        return std::accumulate(should_be_identity.begin(), should_be_identity.end(), 0.0, [] (double acc, double val) {return acc + std::abs(val);}) - 3 < 1e-6;
+    }
 }
 
 template<numeric T>
@@ -82,9 +85,9 @@ template Matrix<float> matrix::rotation_matrix(const Vector3<float>& axis, doubl
 template Vector3<double> matrix::euler_angles(const Matrix<double>& R);
 template Vector3<float> matrix::euler_angles(const Matrix<float>& R);
 
-Matrix<double> matrix::identity(unsigned int dim) {
+Matrix<double> matrix::identity(int dim) {
     Matrix<double> A(dim, dim);
-    for (unsigned int i = 0; i < dim; i++) {
+    for (int i = 0; i < dim; i++) {
         A.index(i, i) = 1;
     }
     return A;
@@ -142,8 +145,8 @@ std::tuple<Vector3<double>, Vector3<double>, Vector3<double>> vector3::generate_
         Vector3<double> b2(-1, 0, 0);
         return std::make_tuple(n, b1, b2);
     }
-    const float a = 1/(1 + n.z());
-    const float b = -n.x()*n.y()*a;
+    const double a = 1/(1 + n.z());
+    const double b = -n.x()*n.y()*a;
     Vector3<double> b1(1-n.x()*n.x()*a, b, -n.x());
     Vector3<double> b2(b, 1-n.y() * n.y()*a, -n.y());
     return std::make_tuple(n, b1, b2);

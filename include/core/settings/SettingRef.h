@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include <settings/SettingsHelper.h>
 #include <settings/HistogramSettings.h>
+#include <settings/SettingsHelper.h>
 #include <utility/Type.h>
 #include <utility/UtilityFwd.h>
 
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <utility/Exceptions.h>
+#include <vector>
 
 namespace ausaxs::settings::io::detail {
     /**
@@ -58,9 +58,9 @@ namespace ausaxs::settings::io::detail {
      */
     template<typename T> struct SettingRef : public ISettingRef {
         SettingRef(T& setting, const std::vector<std::string>& names) : ISettingRef(names), settingref(setting) {}
-        virtual ~SettingRef() = default;
+        ~SettingRef() override = default;
 
-        void set(const std::vector<std::string>&) override {
+        void set(const std::vector<std::string>& /*unused*/) override {
             throw ausaxs::except::runtime_error("settings::io::detail::SettingRef::set: missing implementation for type \"" + ausaxs::type(settingref) + "\".");
         }
 
@@ -81,7 +81,7 @@ namespace ausaxs::settings::io::detail {
     template<typename T>
     struct SettingRef<ausaxs::settings::detail::Setting<T>> : public ISettingRef {
         SettingRef(ausaxs::settings::detail::Setting<T>& setting, const std::vector<std::string>& names) : ISettingRef(names), settingref(setting) {}
-        virtual ~SettingRef() = default;
+        ~SettingRef() override = default;
 
         void set(const std::vector<std::string>& values) override {
             // Delegate to SettingRef<T>
@@ -115,7 +115,7 @@ namespace ausaxs::settings::io::detail {
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<double>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<int>::type() const;
-template<> std::string ausaxs::settings::io::detail::SettingRef<unsigned int>::type() const;
+
 template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::settings::hist::WeightedBins>::type() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::type() const;
@@ -128,7 +128,7 @@ template<> bool ausaxs::settings::io::detail::SettingRef<std::string>::requires_
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<double>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<int>::get() const;
-template<> std::string ausaxs::settings::io::detail::SettingRef<unsigned int>::get() const;
+
 template<> std::string ausaxs::settings::io::detail::SettingRef<bool>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::settings::hist::WeightedBins>::get() const;
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::get() const;
@@ -141,7 +141,7 @@ template<> void ausaxs::settings::io::detail::SettingRef<bool>::set(const std::v
 template<> void ausaxs::settings::io::detail::SettingRef<ausaxs::settings::hist::WeightedBins>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<double>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<int>::set(const std::vector<std::string>& str);
-template<> void ausaxs::settings::io::detail::SettingRef<unsigned int>::set(const std::vector<std::string>& str);
+
 template<> void ausaxs::settings::io::detail::SettingRef<std::vector<std::string>>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<std::vector<double>>::set(const std::vector<std::string>& str);
 template<> void ausaxs::settings::io::detail::SettingRef<std::vector<int>>::set(const std::vector<std::string>& str);

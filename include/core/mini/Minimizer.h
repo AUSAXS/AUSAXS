@@ -7,8 +7,8 @@
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Result.h>
 
-#include <vector>
 #include <functional>
+#include <vector>
 
 namespace ausaxs::mini {
     /**
@@ -50,7 +50,7 @@ namespace ausaxs::mini {
              * @brief Generate a landscape of the function values. 
              *        Only valid for 1D or 2D problems.
              */
-            [[nodiscard]] virtual mini::Landscape landscape(unsigned int bins = 100);
+            [[nodiscard]] virtual mini::Landscape landscape(int bins = 100);
 
             /**
              * @brief Get the evaluated points. 
@@ -71,15 +71,15 @@ namespace ausaxs::mini {
              * @brief Set the maximum number of evaluations.
              *        Note that this is not supported by all minimizers, in which case it will be ignored.
              */
-            virtual void set_max_evals(unsigned int evals);
+            virtual void set_max_evals(int evals);
 
             double tol = 1e-4;
         protected:
             std::vector<Parameter> parameters;
-            std::function<double(std::vector<double>)> function = [] (std::vector<double>) -> double {throw ausaxs::except::runtime_error("Minimizer::function: Function was not initialized.");};
+            std::function<double(std::vector<double>)> function = [] (const std::vector<double>&) -> double {throw ausaxs::except::runtime_error("Minimizer::function: Function was not initialized.");};
             mini::Landscape evaluations;
-            unsigned int fevals = 0;
-            unsigned int max_evals = 100;
+            int fevals = 0;
+            int max_evals = 100;
 
             /**
              * @brief Clear the evaluated points.
@@ -99,6 +99,12 @@ namespace ausaxs::mini {
         private:
             std::function<double(std::vector<double>)> wrapper;
             std::function<double(std::vector<double>)> raw;
+
+            /**
+             * @brief Install the function to be minimized.
+             *        Non-virtual, so that the constructors can use it without their behaviour depending on a subclass override.
+             */
+            void _set_function(std::function<double(std::vector<double>)>&& function);
 
             /**
              * @brief The minimization function to be defined by subclasses. 

@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <data/Molecule.h>
+#include <constants/Constants.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <data/atoms/AtomMetadata.h>
 #include <form_factor/FormFactorType.h>
-#include <constants/Constants.h>
 
 #include <vector>
 
@@ -31,7 +31,7 @@ namespace ausaxs::test {
         data::AtomMetadata md;
         auto& backbone = md.backbone.emplace();
         backbone.reserve(body.size_atom());
-        for (unsigned int i = 0; i < body.size_atom(); ++i) {
+        for (int i = 0; i < body.size_atom(); ++i) {
             backbone.push_back(
                 form_factor::to_atom_type(body.get_atom(i).form_factor_type()) == constants::atom_t::C
                     ? data::backbone_t::c_alpha
@@ -43,7 +43,7 @@ namespace ausaxs::test {
 
     /// @copydoc mark_backbone_carbons(data::Body&)
     inline void mark_backbone_carbons(data::Molecule& mol) {
-        for (unsigned int b = 0; b < mol.size_body(); ++b) {mark_backbone_carbons(mol.get_body(b));}
+        for (int b = 0; b < mol.size_body(); ++b) {mark_backbone_carbons(mol.get_body(b));}
     }
 
     /// @copydoc mark_backbone_carbons(data::Body&)

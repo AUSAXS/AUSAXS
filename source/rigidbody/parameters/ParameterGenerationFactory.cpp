@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
+
 #include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <settings/RigidBodySettings.h>
@@ -26,7 +27,7 @@ ParameterAmplitudes rigidbody::factory::restrict_to(ParameterAmplitudes amplitud
 }
 
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
-    observer_ptr<const Rigidbody> molecule, unsigned int iterations, const ParameterAmplitudes& amplitudes
+    observer_ptr<const Rigidbody> molecule, int iterations, const ParameterAmplitudes& amplitudes
 ) {
     return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), amplitudes);
 }
@@ -38,7 +39,7 @@ std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_paramete
 }
 
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
-    observer_ptr<const Rigidbody> molecule, unsigned int iterations, settings::rigidbody::ParameterGenerationStrategyChoice choice
+    observer_ptr<const Rigidbody> molecule, int iterations, settings::rigidbody::ParameterGenerationStrategyChoice choice
 ) {
     return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), restrict_to(default_amplitudes(molecule), choice));
 }

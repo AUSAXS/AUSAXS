@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
-#include <rigidbody/sequencer/detail/ParsedArgs.h>
-#include <rigidbody/RigidbodyFwd.h>
-#include <utility/observer_ptr.h>
 #include <io/ExistingFile.h>
+#include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
+#include <utility/observer_ptr.h>
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
     class LoadElement : public GenericElement {

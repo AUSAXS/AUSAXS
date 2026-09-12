@@ -3,10 +3,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <dataset/Dataset.h>
 #include <dataset/NamedDataset.h>
 #include <dataset/SimpleDataset.h>
-#include <dataset/Dataset.h>
-#include <io/File.h>
 
 #include <support/temp_file.h>
 
@@ -43,7 +42,7 @@ TEST_CASE("NamedDataset: User-facing file I/O") {
         std::getline(input, column_line); // column names
         input.close();
 
-        CHECK(column_line.find("q") != std::string::npos);
+        CHECK(column_line.find('q') != std::string::npos);
         CHECK(column_line.find("I(q)") != std::string::npos);
         CHECK(column_line.find("error") != std::string::npos);
     }
@@ -105,7 +104,7 @@ TEST_CASE("NamedDataset: Converting between named and unnamed") {
         NamedDataset input_data(std::move(original), {"input_x", "input_y"});
 
         std::vector<double> result_col(3);
-        for (size_t i = 0; i < 3; ++i) {
+        for (int i = 0; i < 3; ++i) {
             result_col[i] = input_data.col(0)[i]*input_data.col(1)[i];
         }
 

@@ -1,23 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/transform/RigidTransform.h>
-#include <rigidbody/selection/RandomBodySelect.h>
-#include <rigidbody/selection/RandomConstraintSelect.h>
-#include <rigidbody/selection/SequentialConstraintSelect.h>
-#include <rigidbody/selection/SequentialBodySelect.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraintCM.h>
-#include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/BodySplitter.h>
-#include <fitter/SmartFitter.h>
 #include <data/Molecule.h>
-#include <data/Body.h>
-#include <grid/Grid.h>
-#include <grid/detail/GridMember.h>
-#include <grid/detail/GridObj.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <fitter/SmartFitter.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <rigidbody/BodySplitter.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
 using namespace ausaxs;

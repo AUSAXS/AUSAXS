@@ -2,12 +2,12 @@
 // Author: Kristian Lytje
 
 #include <utility/StringUtils.h>
+
 #include <utility/Exceptions.h>
-#include <math/ConstexprMath.h>
 
 #include <algorithm>
-#include <cmath>
 #include <array>
+#include <cmath>
 
 using namespace ausaxs;
 
@@ -19,9 +19,17 @@ std::string utility::remove_quotation_marks(std::string s) {
 }
 
 std::string utility::remove_spaces(std::string s) {
-    std::string::iterator end_pos = std::remove(s.begin(), s.end(), ' ');
-    s.erase(end_pos, s.end());
+    auto removed = std::ranges::remove(s, ' ');
+    s.erase(removed.begin(), removed.end());
     return s;
+}
+
+bool utility::isdigit(char c) {
+    return static_cast<bool>(std::isdigit(c));
+}
+
+bool utility::isalpha(char c) {
+    return static_cast<bool>(std::isalpha(c));
 }
 
 std::string utility::round_double(double d, int decimals) {
@@ -45,7 +53,7 @@ std::vector<std::string> utility::split(std::string_view str, char delimiter) {
             ++i;
         }
         if (start < i) {
-            tokens.push_back(std::string(str.substr(start, i-start)));
+            tokens.emplace_back(str.substr(start, i-start));
         }
     }
     return tokens;
@@ -54,39 +62,37 @@ std::vector<std::string> utility::split(std::string_view str, char delimiter) {
 std::vector<std::string> utility::split(std::string_view s, std::string_view delimiters) {
     std::vector<std::string> tokens;
 
-    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
     std::array<bool, 256> table{};
     for (auto c : delimiters) {table[c] = true;}
 
     // skip leading delimiters
-    unsigned int start = 0;
-    while (start < s.size() && table[s[start]]) {
+    int start = 0;
+    while (start < static_cast<int>(s.size()) && table[s[start]]) {
         ++start;
     }
 
     // iterate through the rest of the string
-    for (unsigned int i = start; i < s.size(); ++i) {
+    for (int i = start; i < static_cast<int>(s.size()); ++i) {
         if (!table[s[i]]) {continue;}
 
         // add token to vector
-        tokens.push_back(std::string(s.substr(start, i-start)));
+        tokens.emplace_back(s.substr(start, i-start));
 
         ++i; // start from next char
-        while (i < s.size() && table[s[i]]) {
+        while (i < static_cast<int>(s.size()) && table[s[i]]) {
             ++i;
         }
         start = i;
     }
 
     // add last token to vector
-    if (start < s.size()) {
-        tokens.push_back(std::string(s.substr(start)));
+    if (start < static_cast<int>(s.size())) {
+        tokens.emplace_back(s.substr(start));
     }
     return tokens;
 }
 
 std::vector<std::string> utility::split_quoted(std::string_view s, std::string_view delimiters, char comment) {
-    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
     std::array<bool, 256> table{};
     for (auto c : delimiters) {table[c] = true;}
 
@@ -132,9 +138,9 @@ std::string utility::quote_if_needed(std::string_view s, std::string_view delimi
 
 std::string utility::join(std::vector<std::string> v, std::string_view separator) {
     std::string s;
-    for (unsigned int i = 0; i < v.size(); i++) {
+    for (int i = 0; i < static_cast<int>(v.size()); i++) {
         s += v[i];
-        if (i != v.size()-1) {
+        if (i != static_cast<int>(v.size())-1) {
             s += separator;
         }
     }
@@ -142,7 +148,6 @@ std::string utility::join(std::vector<std::string> v, std::string_view separator
 }
 
 std::string utility::remove_all(std::string_view s, std::string_view remove) {
-    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
     std::array<bool, 256> table{};
     for (auto c : remove) {table[c] = true;}
 
@@ -157,23 +162,21 @@ std::string utility::remove_all(std::string_view s, std::string_view remove) {
 }
 
 std::string_view utility::remove_leading(std::string_view s, std::string_view remove) {
-    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
     std::array<bool, 256> table{};
     for (auto c : remove) {table[c] = true;}
 
-    unsigned int start = 0;
-    while (start < s.size() && table[s[start]]) {
+    int start = 0;
+    while (start < static_cast<int>(s.size()) && table[s[start]]) {
         ++start;
     }
     return s.substr(start);
 }
 
 std::string_view utility::remove_trailing(std::string_view s, std::string_view remove) {
-    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
     std::array<bool, 256> table{};
     for (auto c : remove) {table[c] = true;}
 
-    unsigned int end = s.size();
+    int end = static_cast<int>(s.size());
     while (end > 0 && table[s[end-1]]) {
         --end;
     }
@@ -181,17 +184,16 @@ std::string_view utility::remove_trailing(std::string_view s, std::string_view r
 }
 
 std::string_view utility::remove_leading_and_trailing(std::string_view s, std::string_view remove) {
-    static_assert(constexpr_math::pow(2, 8*sizeof(char)) == 256, "Unexpected char size");
     std::array<bool, 256> table{};
     for (auto c : remove) {table[c] = true;}
 
-    unsigned int start = 0;
-    while (start < s.size() && table[s[start]]) {
+    int start = 0;
+    while (start < static_cast<int>(s.size()) && table[s[start]]) {
         ++start;
     }
-    if (start == s.size()) {return s;}
+    if (start == static_cast<int>(s.size())) {return s;}
 
-    unsigned int end = s.size();
+    int end = static_cast<int>(s.size());
     while (end > start && table[s[end-1]]) {
         --end;
     }
@@ -201,7 +203,7 @@ std::string_view utility::remove_leading_and_trailing(std::string_view s, std::s
 std::string utility::to_lowercase(std::string_view s) {
     std::string new_s;
     for (auto c : s) {
-        new_s += std::tolower(c);
+        new_s += static_cast<char>(std::tolower(c));
     }
     return new_s;
 }
@@ -210,7 +212,9 @@ bool utility::parse_bool(std::string_view s) {
     auto lower = to_lowercase(s);
     if (lower == "true" || lower == "yes" || lower == "1") {
         return true;
-    } else if (lower == "false" || lower == "no" || lower == "0") {
+    }
+
+    if (lower == "false" || lower == "no" || lower == "0") {
         return false;
     }
     throw except::invalid_argument("utility::parse_bool: \"" + std::string(s) + "\" cannot be interpreted as a boolean value.");

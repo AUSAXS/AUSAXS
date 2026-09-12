@@ -2,12 +2,13 @@
 // Author: Kristian Lytje
 
 #include <settings/RigidBodySettings.h>
+
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
 
 using namespace ausaxs;
 
-unsigned int settings::rigidbody::iterations = 1000;
+int settings::rigidbody::iterations = 1000;
 double settings::rigidbody::bond_distance = 3;
 settings::rigidbody::TransformationStrategyChoice settings::rigidbody::transform_strategy = TransformationStrategyChoice::RigidTransform;
 settings::rigidbody::ParameterGenerationStrategyChoice settings::rigidbody::parameter_generation_strategy = ParameterGenerationStrategyChoice::Simple;
@@ -19,7 +20,8 @@ settings::rigidbody::ControllerChoice settings::rigidbody::controller_choice = C
 std::vector<int> ausaxs::settings::rigidbody::detail::constraints;
 std::string ausaxs::settings::rigidbody::detail::calibration_file;
 
-namespace ausaxs::settings::io {
+namespace {
+    using namespace ausaxs::settings;
     settings::io::SettingSection rigidbody_section("RigidBody", {
         settings::io::create(rigidbody::iterations, "iterations"),
         settings::io::create(rigidbody::bond_distance, "bond_distance"),

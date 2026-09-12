@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/parameters/decay/LinearDecay.h>
 #include <rigidbody/parameters/decay/ExponentialDecay.h>
+#include <rigidbody/parameters/decay/LinearDecay.h>
 #include <rigidbody/parameters/decay/NoDecay.h>
 
 using namespace ausaxs::rigidbody::parameter::decay;

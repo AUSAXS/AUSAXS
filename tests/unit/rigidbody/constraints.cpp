@@ -1,17 +1,17 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/DistanceConstraintAtom.h>
-#include <rigidbody/constraints/DistanceConstraintCM.h>
-#include <rigidbody/constraints/AttractorConstraint.h>
-#include <rigidbody/constraints/RepellerConstraint.h>
-#include <rigidbody/constraints/FixedConstraint.h>
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <math/MatrixUtils.h>
+#include <rigidbody/constraints/AttractorConstraint.h>
+#include <rigidbody/constraints/DistanceConstraintAtom.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/constraints/DistanceConstraintCM.h>
+#include <rigidbody/constraints/FixedConstraint.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
+#include <rigidbody/constraints/RepellerConstraint.h>
 #include <settings/All.h>
 
 #include <support/rb_metadata.h>

@@ -1,10 +1,9 @@
-#include "settings/GeneralSettings.h"
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <settings/GeneralSettings.h>
 
 #include <dataset/SimpleDataset.h>
-#include <math/Statistics.h>
 
 #include <support/temp_file.h>
 
@@ -52,7 +51,7 @@ TEST_CASE("SimpleDataset::load") {
         REQUIRE(x.size() == 104);
         REQUIRE(y.size() == 104);
         REQUIRE(yerr.size() == 104);
-        for (unsigned int i = 0; i < validate_x.size(); i++) {
+        for (int i = 0; i < static_cast<int>(validate_x.size()); i++) {
             CHECK_THAT(x[i], Catch::Matchers::WithinRel(validate_x[i]));
             CHECK_THAT(y[i], Catch::Matchers::WithinRel(validate_y[i]));
             CHECK_THAT(yerr[i], Catch::Matchers::WithinRel(validate_yerr[i]));
@@ -71,7 +70,7 @@ TEST_CASE("SimpleDataset::save") {
         REQUIRE(data.y().size() == data2.y().size());
         REQUIRE(data.yerr().size() == data2.yerr().size());
 
-        for (unsigned int i = 0; i < data.size(); i++) {
+        for (int i = 0; i < data.size(); i++) {
             CHECK_THAT(data.x(i), Catch::Matchers::WithinRel(data2.x(i), 1e-3));
             CHECK_THAT(data.y(i), Catch::Matchers::WithinRel(data2.y(i), 1e-3));
             CHECK_THAT(data.yerr(i), Catch::Matchers::WithinRel(data2.yerr(i), 1e-3));
@@ -88,7 +87,7 @@ TEST_CASE("SimpleDataset::save") {
 
         SimpleDataset data2(path);
         REQUIRE(data.size() == data2.size());
-        for (unsigned int i = 0; i < data.size(); i++) {
+        for (int i = 0; i < data.size(); i++) {
             CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(data2.x(i), 1e-6));
             CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(data2.y(i), 1e-6));
         }
@@ -128,7 +127,7 @@ TEST_CASE("SimpleDataset::rebin") {
     SECTION("fold factor 1 is the identity") {
         double err_scale = GENERATE(0., 0.01);
         std::vector<double> x, y, yerr;
-        for (unsigned int i = 0; i < 20; ++i) {
+        for (int i = 0; i < 20; ++i) {
             x.push_back(0.001*(i+1));
             y.push_back(i);
             yerr.push_back(err_scale*(i+1));
@@ -136,8 +135,8 @@ TEST_CASE("SimpleDataset::rebin") {
         SimpleDataset unfolded(x, y, yerr);
         unfolded.rebin();
 
-        REQUIRE(unfolded.size() == x.size());
-        for (unsigned int i = 0; i < x.size(); ++i) {
+        REQUIRE(unfolded.size() == static_cast<int>(x.size()));
+        for (int i = 0; i < static_cast<int>(x.size()); ++i) {
             CHECK_THAT(unfolded.x(i),    Catch::Matchers::WithinAbs(x[i],    1e-9));
             CHECK_THAT(unfolded.y(i),    Catch::Matchers::WithinAbs(y[i],    1e-9));
             CHECK_THAT(unfolded.yerr(i), Catch::Matchers::WithinAbs(yerr[i], 1e-9));
@@ -148,14 +147,14 @@ TEST_CASE("SimpleDataset::rebin") {
     SECTION("no input points are dropped") {
         // a band with a constant fold factor, so the expected grouping is known exactly
         auto [qmin, fold] = GENERATE(
-            std::make_pair(0.03, 2u),
-            std::make_pair(0.06, 4u),
-            std::make_pair(0.10, 8u)
+            std::make_pair(0.03, 2),
+            std::make_pair(0.06, 4),
+            std::make_pair(0.10, 8)
         );
 
-        unsigned int N = 8*fold;
+        int N = 8*fold;
         std::vector<double> x, y, yerr(N, 1);
-        for (unsigned int i = 0; i < N; ++i) {
+        for (int i = 0; i < N; ++i) {
             x.push_back(qmin + 1e-5*(i+1));
             y.push_back(i);                 // y_i = i, so each bin reports the mean of its indices
         }
@@ -163,7 +162,7 @@ TEST_CASE("SimpleDataset::rebin") {
         folded.rebin();
 
         REQUIRE(folded.size() == N/fold);
-        for (unsigned int i = 0; i < folded.size(); ++i) {
+        for (int i = 0; i < folded.size(); ++i) {
             double first = i*fold;
             CHECK_THAT(folded.y(i), Catch::Matchers::WithinAbs(first + (fold-1)/2., 1e-9));
         }

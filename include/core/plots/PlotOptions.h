@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include <utility/Limit.h>
 #include <plots/Styles.h>
+#include <utility/Limit.h>
 
-#include <vector>
-#include <string>
 #include <any>
-#include <unordered_map>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace ausaxs::plots {
     extern double inf;
@@ -100,12 +100,12 @@ namespace ausaxs::plots {
             int zorder = 0;                         // Z-order for the plot. Higher zorder plots are drawn on top of lower zorder plots.
 
             // cosmetic
-            std::string title = "";                 // Title
+            std::string title;                 // Title
             std::string xlabel = "x";               // Label for the x-axis
-            std::string x2label = "";               // Label for the secondary x-axis
+            std::string x2label;               // Label for the secondary x-axis
             std::string ylabel = "y";               // Label for the y-axis
             std::string zlabel = "z";               // Label for the z-axis
-            std::string legend = "";                // Legend entry
+            std::string legend;                // Legend entry
 
         private: 
             struct ISmartOption {
@@ -128,7 +128,7 @@ namespace ausaxs::plots {
             };
 
             template<typename T>
-            std::shared_ptr<SmartOption<T>> make_shared(std::vector<std::string> aliases, T& val) {
+            std::shared_ptr<SmartOption<T>> make_shared(const std::vector<std::string>& aliases, T& val) {
                 return std::make_shared<SmartOption<T>>(aliases, val);
             }
 
@@ -156,6 +156,6 @@ namespace ausaxs::plots {
                 make_shared({option::zorder}, zorder)
             };
 
-            void parse(const std::string& key, std::any val);
+            void parse(const std::string& key, const std::any& val);
     };
 }

@@ -2,10 +2,12 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
+
+#include <form_factor/ExvFormFactor.h>
+#include <form_factor/FormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>  // IWYU pragma: keep
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
-#include <form_factor/NormalizedFormFactor.h>
-#include <form_factor/ExvFormFactor.h>
 #include <settings/GridSettings.h>
 
 using namespace ausaxs;
@@ -32,9 +34,9 @@ namespace {
     form_factor::lookup::table_t generate_ff_table(T&& ffx) {
         auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
         form_factor::lookup::table_t table;
-        unsigned int n_active = form_factor::get_active_count();
-        for (unsigned int i = 0; i < n_active; ++i) {
-            for (unsigned int j = 0; j < i; ++j) {
+        int n_active = form_factor::get_active_count();
+        for (int i = 0; i < n_active; ++i) {
+            for (int j = 0; j < i; ++j) {
                 table.index(i, j) = NormalizedFormFactorProduct(
                     lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[i])), 
                     lookup::atomic::raw::get(static_cast<form_factor_t>(ff_indices[j]))

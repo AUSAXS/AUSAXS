@@ -1,12 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/Rigidbody.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraintBond.h>
+#include <rigidbody/transform/TransformGroup.h>
 #include <settings/All.h>
 
 #include <support/rb_metadata.h>
@@ -27,7 +27,7 @@ TEST_CASE("TransformGroup::TransformGroup") {
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1}});
         
         std::vector<observer_ptr<data::Body>> bodies = {&rigidbody.molecule.get_body(0)};
-        std::vector<unsigned int> indices = {0};
+        std::vector<int> indices = {0};
         Vector3<double> pivot(1, 2, 3);
         
         transform::TransformGroup group(bodies, indices, nullptr, pivot);
@@ -56,7 +56,7 @@ TEST_CASE("TransformGroup::TransformGroup") {
             &rigidbody.molecule.get_body(1),
             &rigidbody.molecule.get_body(2)
         };
-        std::vector<unsigned int> indices = {0, 1, 2};
+        std::vector<int> indices = {0, 1, 2};
         Vector3<double> pivot(0, 0, 0);
         
         transform::TransformGroup group(bodies, indices, nullptr, pivot);
@@ -82,9 +82,9 @@ TEST_CASE("TransformGroup::TransformGroup") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
         
-        auto constraint = rigidbody.constraints->discoverable_constraints[0].get();
+        auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         std::vector<observer_ptr<data::Body>> bodies = {&rigidbody.molecule.get_body(0)};
-        std::vector<unsigned int> indices = {0};
+        std::vector<int> indices = {0};
         Vector3<double> pivot = constraint->get_atom1().coordinates();
         
         transform::TransformGroup group(bodies, indices, constraint, pivot);

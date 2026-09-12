@@ -6,4 +6,4 @@
 using namespace ausaxs;
 
 em::detail::header::MRCData::MRCData() = default;
-em::detail::header::MRCData::~MRCData() = default;
+

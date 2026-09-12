@@ -3,18 +3,18 @@
 
 #pragma once
 
-#include <utility/SimpleMap.h>
-#include <residue/ResidueStorage.h>
-#include <constants/ConstantsFwd.h>
 #include <constants/ConstantsAxes.h>
 #include <constants/ConstantsCoordinates.h>
 #include <constants/ConstantsFitParameters.h>
+#include <constants/ConstantsFwd.h>
 #include <constants/ConstantsProperties.h>
+#include <constants/ConstantsSI.h>
 #include <constants/ValidFileExtensions.h>
 #include <constants/Version.h>
-#include <constants/ConstantsSI.h>
 #include <io/IOFwd.h>
 #include <math/ConstexprMath.h>
+#include <residue/ResidueStorage.h>
+#include <utility/SimpleMap.h>
 
 #include <string>
 
@@ -100,14 +100,14 @@ namespace ausaxs::constants {
             /**
             * @brief Get the charge of an atom in e.
             */
-            unsigned int get_charge(atom_t atom);
+            int get_charge(atom_t atom);
         }
 
         namespace ionic {
             /**
              * @brief Get the ionic charge of an atom in e.
              */
-            unsigned int get_charge(atom_t atom);
+            int get_charge(atom_t atom);
         }
 
         namespace density {
@@ -124,7 +124,7 @@ namespace ausaxs::constants {
          *        Note that this is *not* the number of valence electrons, but the typical number of bonds the atom can form.
          *        This information is primarily used to determine the number of hydrogens attached to an atom, as these are often not present in the PDB file.
          */
-        unsigned int get_valence(atom_t atom);
+        int get_valence(atom_t atom);
     }
 
     namespace symbols {
@@ -156,7 +156,7 @@ namespace ausaxs::constants {
          * @param atom_type The atomic type. 
          * @param hydrogens The number of hydrogens attached to the atom.
          */
-        constants::atomic_group_t get_atomic_group(constants::atom_t atom_type, unsigned int hydrogens);
+        constants::atomic_group_t get_atomic_group(constants::atom_t atom_type, int hydrogens);
     }
 
     /**

@@ -22,6 +22,6 @@ namespace ausaxs::hydrate {
 
             bool global() const override {return true;}
 
-            std::span<grid::GridMember<data::Water>> generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>>) override;
+            std::span<grid::GridMember<data::Water>> generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> /*atoms*/) override;
         };
 }

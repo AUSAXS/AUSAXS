@@ -10,7 +10,7 @@ namespace ausaxs::rigidbody::parameter::decay {
     class DecayStrategy {
         public:
             DecayStrategy() = default;
-            DecayStrategy(unsigned int iterations) : iterations(iterations) {}
+            DecayStrategy(int iterations) : iterations(iterations) {}
             virtual ~DecayStrategy() = default;
 
             /**
@@ -18,7 +18,7 @@ namespace ausaxs::rigidbody::parameter::decay {
              */
             virtual double next() = 0;
 
-            void set_iterations(unsigned int iterations) {
+            void set_iterations(int iterations) {
                 this->iterations = iterations;
                 set_characteristic_time(iterations);
             }
@@ -34,10 +34,10 @@ namespace ausaxs::rigidbody::parameter::decay {
             /**
              * @brief Consume a single draw and return its index.
              */
-            unsigned int next_draw();
+            int next_draw();
 
-            unsigned int iterations = 0;
-            unsigned int draws = 0;
+            int iterations = 0;
+            int draws = 0;
 
         private:
             bool overdrawn_warning_issued = false;
@@ -45,6 +45,6 @@ namespace ausaxs::rigidbody::parameter::decay {
             /**
              * @brief Set the characteristic time scale for this decay strategy.
              */
-            virtual void set_characteristic_time(unsigned int iterations) = 0;
+            virtual void set_characteristic_time(int iterations) = 0;
     };
 }

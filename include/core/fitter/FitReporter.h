@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <io/IOFwd.h>
 #include <fitter/FitResult.h>
+#include <io/IOFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <string>
 #include <functional>
+#include <string>
 
 namespace ausaxs::fitter {
     class FitReporter {
@@ -16,7 +16,7 @@ namespace ausaxs::fitter {
             /**
              * @brief Print the fit result to the console.
              */
-            static void report(const observer_ptr<FitResult> fit);
+            static void report(observer_ptr<FitResult> fit);
 
             /**
              * @brief Print multiple fit results to the console, with optional titles.
@@ -26,12 +26,12 @@ namespace ausaxs::fitter {
             /**
              * @brief Save the fit result to a file, storing the command line arguments.
              */
-            static void save(const observer_ptr<FitResult> fit, const io::File& path, int argc, char const* argv[]);
+            static void save(observer_ptr<FitResult> fit, const io::File& path, int argc, char const* const* argv);
 
             /**
              * @brief Save the fit result to a file, with an optional header.
              */
-            static void save(const observer_ptr<FitResult> fit, const io::File& path, const std::string& header = "");
+            static void save(observer_ptr<FitResult> fit, const io::File& path, const std::string& header = "");
 
             /**
              * @brief Save multiple fit results to a file, with optional titles.

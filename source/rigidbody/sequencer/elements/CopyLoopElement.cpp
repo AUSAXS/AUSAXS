@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/CopyLoopElement.h>
+
 #include <rigidbody/sequencer/elements/LoopElement.h>
 
 using namespace ausaxs::rigidbody::sequencer; 

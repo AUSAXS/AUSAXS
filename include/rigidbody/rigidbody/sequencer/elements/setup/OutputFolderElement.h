@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
-#include <rigidbody/sequencer/detail/ParsedArgs.h>
-#include <utility/observer_ptr.h>
 #include <io/IOFwd.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
+#include <utility/observer_ptr.h>
 
 #include <memory>
 
@@ -24,7 +24,7 @@ namespace ausaxs::rigidbody::sequencer {
                 ABSOLUTE,
             };
 
-            OutputFolderElement(observer_ptr<Sequencer> owner, const io::Folder& path, Mode mode = Mode::RELATIVE_TERMINAL);
+            OutputFolderElement(observer_ptr<Sequencer> owner, const io::Folder& folder, Mode mode = Mode::RELATIVE_TERMINAL);
             ~OutputFolderElement() override = default;
 
             void run() override;

@@ -2,10 +2,11 @@
 // Author: Kristian Lytje
 
 #include <plots/PlotImage.h>
-#include <settings/PlotSettings.h>
-#include <em/Image.h>
+
 #include <dataset/SimpleDataset.h>
+#include <em/Image.h>
 #include <hist/Histogram2D.h>
+#include <settings/PlotSettings.h>
 
 using namespace ausaxs::plots;
 

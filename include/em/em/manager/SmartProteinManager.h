@@ -4,9 +4,9 @@
 #pragma once
 
 #include <data/DataFwd.h>
-#include <hist/HistFwd.h>
-#include <em/manager/ProteinManager.h>
 #include <em/detail/EMAtom.h>
+#include <em/manager/ProteinManager.h>
+#include <hist/HistFwd.h>
 #include <utility/observer_ptr.h>
 
 #include <vector>
@@ -21,7 +21,7 @@ namespace ausaxs::em::managers {
     class SmartProteinManager : public ProteinManager {
         public:
             using ProteinManager::ProteinManager;
-            virtual ~SmartProteinManager() override;
+            ~SmartProteinManager() override;
 
             /**
              * @brief Evaluate and get the histogram for the given cutoff. 
@@ -43,7 +43,7 @@ namespace ausaxs::em::managers {
              * @brief Set the charge levels.
              *        This will invalidate the underlying Molecule, meaning it will be regenerated on the next call to get_protein.
              */
-            virtual void set_charge_levels(const std::vector<double>& levels) noexcept override;
+            void set_charge_levels(const std::vector<double>& levels) noexcept override;
 
         protected:
             std::unique_ptr<data::Molecule> protein;
@@ -64,7 +64,7 @@ namespace ausaxs::em::managers {
              * This is used to prevent expensive initialization of the histogram managers whenever a new 
              * molecule is generated, since they will be cannibalized by the member variable anyway. 
              */
-            void toggle_histogram_manager_init(bool state);
+            static void toggle_histogram_manager_init(bool state);
 
         private:
             double previous_cutoff = 0;

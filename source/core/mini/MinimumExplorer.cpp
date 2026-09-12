@@ -2,58 +2,60 @@
 // Author: Kristian Lytje
 
 #include <mini/MinimumExplorer.h>
-#include <mini/detail/Parameter.h>
+
 #include <mini/detail/FittedParameter.h>
-#include <mini/detail/Evaluation.h>
+#include <mini/detail/Parameter.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
+
+#include <algorithm>
 
 using namespace ausaxs;
 using namespace ausaxs::mini;
 
-MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func) {
+MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), int evals) : Minimizer(func) {
     set_max_evals(evals);
 }
 
-MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(std::move(func)) {
+MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
 }
 
-MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals) : Minimizer(func) {
+MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, int evals) : Minimizer(func) {
     set_max_evals(evals);
-    add_parameter(param);
+    MinimumExplorer::add_parameter(param);
 }
 
-MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(std::move(func)) {
+MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
-    add_parameter(param);
+    MinimumExplorer::add_parameter(param);
 }
 
-mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
+mini::Landscape MinimumExplorer::landscape(int evals) {
     if (parameters.empty()) {throw except::bad_order("MinimumExplorer::landscape: No parameters were supplied.");}
     if (!evaluations.evals.empty()) {return evaluations;} // if the minimizer has already been called, we can just reuse its result
 
     const Parameter& param = parameters[0];
-    double xmin = *param.guess;
-    double xmid = xmin;
-    double x = xmin;
-    double fmin = function({xmin});
+    const auto& guess = param.guess;
+    if (!guess.has_value()) {throw except::bad_order("MinimumExplorer::landscape: The explored parameter must have a guess.");}
+    double xmid = *guess;
+    double x = xmid;
+    double fmin = function({xmid});
 
     //###############################################################//
     //###        DETERMINE SPACING BETWEEN EVALUATIONS            ###//
     //###############################################################//
     // we want to find the smallest spacing that still changes the function value
     double spacing = 1e-5;
-    unsigned int vchanges = 0;  // we want at least 2 changes for a decent estimate
-    unsigned int counter = 0;   // counter to prevent infinite loop
+    int vchanges = 0;  // we want at least 2 changes for a decent estimate
+    int counter = 0;   // counter to prevent infinite loop
     double factor = 2;          // step scaling factor
     record_evaluations(false);  // disable recording while determining spacing
 
     // reset the spacing
     auto reset_spacing = [&] () {
         spacing = 1e-5;
-        if (param.has_bounds()) {
-            spacing = std::min(spacing, (param.bounds->max - param.bounds->min)/evals);
+        if (const auto& bounds = param.bounds; bounds.has_value()) {
+            spacing = std::min(spacing, (bounds->max - bounds->min)/evals);
         }
     };
 
@@ -111,7 +113,7 @@ mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
     x = xmid;               // go back to the middle
     fprev = fmin;           // keep track of last value
     counter = 0;            // reset counter
-    unsigned int iter = 0;  // keep track of how many iterations we've done
+    int iter = 0;           // keep track of how many iterations we've done
     double start_space = spacing;
     for (int i = 0; i < 4; i++) {
         x -= spacing;
@@ -137,7 +139,6 @@ mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
         // check if this is a new minimum
         if (f < fmin) {
             fmin = f;
-            xmin = x;
             continue;
         } 
 
@@ -180,7 +181,6 @@ mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
         // check if this is a new minimum
         if (f < fmin) {
             fmin = f;
-            xmin = x;
             continue;
         }
 
@@ -201,14 +201,11 @@ mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
         // now go the remaining steps to the right, terminating if four consecutive evals are all above the mean
         counter = 0;
         x = xmid + 4*spacing;   // start four steps to the right of the middle
-        unsigned int above = 0; // number of consecutive points higher than the mean
+        int above = 0;          // number of consecutive points higher than the mean
         while (above < 4 && counter++ < (evals-9)/2) {
             x += spacing;
             double f = function({x});
-            if (f < fmin) {
-                fmin = f;
-                xmin = x;
-            }
+            fmin = std::min(f, fmin);
 
             if (mu < f) {
                 above++;
@@ -221,15 +218,12 @@ mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
     if (left) {
         // repeat for left-steps
         counter = 0;
-        unsigned int above = 0;
+        int above = 0;
         x = xmid - 4*spacing;   // start four steps to the left of the middle
         while (above < 4 && counter++ < (evals-9)/2) {
             x -= spacing;
             double f = function({x});
-            if (f < fmin) {
-                fmin = f;
-                xmin = x;
-            }
+            fmin = std::min(f, fmin);
 
             if (mu < f) {
                 above++;
@@ -246,7 +240,7 @@ Result MinimumExplorer::minimize_override() {
     auto l = landscape(max_evals).as_dataset();
     auto min = l.find_minimum();
     FittedParameter p(parameters[0], min.x, l.span_x() - min.x);
-    return Result(p, l.mean(), fevals);
+    return {p, l.mean(), fevals};
 }
 
 void MinimumExplorer::add_parameter(const Parameter& param) {

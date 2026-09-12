@@ -10,6 +10,7 @@
 
 namespace ausaxs::form_factor {
     // The form factor type of an atom. This is intended to be used as an index for best performance.
+    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class form_factor_t : int {
         EXCLUDED_VOLUME,    // excluded volume
         WATER,              // water
@@ -34,7 +35,7 @@ namespace ausaxs::form_factor {
     /**
      * @brief The number of defined form factor types (including excluded volume).
      */
-    constexpr unsigned int total_ff_count = static_cast<unsigned int>(form_factor::form_factor_t::COUNT);
+    constexpr int total_ff_count = static_cast<int>(form_factor::form_factor_t::COUNT);
 
     constexpr int exv_bin   = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::WATER);
@@ -47,13 +48,13 @@ namespace ausaxs::form_factor {
         /**
          * @brief The number of form factor slots currently in use.
          */
-        inline unsigned int active_ff_count = total_ff_count;
+        inline int active_ff_count = total_ff_count;
     }
 
     /**
      * @brief Get the number of active form factors.
      */
-    inline unsigned int get_active_count() noexcept {return detail::active_ff_count;}
+    inline int get_active_count() noexcept {return detail::active_ff_count;}
 
     [[maybe_unused]] static std::string to_string(form_factor_t type) {
         switch (type) {
@@ -157,48 +158,48 @@ namespace ausaxs::constants::mass {
     /**
     * @brief Get the mass of an atom in amu.
     */
-    constexpr double get_mass(form_factor::form_factor_t type) {
+    constexpr double get_mass(ausaxs::form_factor::form_factor_t type) {
         switch(type) {
-            case form_factor::form_factor_t::H: return get_mass(atom_t::H);
-            case form_factor::form_factor_t::C: return get_mass(atom_t::C);
-            case form_factor::form_factor_t::CH: return 13.019;
-            case form_factor::form_factor_t::CH2: return 14.027;
-            case form_factor::form_factor_t::CH3: return 15.035;
-            case form_factor::form_factor_t::N: return 14.00674;
-            case form_factor::form_factor_t::NH: return 15.01474;
-            case form_factor::form_factor_t::NH2: return 16.02274;
-            case form_factor::form_factor_t::NH3: return 17.03074;
-            case form_factor::form_factor_t::O: return 15.999;
-            case form_factor::form_factor_t::OH: return 16.999;
-            case form_factor::form_factor_t::S: return 32.06;
-            case form_factor::form_factor_t::SH: return 33.06;
-            case form_factor::form_factor_t::OTHER: return 39.948;
-            case form_factor::form_factor_t::EXCLUDED_VOLUME: return 0;
-            case form_factor::form_factor_t::COUNT: return 0;
-            default: throw ausaxs::except::runtime_error("constants::mass::get_mass: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+            case ausaxs::form_factor::form_factor_t::H: return get_mass(atom_t::H);
+            case ausaxs::form_factor::form_factor_t::C: return get_mass(atom_t::C);
+            case ausaxs::form_factor::form_factor_t::CH: return 13.019;
+            case ausaxs::form_factor::form_factor_t::CH2: return 14.027;
+            case ausaxs::form_factor::form_factor_t::CH3: return 15.035;
+            case ausaxs::form_factor::form_factor_t::N: return 14.00674;
+            case ausaxs::form_factor::form_factor_t::NH: return 15.01474;
+            case ausaxs::form_factor::form_factor_t::NH2: return 16.02274;
+            case ausaxs::form_factor::form_factor_t::NH3: return 17.03074;
+            case ausaxs::form_factor::form_factor_t::O: return 15.999;
+            case ausaxs::form_factor::form_factor_t::OH: return 16.999;
+            case ausaxs::form_factor::form_factor_t::S: return 32.06;
+            case ausaxs::form_factor::form_factor_t::SH: return 33.06;
+            case ausaxs::form_factor::form_factor_t::OTHER: return 39.948;
+            case ausaxs::form_factor::form_factor_t::EXCLUDED_VOLUME: return 0;
+            case ausaxs::form_factor::form_factor_t::COUNT: return 0;
+            default: throw ausaxs::except::runtime_error("constants::mass::get_mass: Unknown form factor type \"" + ausaxs::form_factor::to_string(type) + "\"");
         }
     }
 }
 
 namespace ausaxs::constants::radius {
-    constexpr double get_vdw_radius(form_factor::form_factor_t type) {
+    constexpr double get_vdw_radius(ausaxs::form_factor::form_factor_t type) {
         switch(type) {
-            case form_factor::form_factor_t::H: return get_vdw_radius(atom_t::H);
-            case form_factor::form_factor_t::C: return get_vdw_radius(atom_t::C);
-            case form_factor::form_factor_t::CH: return get_vdw_radius(atom_t::C);
-            case form_factor::form_factor_t::CH2: return get_vdw_radius(atom_t::C);
-            case form_factor::form_factor_t::CH3: return get_vdw_radius(atom_t::C);
-            case form_factor::form_factor_t::N: return get_vdw_radius(atom_t::N);
-            case form_factor::form_factor_t::NH: return get_vdw_radius(atom_t::N);
-            case form_factor::form_factor_t::NH2: return get_vdw_radius(atom_t::N);
-            case form_factor::form_factor_t::NH3: return get_vdw_radius(atom_t::N);
-            case form_factor::form_factor_t::O: return get_vdw_radius(atom_t::O);
-            case form_factor::form_factor_t::OH: return get_vdw_radius(atom_t::O);
-            case form_factor::form_factor_t::S: return get_vdw_radius(atom_t::S);
-            case form_factor::form_factor_t::SH: return get_vdw_radius(atom_t::S);
-            case form_factor::form_factor_t::OTHER: return get_vdw_radius(atom_t::Ar);
-            case form_factor::form_factor_t::UNKNOWN: return 0;
-            default: throw ausaxs::except::runtime_error("constants::radius::get_vdw_radius: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+            case ausaxs::form_factor::form_factor_t::H: return get_vdw_radius(atom_t::H);
+            case ausaxs::form_factor::form_factor_t::C: return get_vdw_radius(atom_t::C);
+            case ausaxs::form_factor::form_factor_t::CH: return get_vdw_radius(atom_t::C);
+            case ausaxs::form_factor::form_factor_t::CH2: return get_vdw_radius(atom_t::C);
+            case ausaxs::form_factor::form_factor_t::CH3: return get_vdw_radius(atom_t::C);
+            case ausaxs::form_factor::form_factor_t::N: return get_vdw_radius(atom_t::N);
+            case ausaxs::form_factor::form_factor_t::NH: return get_vdw_radius(atom_t::N);
+            case ausaxs::form_factor::form_factor_t::NH2: return get_vdw_radius(atom_t::N);
+            case ausaxs::form_factor::form_factor_t::NH3: return get_vdw_radius(atom_t::N);
+            case ausaxs::form_factor::form_factor_t::O: return get_vdw_radius(atom_t::O);
+            case ausaxs::form_factor::form_factor_t::OH: return get_vdw_radius(atom_t::O);
+            case ausaxs::form_factor::form_factor_t::S: return get_vdw_radius(atom_t::S);
+            case ausaxs::form_factor::form_factor_t::SH: return get_vdw_radius(atom_t::S);
+            case ausaxs::form_factor::form_factor_t::OTHER: return get_vdw_radius(atom_t::Ar);
+            case ausaxs::form_factor::form_factor_t::UNKNOWN: return 0;
+            default: throw ausaxs::except::runtime_error("constants::radius::get_vdw_radius: Unknown form factor type \"" + ausaxs::form_factor::to_string(type) + "\"");
         }
     }
 }
@@ -207,24 +208,24 @@ namespace ausaxs::constants::charge::nuclear {
     /**
      * @brief Get the charge of an atom in e.
      */
-    constexpr unsigned int get_charge(form_factor::form_factor_t type) {
+    constexpr int get_charge(ausaxs::form_factor::form_factor_t type) {
         switch(type) {
-            case form_factor::form_factor_t::H: return 1;
-            case form_factor::form_factor_t::C: return 6;
-            case form_factor::form_factor_t::CH: return 7;
-            case form_factor::form_factor_t::CH2: return 8;
-            case form_factor::form_factor_t::CH3: return 9;
-            case form_factor::form_factor_t::N: return 7;
-            case form_factor::form_factor_t::NH: return 8;
-            case form_factor::form_factor_t::NH2: return 9;
-            case form_factor::form_factor_t::NH3: return 10;
-            case form_factor::form_factor_t::O: return 8;
-            case form_factor::form_factor_t::OH: return 9;
-            case form_factor::form_factor_t::S: return 16;
-            case form_factor::form_factor_t::SH: return 17;
-            case form_factor::form_factor_t::OTHER: return 18;
+            case ausaxs::form_factor::form_factor_t::H: return 1;
+            case ausaxs::form_factor::form_factor_t::C: return 6;
+            case ausaxs::form_factor::form_factor_t::CH: return 7;
+            case ausaxs::form_factor::form_factor_t::CH2: return 8;
+            case ausaxs::form_factor::form_factor_t::CH3: return 9;
+            case ausaxs::form_factor::form_factor_t::N: return 7;
+            case ausaxs::form_factor::form_factor_t::NH: return 8;
+            case ausaxs::form_factor::form_factor_t::NH2: return 9;
+            case ausaxs::form_factor::form_factor_t::NH3: return 10;
+            case ausaxs::form_factor::form_factor_t::O: return 8;
+            case ausaxs::form_factor::form_factor_t::OH: return 9;
+            case ausaxs::form_factor::form_factor_t::S: return 16;
+            case ausaxs::form_factor::form_factor_t::SH: return 17;
+            case ausaxs::form_factor::form_factor_t::OTHER: return 18;
             case ausaxs::form_factor::form_factor_t::EXCLUDED_VOLUME: return 0;
-            default: throw ausaxs::except::runtime_error("constants::charge::nuclear::get_charge: Unknown form factor type \"" + form_factor::to_string(type) + "\"");
+            default: throw ausaxs::except::runtime_error("constants::charge::nuclear::get_charge: Unknown form factor type \"" + ausaxs::form_factor::to_string(type) + "\"");
         }
     }
 }

@@ -5,12 +5,12 @@
 
 #include <em/detail/ImageStackBase.h>
 
-#include <io/IOFwd.h>
-#include <hist/HistFwd.h>
-#include <mini/MiniFwd.h>
-#include <fitter/FitterFwd.h>
 #include <dataset/DatasetFwd.h>
 #include <em/detail/EMInternalFwd.h>
+#include <fitter/FitterFwd.h>
+#include <hist/HistFwd.h>
+#include <io/IOFwd.h>
+#include <mini/MiniFwd.h>
 
 #include <utility/Observable.h>
 
@@ -104,6 +104,6 @@ namespace ausaxs::em {
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::unique_ptr<fitter::EMFitResult> fit_helper(std::shared_ptr<fitter::SmartFitter> fitter, mini::Parameter& param);
+            std::unique_ptr<fitter::EMFitResult> fit_helper(const std::shared_ptr<fitter::SmartFitter>& fitter, mini::Parameter& param);
    };
 }

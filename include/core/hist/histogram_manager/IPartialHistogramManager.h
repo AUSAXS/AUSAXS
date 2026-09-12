@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/detail/BodyTracker.h>
+#include <hist/histogram_manager/IHistogramManager.h>
 
 namespace ausaxs::hist {
 	class IPartialHistogramManager : public IHistogramManager, public BodyTracker {
         public:
             IPartialHistogramManager(observer_ptr<const data::Molecule> protein) : BodyTracker(protein) {}
-            virtual ~IPartialHistogramManager() override = default;
+            ~IPartialHistogramManager() override = default;
     };
 }

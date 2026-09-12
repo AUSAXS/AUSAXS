@@ -2,13 +2,15 @@
 // Author: Kristian Lytje
 
 #include <residue/detail/ResidueMap.h>
+
+#include <constants/Constants.h>
+#include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
-#include <constants/Constants.h>
-#include <settings/MoleculeSettings.h>
 
 #include <string>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::residue::detail;
@@ -18,12 +20,11 @@ bool AtomKey::operator==(const AtomKey& other) const {
     return name == other.name;
 }
 
-unsigned int std::hash<residue::detail::AtomKey>::operator()(const AtomKey& k) const {return std::hash<std::string>()(k.name);}
+std::size_t std::hash<residue::detail::AtomKey>::operator()(const AtomKey& k) const {return std::hash<std::string>()(k.name);}
 
 ResidueMap::ResidueMap() = default;
 
-ResidueMap::ResidueMap(const std::unordered_map<AtomKey, int>& map) {
-    this->map = map;
+ResidueMap::ResidueMap(std::unordered_map<AtomKey, int> map) : map(std::move(map)) {
     this->calculate_average();
 }
 
@@ -42,21 +43,21 @@ double ResidueMap::get(const AtomKey& key) {
     if (update_average) [[unlikely]] {this->calculate_average();}
     if (average.contains(key.atom)) {
         return average.at(key.atom);
-    } else {
-        if (!settings::molecule::allow_unknown_atoms) {
-            throw except::map_error("ResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available.");
-        } else {
-            static bool warned = false;
-            if (!warned) {
-                console::print_warning(
-                    "ResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available."
-                    "Further warnings of this type will be suppressed."
-                );
-                warned = true;
-            }
-            return 0;
-        }
     }
+    
+    if (!settings::molecule::allow_unknown_atoms) {
+        throw except::map_error("ResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available.");
+    }
+
+    static bool warned = false;
+    if (!warned) {
+        console::print_warning(
+            "ResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::to_string(key.atom) + " is available."
+            "Further warnings of this type will be suppressed."
+        );
+        warned = true;
+    }
+    return 0;
 }
 
 void ResidueMap::insert(const AtomKey& key, int value) {
@@ -89,17 +90,16 @@ constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_n
         if (key.atom == constants::atom_t::H) {return constants::atomic_group_t::unknown;}
         if (!settings::molecule::allow_unknown_atoms) {
             throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
-        } else {
-            static bool warned = false;
-            if (!warned) {
-                console::print_warning(
-                    "ResidueMap::get_atomic_group: Key " + atom_name + " not found in map."
-                    "Further warnings of this type will be suppressed."
-                );
-                warned = true;
-            }
-            return constants::atomic_group_t::unknown;
         }
+        static bool warned = false;
+        if (!warned) {
+            console::print_warning(
+                "ResidueMap::get_atomic_group: Key " + atom_name + " not found in map."
+                "Further warnings of this type will be suppressed."
+            );
+            warned = true;
+        }
+        return constants::atomic_group_t::unknown;
     }
     int hydrogens = map.at(key);
     return constants::symbols::get_atomic_group(atom_type, hydrogens);

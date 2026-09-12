@@ -8,12 +8,12 @@ using namespace ausaxs;
 TEST_CASE("Dataset2D::Dataset2D") {
     SECTION("default constructor") {
         Dataset2D dataset;
-        CHECK(dataset.size() == 0);
+        CHECK(dataset.empty());
         CHECK(dataset.size_rows() == 0);
         CHECK(dataset.size_cols() == 4);
     }
 
-    SECTION("unsigned int") {
+    SECTION("int") {
         Dataset2D dataset(10);
         CHECK(dataset.size() == 10);
         CHECK(dataset.size_rows() == 10);

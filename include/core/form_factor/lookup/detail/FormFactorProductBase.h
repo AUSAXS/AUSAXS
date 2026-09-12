@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <form_factor/FormFactorType.h>
-#include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/lookup/ExvTableManager.h>
-#include <form_factor/ExvFormFactor.h>
-#include <settings/MoleculeSettings.h>
 #include <constants/Constants.h>
+#include <form_factor/ExvFormFactor.h>
+#include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/ExvTableManager.h>
+#include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/FormFactorProduct.h>
+#include <settings/MoleculeSettings.h>
 
 #include <array>
 
@@ -20,10 +20,10 @@ namespace ausaxs::form_factor::lookup::detail {
      * @tparam FormFactorLookup A type providing a static `get(form_factor_t)` method.
      */
     template<typename FormFactorLookup>
-    const form_factor::lookup::table_t generate_atomic_table(const std::array<int, form_factor::total_ff_count>& ff_indices) {
+    form_factor::lookup::table_t generate_atomic_table(const std::array<int, form_factor::total_ff_count>& ff_indices) {
         form_factor::lookup::table_t table;
-        for (unsigned int i = 0; i < form_factor::get_active_count(); ++i) {
-            for (unsigned int j = 0; j < i; ++j) {
+        for (int i = 0; i < form_factor::get_active_count(); ++i) {
+            for (int j = 0; j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(
                     FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i])), 
                     FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[j]))
@@ -44,12 +44,12 @@ namespace ausaxs::form_factor::lookup::detail {
      *        This is a symmetric table.
      * @param use_default_table If true, always use the default EXV set.
      */
-    const inline form_factor::lookup::table_t generate_exv_table(const std::array<int, form_factor::total_ff_count>& ff_indices, bool use_default_table = false) {
+    inline form_factor::lookup::table_t generate_exv_table(const std::array<int, form_factor::total_ff_count>& ff_indices, bool use_default_table = false) {
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::table_t table;
-        for (unsigned int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
-            for (unsigned int j = start_index_for_explicit_exv(); j < i; ++j) {
+        for (int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
+            for (int j = start_index_for_explicit_exv(); j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(
                     exv_set.get(static_cast<form_factor_t>(ff_indices[i])), 
                     exv_set.get(static_cast<form_factor_t>(ff_indices[j]))
@@ -70,12 +70,12 @@ namespace ausaxs::form_factor::lookup::detail {
      * @param use_default_table If true, always use the default EXV set.
      */
     template<typename AtomicFormFactorLookup>
-    const form_factor::lookup::table_t generate_cross_table(const std::array<int, form_factor::total_ff_count>& ff_indices, bool use_default_table = false) {
+    form_factor::lookup::table_t generate_cross_table(const std::array<int, form_factor::total_ff_count>& ff_indices, bool use_default_table = false) {
         auto exv_set = use_default_table ? ExvTableManager::get_default_exv_form_factor_set() : ExvTableManager::get_current_exv_form_factor_set();
 
         form_factor::lookup::table_t table;
-        for (unsigned int i = 0; i < form_factor::get_active_count(); ++i) {
-            for (unsigned int j = start_index_for_explicit_exv(); j < form_factor::get_active_count(); ++j) {
+        for (int i = 0; i < form_factor::get_active_count(); ++i) {
+            for (int j = start_index_for_explicit_exv(); j < form_factor::get_active_count(); ++j) {
                 table.index(i, j) = FormFactorProduct(
                     AtomicFormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i])), 
                     exv_set.get(static_cast<form_factor_t>(ff_indices[j]))

@@ -1,17 +1,17 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <data/state/Signaller.h>
 #include <settings/All.h>
 
 #include <random>
 
-#include "hist/hist_test_helper.h"
+#include <hist/hist_test_helper.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -29,7 +29,7 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
         "diamond",
         "LAR1-2"
     };
-    for (auto f : files) {
+    for (const auto& f : files) {
         {   // no hydration
             data::Molecule protein("tests/files/" + f + ".pdb");
             protein.clear_hydration();
@@ -68,7 +68,7 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
     }
 }
 
-auto test = [] (data::Molecule& protein, auto&& phm) {
+static auto test = [] (data::Molecule& protein, auto&& phm) {
     // no changes
     auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = phm(protein)->get_weighted_counts();
@@ -94,7 +94,7 @@ auto test = [] (data::Molecule& protein, auto&& phm) {
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 };
 
-auto test_random = [] (data::Molecule& protein, auto&& phm) {
+static auto test_random = [] (data::Molecule& protein, auto&& phm) {
     auto p_exp = hist::HistogramManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = phm(protein)->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));

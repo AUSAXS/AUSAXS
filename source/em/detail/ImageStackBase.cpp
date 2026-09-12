@@ -2,38 +2,37 @@
 // Author: Kristian Lytje
 
 #include <em/detail/ImageStackBase.h>
-#include <em/detail/header/data/DummyData.h>
+
+#include <data/Molecule.h>
+#include <em/Image.h>
+#include <em/ObjectBounds3D.h>
 #include <em/detail/header/HeaderFactory.h>
 #include <em/manager/ProteinManagerFactory.h>
-#include <em/ObjectBounds3D.h>
-#include <em/Image.h>
-#include <data/Molecule.h>
+#include <hist/detail/SimpleExvModel.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <mini/detail/FittedParameter.h>
-#include <mini/detail/Evaluation.h>
 #include <settings/EMSettings.h>
-#include <settings/HistogramSettings.h>
 #include <settings/GridSettings.h>
+#include <utility/Axis3D.h>
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
-#include <utility/Axis3D.h>
-#include <constants/Constants.h>
-#include <hist/detail/SimpleExvModel.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
-#include <fstream>
+#include <algorithm>
+#include <cassert>
 #include <cstdint>
-#include <numeric>
+#include <fstream>
 #include <functional>
 #include <memory>
-#include <cassert>
+#include <numbers>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::em;
 
-ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
-    data = images;
-    for (unsigned int z = 0; z < size_z; ++z) {
+ImageStackBase::ImageStackBase(const std::vector<Image>& images) 
+    : data(images), size_x(images[0].N), size_y(images[0].M), size_z(static_cast<int>(images.size())) 
+{
+    for (int z = 0; z < size_z; ++z) {
         if (image(z).N != size_x || image(z).M != size_y) {throw except::invalid_argument("ImageStackBase::ImageStackBase: All images must have the same dimensions.");}
         image(z).set_z(z);
     }
@@ -63,11 +62,11 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
 
 ImageStackBase::~ImageStackBase() = default;
 
-Image& ImageStackBase::image(unsigned int layer) {return data[layer];}
+Image& ImageStackBase::image(int layer) {return data[layer];}
 
-const Image& ImageStackBase::image(unsigned int layer) const {return data[layer];}
+const Image& ImageStackBase::image(int layer) const {return data[layer];}
 
-unsigned int ImageStackBase::size() const {return size_z;}
+int ImageStackBase::size() const {return size_z;}
 
 const std::vector<Image>& ImageStackBase::images() const {return data;}
 
@@ -75,7 +74,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram
     return get_protein_manager()->get_histogram(cutoff);
 }
 
-std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFitResult> res) const {
+std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFitResult>& res) const {
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
@@ -83,26 +82,28 @@ observer_ptr<data::Molecule> ImageStackBase::get_protein(double cutoff) const {
     return get_protein_manager()->get_protein(cutoff);
 }
 
-unsigned int ImageStackBase::count_voxels(double cutoff) const {
-    return std::accumulate(data.begin(), data.end(), 0u, [&cutoff] (unsigned int sum, const Image& im) {return sum + im.count_voxels(cutoff);});
+int ImageStackBase::count_voxels(double cutoff) const {
+    return std::accumulate(data.begin(), data.end(), 0, [&cutoff] (int sum, const Image& im) {return sum + im.count_voxels(cutoff);});
 }
 
-template<numeric T>
-float read_helper(std::ifstream& istream, unsigned int readsize) {
-    T value;
-    istream.read(reinterpret_cast<char*>(&value), readsize);
-    return value;
-}
+namespace {
+    template<numeric T>
+    float read_helper(std::ifstream& istream, int readsize) {
+        T value;
+        istream.read(reinterpret_cast<char*>(&value), readsize);
+        return value;
+    }
 
-std::function<float(std::ifstream&, unsigned int)> get_read_function(em::detail::header::DataType data_type) {
-    switch (data_type) {
-        case em::detail::header::DataType::int8: return read_helper<int8_t>;
-        case em::detail::header::DataType::int16: return read_helper<int16_t>;
-        case em::detail::header::DataType::uint8: return read_helper<uint8_t>;
-        case em::detail::header::DataType::uint16: return read_helper<uint16_t>;
-        case em::detail::header::DataType::float16: return read_helper<float>;
-        case em::detail::header::DataType::float32: return read_helper<float>;
-        default: throw except::invalid_argument("ImageStackBase::get_read_function: Invalid data type");
+    std::function<float(std::ifstream&, int)> get_read_function(em::detail::header::DataType data_type) {
+        switch (data_type) {
+            case em::detail::header::DataType::int8: return read_helper<int8_t>;
+            case em::detail::header::DataType::int16: return read_helper<int16_t>;
+            case em::detail::header::DataType::uint8: return read_helper<uint8_t>;
+            case em::detail::header::DataType::uint16: return read_helper<uint16_t>;
+            case em::detail::header::DataType::float16: return read_helper<float>;
+            case em::detail::header::DataType::float32: return read_helper<float>;
+            default: throw except::invalid_argument("ImageStackBase::get_read_function: Invalid data type");
+        }
     }
 }
 
@@ -113,7 +114,7 @@ void ImageStackBase::read(std::ifstream& istream) {
     // the data is stored in the order of column, row, section
     // we have to convert this format to (x, y, z)
     // first determine the limits of each axis
-    unsigned int xm, ym, zm;
+    int xm, ym, zm;
     auto set_size = [this] (int axis) {
         switch (axis) {
             case 1: return size_x;
@@ -129,12 +130,12 @@ void ImageStackBase::read(std::ifstream& istream) {
     zm = set_size(sec);
 
     // define an index array to contain the current indices of each axis
-    std::array<unsigned int, 3> i = {0, 0, 0};
+    std::array<int, 3> i = {0, 0, 0};
 
     // define a permutated reference to each index 
-    unsigned int &x = i[col-1];
-    unsigned int &y = i[row-1];
-    unsigned int &z = i[sec-1];
+    int &x = i[col-1];
+    int &y = i[row-1];
+    int &z = i[sec-1];
 
     // do the actual reading. Note that the default order is 123, so we have to iterate over z first, then y, then x
     auto readfunc = get_read_function(header->get_data_type());
@@ -149,7 +150,7 @@ void ImageStackBase::read(std::ifstream& istream) {
     if (istream.peek() != EOF) {throw except::io_error("ImageStackBase::read: File is larger than expected.");}
 
     // set z values
-    for (unsigned int z = 0; z < size_z; z++) {
+    for (int z = 0; z < size_z; z++) {
         image(z).set_z(z);
     }
 
@@ -162,16 +163,16 @@ void ImageStackBase::read(std::ifstream& istream) {
 
     // we want to avoid too much internal structure by expanding a sphere around each voxel in our resampled grid
     // for the radius, we use 1 cell diameter + the radius of a sphere reaching the corners of each map cell
-    double r = std::sqrt(3)*minwidth/2 + settings::grid::cell_width;
+    double r = std::numbers::sqrt3*minwidth/2 + settings::grid::cell_width;
     settings::grid::min_exv_radius = r;
 }
 
-float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {
-    return data[layer].index(x, y);
+float& ImageStackBase::index(int x, int y, int z) {
+    return data[z].index(x, y);
 }
 
-float ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) const {
-    return data[layer].index(x, y);
+float ImageStackBase::index(int x, int y, int z) const {
+    return data[z].index(x, y);
 }
 
 observer_ptr<em::detail::header::IMapHeader> ImageStackBase::get_header() const {
@@ -188,7 +189,7 @@ void ImageStackBase::set_header(std::unique_ptr<em::detail::header::IMapHeader> 
 
 double ImageStackBase::mean() const {
     double sum = 0;
-    for (unsigned int z = 0; z < size_z; z++) {
+    for (int z = 0; z < size_z; z++) {
         sum += image(z).mean();
     }
     return sum/size_z;
@@ -196,7 +197,7 @@ double ImageStackBase::mean() const {
 
 ObjectBounds3D ImageStackBase::minimum_volume(double cutoff) {
     ObjectBounds3D bounds(size_x, size_y, size_z);
-    for (unsigned int z = 0; z < size_z; z++) {
+    for (int z = 0; z < size_z; z++) {
         bounds[z] = image(z).setup_bounds(cutoff);
     }
 
@@ -204,7 +205,7 @@ ObjectBounds3D ImageStackBase::minimum_volume(double cutoff) {
 }
 
 void ImageStackBase::set_minimum_bounds(double min_val) {
-    std::for_each(data.begin(), data.end(), [&min_val] (Image& image) {image.setup_bounds(min_val);});
+    std::ranges::for_each(data, [&min_val] (Image& image) {image.setup_bounds(min_val);});
 }
 
 double ImageStackBase::from_level(double sigma) const {

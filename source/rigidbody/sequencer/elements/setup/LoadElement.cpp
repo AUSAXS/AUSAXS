@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <rigidbody/sequencer/elements/setup/LoadElement.h>
+
+#include <data/Molecule.h>
+#include <rigidbody/BodySplitter.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/elements/setup/LoadElement.h>
-#include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/BodySplitter.h>
-#include <data/Molecule.h>
-#include <utility/StringUtils.h>
 #include <settings/GeneralSettings.h>
+#include <utility/StringUtils.h>
 
 #include <algorithm>
 #include <filesystem>
@@ -21,19 +20,19 @@ using namespace ausaxs::rigidbody::sequencer;
 LoadElement::~LoadElement() = default;
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names) : owner(owner) {
-    if (auto loc = paths[0].find("%"); loc != std::string::npos) {
+    if (auto loc = paths[0].find('%'); loc != std::string::npos) {
         resolved_paths = load_wildcarded(paths[0]);
         rigidbody = std::make_unique<Rigidbody>(data::Molecule(resolved_paths));
     } else {
         resolved_paths = paths;
-        std::transform(paths.begin(), paths.end(), resolved_paths.begin(), [this] (const std::string& path) {return lookup_file(path).first;});
+        std::ranges::transform(paths, resolved_paths.begin(), [this] (const std::string& path) {return lookup_file(path).first;});
         rigidbody = std::make_unique<Rigidbody>(data::Molecule(resolved_paths));
     }
 
-    if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
+    if (!body_names.empty() && static_cast<int>(body_names.size()) != rigidbody->molecule.size_body()) {
         throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
-    for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
+    for (int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
     owner->setup()._set_active_body(rigidbody.get());
@@ -46,7 +45,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& splits, const std::vector<std::string>& body_names) 
     : owner(owner) 
 {
-    if (auto loc = path.find("%"); loc != std::string::npos) {
+    if (auto loc = path.find('%'); loc != std::string::npos) {
         resolved_paths = load_wildcarded(path);
         rigidbody = std::make_unique<Rigidbody>(data::Molecule(resolved_paths));
     } else {
@@ -54,10 +53,10 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(resolved_paths[0], splits));
     }
 
-    if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
+    if (!body_names.empty() && static_cast<int>(body_names.size()) != rigidbody->molecule.size_body()) {
         throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
-    for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
+    for (int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
     owner->setup()._set_active_body(rigidbody.get());
@@ -74,10 +73,10 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         throw ausaxs::except::runtime_error("LoadElement::LoadElement: Could not split \"" + path + "\" by chain, as it contains only one.");
     }
 
-    if (!body_names.empty() && body_names.size() != rigidbody->molecule.size_body()) {
+    if (!body_names.empty() && static_cast<int>(body_names.size()) != rigidbody->molecule.size_body()) {
         throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
-    for (unsigned int i = 0; i < rigidbody->molecule.size_body(); ++i) {
+    for (int i = 0; i < rigidbody->molecule.size_body(); ++i) {
         owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
     owner->setup()._set_active_body(rigidbody.get());
@@ -107,16 +106,16 @@ std::pair<std::string, bool> LoadElement::lookup_file(const std::string& path) {
 }
 
 std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
-    static auto zero_pad_string = [] (int val, unsigned int pad) -> std::string {
+    static auto zero_pad_string = [] (int val, int pad) -> std::string {
         std::string s = std::to_string(val);
-        if (s.size() < pad) {
+        if (static_cast<int>(s.size()) < pad) {
             s.insert(0, pad - s.size(), '0');
         }
         return s;
     };
     std::vector<std::string> wildcarded_files;
 
-    auto loc = path.find("%");
+    int loc = static_cast<int>(path.find('%'));
     int start = loc, end = loc;
     while (path[++end] == '%') {if (100 < end - start) {throw ausaxs::except::runtime_error("LoadElement::LoadElement: The maximum number of consecutive '%' characters is 100.");}}
     int counter = 0;
@@ -178,7 +177,7 @@ InlineSignature LoadElement::_valid_inline_arguments() {
     return {.names = {}, .min = 0, .max = 0};
 }
 
-std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     auto pdb = args.get<std::vector<std::string>>(args_map[Args::paths]);
     auto saxs = args.get<std::string>(args_map[Args::saxs]);
     auto names = args.get<std::vector<std::string>>(args_map[Args::names]);
@@ -193,16 +192,17 @@ std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> ow
         if (split.value.size() == 1 && split.value[0] == "chain") {
             if (pdb.value.size() != 1) {throw except::parse_error("load", "Chain splitting can only be used with a single path.");}
             return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], names.value);
-        } else { // pattern 2: split [residue ids...] - a single file split at the given residue sequence ids
-            std::vector<int> splits;
-            for (const auto& s : split.value) {
-                if (!utility::isinteger(s)) {
-                    throw except::parse_error("load", "Invalid argument for \"split\": \"" + s + "\". Expected \"chain\" or a list of positive integers.");
-                }
-                splits.push_back(std::stoi(s));
-            }
-            return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], splits, names.value);
         }
+
+        // pattern 2: split [residue ids...] - a single file split at the given residue sequence ids
+        std::vector<int> splits;
+        for (const auto& s : split.value) {
+            if (!utility::isinteger(s)) {
+                throw except::parse_error("load", R"(Invalid argument for "split": ")" + s + R"(". Expected "chain" or a list of positive integers.)");
+            }
+            splits.push_back(std::stoi(s));
+        }
+        return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], splits, names.value);       
     }
     return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value, names.value);
 }

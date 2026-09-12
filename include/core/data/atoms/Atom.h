@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <math/Vector3.h>
 #include <constants/ConstantsCoordinates.h>
 #include <form_factor/FormFactorType.h>
+#include <math/Vector3.h>
 
 #include <type_traits>
 
@@ -30,6 +30,9 @@ namespace ausaxs::data {
             [[nodiscard]] precision_t& z()                                {return static_cast<T*>(this)->get_atom().coords.z();}
 
             [[nodiscard]] bool operator==(const AtomForwarder& rhs) const = default;
+
+            friend T;
+            private: AtomForwarder() = default;
         };
     }
 
@@ -38,7 +41,7 @@ namespace ausaxs::data {
      */
     struct Atom : detail::AtomForwarder<Atom> {
         Atom() = default;
-        Atom(Vector3<precision_t> coords, precision_t weight) : coords(std::move(coords)), w(weight) {}
+        Atom(Vector3<precision_t> coords, precision_t weight) : coords(coords), w(weight) {}
         [[nodiscard]] const Atom& get_atom() const {return *this;}
         [[nodiscard]] Atom& get_atom() {return *this;}
         bool operator==(const Atom& rhs) const = default;

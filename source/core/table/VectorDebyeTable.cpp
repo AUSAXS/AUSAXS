@@ -2,13 +2,11 @@
 // Author: Kristian Lytje
 
 #include <table/VectorDebyeTable.h>
+
+#include <settings/GeneralSettings.h>
+#include <utility/Axis.h>
 #include <utility/Console.h>
 #include <utility/Utility.h>
-#include <utility/Axis.h>
-#include <settings/HistogramSettings.h>
-#include <settings/GeneralSettings.h>
-#include <constants/Constants.h>
-#include <math/ConstexprMath.h>
 
 #include <cmath>
 
@@ -26,8 +24,8 @@ void VectorDebyeTable::initialize(const T1& q, const T2& d) {
     constexpr double inv_6 = 1./6;      // 1/6
     constexpr double inv_120 = 1./120;  // 1/120
 
-    for (int i = 0; i < static_cast<int>(N); ++i) {
-        for (int j = 0; j < static_cast<int>(M); ++j) {
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < M; ++j) {
             double qd = q[i]*d[j];
             if (qd < tolerance) {
                 double qd2 = qd*qd;
@@ -82,10 +80,6 @@ const VectorDebyeTable& VectorDebyeTable::get_default_table() {
 
 #if DEBUG 
     #include <iostream>
-    #include <utility/Console.h>
-    #include <utility/Utility.h>
-    #include <settings/HistogramSettings.h>
-    #include <settings/GeneralSettings.h>
 #endif
 void VectorDebyeTable::check_default(const std::vector<double>& q, const std::vector<constants::axes::d_type>& d) {
     #if DEBUG 
@@ -93,7 +87,7 @@ void VectorDebyeTable::check_default(const std::vector<double>& q, const std::ve
         const Axis& axis = constants::axes::q_axis;
 
         auto qvals = axis.as_vector();
-        unsigned int i = 0;
+        int i = 0;
         for (; i < axis.bins; ++i) {
             if (utility::approx(q.front(), qvals[i])) {break;}
         }

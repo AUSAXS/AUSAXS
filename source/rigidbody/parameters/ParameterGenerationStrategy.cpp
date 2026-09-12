@@ -2,9 +2,10 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/parameters/decay/DecayFactory.h>
-#include <rigidbody/Rigidbody.h>
+
 #include <math/Vector3.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/parameters/decay/DecayFactory.h>
 #include <utility/Random.h>
 
 #include <cassert>
@@ -16,7 +17,7 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::parameter;
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
-    observer_ptr<const Rigidbody> rigidbody, unsigned int iterations, const ParameterAmplitudes& amplitudes) 
+    observer_ptr<const Rigidbody> rigidbody, int iterations, const ParameterAmplitudes& amplitudes) 
     : rigidbody(rigidbody), amplitudes(amplitudes), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
 ) {}
 

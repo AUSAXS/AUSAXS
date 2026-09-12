@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <math/Vector3.h>
 #include <utility/Axis3D.h>
 #include <utility/Limit3D.h>
-#include <math/Vector3.h>
 
 using namespace ausaxs;
 

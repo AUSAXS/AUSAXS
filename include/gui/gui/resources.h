@@ -23,7 +23,7 @@ namespace resources {
     inline io::ExistingFile generate_resource_file() {
         io::File file("resources/elements_basic.ttf");
         if (file.exists()) {return file;}
-        else {file.create();}
+        file.create();
         std::ofstream out(file.path(), std::ios::binary);
         out.write(reinterpret_cast<const char*>(resource_file.data()), resource_file.size());
         return file;

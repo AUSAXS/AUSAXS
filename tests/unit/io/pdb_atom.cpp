@@ -2,7 +2,6 @@
 
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
-#include <constants/Constants.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;

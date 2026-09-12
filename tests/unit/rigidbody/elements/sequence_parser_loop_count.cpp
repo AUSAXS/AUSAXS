@@ -5,7 +5,6 @@
 
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
-#include <rigidbody/sequencer/Sequencer.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>
@@ -31,7 +30,7 @@ struct LoopCountFixture {
     }
 
     // the total step count the given script body would report, as Sequencer::execute calculates it
-    unsigned int total_iterations_of(const std::string& body) {
+    static int total_iterations_of(const std::string& body) {
         test::TempFile config(".conf", load() + body);
         SequenceParser parser;
         auto seq = parser.parse_file(config);

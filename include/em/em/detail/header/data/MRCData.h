@@ -14,7 +14,7 @@ namespace ausaxs::em::detail::header {
      */
     struct MRCData {
         MRCData();
-        ~MRCData();
+        ~MRCData() = default;
 
         //! members CANNOT be reordered!
         int nx;             // Number of points along x-axis.
@@ -49,7 +49,7 @@ namespace ausaxs::em::detail::header {
         float origin_y;
         float origin_z;
         std::array<char, 4> map;
-        unsigned int machst;
+        int machst;
         float rms;
         int nlabl;
         std::array<char, 800> label;

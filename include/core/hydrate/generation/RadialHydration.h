@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <hydrate/generation/GridBasedHydration.h>
 #include <grid/detail/GridInternalFwd.h>
+#include <hydrate/generation/GridBasedHydration.h>
 #include <math/MathFwd.h>
 
-#include <vector>
 #include <functional>
+#include <vector>
 
 namespace ausaxs::hydrate {
     /**
@@ -23,7 +23,7 @@ namespace ausaxs::hydrate {
         public:
             RadialHydration(observer_ptr<data::Molecule> protein);
             RadialHydration(observer_ptr<data::Molecule> protein, std::unique_ptr<CullingStrategy> culling_strategy);
-            virtual ~RadialHydration();
+            ~RadialHydration() override;
 
             std::span<grid::GridMember<data::Water>> generate_explicit_hydration(std::span<grid::GridMember<data::AtomFF>> atoms) override;
 

@@ -1,15 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hydrate/culling/CullingStrategy.h>
-#include <hydrate/culling/NoCulling.h>
-#include <hydrate/culling/CounterCulling.h>
-#include <hydrate/culling/BodyCounterCulling.h>
-#include <hydrate/culling/OutlierCulling.h>
 #include <data/Molecule.h>
-#include <data/Body.h>
-#include <grid/detail/GridMember.h>
 #include <data/atoms/Water.h>
+#include <grid/detail/GridMember.h>
+#include <hydrate/culling/BodyCounterCulling.h>
+#include <hydrate/culling/CounterCulling.h>
+#include <hydrate/culling/NoCulling.h>
+#include <hydrate/culling/OutlierCulling.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hydrate;
@@ -32,9 +30,9 @@ TEST_CASE("NoCulling::cull") {
 
     // Create some water molecules
     std::vector<GridMember<Water>> waters;
-    waters.push_back(GridMember<Water>(Water({1, 2, 3}), Vector3<int>{0, 0, 0}));
-    waters.push_back(GridMember<Water>(Water({4, 5, 6}), Vector3<int>{1, 1, 1}));
-    waters.push_back(GridMember<Water>(Water({7, 8, 9}), Vector3<int>{2, 2, 2}));
+    waters.emplace_back(Water({1, 2, 3}), Vector3<int>{0, 0, 0});
+    waters.emplace_back(Water({4, 5, 6}), Vector3<int>{1, 1, 1});
+    waters.emplace_back(Water({7, 8, 9}), Vector3<int>{2, 2, 2});
 
     std::span<GridMember<Water>> water_span(waters);
     size_t original_size = water_span.size();

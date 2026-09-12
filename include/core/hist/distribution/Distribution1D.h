@@ -3,12 +3,10 @@
 
 #pragma once
 
+#include <constants/ConstantsAxes.h>
 #include <container/Container1D.h>
 #include <hist/distribution/WeightedDistribution1D.h>
-#include <constants/ConstantsAxes.h>
 #include <utility/TypeTraits.h>
-
-#include <cmath>
 
 namespace ausaxs::hist {
     /**
@@ -77,8 +75,8 @@ namespace ausaxs::hist {
              */
             void clear(int32_t i);
 
-            Distribution1D& operator+=(const Distribution1D& other);
-            Distribution1D& operator-=(const Distribution1D& other);
+            Distribution1D& operator+=(const Distribution1D& rhs);
+            Distribution1D& operator-=(const Distribution1D& rhs);
     };
     Distribution1D operator*(double factor, Distribution1D dist);
     static_assert(supports_nothrow_move_v<Distribution1D>, "Distribution1D should support nothrow move semantics.");

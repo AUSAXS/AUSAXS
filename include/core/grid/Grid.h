@@ -3,19 +3,20 @@
 
 #pragma once
 
-#include <grid/detail/GridObj.h>
-#include <grid/detail/GridInternalFwd.h>
-#include <grid/detail/GridExcludedVolume.h>
-#include <utility/Axis3D.h>
-#include <utility/TypeTraits.h>
+#include <constants/ConstantsFwd.h>
 #include <data/DataFwd.h>
+#include <form_factor/FormFactorType.h>
+#include <grid/detail/GridExcludedVolume.h>
+#include <grid/detail/GridInternalFwd.h>
+#include <grid/detail/GridObj.h>
 #include <io/IOFwd.h>
 #include <math/Vector3.h>
-#include <constants/ConstantsFwd.h>
-#include <form_factor/FormFactorType.h>
+#include <utility/Axis3D.h>
+#include <utility/TypeTraits.h>
 
-#include <vector>
 #include <span>
+#include <utility>
+#include <vector>
 
 namespace ausaxs::grid {
 	class Grid {
@@ -25,7 +26,7 @@ namespace ausaxs::grid {
 			 * @brief Initialize a new grid of the given size with the given cell width. 
 			 * 		  This can only be used internally by the Grid class. 
 			 */
-			Grid(const Axis3D& axes, private_ctr);
+			Grid(const Axis3D& axes, private_ctr /*unused*/);
 
 			/**
 			 * @brief Initialize a new grid of the given size. The cell width is controlled by the settings::grid::cell_width variable.
@@ -155,7 +156,7 @@ namespace ausaxs::grid {
 			 * @brief Get the width of each bin.
 			 * 		  Complexity: O(1).
 			 */
-			[[nodiscard]] double get_width() const;
+			[[nodiscard]] static double get_width() ;
 
 			/**
 			 * @brief Get a copy of the axes of the grid.
@@ -182,9 +183,9 @@ namespace ausaxs::grid {
 			 */
 			[[nodiscard]] bool is_valid_bin(const Vector3<int>& v) const {
 				return
-					0 <= v.x() && v.x() < static_cast<int>(axes.x.bins) &&
-					0 <= v.y() && v.y() < static_cast<int>(axes.y.bins) &&
-					0 <= v.z() && v.z() < static_cast<int>(axes.z.bins)
+					0 <= v.x() && v.x() < axes.x.bins &&
+					0 <= v.y() && v.y() < axes.y.bins &&
+					0 <= v.z() && v.z() < axes.z.bins
 				;
 			}
 
@@ -200,8 +201,8 @@ namespace ausaxs::grid {
 			 * @brief Convert a location in the grid (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
 			 * 		  Complexity: O(1).
 			 */
-			template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-			[[nodiscard]] Vector3<double> to_xyz(const Vector3<T>& v) const {
+			template<typename T>
+			[[nodiscard]] Vector3<double> to_xyz(const Vector3<T>& v) const requires (std::is_arithmetic_v<T>) {
 				return to_xyz(v.x(), v.y(), v.z());
 			}
 
@@ -239,7 +240,7 @@ namespace ausaxs::grid {
 			 */
 			[[nodiscard]] virtual exv::GridExcludedVolume generate_excluded_volume();
 
-			[[nodiscard]] std::vector<data::AtomFF> get_surface_atoms() const;
+			[[nodiscard]] static std::vector<data::AtomFF> get_surface_atoms() ;
 
 			/**
 			 * @brief Get the contents of a single bin.

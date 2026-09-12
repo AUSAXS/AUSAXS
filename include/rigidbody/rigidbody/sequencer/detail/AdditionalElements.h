@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
 
 namespace ausaxs::rigidbody::sequencer::detail {
     struct SeedElement {

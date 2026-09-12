@@ -4,9 +4,9 @@
 #pragma once
 
 #include <constants/Constants.h>
-#include <form_factor/FormFactorType.h>
-#include <form_factor/FormFactorTable.h>
 #include <form_factor/ExvTable.h>
+#include <form_factor/FormFactorTable.h>
+#include <form_factor/FormFactorType.h>
 #include <math/ConstexprMath.h>
 
 namespace ausaxs::form_factor {
@@ -20,10 +20,9 @@ namespace ausaxs::form_factor {
              *
              * @param volume The excluded volume of the atom. 
              */
-            constexpr ExvFormFactor(double volume) {
-                exponent = constexpr_math::pow(volume, 2./3)/(4*std::numbers::pi);
-                q0 = volume*constants::charge::density::water;
-            }
+            constexpr ExvFormFactor(double volume) 
+                : exponent(constexpr_math::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*constants::charge::density::water) 
+            {}
 
             constexpr double evaluate_normalized(double q) const {
                 return constexpr_math::exp(-exponent*q*q);

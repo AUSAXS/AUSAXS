@@ -2,89 +2,86 @@
 // Author: Kristian Lytje
 
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <data/symmetry/CyclicSymmetry.h>
-#include <data/symmetry/PointSymmetry.h>
-#include <data/symmetry/TetrahedralSymmetry.h>
-#include <data/symmetry/OctahedralSymmetry.h>
-#include <data/symmetry/IcosahedralSymmetry.h>
-#include <data/symmetry/DihedralSymmetry.h>
-#include <data/symmetry/PlanarDihedralSymmetry.h>
+
 #include <data/symmetry/CompositeSymmetry.h>
+#include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/DihedralSymmetry.h>
+#include <data/symmetry/IcosahedralSymmetry.h>
+#include <data/symmetry/OctahedralSymmetry.h>
+#include <data/symmetry/PlanarDihedralSymmetry.h>
+#include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/ReferenceSymmetry.h>
+#include <data/symmetry/TetrahedralSymmetry.h>
+#include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
-#include <algorithm>
-#include <cctype>
-#include <numbers>
-#include <optional>
-#include <utility/Exceptions.h>
 
 std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
     switch (t) {
         case type::c2:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, std::numbers::pi},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, std::numbers::pi},
                 1
             );
         case type::c3:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/3},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/3},
                 2
             );
         case type::c4:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/4},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/4},
                 3
             );
         case type::c5:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/5},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/5},
                 4
             );
         case type::c6:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/6},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/6},
                 5
             );
         case type::c7:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/7},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/7},
                 6
             );
         case type::c8:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/8},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/8},
                 7
             );
         case type::c9:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/9},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/9},
                 8
             );
         case type::c10:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/10},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/10},
                 9
             );
         case type::c11:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/11},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/11},
                 10
             );
         case type::c12:
             return std::make_unique<CyclicSymmetry>(
-                CyclicSymmetry::_Relation{{0, 0, 0}},
-                CyclicSymmetry::_Repeat{{0, 0, 1}, 2*std::numbers::pi/12},
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/12},
                 11
             );
         case type::p2:
@@ -178,16 +175,16 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::create(std::strin
 }
 
 bool ausaxs::symmetry::is_optimizable(const ISymmetry& sym) {
-    if (auto* comp = dynamic_cast<const CompositeSymmetry*>(&sym)) {
+    if (const auto* comp = dynamic_cast<const CompositeSymmetry*>(&sym)) {
         return is_optimizable(*comp->inner) && is_optimizable(*comp->outer);
     }
     // a ReferenceSymmetry only wraps its base; descend into it exactly as symmetry::for_each_leaf does, so a symmetry shared by several bodies is judged by
     // the parameters it actually drives. Its counterpart ReferenceSymmetryView deliberately falls through to false: it forwards to the primary's object and
     // exposes no parameters of its own, so driving it would be a silent no-op.
-    if (auto* ref = dynamic_cast<const ReferenceSymmetry*>(&sym)) {
+    if (const auto* ref = dynamic_cast<const ReferenceSymmetry*>(&sym)) {
         return is_optimizable(*ref->base);
     }
-    return dynamic_cast<const PointSymmetry*>(&sym)
-        || dynamic_cast<const CyclicSymmetry*>(&sym)
-        || dynamic_cast<const IPolyhedralSymmetry*>(&sym);
+    return (dynamic_cast<const PointSymmetry*>(&sym) != nullptr)
+        || (dynamic_cast<const CyclicSymmetry*>(&sym) != nullptr)
+        || (dynamic_cast<const IPolyhedralSymmetry*>(&sym) != nullptr);
 }

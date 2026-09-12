@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hydrate/ExplicitHydration.h>
+
 #include <data/atoms/Water.h>
 
 using namespace ausaxs;

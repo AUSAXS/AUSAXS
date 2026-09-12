@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <utility/Exceptions.h>
 #include <math/indexers/Indexer1D.h>
+#include <utility/Exceptions.h>
 
 #include <vector>
 
@@ -32,8 +32,8 @@ namespace ausaxs::container {
             T& operator[](int i) {return this->index(i);}
             const T& operator[](int i) const {return this->index(i);}
 
-            const typename std::vector<T>::const_iterator begin() const {return data.begin();}
-            const typename std::vector<T>::const_iterator end() const {return data.end();}
+            typename std::vector<T>::const_iterator begin() const {return data.begin();}
+            typename std::vector<T>::const_iterator end() const {return data.end();}
 
             typename std::vector<T>::iterator begin() {return data.begin();}
             typename std::vector<T>::iterator end() {return data.end();}
@@ -41,7 +41,7 @@ namespace ausaxs::container {
             /**
              * @brief Get the size of the container.
              */
-            std::size_t size() const {return N;}
+            int size() const {return N;}
 
             /**
              * @brief Resize the container to contain @a size elements.

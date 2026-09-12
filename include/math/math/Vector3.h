@@ -3,15 +3,19 @@
 
 #pragma once
 
+#include <math/MathConcepts.h>
+#include <math/MathTypeTraits.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 #include <math/Vector.h>
-#include <math/MathConcepts.h>
-#include <math/MathTypeTraits.h>
 
-#include <initializer_list>
-#include <math/Exceptions.h>
 #include <array>
+#include <cassert>
+#include <initializer_list>
+
+#ifndef NDEBUG
+    #include <iostream>  // only the asserts below print
+#endif
 
 namespace ausaxs {
 	/**
@@ -39,26 +43,16 @@ namespace ausaxs {
 				std::copy_n(v.begin(), 3, data.begin());
 			}
 
-			Vector3(Vector<T>&& v) {
-				assert(v.size() == 3 && "Vector3: Vector must have size 3");
-				std::copy_n(v.begin(), 3, data.begin());
-			}
-
 			Vector3(const Matrix<T>& M) {
-				assert(M.data.size() == 3 && "Vector3: Matrix must have size 3");
-				std::copy_n(M.begin(), 3, data.begin());
-			}
-
-			Vector3(Matrix<T>&& M) {
 				assert(M.data.size() == 3 && "Vector3: Matrix must have size 3");
 				std::copy_n(M.begin(), 3, data.begin());
 			}
 
 			Vector3(T x, T y, T z) : data({x, y, z}) {}
 
-			T operator[](unsigned int i) const;
+			T operator[](int i) const;
 
-			T& operator[] (unsigned int i);
+			T& operator[] (int i);
 
 			/**
 			 * @brief Set this vector equal to an initializer list. 
@@ -134,7 +128,7 @@ namespace ausaxs {
 			/**
 			 * @brief Get a string representation of this Vector.
 			 */
-			std::string to_string(std::string message = "") const;
+			std::string to_string(const std::string& message = "") const;
 
 			operator std::vector<T>();
 			operator Vector<T>();
@@ -147,17 +141,17 @@ namespace ausaxs {
 			const T& y() const;
 			const T& z() const;
 
-			size_t size() const;
+			int size() const;
 
 			Vector3<T> copy() const;
 
-			template<size_t i> T& get();
-			template<size_t i> const T& get() const;
+			template<int i> T& get();
+			template<int i> const T& get() const;
 
 			typename std::array<T, 3>::iterator begin();
 			typename std::array<T, 3>::iterator end();
-			const typename std::array<T, 3>::const_iterator begin() const;
-			const typename std::array<T, 3>::const_iterator end() const;
+			typename std::array<T, 3>::const_iterator begin() const;
+			typename std::array<T, 3>::const_iterator end() const;
 
 			static constexpr double precision = 1e-6;
 
@@ -167,11 +161,11 @@ namespace ausaxs {
 
 	template<numeric T, numeric Q>
 	Vector3<Q> operator*(const Matrix<T>& M, const Vector3<Q>& v) {
-		#if (SAFE_MATH)
-			if (M.M != v.size()) [[unlikely]] {
-				throw ausaxs::except::invalid_argument("Vector3::operator*: Invalid matrix dimensions (got: " + std::to_string(M.M) + ", expected: " + std::to_string(v.size()) + "]).");
-			}
-		#endif
+		assert([&]() -> bool {
+		    if (M.M == v.size()) {return true;}
+		    std::cout << "Vector3::operator*: Invalid matrix dimensions (got: " << M.M << ", expected: " << v.size() << ")." << std::endl;
+		    return false;
+		}() && "Vector3::operator*: Invalid matrix dimensions.");
 
 		return {
 			M[0][0]*v[0] + M[0][1]*v[1] + M[0][2]*v[2],
@@ -182,11 +176,11 @@ namespace ausaxs {
 
 	template<numeric T, numeric Q>
 	bool operator==(const Vector3<T>& v, const Vector<Q>& w) {
-		#if (SAFE_MATH)
-			if (v.size() != w.size()) [[unlikely]] {
-				throw ausaxs::except::invalid_argument("Vector3::operator*: Invalid vector dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(w.size()) + "]).");
-			}
-		#endif
+		assert([&]() -> bool {
+		    if (v.size() == w.size()) {return true;}
+		    std::cout << "Vector3::operator*: Invalid vector dimensions (got: " << v.size() << ", expected: " << w.size() << ")." << std::endl;
+		    return false;
+		}() && "Vector3::operator*: Invalid vector dimensions.");
 
 		return abs(v.x() - w[0]) + abs(v.y() - w[1]) + abs(v.z() - w[2]) < Vector3<T>::precision;
 	}

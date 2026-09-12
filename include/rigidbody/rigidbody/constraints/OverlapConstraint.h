@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include <data/DataFwd.h>
 #include <rigidbody/constraints/Constraint.h>
 #include <utility/observer_ptr.h>
-#include <data/DataFwd.h>
 
+#include <cmath>
 #include <functional>
 #include <vector>
-#include <cmath>
 
 namespace ausaxs::rigidbody::constraints {
     /**
@@ -23,7 +23,7 @@ namespace ausaxs::rigidbody::constraints {
         public:
             OverlapConstraint(observer_ptr<const data::Molecule> molecule);
 
-            virtual ~OverlapConstraint() override;
+            ~OverlapConstraint() override;
 
             /**
              * @brief Evaluate this constraint for the current positions. 

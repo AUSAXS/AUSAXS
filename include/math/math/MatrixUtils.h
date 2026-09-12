@@ -49,7 +49,7 @@ namespace ausaxs::matrix {
     /**
      * @brief Get the identity matrix of a given dimension.
      */
-    Matrix<double> identity(unsigned int dim);
+    Matrix<double> identity(int dim);
 
     /**
      * @brief Closed-form determinant of a 3x3 matrix.

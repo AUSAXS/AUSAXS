@@ -54,7 +54,6 @@ namespace {
 TEST_CASE("Grid: volume counter is consistent across rigidbody moves") {
     double cell_width = GENERATE(1., 2., 3.);
     configure(cell_width);
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
 
     auto molecule = rigidbody::BodySplitter::split("tests/files/2epe.pdb", {9, 99});
     molecule.generate_new_hydration();

@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <data/Body.h>
-#include <data/Molecule.h>
-#include <data/state/StateManager.h>
-#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/histogram_manager/HistogramManager.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/distribution/GenericDistribution1D.h>
-#include <hist/detail/CompactCoordinates.h>
+
+#include <data/Molecule.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/SimpleExvModel.h>
-#include <settings/HistogramSettings.h>
-#include <constants/ConstantsAxes.h>
+#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
+#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
@@ -42,7 +39,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);
-    unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w);
+    int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w);
 
     GenericDistribution1D_t p_aa(bin_count);
     GenericDistribution1D_t p_ww(bin_count);
@@ -112,8 +109,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     double total_weight_aa = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const auto& val) {return sum + std::pow(val.value.w, 2);});
     double total_weight_ww = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const auto& val) {return sum + std::pow(val.value.w, 2);});
     if constexpr (weighted_bins) {
-        p_aa.add_index(0, WeightedEntry(total_weight_aa, total_weight_aa, 0));
-        p_ww.add_index(0, WeightedEntry(total_weight_ww, total_weight_ww, 0));
+        p_aa.add_index(0, WeightedEntry(total_weight_aa, static_cast<int>(total_weight_aa), 0));
+        p_ww.add_index(0, WeightedEntry(total_weight_ww, static_cast<int>(total_weight_ww), 0));
     } else {
         p_aa.add_index(0, total_weight_aa);
         p_ww.add_index(0, total_weight_ww);

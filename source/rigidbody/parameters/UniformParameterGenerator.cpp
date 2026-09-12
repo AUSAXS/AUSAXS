@@ -2,11 +2,11 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/parameters/UniformParameterGenerator.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/Rigidbody.h>
-#include <data/Body.h>
+
 #include <data/symmetry/CompositeSymmetry.h>
 #include <math/Vector3.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
 
 #include <cassert>
 
@@ -41,11 +41,11 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
             auto translation = translate
                 ? draw_isotropic(draw(amplitudes.symmetry_translation)*scaling, t.size())
                 : Vector3<double>{0, 0, 0};
-            for (std::size_t i = 0; i < t.size(); ++i) {t[i] = translation[i];}
+            for (int i = 0; i < static_cast<int>(t.size()); ++i) {t[i] = translation[i];}
 
             auto r = leaf.span_rotation();
             assert((r.empty() || r.size() == 3) && "UniformParameterGenerator::next: unexpected rotation parameter count.");
-            for (std::size_t i = 0; i < r.size(); ++i) {r[i] = rotation[i];}
+            for (int i = 0; i < static_cast<int>(r.size()); ++i) {r[i] = rotation[i];}
         };
 
         for (const auto& symmetry : symmetries) {

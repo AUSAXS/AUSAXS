@@ -2,10 +2,11 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/TransformElement.h>
-#include <rigidbody/sequencer/elements/LoopElement.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/transform/TransformFactory.h>
+
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
+#include <rigidbody/transform/TransformFactory.h>
 #include <settings/RigidBodySettings.h>
 
 using namespace ausaxs::rigidbody::sequencer;
@@ -26,7 +27,7 @@ InlineSignature TransformElement::_valid_inline_arguments() {
 }
 
 // transform [strategy] - one of: rigid, single
-std::unique_ptr<GenericElement> TransformElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> TransformElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     static auto get_transform_strategy = [] (std::string_view line) {
         if (line == "rigid_transform" || line == "rigid") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}
         if (line == "single_transform" || line == "single") {return settings::rigidbody::TransformationStrategyChoice::SingleTransform;}

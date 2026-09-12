@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <io/IOFwd.h>
 #include <io/ExistingFile.h>
+#include <io/IOFwd.h>
 #include <io/pdb/PDBStructure.h>
 
 namespace ausaxs::io {

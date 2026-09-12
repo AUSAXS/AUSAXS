@@ -1,24 +1,24 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <hist/histogram_manager/HistogramManagerFactory.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/symmetry/BodySymmetryFacade.h>
+#include <data/symmetry/PredefinedSymmetries.h>
 #include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
-#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
-#include <hist/histogram_manager/SymmetryManagerMT.h>
+#include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <data/symmetry/BodySymmetryFacade.h>
-#include <data/symmetry/PredefinedSymmetries.h>
+#include <hist/histogram_manager/SymmetryManagerMT.h>
 #include <settings/All.h>
 
-#include "hist_test_helper.h"
+#include <hist/hist_test_helper.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

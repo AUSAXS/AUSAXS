@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -27,7 +27,7 @@ namespace ausaxs::rigidbody::sequencer {
              * @param body_name   Name of the (base) body to split.
              * @param splits      Residue sequence ids to split at; produces splits.size()+1 fragments.
              */
-            SplitElement(observer_ptr<Sequencer> owner, const std::string& body_name, std::vector<int> splits);
+            SplitElement(observer_ptr<Sequencer> owner, const std::string& body_name, const std::vector<int>& splits);
             ~SplitElement() override;
 
             void run() override;

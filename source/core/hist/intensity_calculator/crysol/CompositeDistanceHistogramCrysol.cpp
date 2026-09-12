@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
+
 #include <form_factor/lookup/FormFactorManager.h>
 
 using namespace ausaxs;

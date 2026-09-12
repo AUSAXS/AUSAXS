@@ -13,13 +13,13 @@
 
 #pragma once
 
+#include <constants/Constants.h>
+#include <form_factor/FormFactorType.h>
+#include <hist/detail/data/IntrinsicHelpers.h>
 #include <hist/detail/data/IntrinsicMacros.h>
 #include <hist/detail/data/WidthControllers.h>
-#include <hist/detail/data/IntrinsicHelpers.h>
 #include <math/Vector3.h>
-#include <constants/Constants.h>
 #include <settings/Flags.h>
-#include <form_factor/FormFactorType.h>
 
 #include <array>
 #include <cstdint>
@@ -414,7 +414,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         std::span<const CompactCoordinatesXYZFF, 4> others,
         float* dist_out, int32_t* bin_out, int32_t* ff_out
     ) const noexcept {
-        const float* p = reinterpret_cast<const float*>(others.data());
+        const auto* p = reinterpret_cast<const float*>(others.data());
         __m128 r1 = _mm_loadu_ps(p);
         __m128 r2 = _mm_loadu_ps(p + 4);
         __m128 r3 = _mm_loadu_ps(p + 8);
@@ -467,7 +467,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         std::span<const CompactCoordinatesXYZFF, 4> others,
         int32_t* dist_out, int32_t* ff_out
     ) const noexcept {
-        const float* p = reinterpret_cast<const float*>(others.data());
+        const auto* p = reinterpret_cast<const float*>(others.data());
         __m128 r1 = _mm_loadu_ps(p);
         __m128 r2 = _mm_loadu_ps(p + 4);
         __m128 r3 = _mm_loadu_ps(p + 8);
@@ -522,7 +522,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         std::span<const CompactCoordinatesXYZFF, 8> others,
         float* dist_out, int32_t* bin_out, int32_t* ff_out
     ) const noexcept {
-        const float* p = reinterpret_cast<const float*>(others.data());
+        const auto* p = reinterpret_cast<const float*>(others.data());
         __m256 v12 = _mm256_loadu_ps(p);
         __m256 v34 = _mm256_loadu_ps(p + 8);
         __m256 v56 = _mm256_loadu_ps(p + 16);
@@ -579,7 +579,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
         std::span<const CompactCoordinatesXYZFF, 8> others,
         int32_t* dist_out, int32_t* ff_out
     ) const noexcept {
-        const float* p = reinterpret_cast<const float*>(others.data());
+        const auto* p = reinterpret_cast<const float*>(others.data());
         __m256 v12 = _mm256_loadu_ps(p);
         __m256 v34 = _mm256_loadu_ps(p + 8);
         __m256 v56 = _mm256_loadu_ps(p + 16);
@@ -627,13 +627,12 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
 #endif
 
 #if defined AUSAXS_USE_AVX512
-    #include <immintrin.h>
 
     template<bool vbw>
     inline ausaxs::hist::detail::xyzff::HexaEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_16_avx512(
         std::span<const CompactCoordinatesXYZFF, 16> others
     ) const noexcept {
-        const float* p = reinterpret_cast<const float*>(others.data());
+        const auto* p = reinterpret_cast<const float*>(others.data());
         __m512 v03   = _mm512_loadu_ps(p);
         __m512 v47   = _mm512_loadu_ps(p + 16);
         __m512 v811  = _mm512_loadu_ps(p + 32);
@@ -691,7 +690,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded
     inline ausaxs::hist::detail::xyzff::HexaEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_16_avx512(
         std::span<const CompactCoordinatesXYZFF, 16> others
     ) const noexcept {
-        const float* p = reinterpret_cast<const float*>(others.data());
+        const auto* p = reinterpret_cast<const float*>(others.data());
         __m512 v03   = _mm512_loadu_ps(p);
         __m512 v47   = _mm512_loadu_ps(p + 16);
         __m512 v811  = _mm512_loadu_ps(p + 32);

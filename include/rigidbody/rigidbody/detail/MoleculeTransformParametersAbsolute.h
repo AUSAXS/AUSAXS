@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <data/DataFwd.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
-#include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::detail {

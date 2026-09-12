@@ -2,12 +2,13 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/sequencer/elements/EveryNStepElement.h>
+
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <utility/StringUtils.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
-EveryNStepElement::EveryNStepElement(observer_ptr<LoopElement> owner, unsigned int n) : LoopElement(owner, 1), n(n), loop_counter(0) {}
+EveryNStepElement::EveryNStepElement(observer_ptr<LoopElement> owner, int n) : LoopElement(owner, 1), n(n) {}
 
 EveryNStepElement::~EveryNStepElement() = default;
 
@@ -19,7 +20,7 @@ void EveryNStepElement::run() {
     }
 }
 
-unsigned int EveryNStepElement::_get_step_size() const {
+int EveryNStepElement::_get_step_size() const {
     return n;
 }
 
@@ -32,7 +33,7 @@ InlineSignature EveryNStepElement::_valid_inline_arguments() {
 }
 
 // every [steps] - opens a block run once every [steps] iterations
-std::unique_ptr<GenericElement> EveryNStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) {
+std::unique_ptr<GenericElement> EveryNStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     if (!utility::isinteger(args.inlined[0])) {throw except::parse_error("every_n_step", "Expected an integer value for the number of steps, but got \"" + args.inlined[0] + "\".");}
     return std::make_unique<EveryNStepElement>(owner, std::stoi(args.inlined[0]));
 }

@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <rigidbody/sequencer/detail/InlineSignature.h>
-#include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/SequencerFwd.h>
-#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
+#include <rigidbody/sequencer/detail/InlineSignature.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -23,7 +23,7 @@ namespace ausaxs::rigidbody::sequencer {
              *        The RigidBody must be fully initialized, and must have a lifetime that exceeds that of the Sequencer.
              */
             LoadExistingElement(observer_ptr<Sequencer> owner, observer_ptr<Rigidbody> rigidbody);
-            virtual ~LoadExistingElement() = default;
+            ~LoadExistingElement() override = default;
 
             void run() override;
 

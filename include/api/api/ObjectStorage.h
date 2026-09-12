@@ -5,10 +5,10 @@
 
 #include <api/api_helper.h>
 
-#include <unordered_map>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 
 namespace ausaxs::api {
     /**
@@ -40,8 +40,8 @@ namespace ausaxs::api {
 
     template<typename T> 
     int ObjectStorage::register_object(T&& obj) {
-        T* ptr = new T(std::move(obj)); // constructed outside the lock; it cannot be observed yet
-        std::lock_guard lock(mutex);
+        T* ptr = new T(std::forward<T>(obj)); // constructed outside the lock; it cannot be observed yet
+        std::scoped_lock lock(mutex);
         int id = current_id++;
         storage.emplace(id, StoredObject{
             .ptr=static_cast<void*>(ptr), 
@@ -53,7 +53,7 @@ namespace ausaxs::api {
     template<typename T>
     int ObjectStorage::register_object(std::unique_ptr<T> obj) {
         T* ptr = obj.release(); // take ownership
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         int id = current_id++;
         storage.emplace(id, StoredObject{ ptr,
             [](void* p){ delete static_cast<T*>(p); }});
@@ -62,7 +62,7 @@ namespace ausaxs::api {
 
     template<typename T>
     inline T* ObjectStorage::get_object(int id) {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         auto it = storage.find(id);
         if (it != storage.end()) {
             return static_cast<T*>(it->second.ptr);
@@ -73,7 +73,7 @@ namespace ausaxs::api {
     inline void ObjectStorage::deregister_object(int id) {
         StoredObject obj;
         {
-            std::lock_guard lock(mutex);
+            std::scoped_lock lock(mutex);
             auto it = storage.find(id);
             if (it == storage.end()) {return;}
             obj = std::move(it->second);

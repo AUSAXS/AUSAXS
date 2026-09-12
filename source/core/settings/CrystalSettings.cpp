@@ -2,13 +2,12 @@
 // Author: Kristian Lytje
 
 #include <settings/CrystalSettings.h>
-#include <settings/SettingsIORegistry.h>
 
 using namespace ausaxs;
 
-unsigned int settings::crystal::h = 100;
-unsigned int settings::crystal::k = 100;
-unsigned int settings::crystal::l = 100;
+int settings::crystal::h = 100;
+int settings::crystal::k = 100;
+int settings::crystal::l = 100;
 double settings::crystal::max_q = 1e6; 
 double settings::crystal::grid_expansion = 3;
 double settings::crystal::reduced::basis_q = 3;

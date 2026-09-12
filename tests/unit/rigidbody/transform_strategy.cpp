@@ -1,21 +1,19 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/transform/TransformStrategy.h>
-#include <rigidbody/transform/TransformGroup.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/detail/SystemSpecification.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/detail/SimpleBody.h>
-#include <rigidbody/parameters/BodyTransformParametersRelative.h>
-#include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/CyclicSymmetry.h>
+#include <data/symmetry/PointSymmetry.h>
 #include <math/MatrixUtils.h>
+#include <rigidbody/Rigidbody.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
+#include <algorithm>
 #include <numbers>
 
 using namespace ausaxs;
@@ -192,7 +190,7 @@ TEST_CASE("TransformStrategy::reconstructed body matches current state after mul
         
         // Compare all atoms
         REQUIRE(reconstructed.size_atom() == current_body.size_atom());
-        for (size_t i = 0; i < current_body.size_atom(); ++i) {
+        for (int i = 0; i < current_body.size_atom(); ++i) {
             auto current_pos = current_body.get_atom(i).coordinates();
             auto reconstructed_pos = reconstructed.get_atom(i).coordinates();
             
@@ -277,7 +275,7 @@ TEST_CASE("TransformStrategy::apply keeps a symmetric assembly rigid") {
                 distances.push_back(structure.atoms[i].coordinates().distance(structure.atoms[j].coordinates()));
             }
         }
-        std::sort(distances.begin(), distances.end());
+        std::ranges::sort(distances);
         return distances;
     };
 

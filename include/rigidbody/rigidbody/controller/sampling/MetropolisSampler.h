@@ -7,8 +7,8 @@
 #include <utility/Random.h>
 
 #include <cmath>
-#include <random>
 #include <functional>
+#include <random>
 
 namespace ausaxs::rigidbody::sampling {
     class MetropolisSampler {

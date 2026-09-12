@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <form_factor/FormFactorType.h>
-#include <form_factor/ExvTable.h>
-#include <form_factor/ExvFormFactor.h>
 #include <data/DataFwd.h>
+#include <form_factor/ExvFormFactor.h>
+#include <form_factor/ExvTable.h>
+#include <form_factor/FormFactorType.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -39,7 +39,7 @@ namespace ausaxs::form_factor {
 }
 
 constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_default_exv_form_factor_set() {
-    return detail::ExvFormFactorSet(constants::exv::MinimumFluctuation_implicit_H);
+    return {constants::exv::MinimumFluctuation_implicit_H};
 }
 
 constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_current_exv_form_factor_set() {

@@ -2,19 +2,20 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/histogram_manager/detail/SymmetryHelpers.h>
-#include <data/Molecule.h>
+
 #include <data/Body.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
-#include <hist/detail/CompactCoordinates.h>
+#include <data/Molecule.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinates.h>
+#include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/distribution/GenericDistribution1D.h>
+#include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <utility/Logging.h>
 
 #include <cassert>
 #include <ranges>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::hist::detail;
@@ -32,9 +33,8 @@ template<bool weighted_bins, bool variable_bin_width>
 std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::calculate_all() {
     if (protein->size_water() == 0) {
         return calculate<false>();
-    } else {
-        return calculate<true>();
     }
+    return calculate<true>();
 }
 
 template<bool weighted_bins, bool variable_bin_width> template <bool contains_waters>
@@ -49,7 +49,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
 
     // the per-body data is a struct rather than a range, so project out the coordinate sets for the estimator
     auto atomic = data | std::views::transform([] (const auto& body) -> const auto& {return body.atomic;});
-    unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(atomic, data_w);
+    int bin_count = hist::detail::required_bin_count<variable_bin_width>(atomic, data_w);
 
     hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_count);
 
@@ -63,7 +63,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
         return rep == 0 ? data[i_body].atomic[0][0] : data[i_body].atomic[1+i_sym][rep-1];
     };
 
-    for (int i_body1 = 0; i_body1 < static_cast<int>(protein->size_body()); ++i_body1) {
+    for (int i_body1 = 0; i_body1 < protein->size_body(); ++i_body1) {
         const auto& body = protein->get_body(i_body1);
         const auto& body1_atomic = data[i_body1].atomic[0][0];
         // every copy has identical internal distances, so evaluate once and scale
@@ -72,8 +72,8 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
             calculator.enqueue_calculate_cross(waters, body1_atomic, 1, cross_merge_id_aw);
         }
 
-        for (int i_sym1 = 0; i_sym1 < static_cast<int>(body.size_symmetry()); ++i_sym1) {
-            auto sym1 = body.symmetry().get(i_sym1);
+        for (int i_sym1 = 0; i_sym1 < body.size_symmetry(); ++i_sym1) {
+            const auto* sym1 = body.symmetry().get(i_sym1);
 
             // distinct distance pairs among {original, copy_1, ..., copy_N} of this symmetry;
             // every other copy-pair is identical to a listed representative and folded into scale
@@ -87,7 +87,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
             }
             calculator.release_hold();
 
-            for (int i_repeat1 = 0; i_repeat1 < static_cast<int>(sym1->repetitions()); ++i_repeat1) {
+            for (int i_repeat1 = 0; i_repeat1 < sym1->repetitions(); ++i_repeat1) {
                 const auto& body1_sym_atomic = data[i_body1].atomic[1+i_sym1][i_repeat1];
 
                 // this copy against everything it can pair with, as one group
@@ -97,15 +97,15 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                 }
 
                 // external histograms with other bodies
-                for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
+                for (int j_body1 = i_body1+1; j_body1 < protein->size_body(); ++j_body1) {
                     const auto& body2 = protein->get_body(j_body1);
                     const auto& body2_atomic = data[j_body1].atomic[0][0];
                     calculator.enqueue_calculate_cross(body2_atomic, body1_sym_atomic, 1, cross_merge_id_aa);
 
                     // external histograms with other symmetries in same body
-                    for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
+                    for (int j_sym1 = 0; j_sym1 < body2.size_symmetry(); ++j_sym1) {
                         const auto& sym2 = body2.symmetry().get(j_sym1);
-                        for (int j_repeat1 = 0; j_repeat1 < static_cast<int>(sym2->repetitions()); ++j_repeat1) {
+                        for (int j_repeat1 = 0; j_repeat1 < sym2->repetitions(); ++j_repeat1) {
                             const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
                             calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                         }
@@ -113,9 +113,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                 }
 
                 // internal histogram with other symmetries in same body
-                for (int i_sym2 = i_sym1+1; i_sym2 < static_cast<int>(body.size_symmetry()); ++i_sym2) {
+                for (int i_sym2 = i_sym1+1; i_sym2 < body.size_symmetry(); ++i_sym2) {
                     const auto& sym2 = body.symmetry().get(i_sym2);
-                    for (int i_repeat2 = 0; i_repeat2 < static_cast<int>(sym2->repetitions()); ++i_repeat2) {
+                    for (int i_repeat2 = 0; i_repeat2 < sym2->repetitions(); ++i_repeat2) {
                         const auto& body2_sym_atomic = data[i_body1].atomic[1+i_sym2][i_repeat2];
                         calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                     }
@@ -125,7 +125,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
         }
 
         // external histograms with other bodies
-        for (int j_body1 = i_body1+1; j_body1 < static_cast<int>(protein->size_body()); ++j_body1) {
+        for (int j_body1 = i_body1+1; j_body1 < protein->size_body(); ++j_body1) {
             const auto& body2 = protein->get_body(j_body1);
             const auto& body2_atomic = data[j_body1].atomic[0][0];
 
@@ -134,9 +134,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
             calculator.enqueue_calculate_cross(body1_atomic, body2_atomic, 1, cross_merge_id_aa);
 
             // external histograms with other symmetries in same body
-            for (int j_sym1 = 0; j_sym1 < static_cast<int>(body2.size_symmetry()); ++j_sym1) {
+            for (int j_sym1 = 0; j_sym1 < body2.size_symmetry(); ++j_sym1) {
                 const auto& sym2 = body2.symmetry().get(j_sym1);
-                for (int j_repeat1 = 0; j_repeat1 < static_cast<int>(sym2->repetitions()); ++j_repeat1) {
+                for (int j_repeat1 = 0; j_repeat1 < sym2->repetitions(); ++j_repeat1) {
                     const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
                     calculator.enqueue_calculate_cross(body1_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
                 }
@@ -179,7 +179,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     for (int i = 0; i < static_cast<int>(p_tot.size()); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area
-    unsigned int max_bin = 10; // minimum size is 10
+    int max_bin = 10; // minimum size is 10
     for (int i = p_tot.size()-1; i >= 10; i--) {
         if (p_tot.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
