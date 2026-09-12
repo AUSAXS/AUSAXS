@@ -15,6 +15,7 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
+#include <numbers>
 
 std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
     switch (t) {
