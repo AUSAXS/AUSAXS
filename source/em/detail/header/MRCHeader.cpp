@@ -49,12 +49,7 @@ int MRCHeader::get_header_size() const {
 }
 
 Axis3D MRCHeader::get_axes() const noexcept {
-    auto& p = cast_data();
-    return {
-        Axis(0, p.cella_x, p.nx),
-        Axis(0, p.cella_y, p.ny),
-        Axis(0, p.cella_z, p.nz)
-    };
+    return make_axes(cast_data());
 }
 
 std::tuple<int, int, int> MRCHeader::get_axis_order() const noexcept {

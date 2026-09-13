@@ -12,6 +12,18 @@
 #include <string>
 
 namespace ausaxs::em::detail::header {
+    /**
+     * @brief Determine the axes of a map from its header data.
+     *
+     * The stored counts (nx, ny, nz) are the number of columns, rows and sections, each of which spans the crystallographic axis named 
+     * by (mapc, mapr, maps). The voxel width along a crystallographic axis is the unit cell dimension divided by the number of sampling 
+     * intervals (mx, my, mz) along that axis, so a map storing only a sub-volume of its cell is still scaled correctly.
+     *
+     * @return The axes in crystallographic (x, y, z) order, each spanning only the stored region.
+     */
+    template<class T>
+    Axis3D make_axes(const T& data) noexcept;
+
     class IMapHeader {
         public:
             virtual ~IMapHeader() = default;
