@@ -55,7 +55,6 @@ void DistanceHistogram::initialize() {
 
 ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
-    const auto& q_axis = constants::axes::q_vals;
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     const auto* sinqd_table = sinc_table.get_sinc_table();
 
@@ -65,6 +64,7 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     auto* pool = utility::multi_threading::get_global_pool();
     pool->detach_blocks(q0, q0+debye_axis.bins, // iterate through all q values
         [this, &Iq, q0, sinqd_table] (int start, int end) {
+            const auto& q_axis = constants::axes::q_vals;
             for (int q = start; q < end; ++q) {
                 Iq[q-q0] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
                 Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
