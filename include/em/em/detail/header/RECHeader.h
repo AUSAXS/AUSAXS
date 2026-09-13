@@ -7,6 +7,8 @@
 #include <em/detail/header/data/RECData.h>
 #include <io/IOFwd.h>
 
+#include <array>
+
 namespace ausaxs::em::detail::header {
     /**
      * @brief Wrapper class for RECData.
@@ -38,7 +40,7 @@ namespace ausaxs::em::detail::header {
              * 
              * @return [x, y, z] where x, y, and z are the indices of the axes in the order they appear in the map.
              */
-            std::tuple<int, int, int> get_axis_order() const noexcept override;
+            std::array<int, 3> get_axis_order() const noexcept override;
 
             /**
              * @brief Get the axes of this map.

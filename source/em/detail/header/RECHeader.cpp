@@ -45,17 +45,11 @@ int RECHeader::get_header_size() const {
 }
 
 Axis3D RECHeader::get_axes() const noexcept {
-    auto& p = cast_data();
-    return {
-        Axis(0, p.cella_x, p.nx),
-        Axis(0, p.cella_y, p.ny),
-        Axis(0, p.cella_z, p.nz)
-    };
+    return make_axes(cast_data());
 }
 
-std::tuple<int, int, int> RECHeader::get_axis_order() const noexcept {
-    auto& p = cast_data();
-    return std::make_tuple(p.mapc, p.mapr, p.maps);
+std::array<int, 3> RECHeader::get_axis_order() const noexcept {
+    return em::detail::header::get_axis_order(cast_data());
 }
 
 em::detail::header::DataType RECHeader::get_data_type() const {

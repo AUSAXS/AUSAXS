@@ -7,6 +7,7 @@
 #include <em/Image.h>
 #include <em/ObjectBounds3D.h>
 #include <em/detail/header/HeaderFactory.h>
+#include <em/detail/header/MapHeader.h>
 #include <em/manager/ProteinManagerFactory.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
@@ -109,40 +110,19 @@ namespace {
 
 void ImageStackBase::read(std::ifstream& istream) {
     data = std::vector<Image>(size_z, Image(header.get()));
-    auto[col, row, sec] = header->get_axis_order();
+    // the data is stored as columns within rows within sections which we have to convert to (x, y, z)
+    auto order = header->get_axis_order();
+    std::array<int, 3> size = {size_x, size_y, size_z};
+    std::array<int, 3> extent = {0, 0, 0};
+    for (int axis = 0; axis < 3; ++axis) {extent[order[axis]] = size[axis];}
 
-    // the data is stored in the order of column, row, section
-    // we have to convert this format to (x, y, z)
-    // first determine the limits of each axis
-    int xm, ym, zm;
-    auto set_size = [this] (int axis) {
-        switch (axis) {
-            case 1: return size_x;
-            case 2: return size_y;
-            case 3: return size_z;
-            default: throw except::invalid_argument("ImageStackBase::read: Invalid axis");
-        }
-    };
-
-    // set the limits of each axis
-    xm = set_size(col);
-    ym = set_size(row);
-    zm = set_size(sec);
-
-    // define an index array to contain the current indices of each axis
+    // i[0] counts columns, i[1] rows and i[2] sections, so we have to iterate over i[2] first, then i[1], then i[0]
     std::array<int, 3> i = {0, 0, 0};
-
-    // define a permutated reference to each index 
-    int &x = i[col-1];
-    int &y = i[row-1];
-    int &z = i[sec-1];
-
-    // do the actual reading. Note that the default order is 123, so we have to iterate over z first, then y, then x
     auto readfunc = get_read_function(header->get_data_type());
-    for (i[2] = 0; i[2] < zm; i[2]++) {
-        for (i[1] = 0; i[1] < ym; i[1]++) {
-            for (i[0] = 0; i[0] < xm; i[0]++) {
-                index(x, y, z) = readfunc(istream, header->get_byte_size());
+    for (i[2] = 0; i[2] < extent[2]; i[2]++) {
+        for (i[1] = 0; i[1] < extent[1]; i[1]++) {
+            for (i[0] = 0; i[0] < extent[0]; i[0]++) {
+                index(i[order[0]], i[order[1]], i[order[2]]) = readfunc(istream, header->get_byte_size());
             }
         }
     }
