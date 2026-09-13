@@ -1,6 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <grid/Grid.h>
 #include <support/exact_grid.h>
 #include <utility/Limit3D.h>
 
