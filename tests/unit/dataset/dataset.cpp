@@ -257,3 +257,31 @@ TEST_CASE("Dataset::sort_x") {
     CHECK(dataset.y(3) == 30);
     CHECK(dataset.y(4) == 50);
 }
+
+TEST_CASE("Dataset::find_minimum") {
+    SECTION("y column") {
+        Dataset dataset({{1, 2, 3, 4, 5}, {5, 2, 4, 1, 3}});
+        CHECK(dataset.find_minimum(1) == std::vector<double>{4, 1});
+    }
+
+    SECTION("other column") {
+        // the searched column is disjoint from the y column, whose values are all smaller
+        Dataset dataset({{1, 2, 3}, {0, 0, 0}, {5, 3, 4}});
+        CHECK(dataset.find_minimum(2) == std::vector<double>{2, 0, 3});
+    }
+
+    SECTION("first element") {
+        Dataset dataset({{1, 2, 3}, {0, 0, 0}, {3, 4, 5}});
+        CHECK(dataset.find_minimum(2) == std::vector<double>{1, 0, 3});
+    }
+
+    SECTION("last element") {
+        Dataset dataset({{1, 2, 3}, {0, 0, 0}, {5, 4, 3}});
+        CHECK(dataset.find_minimum(2) == std::vector<double>{3, 0, 3});
+    }
+
+    SECTION("empty") {
+        Dataset dataset;
+        CHECK(dataset.find_minimum(1).empty());
+    }
+}
