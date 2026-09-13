@@ -174,19 +174,20 @@ Dataset Dataset::interpolate(int n) const {
 }
 
 std::vector<double> Dataset::find_minimum(int col_i) const {
-    if (size() == 0) {
+    if (empty()) {
         if (settings::general::verbose) {
             console::print_warning("Warning in Dataset::find_minimum: Dataset is empty.");
         }
         return std::vector<double>(data.M, 0);
     }
     
+    auto c = col(col_i);
     int min_index = 0;
-    double min_value = y(0);
+    double min_value = c[0];
     for (int i = 1; i < size(); i++) {
-        if (col(col_i)[i] < min_value) {
+        if (c[i] < min_value) {
             min_index = i;
-            min_value = col(col_i)[i];
+            min_value = c[i];
         }
     }
     return row(min_index);
