@@ -74,7 +74,7 @@ namespace ausaxs {
     template<numeric T> template<numeric Q>
     double Vector<T>::dot(const Vector<Q>& v) const {
         compatibility_check(v);
-        return std::inner_product(begin(), end(), v.begin(), 0.0);
+        return std::transform_reduce(begin(), end(), v.begin(), 0.0);
     }
 
     template<numeric T>

@@ -64,7 +64,7 @@ namespace {
 
         std::vector<double> Iq(debye_axis.bins, 0);
         for (int q = q0; q < q0+debye_axis.bins; ++q) {
-            Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
+            Iq[q-q0] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
             Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]);
         }
         return ScatteringProfile(std::move(Iq), debye_axis);

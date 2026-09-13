@@ -452,19 +452,19 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
         for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
             pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table] () {
                 for (int q = q0; q < q0+bins; ++q) {
-                    cache.sinqd.aa.index(ff1, ff2, q-q0) = std::inner_product(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
+                    cache.sinqd.aa.index(ff1, ff2, q-q0) = std::transform_reduce(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 }
             });
         }
         pool->detach_task([this, q0, bins=debye_axis.bins, ff1, sinqd_table] () {
             for (int q = q0; q < q0+bins; ++q) {
-                cache.sinqd.aw.index(ff1, q-q0) = std::inner_product(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
+                cache.sinqd.aw.index(ff1, q-q0) = std::transform_reduce(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1), sinqd_table->begin(q), 0.0);
             }
         });
     }
     pool->detach_task([this, q0, bins=debye_axis.bins, sinqd_table] () {
         for (int q = q0; q < q0+bins; ++q) {
-            cache.sinqd.ww.index(q-q0) = std::inner_product(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table->begin(q), 0.0);
+            cache.sinqd.ww.index(q-q0) = std::transform_reduce(distance_profiles.ww.begin(), distance_profiles.ww.end(), sinqd_table->begin(q), 0.0);
         }
     });
 }
