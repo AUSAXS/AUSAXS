@@ -1,20 +1,18 @@
-add_executable(benchmark_distance_calculation "distance_calculation_benchmark.cpp")
+# Benchmarks are hidden Catch2 test cases ("[.][benchmark]"); they are never run by ctest.
+# They open paths like tests/files/2epe.pdb, so run them from the repository root:
+#     cmake --build build --target benchmarks -j8
+#     ./build/tests/benchmark/bin/benchmark_pr "[benchmark]~[large]" -r xml::out=results.xml
+#     python3 tests/benchmark/plot_benchmark.py results.xml
+foreach(_bench benchmark_pr benchmark_rigidbody)
+    add_executable(${_bench} "${_bench}.cpp")
+    target_link_libraries(${_bench} PRIVATE libausaxs Catch2::Catch2WithMain)
+    target_include_directories(${_bench} PRIVATE ${CMAKE_SOURCE_DIR}/tests)
+    set_target_properties(${_bench} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
+    )
+endforeach()
 
-target_link_libraries(benchmark_distance_calculation
-    PRIVATE
-        libausaxs
-        Catch2::Catch2WithMain
-)
-
-target_include_directories(benchmark_distance_calculation
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/tests
-)
-
-set_target_properties(benchmark_distance_calculation PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
-)
+add_custom_target(benchmarks DEPENDS benchmark_pr benchmark_rigidbody)
 
 # Per-SIMD histogram benchmark variants.
 #
