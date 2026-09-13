@@ -507,8 +507,19 @@ def plot_fits(ausaxs_file, fit_files, title=""):
     fits = []
     labels = []
     colors = []
-    data = np.loadtxt(ausaxs_file, skiprows=2)
-    header = open(ausaxs_file).readline().split()
+    # the number of header lines varies: a unit annotation, an optional description, and the column titles
+    header = []
+    n_header = 0
+    with open(ausaxs_file) as f:
+        while line := f.readline():
+            try:
+                float(line.split()[0])
+                break
+            except (ValueError, IndexError): # not a number, or a blank line
+                header += line.split()
+                n_header += 1
+
+    data = np.loadtxt(ausaxs_file, skiprows=n_header)
     for entry in header:
         if entry.startswith("dof="):
             ausaxs_dof = len(data[:, 1]) - int(entry.split("=")[1])

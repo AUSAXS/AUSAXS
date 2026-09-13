@@ -4,6 +4,7 @@
 #include <dataset/Dataset.h>
 
 #include <dataset/DatasetFactory.h>
+#include <dataset/detail/QUnitAnnotation.h>
 #include <math/CubicSpline.h>
 #include <math/MovingAverager.h>
 #include <math/PeakFinder.h>
@@ -12,7 +13,6 @@
 #include <utility/Exceptions.h>
 
 #include <algorithm>
-#include <fstream>
 #include <iomanip>
 #include <numeric>
 #include <sstream>
@@ -104,26 +104,25 @@ Dataset Dataset::select_columns(const std::vector<int>& cols) const {
 }
 
 void Dataset::save(const io::File& path, const std::string& header) const {
-    path.directory().create();
+    std::stringstream output;
 
-    // check if file was succesfully opened
-    std::ofstream output(path);
-    if (!output.is_open()) {throw ausaxs::except::io_error("IntensityFitter::save: Could not open file \"" + path.str() + "\"");}
+    // annotate with the unit our q-values are in, so a re-read cannot rescale them
+    output << detail::qunit::unit_line(header);
 
     // write header
     if (!header.empty()) {
-        output << header << std::endl;
+        output << header << "\n";
     }
-    output << std::endl;
+    output << "\n";
 
     // write data
-    for (int i = 0; i < static_cast<int>(data.N); i++) {
-        for (int j = 0; j < static_cast<int>(data.M)-1; j++) {
+    for (int i = 0; i < data.N; i++) {
+        for (int j = 0; j < data.M-1; j++) {
             output << std::left << std::setw(16) << std::setprecision(8) << std::scientific << index(i, j) << "\t";
         }
-        output << index(i, static_cast<int>(data.M)-1) << "\n";
+        output << index(i, data.M-1) << "\n";
     }
-    output.close();
+    path.create(output.str());
 }
 
 void Dataset::load(const io::ExistingFile& path) {
