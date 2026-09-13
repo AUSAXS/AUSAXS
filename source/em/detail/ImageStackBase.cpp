@@ -100,7 +100,7 @@ namespace {
             case em::detail::header::DataType::int16: return read_helper<int16_t>;
             case em::detail::header::DataType::uint8: return read_helper<uint8_t>;
             case em::detail::header::DataType::uint16: return read_helper<uint16_t>;
-            case em::detail::header::DataType::float16: return read_helper<float>;
+            case em::detail::header::DataType::float16: throw except::invalid_argument("ImageStackBase::get_read_function: float16 is not supported");
             case em::detail::header::DataType::float32: return read_helper<float>;
             default: throw except::invalid_argument("ImageStackBase::get_read_function: Invalid data type");
         }
