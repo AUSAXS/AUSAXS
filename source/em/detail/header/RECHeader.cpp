@@ -84,7 +84,7 @@ em::detail::header::DataType RECHeader::get_data_type() const {
             return em::detail::header::DataType::uint16;
 
         case 12:
-            return em::detail::header::DataType::float16;
+            throw except::parse_error("RECHeader::get_data_type: float16 data format is not currently supported.");
 
         case 3:
             throw except::parse_error("RECHeader::get_data_type: Complex data format is not currently supported.");
