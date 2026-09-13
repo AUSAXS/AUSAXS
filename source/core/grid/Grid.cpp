@@ -7,6 +7,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/atoms/AtomHelper.h>
+#include <form_factor/FormFactorType.h>
 #include <grid/detail/GridMember.h>
 #include <grid/detail/GridObj.h>
 #include <grid/expansion/GridExpander.h>
@@ -19,6 +20,7 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
+#include <limits>
 #include <utility>
 
 #ifndef NDEBUG
@@ -38,27 +40,34 @@ Grid::Grid(const Limit3D& axes) : Grid(Axis3D(axes, settings::grid::cell_width),
 Grid::Grid(const std::vector<AtomFF>& atoms) : Grid({Body(atoms)}) {}
 
 Grid::Grid(const std::vector<Body>& bodies) {
-    // find the total bounding box containing all bodies including their symmetries
-    Vector3 min{0, 0, 0}, max{0, 0, 0};
+    // find the total bounding box containing all bodies including their symmetries.
+    Vector3<double> min{
+        std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()
+    };
+    Vector3<double> max{
+        std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()
+    };
     for (const Body& body : bodies) {
         auto[amin, amax] = bounding_box(body.get_atoms());
 
-        for (int i = 0; i < 3; i++) {
-            min[i] = static_cast<int>(std::min<double>(amin[i], min[i]));
-            max[i] = static_cast<int>(std::max<double>(amax[i], max[i]));
+        if (body.size_atom() != 0) {
+            for (int i = 0; i < 3; i++) {
+                min[i] = std::min(amin[i], min[i]);
+                max[i] = std::max(amax[i], max[i]);
+            }
         }
 
         auto w = body.get_waters();
-        if (w.has_value()) {
+        if (w.has_value() && !w.value().get().empty()) {
             auto[wmin, wmax] = bounding_box(w.value().get());
             for (int i = 0; i < 3; i++) {
-                min[i] = static_cast<int>(std::min<double>(wmin[i], min[i]));
-                max[i] = static_cast<int>(std::max<double>(wmax[i], max[i]));
+                min[i] = std::min(wmin[i], min[i]);
+                max[i] = std::max(wmax[i], max[i]);
             }
         }
-        
+
         // Account for symmetry bodies by transforming bounding box corners
-        if (body.size_symmetry() == 0) {continue;}
+        if (body.size_symmetry() == 0 || body.size_atom() == 0) {continue;}
         auto cm = body.get_cm();
         for (int j = 0; j < body.size_symmetry(); ++j) {
             const auto *sym = body.symmetry().get(j);
@@ -81,21 +90,21 @@ Grid::Grid(const std::vector<Body>& bodies) {
                 for (const auto& corner : corners) {
                     auto transformed = transform(corner);
                     for (int i = 0; i < 3; i++) {
-                        min[i] = static_cast<int>(std::min<double>(transformed[i], min[i]));
-                        max[i] = static_cast<int>(std::max<double>(transformed[i], max[i]));
+                        min[i] = std::min(transformed[i], min[i]);
+                        max[i] = std::max(transformed[i], max[i]);
                     }
                 }
             }
         }
     }
 
-    // for small systems, expand the grid by a factor 2
-    auto diff = max - min;
-    if (settings::grid::scaling == 0.25 && (diff.x() < 50 || diff.y() < 50 || diff.z() < 50)) {
-        settings::grid::scaling = 1;
-    }
+    // nothing was folded in at all: fall back to a degenerate box at the origin
+    if (max.x() < min.x()) {min = {0, 0, 0}; max = {0, 0, 0};}
 
-    // expand bounding box by scaling factor, but never by less than what the hydration shell needs
+    auto diff = max - min;
+
+    // expand bounding box by scaling factor, but never by less than what the hydration shell needs.
+    // the margin is what guarantees room for the shell; the scaling factor is only the user's headroom on top of it
     Vector3<double> nmin{}, nmax{}; // new min & max
     double min_margin = get_minimum_edge_margin();
     for (int i = 0; i < 3; i++) {
@@ -176,11 +185,48 @@ double Grid::get_hydration_radius() const {
     return constants::radius::get_vdw_radius(constants::atom_t::O);
 }
 
+namespace {
+    // The largest radius the shell can ever be placed around. The grid only ever sees form factor types, and those map
+    // onto a closed set of elements (H, C, N, O, S, and Ar via OTHER), so this bounds every structure without looking
+    // at its atoms - which matters because Rigidbody::refresh_grid asks for the margin on every transform, and a scan
+    // over the atoms there would be a per-iteration cost for a value that cannot change.
+    // The loop runs over the form factor enum rather than a hardcoded list so that it cannot go stale if the mapping
+    // changes; it is evaluated once per process. EXCLUDED_VOLUME is the one type with no radius, and is skipped.
+    double largest_shell_radius() {
+        static const double r = [] {
+            double m = 0;
+            for (int i = 0; i < form_factor::total_ff_count; ++i) {
+                auto type = static_cast<form_factor::form_factor_t>(i);
+                if (type == form_factor::form_factor_t::EXCLUDED_VOLUME) {continue;}
+                m = std::max(m, constants::radius::get_vdw_radius(type));
+            }
+            return m;
+        }();
+        return r;
+    }
+}
+
 double Grid::get_minimum_edge_margin() {
+    // the two terms are not equally knowable, which is why they are sourced differently:
+    //
+    // the shell offset is exact. RadialHydration places a water at |atom_radius + hydration_radius + shell_correction|
+    // from its parent atom, reading atom_radius from the same form-factor radius table as largest_shell_radius, so
+    // bounding that table bounds the shell.
+    //
+    // the placement noise is not knowable here. The noise generator and the hydration strategy are both replaceable
+    // after the grid has been built, so this term cannot be derived from the current state and is deliberately
+    // pessimistic instead: the default generator draws gaussian(0, 0.75) per axis, so 4 Å is beyond 5 sigma, and
+    // still covers a generator with twice that spread out to ~2.7 sigma. This matters because a water landing outside
+    // the grid is dropped by RadialHydration's is_valid_bin check without any diagnostic, which biases the shell along
+    // that face rather than failing. If an even wider generator is ever installed, settings::grid::min_bins is the way
+    // out: enforce_min_bins() in setup() grows each axis symmetrically around its contents, adding margin on every face.
+    constexpr double noise_allowance = 4;
     return
-        constants::radius::get_vdw_radius(constants::atom_t::P) +          // a somewhat common elemnt with a large radius
-        constants::radius::get_vdw_radius(constants::atom_t::O) +          // the hydration radius
-        settings::hydrate::shell_correction + 3*settings::grid::cell_width // slack for the noise on the water positions and the rounding in to_bins
+        largest_shell_radius() +                                   // the furthest atom surface
+        constants::radius::get_vdw_radius(constants::atom_t::O) +  // the hydration radius
+        settings::hydrate::shell_correction +                      // the shell offset from that surface
+        noise_allowance +                                          // the noise on the water positions, in absolute units
+        2*settings::grid::cell_width                               // the rounding in to_bins, the only cell-width-scaled term
     ;
 }
 
@@ -220,7 +266,7 @@ namespace {
 
         // initialize the bounds as extreme as possible
         Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
-        Vector3 max = {std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min()};
+        Vector3 max = {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()};
         for (const auto& atom : atoms) {
             for (int i = 0; i < 3; i++) {
                 min[i] = std::min(min[i], atom.coordinates()[i]);
