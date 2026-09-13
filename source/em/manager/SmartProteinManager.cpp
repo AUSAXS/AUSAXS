@@ -9,8 +9,8 @@
 #include <em/detail/ImageStackBase.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/EMSettings.h>
-#include <settings/InternalState.h>
 #include <settings/HistogramSettings.h>
+#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
