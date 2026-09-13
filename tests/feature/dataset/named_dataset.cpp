@@ -36,12 +36,16 @@ TEST_CASE("NamedDataset: User-facing file I/O") {
 
         // read file and verify it has column names
         std::ifstream input(output_path.str());
+        std::string unit_line;
+        std::getline(input, unit_line); // q-unit annotation
         std::string header_line;
         std::getline(input, header_line); // comment line
         std::string column_line;
         std::getline(input, column_line); // column names
         input.close();
 
+        CHECK(unit_line == "[A]");
+        CHECK(header_line == "# SAXS experimental data");
         CHECK(column_line.find('q') != std::string::npos);
         CHECK(column_line.find("I(q)") != std::string::npos);
         CHECK(column_line.find("error") != std::string::npos);
