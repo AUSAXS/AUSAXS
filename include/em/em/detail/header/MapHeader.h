@@ -7,11 +7,21 @@
 #include <utility/UtilityFwd.h>
 #include <utility/observer_ptr.h>
 
+#include <array>
 #include <iosfwd>
 #include <memory>
 #include <string>
 
 namespace ausaxs::em::detail::header {
+    /**
+     * @brief Determine the axis order of a map from its header data.
+     *
+     * @return [x, y, z] where x, y and z are the indices of the stored axes spanning each crystallographic axis. 
+     *         The identity if the header does not state a permutation of {1, 2, 3}.
+     */
+    template<class T>
+    std::array<int, 3> get_axis_order(const T& data) noexcept;
+
     /**
      * @brief Determine the axes of a map from its header data.
      *
@@ -53,7 +63,7 @@ namespace ausaxs::em::detail::header {
              * 
              * @return [x, y, z] where x, y, and z are the indices of the axes in the order they appear in the map.
              */
-            virtual std::tuple<int, int, int> get_axis_order() const noexcept = 0;
+            virtual std::array<int, 3> get_axis_order() const noexcept = 0;
 
             /**
              * @brief Get a pointer to the start of the data section. 

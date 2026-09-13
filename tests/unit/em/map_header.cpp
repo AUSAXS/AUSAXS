@@ -16,6 +16,17 @@
 using namespace ausaxs;
 
 namespace {
+    // a map with three different extents and three different voxel widths, so that a count or a width attached to the wrong axis shows
+    em::detail::header::MRCData non_cubic_map() {
+        em::detail::header::MRCData data;
+        data.nx = 10;                                               // columns
+        data.ny = 20;                                               // rows
+        data.nz = 30;                                               // sections
+        data.mx = 30;   data.my = 20;   data.mz = 10;               // sampling intervals along x, y, z
+        data.cella_x = 60; data.cella_y = 40; data.cella_z = 10;    // so the voxels are 2 x 2 x 1 Å
+        return data;
+    }
+
     // read only the 1024-byte header, exactly as ImageStackBase does before it reads the voxels
     std::unique_ptr<em::detail::header::IMapHeader> read_header(const io::ExistingFile& file) {
         auto header = em::detail::factory::create_header(file);
@@ -59,14 +70,8 @@ TEST_CASE("MRCHeader::get_axes: voxel width is independent of the stored extent"
 // axis each of them spans. Attaching a count to the wrong axis is invisible on a cubic map, so this
 // uses three different extents and three different voxel widths.
 TEST_CASE("MRCHeader::get_axes: stored counts follow the axis order") {
-    em::detail::header::MRCData data;
-    data.nx = 10;                                               // columns
-    data.ny = 20;                                               // rows
-    data.nz = 30;                                               // sections
-    data.mx = 30;   data.my = 20;   data.mz = 10;               // sampling intervals along x, y, z
-    data.cella_x = 60; data.cella_y = 40; data.cella_z = 10;    // so the voxels are 2 x 2 x 1 Å
-
     SECTION("identity") {
+        auto data = non_cubic_map();
         data.mapc = 1; data.mapr = 2; data.maps = 3;
         auto axes = em::detail::header::MRCHeader(std::move(data)).get_axes();
 
@@ -80,6 +85,7 @@ TEST_CASE("MRCHeader::get_axes: stored counts follow the axis order") {
 
     // the order carried by every map in tests/files
     SECTION("transposition") {
+        auto data = non_cubic_map();
         data.mapc = 3; data.mapr = 2; data.maps = 1;
         auto axes = em::detail::header::MRCHeader(std::move(data)).get_axes();
 
@@ -93,6 +99,7 @@ TEST_CASE("MRCHeader::get_axes: stored counts follow the axis order") {
 
     // a cyclic order is not its own inverse, so it separates the mapping from its reverse
     SECTION("cycle") {
+        auto data = non_cubic_map();
         data.mapc = 2; data.mapr = 3; data.maps = 1;
         auto axes = em::detail::header::MRCHeader(std::move(data)).get_axes();
 
