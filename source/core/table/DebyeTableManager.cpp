@@ -6,8 +6,7 @@
 #include <table/ArrayDebyeTable.h>
 #include <utility/Exceptions.h>
 
-#include <cassert>
-#include <numeric>
+#include <algorithm>
 
 using namespace ausaxs;
 using namespace ausaxs::table;
@@ -54,34 +53,13 @@ void DebyeTableManager::reset_to_default() {
     use_custom_table = false;
 }
 
-namespace {
-    bool appears_identical(const std::vector<double>& a, const std::vector<double>& b) {
-        if (a.size() != b.size()) {return false;}
-        if (a.size() > 10) {
-            for (size_t i = 0; i < 5; ++i) {
-                if (a[i] != b[i]) {return false;}
-            }
-            for (size_t i = a.size()-5; i < a.size(); ++i) {
-                if (a[i] != b[i]) {return false;}
-            }
-        }
-
-        // extra assert in debug mode. if the above is not sufficient, this should catch it during testing
-        assert(
-            std::abs(std::reduce(a.begin(), a.end(), 0.0) - std::reduce(b.begin(), b.end(), 0.0)) < 1e-9 
-            && "appears_identical: Sums do not match"
-        );
-        return true;
-    }
-}
-
 template<typename T>
 void DebyeTableManager::set_q_axis(T&& q_axis) requires (std::disjunction_v<
     std::is_rvalue_reference<T&&>,
     std::is_same<T, const std::vector<double>&>,
     std::is_same<T, std::vector<double>&>
 >) {
-    if (appears_identical(q.axis, q_axis)) {return;} // no change
+    if (q_axis.size() <= q.axis.size() && std::equal(q_axis.begin(), q_axis.end(), q.axis.begin())) {return;}
     q.axis = std::forward<T>(q_axis);
     q.defaulted = false;
     use_custom_table = true;
@@ -94,7 +72,7 @@ void DebyeTableManager::set_d_axis(T&& d_axis) requires (std::disjunction_v<
     std::is_same<T, const std::vector<double>&>,
     std::is_same<T, std::vector<double>&>
 >) {
-    if (appears_identical(d.axis, d_axis)) {return;} // no change
+    if (d_axis.size() == d.axis.size() && std::equal(d_axis.begin(), d_axis.end(), d.axis.begin())) {return;}
     d.axis = std::forward<T>(d_axis);
     d.defaulted = false;
     use_custom_table = true;
