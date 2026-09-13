@@ -3,7 +3,6 @@
 
 #include <rigidbody/Rigidbody.h>
 
-#include <constants/ConstantsAxes.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>

@@ -3,7 +3,6 @@
 
 #include <em/manager/SmartProteinManager.h>
 
-#include <constants/ConstantsAxes.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <em/detail/EMGrid.h>

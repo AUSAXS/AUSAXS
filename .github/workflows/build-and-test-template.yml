@@ -68,7 +68,7 @@ jobs:
           echo "Analysing ${scope}: $files"
           sudo apt-get update
           sudo apt-get install libcurl4-openssl-dev clang-tidy
-          cmake -B build -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake -B build -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DSAFE_CHECKS=ON
           python scripts/run_clang_tidy.py --summary="$GITHUB_STEP_SUMMARY" $files
 
   build-win:
