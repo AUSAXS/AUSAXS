@@ -35,8 +35,6 @@ Grid::Grid(const Axis3D& axes, private_ctr /*unused*/) : axes(axes) {
     setup();
 }
 
-Grid::Grid(const Limit3D& axes) : Grid(Axis3D(axes, settings::grid::cell_width), private_ctr{}) {}
-
 Grid::Grid(const std::vector<AtomFF>& atoms) : Grid({Body(atoms)}) {}
 
 Grid::Grid(const std::vector<Body>& bodies) {

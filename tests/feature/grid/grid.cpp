@@ -13,6 +13,8 @@
 #include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 
+#include <support/exact_grid.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -23,10 +25,10 @@ using namespace ausaxs::grid::detail;
 using namespace ausaxs::data;
 
 // Debug class to expose the volume variable
-class GridDebug : public grid::Grid {
+class GridDebug : public test::ExactGrid {
     public: 
         ~GridDebug() override = default;
-        GridDebug(Limit3D axes) : Grid(axes) {}
+        GridDebug(Limit3D axes) : ExactGrid(axes) {}
 
 		double get_atomic_radius(form_factor::form_factor_t /*atom*/) const override {return ra;}
 		double get_hydration_radius() const override {return rh;}
@@ -48,7 +50,7 @@ TEST_CASE("Grid::Grid") {
 
     SECTION("Limit3D&") {
         Limit3D axes(-10, 10, -10, 10, -10, 10);
-        Grid grid(axes);
+        test::ExactGrid grid(axes);
         CHECK(grid.a_members.empty());
         CHECK(grid.w_members.empty());
         CHECK(grid.a_members.empty());
@@ -344,7 +346,7 @@ TEST_CASE("Grid::add") {
 
 TEST_CASE("Grid::expand_volume") {
     Limit3D lims(-10, 10, -10, 10, -10, 10);
-    Grid grid(lims);
+    test::ExactGrid grid(lims);
 
     SECTION("verify shape") {
         settings::grid::min_exv_radius = GENERATE(0.5, 1, 2);
@@ -456,7 +458,7 @@ TEST_CASE("Grid::expand_volume") {
 TEST_CASE("Grid::remove") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::cell_width = 1;
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("") {
         Body b{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
@@ -521,7 +523,7 @@ TEST_CASE("Grid::remove") {
 TEST_CASE("Grid::remove_waters") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::cell_width = 1;
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("") {
         Water w({0, 0, 0});
@@ -628,7 +630,7 @@ TEST_CASE("Grid::get_volume") {
     SECTION("simple") {
         Limit3D lims(-10, 10, -10, 10, -10, 10);
         settings::grid::cell_width = 1e-1;
-        Grid grid(lims);
+        test::ExactGrid grid(lims);
 
         Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
         grid.add(body, true);
@@ -687,7 +689,7 @@ TEST_CASE("Grid::width") {
     settings::grid::cell_width = GENERATE(0.25, 0.5, 1, 2);
 
     Limit3D lims(-10, 10, -10, 10, -10, 10);
-    Grid grid(lims);
+    test::ExactGrid grid(lims);
 
     const auto& axes = grid.get_axes();
     for (int i = 0; i < axes.x.bins-1; ++i) {
@@ -1121,7 +1123,7 @@ TEST_CASE("Grid: cubic_grid") {
     SECTION("largest x") {
         Limit3D axes(-10, 10, -1, 1, -1, 1);
 
-        Grid grid(axes);
+        test::ExactGrid grid(axes);
         auto gaxes = grid.get_axes();
         CHECK(gaxes.x.limits() == axes.x);
         CHECK(gaxes.x == gaxes.y);
@@ -1131,7 +1133,7 @@ TEST_CASE("Grid: cubic_grid") {
     SECTION("largest y") {
         Limit3D axes(-1, 1, -10, 10, -1, 1);
 
-        Grid grid(axes);
+        test::ExactGrid grid(axes);
         auto gaxes = grid.get_axes();
         CHECK(gaxes.y.limits() == axes.y);
         CHECK(gaxes.y == gaxes.y);
@@ -1141,7 +1143,7 @@ TEST_CASE("Grid: cubic_grid") {
     SECTION("largest x") {
         Limit3D axes(-1, 1, -1, 1, -10, 10);
 
-        Grid grid(axes);
+        test::ExactGrid grid(axes);
         auto gaxes = grid.get_axes();
         CHECK(gaxes.z.limits() == axes.z);
         CHECK(gaxes.z == gaxes.y);
@@ -1156,7 +1158,7 @@ TEST_CASE("Grid::operator=", "[files]") {
 
     SECTION("copy") {
         Limit3D axes(-100, 100, -100, 100, -100, 100);
-        Grid grid1(axes);
+        test::ExactGrid grid1(axes);
         {
             data::Molecule protein("tests/files/2epe.pdb");
             protein.clear_hydration();
@@ -1170,14 +1172,14 @@ TEST_CASE("Grid::operator=", "[files]") {
         Grid grid2 = grid1;
         REQUIRE(grid2 == grid1);
 
-        Grid grid3(axes);
+        test::ExactGrid grid3(axes);
         grid3 = grid1;
         REQUIRE(grid3 == grid1);
     }
 
     SECTION("move") {
         Limit3D axes(-100, 100, -100, 100, -100, 100);
-        Grid grid1(axes);
+        test::ExactGrid grid1(axes);
         {
             data::Molecule protein("tests/files/2epe.pdb");
             protein.clear_hydration();
@@ -1192,7 +1194,7 @@ TEST_CASE("Grid::operator=", "[files]") {
         Grid grid2 = std::move(grid1);
         REQUIRE(grid2 == gridcopy);
 
-        Grid grid3(axes);
+        test::ExactGrid grid3(axes);
         grid3 = std::move(grid2);
         REQUIRE(grid3 == gridcopy);
     }
@@ -1205,7 +1207,7 @@ TEST_CASE("Grid: hydration") {
     Body body{std::vector{AtomFF({0, 0, 0}, form_factor::form_factor_t::C)}};
     data::Molecule protein({body});
     {
-        Grid grid(lims);
+        test::ExactGrid grid(lims);
         grid.add(body);
         protein.set_grid(std::move(grid));
         protein.generate_new_hydration();
@@ -1242,7 +1244,7 @@ TEST_CASE("Grid::add:remove") {
             AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), 
             AtomFF({-1,  1, -1}, form_factor::form_factor_t::C)
         });
-        grid::Grid g(Limit3D(-2, 2, -2, 2, -2, 2));
+        test::ExactGrid g(Limit3D(-2, 2, -2, 2, -2, 2));
 
         g.add(b);
         REQUIRE(g.a_members.size() == 2);
@@ -1261,7 +1263,7 @@ TEST_CASE("Grid::add:remove") {
         std::vector<AtomFF> a4 = {AtomFF({ 1, -1,  1}, form_factor::form_factor_t::C), AtomFF({ 1, 1,  1}, form_factor::form_factor_t::C)};
         Body b1(a1), b2(a2), b3(a3), b4(a4);
         std::vector<Body> bodies = {b1, b2, b3, b4};
-        grid::Grid grid(Limit3D(-5, 5, -5, 5, -5, 5));
+        test::ExactGrid grid(Limit3D(-5, 5, -5, 5, -5, 5));
 
         grid.add(b1);
         grid.add(b2);

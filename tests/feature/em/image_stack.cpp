@@ -12,6 +12,7 @@
 #include <settings/All.h>
 
 #include <map>
+#include <support/exact_grid.h>
 
 using namespace ausaxs;
 
@@ -22,7 +23,7 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
 
     // generate big sphere
     auto lims = Limit3D(-50, 50, -50, 50, -50, 50);
-    grid::Grid grid(lims);
+    test::ExactGrid grid(lims);
     double radius = 15;
     double radius2 = radius*radius;
     auto axes = grid.get_axes();

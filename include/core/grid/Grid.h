@@ -20,18 +20,14 @@
 
 namespace ausaxs::grid {
 	class Grid {
-		struct private_ctr {explicit private_ctr() = default;};
+		protected:
+			struct private_ctr {explicit private_ctr() = default;};
+
 		public:
 			/**
-			 * @brief Initialize a new grid of the given size with the given cell width. 
-			 * 		  This can only be used internally by the Grid class. 
+			 * @brief Initialize a new grid with exactly the given axes.
 			 */
 			Grid(const Axis3D& axes, private_ctr /*unused*/);
-
-			/**
-			 * @brief Initialize a new grid of the given size. The cell width is controlled by the settings::grid::cell_width variable.
-			 */
-			Grid(const Limit3D& axes);
 
 			/**
 			 * @brief Space-saving constructor. 

@@ -7,6 +7,7 @@
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>  // IWYU pragma: keep
 #include <settings/GridSettings.h>
+#include <support/exact_grid.h>
 #include <utility/Axis3D.h>
 
 using namespace ausaxs;
@@ -17,7 +18,7 @@ using namespace ausaxs::data;
 TEST_CASE("Grid::constructor Limit3D") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("empty grid") {
         REQUIRE(grid.a_members.empty());
@@ -84,7 +85,7 @@ TEST_CASE("Grid::constructor vector<Body>") {
 TEST_CASE("Grid::copy constructor") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-5, 5, -5, 5, -5, 5);
-    Grid grid1(axes);
+    test::ExactGrid grid1(axes);
     
     AtomFF atom({0, 0, 0}, form_factor::form_factor_t::C);
     Body body{std::vector{atom}};
@@ -100,7 +101,7 @@ TEST_CASE("Grid::copy constructor") {
 TEST_CASE("Grid::move constructor") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-5, 5, -5, 5, -5, 5);
-    Grid grid1(axes);
+    test::ExactGrid grid1(axes);
     
     AtomFF atom({0, 0, 0}, form_factor::form_factor_t::C);
     Body body{std::vector{atom}};
@@ -116,8 +117,8 @@ TEST_CASE("Grid::operator=") {
     settings::grid::cell_width = 1.0;
     Limit3D axes1(-5, 5, -5, 5, -5, 5);
     Limit3D axes2(-10, 10, -10, 10, -10, 10);
-    Grid grid1(axes1);
-    Grid grid2(axes2);
+    test::ExactGrid grid1(axes1);
+    test::ExactGrid grid2(axes2);
     
     AtomFF atom({0, 0, 0}, form_factor::form_factor_t::C);
     Body body{std::vector{atom}};
@@ -139,8 +140,8 @@ TEST_CASE("Grid::operator=") {
 TEST_CASE("Grid::operator==") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-5, 5, -5, 5, -5, 5);
-    Grid grid1(axes);
-    Grid grid2(axes);
+    test::ExactGrid grid1(axes);
+    test::ExactGrid grid2(axes);
 
     SECTION("equal grids") {
         REQUIRE(grid1 == grid2);
@@ -148,7 +149,7 @@ TEST_CASE("Grid::operator==") {
 
     SECTION("different axes") {
         Limit3D different_axes(-10, 10, -10, 10, -10, 10);
-        Grid grid3(different_axes);
+        test::ExactGrid grid3(different_axes);
         REQUIRE_FALSE(grid1 == grid3);
     }
 }
@@ -156,7 +157,7 @@ TEST_CASE("Grid::operator==") {
 TEST_CASE("Grid::get_bins") {
     settings::grid::cell_width = 2.0;
     Limit3D axes(-10, 10, -20, 20, -30, 30);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     auto bins = grid.get_bins();
     REQUIRE(bins.x() == 10);
@@ -167,7 +168,7 @@ TEST_CASE("Grid::get_bins") {
 TEST_CASE("Grid::get_width") {
     settings::grid::cell_width = 1.5;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     REQUIRE_THAT(grid.get_width(), Catch::Matchers::WithinAbs(1.5, 1e-6));
 }
@@ -175,7 +176,7 @@ TEST_CASE("Grid::get_width") {
 TEST_CASE("Grid::to_bins") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("origin") {
         auto bins = grid.to_bins({0, 0, 0});
@@ -202,7 +203,7 @@ TEST_CASE("Grid::to_bins") {
 TEST_CASE("Grid::to_bins_bounded") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("within bounds") {
         auto bins = grid.to_bins_bounded({0, 0, 0});
@@ -225,7 +226,7 @@ TEST_CASE("Grid::to_bins_bounded") {
 TEST_CASE("Grid::to_xyz") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("from Vector3") {
         auto xyz = grid.to_xyz(Vector3<int>(10, 10, 10));
@@ -245,7 +246,7 @@ TEST_CASE("Grid::to_xyz") {
 TEST_CASE("Grid::to_x to_y to_z") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("to_x") {
         REQUIRE_THAT(grid.to_x(10), Catch::Matchers::WithinAbs(0.0, 1e-6));
@@ -269,7 +270,7 @@ TEST_CASE("Grid::to_x to_y to_z") {
 TEST_CASE("Grid::roundtrip coordinate conversions") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("to_bins and back to_xyz") {
         Vector3<double> original(3.5, -2.7, 8.1);
@@ -285,7 +286,7 @@ TEST_CASE("Grid::roundtrip coordinate conversions") {
 TEST_CASE("Grid::get_center") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     auto center = grid.get_center();
     REQUIRE(center.x() == 10);
@@ -296,7 +297,7 @@ TEST_CASE("Grid::get_center") {
 TEST_CASE("Grid::add Body") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("single atom body") {
         AtomFF atom({0, 0, 0}, form_factor::form_factor_t::C);
@@ -324,7 +325,7 @@ TEST_CASE("Grid::add Body") {
 TEST_CASE("Grid::add Water") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("single water") {
         Water water({0, 0, 0});
@@ -349,7 +350,7 @@ TEST_CASE("Grid::add Water") {
 TEST_CASE("Grid::remove Body") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     std::vector<AtomFF> atoms = {
         AtomFF({0, 0, 0}, form_factor::form_factor_t::C),
@@ -367,7 +368,7 @@ TEST_CASE("Grid::remove Body") {
 TEST_CASE("Grid::clear_waters") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     std::vector<Water> waters = {
         Water({0, 0, 0}),
@@ -385,7 +386,7 @@ TEST_CASE("Grid::clear_waters") {
 TEST_CASE("Grid::get_waters") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     std::vector<Water> waters = {
         Water({0, 0, 0}),
@@ -401,7 +402,7 @@ TEST_CASE("Grid::get_waters") {
 TEST_CASE("Grid::add_volume") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     int initial_volume = grid.get_volume_bins();
     grid.add_volume(10);
@@ -411,7 +412,7 @@ TEST_CASE("Grid::add_volume") {
 TEST_CASE("Grid::index") {
     settings::grid::cell_width = 1.0;
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
 
     SECTION("default state is EMPTY") {
         auto state = grid.index(10, 10, 10);
