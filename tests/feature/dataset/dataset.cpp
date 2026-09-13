@@ -52,9 +52,16 @@ TEST_CASE("Dataset::interpolate") {
         });
 
         data = data.interpolate(1);
-        REQUIRE(data.size() == 18);
+        REQUIRE(data.size() == 19); // 10 originals + 1 inserted in each of the 9 gaps
         CHECK_THAT(data.x(0), Catch::Matchers::WithinAbs(1, 1e-6));
         CHECK_THAT(data.y(0), Catch::Matchers::WithinAbs(1, 1e-6));
+
+        // the final point of the input must survive the interpolation
+        CHECK_THAT(data.x(18), Catch::Matchers::WithinAbs(10, 1e-6));
+        CHECK_THAT(data.y(18), Catch::Matchers::WithinAbs(10, 1e-6));
+
+        CHECK_THAT(data.x(17), Catch::Matchers::WithinAbs(9.5, 1e-6));
+        CHECK_THAT(data.y(17), Catch::Matchers::WithinAbs(9.5, 1e-6));
 
         CHECK_THAT(data.x(1), Catch::Matchers::WithinAbs(1.5, 1e-6));
         CHECK_THAT(data.y(1), Catch::Matchers::WithinAbs(1.5, 1e-6));
