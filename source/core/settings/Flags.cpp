@@ -13,4 +13,3 @@ bool flags::init_histogram_manager = true;
 bool flags::custom_bin_width = false;
 double flags::inv_bin_width = 1./constants::axes::d_axis.width();
 bool flags::prefer_partial_manager = false;
-int flags::max_bin_count = 0;

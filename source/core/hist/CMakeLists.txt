@@ -2,6 +2,7 @@ target_sources(ausaxs_core PRIVATE
 	"Histogram.cpp"
 	"Histogram2D.cpp"
 
+	"detail/BinEstimate.cpp"
 	"detail/BodyTracker.cpp"
 	"detail/MasterHistogram.cpp"
 	"detail/SimpleExvModel.cpp"

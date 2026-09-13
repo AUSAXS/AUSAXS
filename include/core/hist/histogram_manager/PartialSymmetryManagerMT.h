@@ -94,7 +94,9 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Initialize the storage spaces of this object.
 			 */
-			void initialize();
+			int prepare_axis();
+
+			void initialize(int bin_count);
 
 			/**
 			 * @brief Expand the modification flags for shared reference symmetries.

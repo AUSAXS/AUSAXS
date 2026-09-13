@@ -24,6 +24,11 @@ namespace ausaxs::state {
 			void internally_modified_all();
 
 			/**
+			 * @brief Mark every body, symmetry, and the hydration layer as modified.
+			 */
+			void modified_all();
+
+			/**
 			 * @brief Mark that all atoms of all bodies were externally modified. 
 			 */
 			void externally_modified_all();

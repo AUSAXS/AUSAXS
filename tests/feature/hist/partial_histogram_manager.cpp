@@ -9,6 +9,7 @@
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <settings/All.h>
 
+#include <numeric>
 #include <random>
 
 #include <hist/hist_test_helper.h>
@@ -18,7 +19,6 @@ using namespace ausaxs::data;
 
 // Test that the first calculation is correct
 TEST_CASE("PartialHistogramManager: initial calculation") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -135,7 +135,6 @@ static auto test_random = [] (data::Molecule& protein, auto&& phm) {
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialHistogramManager: subsequent calculations") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     data::Molecule protein({
@@ -154,4 +153,25 @@ TEST_CASE("PartialHistogramManager: subsequent calculations") {
     test_random(protein, [] (const Molecule& protein) {return hist::PartialHistogramManager<true, false>(&protein).calculate_all();});
     test_random(protein, [] (const Molecule& protein) {return hist::PartialHistogramManagerMT<true, false>(&protein).calculate_all();});
     test_random(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true, false>(&protein).calculate_all();});    
+}
+
+TEST_CASE("PartialHistogramManager: grows its axis when the structure outgrows it") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    auto choice = GENERATE(
+        settings::hist::HistogramManagerChoice::PartialHistogramManager,
+        settings::hist::HistogramManagerChoice::PartialHistogramManagerMT,
+        settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT
+    );
+
+    data::Molecule protein({Body("tests/files/2epe.pdb"), Body("tests/files/6lyz.pdb")});
+    protein.generate_new_hydration();
+    protein.set_histogram_manager(choice);
+    auto before = protein.get_histogram()->get_weighted_counts();
+
+    protein.get_body(1).translate({300, 0, 0});
+    auto after = protein.get_histogram()->get_weighted_counts();
+
+    REQUIRE_THAT(std::accumulate(after.begin(), after.end(), 0.0), Catch::Matchers::WithinRel(std::reduce(before.begin(), before.end(), 0.0), 1e-9));
+    REQUIRE(after.size() > before.size());
 }

@@ -29,7 +29,6 @@ Rigidbody::~Rigidbody() = default;
 Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)) {
     {   // ensure settings are compatible with rigid-body optimization
         settings::flags::prefer_partial_manager = true;
-        settings::flags::max_bin_count = constants::axes::d_axis.bins; // always use full bin width
         if (!settings::hist::supports_partial_calculation(settings::hist::get_histogram_manager())) {
             console::print_warning(
                 "Rigidbody: the chosen excluded volume model has no partial implementation and cannot be used for rigid-body optimization. "

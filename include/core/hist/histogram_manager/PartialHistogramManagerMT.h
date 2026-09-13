@@ -48,7 +48,7 @@ namespace ausaxs::hist {
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
 			 *        They are unaffected by both rotations and translations, and so we precalculate them. 
 			 */
-			void initialize(calculator_t calculator);
+			void initialize(calculator_t calculator, int bin_count);
 
 			/**
 			 * @brief Calculate the self-correlation of a body.

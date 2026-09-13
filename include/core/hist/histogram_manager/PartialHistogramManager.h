@@ -47,6 +47,8 @@ namespace ausaxs::hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
+			int prepare_axis();
+
 			observer_ptr<const data::Molecule> protein;										// the molecule we are calculating the histogram for
             detail::MasterHistogram<weighted_bins> master;									// the current total histogram
             std::vector<detail::CompactCoordinates<variable_bin_width>> coords_a;			// a compact representation of the relevant data from the managed bodies
@@ -68,7 +70,7 @@ namespace ausaxs::hist {
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
 			 *        They are unaffected by both rotations and translations, and so we precalculate them. 
 			 */
-			void initialize();
+			void initialize(int bin_count);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 

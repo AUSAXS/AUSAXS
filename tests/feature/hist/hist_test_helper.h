@@ -205,15 +205,12 @@ void invoke_for_all_histogram_manager_variants_two(F&& f, Args&&... args) {
     SECTION("HistogramManagerMTFFExplicit") {f.template operator()<hist::HistogramManagerMTFFExplicit>((args)...);}
     SECTION("SymmetryManagerMT") {f.template operator()<hist::SymmetryManagerMT>((args)...);}
     SECTION("PartialHistogramManager") {
-        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         f.template operator()<hist::PartialHistogramManager>((args)...);
     }
     SECTION("PartialHistogramManagerMT") {
-        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         f.template operator()<hist::PartialHistogramManagerMT>((args)...);
     }
     SECTION("PartialSymmetryManagerMT") {
-        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         f.template operator()<hist::PartialSymmetryManagerMT>((args)...);
     }
 }
