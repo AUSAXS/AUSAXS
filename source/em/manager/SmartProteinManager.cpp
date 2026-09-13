@@ -10,10 +10,8 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/EMSettings.h>
 #include <settings/Flags.h>
-#include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Console.h>
-#include <utility/Limit3D.h>
 #include <utility/Logging.h>
 
 #include <algorithm>
@@ -33,28 +31,16 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> SmartProteinManager::get_hist
 observer_ptr<data::Molecule> SmartProteinManager::get_protein(double cutoff) {
     update_protein(cutoff);
 
-    auto ax = images->get_header()->get_axes();
-
-    // ensure the grid is large enough to contain the entire map
-    //? is this a waste of time since it is being overwritten for every iteration anyway?
-    Limit3D limits(ax.x.min, ax.x.max, ax.y.min, ax.y.max, ax.z.min, ax.z.max);
-    double expand_x = 0.5*limits.x.span()*settings::grid::scaling;
-    double expand_y = 0.5*limits.y.span()*settings::grid::scaling;
-    double expand_z = 0.5*limits.z.span()*settings::grid::scaling;
-    limits.x.min -= expand_x, limits.x.max += expand_x;
-    limits.y.min -= expand_y, limits.y.max += expand_y;
-    limits.z.min -= expand_z, limits.z.max += expand_z;
-
     // hydration must be cleared to ensure the grid state will be exactly the same as the one used to generate the hydration
     // when the grid is first created, *only* the body atoms are added to the grid, with the hydration being added later
     // if we do not clear the hydration now, since it can be bound to individual bodies, the hydration will be added in-between the body atoms, 
     // potentially leading to a different grid state than the one used to generate the hydration
     protein->clear_hydration();
 
-    protein->set_grid(std::make_unique<grid::EMGrid>(limits));
-    for (auto& body : protein->get_bodies()) {
-        protein->get_grid()->add(body);
-    }
+    // the grid sizes itself around the dummy structure, leaving the margin the hydration shell needs on every face.
+    // the map bounds are deliberately not used for this: at a low cutoff the structure fills the map exactly, so a grid
+    // fitted to the map has no room left for the shell, and the waters that fall outside it are discarded silently
+    protein->set_grid(std::make_unique<grid::EMGrid>(protein->get_bodies()));
     if (settings::em::hydrate) {protein->generate_new_hydration();}
     return protein.get();
 }

@@ -7,6 +7,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/atoms/AtomHelper.h>
+#include <form_factor/FormFactorType.h>
 #include <grid/detail/GridMember.h>
 #include <grid/detail/GridObj.h>
 #include <grid/expansion/GridExpander.h>
@@ -19,6 +20,7 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
+#include <limits>
 #include <utility>
 
 #ifndef NDEBUG
@@ -29,36 +31,37 @@ using namespace ausaxs;
 using namespace ausaxs::grid;
 using namespace ausaxs::data;
 
-Grid::Grid(const Axis3D& axes, private_ctr /*unused*/) : axes(axes) {
-    setup();
-}
-
-Grid::Grid(const Limit3D& axes) : Grid(Axis3D(axes, settings::grid::cell_width), private_ctr{}) {}
-
 Grid::Grid(const std::vector<AtomFF>& atoms) : Grid({Body(atoms)}) {}
 
 Grid::Grid(const std::vector<Body>& bodies) {
-    // find the total bounding box containing all bodies including their symmetries
-    Vector3 min{0, 0, 0}, max{0, 0, 0};
+    // find the total bounding box containing all bodies including their symmetries.
+    Vector3<double> min{
+        std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()
+    };
+    Vector3<double> max{
+        std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()
+    };
     for (const Body& body : bodies) {
         auto[amin, amax] = bounding_box(body.get_atoms());
 
-        for (int i = 0; i < 3; i++) {
-            min[i] = static_cast<int>(std::min<double>(amin[i], min[i]));
-            max[i] = static_cast<int>(std::max<double>(amax[i], max[i]));
+        if (body.size_atom() != 0) {
+            for (int i = 0; i < 3; i++) {
+                min[i] = std::min(amin[i], min[i]);
+                max[i] = std::max(amax[i], max[i]);
+            }
         }
 
         auto w = body.get_waters();
-        if (w.has_value()) {
+        if (w.has_value() && !w.value().get().empty()) {
             auto[wmin, wmax] = bounding_box(w.value().get());
             for (int i = 0; i < 3; i++) {
-                min[i] = static_cast<int>(std::min<double>(wmin[i], min[i]));
-                max[i] = static_cast<int>(std::max<double>(wmax[i], max[i]));
+                min[i] = std::min(wmin[i], min[i]);
+                max[i] = std::max(wmax[i], max[i]);
             }
         }
-        
+
         // Account for symmetry bodies by transforming bounding box corners
-        if (body.size_symmetry() == 0) {continue;}
+        if (body.size_symmetry() == 0 || body.size_atom() == 0) {continue;}
         auto cm = body.get_cm();
         for (int j = 0; j < body.size_symmetry(); ++j) {
             const auto *sym = body.symmetry().get(j);
@@ -81,21 +84,21 @@ Grid::Grid(const std::vector<Body>& bodies) {
                 for (const auto& corner : corners) {
                     auto transformed = transform(corner);
                     for (int i = 0; i < 3; i++) {
-                        min[i] = static_cast<int>(std::min<double>(transformed[i], min[i]));
-                        max[i] = static_cast<int>(std::max<double>(transformed[i], max[i]));
+                        min[i] = std::min(transformed[i], min[i]);
+                        max[i] = std::max(transformed[i], max[i]);
                     }
                 }
             }
         }
     }
 
-    // for small systems, expand the grid by a factor 2
-    auto diff = max - min;
-    if (settings::grid::scaling == 0.25 && (diff.x() < 50 || diff.y() < 50 || diff.z() < 50)) {
-        settings::grid::scaling = 1;
-    }
+    // nothing was folded in at all: fall back to a degenerate box at the origin
+    if (max.x() < min.x()) {min = {0, 0, 0}; max = {0, 0, 0};}
 
-    // expand bounding box by scaling factor, but never by less than what the hydration shell needs
+    auto diff = max - min;
+
+    // expand bounding box by scaling factor, but never by less than what the hydration shell needs.
+    // the margin is what guarantees room for the shell; the scaling factor is only the user's headroom on top of it
     Vector3<double> nmin{}, nmax{}; // new min & max
     double min_margin = get_minimum_edge_margin();
     for (int i = 0; i < 3; i++) {
@@ -105,8 +108,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
     }
 
     // setup the rest of the class members
-    axes = Axis3D(nmin, nmax, settings::grid::cell_width);
-    setup();
+    setup(Axis3D(nmin, nmax, settings::grid::cell_width));
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
@@ -124,7 +126,9 @@ Grid::Grid(Grid&& grid) noexcept {
 
 Grid::~Grid() = default;
 
-void Grid::setup() {
+void Grid::setup(const Axis3D& new_axes) {
+    axes = new_axes;
+
     // check if the grid should be cubic
     if (settings::grid::cubic) {
         double x_side = axes.x.max - axes.x.min;
@@ -176,11 +180,31 @@ double Grid::get_hydration_radius() const {
     return constants::radius::get_vdw_radius(constants::atom_t::O);
 }
 
+namespace {
+    double largest_shell_radius() {
+        static const double r = [] {
+            double m = 0;
+            for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
+                auto type = static_cast<form_factor::form_factor_t>(i);
+                m = std::max(m, constants::radius::get_vdw_radius(type));
+            }
+            return m;
+        }();
+        return r;
+    }
+}
+
 double Grid::get_minimum_edge_margin() {
+    // pessimistic upper bound on the default water noise distribution, see RadialHydration
+    // EMGrid overrides get_atomic_radius to return min_exv_radius rather than a value from the form-factor table,
+    // so bounding that table alone would under-bound the shell for EM maps. Both are O(1), so cover both.
+    constexpr double noise_allowance = 4;
     return
-        constants::radius::get_vdw_radius(constants::atom_t::P) +          // a somewhat common elemnt with a large radius
-        constants::radius::get_vdw_radius(constants::atom_t::O) +          // the hydration radius
-        settings::hydrate::shell_correction + 3*settings::grid::cell_width // slack for the noise on the water positions and the rounding in to_bins
+        std::max(largest_shell_radius(), settings::grid::min_exv_radius) +  // the furthest atom surface
+        constants::radius::get_vdw_radius(constants::atom_t::O) +           // the hydration radius
+        settings::hydrate::shell_correction +                               // the shell offset from that surface
+        noise_allowance +                                                   // the noise on the water positions, in absolute units
+        2*settings::grid::cell_width                                        // the rounding in to_bins, the only cell-width-scaled term
     ;
 }
 
@@ -220,7 +244,7 @@ namespace {
 
         // initialize the bounds as extreme as possible
         Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
-        Vector3 max = {std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min()};
+        Vector3 max = {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()};
         for (const auto& atom : atoms) {
             for (int i = 0; i < 3; i++) {
                 min[i] = std::min(min[i], atom.coordinates()[i]);
@@ -554,15 +578,13 @@ double Grid::get_width() {return settings::grid::cell_width;}
 
 std::unique_ptr<Grid> Grid::create_from_reference(const io::ExistingFile& path, const data::Molecule& molecule) {
     if (path.extension() != ".pdb") {throw except::io_error("Grid::create_from_reference: Only PDB files are currently supported.");}
-    auto ref_grid = std::make_unique<Grid>(data::Molecule(path).get_bodies());
-    auto grid = std::make_unique<Grid>(ref_grid->get_axes(), private_ctr{});
-
-    assert(ref_grid->grid.size_x() == grid->grid.size_x() && 
-        ref_grid->grid.size_y() == grid->grid.size_y() && 
-        ref_grid->grid.size_z() == grid->grid.size_z() && 
-        "Grid::create_from_reference: The reference grid and the new grid must have the same size!"
-    );
-    std::transform(ref_grid->grid.begin(), ref_grid->grid.end(), grid->grid.begin(), 
+    // start from the reference grid so the axes match it bin-for-bin, then strip everything but its occupancy
+    auto grid = std::make_unique<Grid>(data::Molecule(path).get_bodies());
+    grid->a_members.clear();
+    grid->w_members.clear();
+    grid->body_start.clear();
+    grid->volume = 0;
+    std::ranges::transform(grid->grid, grid->grid.begin(), 
         [] (const auto& cell) {
             // leave empty cells empty and mark all others as VOLUME
             return cell == detail::EMPTY ? detail::EMPTY : detail::VOLUME;

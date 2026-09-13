@@ -123,7 +123,11 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     // convert an offset in Ångström to the nearest whole number of bins. The division must happen *before* the
     // rounding, or the probe distances are quantized in Ångström and then shrunk by the width a second time.
     auto to_bin_offset = [width] (const Vector3<double>& rot, double r) {
-        return Vector3<int>(std::round(r*rot.x()/width), std::round(r*rot.y()/width), std::round(r*rot.z()/width));
+        return Vector3<int>(
+            static_cast<int>(std::round(r*rot.x()/width)), 
+            static_cast<int>(std::round(r*rot.y()/width)), 
+            static_cast<int>(std::round(r*rot.z()/width))
+        );
     };
 
     for (const auto& rot : rots) {

@@ -6,12 +6,12 @@
 #include <em/ImageStack.h>
 #include <em/detail/header/MRCHeader.h>
 #include <em/manager/SmartProteinManager.h>
-#include <grid/Grid.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 
 #include <map>
+#include <support/exact_grid.h>
 
 using namespace ausaxs;
 
@@ -22,7 +22,7 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
 
     // generate big sphere
     auto lims = Limit3D(-50, 50, -50, 50, -50, 50);
-    grid::Grid grid(lims);
+    test::ExactGrid grid(lims);
     double radius = 15;
     double radius2 = radius*radius;
     auto axes = grid.get_axes();

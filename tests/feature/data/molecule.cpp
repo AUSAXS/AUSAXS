@@ -2,6 +2,8 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <support/exact_grid.h>
+
 #include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
@@ -451,7 +453,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_grid") {
 
 TEST_CASE_METHOD(fixture, "Molecule::set_grid") {
     Molecule protein(bodies);
-    grid::Grid grid(Limit3D(0, 1, 0, 1, 0, 1));
+    test::ExactGrid grid(Limit3D(0, 1, 0, 1, 0, 1));
     auto grid_dup = grid;
     protein.set_grid(std::move(grid_dup));
     REQUIRE(*protein.get_grid() == grid);
@@ -546,7 +548,7 @@ TEST_CASE_METHOD(fixture, "Molecule::operator=: moving a Molecule keeps its grid
     Molecule src({Body{std::vector{a1, a2, a3, a4, a5, a6, a7, a8}}});
 
     // an oversized grid, as installed by SmartProteinManager and the --exv-ref path, is not reproducible from the bodies alone
-    src.set_grid(std::make_unique<grid::Grid>(Limit3D(-500, 500, -500, 500, -500, 500)));
+    src.set_grid(std::make_unique<test::ExactGrid>(Limit3D(-500, 500, -500, 500, -500, 500)));
     for (const auto& body : src.get_bodies()) {src.get_grid()->add(body);}
     auto axes = src.get_grid()->get_axes();
     REQUIRE(axes.x.min < -400);
@@ -719,7 +721,7 @@ TEST_CASE("Molecule::histogram", "[files]") {
         // old approach
         Molecule protein2({Body{atoms}});
         {
-            grid::Grid grid2({-2, 2, -2, 2, -2, 2}); 
+            test::ExactGrid grid2({-2, 2, -2, 2, -2, 2}); 
             grid2.add(Body{atoms});
             protein2.set_grid(std::move(grid2));
         }

@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <grid/Grid.h>
+#include <support/exact_grid.h>
 #include <utility/Limit3D.h>
 
 using namespace ausaxs;
@@ -9,7 +9,7 @@ using namespace ausaxs::grid::detail;
 
 TEST_CASE("GridObj: comparisons") {
     Limit3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    test::ExactGrid grid(axes);
     auto& gref = grid.grid;
 
     {
