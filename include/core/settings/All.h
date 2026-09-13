@@ -7,10 +7,10 @@
 #include <settings/EMSettings.h>
 #include <settings/ExvSettings.h>
 #include <settings/FitSettings.h>
-#include <settings/Flags.h>
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
+#include <settings/InternalState.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/PlotSettings.h>
 #include <settings/RigidBodySettings.h>

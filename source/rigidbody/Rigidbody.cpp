@@ -15,8 +15,8 @@
 #include <rigidbody/transform/TransformFactory.h>
 #include <settings/ExvSettings.h>
 #include <settings/FitSettings.h>
-#include <settings/Flags.h>
 #include <settings/HistogramSettings.h>
+#include <settings/InternalState.h>
 #include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
@@ -27,7 +27,7 @@ Rigidbody::~Rigidbody() = default;
 
 Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)) {
     {   // ensure settings are compatible with rigid-body optimization
-        settings::flags::prefer_partial_manager = true;
+        settings::internal_state::prefer_partial_manager = true;
         if (!settings::hist::supports_partial_calculation(settings::hist::get_histogram_manager())) {
             console::print_warning(
                 "Rigidbody: the chosen excluded volume model has no partial implementation and cannot be used for rigid-body optimization. "

@@ -6,8 +6,8 @@
 #include <hist/detail/SimpleExvModel.h>
 #include <settings/ExvSettings.h>
 #include <settings/FitSettings.h>
-#include <settings/Flags.h>
 #include <settings/GeneralSettings.h>
+#include <settings/InternalState.h>
 #include <settings/SettingsIORegistry.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
@@ -50,12 +50,13 @@ settings::detail::Setting<double> settings::axes::qmax = {
 settings::detail::Setting<double> settings::axes::bin_width = {
     .value=constants::axes::d_axis.width(),
     .on_change=[](double& new_width) {
-        settings::flags::custom_bin_width = std::abs(constants::axes::d_axis.width() - new_width) >= 1e-6;
-        settings::flags::inv_bin_width = 1./new_width;
+        settings::internal_state::custom_bin_width = std::abs(constants::axes::d_axis.width() - new_width) >= 1e-6;
+        settings::internal_state::inv_bin_width = 1./new_width;
     }
 };
 
 bool settings::axes::clamp_to_qrange = true;
+bool settings::axes::rebin = false;
 
 namespace {
     using namespace ausaxs::settings;
@@ -64,6 +65,7 @@ namespace {
         settings::io::create(axes::qmin, "qmin"),
         settings::io::create(axes::qmax, "qmax"),
         settings::io::create(axes::clamp_to_qrange, "clamp_to_q"),
+        settings::io::create(axes::rebin, "rebin"),
     });
 
     settings::io::SettingSection hist_section("Histogram", {
@@ -76,7 +78,7 @@ namespace {
     settings::hist::HistogramManagerChoice plain_manager() {
         using Choice = settings::hist::HistogramManagerChoice;
         bool st = settings::general::threads == 1; // if no multi-threading is enabled, switch to the single-threaded manager
-        if (settings::flags::prefer_partial_manager) {
+        if (settings::internal_state::prefer_partial_manager) {
             return st ? Choice::PartialHistogramManager : Choice::PartialHistogramManagerMT;
         }
         return st ? Choice::HistogramManager : Choice::HistogramManagerMT;

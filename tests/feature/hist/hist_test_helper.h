@@ -2,7 +2,7 @@
 
 #include <constants/ConstantsAxes.h>
 #include <data/Molecule.h>
-#include <settings/Flags.h>
+#include <settings/InternalState.h>
 #include <utility/Concepts.h>
 #include <utility/Utility.h>
 
@@ -236,7 +236,7 @@ void invoke_for_all_grid_histogram_manager_variants(F1&& f1, Args&&... args) {
  *        Distances are binned the same way the histogram managers bin them (round(d * inv_bin_width)).
  */
 struct RES {
-    RES(double d, int v) : index(static_cast<int>(std::round(d*settings::flags::inv_bin_width))), val(v) {}
+    RES(double d, int v) : index(static_cast<int>(std::round(d*settings::internal_state::inv_bin_width))), val(v) {}
     int index;
     int val;
 };

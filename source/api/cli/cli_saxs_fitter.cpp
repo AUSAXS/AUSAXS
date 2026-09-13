@@ -73,7 +73,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
         "The unit of the q values in the measurement file. Options: A, nm.");
     sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
-    sub_data->add_flag("--rebin", settings::flags::data_rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::flags::data_rebin);
+    sub_data->add_flag("--rebin", settings::axes::rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin);
     sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins);
 
     // molecule subcommands
@@ -232,7 +232,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         else {
             settings::general::output += mfile.stem() + "/";
             SimpleDataset saxs_data(mfile);
-            if (settings::flags::data_rebin) {
+            if (settings::axes::rebin) {
                 console::indent();
                 saxs_data.rebin();
                 console::unindent();
