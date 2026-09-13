@@ -5,7 +5,6 @@
 
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>  // IWYU pragma: keep
-#include <hist/detail/BinEstimate.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>

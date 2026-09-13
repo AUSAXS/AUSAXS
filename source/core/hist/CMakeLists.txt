@@ -2,7 +2,6 @@ target_sources(ausaxs_core PRIVATE
 	"Histogram.cpp"
 	"Histogram2D.cpp"
 
-	"detail/BinEstimate.cpp"
 	"detail/BodyTracker.cpp"
 	"detail/MasterHistogram.cpp"
 	"detail/SimpleExvModel.cpp"
@@ -21,6 +20,7 @@ target_sources(ausaxs_core PRIVATE
 	"histogram_manager/PartialSymmetryManagerMT.cpp"
 	"histogram_manager/SymmetryManagerMT.cpp"
 	"histogram_manager/detail/SymmetryHelpers.cpp"
+	"histogram_manager/detail/PartialBinEstimate.cpp"
 
 	"distribution/Distribution1D.cpp"
 	"distribution/Distribution2D.cpp"

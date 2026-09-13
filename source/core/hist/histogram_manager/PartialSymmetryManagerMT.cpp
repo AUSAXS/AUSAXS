@@ -7,8 +7,8 @@
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <data/symmetry/ReferenceSymmetry.h>
-#include <hist/detail/BinEstimate.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -495,7 +495,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_b
 
 template<bool weighted_bins, bool variable_bin_width> 
 int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::prepare_axis() {
-    int required = hist::detail::required_bin_count<variable_bin_width>(*this->protein);
+    int required = hist::detail::required_partial_bin_count<variable_bin_width>(*this->protein);
     if (!this->master.empty()) {
         if (required <= this->master.axis.bins) {return this->master.axis.bins;}
 
@@ -503,7 +503,7 @@ int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::prepare_axis() 
         this->master = hist::detail::MasterHistogram<weighted_bins>();
         this->statemanager->modified_all();
     }
-    return bin_estimate::grown_bin_count(required);
+    return hist::detail::grown_partial_bin_count(required);
 }
 
 template<bool weighted_bins, bool variable_bin_width>

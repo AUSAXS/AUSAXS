@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <hist/detail/BinEstimate.h>
+#include <hist/histogram_manager/detail/PartialBinEstimate.h>
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <hist/detail/BinEstimate.h>
 
 #include <array>
+#include <cmath>
 
 using namespace ausaxs;
 
 template<bool variable_bin_width>
-int hist::detail::required_bin_count(const data::Molecule& protein) {
+int hist::detail::required_partial_bin_count(const data::Molecule& protein) {
     std::vector<Vector3<double>> copies;
     for (const auto& body : protein.get_bodies()) {
         if (body.size_symmetry() == 0 || body.get_atoms().empty()) {continue;}
@@ -55,5 +57,11 @@ int hist::detail::required_bin_count(const data::Molecule& protein) {
     return required_bin_count<variable_bin_width>(protein.iterate_atoms(), protein.iterate_waters(), copies);
 }
 
-template int hist::detail::required_bin_count<true>(const data::Molecule&);
-template int hist::detail::required_bin_count<false>(const data::Molecule&);
+int hist::detail::grown_partial_bin_count(int required) {
+    constexpr double growth_margin = 0.1;
+    constexpr int headroom = 2;
+    return std::max(static_cast<int>(std::ceil(required*(1+growth_margin))), required+headroom);
+}
+
+template int hist::detail::required_partial_bin_count<true>(const data::Molecule&);
+template int hist::detail::required_partial_bin_count<false>(const data::Molecule&);

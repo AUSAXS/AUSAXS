@@ -6,8 +6,8 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
-#include <hist/detail/BinEstimate.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>
+#include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/HistogramSettings.h>
@@ -34,7 +34,7 @@ PartialHistogramManager<weighted_bins, variable_bin_width>::~PartialHistogramMan
 
 template<bool weighted_bins, bool variable_bin_width>
 int PartialHistogramManager<weighted_bins, variable_bin_width>::prepare_axis() {
-    int required = hist::detail::required_bin_count<variable_bin_width>(*this->protein);
+    int required = hist::detail::required_partial_bin_count<variable_bin_width>(*this->protein);
     if (this->master.size() != 0) {
         if (required <= this->master.axis.bins) {return this->master.axis.bins;}
 
@@ -42,7 +42,7 @@ int PartialHistogramManager<weighted_bins, variable_bin_width>::prepare_axis() {
         this->master = detail::MasterHistogram<weighted_bins>();
         this->statemanager->modified_all();
     }
-    return bin_estimate::grown_bin_count(required);
+    return hist::detail::grown_partial_bin_count(required);
 }
 
 template<bool weighted_bins, bool variable_bin_width> 

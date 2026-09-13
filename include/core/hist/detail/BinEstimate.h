@@ -4,7 +4,6 @@
 #pragma once
 
 #include <constants/ConstantsAxes.h>
-#include <data/DataFwd.h>
 #include <hist/detail/data/WidthControllers.h>
 #include <settings/HistogramSettings.h>
 
@@ -107,11 +106,6 @@ namespace ausaxs::hist::detail {
             return std::min(std::sqrt(dx*dx + dy*dy + dz*dz), 2*std::sqrt(r2_max));
         }
 
-        constexpr double growth_margin = 0.1;
-
-        inline int grown_bin_count(int required) {
-            return std::max(static_cast<int>(std::ceil(required*(1+growth_margin))), required+headroom);
-        }
     }
 
     /**
@@ -126,6 +120,4 @@ namespace ausaxs::hist::detail {
         return std::max<int>(static_cast<int>(bins), bin_estimate::min_bin_count);
     }
 
-    template<bool variable_bin_width>
-    int required_bin_count(const data::Molecule& protein);
 }
