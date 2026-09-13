@@ -58,7 +58,7 @@ mini::Landscape LimitedScan::landscape(int evals) {
             }
             
             // calculate average of list
-            double avg = std::accumulate(last_evals.begin(), last_evals.end(), 0.0) / static_cast<double>(last_evals.size());
+            double avg = std::reduce(last_evals.begin(), last_evals.end(), 0.0) / static_cast<double>(last_evals.size());
 
             // if we are more than half-way through the scan, we check for the stop condition
             if (evals*0.7 < ++c) {

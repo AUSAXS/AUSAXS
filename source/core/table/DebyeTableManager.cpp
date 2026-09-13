@@ -68,7 +68,7 @@ namespace {
 
         // extra assert in debug mode. if the above is not sufficient, this should catch it during testing
         assert(
-            std::abs(std::accumulate(a.begin(), a.end(), 0.0) - std::accumulate(b.begin(), b.end(), 0.0)) < 1e-9 
+            std::abs(std::reduce(a.begin(), a.end(), 0.0) - std::reduce(b.begin(), b.end(), 0.0)) < 1e-9 
             && "appears_identical: Sums do not match"
         );
         return true;

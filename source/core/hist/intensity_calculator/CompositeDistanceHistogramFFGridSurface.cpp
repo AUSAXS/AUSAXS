@@ -119,21 +119,21 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_exv(const 
 
     if (cx_changed) {
         // ax
-        pool->detach_task([this, &cx, q0, bins, ff_table, sinqd_table_ax] () {
-            for (int q = q0; q < q0+bins; ++q) {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_table, sinqd_table_ax] (int start, int end) {
+            for (int q = start; q < end; ++q) {
                 auto ax = evaluate_ax_distance_profile(cx[q-q0]);
                 for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                    double ax_sum = std::inner_product(ax.begin(ff1), ax.end(ff1), sinqd_table_ax->begin(q), 0.0);
+                    double ax_sum = std::transform_reduce(ax.begin(ff1), ax.end(ff1), sinqd_table_ax->begin(q), 0.0);
                     cache.intensity_profiles.ax[q-q0] += 2*free_params.crho*ax_sum*ff_table->index(ff1, form_factor::exv_bin).evaluate(q);
                 }
             }
         });
 
         // xx
-        pool->detach_task([this, &cx, q0, bins, ff_table, sinqd_table_xx] () {
-            for (int q = q0; q < q0+bins; ++q) {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_table, sinqd_table_xx] (int start, int end) {
+            for (int q = start; q < end; ++q) {
                 auto xx = evaluate_xx_distance_profile(cx[q-q0]);
-                double xx_sum = std::inner_product(xx.begin(), xx.end(), sinqd_table_xx->begin(q), 0.0);
+                double xx_sum = std::transform_reduce(xx.begin(), xx.end(), sinqd_table_xx->begin(q), 0.0);
                 cache.intensity_profiles.xx[q-q0] += free_params.crho*free_params.crho*xx_sum*ff_table->index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
             }
         });
@@ -141,10 +141,10 @@ void CompositeDistanceHistogramFFGridSurface::cache_refresh_intensity_exv(const 
 
     if (cw_changed || cx_changed) {
         // wx
-        pool->detach_task([this, &cx, q0, bins, ff_table, sinqd_table_ax] () {
-            for (int q = q0; q < q0+bins; ++q) {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_table, sinqd_table_ax] (int start, int end) {
+            for (int q = start; q < end; ++q) {
                 auto wx = evaluate_wx_distance_profile(cx[q-q0]);
-                double wx_sum = std::inner_product(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
+                double wx_sum = std::transform_reduce(wx.begin(), wx.end(), sinqd_table_ax->begin(q), 0.0);
                 cache.intensity_profiles.wx[q-q0] += 2*free_params.crho*wx_sum*free_params.cw*ff_table->index(form_factor::water_bin, form_factor::exv_bin).evaluate(q);
             }
         });

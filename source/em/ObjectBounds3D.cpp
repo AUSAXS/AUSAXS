@@ -5,6 +5,7 @@
 
 #include <em/ObjectBounds2D.h>
 
+#include <functional>
 #include <numeric>
 
 using namespace ausaxs::em;
@@ -19,7 +20,7 @@ const ObjectBounds2D& ObjectBounds3D::operator[](int z) const {return bounds[z];
 
 int ObjectBounds3D::total_volume() const {return _size_x*_size_y*_size_z;}
 
-int ObjectBounds3D::bounded_volume() const {return std::accumulate(bounds.begin(), bounds.end(), 0, [] (int volume, const ObjectBounds2D& bound) {return volume += bound.bounded_area();});}
+int ObjectBounds3D::bounded_volume() const {return std::transform_reduce(bounds.begin(), bounds.end(), 0, std::plus{}, [] (const ObjectBounds2D& bound) {return bound.bounded_area();});}
 
 int ObjectBounds3D::size_x() const {return _size_x;}
 

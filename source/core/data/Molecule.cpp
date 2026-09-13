@@ -22,6 +22,7 @@
 #include <utility/Logging.h>
 
 #include <cassert>
+#include <functional>
 #include <numeric>
 
 using namespace ausaxs;
@@ -124,14 +125,14 @@ void Molecule::save(const io::File& path) const {
 }
 
 double Molecule::get_molar_mass(bool include_waters) const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0,
-        [include_waters] (double sum, const Body& body) {return sum + body.get_molar_mass(include_waters);}
+    return std::transform_reduce(bodies.begin(), bodies.end(), 0.0, std::plus{},
+        [include_waters] (const Body& body) {return body.get_molar_mass(include_waters);}
     );
 }
 
 double Molecule::get_absolute_mass(bool include_waters) const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0,
-        [include_waters] (double sum, const Body& body) {return sum + body.get_absolute_mass(include_waters);}
+    return std::transform_reduce(bodies.begin(), bodies.end(), 0.0, std::plus{},
+        [include_waters] (const Body& body) {return body.get_absolute_mass(include_waters);}
     );
 }
 
@@ -140,7 +141,7 @@ double Molecule::get_excluded_volume_mass() const {
 }
 
 double Molecule::get_total_atomic_charge() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_atomic_charge();});
+    return std::transform_reduce(bodies.begin(), bodies.end(), 0.0, std::plus{}, [] (const Body& body) {return body.get_total_atomic_charge();});
 }
 
 double Molecule::get_Rg(bool include_waters) const {
@@ -188,7 +189,7 @@ double Molecule::get_volume_grid() const {
 }
 
 double Molecule::get_volume_vdw() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_volume_vdw();});
+    return std::transform_reduce(bodies.begin(), bodies.end(), 0.0, std::plus{}, [] (const Body& body) {return body.get_volume_vdw();});
 }
 
 double Molecule::get_volume_exv(double d) const {
@@ -202,8 +203,8 @@ observer_ptr<grid::Grid> Molecule::create_grid() const {
 }
 
 int Molecule::symmetry_atom_count() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0,
-        [] (std::size_t sum, const Body& body) {return sum + body.symmetry().size_atom_total();}
+    return std::transform_reduce(bodies.begin(), bodies.end(), 0, std::plus{},
+        [] (const Body& body) {return body.symmetry().size_atom_total();}
     );
 }
 
@@ -322,11 +323,11 @@ int Molecule::size_body() const {
 }
 
 int Molecule::size_atom() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (std::size_t sum, const Body& body) {return sum + body.size_atom();});
+    return std::transform_reduce(bodies.begin(), bodies.end(), 0, std::plus{}, [] (const Body& body) {return body.size_atom();});
 }
 
 int Molecule::size_water() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (std::size_t sum, const Body& body) {return sum + body.size_water();});
+    return std::transform_reduce(bodies.begin(), bodies.end(), 0, std::plus{}, [] (const Body& body) {return body.size_water();});
 }
 
 void Molecule::center() {

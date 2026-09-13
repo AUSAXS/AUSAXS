@@ -264,7 +264,7 @@ void SimpleDataset::rebin() noexcept {
     SimpleDataset newdata; // rebinned dataset
 
     std::function<void(int, int&)> func;
-    if (std::accumulate(yerr().begin(), yerr().end(), 0.0) == 0) {
+    if (std::reduce(yerr().begin(), yerr().end(), 0.0) == 0) {
         func = [&newdata, this] (int nfold, int& index) {
             double wsum = 0, qsum = 0, folds = 0;
             for (; (folds < nfold) && (index < size()); folds++) {

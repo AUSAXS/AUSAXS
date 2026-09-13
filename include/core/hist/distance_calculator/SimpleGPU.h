@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <numeric>
 #include <string_view>
@@ -254,9 +255,9 @@ namespace ausaxs::hist::distance_calculator {
              * @brief The contribution of the zero distance of every atom with itself.
              */
             static double self_weight(const CompactCoordinates_t& a, int scaling) {
-                return scaling*std::accumulate(
-                    a.get_data().begin(), a.get_data().end(), 0.0,
-                    [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
+                return scaling*std::transform_reduce(
+                    a.get_data().begin(), a.get_data().end(), 0.0, std::plus{},
+                    [] (const auto& val) {return val.value.w*val.value.w;}
                 );
             }
 

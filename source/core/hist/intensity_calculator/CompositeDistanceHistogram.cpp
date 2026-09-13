@@ -4,6 +4,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
 #include <settings/HistogramSettings.h>
+#include <utility/MultiThreading.h>
 
 #include <numeric>
 
@@ -60,13 +61,19 @@ namespace {
     auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::DebyeTable> sinqd_table) {
         int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
         Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-        const auto& q_axis = constants::axes::q_vals;
 
         std::vector<double> Iq(debye_axis.bins, 0);
-        for (int q = q0; q < q0+debye_axis.bins; ++q) {
-            Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
-            Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]);
-        }
+        auto* pool = utility::multi_threading::get_global_pool();
+        pool->detach_blocks(q0, q0+debye_axis.bins,
+            [&p, &Iq, q0, sinqd_table] (int start, int end) {
+                const auto& q_axis = constants::axes::q_vals;
+                for (int q = start; q < end; ++q) {
+                    Iq[q-q0] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
+                    Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]);
+                }
+            }
+        );
+        pool->wait();
         return ScatteringProfile(std::move(Iq), debye_axis);
     };
 }

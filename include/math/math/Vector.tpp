@@ -65,7 +65,7 @@ namespace ausaxs {
     bool Vector<T>::operator==(const Vector<Q>& v) const {
         compatibility_check(v);
         Vector<T> a = *this - v; // difference vector
-        return std::accumulate(a.begin(), a.end(), 0.0, [] (double sum, T x) {return sum + std::abs(x);}) < precision;
+        return std::transform_reduce(a.begin(), a.end(), 0.0, std::plus{}, [] (T x) {return std::abs(x);}) < precision;
     }
 
     template<numeric T> template<numeric Q>
@@ -74,7 +74,7 @@ namespace ausaxs {
     template<numeric T> template<numeric Q>
     double Vector<T>::dot(const Vector<Q>& v) const {
         compatibility_check(v);
-        return std::inner_product(begin(), end(), v.begin(), 0.0);
+        return std::transform_reduce(begin(), end(), v.begin(), 0.0);
     }
 
     template<numeric T>
@@ -91,7 +91,7 @@ namespace ausaxs {
         compatibility_check(v);
         Vector<T> w(size());
         std::ranges::transform(*this, v, w.begin(), [] (T x1, Q x2) {return std::pow((x1-x2), 2);});
-        return std::accumulate(w.begin(), w.end(), 0.0);
+        return std::reduce(w.begin(), w.end(), 0.0);
     }
 
     template<numeric T>

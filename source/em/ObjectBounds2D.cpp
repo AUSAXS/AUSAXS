@@ -5,6 +5,7 @@
 
 #include <utility/Limit.h>
 
+#include <functional>
 #include <numeric>
 #include <utility/Exceptions.h>
 
@@ -44,7 +45,7 @@ int ObjectBounds2D::size_y() const {return M;}
 
 bool ObjectBounds2D::empty() const {return bounded_area() == 0;}
 
-int ObjectBounds2D::bounded_area() const {return std::accumulate(bounds.begin(), bounds.end(), 0, [] (int area, const Limit& limit) {return area += static_cast<int>(limit.max - limit.min);});}
+int ObjectBounds2D::bounded_area() const {return std::transform_reduce(bounds.begin(), bounds.end(), 0, std::plus{}, [] (const Limit& limit) {return static_cast<int>(limit.max - limit.min);});}
 
 int ObjectBounds2D::total_area() const {return N*M;}
 

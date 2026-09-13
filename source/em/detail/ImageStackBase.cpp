@@ -84,7 +84,7 @@ observer_ptr<data::Molecule> ImageStackBase::get_protein(double cutoff) const {
 }
 
 int ImageStackBase::count_voxels(double cutoff) const {
-    return std::accumulate(data.begin(), data.end(), 0, [&cutoff] (int sum, const Image& im) {return sum + im.count_voxels(cutoff);});
+    return std::transform_reduce(data.begin(), data.end(), 0, std::plus{}, [&cutoff] (const Image& im) {return im.count_voxels(cutoff);});
 }
 
 namespace {
@@ -198,7 +198,7 @@ double ImageStackBase::to_level(double cutoff) const {
 
 double ImageStackBase::rms() const {
     if (_rms == 0) {
-        double sum = std::accumulate(data.begin(), data.end(), 0.0, [] (double sum, const Image& image) {return sum + image.squared_sum();});
+        double sum = std::transform_reduce(data.begin(), data.end(), 0.0, std::plus{}, [] (const Image& image) {return image.squared_sum();});
         _rms = std::sqrt(sum/(size_x*size_y*size_z));
     }
     return _rms;

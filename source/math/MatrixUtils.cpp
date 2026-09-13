@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <numeric>
 #include <utility>
 
@@ -18,7 +19,7 @@ namespace {
     template<numeric T>
     bool is_rotation_matrix(const Matrix<T>& R) {
         Matrix<T> should_be_identity = R.transpose() * R;
-        return std::accumulate(should_be_identity.begin(), should_be_identity.end(), 0.0, [] (double acc, double val) {return acc + std::abs(val);}) - 3 < 1e-6;
+        return std::transform_reduce(should_be_identity.begin(), should_be_identity.end(), 0.0, std::plus{}, [] (double val) {return std::abs(val);}) - 3 < 1e-6;
     }
 }
 

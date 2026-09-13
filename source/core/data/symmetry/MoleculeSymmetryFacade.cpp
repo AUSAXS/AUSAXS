@@ -8,6 +8,8 @@
 #include <io/Writer.h>
 #include <io/pdb/PDBStructure.h>
 
+#include <algorithm>
+#include <functional>
 #include <numeric>
 
 using namespace ausaxs;
@@ -16,17 +18,19 @@ using namespace ausaxs::data;
 data::detail::SimpleBody symmetry::detail::MoleculeSymmetryFacade::explicit_structure() const {
     std::vector<AtomFF> atoms;
     std::vector<Water> waters;
-    int Na = std::accumulate(
+    int Na = std::transform_reduce(
         molecule->get_bodies().begin(), 
         molecule->get_bodies().end(), 
         0, 
-        [] (int sum, const Body& body) {return sum + body.symmetry().size_atom_total();}
+        std::plus{},
+        [] (const Body& body) {return body.symmetry().size_atom_total();}
     );
-    int Nw = std::accumulate(
+    int Nw = std::transform_reduce(
         molecule->get_bodies().begin(), 
         molecule->get_bodies().end(), 
         0, 
-        [] (int sum, const Body& body) {return sum + body.symmetry().size_water_total();}
+        std::plus{},
+        [] (const Body& body) {return body.symmetry().size_water_total();}
     );
     atoms.reserve(Na);
     waters.reserve(Nw);
@@ -39,11 +43,9 @@ data::detail::SimpleBody symmetry::detail::MoleculeSymmetryFacade::explicit_stru
 }
 
 bool symmetry::detail::MoleculeSymmetryFacade::has_symmetries() const {
-    return std::accumulate(
-        molecule->get_bodies().begin(), 
-        molecule->get_bodies().end(), 
-        false, 
-        [] (bool sum, const Body& body) {return sum || body.size_symmetry();}
+    return std::ranges::any_of(
+        molecule->get_bodies(), 
+        [] (const Body& body) {return body.size_symmetry() != 0;}
     );
 }
 

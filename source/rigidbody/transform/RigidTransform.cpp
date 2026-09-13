@@ -132,11 +132,11 @@ TransformGroup RigidTransform::get_connected(observer_ptr<const constraints::IDi
         throw except::size_error("RigidTransform::get_connected: The system is overconstrained. Use a different TransformStrategy.");
     }
 
-    int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (int sum, int ibody) {
-        return sum + rigidbody->molecule.get_body(ibody).size_atom();
+    int N1 = std::transform_reduce(path1.begin(), path1.end(), 0, std::plus{}, [&] (int ibody) {
+        return rigidbody->molecule.get_body(ibody).size_atom();
     });
-    int N2 = std::accumulate(path2.begin(), path2.end(), 0, [&] (int sum, int ibody) {
-        return sum + rigidbody->molecule.get_body(ibody).size_atom();
+    int N2 = std::transform_reduce(path2.begin(), path2.end(), 0, std::plus{}, [&] (int ibody) {
+        return rigidbody->molecule.get_body(ibody).size_atom();
     });
 
     // return the path with the least atoms, since that will be the cheapest to transform

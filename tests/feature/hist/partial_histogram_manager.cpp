@@ -172,6 +172,6 @@ TEST_CASE("PartialHistogramManager: grows its axis when the structure outgrows i
     protein.get_body(1).translate({300, 0, 0});
     auto after = protein.get_histogram()->get_weighted_counts();
 
-    REQUIRE_THAT(std::accumulate(after.begin(), after.end(), 0.0), Catch::Matchers::WithinRel(std::reduce(before.begin(), before.end(), 0.0), 1e-9));
+    REQUIRE_THAT(std::reduce(after.begin(), after.end(), 0.0), Catch::Matchers::WithinRel(std::reduce(before.begin(), before.end(), 0.0), 1e-9));
     REQUIRE(after.size() > before.size());
 }
