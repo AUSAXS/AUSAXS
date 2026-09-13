@@ -28,7 +28,6 @@ using namespace ausaxs::data;
 // Test that compares FFGrid histograms against a simple HistogramManager using normalized (raw) counts.
 // This validates the histogram binning is correct for the excluded volume grid representation.
 static auto test_normalized = [] (Molecule& protein, const std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)>& calculate) {
-    settings::molecule::center = false; // to avoid rounding errors
     auto h = calculate(protein);
 
     // convert the grid to water atoms with unit weight for normalized comparison
@@ -92,7 +91,6 @@ static auto test_normalized = [] (Molecule& protein, const std::function<std::un
 // Test that compares atom-atom histograms on absolute scale (with form factor weighting).
 // This validates that the form factor weighting is correct, without the complexity of the excluded volume.
 static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)>& calculate) {
-    settings::molecule::center = false;
     auto h = calculate(protein);
 
     // Get atom-atom histogram from FFGrid with form factor weighting
@@ -142,7 +140,6 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
 // Check that the atom-atom form factor weighting is correct on absolute scale
 TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::general::verbose = false;
 
     SECTION("simple") {
@@ -166,7 +163,6 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
 template<typename H, typename C>
 static auto test_derived = [] () {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::general::verbose = false;
 
     SECTION("simple") {
@@ -257,7 +253,6 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv::calculate", "[files]") {
 
 // Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
 TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
-    settings::molecule::center = false;
     settings::molecule::implicit_hydrogens = false;
     settings::hist::weighted_bins = true;
     settings::general::verbose = false;

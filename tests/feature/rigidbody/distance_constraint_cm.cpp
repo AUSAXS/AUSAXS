@@ -26,7 +26,6 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintCM::constructor") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     SECTION("selects only C atoms, not NH") {
@@ -70,7 +69,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintCM::constructor") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintCM::evaluate") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     SECTION("relaxed") {
@@ -126,7 +124,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintCM::evaluate") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintCM::evaluate with symmetry") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     protein.get_body(0).symmetry().add(symmetry::type::c2);
@@ -183,7 +180,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintCM::evaluate with symmetry") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintCM::evaluate symmetry-symmetry") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     // Both body0 and body1 get a c2 symmetry with a small initial translation.

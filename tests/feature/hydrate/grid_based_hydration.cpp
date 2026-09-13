@@ -37,7 +37,6 @@ namespace {
 }
 
 TEST_CASE("GridBasedHydration::hydrate: each body is hydrated from its own atoms") {
-    settings::molecule::center = false;
     settings::molecule::implicit_hydrogens = false;
     settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::RadialStrategy;
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});

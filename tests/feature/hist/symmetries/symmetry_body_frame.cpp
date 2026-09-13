@@ -67,7 +67,6 @@ namespace {
 
 TEST_CASE("Symmetry: rigid motion of the base body leaves the assembly unchanged") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
 
     SECTION("PointSymmetry") {
         auto m = make_molecule({Body{make_atoms()}});
@@ -145,7 +144,6 @@ TEST_CASE("Symmetry: rigid motion of the base body leaves the assembly unchanged
 // optimiser moves each body independently - and the assembly would stop being symmetric.
 TEST_CASE("ReferenceSymmetry: copies stay congruent when participants are moved independently") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
 
     auto m = make_reference_molecule();
 

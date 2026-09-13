@@ -38,7 +38,6 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintBond::constructor") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     SECTION("selects the closest C-C pair between the two bodies") {
@@ -63,7 +62,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintBond::constructor") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintBond::evaluate") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     SECTION("relaxed") {

@@ -31,7 +31,6 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::constructor") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     SECTION("basic constructor") {
@@ -80,7 +79,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::constructor") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     SECTION("relaxed") {
@@ -132,7 +130,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate with symmetry") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     // c2 predefined: rotation by pi around z, zero initial translation.
@@ -185,7 +182,6 @@ TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate with symmetry") {
 
 TEST_CASE_METHOD(fixture, "DistanceConstraintAtom::evaluate symmetry-symmetry") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     Molecule protein = Molecule(ap);
 
     // Both body0 and body1 get a c2 symmetry with a small initial translation.

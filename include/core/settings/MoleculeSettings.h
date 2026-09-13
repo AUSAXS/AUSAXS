@@ -7,7 +7,6 @@
 
 namespace ausaxs::settings {
     struct EXPORT molecule {
-        static bool center;                 // Decides if the structure will be centered at origo.
         static bool allow_unknown_atoms;    // Decides whether an exception will be thrown if an unknown atom is encountered.
         static bool allow_unknown_residues; // Decides whether to allow unknown residues (WARNING: implicit hydrogens will be skipped for these residues).
         static bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.

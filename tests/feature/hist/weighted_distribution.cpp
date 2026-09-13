@@ -224,7 +224,6 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
 //         return I;
 //     };
 
-//     settings::molecule::center = false;
 //     settings::axes::qmin = 5e-2;
 //     settings::axes::qmax = 1;
 //     settings::grid::exv::width = 1.5;
@@ -246,7 +245,6 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
 // }
 
 // TEST_CASE("sphere_comparison", "[manual]") {
-//     settings::molecule::center = false;
 //     settings::axes::qmax = 1;
 //     auto lims = Limit3D(-50, 50, -50, 50, -50, 50);
 //     grid::Grid grid(lims);
@@ -287,7 +285,6 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
 // }
 
 // TEST_CASE("real_comparison", "[manual]") {
-//     settings::molecule::center = false;
 //     settings::axes::qmax = 1;
 
 //     data::Molecule protein("tests/files/LAR1-2.pdb");

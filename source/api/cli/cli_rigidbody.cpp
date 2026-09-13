@@ -73,8 +73,6 @@ int cli_rigidbody(int argc, char const *argv[]) {
 
     // molecule subcommands
     auto* sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
-    sub_mol->add_flag("--center,!--no-center", settings::molecule::center, 
-        "Decides whether the protein will be centered.")->default_val(settings::molecule::center);
     sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, 
         "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy);
 

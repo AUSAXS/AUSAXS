@@ -36,7 +36,6 @@ class GridDebug : public grid::Grid {
 // The targets of this section have been manually verified by visual inspection.
 TEST_CASE("GridSurfaceDetection::detect_atoms") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = true;
 
     SECTION("Single with radius") {
         settings::grid::min_exv_radius = std::numbers::sqrt3+1e-3;
@@ -199,7 +198,6 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 // TEST_CASE("GridSurfaceDetection::detect_voxels") {
 //     settings::molecule::use_effective_charge = false;
 //     settings::molecule::implicit_hydrogens = false;
-//     settings::molecule::center = true;
 
 //     settings::grid::save_exv = true;
 //     settings::general::output = "temp/tests/grid/";
@@ -229,7 +227,6 @@ TEST_CASE("GridSurfaceDetection::detect_atoms") {
 // The targets of this section have been manually verified by visual inspection.
 TEST_CASE("GridSurfaceDetection: thickness") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = true;
     settings::grid::exv::surface_thickness = 2;
 
     SECTION("2x2x2 interior simple") {

@@ -62,7 +62,6 @@ static auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoic
 
 TEST_CASE("SymmetryManager: PolyhedralSymmetry") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         test_polyhedral_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
@@ -98,7 +97,6 @@ static auto test_polyhedral_symmetry_lysozyme = [] (settings::hist::HistogramMan
 
 TEST_CASE("SymmetryManager: PolyhedralSymmetry on hydrated lysozyme") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         test_polyhedral_symmetry_lysozyme(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }

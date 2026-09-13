@@ -396,7 +396,6 @@ static auto test_rotations = [] (settings::hist::HistogramManagerChoice choice) 
 
 TEST_CASE("SymmetryManager: rotations") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         test_rotations(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
@@ -468,7 +467,6 @@ static auto test_multi_atom = [] (settings::hist::HistogramManagerChoice choice)
 };
 TEST_CASE("SymmetryManager: multi-atom systems") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
 
     SECTION("SymmetryManager") {
         test_multi_atom(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);

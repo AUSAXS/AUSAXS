@@ -133,7 +133,6 @@ namespace {
 
 TEST_CASE("SymmetryManager: random mixed-symmetry fuzz") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         run_fuzz(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }

@@ -407,7 +407,6 @@ static auto test_reference = [] (data::Molecule& protein) {
 TEST_CASE("PartialSymmetryManagerMT: ReferenceSymmetry subsequent calculations") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 100;
 
     auto add_reference = [] (data::Molecule& protein, int reps, double angle) {

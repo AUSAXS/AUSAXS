@@ -21,7 +21,6 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("SingleTransform::apply basic transformations") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 10;
 
     SECTION("translation only") {
@@ -102,7 +101,6 @@ TEST_CASE("SingleTransform::apply basic transformations") {
 
 TEST_CASE("SingleTransform::undo") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 25;
 
     SECTION("undo restores original state") {
@@ -148,7 +146,6 @@ TEST_CASE("SingleTransform::undo") {
 
 TEST_CASE("SingleTransform::reconstructed body from stored parameters matches transformed body") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 10;
 
     SECTION("reconstructed body from stored parameters matches transformed body") {
@@ -190,7 +187,6 @@ TEST_CASE("SingleTransform::reconstructed body from stored parameters matches tr
 
 TEST_CASE("SingleTransform::apply multiple sequential transformations") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 10;
 
     SECTION("multiple transformations accumulate correctly") {
@@ -228,7 +224,6 @@ TEST_CASE("SingleTransform::apply multiple sequential transformations") {
 
 TEST_CASE("SingleTransform::apply only affects single body") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 50;
 
     SECTION("other bodies remain unchanged") {

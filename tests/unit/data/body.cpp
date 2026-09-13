@@ -15,7 +15,6 @@ using namespace ausaxs::data;
 TEST_CASE("Body::Body") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
 
     SECTION("default") {
         Body body;

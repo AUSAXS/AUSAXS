@@ -247,7 +247,6 @@ TEST_CASE("SymmetryBackup: CompositeSymmetry parameters are optimised") {
     settings::general::verbose = false;
     settings::grid::min_bins = 100;
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
 
     // a p2-3-style composite: an inner c2 (with an offset) nested inside an outer c3
     auto make_composite = [] {

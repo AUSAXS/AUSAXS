@@ -705,7 +705,6 @@ TEST_CASE("Grid::width") {
 
 TEST_CASE("Grid::hydrate") {
     settings::general::verbose = false;
-    settings::molecule::center = false;
     settings::hydrate::shell_correction = 0;
     settings::hydrate::hydration_strategy = GENERATE(
         settings::hydrate::HydrationStrategy::AxesStrategy, 
