@@ -44,17 +44,17 @@ void CompositeDistanceHistogramFFGrid::cache_refresh_intensity_exv(const std::ve
 
     if (cx_changed) {
         // ax
-        pool->detach_task([this, &cx, q0, bins, ff_table] () {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_table] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (int q = q0; q < q0+bins; ++q) {
+                for (int q = start; q < end; ++q) {
                     cache.intensity_profiles.ax[q-q0] += free_params.crho*cx[q-q0]*exv_sinqd.ax.index(ff1, q-q0)*ff_table->index(ff1, form_factor::exv_bin).evaluate(q);
                 }
             }
         });
 
         // xx
-        pool->detach_task([this, &cx, q0, bins, ff_table] () {
-            for (int q = q0; q < q0+bins; ++q) {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_table] (int start, int end) {
+            for (int q = start; q < end; ++q) {
                 cache.intensity_profiles.xx[q-q0] += std::pow(cx[q-q0]*free_params.crho, 2)*exv_sinqd.xx.index(q-q0)*ff_table->index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
             }
         });
@@ -62,8 +62,8 @@ void CompositeDistanceHistogramFFGrid::cache_refresh_intensity_exv(const std::ve
 
     if (cw_changed || cx_changed) {
         // wx
-        pool->detach_task([this, &cx, q0, bins, ff_table] () {
-            for (int q = q0; q < q0+bins; ++q) {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_table] (int start, int end) {
+            for (int q = start; q < end; ++q) {
                 cache.intensity_profiles.wx[q-q0] += free_params.crho*cx[q-q0]*free_params.cw*exv_sinqd.wx.index(q-q0)*ff_table->index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
             }
         });

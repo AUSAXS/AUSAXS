@@ -8,6 +8,7 @@
 #include <hist/distribution/Distribution1D.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/HistogramSettings.h>
+#include <utility/MultiThreading.h>
 
 #include <numeric>
 #include <utility>
@@ -61,10 +62,16 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-    for (int q = q0; q < q0+debye_axis.bins; ++q) { // iterate through all q values
-        Iq[q-q0] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
-        Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
-    }
+    auto* pool = utility::multi_threading::get_global_pool();
+    pool->detach_blocks(q0, q0+debye_axis.bins, // iterate through all q values
+        [this, &Iq, q0, sinqd_table] (int start, int end) {
+            for (int q = start; q < end; ++q) {
+                Iq[q-q0] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
+                Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
+            }
+        }
+    );
+    pool->wait();
     return {Iq, debye_axis};
 }
 
@@ -80,10 +87,16 @@ SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) c
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(q.size(), 0);
-    for (int i = 0; i < static_cast<int>(q.size()); ++i) { // iterate through all q values
-        Iq[i] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(i), 0.0);
-        Iq[i] *= std::exp(-q[i]*q[i]); // form factor
-    }
+    auto* pool = utility::multi_threading::get_global_pool();
+    pool->detach_blocks(0, static_cast<int>(q.size()), // iterate through all q values
+        [this, &Iq, &q, sinqd_table] (int start, int end) {
+            for (int i = start; i < end; ++i) {
+                Iq[i] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(i), 0.0);
+                Iq[i] *= std::exp(-q[i]*q[i]); // form factor
+            }
+        }
+    );
+    pool->wait();
     return {q, Iq};
 }
 

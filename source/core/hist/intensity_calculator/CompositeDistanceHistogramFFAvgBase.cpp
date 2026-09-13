@@ -498,10 +498,10 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
 
     if (sinqd_changed) {
         // aa
-        pool->detach_task([&] () {
+        pool->detach_blocks(q0, q0+debye_axis.bins, [&] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
-                    for (int q = q0; q < q0+debye_axis.bins; ++q) {
+                    for (int q = start; q < end; ++q) {
                         cache.intensity_profiles.aa[q-q0] += cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_table.index(ff1, ff2).evaluate(q);
                     }
                 }
@@ -511,17 +511,17 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
 
     if (cw_changed) {
         // aw
-        pool->detach_task([&] () {
+        pool->detach_blocks(q0, q0+debye_axis.bins, [&] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (int q = q0; q < q0+debye_axis.bins; ++q) {
+                for (int q = start; q < end; ++q) {
                     cache.intensity_profiles.aw[q-q0] += 2*free_params.cw*cache.sinqd.aw.index(ff1, q-q0)*ff_table.index(ff1, form_factor::water_bin).evaluate(q);
                 }
             }
         });
 
         // ww
-        pool->detach_task([&] () {
-            for (int q = q0; q < q0+debye_axis.bins; ++q) {
+        pool->detach_blocks(q0, q0+debye_axis.bins, [&] (int start, int end) {
+            for (int q = start; q < end; ++q) {
                 cache.intensity_profiles.ww[q-q0] += free_params.cw*free_params.cw*cache.sinqd.ww.index(q-q0)*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
             }
         });

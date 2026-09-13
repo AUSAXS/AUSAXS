@@ -69,10 +69,10 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
     // ax and xx form factor tables. Likewise wx reuses the aw cache.
     if (cx_changed) {
         // ax
-        pool->detach_task([this, &cx, q0, bins, ff_ax_table] () {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_ax_table] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
-                    for (int q = q0; q < q0+bins; ++q) {
+                    for (int q = start; q < end; ++q) {
                         this->cache.intensity_profiles.ax[q-q0] += 
                             this->free_params.crho*cx[q-q0]*this->cache.sinqd.aa.index(ff1, ff2, q-q0)
                             *(ff_ax_table->index(ff1, ff2).evaluate(q) + ff_ax_table->index(ff2, ff1).evaluate(q))
@@ -83,10 +83,10 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         });
 
         // xx
-        pool->detach_task([this, &cx, q0, bins, ff_xx_table] () {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_xx_table] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
-                    for (int q = q0; q < q0+bins; ++q) {
+                    for (int q = start; q < end; ++q) {
                         this->cache.intensity_profiles.xx[q-q0] += 
                             std::pow(cx[q-q0]*this->free_params.crho, 2)*this->cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_xx_table->index(ff1, ff2).evaluate(q)
                         ;
@@ -98,9 +98,9 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
 
     if (cw_changed || cx_changed) {
         // wx
-        pool->detach_task([this, &cx, q0, bins, ff_ax_table] () {
+        pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_ax_table] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (int q = q0; q < q0+bins; ++q) {
+                for (int q = start; q < end; ++q) {
                     // only the atom carries excluded volume, so the exv form factor is evaluated only for the atom, not the water. 
                     // See the CompositeDistanceHistogramFFAvgBase class documentation.
                     this->cache.intensity_profiles.wx[q-q0] += 
