@@ -186,18 +186,11 @@ double Grid::get_hydration_radius() const {
 }
 
 namespace {
-    // The largest radius the shell can ever be placed around. The grid only ever sees form factor types, and those map
-    // onto a closed set of elements (H, C, N, O, S, and Ar via OTHER), so this bounds every structure without looking
-    // at its atoms - which matters because Rigidbody::refresh_grid asks for the margin on every transform, and a scan
-    // over the atoms there would be a per-iteration cost for a value that cannot change.
-    // The loop runs over the form factor enum rather than a hardcoded list so that it cannot go stale if the mapping
-    // changes; it is evaluated once per process. EXCLUDED_VOLUME is the one type with no radius, and is skipped.
     double largest_shell_radius() {
         static const double r = [] {
             double m = 0;
-            for (int i = 0; i < form_factor::total_ff_count; ++i) {
+            for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
                 auto type = static_cast<form_factor::form_factor_t>(i);
-                if (type == form_factor::form_factor_t::EXCLUDED_VOLUME) {continue;}
                 m = std::max(m, constants::radius::get_vdw_radius(type));
             }
             return m;
@@ -207,20 +200,8 @@ namespace {
 }
 
 double Grid::get_minimum_edge_margin() {
-    // the two terms are not equally knowable, which is why they are sourced differently:
-    //
-    // the shell offset is exact. RadialHydration places a water at |atom_radius + hydration_radius + shell_correction|
-    // from its parent atom, reading atom_radius from the same form-factor radius table as largest_shell_radius, so
-    // bounding that table bounds the shell.
-    //
-    // the placement noise is not knowable here. The noise generator and the hydration strategy are both replaceable
-    // after the grid has been built, so this term cannot be derived from the current state and is deliberately
-    // pessimistic instead: the default generator draws gaussian(0, 0.75) per axis, so 4 Å is beyond 5 sigma, and
-    // still covers a generator with twice that spread out to ~2.7 sigma. This matters because a water landing outside
-    // the grid is dropped by RadialHydration's is_valid_bin check without any diagnostic, which biases the shell along
-    // that face rather than failing. If an even wider generator is ever installed, settings::grid::min_bins is the way
-    // out: enforce_min_bins() in setup() grows each axis symmetrically around its contents, adding margin on every face.
-    constexpr double noise_allowance = 4;
+    // pessimistic upper bound on the default water noise distribution, see RadialHydration
+    constexpr double noise_allowance = 4; 
     return
         largest_shell_radius() +                                   // the furthest atom surface
         constants::radius::get_vdw_radius(constants::atom_t::O) +  // the hydration radius
