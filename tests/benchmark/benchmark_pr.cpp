@@ -18,8 +18,6 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/symmetry/PointSymmetry.h>
-#include <hist/histogram_manager/HistogramManagerFactory.h>
-#include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
@@ -28,6 +26,8 @@
 #include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 #include <utility/Random.h>
+
+#include <array>
 
 using namespace ausaxs;
 
@@ -46,13 +46,13 @@ struct BenchFFGrid : public hist::CompositeDistanceHistogramFFGrid {
 
 // Every structure here ships in tests/files/, so the benchmarks run from a clean clone.
 struct MolSpec { const char* pdb; const char* label; };
-static constexpr MolSpec bench_molecules[] = {
+static constexpr std::array<MolSpec, 5> bench_molecules = {{
     {.pdb="tests/files/2epe.pdb",        .label="2epe"},
     {.pdb="tests/files/LAR1-2.pdb",      .label="LAR1-2"},
     {.pdb="tests/files/SASDJQ4.pdb",     .label="SASDJQ4"},
     {.pdb="tests/files/SASDJG5.pdb",     .label="SASDJG5"},
     {.pdb="tests/files/168l.pdb",        .label="168l"},
-};
+}};
 static constexpr MolSpec large_molecule = {"tests/files/A2M_native.pdb", "A2M_native"};
 
 // Benchmarks measure the shipped default configuration: implicit hydrogens stay on, since that is

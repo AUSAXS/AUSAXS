@@ -6,18 +6,15 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/symmetry/PointSymmetry.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h> // NOLINT
 #include <io/ExistingFile.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/controller/SimpleController.h>
-#include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/selection/BodySelectStrategy.h>
-#include <rigidbody/transform/TransformStrategy.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h> // NOLINT
+#include <rigidbody/selection/BodySelectStrategy.h> // NOLINT
+#include <rigidbody/transform/TransformStrategy.h> // NOLINT
 #include <settings/All.h>
 #include <utility/Random.h>
 
