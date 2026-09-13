@@ -6,11 +6,12 @@
 #include <dataset/Dataset.h>
 #include <dataset/Dataset2D.h>
 #include <dataset/SimpleDataset.h>
+#include <dataset/detail/QUnitAnnotation.h>
 #include <io/File.h>
 #include <utility/Exceptions.h>
 
-#include <fstream>
 #include <iomanip>
+#include <sstream>
 #include <string>
 
 using namespace ausaxs;
@@ -100,29 +101,28 @@ NamedWrapper<Dataset> NamedWrapper<T>::select_columns(std::initializer_list<std:
 
 template<typename T>
 void NamedWrapper<T>::save(const io::File& path, const std::string& header) const {
-    path.directory().create();
-
-    std::ofstream output(path);
-    if (!output.is_open()) {
-        throw ausaxs::except::io_error("NamedWrapper::save: Could not open file \"" + path.str() + "\"");
-    }
-
-    // write header
-    if (!header.empty()) {
-        output << header << std::endl;
-    }
-
-    // write column titles
     if (static_cast<int>(names.size()) < this->size_cols()) {
         throw except::unexpected(
             "NamedWrapper::save: Number of column names (" + std::to_string(names.size()) + ") "
             "does not match number of columns (" + std::to_string(this->size_cols()) + ")."
         );
     }
+
+    std::stringstream output;
+
+    // annotate with the unit our q-values are in, so a re-read cannot rescale them
+    output << detail::qunit::unit_line(header);
+
+    // write header
+    if (!header.empty()) {
+        output << header << "\n";
+    }
+
+    // write column titles
     for (int j = 0; j < this->size_cols(); j++) {
         output << std::left << std::setw(16) << names[j] << "\t";
     }
-    output << std::endl;
+    output << "\n";
 
     // write data
     for (int i = 0; i < this->size_rows(); i++) {
@@ -131,7 +131,7 @@ void NamedWrapper<T>::save(const io::File& path, const std::string& header) cons
         }
         output << this->index(i, this->size_cols()-1) << "\n";
     }
-    output.close();
+    path.create(output.str());
 }
 
 template struct ausaxs::NamedWrapper<Dataset>;

@@ -123,9 +123,49 @@ TEST_CASE("DATReader: different unit") {
     }
 
     SECTION("specified by setting") {
+        // the file must be written by hand; anything we save ourselves carries an explicit unit annotation
+        settings::general::input_q_unit = settings::general::QUnit::NM;
+        test::TempFile path(".dat");
+        path.create(
+            "0.01 1\n"
+            "0.02 2\n"
+            "0.03 3\n"
+            "0.04 4\n"
+            "0.05 5\n"
+            "0.06 6\n"
+            "0.07 7\n"
+            "0.08 8\n"
+            "0.09 9\n"
+            "0.10 10\n"
+        );
+        Dataset loaded_dataset(path);
+        REQUIRE(loaded_dataset.size() == dataset.size());
+        for (int i = 0; i < dataset.size(); i++) {
+            REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
+            REQUIRE(loaded_dataset.y(i) == dataset.y(i));
+        }
+        settings::general::input_q_unit = settings::general::QUnit::A;
+    }
+
+    // our own output is always in inverse Ångström, so it must survive a round-trip regardless of the default unit
+    SECTION("our own output is annotated") {
         settings::general::input_q_unit = settings::general::QUnit::NM;
         test::TempFile path(".dat");
         dataset.save(path);
+        Dataset loaded_dataset(path);
+        REQUIRE(loaded_dataset.size() == dataset.size());
+        for (int i = 0; i < dataset.size(); i++) {
+            REQUIRE_THAT(loaded_dataset.x(i), Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
+            REQUIRE(loaded_dataset.y(i) == dataset.y(i));
+        }
+        settings::general::input_q_unit = settings::general::QUnit::A;
+    }
+
+    // a unit named by the caller is never overridden by the annotation
+    SECTION("caller-supplied unit takes precedence") {
+        settings::general::input_q_unit = settings::general::QUnit::NM;
+        test::TempFile path(".dat");
+        dataset.save(path, "q I(q) [nm]");
         Dataset loaded_dataset(path);
         REQUIRE(loaded_dataset.size() == dataset.size());
         for (int i = 0; i < dataset.size(); i++) {
