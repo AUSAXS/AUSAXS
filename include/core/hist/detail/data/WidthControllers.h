@@ -4,7 +4,7 @@
 #pragma once
 
 #include <constants/Constants.h>
-#include <settings/Flags.h>
+#include <settings/InternalState.h>
 
 namespace ausaxs::hist::detail {
     struct ConstantWidth {
@@ -12,7 +12,7 @@ namespace ausaxs::hist::detail {
     };
 
     struct VariableWidth {
-        static float get() {return static_cast<float>(settings::flags::inv_bin_width);}
+        static float get() {return static_cast<float>(settings::internal_state::inv_bin_width);}
     };
 
     template<bool variable_bin_width>

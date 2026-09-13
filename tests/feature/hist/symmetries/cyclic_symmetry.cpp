@@ -181,7 +181,7 @@ static auto test_translation = [] (settings::hist::HistogramManagerChoice choice
             auto haw = h->get_aw_counts();
             auto hww = h->get_ww_counts();
 
-            int bin1 = static_cast<int>(std::round(1*settings::flags::inv_bin_width));
+            int bin1 = static_cast<int>(std::round(1*settings::internal_state::inv_bin_width));
             REQUIRE(bin1 < static_cast<int>(htot.size()));
             CHECK(htot[0] == 2);
             CHECK(haa[0] == 1);
@@ -208,8 +208,8 @@ static auto test_translation = [] (settings::hist::HistogramManagerChoice choice
             auto haw = h->get_aw_counts();
             auto hww = h->get_ww_counts();
 
-            int bin1 = static_cast<int>(std::round(1*settings::flags::inv_bin_width));
-            int bin2 = static_cast<int>(std::round(std::numbers::sqrt2*settings::flags::inv_bin_width));
+            int bin1 = static_cast<int>(std::round(1*settings::internal_state::inv_bin_width));
+            int bin2 = static_cast<int>(std::round(std::numbers::sqrt2*settings::internal_state::inv_bin_width));
             REQUIRE(bin1 < static_cast<int>(htot.size()));
             CHECK(htot[0] == 3);
             CHECK(haa[0] == 2);

@@ -102,7 +102,7 @@ void Molecule::reset_histogram_manager() {phm = nullptr;}
 
 void Molecule::initialize() {
     logging::log("initializing Molecule");
-    if (!settings::flags::init_histogram_manager) {return;}
+    if (!settings::internal_state::init_histogram_manager) {return;}
     reset_histogram_manager();
 }
 

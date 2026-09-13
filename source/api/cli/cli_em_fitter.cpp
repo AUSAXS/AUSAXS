@@ -60,7 +60,7 @@ int cli_em_fitter(int argc, char const *argv[]) {
     ;
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, "The unit of the q values in the measurement file. Options: A, nm.");
     sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
-    sub_data->add_flag("--rebin", settings::flags::data_rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::flags::data_rebin);
+    sub_data->add_flag("--rebin", settings::axes::rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin);
 
     // em subcommands
     auto* sub_em = app.add_subcommand("em", "See and set additional options for the EM map.");

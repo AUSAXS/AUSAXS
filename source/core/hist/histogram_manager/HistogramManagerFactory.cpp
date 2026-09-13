@@ -15,8 +15,8 @@
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <settings/Flags.h>
 #include <settings/HistogramSettings.h>
+#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 
@@ -27,7 +27,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
     observer_ptr<const data::Molecule> protein, bool weighted_bins, bool variable_bin_width
 ) {
     auto choice = settings::hist::get_histogram_manager();
-    if (settings::flags::prefer_partial_manager && !settings::hist::supports_partial_calculation(choice)) {
+    if (settings::internal_state::prefer_partial_manager && !settings::hist::supports_partial_calculation(choice)) {
         console::print_warning(
             "construct_histogram_manager: A partial histogram manager was requested, but the chosen excluded volume method has no partial implementation. "
             "Every update will recalculate the full histogram."

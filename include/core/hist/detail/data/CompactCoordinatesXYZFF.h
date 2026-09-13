@@ -19,7 +19,7 @@
 #include <hist/detail/data/IntrinsicMacros.h>
 #include <hist/detail/data/WidthControllers.h>
 #include <math/Vector3.h>
-#include <settings/Flags.h>
+#include <settings/InternalState.h>
 
 #include <array>
 #include <cstdint>

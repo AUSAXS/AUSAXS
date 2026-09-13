@@ -5,7 +5,6 @@
 
 #include <dataset/Dataset.h>
 #include <math/Statistics.h>
-#include <settings/Flags.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Console.h>
@@ -167,7 +166,7 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
         getline(input, line);
 
         // check if file has already been rebinned
-        if (!settings::flags::data_rebin) {
+        if (!settings::axes::rebin) {
             // if not, suggest it to the user
             console::print_text_minor("File contains more than 300 rows. Consider rebinning the data.");
         }

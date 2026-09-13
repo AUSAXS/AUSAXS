@@ -9,8 +9,8 @@
 #include <em/detail/ImageStackBase.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/EMSettings.h>
-#include <settings/Flags.h>
 #include <settings/HistogramSettings.h>
+#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
@@ -119,7 +119,7 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_new_protein(double
 }
 
 void SmartProteinManager::toggle_histogram_manager_init(bool state) {
-    settings::flags::init_histogram_manager = state;
+    settings::internal_state::init_histogram_manager = state;
 }
 
 void SmartProteinManager::update_protein(double cutoff) {
