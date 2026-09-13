@@ -31,10 +31,6 @@ using namespace ausaxs;
 using namespace ausaxs::grid;
 using namespace ausaxs::data;
 
-Grid::Grid(const Axis3D& axes, private_ctr /*unused*/) : axes(axes) {
-    setup();
-}
-
 Grid::Grid(const std::vector<AtomFF>& atoms) : Grid({Body(atoms)}) {}
 
 Grid::Grid(const std::vector<Body>& bodies) {
@@ -112,8 +108,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
     }
 
     // setup the rest of the class members
-    axes = Axis3D(nmin, nmax, settings::grid::cell_width);
-    setup();
+    setup(Axis3D(nmin, nmax, settings::grid::cell_width));
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
@@ -131,7 +126,9 @@ Grid::Grid(Grid&& grid) noexcept {
 
 Grid::~Grid() = default;
 
-void Grid::setup() {
+void Grid::setup(const Axis3D& new_axes) {
+    axes = new_axes;
+
     // check if the grid should be cubic
     if (settings::grid::cubic) {
         double x_side = axes.x.max - axes.x.min;
@@ -581,15 +578,13 @@ double Grid::get_width() {return settings::grid::cell_width;}
 
 std::unique_ptr<Grid> Grid::create_from_reference(const io::ExistingFile& path, const data::Molecule& molecule) {
     if (path.extension() != ".pdb") {throw except::io_error("Grid::create_from_reference: Only PDB files are currently supported.");}
-    auto ref_grid = std::make_unique<Grid>(data::Molecule(path).get_bodies());
-    auto grid = std::make_unique<Grid>(ref_grid->get_axes(), private_ctr{});
-
-    assert(ref_grid->grid.size_x() == grid->grid.size_x() && 
-        ref_grid->grid.size_y() == grid->grid.size_y() && 
-        ref_grid->grid.size_z() == grid->grid.size_z() && 
-        "Grid::create_from_reference: The reference grid and the new grid must have the same size!"
-    );
-    std::transform(ref_grid->grid.begin(), ref_grid->grid.end(), grid->grid.begin(), 
+    // start from the reference grid so the axes match it bin-for-bin, then strip everything but its occupancy
+    auto grid = std::make_unique<Grid>(data::Molecule(path).get_bodies());
+    grid->a_members.clear();
+    grid->w_members.clear();
+    grid->body_start.clear();
+    grid->volume = 0;
+    std::ranges::transform(grid->grid, grid->grid.begin(), 
         [] (const auto& cell) {
             // leave empty cells empty and mark all others as VOLUME
             return cell == detail::EMPTY ? detail::EMPTY : detail::VOLUME;

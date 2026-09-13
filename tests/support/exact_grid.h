@@ -1,8 +1,11 @@
 #pragma once
 
+#include <data/Body.h>
 #include <grid/Grid.h>
 #include <settings/GridSettings.h>
 #include <utility/Limit3D.h>
+
+#include <vector>
 
 namespace ausaxs::test {
     /**
@@ -14,7 +17,11 @@ namespace ausaxs::test {
     class ExactGrid : public grid::Grid {
         public:
             using Grid::operator=;
-            explicit ExactGrid(const Limit3D& axes) : Grid(Axis3D(axes, settings::grid::cell_width), private_ctr{}) {}
+
+            explicit ExactGrid(const Limit3D& axes) : Grid(std::vector<data::Body>{}) {
+                setup(Axis3D(axes, settings::grid::cell_width));
+            }
+
             ~ExactGrid() override = default;
     };
 }

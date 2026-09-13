@@ -20,15 +20,7 @@
 
 namespace ausaxs::grid {
 	class Grid {
-		protected:
-			struct private_ctr {explicit private_ctr() = default;};
-
 		public:
-			/**
-			 * @brief Initialize a new grid with exactly the given axes.
-			 */
-			Grid(const Axis3D& axes, private_ctr /*unused*/);
-
 			/**
 			 * @brief Space-saving constructor. 
 			 * 
@@ -311,7 +303,13 @@ namespace ausaxs::grid {
 
 		protected:
 			int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-				
+
+			/**
+			 * @brief Assign the axes of the grid and allocate its contents to match.
+			 * 		  The axes are used as given except for the adjustments required by settings::grid::cubic and settings::grid::min_bins.
+			 */
+			void setup(const Axis3D& axes);
+
 		private:
 			Axis3D axes;
 
@@ -346,8 +344,6 @@ namespace ausaxs::grid {
 			 * 		  Complexity: O(n) in the number of member atoms.
 			 */
 			void remove(const std::vector<bool>& to_remove);
-
-			void setup();
 	};
 	static_assert(supports_nothrow_move_v<Grid>, "Grid should be nothrow move constructible");
 }
