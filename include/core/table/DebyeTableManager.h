@@ -26,6 +26,9 @@ namespace ausaxs::table {
 
             void reset_to_default();
 
+            /**
+             * @brief Set the q-axis of the table.
+             */
             template<typename T>
             void set_q_axis(T&& q_axis) requires (
             std::disjunction_v<
@@ -34,6 +37,9 @@ namespace ausaxs::table {
                 std::is_same<T, std::vector<double>&>
             >);
 
+            /**
+             * @brief Set the d-axis of the table.
+             */
             template<typename T>
             void set_d_axis(T&& d_axis) requires (
             std::disjunction_v<
