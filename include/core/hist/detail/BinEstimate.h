@@ -19,9 +19,12 @@ namespace ausaxs::hist::detail {
         constexpr int min_bin_count = 10; // minimum number of bins for all returned histograms
         constexpr int headroom = 2;       // extra bins on top of the geometric bound
 
+        // a point that stores its position as a member, as atoms and waters do
         template<typename T>
         concept PointLike = requires(const T& t) {t.coordinates().x();};
 
+        // a point that is itself a position. atoms forward x()/y()/z() to their coordinates, so they satisfy
+        // the requirement too and must be excluded here to keep the two ranges below unambiguous
         template<typename T>
         concept VectorLike = !PointLike<T> && requires(const T& t) {t.x(); t.y(); t.z();};
 
@@ -38,8 +41,8 @@ namespace ausaxs::hist::detail {
         // invoke f(x, y, z) for every point in the set
         template<typename F, CoordinateSet Coords>
         void for_each_point(F& f, const Coords& coords) {
-            std::size_t size = coords.size();
-            for (std::size_t i = 0; i < size; ++i) {
+            int size = static_cast<int>(coords.size());
+            for (int i = 0; i < size; ++i) {
                 const auto& p = coords[i].value.pos;
                 f(static_cast<double>(p.x()), static_cast<double>(p.y()), static_cast<double>(p.z()));
             }
