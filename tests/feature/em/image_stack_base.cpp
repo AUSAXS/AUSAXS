@@ -348,38 +348,37 @@ TEST_CASE("ImageStackBase::read") {
         REQUIRE(isb3.size() == 3);
         {
             REQUIRE(isb3.image(0).index(0, 0) == 1);
-            REQUIRE(isb3.image(0).index(0, 1) == 2);
-            REQUIRE(isb3.image(0).index(0, 2) == 3);
-            REQUIRE(isb3.image(1).index(0, 0) == 4);
-            REQUIRE(isb3.image(1).index(0, 1) == 5);
-            REQUIRE(isb3.image(1).index(0, 2) == 6);
-            REQUIRE(isb3.image(2).index(0, 0) == 7);
-            REQUIRE(isb3.image(2).index(0, 1) == 8);
-            REQUIRE(isb3.image(2).index(0, 2) == 9);
+            REQUIRE(isb3.image(1).index(0, 0) == 2);
+            REQUIRE(isb3.image(2).index(0, 0) == 3);
+            REQUIRE(isb3.image(0).index(1, 0) == 4);
+            REQUIRE(isb3.image(1).index(1, 0) == 5);
+            REQUIRE(isb3.image(2).index(1, 0) == 6);
+            REQUIRE(isb3.image(0).index(2, 0) == 7);
+            REQUIRE(isb3.image(1).index(2, 0) == 8);
+            REQUIRE(isb3.image(2).index(2, 0) == 9);
         }
         {
-            REQUIRE(isb3.image(0).index(1, 0) == 10);
-            REQUIRE(isb3.image(0).index(1, 1) == 11);
-            REQUIRE(isb3.image(0).index(1, 2) == 12);
-            REQUIRE(isb3.image(1).index(1, 0) == 13);
+            REQUIRE(isb3.image(0).index(0, 1) == 10);
+            REQUIRE(isb3.image(1).index(0, 1) == 11);
+            REQUIRE(isb3.image(2).index(0, 1) == 12);
+            REQUIRE(isb3.image(0).index(1, 1) == 13);
             REQUIRE(isb3.image(1).index(1, 1) == 14);
-            REQUIRE(isb3.image(1).index(1, 2) == 15);
-            REQUIRE(isb3.image(2).index(1, 0) == 16);
-            REQUIRE(isb3.image(2).index(1, 1) == 17);
-            REQUIRE(isb3.image(2).index(1, 2) == 18);
+            REQUIRE(isb3.image(2).index(1, 1) == 15);
+            REQUIRE(isb3.image(0).index(2, 1) == 16);
+            REQUIRE(isb3.image(1).index(2, 1) == 17);
+            REQUIRE(isb3.image(2).index(2, 1) == 18);
         }
         {
-            REQUIRE(isb3.image(0).index(2, 0) == 19);
-            REQUIRE(isb3.image(0).index(2, 1) == 20);
-            REQUIRE(isb3.image(0).index(2, 2) == 21);
-            REQUIRE(isb3.image(1).index(2, 0) == 22);
-            REQUIRE(isb3.image(1).index(2, 1) == 23);
-            REQUIRE(isb3.image(1).index(2, 2) == 24);
-            REQUIRE(isb3.image(2).index(2, 0) == 25);
-            REQUIRE(isb3.image(2).index(2, 1) == 26);
+            REQUIRE(isb3.image(0).index(0, 2) == 19);
+            REQUIRE(isb3.image(1).index(0, 2) == 20);
+            REQUIRE(isb3.image(2).index(0, 2) == 21);
+            REQUIRE(isb3.image(0).index(1, 2) == 22);
+            REQUIRE(isb3.image(1).index(1, 2) == 23);
+            REQUIRE(isb3.image(2).index(1, 2) == 24);
+            REQUIRE(isb3.image(0).index(2, 2) == 25);
+            REQUIRE(isb3.image(1).index(2, 2) == 26);
             REQUIRE(isb3.image(2).index(2, 2) == 27);
         }
-
 
         // x = 3, y = 2, z = 1
         save_test_file(3, 2, 1);
