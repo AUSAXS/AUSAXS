@@ -201,13 +201,15 @@ namespace {
 
 double Grid::get_minimum_edge_margin() {
     // pessimistic upper bound on the default water noise distribution, see RadialHydration
-    constexpr double noise_allowance = 4; 
+    // EMGrid overrides get_atomic_radius to return min_exv_radius rather than a value from the form-factor table,
+    // so bounding that table alone would under-bound the shell for EM maps. Both are O(1), so cover both.
+    constexpr double noise_allowance = 4;
     return
-        largest_shell_radius() +                                   // the furthest atom surface
-        constants::radius::get_vdw_radius(constants::atom_t::O) +  // the hydration radius
-        settings::hydrate::shell_correction +                      // the shell offset from that surface
-        noise_allowance +                                          // the noise on the water positions, in absolute units
-        2*settings::grid::cell_width                               // the rounding in to_bins, the only cell-width-scaled term
+        std::max(largest_shell_radius(), settings::grid::min_exv_radius) +  // the furthest atom surface
+        constants::radius::get_vdw_radius(constants::atom_t::O) +           // the hydration radius
+        settings::hydrate::shell_correction +                               // the shell offset from that surface
+        noise_allowance +                                                   // the noise on the water positions, in absolute units
+        2*settings::grid::cell_width                                        // the rounding in to_bins, the only cell-width-scaled term
     ;
 }
 
