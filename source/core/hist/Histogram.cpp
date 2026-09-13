@@ -103,7 +103,7 @@ void Histogram::set_axis(const Axis& axis) noexcept {
 }
 
 void Histogram::normalize(double sum) {
-    double total = std::accumulate(p.begin(), p.end(), 0.0);
+    double total = std::reduce(p.begin(), p.end(), 0.0);
     assert(total != 0 && "Cannot normalize a histogram with a sum of 0");
     std::ranges::transform(p, p.begin(), [sum, total] (double x) {return x/total*sum;});
 }
@@ -122,10 +122,10 @@ void Histogram::merge(int n) {
 
     int i = 0;
     for (; i < p.size()-n; i += n) {
-        new_p.push_back(std::accumulate(p.begin()+i, p.begin()+i+n, 0.0));
+        new_p.push_back(std::reduce(p.begin()+i, p.begin()+i+n, 0.0));
     }
     if (i < p.size()) {
-        new_p.push_back(std::accumulate(p.begin()+i, p.end(), 0.0));
+        new_p.push_back(std::reduce(p.begin()+i, p.end(), 0.0));
     }
     p = new_p;
     axis = Axis(axis.min, axis.max, p.size());

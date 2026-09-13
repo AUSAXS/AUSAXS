@@ -13,6 +13,7 @@
 #include <settings/MoleculeSettings.h>
 
 #include <algorithm>
+#include <functional>
 #include <numbers>
 #include <numeric>
 #include <utility>
@@ -128,8 +129,8 @@ Vector3<double> Body::get_cm(bool include_water) const {
 }
 
 double Body::get_volume_vdw() const {
-    double volume = std::accumulate(atoms.begin(), atoms.end(), 0.0, [] (double sum, const data::AtomFF& atom) {
-        return sum + std::pow(constants::radius::get_vdw_radius(atom.form_factor_type()), 3);
+    double volume = std::transform_reduce(atoms.begin(), atoms.end(), 0.0, std::plus{}, [] (const data::AtomFF& atom) {
+        return std::pow(constants::radius::get_vdw_radius(atom.form_factor_type()), 3);
     });
     return 4*std::numbers::pi*volume/3;
 }
@@ -158,7 +159,7 @@ void Body::rotate(const Matrix<double>& R) {
 }
 
 double Body::get_total_atomic_charge() const {
-    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const data::AtomFF& atom) {return sum + atom.weight();});
+    return std::transform_reduce(get_atoms().begin(), get_atoms().end(), 0.0, std::plus{}, [] (const data::AtomFF& atom) {return atom.weight();});
 }
 
 double Body::get_molar_mass(bool include_waters) const {
@@ -293,10 +294,11 @@ int Body::size_water() const {
 int Body::size_symmetry() const {return static_cast<int>(symmetries->get().size());}
 
 int Body::size_symmetry_total() const {
-    return std::accumulate(
+    return std::transform_reduce(
         symmetries->get().begin(), 
         symmetries->get().end(), 
         0, 
-        [] (int sum, const std::unique_ptr<symmetry::ISymmetry>& sym) {return sum + sym->repetitions();}
+        std::plus{},
+        [] (const std::unique_ptr<symmetry::ISymmetry>& sym) {return sym->repetitions();}
     );
 }

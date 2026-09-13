@@ -13,6 +13,7 @@
 #include <utility/MultiThreading.h>
 
 #include <cstdint>
+#include <functional>
 #include <numeric>
 #include <unordered_map>
 #include <vector>
@@ -166,11 +167,12 @@ inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_
     pool->detach_task(
         [&data, res_ptr] () {
             auto& p_aa = res_ptr->get();
-            double total_weight = scaling*std::accumulate(
+            double total_weight = scaling*std::transform_reduce(
                 data.get_data().begin(), 
                 data.get_data().end(), 
                 0.0, 
-                [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
+                std::plus{},
+                [] (const auto& val) {return val.value.w*val.value.w;}
             );
 
             if constexpr (weighted_bins) {

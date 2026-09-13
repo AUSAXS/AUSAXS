@@ -15,6 +15,8 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -226,11 +228,12 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_corre
     }
 
     // calculate self-correlation
-    double total_weight = std::accumulate(
+    double total_weight = std::transform_reduce(
         current.get_data().begin(), 
         current.get_data().end(), 
         0.0, 
-        [] (double sum, const auto& val) {return sum + val.value.w*val.value.w;}
+        std::plus{},
+        [] (const auto& val) {return val.value.w*val.value.w;}
     );
     if constexpr (weighted_bins) {
         p_aa.add_index(0, WeightedEntry(total_weight, static_cast<std::int64_t>(total_weight), 0));
@@ -350,11 +353,12 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
     }
 
     // calculate self-correlation
-    double total_weight = std::accumulate(
+    double total_weight = std::transform_reduce(
         this->coords_w.get_data().begin(), 
         this->coords_w.get_data().end(), 
         0.0, 
-        [](double sum, const auto& val) {return sum + val.value.w*val.value.w;}
+        std::plus{},
+        [](const auto& val) {return val.value.w*val.value.w;}
     );
 
     if constexpr (weighted_bins) {

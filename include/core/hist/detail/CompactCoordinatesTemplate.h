@@ -9,6 +9,7 @@
 #include <hist/detail/data/CompactCoordinatesXYZW.h>
 #include <utility/Concepts.h>
 
+#include <functional>
 #include <numeric>
 #include <vector>
 
@@ -134,7 +135,7 @@ inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::Compact
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Body>& bodies) : data(std::accumulate(bodies.begin(), bodies.end(), 0, [](int sum, const data::Body& body) {return sum + body.size_atom();})) {
+inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Body>& bodies) : data(std::transform_reduce(bodies.begin(), bodies.end(), 0, std::plus{}, [](const data::Body& body) {return body.size_atom();})) {
     int i = 0;
     for (const auto& body : bodies) {
         for (const auto& a : body.get_atoms()) {

@@ -56,7 +56,7 @@ TEST_CASE("WeightedDistribution: sinc_table") {
             sinc[d] = val;
         }
         std::ranges::transform(sinc, std::ranges::subrange(table->begin(q), table->end(q)), sinc.begin(), std::minus<>());
-        REQUIRE_THAT(std::accumulate(sinc.begin(), sinc.end(), 0.0), Catch::Matchers::WithinAbs(0, 1e-6));
+        REQUIRE_THAT(std::reduce(sinc.begin(), sinc.end(), 0.0), Catch::Matchers::WithinAbs(0, 1e-6));
     }
 }
 

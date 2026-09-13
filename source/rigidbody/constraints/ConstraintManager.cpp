@@ -11,6 +11,7 @@
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 
 #include <cassert>
+#include <functional>
 #include <numeric>
 
 using namespace ausaxs;
@@ -65,16 +66,16 @@ void ConstraintManager::add_constraint(std::unique_ptr<Constraint> constraint) {
 
 double ConstraintManager::evaluate() const {
     double sum = 0;
-    sum = std::accumulate(
-        discoverable_constraints.begin(), discoverable_constraints.end(), sum, 
-        [] (double sum, const std::unique_ptr<IDistanceConstraint>& constraint) {
-            return sum + constraint->evaluate();
+    sum = std::transform_reduce(
+        discoverable_constraints.begin(), discoverable_constraints.end(), sum, std::plus{},
+        [] (const std::unique_ptr<IDistanceConstraint>& constraint) {
+            return constraint->evaluate();
         }
     );
-    sum = std::accumulate(
-        non_discoverable_constraints.begin(), non_discoverable_constraints.end(), sum, 
-        [] (double sum, const std::unique_ptr<Constraint>& constraint) {
-            return sum + constraint->evaluate();
+    sum = std::transform_reduce(
+        non_discoverable_constraints.begin(), non_discoverable_constraints.end(), sum, std::plus{},
+        [] (const std::unique_ptr<Constraint>& constraint) {
+            return constraint->evaluate();
         }
     );
     return sum;

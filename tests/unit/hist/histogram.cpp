@@ -227,7 +227,7 @@ TEST_CASE("Histogram::normalize") {
     hist::Histogram hist(data);
     hist.normalize();
 
-    double sum = std::accumulate(data.begin(), data.end(), 0.0);
+    double sum = std::reduce(data.begin(), data.end(), 0.0);
     std::ranges::transform(data, data.begin(), [sum] (double x) {return x/sum;});
     CHECK(hist.get_counts() == data);
 

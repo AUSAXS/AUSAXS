@@ -6,6 +6,7 @@
 #include <math/detail/Format.h>
 
 #include <cassert>
+#include <functional>
 #include <numeric>
 
 namespace ausaxs {
@@ -100,7 +101,7 @@ namespace ausaxs {
     bool Matrix<Q>::operator==(const Matrix<R>& A) const {
         compatibility_check(A);
         Matrix<Q> diff = *this - A; // difference matrix
-        return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, Q x) {return sum + std::abs(x);}) < precision;
+        return std::transform_reduce(diff.begin(), diff.end(), 0.0, std::plus{}, [] (Q x) {return std::abs(x);}) < precision;
     }
 
     template<numeric Q>

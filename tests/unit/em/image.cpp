@@ -4,6 +4,7 @@
 
 #include <em/Image.h>
 #include <em/ObjectBounds2D.h>
+#include <functional>
 #include <numeric>
 #include <utility/Limit.h>
 
@@ -48,7 +49,7 @@ TEST_CASE("Image::mean") {
     };
 
     em::Image image(data);
-    double sum = std::accumulate(data.begin(), data.end(), 0.0);
+    double sum = std::reduce(data.begin(), data.end(), 0.0);
     CHECK_THAT(image.mean(), Catch::Matchers::WithinAbs(sum/(6*6), 1e-3));
 }
 
@@ -221,7 +222,7 @@ TEST_CASE("Image::squared_sum") {
     };
 
     em::Image image(data);
-    double sqsum = std::accumulate(data.begin(), data.end(), 0.0, [](double sum, float val) {return sum + val*val;});
+    double sqsum = std::transform_reduce(data.begin(), data.end(), 0.0, std::plus{}, [](float val) {return val*val;});
     CHECK_THAT(image.squared_sum(), Catch::Matchers::WithinAbs(sqsum, 1e-3));
 }
 
