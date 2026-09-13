@@ -54,6 +54,17 @@ TEST_CASE_METHOD(fixture, "StateManager::internally_modified_all") {
     CHECK(manager.is_modified_hydration() == false);
 }
 
+TEST_CASE("StateManager::modified_all") {
+    StateManager manager(3, std::vector<std::size_t>{2, 0, 1});
+    manager.reset_to_false();
+    manager.modified_all();
+    CHECK(manager.get_externally_modified_bodies() == std::vector{true, true, true});
+    CHECK(manager.get_internally_modified_bodies() == std::vector{true, true, true});
+    CHECK(manager.get_symmetry_modified_bodies() == std::vector<std::vector<bool>>{{true, true}, {}, {true}});
+    CHECK(manager.is_modified_hydration() == true);
+    CHECK(manager.is_modified() == true);
+}
+
 TEST_CASE_METHOD(fixture, "StateManager::externally_modified") {
     SECTION("single index") {
         manager.externally_modified(2);

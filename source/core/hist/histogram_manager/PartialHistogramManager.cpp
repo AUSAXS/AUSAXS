@@ -6,8 +6,8 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
-#include <hist/detail/BinEstimate.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>
+#include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/HistogramSettings.h>
@@ -15,7 +15,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -33,6 +32,19 @@ PartialHistogramManager<weighted_bins, variable_bin_width>::PartialHistogramMana
 template<bool weighted_bins, bool variable_bin_width> 
 PartialHistogramManager<weighted_bins, variable_bin_width>::~PartialHistogramManager() = default;
 
+template<bool weighted_bins, bool variable_bin_width>
+int PartialHistogramManager<weighted_bins, variable_bin_width>::prepare_axis() {
+    int required = hist::detail::required_partial_bin_count<variable_bin_width>(*this->protein);
+    if (this->master.size() != 0) {
+        if (required <= this->master.axis.bins) {return this->master.axis.bins;}
+
+        logging::log("PartialHistogramManager::prepare_axis: structure outgrew its axis; rebuilding");
+        this->master = detail::MasterHistogram<weighted_bins>();
+        this->statemanager->modified_all();
+    }
+    return hist::detail::grown_partial_bin_count(required);
+}
+
 template<bool weighted_bins, bool variable_bin_width> 
 std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variable_bin_width>::calculate() {
     if (!this->statemanager->is_modified() && !cache.p_tot.empty()) {
@@ -42,12 +54,13 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variab
     }
 
     logging::log("PartialHistogramManager::calculate_all: starting calculation");
+    int bin_count = prepare_axis();
     const std::vector<bool> externally_modified = this->statemanager->get_externally_modified_bodies();
     const std::vector<bool> internally_modified = this->statemanager->get_internally_modified_bodies();
 
     // check if the object has already been initialized
     if (this->master.size() == 0) [[unlikely]] {
-        initialize(); 
+        initialize(bin_count);
     } 
     
     // if not, we must first check if the coordinates have been changed in any of the bodies
@@ -266,8 +279,7 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aa(int n, 
 }
 
 template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManager<weighted_bins, variable_bin_width>::initialize() {
-    int bin_count = bin_estimate::configured_bin_count();
+void PartialHistogramManager<weighted_bins, variable_bin_width>::initialize(int bin_count) {
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);

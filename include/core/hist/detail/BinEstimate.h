@@ -5,40 +5,66 @@
 
 #include <constants/ConstantsAxes.h>
 #include <hist/detail/data/WidthControllers.h>
-#include <settings/Flags.h>
 #include <settings/HistogramSettings.h>
-#include <utility/Console.h>
 
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
-#include <cstddef>
 #include <limits>
 #include <ranges>
-#include <string>
 
 namespace ausaxs::hist::detail {
     namespace bin_estimate {
         constexpr int min_bin_count = 10; // minimum number of bins for all returned histograms
         constexpr int headroom = 2;       // extra bins on top of the geometric bound
 
-        // a set of coordinates that can be indexed directly
+        // a point that stores its position as a member, as atoms and waters do
+        template<typename T>
+        concept PointLike = requires(const T& t) {t.coordinates().x();};
+
+        // a point that is itself a position. atoms forward x()/y()/z() to their coordinates, so they satisfy
+        // the requirement too and must be excluded here to keep the two ranges below unambiguous
+        template<typename T>
+        concept VectorLike = !PointLike<T> && requires(const T& t) {t.x(); t.y(); t.z();};
+
+        template<typename T>
+        concept PointRange = std::ranges::input_range<T> && PointLike<std::ranges::range_value_t<T>>;
+
+        template<typename T>
+        concept VectorRange = std::ranges::input_range<T> && VectorLike<std::ranges::range_value_t<T>>;
+
+        // a set of coordinates that exposes its positions component-wise
         template<typename T>
         concept CoordinateSet = requires(const T& t) {t.size(); t[0].value.pos;};
 
         // invoke f(x, y, z) for every point in the set
         template<typename F, CoordinateSet Coords>
         void for_each_point(F& f, const Coords& coords) {
-            std::size_t size = coords.size();
-            for (std::size_t i = 0; i < size; ++i) {
+            int size = static_cast<int>(coords.size());
+            for (int i = 0; i < size; ++i) {
                 const auto& p = coords[i].value.pos;
                 f(static_cast<double>(p.x()), static_cast<double>(p.y()), static_cast<double>(p.z()));
             }
         }
 
+        template<typename F, PointRange Range>
+        void for_each_point(F& f, const Range& points) {
+            for (const auto& point : points) {
+                const auto& coordinates = point.coordinates();
+                f(static_cast<double>(coordinates.x()), static_cast<double>(coordinates.y()), static_cast<double>(coordinates.z()));
+            }
+        }
+
+        template<typename F, VectorRange Range>
+        void for_each_point(F& f, const Range& points) {
+            for (const auto& point : points) {
+                f(static_cast<double>(point.x()), static_cast<double>(point.y()), static_cast<double>(point.z()));
+            }
+        }
+
         // a container of sets - possibly nested, as in the per-body symmetry data
-        template<typename F, std::ranges::input_range Range> requires (!CoordinateSet<Range>)
+        template<typename F, std::ranges::input_range Range> requires (!CoordinateSet<Range> && !PointRange<Range> && !VectorRange<Range>)
         void for_each_point(F& f, const Range& sets) {
             for (const auto& set : sets) {for_each_point(f, set);}
         }
@@ -83,25 +109,6 @@ namespace ausaxs::hist::detail {
             return std::min(std::sqrt(dx*dx + dy*dy + dz*dz), 2*std::sqrt(r2_max));
         }
 
-        /**
-         * @brief The bin count for managers that cannot deduce one.
-         * @return settings::flag::max_bin_count
-         */
-        inline int configured_bin_count() {
-            assert(settings::flags::max_bin_count != 0 && "max_bin_count has not been set.");
-
-            static bool warned = false;
-            if (!warned && settings::axes::bin_width*settings::flags::max_bin_count < constants::axes::d_axis.max) {
-                warned = true;
-                console::print_warning(
-                    "The current bin width (" + std::to_string(settings::axes::bin_width) + "Å) and bin count (" + 
-                    std::to_string(settings::flags::max_bin_count) + ") only cover distances up to " + 
-                    std::to_string(int(settings::axes::bin_width*settings::flags::max_bin_count)) + "Å, which is less than the recommended " + 
-                    std::to_string(int(constants::axes::d_axis.max)) + "Å. Larger structures will cause segfaults."
-                );
-            }
-            return std::max<int>(settings::flags::max_bin_count, min_bin_count);
-        }
     }
 
     /**
@@ -115,4 +122,5 @@ namespace ausaxs::hist::detail {
         assert(std::isfinite(bins) && 0 < bins && "Determined bin count is not finite.");
         return std::max<int>(static_cast<int>(bins), bin_estimate::min_bin_count);
     }
+
 }

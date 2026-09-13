@@ -129,7 +129,6 @@ static auto test_random = [] (data::Molecule& protein) {
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -301,7 +300,6 @@ static auto test_point_random = [] (data::Molecule& protein) {
 
 // Test that PartialSymmetryManagerMT correctly handles PointSymmetry updates
 TEST_CASE("PartialSymmetryManagerMT: PointSymmetry subsequent calculations") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -407,7 +405,6 @@ static auto test_reference = [] (data::Molecule& protein) {
 
 // Test that PartialSymmetryManagerMT correctly handles a ReferenceSymmetry shared across bodies
 TEST_CASE("PartialSymmetryManagerMT: ReferenceSymmetry subsequent calculations") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::molecule::center = false;

@@ -5,6 +5,7 @@
 
 #include <data/state/BoundSignaller.h>
 
+#include <algorithm>
 #include <cassert>
 #include <utility>
 
@@ -39,6 +40,15 @@ void StateManager::externally_modified_all() {
 void StateManager::internally_modified_all() {
     _internally_modified = std::vector<bool>(size(), true);
     _modified = true;
+}
+
+void StateManager::modified_all() {
+    externally_modified_all();
+    internally_modified_all();
+    modified_hydration_layer();
+    for (auto& symmetry : _symmetry_modified) {
+        std::fill(symmetry.begin(), symmetry.end(), true); // NOLINT - vector<bool> is special (until C++23 at least)
+    }
 }
 
 void StateManager::externally_modified(int i) {

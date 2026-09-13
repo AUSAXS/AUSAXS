@@ -39,7 +39,6 @@ template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::His
 template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFGridScalableExv>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;}
 
 TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     auto exv = settings::exv::exv_method;
     auto threads = settings::general::threads;
     auto prefer_partial = settings::flags::prefer_partial_manager;
@@ -88,7 +87,6 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
 }
 
 TEST_CASE("HistogramManagerFactory: creates expected manager") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     Molecule protein({Body{SimpleCube::get_atoms()}});
 
     invoke_for_all_histogram_manager_variants(

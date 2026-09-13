@@ -5,7 +5,6 @@
 
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>  // IWYU pragma: keep
-#include <hist/detail/BinEstimate.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -44,15 +43,16 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
     }
 
     logging::log("PartialHistogramManagerMT::calculate: starting calculation");
+    int bin_count = this->prepare_axis();
     auto& externally_modified = this->statemanager->get_externally_modified_bodies();
     auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto* pool = utility::multi_threading::get_global_pool();
-    distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(hist::detail::bin_estimate::configured_bin_count());
+    distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_count);
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
-        initialize(&calculator); 
+        initialize(&calculator, bin_count);
 
         // since the initialization also calculates the self-correlation, mark it as unmodified to avoid desyncing its state
         internally_modified = std::vector<bool>(this->body_size, false);
@@ -258,9 +258,8 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<weighted_
 }
 
 template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::initialize(calculator_t calculator) {
+void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::initialize(calculator_t calculator, int bin_count) {
     auto* pool = utility::multi_threading::get_global_pool();
-    int bin_count = hist::detail::bin_estimate::configured_bin_count();
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);

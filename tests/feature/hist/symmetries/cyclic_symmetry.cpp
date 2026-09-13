@@ -280,7 +280,6 @@ TEST_CASE("SymmetryManager: translations") {
         test_translation(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_translation(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
@@ -359,7 +358,6 @@ TEST_CASE("SymmetryManager: repeating symmetries") {
         test_repeating_symmetries(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_repeating_symmetries(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
@@ -403,7 +401,6 @@ TEST_CASE("SymmetryManager: rotations") {
         test_rotations(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_rotations(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
@@ -477,7 +474,6 @@ TEST_CASE("SymmetryManager: multi-atom systems") {
         test_multi_atom(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_multi_atom(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }
@@ -584,7 +580,6 @@ TEST_CASE("SymmetryManager: random tests") {
         test_random(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
     SECTION("PartialSymmetryManager") {
-        settings::flags::max_bin_count = constants::axes::d_axis.bins;
         test_random(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
 }

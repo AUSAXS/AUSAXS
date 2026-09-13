@@ -25,7 +25,6 @@ using namespace ausaxs;
 using namespace data;
 
 TEST_CASE("managers: EM: partial_histogram_manager_works") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);
@@ -41,7 +40,6 @@ TEST_CASE("managers: EM: partial_histogram_manager_works") {
 }
 
 TEST_CASE("managers: EM: protein_manager") {
-    settings::flags::max_bin_count = constants::axes::d_axis.bins;
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManager);

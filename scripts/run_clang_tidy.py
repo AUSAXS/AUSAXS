@@ -9,7 +9,7 @@ flags clang rejects (-fconstexpr-ops-limit, -flto). A sanitized copy is written 
 build/clang-tidy, so no separate clang build directory is needed. Only a configure
 step is required, not a build:
 
-    cmake -B build -S .
+    cmake -B build -S . -DSAFE_CHECKS=ON
     python scripts/run_clang_tidy.py                            # whole project
     python scripts/run_clang_tidy.py source/rigidbody           # a subtree
     python scripts/run_clang_tidy.py --checks='-*,modernize-*'  # one group at a time
@@ -24,6 +24,17 @@ which passes $GITHUB_STEP_SUMMARY.
 
 Naming an include/ folder also selects the sources mirroring it, so a batch is one
 folder: --fix include/api rewrites include/api and source/api and nothing else.
+
+Configure with -DSAFE_CHECKS=ON (or -DCMAKE_BUILD_TYPE=Debug, which implies it). The
+asserts are how this codebase states its preconditions, and clang-tidy reads them as
+such: the analyser narrows on the assert's condition, and include-cleaner counts the
+symbols named inside one as used. -DNDEBUG, which the default configuration carries,
+deletes them all, and the reports that follow are about a translation unit the assert
+has been cut out of -- null-pointer guards the analyser no longer sees, parameters used
+only in an assert reported as unused, and their headers reported as not used directly.
+None of it is actionable: the guard is already there in the source being analysed.
+Measured over the ten assert-heaviest translation units, stripping the asserts adds 11
+such reports and removes none.
 
 Requires clang-tidy 19 or newer; see .clang-tidy. Set $CLANG_TIDY to pick a binary.
 """
@@ -88,11 +99,24 @@ noise = re.compile(
 
 source_db = build_dir / "compile_commands.json"
 if not source_db.exists():
-    exit(f"No compilation database at {source_db}. Configure first: cmake -B build -S .")
+    exit(
+        f"No compilation database at {source_db}. "
+        "Configure first: cmake -B build -S . -DSAFE_CHECKS=ON"
+    )
 
 entries = [e for e in json.loads(source_db.read_text()) if "_deps" not in e["file"]]
 if not entries:
     exit(f"No project translation units found in {source_db}")
+
+# Refuse a database whose asserts are compiled out; see the module docstring for what that
+# does to the reports. Checked here rather than left to the reader because the shape of the
+# noise -- an unused parameter, an unused include -- looks like an ordinary finding.
+ndebug = re.compile(r"[-/]DNDEBUG(?:=\S*)?$")
+if any(ndebug.match(a) for e in entries for a in (e.get("command", "").split() or e["arguments"])):
+    exit(
+        f"{source_db} defines NDEBUG, which deletes the asserts clang-tidy reads as preconditions.\n"
+        "Reconfigure with asserts enabled: cmake -B build -S . -DSAFE_CHECKS=ON"
+    )
 
 for entry in entries:
     if "command" in entry:
