@@ -2,6 +2,7 @@
 
 #include <data/Body.h>
 #include <grid/Grid.h>
+#include <math/MathTypeTraits.h>
 #include <settings/GridSettings.h>
 #include <utility/Limit3D.h>
 
@@ -17,11 +18,9 @@ namespace ausaxs::test {
     class ExactGrid : public grid::Grid {
         public:
             using Grid::operator=;
-
             explicit ExactGrid(const Limit3D& axes) : Grid(std::vector<data::Body>{}) {
                 setup(Axis3D(axes, settings::grid::cell_width));
             }
-
-            ~ExactGrid() override = default;
     };
+    static_assert(supports_nothrow_move_v<ExactGrid>, "ExactGrid should support nothrow move semantics.");
 }
