@@ -144,12 +144,15 @@ Dataset Dataset::rolling_average(int window_size) const {
 }
 
 Dataset Dataset::interpolate(int n) const {
-    Matrix<double> interpolated(size()*(n+1)-n-1, data.M);
-
+    // constructed first so a too-small dataset throws from CubicSpline before we size the matrix below
     std::vector<math::CubicSpline> splines;
     for (int col_index = 1; col_index < data.M; ++col_index) {
         splines.emplace_back(x(), col(col_index));
     }
+
+    // each of the size()-1 gaps contributes the point on its left plus n interpolated points,
+    // and the final point of the dataset is appended afterwards
+    Matrix<double> interpolated((size()-1)*(n+1) + 1, data.M);
 
     for (int i = 0; i < size()-1; i++) {
         double x = this->x(i);
@@ -166,6 +169,7 @@ Dataset Dataset::interpolate(int n) const {
             interpolated[i*(n+1) + j + 1] = row_new;
         }
     }
+    interpolated[(size()-1)*(n+1)] = row(size()-1); // append the final point of the dataset
     return interpolated;
 }
 
