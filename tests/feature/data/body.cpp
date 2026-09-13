@@ -27,10 +27,6 @@ struct fixture {
 };
 
 struct multiple_fixture {
-    multiple_fixture() {
-        settings::molecule::center = false;
-    }
-
     AtomFF a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
     AtomFF a2 = AtomFF({-1,  1, -1}, form_factor::form_factor_t::C);
     AtomFF a3 = AtomFF({-1, -1,  1}, form_factor::form_factor_t::C);

@@ -106,7 +106,6 @@ TEST_CASE_METHOD(fixture, "Constraints::basic_evaluate") {
 // been rotated away from the frame its symmetry was defined in.
 TEST_CASE("DistanceConstraint: a symmetry replica is placed on the body's centre of mass") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
 
     // exposes the protected distance evaluation so the constraint can be re-checked after the body moves
     struct Probe : DistanceConstraintAtom {

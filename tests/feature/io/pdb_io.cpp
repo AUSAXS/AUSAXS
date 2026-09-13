@@ -19,7 +19,6 @@ using namespace ausaxs::data;
 using namespace ausaxs::io::pdb;
 
 TEST_CASE("PDBReader::read") {
-    settings::molecule::center = false;
     settings::general::verbose = false;
 
     std::string content =
@@ -118,7 +117,6 @@ TEST_CASE("PDBReader: add_implicit_hydrogens") {
 
 TEST_CASE("PDBWriter: multi-chain structures keep their chains apart") {
     settings::general::verbose = false;
-    settings::molecule::center = false;
     settings::molecule::implicit_hydrogens = false;
 
     // Molecule loads an entire file into a single Body, so the chain boundaries only survive as metadata. The residue ids restart at every chain, so writing
@@ -260,7 +258,6 @@ TEST_CASE("PDBReader: can_parse_hydrogens") {
 }
 
 TEST_CASE("PDBStructure: save") {
-    settings::molecule::center = false;
     settings::general::verbose = false;
 
     auto protein = io::detail::pdb::read("tests/files/2epe.pdb");

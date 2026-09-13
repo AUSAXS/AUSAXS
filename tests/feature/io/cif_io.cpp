@@ -18,7 +18,6 @@ using namespace ausaxs;
 using namespace data;
 
 TEST_CASE("CIFReader::read") {
-    settings::molecule::center = false;
     settings::general::verbose = false;
 
     std::string content =

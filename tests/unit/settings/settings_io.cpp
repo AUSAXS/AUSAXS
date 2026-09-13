@@ -49,3 +49,16 @@ TEST_CASE_METHOD(SettingsIOFixture, "settings: a hand-written quoted path is rea
     settings::read(file);
     CHECK(settings::general::output == "C:\\my folder\\out\\");
 }
+
+// Removed options stay parseable so that old settings files keep working; anything else is a typo.
+TEST_CASE("settings: deprecated options are ignored, unknown options throw") {
+    SECTION("deprecated") {
+        test::TempFile file(".txt", "center true\n");
+        CHECK_NOTHROW(settings::read(file));
+    }
+
+    SECTION("unknown") {
+        test::TempFile file(".txt", "not_a_setting true\n");
+        CHECK_THROWS(settings::read(file));
+    }
+}

@@ -18,7 +18,6 @@ using namespace ausaxs;
 // TODO: fix this test; it's a solid one
 TEST_CASE("ImageStack: test with sphere", "[broken]") {
     settings::general::verbose = false;
-    settings::molecule::center = false;
 
     // generate big sphere
     auto lims = Limit3D(-50, 50, -50, 50, -50, 50);
@@ -72,7 +71,6 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
 }
 
 TEST_CASE("ImageStack::get_protein") {
-    settings::molecule::center = false;
     settings::grid::min_bins = 100;
     
     SECTION("em_weights") {

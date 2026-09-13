@@ -15,8 +15,7 @@ using namespace ausaxs::em::managers;
 ProteinManager::~ProteinManager() = default;
 
 ProteinManager::ProteinManager(observer_ptr<const em::ImageStackBase> images) : images(images) {
-    settings::molecule::center = false;                 // centering doesn't make sense for dummy structures
-    settings::molecule::implicit_hydrogens = false;     // likewise we don't know how many hydrogens are attached
+    settings::molecule::implicit_hydrogens = false;     // we don't know how many hydrogens are attached to dummy structures
     double max = images->from_level(settings::em::alpha_levels.max);
     double min = images->from_level(settings::em::alpha_levels.min);
     Axis axis(min, max, settings::em::charge_levels);

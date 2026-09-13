@@ -141,7 +141,6 @@ static auto test_point_symmetry = [] (settings::hist::HistogramManagerChoice cho
 
 TEST_CASE("SymmetryManager: PointSymmetry") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         test_point_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }

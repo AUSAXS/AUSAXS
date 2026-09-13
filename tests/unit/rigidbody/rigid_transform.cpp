@@ -20,7 +20,6 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("RigidTransform::apply single body group") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 10;
 
     SECTION("single body behaves like SingleTransform") {
@@ -57,7 +56,6 @@ TEST_CASE("RigidTransform::apply single body group") {
 
 TEST_CASE("RigidTransform::apply multi-body group") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 10;
 
     SECTION("linear chain - transform smaller side") {
@@ -151,7 +149,6 @@ TEST_CASE("RigidTransform::apply multi-body group") {
 
 TEST_CASE("RigidTransform::apply branched structure") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::scaling = 2;
 
     SECTION("T-shaped structure") {
@@ -200,7 +197,6 @@ TEST_CASE("RigidTransform::apply branched structure") {
 
 TEST_CASE("RigidTransform::undo") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::min_bins = 25;
 
     SECTION("undo restores all bodies in group") {

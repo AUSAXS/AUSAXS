@@ -28,7 +28,6 @@ using namespace ausaxs::rigidbody;
 struct fixture {
     fixture() {
         settings::molecule::implicit_hydrogens = false;
-        settings::molecule::center = false;
 
         a1 = AtomFF({-1, -1, -1}, form_factor::form_factor_t::C);
         a2 = AtomFF({-1,  1, -1}, form_factor::form_factor_t::C);

@@ -68,7 +68,6 @@ static auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice
 
 TEST_CASE("SymmetryManager: ReferenceSymmetry") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         test_reference_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
@@ -117,7 +116,6 @@ static auto test_reference_symmetry_dihedral = [] (settings::hist::HistogramMana
 
 TEST_CASE("SymmetryManager: ReferenceSymmetry with dihedral base") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         test_reference_symmetry_dihedral(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
@@ -186,7 +184,6 @@ static auto test_reference_symmetry_after_transform = [] (settings::hist::Histog
 
 TEST_CASE("SymmetryManager: ReferenceSymmetry stays consistent with ground truth after a further rigid transform") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         test_reference_symmetry_after_transform(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }
@@ -197,7 +194,6 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry stays consistent with ground truth
 
 TEST_CASE("ReferenceSymmetry: combined centre of mass is mass-weighted, matching a single body's own centre of mass") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
 
     std::vector<AtomFF> atoms_a{AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 0, 0}, form_factor::form_factor_t::C), AtomFF({0, 1, 0}, form_factor::form_factor_t::C)};
     std::vector<AtomFF> atoms_b{

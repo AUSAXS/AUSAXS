@@ -86,7 +86,6 @@ static auto test_composite_symmetry = [] (settings::hist::HistogramManagerChoice
 
 TEST_CASE("SymmetryManager: CompositeSymmetry") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     SECTION("SymmetryManager") {
         test_composite_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }

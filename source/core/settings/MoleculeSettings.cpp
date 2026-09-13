@@ -8,7 +8,6 @@
 
 using namespace ausaxs;
 
-bool settings::molecule::center = true;
 bool settings::molecule::implicit_hydrogens = true;
 bool settings::molecule::use_occupancy = true;
 bool settings::molecule::allow_unknown_residues = false;
@@ -17,7 +16,6 @@ bool settings::molecule::allow_unknown_atoms = false;
 namespace {
     using namespace ausaxs::settings;
     settings::io::SettingSection molecule_section("Molecule", {
-        settings::io::create(molecule::center, "center"),
         settings::io::create(molecule::allow_unknown_atoms, "allow_unknown_atoms"),
         settings::io::create(molecule::allow_unknown_residues, "allow_unknown_residues"),
         settings::io::create(molecule::implicit_hydrogens, "implicit_hydrogens"),

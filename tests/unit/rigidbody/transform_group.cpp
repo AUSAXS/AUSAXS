@@ -17,7 +17,6 @@ using namespace ausaxs::rigidbody;
 
 TEST_CASE("TransformGroup::TransformGroup") {
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::scaling = 2;
 
     SECTION("construction with single body") {

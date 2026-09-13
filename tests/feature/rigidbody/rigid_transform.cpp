@@ -136,7 +136,6 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
 TEST_CASE("RigidTransform: Orbital motion correctness") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::molecule::center = false;
     settings::grid::scaling = 2;
 
     // Create simple test bodies with known geometry - bodies at x = -3, 0, +3

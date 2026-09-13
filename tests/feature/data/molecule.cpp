@@ -34,7 +34,6 @@ using std::cout, std::endl;
 
 struct fixture {
     fixture() {
-        settings::molecule::center = false;
         settings::molecule::implicit_hydrogens = false;
     }
 
