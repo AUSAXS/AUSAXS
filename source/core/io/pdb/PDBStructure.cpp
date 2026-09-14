@@ -57,6 +57,7 @@ namespace {
         observer_ptr<const std::vector<std::string>>      rname    = (metadata && metadata->residue_name)? &metadata->residue_name.value(): nullptr;
 
         for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
+            // the body may contain symmetry duplicates, so we need to index the metadata modulo the number of atoms in the original body
             const auto& a = batoms[i];
             int midx = i % asize;
 
