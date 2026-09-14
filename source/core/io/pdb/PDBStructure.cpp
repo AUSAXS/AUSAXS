@@ -11,6 +11,7 @@
 #include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 
+#include <string>
 #include <string_view>
 #include <utility>
 
@@ -51,6 +52,9 @@ namespace {
         observer_ptr<const std::vector<data::backbone_t>> backbone = (metadata && metadata->backbone)    ? &metadata->backbone.value()    : nullptr;
         observer_ptr<const std::vector<int>>              resseq   = (metadata && metadata->residue_seq) ? &metadata->residue_seq.value() : nullptr;
         observer_ptr<const std::vector<char>>             chain_id = (metadata && metadata->chain_id)    ? &metadata->chain_id.value()    : nullptr;
+        observer_ptr<const std::vector<float>>            occ      = (metadata && metadata->occupancy)   ? &metadata->occupancy.value()   : nullptr;
+        observer_ptr<const std::vector<std::string>>      aname    = (metadata && metadata->atom_name)   ? &metadata->atom_name.value()   : nullptr;
+        observer_ptr<const std::vector<std::string>>      rname    = (metadata && metadata->residue_name)? &metadata->residue_name.value(): nullptr;
 
         for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
             const auto& a = batoms[i];
@@ -59,20 +63,29 @@ namespace {
             if (midx == 0) {++chain;}
             else if (chain_id && (*chain_id)[midx] != (*chain_id)[midx-1]) {++chain;}
 
-            std::string name = form_factor::to_string(a.form_factor_type());
-            if (backbone) {
-                switch ((*backbone)[midx]) {
-                    case data::backbone_t::n:       name = "N";  break;
-                    case data::backbone_t::c_alpha: name = "CA"; break;
-                    case data::backbone_t::c:       name = "C";  break;
-                    case data::backbone_t::o:       name = "O";  break;
-                    case data::backbone_t::none:    break;
+            std::string name;
+            if (aname && !(*aname)[midx].empty()) {
+                name = (*aname)[midx];
+            } else {
+                name = form_factor::to_string(a.form_factor_type());
+                if (backbone) {
+                    switch ((*backbone)[midx]) {
+                        case data::backbone_t::n:       name = "N";  break;
+                        case data::backbone_t::c_alpha: name = "CA"; break;
+                        case data::backbone_t::c:       name = "C";  break;
+                        case data::backbone_t::o:       name = "O";  break;
+                        case data::backbone_t::none:    break;
+                    }
                 }
             }
+
             int resSeq = resseq ? (*resseq)[midx] : 0;
+            std::string resName = (rname && !(*rname)[midx].empty()) ? (*rname)[midx].substr(0, 3) : "UNK"; // truncate to 3 chars
+            double occupancy = occ ? (*occ)[midx] : 1;
 
             atoms.emplace_back(
-                ++serial, name, "", "UNK", chain_identifier(chain), resSeq, "", a.coordinates(), 1, 1, form_factor::to_atom_type(a.form_factor_type()), ""
+                ++serial, name, "", resName, chain_identifier(chain), resSeq, "", a.coordinates(), occupancy, 1,
+                form_factor::to_atom_type(a.form_factor_type()), ""
             );
         }
 
@@ -215,29 +228,32 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     res.atoms.reserve(atoms.size());
     res.waters.reserve(waters.size());
 
-    // optionally retain per-atom metadata while the source information is still available
     data::AtomMetadata md;
-    if (data::AtomMetadata::store_backbone)    {md.backbone.emplace().reserve(atoms.size());}
-    if (data::AtomMetadata::store_residue_seq) {md.residue_seq.emplace().reserve(atoms.size());}
-    if (data::AtomMetadata::store_chain_id)    {md.chain_id.emplace().reserve(atoms.size());}
-    if (data::AtomMetadata::store_occupancy)   {md.occupancy.emplace().reserve(atoms.size());}
+    md.backbone.emplace().reserve(atoms.size());
+    md.residue_seq.emplace().reserve(atoms.size());
+    md.chain_id.emplace().reserve(atoms.size());
+    md.occupancy.emplace().reserve(atoms.size());
+    md.atom_name.emplace().reserve(atoms.size());
+    md.residue_name.emplace().reserve(atoms.size());
 
     for (auto& a : atoms) {
         res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);
-        if (md.backbone)    {
-            data::backbone_t bt = data::backbone_t::none;
-            if      (a.element == constants::atom_t::C && a.name == "CA") {bt = data::backbone_t::c_alpha;}
-            else if (a.element == constants::atom_t::N && a.name == "N")  {bt = data::backbone_t::n;}
-            else if (a.element == constants::atom_t::C && a.name == "C")  {bt = data::backbone_t::c;}
-            else if (a.element == constants::atom_t::O && a.name == "O")  {bt = data::backbone_t::o;}
-            md.backbone->emplace_back(bt);
-        }
-        if (md.residue_seq) {md.residue_seq->emplace_back(a.resSeq);}
-        if (md.chain_id)    {md.chain_id->emplace_back(a.chainID);}
-        if (md.occupancy)   {md.occupancy->emplace_back(static_cast<float>(a.occupancy));}
+
+        data::backbone_t bt = data::backbone_t::none;
+        if      (a.element == constants::atom_t::C && a.name == "CA") {bt = data::backbone_t::c_alpha;}
+        else if (a.element == constants::atom_t::N && a.name == "N")  {bt = data::backbone_t::n;}
+        else if (a.element == constants::atom_t::C && a.name == "C")  {bt = data::backbone_t::c;}
+        else if (a.element == constants::atom_t::O && a.name == "O")  {bt = data::backbone_t::o;}
+        md.backbone->emplace_back(bt);
+
+        md.residue_seq->emplace_back(a.resSeq);
+        md.chain_id->emplace_back(a.chainID);
+        md.atom_name->emplace_back(a.name);
+        md.residue_name->emplace_back(a.resName);
+        md.occupancy->emplace_back(0 <= a.occupancy ? static_cast<float>(a.occupancy) : 1.f);
     }
 
-    if (!md.empty()) {res.metadata = std::move(md);}
+    res.metadata = std::move(md);
 
     for (auto& w : waters) {
         res.waters.emplace_back(w.coords);

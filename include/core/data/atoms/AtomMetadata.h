@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace ausaxs::data {
@@ -25,24 +26,17 @@ namespace ausaxs::data {
 
     /**
      * @brief Optional per-atom metadata for a Body.
-     *
-     *        Whenever the atom vector of a Body is reshaped, its metadata must be reshaped identically or the parallel indexing is lost. The operations doing so 
-     *        are provided as members here rather than at the call sites, so that adding a field only requires extending _visit below.
      */
     struct AtomMetadata {
-        std::optional<std::vector<backbone_t>> backbone;     //< engaged iff store_backbone
-        std::optional<std::vector<int>>        residue_seq;  //< residue sequence id; engaged iff store_residue_seq
-        std::optional<std::vector<char>>       chain_id;     //< source chain identifier; engaged iff store_chain_id
-        std::optional<std::vector<float>>      occupancy;    //< engaged iff store_occupancy
-
-        // which fields are retained when a structure is loaded.
-        inline static bool store_backbone    = true;
-        inline static bool store_residue_seq = true;
-        inline static bool store_chain_id    = true;
-        inline static bool store_occupancy   = false;
+        std::optional<std::vector<backbone_t>>  backbone;     //< backbone classification
+        std::optional<std::vector<int>>         residue_seq;  //< residue sequence id
+        std::optional<std::vector<char>>        chain_id;     //< source chain identifier
+        std::optional<std::vector<float>>       occupancy;    //< fraction of the atom present; already folded into the atom charge
+        std::optional<std::vector<std::string>> atom_name;    //< source atom name, e.g. "CA"
+        std::optional<std::vector<std::string>> residue_name; //< source residue name, e.g. "LYS"
 
         // total number of fields, engaged or not. Must be kept in sync with _visit.
-        static constexpr std::size_t field_count = 4;
+        static constexpr std::size_t field_count = 6;
 
         /**
          * @brief Get the number of currently engaged fields.
@@ -114,15 +108,19 @@ namespace ausaxs::data {
                 f(self.residue_seq);
                 f(self.chain_id);
                 f(self.occupancy);
+                f(self.atom_name);
+                f(self.residue_name);
             }
 
             // Invoke f on every field of a paired up with the corresponding field of b. f must accept any of the field types, i.e. be a generic lambda.
             template<typename S1, typename S2, typename F>
             static void _visit(S1& a, S2& b, F&& f) {
-                f(a.backbone,    b.backbone);
-                f(a.residue_seq, b.residue_seq);
-                f(a.chain_id,    b.chain_id);
-                f(a.occupancy,   b.occupancy);
+                f(a.backbone,     b.backbone);
+                f(a.residue_seq,  b.residue_seq);
+                f(a.chain_id,     b.chain_id);
+                f(a.occupancy,    b.occupancy);
+                f(a.atom_name,    b.atom_name);
+                f(a.residue_name, b.residue_name);
             }
     };
 }

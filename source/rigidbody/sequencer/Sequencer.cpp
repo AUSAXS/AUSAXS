@@ -4,7 +4,6 @@
 #include <rigidbody/sequencer/Sequencer.h>
 
 #include <data/Body.h>
-#include <data/atoms/AtomMetadata.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <hydrate/ExplicitHydration.h>
 #include <io/ExistingFile.h>
@@ -17,15 +16,9 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::sequencer;
 
-Sequencer::Sequencer() : LoopElement(nullptr, 1), setup_loop(this), rigidbody(nullptr) {
-    data::AtomMetadata::store_backbone = true;
-    data::AtomMetadata::store_residue_seq = true;
-}
+Sequencer::Sequencer() : LoopElement(nullptr, 1), setup_loop(this), rigidbody(nullptr) {}
 
-Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), setup_loop(this, saxs), rigidbody(nullptr) {
-    data::AtomMetadata::store_backbone = true;
-    data::AtomMetadata::store_residue_seq = true;
-}
+Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), setup_loop(this, saxs), rigidbody(nullptr) {}
 
 Sequencer::~Sequencer() = default;
 
