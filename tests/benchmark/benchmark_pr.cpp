@@ -53,7 +53,7 @@ static constexpr std::array<MolSpec, 5> bench_molecules = {{
     {.pdb="tests/files/SASDJG5.pdb",     .label="SASDJG5"},
     {.pdb="tests/files/168l.pdb",        .label="168l"},
 }};
-static constexpr MolSpec large_molecule = {"tests/files/A2M_native.pdb", "A2M_native"};
+static constexpr MolSpec large_molecule = {.pdb="tests/files/A2M_native.pdb", .label="A2M_native"};
 
 // Benchmarks measure the shipped default configuration: implicit hydrogens stay on, since that is
 // what `ausaxs fit` runs and it is what decides how many form-factor slots are active.
