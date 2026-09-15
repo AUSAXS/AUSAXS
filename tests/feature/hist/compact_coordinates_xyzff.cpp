@@ -2,7 +2,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <constants/Constants.h>
 #include <form_factor/FormFactorType.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
@@ -11,6 +10,7 @@
 
 #include <array>
 #include <cmath>
+#include <numbers>
 #include <numeric>
 #include <vector>
 
@@ -113,7 +113,7 @@ namespace {
     }};
 
     const std::array<double, 16> distances = {
-        1.0, std::sqrt(3.0), std::sqrt(12.0), std::sqrt(27.0),
+        1.0, std::numbers::sqrt3, std::sqrt(12.0), std::sqrt(27.0),
         std::sqrt(48.0), std::sqrt(75.0), std::sqrt(108.0), std::sqrt(147.0),
         std::sqrt(192.0), std::sqrt(243.0), std::sqrt(300.0), std::sqrt(363.0),
         std::sqrt(432.0), std::sqrt(507.0), std::sqrt(588.0), std::sqrt(675.0)

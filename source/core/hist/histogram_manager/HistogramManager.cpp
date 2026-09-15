@@ -6,7 +6,6 @@
 #include <data/Molecule.h>
 #include <hist/detail/AtomOrdering.h>
 #include <hist/detail/BinEstimate.h>
-#include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>

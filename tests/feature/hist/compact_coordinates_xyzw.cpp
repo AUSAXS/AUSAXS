@@ -2,7 +2,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <constants/Constants.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/data/CompactCoordinatesXYZW.h>
@@ -10,6 +9,7 @@
 
 #include <array>
 #include <cmath>
+#include <numbers>
 #include <numeric>
 #include <vector>
 
@@ -63,7 +63,7 @@ TEST_CASE("CompactCoordinates<vbw>: component storage") {
             seen.push_back(data.x(i));
         }
         // and the set of atoms is unchanged
-        std::sort(seen.begin(), seen.end());
+        std::ranges::sort(seen);
         for (int i = 0; i < 64; ++i) {CHECK_THAT(seen[i], Catch::Matchers::WithinAbs(i, 1e-6));}
     }
 }
@@ -135,7 +135,7 @@ namespace {
 
     // the squared distances from self to each of the above, and the product weights
     const std::vector<std::pair<double, float>> expected_16 = {
-        {1.0, 8.0f}, {std::sqrt(3.0), 16.0f}, {std::sqrt(12.0), 32.0f}, {std::sqrt(27.0), 64.0f},
+        {1.0, 8.0f}, {std::numbers::sqrt3, 16.0f}, {std::sqrt(12.0), 32.0f}, {std::sqrt(27.0), 64.0f},
         {std::sqrt(48.0), 128.0f}, {std::sqrt(75.0), 256.0f}, {std::sqrt(108.0), 30.0f}, {std::sqrt(147.0), 10.0f},
         {std::sqrt(192.0), 14.0f}, {std::sqrt(243.0), 22.0f}, {std::sqrt(300.0), 26.0f}, {std::sqrt(363.0), 34.0f},
         {std::sqrt(432.0), 38.0f}, {std::sqrt(507.0), 46.0f}, {std::sqrt(588.0), 58.0f}, {std::sqrt(675.0), 62.0f}
