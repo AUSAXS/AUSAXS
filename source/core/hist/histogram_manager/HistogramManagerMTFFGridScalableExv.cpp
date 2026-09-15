@@ -8,6 +8,7 @@
 #include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridExv.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
@@ -53,7 +54,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             exv.begin(), exv.end(), interior.begin(),
             [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
         );
-        data_x = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(interior));
+        data_x = hist::detail::factory::construct_ff<variable_bin_width>(interior);
     }
 
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
@@ -68,17 +69,13 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         pool] 
         (double scale) 
     {
-        int data_a_size = (int) data_a.size();
-        int data_w_size = (int) data_w.size();
-        int data_x_size = (int) data_x.size();
+        int data_a_size = data_a.size();
+        int data_w_size = data_w.size();
+        int data_x_size = data_x.size();
 
         // stretch the excluded volume cells by the given scale factor
         auto scaled_data_x = data_x;
-        for (auto& coord : scaled_data_x.get_data()) {
-            coord.value.pos.x() *= scale;
-            coord.value.pos.y() *= scale;
-            coord.value.pos.z() *= scale;
-        }
+        scaled_data_x.scale_coordinates(scale);
         int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_data_x);
 
         //########################//

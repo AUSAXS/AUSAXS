@@ -8,6 +8,7 @@
 #include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
@@ -55,16 +56,16 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
             exv.surface.begin(), exv.surface.end(), surface.begin(),
             [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
         );
-        data_x_i = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(interior));
-        data_x_s = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(surface));
+        data_x_i = hist::detail::factory::construct_ff<variable_bin_width>(interior);
+        data_x_s = hist::detail::factory::construct_ff<variable_bin_width>(surface);
     }
 
     auto& data_a = *this->data_a_ptr;
     auto& data_w = *this->data_w_ptr;
-    int data_a_size = (int) data_a.size();
-    int data_w_size = (int) data_w.size();
-    int data_x_i_size = (int) data_x_i.size();
-    int data_x_s_size = (int) data_x_s.size();
+    int data_a_size = data_a.size();
+    int data_w_size = data_w.size();
+    int data_x_i_size = data_x_i.size();
+    int data_x_s_size = data_x_s.size();
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
 
     //########################//

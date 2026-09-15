@@ -31,6 +31,6 @@ namespace ausaxs::symmetry {
         std::span<double> span_rotation() override;
 
     protected:
-        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
+        transform::Affine _make_transform(const Vector3<double>& anchor, int rep) const override;
     };
 }

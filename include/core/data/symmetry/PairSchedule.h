@@ -20,5 +20,5 @@ namespace ausaxs::symmetry {
      * class, with scale set to the class size. Used by the polyhedral, composite, and
      * reference symmetries whose copies do not form a simple cyclic chain.
      */
-    std::vector<SymmetricDuplicatePair> compute_pair_schedule(const std::vector<AffineTransform>& placements);
+    std::vector<SymmetricDuplicatePair> compute_pair_schedule(const std::vector<transform::Affine>& placements);
 }

@@ -81,7 +81,7 @@ symmetry::ISymmetry& symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::front
 }
 
 template<typename BODY, bool NONCONST>
-ausaxs::symmetry::AffineTransform symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get_transform(
+ausaxs::transform::Affine symmetry::detail::BodySymmetryFacade<BODY, NONCONST>::get_transform(
     int index, const Vector3<double>& cm, int rep
 ) const {
     const auto& storage = *body->symmetries;

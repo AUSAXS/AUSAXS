@@ -9,8 +9,6 @@
 namespace ausaxs::hist::detail {
     template<bool variable_bin_width>
     struct CompactCoordinates : public CompactCoordinatesTemplate<CoordinateTypeXYZW, variable_bin_width> {
-        using CompactCoordinatesTemplate<CoordinateTypeXYZW, variable_bin_width>::CompactCoordinatesTemplate;
-
         float get_weight(int i) const {
             return this->get_non_coordinate_value(i);
         }

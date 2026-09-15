@@ -21,7 +21,7 @@ std::unique_ptr<ISymmetry> PointSymmetry::clone() const {
     return std::make_unique<PointSymmetry>(*this);
 }
 
-AffineTransform PointSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
+transform::Affine PointSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
     assert(rep <= 1 && "PointSymmetry always generates exactly one copy (rep must be 1).");
     if (rep == 0) {return {};} // identity
 

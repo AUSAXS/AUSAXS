@@ -224,10 +224,10 @@ std::vector<std::vector<Vector3<double>>> reconstruct_copies(
     result.reserve(reps + 1);
     result.push_back(reference); // copy 0 is the reference itself
     for (int k = 1; k <= reps; ++k) {
-        auto transform = trivial ? symmetry::AffineTransform{} : symmetry._get_transform(cm, k);
+        auto t = trivial ? ausaxs::transform::Affine{} : symmetry._get_transform(cm, k);
         std::vector<Vector3<double>> copy;
         copy.reserve(reference.size());
-        for (const auto& p : reference) {copy.push_back(transform(p));}
+        for (const auto& p : reference) {copy.push_back(t(p));}
         result.push_back(std::move(copy));
     }
     return result;

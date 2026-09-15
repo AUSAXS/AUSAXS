@@ -56,6 +56,6 @@ namespace ausaxs::symmetry {
         Vector3<double> rotation_from_angle(double angle, const Vector3<double>& direction) const override;
 
     protected:
-        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
+        transform::Affine _make_transform(const Vector3<double>& anchor, int rep) const override;
     };
 }
