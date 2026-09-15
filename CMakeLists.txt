@@ -173,9 +173,13 @@ endif()
 ############################################
 ##           Build library                ##
 ############################################
-if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+string(TOUPPER "${CMAKE_BUILD_TYPE}" AUSAXS_BUILD_TYPE_UPPER)
+if (AUSAXS_BUILD_TYPE_UPPER STREQUAL "RELEASE")
 	include(CheckIPOSupported)
-	check_ipo_supported(RESULT LTO_SUPPORTED)
+	check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_MESSAGE)
+	if (NOT LTO_SUPPORTED)
+		message(STATUS "LTO unavailable: ${LTO_MESSAGE}")
+	endif()
 else()
 	set(LTO_SUPPORTED OFF)
 endif()

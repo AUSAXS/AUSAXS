@@ -1,4 +1,4 @@
-add_library(ausaxs_math OBJECT 
+add_library(ausaxs_math OBJECT
 	"CubicSpline.cpp"
 	"detail/Diagnostics.cpp"
 	"detail/Format.cpp"
@@ -12,4 +12,7 @@ add_library(ausaxs_math OBJECT
 )
 
 target_include_directories(ausaxs_math PUBLIC "${CMAKE_SOURCE_DIR}/include/math")
-set_target_properties(ausaxs_math PROPERTIES POSITION_INDEPENDENT_CODE 1)
+set_target_properties(ausaxs_math PROPERTIES
+	POSITION_INDEPENDENT_CODE 1
+	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
+)
