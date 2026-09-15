@@ -35,8 +35,8 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     data_w_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(this->protein->get_waters());
     auto& data_a = *data_a_ptr;
     auto& data_w = *data_w_ptr;
-    int data_a_size = (int) data_a.size();
-    int data_w_size = (int) data_w.size();
+    int data_a_size = data_a.size();
+    int data_w_size = data_w.size();
     int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
     //########################//

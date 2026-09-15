@@ -13,6 +13,7 @@ using namespace ausaxs;
 std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, const std::vector<double>& q_vals) {
     using CC = hist::detail::CompactCoordinates<false>;
     auto data = CC(molecule.get_bodies());
+    const int data_size = data.size();
 
     auto contribution = [] (double qr, float w) -> double {
         if (qr < 1e-9) {
@@ -25,27 +26,27 @@ std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, 
     std::vector<double> I(q_vals.size());
     auto* pool = utility::multi_threading::get_global_pool();
     pool->detach_blocks(0, static_cast<int>(q_vals.size()),
-        [&data, &q_vals, &I, &contribution] (int start, int end) {
+        [&data, &q_vals, &I, &contribution, data_size] (int start, int end) {
             for (int qi = start; qi < end; ++qi) {
                 double q = q_vals[qi];
                 double sum = 0;
-                for (unsigned int i = 0; i < data.size(); ++i) {
-                    unsigned int j = i+1;
-                    for (; j+7 < data.size(); j+=8) {
+                for (int i = 0; i < data_size; ++i) {
+                    int j = i+1;
+                    for (; j+7 < data_size; j+=8) {
                         auto res = hist::detail::xyzw::evaluate_8<false>(data.atom(i), data.block(j));
-                        for (unsigned int k = 0; k < 8; ++k) {
+                        for (int k = 0; k < 8; ++k) {
                             sum += contribution(q*res.distances[k], 2*res.weights[k]);
                         }
                     }
 
-                    for (; j+3 < data.size(); j+=4) {
+                    for (; j+3 < data_size; j+=4) {
                         auto res = hist::detail::xyzw::evaluate_4<false>(data.atom(i), data.block(j));
-                        for (unsigned int k = 0; k < 4; ++k) {
+                        for (int k = 0; k < 4; ++k) {
                             sum += contribution(q*res.distances[k], 2*res.weights[k]);
                         }
                     }
 
-                    for (; j < data.size(); ++j) {
+                    for (; j < data_size; ++j) {
                         auto res = hist::detail::xyzw::evaluate<false>(data.atom(i), data.block(j));
                         sum += contribution(q*res.distance, 2*res.weight);
                     }

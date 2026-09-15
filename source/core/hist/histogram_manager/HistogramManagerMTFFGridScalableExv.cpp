@@ -68,14 +68,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         pool] 
         (double scale) 
     {
-        int data_a_size = (int) data_a.size();
-        int data_w_size = (int) data_w.size();
-        int data_x_size = (int) data_x.size();
+        int data_a_size = data_a.size();
+        int data_w_size = data_w.size();
+        int data_x_size = data_x.size();
 
         // stretch the excluded volume cells by the given scale factor
         auto scaled_data_x = data_x;
         scaled_data_x.scale_coordinates(scale);
-        unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_data_x);
+        int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_data_x);
 
         //########################//
         // PREPARE MULTITHREADING //

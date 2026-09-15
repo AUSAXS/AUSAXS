@@ -31,7 +31,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     hist::detail::CompactCoordinates<vbw> data_a(this->protein->get_bodies());
     hist::detail::CompactCoordinates<vbw> data_w(this->protein->get_waters());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, this->protein);
-    unsigned int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
+    int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
     hist::detail::decorrelate_order<wb>(bin_count, data_a, data_w);
 
     hist::distance_calculator::SimpleCalculator<wb, vbw> calculator(bin_count);

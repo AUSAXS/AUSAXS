@@ -57,7 +57,7 @@ struct Others {
 template<std::size_t N>
 Others<N> make_others(const std::array<std::pair<Vector3<double>, int32_t>, N>& in) {
     Others<N> o;
-    for (std::size_t k = 0; k < N; ++k) {
+    for (int k = 0; k < static_cast<int>(N); ++k) {
         o.x[k] = static_cast<float>(in[k].first.x());
         o.y[k] = static_cast<float>(in[k].first.y());
         o.z[k] = static_cast<float>(in[k].first.z());
@@ -75,10 +75,10 @@ void check_unordered(
     double tol)
 {
     std::sort(expected.begin(), expected.end());
-    std::array<std::size_t, N> idx;
+    std::array<int, N> idx;
     std::iota(idx.begin(), idx.end(), 0);
     std::sort(idx.begin(), idx.end(), [&](auto a, auto b) { return actual_dist[a] < actual_dist[b]; });
-    for (std::size_t k = 0; k < N; ++k) {
+    for (int k = 0; k < static_cast<int>(N); ++k) {
         CHECK_THAT(static_cast<double>(actual_dist[idx[k]]), Catch::Matchers::WithinAbs(expected[k].first, tol));
         CHECK(actual_ff[idx[k]] == expected[k].second);
     }
@@ -91,10 +91,10 @@ void check_unordered_rounded(
     std::vector<std::pair<int32_t, int32_t>> expected)
 {
     std::sort(expected.begin(), expected.end());
-    std::array<std::size_t, N> idx;
+    std::array<int, N> idx;
     std::iota(idx.begin(), idx.end(), 0);
     std::sort(idx.begin(), idx.end(), [&](auto a, auto b) { return actual_dist[a] < actual_dist[b]; });
-    for (std::size_t k = 0; k < N; ++k) {
+    for (int k = 0; k < static_cast<int>(N); ++k) {
         CHECK(actual_dist[idx[k]] == expected[k].first);
         CHECK(actual_ff[idx[k]] == expected[k].second);
     }
@@ -128,7 +128,7 @@ namespace {
     template<std::size_t N>
     std::vector<std::pair<double, int32_t>> expected_n() {
         std::vector<std::pair<double, int32_t>> out;
-        for (std::size_t k = 0; k < N; ++k) {out.emplace_back(distances[k], ff_bin_index(self.ff, geometry[k].second));}
+        for (int k = 0; k < static_cast<int>(N); ++k) {out.emplace_back(distances[k], ff_bin_index(self.ff, geometry[k].second));}
         return out;
     }
 
@@ -136,7 +136,7 @@ namespace {
     std::vector<std::pair<int32_t, int32_t>> expected_n_rounded() {
         const double width = constants::axes::d_axis.width();
         std::vector<std::pair<int32_t, int32_t>> out;
-        for (std::size_t k = 0; k < N; ++k) {
+        for (int k = 0; k < static_cast<int>(N); ++k) {
             out.emplace_back(static_cast<int32_t>(std::round(distances[k]/width)), ff_bin_index(self.ff, geometry[k].second));
         }
         return out;

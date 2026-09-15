@@ -50,12 +50,12 @@ TEST_CASE("CompactCoordinates<vbw>: component storage") {
             atoms.emplace_back(Vector3<double>{double(i), 2.0*i, 3.0*i}, form_factor::form_factor_t::C);
         }
         CompactCoordinates<false> data(atoms);
-        data.shuffle_order(12345);
+        data.shuffle_order();
         REQUIRE(data.size() == 64);
         // every atom must still satisfy y == 2x and z == 3x, i.e. the components were
         // permuted by one common permutation rather than independently
         std::vector<float> seen;
-        for (unsigned int i = 0; i < data.size(); ++i) {
+        for (int i = 0; i < data.size(); ++i) {
             CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(2*data.x(i), 1e-6));
             CHECK_THAT(data.z(i), Catch::Matchers::WithinAbs(3*data.x(i), 1e-6));
             seen.push_back(data.x(i));
@@ -77,7 +77,7 @@ struct Others {
 template<std::size_t N>
 Others<N> make_others(const std::array<std::pair<Vector3<double>, float>, N>& in) {
     Others<N> o;
-    for (std::size_t k = 0; k < N; ++k) {
+    for (int k = 0; k < static_cast<int>(N); ++k) {
         o.x[k] = static_cast<float>(in[k].first.x());
         o.y[k] = static_cast<float>(in[k].first.y());
         o.z[k] = static_cast<float>(in[k].first.z());
@@ -95,10 +95,10 @@ void check_unordered(
     double tol)
 {
     std::sort(expected.begin(), expected.end());
-    std::array<std::size_t, N> idx;
+    std::array<int, N> idx;
     std::iota(idx.begin(), idx.end(), 0);
     std::sort(idx.begin(), idx.end(), [&](auto a, auto b) { return actual_dist[a] < actual_dist[b]; });
-    for (std::size_t k = 0; k < N; ++k) {
+    for (int k = 0; k < static_cast<int>(N); ++k) {
         CHECK_THAT(static_cast<double>(actual_dist[idx[k]]), Catch::Matchers::WithinAbs(expected[k].first, tol));
         CHECK(actual_wt[idx[k]] == expected[k].second);
     }
@@ -111,10 +111,10 @@ void check_unordered_rounded(
     std::vector<std::pair<int32_t, float>> expected)
 {
     std::sort(expected.begin(), expected.end());
-    std::array<std::size_t, N> idx;
+    std::array<int, N> idx;
     std::iota(idx.begin(), idx.end(), 0);
     std::sort(idx.begin(), idx.end(), [&](auto a, auto b) { return actual_dist[a] < actual_dist[b]; });
-    for (std::size_t k = 0; k < N; ++k) {
+    for (int k = 0; k < static_cast<int>(N); ++k) {
         CHECK(actual_dist[idx[k]] == expected[k].first);
         CHECK(actual_wt[idx[k]] == expected[k].second);
     }
@@ -155,7 +155,7 @@ namespace {
     std::vector<std::pair<int32_t, float>> expected_n_rounded() {
         const double width = constants::axes::d_axis.width();
         std::vector<std::pair<int32_t, float>> out;
-        for (std::size_t k = 0; k < N; ++k) {
+        for (int k = 0; k < static_cast<int>(N); ++k) {
             out.emplace_back(static_cast<int32_t>(std::round(expected_16[k].first/width)), expected_16[k].second);
         }
         return out;

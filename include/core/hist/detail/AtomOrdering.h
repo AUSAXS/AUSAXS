@@ -6,7 +6,6 @@
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <constants/ConstantsAxes.h>
 
-#include <cstddef>
 #include <ranges>
 
 namespace ausaxs::hist::detail {
@@ -38,18 +37,18 @@ namespace ausaxs::hist::detail {
          * parts) because two SMT threads share one L1 and the coordinate stream competes
          * for it as well.
          */
-        constexpr std::size_t max_histogram_bytes = 24*1024;
+        constexpr int max_histogram_bytes = 24*1024;
 
         /**
          * @brief The bytes one histogram of @a bin_count bins occupies.
          *        Weighted bins track a running centre and count per bin, so their entries are wider.
          */
         template<bool weighted_bins>
-        constexpr std::size_t histogram_bytes(unsigned int bin_count) {
+        constexpr int histogram_bytes(int bin_count) {
             if constexpr (weighted_bins) {
-                return bin_count*sizeof(hist::detail::WeightedEntry);
+                return bin_count*static_cast<int>(sizeof(hist::detail::WeightedEntry));
             } else {
-                return bin_count*sizeof(constants::axes::d_type);
+                return bin_count*static_cast<int>(sizeof(constants::axes::d_type));
             }
         }
 
@@ -61,21 +60,21 @@ namespace ausaxs::hist::detail {
          * a large histogram from a small structure.
          */
         template<bool weighted_bins>
-        constexpr bool is_beneficial(unsigned int bin_count) {
+        constexpr bool is_beneficial(int bin_count) {
             return histogram_bytes<weighted_bins>(bin_count) <= max_histogram_bytes;
         }
 
         // a coordinate set that can be permuted directly
         template<typename T>
-        concept Shufflable = requires(T& t) {t.shuffle_order(0u);};
+        concept Shufflable = requires(T& t) {t.shuffle_order();};
 
         template<Shufflable T>
-        void shuffle_all(T& set, unsigned int& seed) {set.shuffle_order(seed++);}
+        void shuffle_all(T& set) {set.shuffle_order();}
 
         // a container of sets - possibly nested, as in the per-body symmetry data
         template<std::ranges::input_range Range> requires (!Shufflable<Range>)
-        void shuffle_all(Range& sets, unsigned int& seed) {
-            for (auto& set : sets) {shuffle_all(set, seed);}
+        void shuffle_all(Range& sets) {
+            for (auto& set : sets) {shuffle_all(set);}
         }
     }
 
@@ -102,9 +101,8 @@ namespace ausaxs::hist::detail {
      * @param sets Any number of coordinate sets, or (possibly nested) containers of them.
      */
     template<bool weighted_bins, typename... Sets>
-    void decorrelate_order(unsigned int bin_count, Sets&... sets) {
+    void decorrelate_order(int bin_count, Sets&... sets) {
         if (!atom_order::is_beneficial<weighted_bins>(bin_count)) {return;}
-        unsigned int seed = 0x9e3779b9u; // fixed, so runs stay reproducible
-        (atom_order::shuffle_all(sets, seed), ...);
+        (atom_order::shuffle_all(sets), ...);
     }
 }

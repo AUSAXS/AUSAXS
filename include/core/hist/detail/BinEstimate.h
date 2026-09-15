@@ -36,13 +36,13 @@ namespace ausaxs::hist::detail {
 
         // a set of coordinates that exposes its positions component-wise
         template<typename T>
-        concept CoordinateSet = requires(const T& t) {t.size(); t.x(0u); t.y(0u); t.z(0u);};
+        concept CoordinateSet = requires(const T& t) {t.size(); t.x(0); t.y(0); t.z(0);};
 
         // invoke f(x, y, z) for every point in the set
         template<typename F, CoordinateSet Coords>
         void for_each_point(F& f, const Coords& coords) {
-            unsigned int size = static_cast<unsigned int>(coords.size());
-            for (unsigned int i = 0; i < size; ++i) {
+            int size = static_cast<int>(coords.size());
+            for (int i = 0; i < size; ++i) {
                 f(static_cast<double>(coords.x(i)), static_cast<double>(coords.y(i)), static_cast<double>(coords.z(i)));
             }
         }

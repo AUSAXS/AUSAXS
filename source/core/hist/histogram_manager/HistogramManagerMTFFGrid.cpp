@@ -53,9 +53,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     }
     auto& data_a = *this->data_a_ptr;
     auto& data_w = *this->data_w_ptr;
-    int data_a_size = (int) data_a.size();
-    int data_w_size = (int) data_w.size();
-    int data_x_size = (int) data_x.size();
+    int data_a_size = data_a.size();
+    int data_w_size = data_w.size();
+    int data_x_size = data_x.size();
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x);
 
     //########################//

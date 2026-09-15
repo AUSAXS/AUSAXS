@@ -207,28 +207,28 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_corre
 
     // calculate internal distances between atoms
     GenericDistribution1D_t p_aa(this->master.axis.bins);
-    for (int i = 0; i < static_cast<int>(current.size()); i++) {
+    for (int i = 0; i < current.size(); i++) {
         int j = i+1;
-        for (; j+15 < static_cast<int>(current.size()); j+=16) {
+        for (; j+15 < current.size(); j+=16) {
             evaluate16<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
 
-        for (; j+7 < static_cast<int>(current.size()); j+=8) {
+        for (; j+7 < current.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
 
-        for (; j+3 < static_cast<int>(current.size()); j+=4) {
+        for (; j+3 < current.size(); j+=4) {
             evaluate4<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
 
-        for (; j < static_cast<int>(current.size()); ++j) {
+        for (; j < current.size(); ++j) {
             evaluate1<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
     }
 
     // calculate self-correlation
     double total_weight = 0;
-    for (unsigned int i = 0; i < current.size(); ++i) {
+    for (int i = 0; i < current.size(); ++i) {
         double w = current.get_weight(i);
         total_weight += w*w;
     }
@@ -254,21 +254,21 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aa(int n, 
     auto& coords_m = this->coords_a[m];
 
     GenericDistribution1D_t p_aa(this->master.axis.bins);
-    for (int i = 0; i < static_cast<int>(coords_n.size()); i++) {
+    for (int i = 0; i < coords_n.size(); i++) {
         int j = 0;
-        for (; j+15 < static_cast<int>(coords_m.size()); j+=16) {
+        for (; j+15 < coords_m.size(); j+=16) {
             evaluate16<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
 
-        for (; j+7 < static_cast<int>(coords_m.size()); j+=8) {
+        for (; j+7 < coords_m.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
 
-        for (; j+3 < static_cast<int>(coords_m.size()); j+=4) {
+        for (; j+3 < coords_m.size(); j+=4) {
             evaluate4<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
 
-        for (; j < static_cast<int>(coords_m.size()); ++j) {
+        for (; j < coords_m.size(); ++j) {
             evaluate1<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
     }
@@ -303,19 +303,19 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aw(int ind
     GenericDistribution1D_t p_aw(this->master.axis.bins);
     for (int i = 0; i < static_cast<int>(coords.size()); i++) {
         int j = 0;
-        for (; j+15 < static_cast<int>(this->coords_w.size()); j+=16) {
+        for (; j+15 < this->coords_w.size(); j+=16) {
             evaluate16<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
-        for (; j+7 < static_cast<int>(this->coords_w.size()); j+=8) {
+        for (; j+7 < this->coords_w.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
-        for (; j+3 < static_cast<int>(this->coords_w.size()); j+=4) {
+        for (; j+3 < this->coords_w.size(); j+=4) {
             evaluate4<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
-        for (; j < static_cast<int>(this->coords_w.size()); ++j) {
+        for (; j < this->coords_w.size(); ++j) {
             evaluate1<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
     }
@@ -330,28 +330,28 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
     GenericDistribution1D_t p_ww(this->master.axis.bins);
 
     // calculate internal distances for the hydration layer
-    for (int i = 0; i < static_cast<int>(this->coords_w.size()); i++) {
+    for (int i = 0; i < this->coords_w.size(); i++) {
         int j = i+1;
-        for (; j+15 < static_cast<int>(this->coords_w.size()); j+=16) {
+        for (; j+15 < this->coords_w.size(); j+=16) {
             evaluate16<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
 
-        for (; j+7 < static_cast<int>(this->coords_w.size()); j+=8) {
+        for (; j+7 < this->coords_w.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
 
-        for (; j+3 < static_cast<int>(this->coords_w.size()); j+=4) {
+        for (; j+3 < this->coords_w.size(); j+=4) {
             evaluate4<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
 
-        for (; j < static_cast<int>(this->coords_w.size()); ++j) {
+        for (; j < this->coords_w.size(); ++j) {
             evaluate1<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
     }
 
     // calculate self-correlation
     double total_weight = 0;
-    for (unsigned int i = 0; i < this->coords_w.size(); ++i) {
+    for (int i = 0; i < this->coords_w.size(); ++i) {
         double w = this->coords_w.get_weight(i);
         total_weight += w*w;
     }

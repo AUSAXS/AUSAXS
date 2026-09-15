@@ -39,10 +39,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
 
     hist::detail::CompactCoordinates<variable_bin_width> data_a(protein->get_bodies());
     hist::detail::CompactCoordinates<variable_bin_width> data_w(protein->get_waters());
-    int data_a_size = (int) data_a.size();
-    int data_w_size = (int) data_w.size();
+    int data_a_size = data_a.size();
+    int data_w_size = data_w.size();
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);
-    unsigned int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w);
+    int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w);
     hist::detail::decorrelate_order<weighted_bins>(bin_count, data_a, data_w);
 
     GenericDistribution1D_t p_aa(bin_count);
@@ -112,7 +112,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     // add self-correlation
     auto sum_squared_weights = [] (const auto& set) {
         double sum = 0;
-        for (unsigned int i = 0; i < set.size(); ++i) {sum += std::pow(set.get_weight(i), 2);}
+        for (int i = 0; i < set.size(); ++i) {sum += std::pow(set.get_weight(i), 2);}
         return sum;
     };
     double total_weight_aa = sum_squared_weights(data_a);

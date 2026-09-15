@@ -131,7 +131,7 @@ inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_
     }
 
     auto res_ptr = self_results[res_idx].get();
-    int data_size = static_cast<int>(data.size());
+    int data_size = data.size();
     int job_size = settings::general::detail::get_job_size(data_size);
 
     // calculate upper triangle
@@ -163,10 +163,10 @@ inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_
 
     // calculate skipped diagonal
     pool->detach_task(
-        [&data, res_ptr] () {
+        [&data, res_ptr, data_size] () {
             auto& p_aa = res_ptr->get();
             double total_weight = 0;
-            for (unsigned int i = 0; i < data.size(); ++i) {
+            for (int i = 0; i < data_size; ++i) {
                 double weight = data.get_non_coordinate_value(i);
                 total_weight += weight*weight;
             }
@@ -202,8 +202,8 @@ int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_wid
     }
 
     auto res_ptr = cross_results[res_idx].get();
-    int data_1_size = static_cast<int>(data_1.size());
-    int data_2_size = static_cast<int>(data_2.size());
+    int data_1_size = data_1.size();
+    int data_2_size = data_2.size();
     int job_size = settings::general::detail::get_job_size(data_2_size);
 
     for (int i = 0; i < data_2_size; i+=job_size) {
