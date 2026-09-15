@@ -44,7 +44,7 @@ namespace ausaxs::hist::detail::xyzff {
     };
 
     struct alignas(16) QuadEvaluatedResultRounded {
-        std::array<int32_t, 4> distances;
+        std::array<int32_t, 4> distance_bins;
         std::array<int32_t, 4> ff_bins;
     };
 
@@ -55,7 +55,7 @@ namespace ausaxs::hist::detail::xyzff {
     };
 
     struct alignas(32) OctoEvaluatedResultRounded {
-        std::array<int32_t, 8> distances;
+        std::array<int32_t, 8> distance_bins;
         std::array<int32_t, 8> ff_bins;
     };
 
@@ -66,7 +66,7 @@ namespace ausaxs::hist::detail::xyzff {
     };
 
     struct alignas(64) HexaEvaluatedResultRounded {
-        std::array<int32_t, 16> distances;
+        std::array<int32_t, 16> distance_bins;
         std::array<int32_t, 16> ff_bins;
     };
 
@@ -298,9 +298,9 @@ namespace ausaxs::hist::detail::xyzff {
     inline QuadEvaluatedResultRounded evaluate_rounded_4(Atom self, Block other) noexcept {
         QuadEvaluatedResultRounded r;
         #if defined AUSAXS_USE_SSE2
-            evaluate_4_sse_into<vbw>(self, other, r.distances.data(), r.ff_bins.data());
+            evaluate_4_sse_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
         #else
-            evaluate_N_scalar<vbw, 4>(self, other, r.distances.data(), r.ff_bins.data());
+            evaluate_N_scalar<vbw, 4>(self, other, r.distance_bins.data(), r.ff_bins.data());
         #endif
         return r;
     }
@@ -323,12 +323,12 @@ namespace ausaxs::hist::detail::xyzff {
     inline OctoEvaluatedResultRounded evaluate_rounded_8(Atom self, Block other) noexcept {
         OctoEvaluatedResultRounded r;
         #if defined AUSAXS_USE_AVX2
-            evaluate_8_avx_into<vbw>(self, other, r.distances.data(), r.ff_bins.data());
+            evaluate_8_avx_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
         #elif defined AUSAXS_USE_SSE2
-            evaluate_4_sse_into<vbw>(self, other, r.distances.data(), r.ff_bins.data());
-            evaluate_4_sse_into<vbw>(self, advance(other, 4), r.distances.data()+4, r.ff_bins.data()+4);
+            evaluate_4_sse_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
+            evaluate_4_sse_into<vbw>(self, advance(other, 4), r.distance_bins.data()+4, r.ff_bins.data()+4);
         #else
-            evaluate_N_scalar<vbw, 8>(self, other, r.distances.data(), r.ff_bins.data());
+            evaluate_N_scalar<vbw, 8>(self, other, r.distance_bins.data(), r.ff_bins.data());
         #endif
         return r;
     }
@@ -355,16 +355,16 @@ namespace ausaxs::hist::detail::xyzff {
     inline HexaEvaluatedResultRounded evaluate_rounded_16(Atom self, Block other) noexcept {
         HexaEvaluatedResultRounded r;
         #if defined AUSAXS_USE_AVX512
-            evaluate_16_avx512_into<vbw>(self, other, r.distances.data(), r.ff_bins.data());
+            evaluate_16_avx512_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
         #elif defined AUSAXS_USE_AVX2
-            evaluate_8_avx_into<vbw>(self, other, r.distances.data(), r.ff_bins.data());
-            evaluate_8_avx_into<vbw>(self, advance(other, 8), r.distances.data()+8, r.ff_bins.data()+8);
+            evaluate_8_avx_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
+            evaluate_8_avx_into<vbw>(self, advance(other, 8), r.distance_bins.data()+8, r.ff_bins.data()+8);
         #elif defined AUSAXS_USE_SSE2
             for (int b = 0; b < 4; ++b) {
-                evaluate_4_sse_into<vbw>(self, advance(other, 4*b), r.distances.data()+4*b, r.ff_bins.data()+4*b);
+                evaluate_4_sse_into<vbw>(self, advance(other, 4*b), r.distance_bins.data()+4*b, r.ff_bins.data()+4*b);
             }
         #else
-            evaluate_N_scalar<vbw, 16>(self, other, r.distances.data(), r.ff_bins.data());
+            evaluate_N_scalar<vbw, 16>(self, other, r.distance_bins.data(), r.ff_bins.data());
         #endif
         return r;
     }

@@ -188,7 +188,7 @@ template<std::size_t N, typename F>
 static void block_tests_rounded(F&& evaluate_block) {
     auto o = first_n<N>();
     auto result = evaluate_block(self, o.block());
-    check_unordered_rounded<N>(result.distances, result.ff_bins, expected_n_rounded<N>());
+    check_unordered_rounded<N>(result.distance_bins, result.ff_bins, expected_n_rounded<N>());
 }
 
 template<bool vbw>
@@ -199,9 +199,9 @@ static void run_tests() {
         block_tests<4>([](Atom s, Block b) {QuadEvaluatedResult r; evaluate_N_scalar<vbw, 4, 4>(s, b, r.distance_bins.data(), r.ff_bins.data()); return r;}, 1e-6);
         block_tests<8>([](Atom s, Block b) {OctoEvaluatedResult r; evaluate_N_scalar<vbw, 8, 8>(s, b, r.distance_bins.data(), r.ff_bins.data()); return r;}, 1e-5);
         block_tests<16>([](Atom s, Block b) {HexaEvaluatedResult r; evaluate_N_scalar<vbw, 16, 16>(s, b, r.distance_bins.data(), r.ff_bins.data()); return r;}, 1e-3);
-        block_tests_rounded<4>([](Atom s, Block b) {QuadEvaluatedResultRounded r; evaluate_N_scalar<vbw, 4>(s, b, r.distances.data(), r.ff_bins.data()); return r;});
-        block_tests_rounded<8>([](Atom s, Block b) {OctoEvaluatedResultRounded r; evaluate_N_scalar<vbw, 8>(s, b, r.distances.data(), r.ff_bins.data()); return r;});
-        block_tests_rounded<16>([](Atom s, Block b) {HexaEvaluatedResultRounded r; evaluate_N_scalar<vbw, 16>(s, b, r.distances.data(), r.ff_bins.data()); return r;});
+        block_tests_rounded<4>([](Atom s, Block b) {QuadEvaluatedResultRounded r; evaluate_N_scalar<vbw, 4>(s, b, r.distance_bins.data(), r.ff_bins.data()); return r;});
+        block_tests_rounded<8>([](Atom s, Block b) {OctoEvaluatedResultRounded r; evaluate_N_scalar<vbw, 8>(s, b, r.distance_bins.data(), r.ff_bins.data()); return r;});
+        block_tests_rounded<16>([](Atom s, Block b) {HexaEvaluatedResultRounded r; evaluate_N_scalar<vbw, 16>(s, b, r.distance_bins.data(), r.ff_bins.data()); return r;});
     }
 
     #if defined AUSAXS_USE_SSE2
@@ -213,7 +213,7 @@ static void run_tests() {
             }, 1e-6);
             block_tests_rounded<4>([](Atom s, Block b) {
                 QuadEvaluatedResultRounded r;
-                evaluate_4_sse_into<vbw>(s, b, r.distances.data(), r.ff_bins.data());
+                evaluate_4_sse_into<vbw>(s, b, r.distance_bins.data(), r.ff_bins.data());
                 return r;
             });
         }
@@ -228,7 +228,7 @@ static void run_tests() {
             }, 1e-5);
             block_tests_rounded<8>([](Atom s, Block b) {
                 OctoEvaluatedResultRounded r;
-                evaluate_8_avx_into<vbw>(s, b, r.distances.data(), r.ff_bins.data());
+                evaluate_8_avx_into<vbw>(s, b, r.distance_bins.data(), r.ff_bins.data());
                 return r;
             });
         }
@@ -243,7 +243,7 @@ static void run_tests() {
             }, 1e-3);
             block_tests_rounded<16>([](Atom s, Block b) {
                 HexaEvaluatedResultRounded r;
-                evaluate_16_avx512_into<vbw>(s, b, r.distances.data(), r.ff_bins.data());
+                evaluate_16_avx512_into<vbw>(s, b, r.distance_bins.data(), r.ff_bins.data());
                 return r;
             });
         }
