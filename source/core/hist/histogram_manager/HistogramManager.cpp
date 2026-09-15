@@ -4,17 +4,16 @@
 #include <hist/histogram_manager/HistogramManager.h>
 
 #include <data/Molecule.h>
+#include <hist/detail/AtomOrdering.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/detail/AtomOrdering.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <utility/Logging.h>
-
-#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -37,8 +36,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 
-    hist::detail::CompactCoordinates<variable_bin_width> data_a(protein->get_bodies());
-    hist::detail::CompactCoordinates<variable_bin_width> data_w(protein->get_waters());
+    auto data_a = hist::detail::factory::construct_from_atoms<variable_bin_width>(protein);
+    auto data_w = hist::detail::factory::construct_from_waters<variable_bin_width>(protein);
     int data_a_size = data_a.size();
     int data_w_size = data_w.size();
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);

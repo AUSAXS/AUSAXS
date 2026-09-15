@@ -7,6 +7,7 @@
 #include <data/Molecule.h>  // IWYU pragma: keep
 #include <form_factor/FormFactorType.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/histogram_manager/detail/HistogramManagerMTFFHelpers.h>
 #include <settings/GeneralSettings.h>
@@ -31,8 +32,8 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     using GenericDistribution3D_t = typename GenericDistribution3D<wb>::type;
     auto* pool = utility::multi_threading::get_global_pool();
 
-    data_a_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(this->protein->get_bodies());
-    data_w_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(this->protein->get_waters());
+    data_a_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(hist::detail::factory::construct_ff_from_atoms<vbw>(this->protein));
+    data_w_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(hist::detail::factory::construct_ff_from_waters<vbw>(this->protein));
     auto& data_a = *data_a_ptr;
     auto& data_w = *data_w_ptr;
     int data_a_size = data_a.size();

@@ -1,12 +1,13 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/detail/CompactCoordinates.h>
-#include <hist/detail/data/CompactCoordinatesXYZW.h>
 #include <constants/Constants.h>
+#include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
+#include <hist/detail/data/CompactCoordinatesXYZW.h>
 #include <math/Vector3.h>
 
-#include <algorithm>
 #include <array>
 #include <cmath>
 #include <numeric>
@@ -22,7 +23,7 @@ TEST_CASE("CompactCoordinates<vbw>: component storage") {
             data::AtomFF({1, 2, 3}, form_factor::form_factor_t::C),
             data::AtomFF({4, 5, 6}, form_factor::form_factor_t::O)
         };
-        CompactCoordinates<false> data(atoms);
+        auto data = hist::detail::factory::construct<false>(atoms);
         REQUIRE(data.size() == 2);
         CHECK(data.x(0) == 1);
         CHECK(data.y(0) == 2);
@@ -46,10 +47,11 @@ TEST_CASE("CompactCoordinates<vbw>: component storage") {
 
     SECTION("shuffle_order permutes atoms without splitting them") {
         std::vector<data::AtomFF> atoms;
+        atoms.reserve(64);
         for (int i = 0; i < 64; ++i) {
             atoms.emplace_back(Vector3<double>{double(i), 2.0*i, 3.0*i}, form_factor::form_factor_t::C);
         }
-        CompactCoordinates<false> data(atoms);
+        auto data = hist::detail::factory::construct<false>(atoms);
         data.shuffle_order();
         REQUIRE(data.size() == 64);
         // every atom must still satisfy y == 2x and z == 3x, i.e. the components were
@@ -75,7 +77,7 @@ struct Others {
 };
 
 template<std::size_t N>
-Others<N> make_others(const std::array<std::pair<Vector3<double>, float>, N>& in) {
+static Others<N> make_others(const std::array<std::pair<Vector3<double>, float>, N>& in) {
     Others<N> o;
     for (int k = 0; k < static_cast<int>(N); ++k) {
         o.x[k] = static_cast<float>(in[k].first.x());
@@ -88,13 +90,13 @@ Others<N> make_others(const std::array<std::pair<Vector3<double>, float>, N>& in
 
 // SIMD backends may reorder output elements; sort by distance and compare as sets
 template<std::size_t N>
-void check_unordered(
+static void check_unordered(
     const std::array<float, N>& actual_dist,
     const std::array<float, N>& actual_wt,
     std::vector<std::pair<double, float>> expected,
     double tol)
 {
-    std::sort(expected.begin(), expected.end());
+    std::ranges::sort(expected);
     std::array<int, N> idx;
     std::iota(idx.begin(), idx.end(), 0);
     std::sort(idx.begin(), idx.end(), [&](auto a, auto b) { return actual_dist[a] < actual_dist[b]; });
@@ -105,12 +107,12 @@ void check_unordered(
 }
 
 template<std::size_t N>
-void check_unordered_rounded(
+static void check_unordered_rounded(
     const std::array<int32_t, N>& actual_dist,
     const std::array<float, N>& actual_wt,
     std::vector<std::pair<int32_t, float>> expected)
 {
-    std::sort(expected.begin(), expected.end());
+    std::ranges::sort(expected);
     std::array<int, N> idx;
     std::iota(idx.begin(), idx.end(), 0);
     std::sort(idx.begin(), idx.end(), [&](auto a, auto b) { return actual_dist[a] < actual_dist[b]; });
@@ -121,7 +123,7 @@ void check_unordered_rounded(
 }
 
 namespace {
-    const Atom self{1, 1, 1, 2};
+    const Atom self{.x=1, .y=1, .z=1, .w=2};
 
     // shared test geometry: atom n sits at (n+1, n+1, n+1) apart from the first
     const std::array<std::pair<Vector3<double>, float>, 16> geometry = {{
@@ -155,6 +157,7 @@ namespace {
     std::vector<std::pair<int32_t, float>> expected_n_rounded() {
         const double width = constants::axes::d_axis.width();
         std::vector<std::pair<int32_t, float>> out;
+        out.reserve(static_cast<int>(N));
         for (int k = 0; k < static_cast<int>(N); ++k) {
             out.emplace_back(static_cast<int32_t>(std::round(expected_16[k].first/width)), expected_16[k].second);
         }
@@ -163,7 +166,7 @@ namespace {
 }
 
 template<bool vbw>
-void single_tests() {
+static void single_tests() {
     SECTION("single distance") {
         auto o = first_n<1>();
         auto result = evaluate<vbw>(self, o.block());
@@ -178,7 +181,7 @@ void single_tests() {
 }
 
 template<bool vbw>
-void single_tests_rounded() {
+static void single_tests_rounded() {
     SECTION("single distance") {
         const double width = constants::axes::d_axis.width();
         auto o = first_n<1>();
@@ -194,21 +197,21 @@ void single_tests_rounded() {
 }
 
 template<std::size_t N, typename F>
-void block_tests(F&& evaluate_block, double tol) {
+static void block_tests(F&& evaluate_block, double tol) {
     auto o = first_n<N>();
     auto result = evaluate_block(self, o.block());
     check_unordered<N>(result.distances, result.weights, expected_n<N>(), tol);
 }
 
 template<std::size_t N, typename F>
-void block_tests_rounded(F&& evaluate_block) {
+static void block_tests_rounded(F&& evaluate_block) {
     auto o = first_n<N>();
     auto result = evaluate_block(self, o.block());
     check_unordered_rounded<N>(result.distances, result.weights, expected_n_rounded<N>());
 }
 
 template<bool vbw>
-void run_tests() {
+static void run_tests() {
     SECTION("scalar") {
         single_tests<vbw>();
         single_tests_rounded<vbw>();

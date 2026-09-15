@@ -2,8 +2,10 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
+
 #include <data/Molecule.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <utility/MultiThreading.h>
 
 #include <cmath>
@@ -11,16 +13,14 @@
 using namespace ausaxs;
 
 std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, const std::vector<double>& q_vals) {
-    using CC = hist::detail::CompactCoordinates<false>;
-    auto data = CC(molecule.get_bodies());
+    auto data = hist::detail::factory::construct_from_atoms<false>(&molecule);
     const int data_size = data.size();
 
     auto contribution = [] (double qr, float w) -> double {
         if (qr < 1e-9) {
             return w;
-        } else {
-            return w*std::sin(qr)/qr;
-        }
+        } 
+        return w*std::sin(qr)/qr;
     };
 
     std::vector<double> I(q_vals.size());

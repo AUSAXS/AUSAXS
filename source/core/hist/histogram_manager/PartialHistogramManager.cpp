@@ -6,6 +6,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -15,7 +16,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -72,7 +72,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variab
                 calc_self_correlation(i);
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
-                this->coords_a[i] = detail::CompactCoordinates<variable_bin_width>(this->protein->get_body(i).get_atoms());
+                this->coords_a[i] = hist::detail::factory::construct<variable_bin_width>(this->protein->get_body(i).get_atoms());
                 hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], protein);
             }
         }
@@ -80,7 +80,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variab
 
     // check if the hydration layer was modified
     if (this->statemanager->is_modified_hydration()) {
-        this->coords_w = detail::CompactCoordinates<variable_bin_width>(this->protein->get_waters()); // if so, first update the compact coordinate representation
+        this->coords_w = hist::detail::factory::construct_from_waters<variable_bin_width>(this->protein); // if so, first update the compact coordinate representation
         calc_ww(); // then update the partial histogram
 
         // iterate through the lower triangle
@@ -202,7 +202,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bi
 
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_correlation(int index) {
-    detail::CompactCoordinates<variable_bin_width> current(this->protein->get_body(index).get_atoms());
+    auto current = hist::detail::factory::construct<variable_bin_width>(this->protein->get_body(index).get_atoms());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
 
     // calculate internal distances between atoms

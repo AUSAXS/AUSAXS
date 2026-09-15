@@ -3,12 +3,14 @@
 
 #pragma once
 
-#include <hist/detail/data/CompactCoordinatesXYZW.h>
-#include <hist/detail/data/CompactCoordinatesXYZFF.h>
-#include <data/Body.h>
 #include <constants/Constants.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <hist/detail/data/CompactCoordinatesXYZFF.h>
+#include <hist/detail/data/CompactCoordinatesXYZW.h>
 #include <utility/Concepts.h>
 #include <utility/Random.h>
+#include <utility/observer_ptr.h>
 
 #include <algorithm>
 #include <numeric>
@@ -44,17 +46,7 @@ namespace ausaxs::hist::detail {
 
     /**
      * @brief A compact representation of the coordinates and weight of all atoms in a body.
-     *
-     *        By extracting only what the distance calculation needs - the coordinates and a
-     *        weight or form factor index - and storing them as floats, far more atoms fit in
-     *        cache at once. This is meant as a helper class to DistanceCalculator.
-     *
-     *        The components are stored as separate arrays rather than interleaved [x, y, z, w]
-     *        tuples. Interleaved storage forced every kernel to transpose a block before it could
-     *        compute a squared distance, at 8-10 shuffle-port operations per block; with separate
-     *        arrays there is nothing to transpose. The class exists solely to feed the kernels, so
-     *        the layout is chosen for them - element-wise access is available but is a gather and
-     *        belongs only on O(N) paths, never in the pair loop.
+     *        This is only designed as a temporary representation for the duration of the histogram calculation.  
      */
     template<CompactCoordinatesType CoordType, bool variable_bin_width>
     class CompactCoordinatesTemplate {
@@ -65,9 +57,17 @@ namespace ausaxs::hist::detail {
 
         public:
             CompactCoordinatesTemplate() = default;
-            CompactCoordinatesTemplate(const std::vector<data::AtomFF>& body);
-            CompactCoordinatesTemplate(const std::vector<data::Body>& bodies);
-            CompactCoordinatesTemplate(const std::vector<data::Water>& atoms);
+
+            /**
+             * @brief Replace the contents with @a atoms.
+             */
+            void fill(const std::vector<data::AtomFF>& atoms);
+
+            /**
+             * @brief Replace the contents with the atoms (resp. waters) of @a molecule.
+             */
+            void fill_from_atoms(observer_ptr<const data::Molecule> molecule);
+            void fill_from_waters(observer_ptr<const data::Molecule> molecule);
 
             /**
              * @brief Calculate and subtract the average excluded volume charge from each atom to implicitly account for the excluded volume contribution.
@@ -76,15 +76,10 @@ namespace ausaxs::hist::detail {
 
             /**
              * @brief Randomly permute the atom order.
-             *
-             * The distance histogram is a sum over all pairs, so this leaves the result unchanged
-             * up to floating-point summation order. Its purpose is to break the spatial
-             * correlation that linear file order carries: with atoms stored in file order,
-             * consecutive inner-loop atoms sit close to the outer-loop atom, their distances land
-             * in the same bin, and the accumulation serialises on store-to-load forwarding. See
-             * decorrelate_order() in AtomOrdering.h, which decides when this is worth doing.
-             *
-             * Draws from the library-wide generator, so random::set_seed() makes a run reproducible.
+             * 
+             * This is designed to break the spatial correlation that linear file order typically carries. Modern CPUs use out-of-order 
+             * execution, meaning multiple writes to the same bin can be queued out of order. Breaking the spatial correlation means
+             * less contention for the same bins and therefore better parallelization. 
              */
             void shuffle_order();
 
@@ -111,12 +106,6 @@ namespace ausaxs::hist::detail {
 
             Vector3<float> position(int i) const {return {_x[i], _y[i], _z[i]};}
             void set_position(int i, const Vector3<float>& v) {_x[i] = v.x(); _y[i] = v.y(); _z[i] = v.z();}
-
-            /**
-             * @brief The @a c'th component (0=x, 1=y, 2=z, 3=weight/ff) of atom @a i, as a double.
-             *        For diagnostics only.
-             */
-            double component(int i, int c) const;
 
             /**
              * @brief The atom at index @a i, as the kernels take it.
@@ -179,17 +168,7 @@ inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::as
     if constexpr (std::is_same_v<CoordType, CoordinateTypeXYZW>) {
         _w[i] = static_cast<float>(a.weight());
     } else {
-        _w[i] = static_cast<int32_t>(a.form_factor_type());
-    }
-}
-
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline double ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::component(int i, int c) const {
-    switch (c) {
-        case 0: return _x[i];
-        case 1: return _y[i];
-        case 2: return _z[i];
-        default: return static_cast<double>(_w[i]);
+        _w[i] = static_cast<int32_t>(ausaxs::data::Water::form_factor_type());
     }
 }
 
@@ -202,7 +181,7 @@ ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::atom(int i) co
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
 inline typename ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::BlockType
 ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::block(int i) const {
-    return BlockType{_x.data() + i, _y.data() + i, _z.data() + i, _w.data() + i};
+    return BlockType{_x.data()+i, _y.data()+i, _z.data()+i, _w.data()+i};
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
@@ -218,25 +197,24 @@ ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::get_non_coordi
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::AtomFF>& atoms) {
+inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::fill(const std::vector<data::AtomFF>& atoms) {
     resize(static_cast<int>(atoms.size()));
-    for (int i = 0; i < size(); ++i) {assign(i, atoms[i]);}
-}
-
-template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Body>& bodies) {
-    resize(std::accumulate(bodies.begin(), bodies.end(), 0,
-        [] (int sum, const data::Body& body) {return sum + body.size_atom();}));
     int i = 0;
-    for (const auto& body : bodies) {
-        for (const auto& a : body.get_atoms()) {assign(i++, a);}
-    }
+    for (const auto& a : atoms) {assign(i++, a);}
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-inline ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::CompactCoordinatesTemplate(const std::vector<data::Water>& atoms) {
-    resize(static_cast<int>(atoms.size()));
-    for (int i = 0; i < size(); ++i) {assign(i, atoms[i]);}
+inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::fill_from_atoms(observer_ptr<const data::Molecule> molecule) {
+    resize(molecule->size_atom());
+    int i = 0;
+    for (const auto& a : molecule->iterate_atoms()) {assign(i++, a);}
+}
+
+template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
+inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::fill_from_waters(observer_ptr<const data::Molecule> molecule) {
+    resize(molecule->size_water());
+    int i = 0;
+    for (const auto& w : molecule->iterate_waters()) {assign(i++, w);}
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
@@ -281,6 +259,6 @@ inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::tr
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
 inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::scale_coordinates(double scale) {
-    const float f = static_cast<float>(scale);
+    auto f = static_cast<float>(scale);
     for (int i = 0; i < size(); ++i) {_x[i] *= f; _y[i] *= f; _z[i] *= f;}
 }

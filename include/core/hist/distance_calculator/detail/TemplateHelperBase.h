@@ -6,9 +6,6 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 
-// This is the seam between the pair loops, which think in (container, index) pairs, and the
-// kernels, which take one broadcast atom plus one pointer per component of the opposing block.
-// Nothing above this file needs to know how the coordinates are laid out.
 namespace ausaxs::hist::detail {
     namespace add16 {
         //### CompactCoordinates overloads ###//

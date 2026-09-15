@@ -7,6 +7,7 @@
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <data/symmetry/ReferenceSymmetry.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
@@ -29,7 +30,7 @@ Thus, we have a lot of +1s and -1s in the indexing to account for this.
 **/
 
 #define DEBUG_INFO_PSMMT false
-#define DEBUG_INFO_PSMMT_EXTENDED false
+#define DEBUG_INFO_PSMMT_EXTENDED true
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -140,24 +141,23 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     pool->wait(); // ensure the compact representations have been updated before continuing
 
     #if DEBUG_INFO_PSMMT_EXTENDED
+        auto print_atom = [] (const auto& c, int iatom) {
+            std::cout << c.x(iatom) << " " << c.y(iatom) << " " << c.z(iatom) << " "
+                      << c.get_non_coordinate_value(iatom) << std::endl;
+        };
+
         std::cout << "atomic setup: " << std::endl;
         for (int ibody = 0; ibody < static_cast<int>(this->body_size); ++ibody) {
             for (int iatom = 0; iatom < static_cast<int>(this->protein->get_body(ibody).get_atoms().size()); ++iatom) {
                 std::cout << "[" << ibody << 0 << 0 << iatom << "]: ";
-                for (int i = 0; i < 4; ++i) {
-                    std::cout << coords[ibody].atomic[0][0].component(iatom, i) << " ";
-                }
-                std::cout << std::endl;
+                print_atom(coords[ibody].atomic[0][0], iatom);
             }
 
             for (int isym = 0; isym < static_cast<int>(this->protein->get_body(ibody).size_symmetry()); ++isym) {
                 for (int irepeat = 0; irepeat < static_cast<int>(this->protein->get_body(ibody).symmetry().get(isym)->repetitions()); ++irepeat) {
                     for (int iatom = 0; iatom < static_cast<int>(this->protein->get_body(ibody).get_atoms().size()); ++iatom) {
                         std::cout << "[" << ibody << isym+1 << irepeat << iatom << "]: ";
-                        for (int i = 0; i < 4; ++i) {
-                            std::cout << coords[ibody].atomic[isym+1][irepeat].component(iatom, i) << " ";
-                        }
-                        std::cout << std::endl;
+                        print_atom(coords[ibody].atomic[isym+1][irepeat], iatom);
                     }
                 }
             }
@@ -415,7 +415,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::update_compact_representation_water() {
-    coords_w = CompactCoordinates<variable_bin_width>(this->protein->get_waters());
+    coords_w = hist::detail::factory::construct_from_waters<variable_bin_width>(this->protein);
 }
 
 template<bool weighted_bins, bool variable_bin_width>

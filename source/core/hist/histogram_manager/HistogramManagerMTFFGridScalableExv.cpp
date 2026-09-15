@@ -8,6 +8,7 @@
 #include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridExv.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
@@ -53,7 +54,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
             exv.begin(), exv.end(), interior.begin(),
             [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
         );
-        data_x = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(interior));
+        data_x = hist::detail::factory::construct_ff<variable_bin_width>(interior);
     }
 
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms

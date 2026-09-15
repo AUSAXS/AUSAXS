@@ -3,18 +3,13 @@
 
 #pragma once
 
-#include <hist/detail/CompactCoordinatesTemplate.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <hist/detail/CompactCoordinatesTemplate.h>
 #include <utility/Concepts.h>
 
 namespace ausaxs::hist::detail {
     template<bool variable_bin_width>
     struct CompactCoordinatesFF : public CompactCoordinatesTemplate<CoordinateTypeXYZFF, variable_bin_width> {
-        CompactCoordinatesFF() = default;
-        CompactCoordinatesFF(const std::vector<data::AtomFF>& atoms) : CompactCoordinatesTemplate<CoordinateTypeXYZFF, variable_bin_width>(atoms) {setup();}
-        CompactCoordinatesFF(const std::vector<data::Body>& bodies) : CompactCoordinatesTemplate<CoordinateTypeXYZFF, variable_bin_width>(bodies) {setup();}
-        CompactCoordinatesFF(const std::vector<data::Water>& atoms) : CompactCoordinatesTemplate<CoordinateTypeXYZFF, variable_bin_width>(atoms) {setup();}
-
         int32_t get_ff_type(int i) const {return this->get_non_coordinate_value(i);}
         int32_t& get_ff_type(int i) {return this->get_non_coordinate_value(i);}
 

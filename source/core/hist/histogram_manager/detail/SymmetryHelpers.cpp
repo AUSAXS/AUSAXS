@@ -5,6 +5,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 
 #include <utility>
 
@@ -18,14 +19,14 @@ std::pair<std::vector<BodySymmetryData<variable_bin_width>>, hist::detail::Compa
     for (int i_body1 = 0; i_body1 < protein.size_body(); ++i_body1) {
         res[i_body1] = generate_transformed_data<variable_bin_width>(protein.get_body(i_body1));
     }
-    return {std::move(res), protein.get_waters()};
+    return {std::move(res), hist::detail::factory::construct_from_waters<variable_bin_width>(&protein)};
 }
 template std::pair<std::vector<BodySymmetryData<true>>, hist::detail::CompactCoordinates<true>> ausaxs::symmetry::detail::generate_transformed_data<true>(const data::Molecule& protein);
 template std::pair<std::vector<BodySymmetryData<false>>, hist::detail::CompactCoordinates<false>> ausaxs::symmetry::detail::generate_transformed_data<false>(const data::Molecule& protein);
 
 template<bool variable_bin_width>
 BodySymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body) {
-    CompactCoordinates<variable_bin_width> data_a(body.get_atoms());
+    auto data_a = hist::detail::factory::construct<variable_bin_width>(body.get_atoms());
     auto cm = body.get_cm();
 
     // loop over its symmetries
@@ -51,7 +52,7 @@ template BodySymmetryData<false> ausaxs::symmetry::detail::generate_transformed_
 
 template<bool variable_bin_width>
 SymmetryData<variable_bin_width> ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body, int isym) {
-    CompactCoordinates<variable_bin_width> data_a(body.get_atoms());
+    auto data_a = hist::detail::factory::construct<variable_bin_width>(body.get_atoms());
     auto cm = body.get_cm();
     const auto* symmetry = body.symmetry().get(isym);
 

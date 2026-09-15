@@ -8,6 +8,7 @@
 #include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
@@ -55,8 +56,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
             exv.surface.begin(), exv.surface.end(), surface.begin(),
             [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
         );
-        data_x_i = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(interior));
-        data_x_s = hist::detail::CompactCoordinatesFF<variable_bin_width>(std::move(surface));
+        data_x_i = hist::detail::factory::construct_ff<variable_bin_width>(interior);
+        data_x_s = hist::detail::factory::construct_ff<variable_bin_width>(surface);
     }
 
     auto& data_a = *this->data_a_ptr;
