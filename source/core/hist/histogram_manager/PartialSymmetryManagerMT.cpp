@@ -30,7 +30,7 @@ Thus, we have a lot of +1s and -1s in the indexing to account for this.
 **/
 
 #define DEBUG_INFO_PSMMT false
-#define DEBUG_INFO_PSMMT_EXTENDED true
+#define DEBUG_INFO_PSMMT_EXTENDED false
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

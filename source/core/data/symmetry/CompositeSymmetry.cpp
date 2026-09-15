@@ -43,7 +43,7 @@ std::unique_ptr<ISymmetry> CompositeSymmetry::clone() const {
     return std::make_unique<CompositeSymmetry>(inner->clone(), outer->clone());
 }
 
-AffineTransform CompositeSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
+transform::Affine CompositeSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
     assert(0 < rep && rep <= repetitions() && "CompositeSymmetry::_make_transform: repetition index out of range.");
 
     // copy `rep` decodes to (outer copy k, inner copy j); the inner unit is replicated by the outer
@@ -51,7 +51,7 @@ AffineTransform CompositeSymmetry::_make_transform(const Vector3<double>& anchor
     int k = rep / stride;
     int j = rep % stride;
 
-    AffineTransform inner_t, outer_t; // default-constructed to the identity
+    transform::Affine inner_t, outer_t; // default-constructed to the identity
     if (j != 0) {inner_t = inner->_get_transform(anchor, j);}
     if (k != 0) {outer_t = outer->_get_transform(anchor, k);}
 
@@ -66,7 +66,7 @@ std::vector<SymmetricDuplicatePair> CompositeSymmetry::internal_pair_schedule() 
     Vector3<double> cm{0, 0, 0};
     int n = repetitions() + 1;
 
-    std::vector<AffineTransform> placements;
+    std::vector<transform::Affine> placements;
     placements.reserve(n);
     placements.emplace_back(); // placement 0 = original body
     for (int p = 1; p < n; ++p) {placements.push_back(_get_transform(cm, p));}

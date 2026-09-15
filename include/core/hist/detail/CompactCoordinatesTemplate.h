@@ -8,6 +8,7 @@
 #include <data/Molecule.h>
 #include <hist/detail/data/CompactCoordinatesXYZFF.h>
 #include <hist/detail/data/CompactCoordinatesXYZW.h>
+#include <math/Transform.h>
 #include <utility/Concepts.h>
 #include <utility/Random.h>
 #include <utility/observer_ptr.h>
@@ -84,10 +85,9 @@ namespace ausaxs::hist::detail {
             void shuffle_order();
 
             /**
-             * @brief Apply @a f to every stored position.
+             * @brief Apply the rigid transform @a t to every stored position.
              */
-            template<typename F>
-            void transform_coordinates(F&& f);
+            void transform_coordinates(const transform::Affine& t);
 
             /**
              * @brief Multiply every stored position by @a scale.
@@ -247,10 +247,9 @@ inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::sh
 }
 
 template<ausaxs::hist::detail::CompactCoordinatesType CoordType, bool vbw>
-template<typename F>
-inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::transform_coordinates(F&& f) {
+inline void ausaxs::hist::detail::CompactCoordinatesTemplate<CoordType, vbw>::transform_coordinates(const ausaxs::transform::Affine& t) {
     for (int i = 0; i < size(); ++i) {
-        Vector3<float> v = f(Vector3<float>{_x[i], _y[i], _z[i]});
+        Vector3<float> v = t({static_cast<double>(_x[i]), static_cast<double>(_y[i]), static_cast<double>(_z[i])});
         _x[i] = v.x();
         _y[i] = v.y();
         _z[i] = v.z();

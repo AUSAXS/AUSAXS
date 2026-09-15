@@ -30,7 +30,7 @@ namespace {
     }
 }
 
-std::vector<SymmetricDuplicatePair> ausaxs::symmetry::compute_pair_schedule(const std::vector<AffineTransform>& placements) {
+std::vector<SymmetricDuplicatePair> ausaxs::symmetry::compute_pair_schedule(const std::vector<transform::Affine>& placements) {
     int n = static_cast<int>(placements.size());
     std::map<TransformKey, SymmetricDuplicatePair> buckets; // representative pair + running scale per class
 

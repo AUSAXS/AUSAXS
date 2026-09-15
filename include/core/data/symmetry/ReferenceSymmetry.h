@@ -51,7 +51,7 @@ namespace ausaxs::symmetry {
         // the view is the same symmetry seen from another participating body, so it places its copies by calling straight into this one
         friend struct ReferenceSymmetryView;
 
-        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
+        transform::Affine _make_transform(const Vector3<double>& anchor, int rep) const override;
         Vector3<double> _transform_anchor(const Vector3<double>& cm) const override;
         std::optional<Matrix<double>> _transform_orientation(const std::optional<Matrix<double>>& body_orientation) const override;
     };
@@ -82,7 +82,7 @@ namespace ausaxs::symmetry {
         int symmetry_index;                             //< slot of the shared symmetry on the primary body
 
     protected:
-        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
+        transform::Affine _make_transform(const Vector3<double>& anchor, int rep) const override;
         Vector3<double> _transform_anchor(const Vector3<double>& cm) const override;
         std::optional<Matrix<double>> _transform_orientation(const std::optional<Matrix<double>>& body_orientation) const override;
     };

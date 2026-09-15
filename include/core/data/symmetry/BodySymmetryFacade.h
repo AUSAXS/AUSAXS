@@ -65,7 +65,7 @@ namespace ausaxs::symmetry::detail {
              * @brief Get the transform generating copy @p rep of symmetry @p index from the body's current coordinates.
              *        This accounts for possible changes to the body's orientation since the symmetry was defined.
              */
-            [[nodiscard]] symmetry::AffineTransform get_transform(int index, const Vector3<double>& cm, int rep = 1) const;
+            [[nodiscard]] transform::Affine get_transform(int index, const Vector3<double>& cm, int rep = 1) const;
 
             /**
              * @brief Tell the symmetries which orientation their parameters are relative to.

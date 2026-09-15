@@ -47,7 +47,7 @@ ISymmetry& CyclicSymmetry::add(observer_ptr<const ISymmetry> other) {
 
 std::unique_ptr<ISymmetry> CyclicSymmetry::clone() const { return std::make_unique<CyclicSymmetry>(*this); }
 
-AffineTransform CyclicSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
+transform::Affine CyclicSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
     Matrix<double>  R_final;
     Vector3<double> T_final;
 

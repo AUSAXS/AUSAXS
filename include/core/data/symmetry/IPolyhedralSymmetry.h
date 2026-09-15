@@ -44,6 +44,6 @@ namespace ausaxs::symmetry {
         // World-space centre that every copy rotates about. The default places the body at cm + translation (offset in world coordinates). 
         virtual Vector3<double> group_centre(const Vector3<double>& cm, const Matrix<double>& F) const;
 
-        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
+        transform::Affine _make_transform(const Vector3<double>& anchor, int rep) const override;
     };
 }
