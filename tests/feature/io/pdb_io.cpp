@@ -282,7 +282,6 @@ TEST_CASE("PDBStructure: save") {
 
 TEST_CASE("PDBStructure: a written structure can be read back unchanged") {
     settings::general::verbose = false;
-    settings::molecule::center = false;
     settings::molecule::use_occupancy = true;
     settings::molecule::implicit_hydrogens = true;
     settings::molecule::allow_unknown_residues = false;
