@@ -16,6 +16,7 @@
 
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
@@ -32,10 +33,13 @@ namespace ausaxs::hist::detail::xyzw {
         float weight;
     };
 
+    // the block results share a common prefix layout: the bin indices, followed by the weights, followed by the exact distances for the 
+    // non-rounded variants. this lets the kernels fill both variants through the same two pointers, writing the exact distances just past 
+    // the end of the weights.
     struct alignas(16) QuadEvaluatedResult {
-        std::array<float, 4>   distances;
         std::array<int32_t, 4> distance_bins;
         std::array<float, 4>   weights;
+        std::array<float, 4>   distances;
     };
 
     struct alignas(16) QuadEvaluatedResultRounded {
@@ -44,9 +48,9 @@ namespace ausaxs::hist::detail::xyzw {
     };
 
     struct alignas(32) OctoEvaluatedResult {
-        std::array<float, 8>   distances;
         std::array<int32_t, 8> distance_bins;
         std::array<float, 8>   weights;
+        std::array<float, 8>   distances;
     };
 
     struct alignas(32) OctoEvaluatedResultRounded {
@@ -55,9 +59,9 @@ namespace ausaxs::hist::detail::xyzw {
     };
 
     struct alignas(64) HexaEvaluatedResult {
-        std::array<float, 16>   distances;
         std::array<int32_t, 16> distance_bins;
         std::array<float, 16>   weights;
+        std::array<float, 16>   distances;
     };
 
     struct alignas(64) HexaEvaluatedResultRounded {
@@ -95,6 +99,11 @@ namespace ausaxs::hist::detail::xyzw {
     static_assert(std::is_standard_layout_v<HexaEvaluatedResult>,        "hist::detail::HexaEvaluatedResult is not standard layout");
     static_assert(std::is_standard_layout_v<HexaEvaluatedResultRounded>, "hist::detail::HexaEvaluatedResultRounded is not standard layout");
 
+    // the kernels write the exact distances N entries past the start of the weights, so the arrays must be contiguous
+    static_assert(offsetof(QuadEvaluatedResult, weights) ==  4*sizeof(float) && offsetof(QuadEvaluatedResult, distances) ==  8*sizeof(float), "hist::detail::QuadEvaluatedResult is not contiguous");
+    static_assert(offsetof(OctoEvaluatedResult, weights) ==  8*sizeof(float) && offsetof(OctoEvaluatedResult, distances) == 16*sizeof(float), "hist::detail::OctoEvaluatedResult is not contiguous");
+    static_assert(offsetof(HexaEvaluatedResult, weights) == 16*sizeof(float) && offsetof(HexaEvaluatedResult, distances) == 32*sizeof(float), "hist::detail::HexaEvaluatedResult is not contiguous");
+
     /**
      * @brief A single atom, broadcast against a block of others.
      */
@@ -130,29 +139,24 @@ namespace ausaxs::hist::detail::xyzw {
 
 namespace ausaxs::hist::detail::xyzw {
     //=========================== scalar ===========================//
-    template<bool vbw, int N, typename Result>
-    inline void evaluate_N_scalar(Atom self, Block other, Result& out) noexcept {
+    /**
+     * @brief Evaluate a block of N atoms into the arrays starting at @a bin_out and @a wt_out.
+     * 
+     * @a W is the width of the result being filled, which is larger than N when a result is assembled from several narrower blocks. 
+     * The exact distances are written to the array starting @a W entries past @a wt_out; the default 0 skips them, which is what the 
+     * rounded results want.
+     */
+    template<bool vbw, int N, int W = 0>
+    inline void evaluate_N_scalar(Atom self, Block other, int32_t* bin_out, float* wt_out) noexcept {
         const float inv_width = WidthController<vbw>::get_inv_width();
         for (int k = 0; k < N; ++k) {
             float dx = self.x - other.x[k];
             float dy = self.y - other.y[k];
             float dz = self.z - other.z[k];
             float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-            out.distances[k] = dist;
-            out.distance_bins[k] = static_cast<int32_t>(std::round(inv_width*dist));
-            out.weights[k] = self.w*other.w[k];
-        }
-    }
-
-    template<bool vbw, int N, typename Result>
-    inline void evaluate_rounded_N_scalar(Atom self, Block other, Result& out) noexcept {
-        const float inv_width = WidthController<vbw>::get_inv_width();
-        for (int k = 0; k < N; ++k) {
-            float dx = self.x - other.x[k];
-            float dy = self.y - other.y[k];
-            float dz = self.z - other.z[k];
-            out.distances[k] = static_cast<int32_t>(std::round(inv_width*std::sqrt(dx*dx + dy*dy + dz*dz)));
-            out.weights[k] = self.w*other.w[k];
+            bin_out[k] = static_cast<int32_t>(std::round(inv_width*dist));
+            wt_out[k] = self.w*other.w[k];
+            if constexpr (W != 0) {(wt_out + W)[k] = dist;}
         }
     }
 
@@ -167,25 +171,17 @@ namespace ausaxs::hist::detail::xyzw {
             weight = _mm_mul_ps(_mm_set_ps1(self.w), _mm_loadu_ps(other.w));
         }
 
-        template<bool vbw>
-        inline void evaluate_4_sse_into(Atom self, Block other, float* dist_out, int32_t* bin_out, float* wt_out) noexcept {
+        /// @brief Evaluate a block of 4 atoms. See evaluate_N_scalar for the meaning of the arguments.
+        template<bool vbw, int W = 0>
+        inline void evaluate_4_sse_into(Atom self, Block other, int32_t* bin_out, float* wt_out) noexcept {
             __m128 dist, weight;
             body_4_sse(self, other, dist, weight);
-            _mm_storeu_ps(dist_out, dist);
             _mm_storeu_si128(
                 reinterpret_cast<__m128i*>(bin_out),
                 _mm_cvtps_epi32(_mm_mul_ps(dist, _mm_set_ps1(WidthController<vbw>::get_inv_width())))
             );
             _mm_storeu_ps(wt_out, weight);
-        }
-
-        template<bool vbw>
-        inline void evaluate_rounded_4_sse_into(Atom self, Block other, int32_t* dist_out, float* wt_out) noexcept {
-            __m128 dist, weight;
-            body_4_sse(self, other, dist, weight);
-            _mm_storeu_si128(reinterpret_cast<__m128i*>(dist_out),
-                _mm_cvtps_epi32(_mm_mul_ps(dist, _mm_set_ps1(WidthController<vbw>::get_inv_width()))));
-            _mm_storeu_ps(wt_out, weight);
+            if constexpr (W != 0) {_mm_storeu_ps(wt_out + W, dist);}
         }
     #endif
 
@@ -200,27 +196,17 @@ namespace ausaxs::hist::detail::xyzw {
             weight = _mm256_mul_ps(_mm256_set1_ps(self.w), _mm256_loadu_ps(other.w));
         }
 
-        template<bool vbw>
-        inline void evaluate_8_avx_into(Atom self, Block other, float* dist_out, int32_t* bin_out, float* wt_out) noexcept {
+        /// @brief Evaluate a block of 8 atoms. See evaluate_N_scalar for the meaning of the arguments.
+        template<bool vbw, int W = 0>
+        inline void evaluate_8_avx_into(Atom self, Block other, int32_t* bin_out, float* wt_out) noexcept {
             __m256 dist, weight;
             body_8_avx(self, other, dist, weight);
-            _mm256_storeu_ps(dist_out, dist);
             _mm256_storeu_si256(
                 reinterpret_cast<__m256i*>(bin_out),
                 _mm256_cvtps_epi32(_mm256_mul_ps(dist, _mm256_set1_ps(WidthController<vbw>::get_inv_width())))
             );
             _mm256_storeu_ps(wt_out, weight);
-        }
-
-        template<bool vbw>
-        inline void evaluate_rounded_8_avx_into(Atom self, Block other, int32_t* dist_out, float* wt_out) noexcept {
-            __m256 dist, weight;
-            body_8_avx(self, other, dist, weight);
-            _mm256_storeu_si256(
-                reinterpret_cast<__m256i*>(dist_out),
-                _mm256_cvtps_epi32(_mm256_mul_ps(dist, _mm256_set1_ps(WidthController<vbw>::get_inv_width())))
-            );
-            _mm256_storeu_ps(wt_out, weight);
+            if constexpr (W != 0) {_mm256_storeu_ps(wt_out + W, dist);}
         }
     #endif
 
@@ -235,27 +221,17 @@ namespace ausaxs::hist::detail::xyzw {
             weight = _mm512_mul_ps(_mm512_set1_ps(self.w), _mm512_loadu_ps(other.w));
         }
 
-        template<bool vbw>
-        inline void evaluate_16_avx512_into(Atom self, Block other, float* dist_out, int32_t* bin_out, float* wt_out) noexcept {
+        /// @brief Evaluate a block of 16 atoms. See evaluate_N_scalar for the meaning of the arguments.
+        template<bool vbw, int W = 0>
+        inline void evaluate_16_avx512_into(Atom self, Block other, int32_t* bin_out, float* wt_out) noexcept {
             __m512 dist, weight;
             body_16_avx512(self, other, dist, weight);
-            _mm512_storeu_ps(dist_out, dist);
             _mm512_storeu_si512(
                 reinterpret_cast<__m512i*>(bin_out),
                 _mm512_cvtps_epi32(_mm512_mul_ps(dist, _mm512_set1_ps(WidthController<vbw>::get_inv_width())))
             );
             _mm512_storeu_ps(wt_out, weight);
-        }
-
-        template<bool vbw>
-        inline void evaluate_rounded_16_avx512_into(Atom self, Block other, int32_t* dist_out, float* wt_out) noexcept {
-            __m512 dist, weight;
-            body_16_avx512(self, other, dist, weight);
-            _mm512_storeu_si512(
-                reinterpret_cast<__m512i*>(dist_out),
-                _mm512_cvtps_epi32(_mm512_mul_ps(dist, _mm512_set1_ps(WidthController<vbw>::get_inv_width())))
-            );
-            _mm512_storeu_ps(wt_out, weight);
+            if constexpr (W != 0) {_mm512_storeu_ps(wt_out + W, dist);}
         }
     #endif
 
@@ -290,9 +266,9 @@ namespace ausaxs::hist::detail::xyzw {
     inline QuadEvaluatedResult evaluate_4(Atom self, Block other) noexcept {
         QuadEvaluatedResult r;
         #if defined AUSAXS_USE_SSE2
-            evaluate_4_sse_into<vbw>(self, other, r.distances.data(), r.distance_bins.data(), r.weights.data());
+            evaluate_4_sse_into<vbw, 4>(self, other, r.distance_bins.data(), r.weights.data());
         #else
-            evaluate_N_scalar<vbw, 4>(self, other, r);
+            evaluate_N_scalar<vbw, 4, 4>(self, other, r.distance_bins.data(), r.weights.data());
         #endif
         return r;
     }
@@ -301,9 +277,9 @@ namespace ausaxs::hist::detail::xyzw {
     inline QuadEvaluatedResultRounded evaluate_rounded_4(Atom self, Block other) noexcept {
         QuadEvaluatedResultRounded r;
         #if defined AUSAXS_USE_SSE2
-            evaluate_rounded_4_sse_into<vbw>(self, other, r.distances.data(), r.weights.data());
+            evaluate_4_sse_into<vbw>(self, other, r.distances.data(), r.weights.data());
         #else
-            evaluate_rounded_N_scalar<vbw, 4>(self, other, r);
+            evaluate_N_scalar<vbw, 4>(self, other, r.distances.data(), r.weights.data());
         #endif
         return r;
     }
@@ -312,12 +288,12 @@ namespace ausaxs::hist::detail::xyzw {
     inline OctoEvaluatedResult evaluate_8(Atom self, Block other) noexcept {
         OctoEvaluatedResult r;
         #if defined AUSAXS_USE_AVX2
-            evaluate_8_avx_into<vbw>(self, other, r.distances.data(), r.distance_bins.data(), r.weights.data());
+            evaluate_8_avx_into<vbw, 8>(self, other, r.distance_bins.data(), r.weights.data());
         #elif defined AUSAXS_USE_SSE2
-            evaluate_4_sse_into<vbw>(self, other, r.distances.data(), r.distance_bins.data(), r.weights.data());
-            evaluate_4_sse_into<vbw>(self, advance(other, 4), r.distances.data()+4, r.distance_bins.data()+4, r.weights.data()+4);
+            evaluate_4_sse_into<vbw, 8>(self, other, r.distance_bins.data(), r.weights.data());
+            evaluate_4_sse_into<vbw, 8>(self, advance(other, 4), r.distance_bins.data()+4, r.weights.data()+4);
         #else
-            evaluate_N_scalar<vbw, 8>(self, other, r);
+            evaluate_N_scalar<vbw, 8, 8>(self, other, r.distance_bins.data(), r.weights.data());
         #endif
         return r;
     }
@@ -326,12 +302,12 @@ namespace ausaxs::hist::detail::xyzw {
     inline OctoEvaluatedResultRounded evaluate_rounded_8(Atom self, Block other) noexcept {
         OctoEvaluatedResultRounded r;
         #if defined AUSAXS_USE_AVX2
-            evaluate_rounded_8_avx_into<vbw>(self, other, r.distances.data(), r.weights.data());
+            evaluate_8_avx_into<vbw>(self, other, r.distances.data(), r.weights.data());
         #elif defined AUSAXS_USE_SSE2
-            evaluate_rounded_4_sse_into<vbw>(self, other, r.distances.data(), r.weights.data());
-            evaluate_rounded_4_sse_into<vbw>(self, advance(other, 4), r.distances.data()+4, r.weights.data()+4);
+            evaluate_4_sse_into<vbw>(self, other, r.distances.data(), r.weights.data());
+            evaluate_4_sse_into<vbw>(self, advance(other, 4), r.distances.data()+4, r.weights.data()+4);
         #else
-            evaluate_rounded_N_scalar<vbw, 8>(self, other, r);
+            evaluate_N_scalar<vbw, 8>(self, other, r.distances.data(), r.weights.data());
         #endif
         return r;
     }
@@ -340,16 +316,16 @@ namespace ausaxs::hist::detail::xyzw {
     inline HexaEvaluatedResult evaluate_16(Atom self, Block other) noexcept {
         HexaEvaluatedResult r;
         #if defined AUSAXS_USE_AVX512
-            evaluate_16_avx512_into<vbw>(self, other, r.distances.data(), r.distance_bins.data(), r.weights.data());
+            evaluate_16_avx512_into<vbw, 16>(self, other, r.distance_bins.data(), r.weights.data());
         #elif defined AUSAXS_USE_AVX2
-            evaluate_8_avx_into<vbw>(self, other, r.distances.data(), r.distance_bins.data(), r.weights.data());
-            evaluate_8_avx_into<vbw>(self, advance(other, 8), r.distances.data()+8, r.distance_bins.data()+8, r.weights.data()+8);
+            evaluate_8_avx_into<vbw, 16>(self, other, r.distance_bins.data(), r.weights.data());
+            evaluate_8_avx_into<vbw, 16>(self, advance(other, 8), r.distance_bins.data()+8, r.weights.data()+8);
         #elif defined AUSAXS_USE_SSE2
             for (int b = 0; b < 4; ++b) {
-                evaluate_4_sse_into<vbw>(self, advance(other, 4*b), r.distances.data()+4*b, r.distance_bins.data()+4*b, r.weights.data()+4*b);
+                evaluate_4_sse_into<vbw, 16>(self, advance(other, 4*b), r.distance_bins.data()+4*b, r.weights.data()+4*b);
             }
         #else
-            evaluate_N_scalar<vbw, 16>(self, other, r);
+            evaluate_N_scalar<vbw, 16, 16>(self, other, r.distance_bins.data(), r.weights.data());
         #endif
         return r;
     }
@@ -358,16 +334,16 @@ namespace ausaxs::hist::detail::xyzw {
     inline HexaEvaluatedResultRounded evaluate_rounded_16(Atom self, Block other) noexcept {
         HexaEvaluatedResultRounded r;
         #if defined AUSAXS_USE_AVX512
-            evaluate_rounded_16_avx512_into<vbw>(self, other, r.distances.data(), r.weights.data());
+            evaluate_16_avx512_into<vbw>(self, other, r.distances.data(), r.weights.data());
         #elif defined AUSAXS_USE_AVX2
-            evaluate_rounded_8_avx_into<vbw>(self, other, r.distances.data(), r.weights.data());
-            evaluate_rounded_8_avx_into<vbw>(self, advance(other, 8), r.distances.data()+8, r.weights.data()+8);
+            evaluate_8_avx_into<vbw>(self, other, r.distances.data(), r.weights.data());
+            evaluate_8_avx_into<vbw>(self, advance(other, 8), r.distances.data()+8, r.weights.data()+8);
         #elif defined AUSAXS_USE_SSE2
             for (int b = 0; b < 4; ++b) {
-                evaluate_rounded_4_sse_into<vbw>(self, advance(other, 4*b), r.distances.data()+4*b, r.weights.data()+4*b);
+                evaluate_4_sse_into<vbw>(self, advance(other, 4*b), r.distances.data()+4*b, r.weights.data()+4*b);
             }
         #else
-            evaluate_rounded_N_scalar<vbw, 16>(self, other, r);
+            evaluate_N_scalar<vbw, 16>(self, other, r.distances.data(), r.weights.data());
         #endif
         return r;
     }
