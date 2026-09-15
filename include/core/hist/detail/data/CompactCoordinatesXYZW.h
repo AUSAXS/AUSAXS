@@ -3,31 +3,15 @@
 
 /**
  * @brief This file contains custom vector instructions for efficient scattering calculations.
- *
- * The implementation is specialized for generic systems defined by separate x, y, z and w arrays.
- * This is useful for the Simple excluded volume model, where all atoms have the same form factor
- * type but different weights. Similarly, it is useful for SANS calculations, where the lack of
- * q-dependence means the form factors may be encoded as simple weights.
- *
- * For more complex X-ray calculations with different atomic species, the CompactCoordinatesXYZFF
- * implementation may be more useful, since it is specialized for systems where the fourth
- * component is an int32 form factor index.
- *
- * The coordinates are passed as one pointer per component rather than as interleaved [x, y, z, w]
- * tuples. Interleaved storage forces every kernel to transpose a block before it can compute the
- * squared distance, which cost 8-10 shuffle-port operations per block; with separate arrays there
- * is nothing to transpose and the kernels reduce to loads, subtractions and multiply-adds. That
- * was worth 24-45% of the kernel depending on dispatch level, and it also lets the compiler
- * auto-vectorise the fallback path competitively, which matters on targets with no hand-written
- * SIMD at all.
+ *        The implementation is specialized for generic systems defined by separate x, y, z and w arrays.
  */
 
 #pragma once
 
+#include <constants/Constants.h>
+#include <hist/detail/data/IntrinsicHelpers.h>
 #include <hist/detail/data/IntrinsicMacros.h>
 #include <hist/detail/data/WidthControllers.h>
-#include <hist/detail/data/IntrinsicHelpers.h>
-#include <constants/Constants.h>
 #include <settings/InternalState.h>
 
 #include <array>
@@ -42,46 +26,43 @@ namespace ausaxs::hist::detail::xyzw {
         float weight;           // The combined weight
     };
 
+    // same as above, except it does not provide the exact distance
     struct EvaluatedResultRounded {
-        int32_t distance;       // The distance bin
-        float weight;           // The combined weight
+        int32_t distance;
+        float weight;
     };
 
     struct alignas(16) QuadEvaluatedResult {
-        std::array<float, 4> distances;       // The raw distances (for weighted bin center calculation)
-        std::array<int32_t, 4> distance_bins; // The distance bin indices (for array indexing)
-        std::array<float, 4> weights;         // The combined weight
+        std::array<float, 4>   distances;
+        std::array<int32_t, 4> distance_bins;
+        std::array<float, 4>   weights;
     };
 
     struct alignas(16) QuadEvaluatedResultRounded {
-        std::array<int32_t, 4> distances;   // The distance bin
-        std::array<float, 4> weights;       // The combined weight
+        std::array<int32_t, 4> distances;
+        std::array<float, 4>   weights;
     };
 
     struct alignas(32) OctoEvaluatedResult {
-        std::array<float, 8> distances;       // The raw distances (for weighted bin center calculation)
-        std::array<int32_t, 8> distance_bins; // The distance bin indices (for array indexing)
-        std::array<float, 8> weights;         // The combined weight
+        std::array<float, 8>   distances;
+        std::array<int32_t, 8> distance_bins;
+        std::array<float, 8>   weights;
     };
 
     struct alignas(32) OctoEvaluatedResultRounded {
-        std::array<int32_t, 8> distances;   // The distance bin
-        std::array<float, 8> weights;       // The combined weight
+        std::array<int32_t, 8> distances;
+        std::array<float, 8>   weights;
     };
 
-    // 64-byte aligned, not 32: each field is a whole 512-bit register's worth, and at 32-byte
-    // alignment the second field lands on a 32-mod-64 address. The kernels below use the
-    // unaligned store intrinsics so neither this nor the sub-block offsets can fault, but the
-    // alignment is what makes those stores single-cache-line in practice. Do not lower it.
     struct alignas(64) HexaEvaluatedResult {
-        std::array<float, 16> distances;
+        std::array<float, 16>   distances;
         std::array<int32_t, 16> distance_bins;
-        std::array<float, 16> weights;
+        std::array<float, 16>   weights;
     };
 
     struct alignas(64) HexaEvaluatedResultRounded {
         std::array<int32_t, 16> distances;
-        std::array<float, 16> weights;
+        std::array<float, 16>   weights;
     };
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
@@ -132,7 +113,7 @@ namespace ausaxs::hist::detail::xyzw {
         const float* w = nullptr;
     };
 
-    inline Block advance(Block b, int n) noexcept {return Block{b.x + n, b.y + n, b.z + n, b.w + n};}
+    inline Block advance(Block b, int n) noexcept {return Block{.x=b.x+n, .y=b.y+n, .z=b.z+n, .w=b.w+n};}
 }
 
 //#########################################//
@@ -140,7 +121,6 @@ namespace ausaxs::hist::detail::xyzw {
 //#########################################//
 
 // implementation defined in header to support efficient inlining
-
 #if defined AUSAXS_USE_SSE2
     #include <nmmintrin.h>
 #endif
@@ -150,8 +130,6 @@ namespace ausaxs::hist::detail::xyzw {
 
 namespace ausaxs::hist::detail::xyzw {
     //=========================== scalar ===========================//
-    // Deliberately free of intrinsics: with the coordinates in separate arrays the compiler
-    // vectorises this on its own, so this is the portable path rather than a slow fallback.
     template<bool vbw, int N, typename Result>
     inline void evaluate_N_scalar(Atom self, Block other, Result& out) noexcept {
         const float inv_width = WidthController<vbw>::get_inv_width();
@@ -194,8 +172,10 @@ namespace ausaxs::hist::detail::xyzw {
             __m128 dist, weight;
             body_4_sse(self, other, dist, weight);
             _mm_storeu_ps(dist_out, dist);
-            _mm_storeu_si128(reinterpret_cast<__m128i*>(bin_out),
-                _mm_cvtps_epi32(_mm_mul_ps(dist, _mm_set_ps1(WidthController<vbw>::get_inv_width()))));
+            _mm_storeu_si128(
+                reinterpret_cast<__m128i*>(bin_out),
+                _mm_cvtps_epi32(_mm_mul_ps(dist, _mm_set_ps1(WidthController<vbw>::get_inv_width())))
+            );
             _mm_storeu_ps(wt_out, weight);
         }
 
@@ -225,8 +205,10 @@ namespace ausaxs::hist::detail::xyzw {
             __m256 dist, weight;
             body_8_avx(self, other, dist, weight);
             _mm256_storeu_ps(dist_out, dist);
-            _mm256_storeu_si256(reinterpret_cast<__m256i*>(bin_out),
-                _mm256_cvtps_epi32(_mm256_mul_ps(dist, _mm256_set1_ps(WidthController<vbw>::get_inv_width()))));
+            _mm256_storeu_si256(
+                reinterpret_cast<__m256i*>(bin_out),
+                _mm256_cvtps_epi32(_mm256_mul_ps(dist, _mm256_set1_ps(WidthController<vbw>::get_inv_width())))
+            );
             _mm256_storeu_ps(wt_out, weight);
         }
 
@@ -234,8 +216,10 @@ namespace ausaxs::hist::detail::xyzw {
         inline void evaluate_rounded_8_avx_into(Atom self, Block other, int32_t* dist_out, float* wt_out) noexcept {
             __m256 dist, weight;
             body_8_avx(self, other, dist, weight);
-            _mm256_storeu_si256(reinterpret_cast<__m256i*>(dist_out),
-                _mm256_cvtps_epi32(_mm256_mul_ps(dist, _mm256_set1_ps(WidthController<vbw>::get_inv_width()))));
+            _mm256_storeu_si256(
+                reinterpret_cast<__m256i*>(dist_out),
+                _mm256_cvtps_epi32(_mm256_mul_ps(dist, _mm256_set1_ps(WidthController<vbw>::get_inv_width())))
+            );
             _mm256_storeu_ps(wt_out, weight);
         }
     #endif
@@ -256,8 +240,10 @@ namespace ausaxs::hist::detail::xyzw {
             __m512 dist, weight;
             body_16_avx512(self, other, dist, weight);
             _mm512_storeu_ps(dist_out, dist);
-            _mm512_storeu_si512(reinterpret_cast<__m512i*>(bin_out),
-                _mm512_cvtps_epi32(_mm512_mul_ps(dist, _mm512_set1_ps(WidthController<vbw>::get_inv_width()))));
+            _mm512_storeu_si512(
+                reinterpret_cast<__m512i*>(bin_out),
+                _mm512_cvtps_epi32(_mm512_mul_ps(dist, _mm512_set1_ps(WidthController<vbw>::get_inv_width())))
+            );
             _mm512_storeu_ps(wt_out, weight);
         }
 
@@ -265,8 +251,10 @@ namespace ausaxs::hist::detail::xyzw {
         inline void evaluate_rounded_16_avx512_into(Atom self, Block other, int32_t* dist_out, float* wt_out) noexcept {
             __m512 dist, weight;
             body_16_avx512(self, other, dist, weight);
-            _mm512_storeu_si512(reinterpret_cast<__m512i*>(dist_out),
-                _mm512_cvtps_epi32(_mm512_mul_ps(dist, _mm512_set1_ps(WidthController<vbw>::get_inv_width()))));
+            _mm512_storeu_si512(
+                reinterpret_cast<__m512i*>(dist_out),
+                _mm512_cvtps_epi32(_mm512_mul_ps(dist, _mm512_set1_ps(WidthController<vbw>::get_inv_width())))
+            );
             _mm512_storeu_ps(wt_out, weight);
         }
     #endif
@@ -279,7 +267,11 @@ namespace ausaxs::hist::detail::xyzw {
     inline EvaluatedResult evaluate(Atom self, Block other) noexcept {
         float dx = self.x - other.x[0], dy = self.y - other.y[0], dz = self.z - other.z[0];
         float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-        return EvaluatedResult{dist, static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*dist)), self.w*other.w[0]};
+        return EvaluatedResult{
+            .distance=dist, 
+            .distance_bin=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*dist)), 
+            .weight=self.w*other.w[0]
+        };
     }
 
     /**
@@ -289,8 +281,8 @@ namespace ausaxs::hist::detail::xyzw {
     inline EvaluatedResultRounded evaluate_rounded(Atom self, Block other) noexcept {
         float dx = self.x - other.x[0], dy = self.y - other.y[0], dz = self.z - other.z[0];
         return EvaluatedResultRounded{
-            static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*std::sqrt(dx*dx + dy*dy + dz*dz))),
-            self.w*other.w[0]
+            .distance=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*std::sqrt(dx*dx + dy*dy + dz*dz))),
+            .weight=self.w*other.w[0]
         };
     }
 

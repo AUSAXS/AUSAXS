@@ -3,30 +3,17 @@
 
 /**
  * @brief This file contains custom vector instructions for efficient scattering calculations.
- *
- * The implementation is specialized for generic systems defined by separate x, y, z float arrays
- * and an int32 form factor index array. This is useful for X-ray calculations with different
- * atomic species, where each atom may have a different form factor type. Note the distinction from
- * CompactCoordinatesXYZW, which is specialized for systems whose fourth component is a weight.
- *
- * The returned form factor bin is calculated as ff_bin = ff2 + ff1*N_ff_types, where N_ff_types is
- * the total number of active form factor types.
- *
- * As in CompactCoordinatesXYZW, the components are passed as one pointer each rather than
- * interleaved, which removes the per-block transpose the kernels would otherwise need. Keeping the
- * form factor indices in their own int32 array additionally lets the packed index be computed with
- * a single integer add, instead of the int->float->add->int round trip the interleaved layout
- * forced (the indices had to be smuggled through a float lane).
+ *       The implementation is specialized for generic systems defined by separate x, y, z and int32 form factor index array.
  */
 
 #pragma once
 
+#include <constants/Constants.h>
+#include <form_factor/FormFactorType.h>
+#include <hist/detail/data/IntrinsicHelpers.h>
 #include <hist/detail/data/IntrinsicMacros.h>
 #include <hist/detail/data/WidthControllers.h>
-#include <hist/detail/data/IntrinsicHelpers.h>
-#include <constants/Constants.h>
 #include <settings/InternalState.h>
-#include <form_factor/FormFactorType.h>
 
 #include <array>
 #include <cmath>
@@ -40,43 +27,43 @@ namespace ausaxs::hist::detail::xyzff {
         int32_t ff_bin;       // The form factor bin index
     };
 
+    // same as above, except it does not provide the exact distance
     struct EvaluatedResultRounded {
-        int32_t distance;   // The distance bin
-        int32_t ff_bin;     // The form factor bin index
+        int32_t distance;
+        int32_t ff_bin;
     };
 
     struct alignas(16) QuadEvaluatedResult {
-        std::array<float, 4> distances;       // The raw distances (for weighted bin center calculation)
-        std::array<int32_t, 4> distance_bins; // The distance bin indices (for array indexing)
-        std::array<int32_t, 4> ff_bins;       // The form factor bin indices
+        std::array<float, 4>   distances;
+        std::array<int32_t, 4> distance_bins;
+        std::array<int32_t, 4> ff_bins;
     };
 
     struct alignas(16) QuadEvaluatedResultRounded {
-        std::array<int32_t, 4> distances;   // The distance bin
-        std::array<int32_t, 4> ff_bins;     // The form factor bin indices
+        std::array<int32_t, 4> distances;
+        std::array<int32_t, 4> ff_bins;
     };
 
     struct alignas(32) OctoEvaluatedResult {
-        std::array<float, 8> distances;       // The raw distances (for weighted bin center calculation)
-        std::array<int32_t, 8> distance_bins; // The distance bin indices (for array indexing)
-        std::array<int32_t, 8> ff_bins;       // The form factor bin indices
+        std::array<float, 8>   distances;
+        std::array<int32_t, 8> distance_bins;
+        std::array<int32_t, 8> ff_bins;
     };
 
     struct alignas(32) OctoEvaluatedResultRounded {
-        std::array<int32_t, 8> distances;   // The distance bin
-        std::array<int32_t, 8> ff_bins;     // The form factor bin indices
+        std::array<int32_t, 8> distances;
+        std::array<int32_t, 8> ff_bins;
     };
 
-    // 64-byte aligned - see the note on the XYZW equivalent.
     struct alignas(64) HexaEvaluatedResult {
-        std::array<float, 16> distances;       // The raw distances
-        std::array<int32_t, 16> distance_bins; // The distance bin indices
-        std::array<int32_t, 16> ff_bins;       // The form factor bin indices
+        std::array<float, 16>   distances;
+        std::array<int32_t, 16> distance_bins;
+        std::array<int32_t, 16> ff_bins;
     };
 
     struct alignas(64) HexaEvaluatedResultRounded {
-        std::array<int32_t, 16> distances;   // The distance bin
-        std::array<int32_t, 16> ff_bins;     // The form factor bin indices
+        std::array<int32_t, 16> distances;
+        std::array<int32_t, 16> ff_bins;
     };
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
@@ -128,12 +115,11 @@ namespace ausaxs::hist::detail::xyzff {
         const int32_t* ff = nullptr;
     };
 
-    inline Block advance(Block b, int n) noexcept {return Block{b.x + n, b.y + n, b.z + n, b.ff + n};}
+    inline Block advance(Block b, int n) noexcept {return Block{.x=b.x+n, .y=b.y+n, .z=b.z+n, .ff=b.ff+n};}
 
     /**
      * @brief The row stride of the packed (ff1, ff2) index.
-     *        This must match the second dimension of the distribution the packed index is used as a
-     *        linear index into - see e.g. Distribution3D::increment_linear_index.
+     *        This must match the second dimension of the distribution the packed index is used as a linear index into.
      */
     inline int32_t ff_stride() noexcept {
         return static_cast<int32_t>(form_factor::get_active_count());
@@ -149,7 +135,6 @@ namespace ausaxs::hist::detail::xyzff {
 //#########################################//
 
 // implementation defined in header to support efficient inlining
-
 #if defined AUSAXS_USE_SSE2
     #include <nmmintrin.h>
 #endif
