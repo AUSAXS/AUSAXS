@@ -83,21 +83,6 @@ if (DLIB)
 	add_compile_definitions("DLIB_AVAILABLE")
 endif()
 
-if(USE_SYSTEM_BACKWARD)
-	find_package(Backward REQUIRED)
-	find_path(BACKWARD_INCLUDE_DIR backward.hpp PATH_SUFFIXES backward)
-	if (NOT BACKWARD_INCLUDE_DIR)
-		message(FATAL_ERROR "backward-cpp headers not found")
-	endif()
-else()
-	FetchContent_Declare(
-		backward
-		GIT_REPOSITORY https://github.com/bombela/backward-cpp
-	)
-	FetchContent_MakeAvailable(Backward)
-	set(BACKWARD_INCLUDE_DIR ${backward_SOURCE_DIR})
-endif()
-
 if(USE_SYSTEM_THREADPOOL)
 	find_path(BS_THREAD_POOL_INCLUDE_DIR BS_thread_pool.hpp)
 	if (NOT BS_THREAD_POOL_INCLUDE_DIR)
@@ -133,7 +118,7 @@ set_property(
 )
 unset(compile_options)
 
-include_directories(${BS_THREAD_POOL_INCLUDE_DIR} ${GCEM_INCLUDE_DIR} ${BACKWARD_INCLUDE_DIR})
+include_directories(${BS_THREAD_POOL_INCLUDE_DIR} ${GCEM_INCLUDE_DIR})
 
 ############################################
 ##           Find and link CURL           ##
