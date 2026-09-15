@@ -23,22 +23,12 @@ using namespace ausaxs::rigidbody;
 using namespace ausaxs::data;
 using namespace ausaxs::io::pdb;
 
-namespace {
-    // Splitting by residue requires the residue ids to be retained as metadata. The operation is meaningless without them, so the file-based overloads force 
-    // retention on for the duration of the load rather than failing on a configuration the caller has no reason to think about.
-    struct residue_seq_guard {
-        residue_seq_guard() {AtomMetadata::store_residue_seq = true;}
-        ~residue_seq_guard() {AtomMetadata::store_residue_seq = previous;}
-        bool previous = AtomMetadata::store_residue_seq; // initialised before the constructor body flips the flag
-    };
-}
-
 std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& splits) {
     const auto& metadata = body.get_metadata();
     if (!metadata || !metadata->residue_seq) {
         throw except::parse_error(
-            "BodySplitter::split: Body has no residue sequence metadata. Enable data::AtomMetadata::store_residue_seq "
-            "before loading to make splitting by residue possible."
+            "BodySplitter::split: Body has no residue sequence metadata. Splitting by residue is only possible for a body that was "
+            "loaded from a structure file, since the residue ids have no meaning for one assembled in memory."
         );
     }
     const auto& atoms = body.get_atoms();
@@ -112,7 +102,6 @@ std::vector<Body> BodySplitter::split(const Body& body, const std::vector<int>& 
 }
 
 Molecule BodySplitter::split(const io::File& input, const std::vector<int>& splits) {
-    residue_seq_guard guard;
     return Molecule(split(Body(input), splits));
 }
 

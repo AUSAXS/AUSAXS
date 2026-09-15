@@ -6,7 +6,6 @@
 #include <api/ObjectStorage.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/atoms/AtomMetadata.h>
 #include <data/detail/SimpleBody.h>
 #include <data/symmetry/BodySymmetryFacade.h>
 #include <rigidbody/Rigidbody.h>
@@ -44,8 +43,6 @@ int rigidbody_load_script(
 namespace {
     rigidbody::sequencer::Sequencer& get_cached_sequencer(_rigidbody_script_obj& obj) {
         if (!obj.sequencer) {
-            // every current caller of the cached path needs the backbone metadata for its output
-            data::AtomMetadata::store_backbone = true;
             obj.sequencer = rigidbody::sequencer::SequenceParser().parse_text(obj.script);
         }
         return *obj.sequencer;
