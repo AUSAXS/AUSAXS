@@ -1,4 +1,4 @@
-add_library(ausaxs_rigidbody OBJECT 
+add_library(ausaxs_rigidbody OBJECT
 	"Rigidbody.cpp"
 	"BodySplitter.cpp"
 
@@ -24,7 +24,7 @@ add_library(ausaxs_rigidbody OBJECT
 
 	"detail/MoleculeTransformParametersAbsolute.cpp"
 	"detail/SystemSpecification.cpp"
-	
+
 	"parameters/BodyTransformParametersAbsolute.cpp"
 	"parameters/BodyTransformParametersRelative.cpp"
 	"parameters/ParameterAmplitudes.cpp"
@@ -83,7 +83,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/elements/setup/OutputFolderElement.cpp"
 	"sequencer/elements/setup/SplitElement.cpp"
 	"sequencer/elements/setup/SettingsElement.cpp"
-	
+
 	"transform/RigidTransform.cpp"
 	"transform/SingleTransform.cpp"
 	"transform/TransformFactory.cpp"
@@ -93,4 +93,7 @@ add_library(ausaxs_rigidbody OBJECT
 
 target_include_directories(ausaxs_rigidbody PUBLIC "${CMAKE_SOURCE_DIR}/include/rigidbody")
 target_link_libraries(ausaxs_rigidbody ausaxs_core)
-set_target_properties(ausaxs_rigidbody PROPERTIES POSITION_INDEPENDENT_CODE 1)
+set_target_properties(ausaxs_rigidbody PROPERTIES
+	POSITION_INDEPENDENT_CODE 1
+	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
+)
