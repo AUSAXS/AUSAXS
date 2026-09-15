@@ -22,14 +22,14 @@
 
 namespace ausaxs::hist::detail::xyzw {
     struct EvaluatedResult {
-        float distance;         // The raw distance
         int32_t distance_bin;   // The distance bin index
         float weight;           // The combined weight
+        float distance;         // The raw distance
     };
 
     // same as above, except it does not provide the exact distance
     struct EvaluatedResultRounded {
-        int32_t distance;
+        int32_t distance_bin;
         float weight;
     };
 
@@ -244,9 +244,9 @@ namespace ausaxs::hist::detail::xyzw {
         float dx = self.x - other.x[0], dy = self.y - other.y[0], dz = self.z - other.z[0];
         float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
         return EvaluatedResult{
-            .distance=dist, 
-            .distance_bin=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*dist)), 
-            .weight=self.w*other.w[0]
+            .distance_bin=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*dist)),
+            .weight=self.w*other.w[0],
+            .distance=dist
         };
     }
 
@@ -257,7 +257,7 @@ namespace ausaxs::hist::detail::xyzw {
     inline EvaluatedResultRounded evaluate_rounded(Atom self, Block other) noexcept {
         float dx = self.x - other.x[0], dy = self.y - other.y[0], dz = self.z - other.z[0];
         return EvaluatedResultRounded{
-            .distance=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*std::sqrt(dx*dx + dy*dy + dz*dz))),
+            .distance_bin=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*std::sqrt(dx*dx + dy*dy + dz*dz))),
             .weight=self.w*other.w[0]
         };
     }

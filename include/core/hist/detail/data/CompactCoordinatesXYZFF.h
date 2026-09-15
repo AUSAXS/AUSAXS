@@ -23,14 +23,14 @@
 
 namespace ausaxs::hist::detail::xyzff {
     struct EvaluatedResult {
-        float distance;       // The exact distance
         int32_t distance_bin; // The distance bin index
         int32_t ff_bin;       // The form factor bin index
+        float distance;       // The exact distance
     };
 
     // same as above, except it does not provide the exact distance
     struct EvaluatedResultRounded {
-        int32_t distance;
+        int32_t distance_bin;
         int32_t ff_bin;
     };
 
@@ -267,9 +267,10 @@ namespace ausaxs::hist::detail::xyzff {
     inline EvaluatedResult evaluate(Atom self, Block other) noexcept {
         float dx = self.x - other.x[0], dy = self.y - other.y[0], dz = self.z - other.z[0];
         float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-        return EvaluatedResult{.distance=dist,
+        return EvaluatedResult{
             .distance_bin=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*dist)),
-            .ff_bin=ff_bin_index(self.ff, other.ff[0])};
+            .ff_bin=ff_bin_index(self.ff, other.ff[0]),
+            .distance=dist};
     }
 
     /**
@@ -279,7 +280,7 @@ namespace ausaxs::hist::detail::xyzff {
     inline EvaluatedResultRounded evaluate_rounded(Atom self, Block other) noexcept {
         float dx = self.x - other.x[0], dy = self.y - other.y[0], dz = self.z - other.z[0];
         return EvaluatedResultRounded{
-            .distance=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*std::sqrt(dx*dx + dy*dy + dz*dz))),
+            .distance_bin=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*std::sqrt(dx*dx + dy*dy + dz*dz))),
             .ff_bin=ff_bin_index(self.ff, other.ff[0])};
     }
 

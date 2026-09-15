@@ -167,12 +167,12 @@ static void single_tests_rounded() {
         const double width = constants::axes::d_axis.width();
         auto o = first_n<1>();
         auto result = evaluate_rounded<vbw>(self, o.block());
-        CHECK(result.distance == std::round(1./width));
+        CHECK(result.distance_bin == std::round(1./width));
         CHECK(result.ff_bin == ff_bin_index(2, 4));
 
         auto o2 = make_others<1>({{{{2, 2, 2}, 8}}});
         result = evaluate_rounded<vbw>(self, o2.block());
-        CHECK(result.distance == std::round(std::sqrt(3)/width));
+        CHECK(result.distance_bin == std::round(std::sqrt(3)/width));
         CHECK(result.ff_bin == ff_bin_index(2, 8));
     }
 }

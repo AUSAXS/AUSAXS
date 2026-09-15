@@ -57,6 +57,6 @@ namespace ausaxs::hist::detail {
     template<bool variable_bin_widths, int factor>
     inline void evaluate1(Distribution1D& p, const CompactCoordinatesFF<variable_bin_widths>& data_i, const CompactCoordinatesFF<variable_bin_widths>& data_j, int i, int j) {
         xyzff::EvaluatedResultRounded res = add1::evaluate_unweighted(data_i, data_j, i, j);
-        p.increment_index<factor>(res.distance);
+        p.increment_index<factor>(res.distance_bin);
     }
 }
