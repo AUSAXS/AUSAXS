@@ -54,7 +54,7 @@ bool compare_hist(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
  *        Variations across bin edges are allowed, meaning if a given bin is off by some amount, the following bin is checked for the difference. 
  */
 template<container_type T1, container_type T2>
-bool compare_hist_approx(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
+bool compare_hist_approx(const T1& p1, const T2& p2, double abs = 1e-6, double rel = 1e-3) {
     int pmax = std::max<int>(p1.size(), p2.size());
     for (int i = 0; i < pmax; ++i) {
         if (!utility::approx(bin_or_zero(p1, i), bin_or_zero(p2, i), abs, rel)) {
