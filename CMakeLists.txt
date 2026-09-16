@@ -117,7 +117,6 @@ set_property(
     PROPERTY COMPILE_OPTIONS ${compile_options}
 )
 unset(compile_options)
-
 include_directories(${BS_THREAD_POOL_INCLUDE_DIR} ${GCEM_INCLUDE_DIR})
 
 ############################################
@@ -139,6 +138,7 @@ elseif(UNIX)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
 	link_libraries("$<$<CONFIG:Debug>:-ldwarf>")
 endif()
+
 ############################################
 ##                Doxygen                 ##
 ############################################
@@ -154,19 +154,21 @@ if (DOXYGEN_FOUND)
 	)
 endif()
 
-
 ############################################
 ##           Build library                ##
 ############################################
 string(TOUPPER "${CMAKE_BUILD_TYPE}" AUSAXS_BUILD_TYPE_UPPER)
-if (AUSAXS_BUILD_TYPE_UPPER STREQUAL "RELEASE")
+if (NOT AUSAXS_BUILD_TYPE_UPPER STREQUAL "RELEASE")
+	set(LTO_SUPPORTED OFF)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	set(LTO_SUPPORTED OFF)
+	message(STATUS "LTO disabled: incompatible with CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on MSVC")
+else()
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_MESSAGE)
 	if (NOT LTO_SUPPORTED)
 		message(STATUS "LTO unavailable: ${LTO_MESSAGE}")
 	endif()
-else()
-	set(LTO_SUPPORTED OFF)
 endif()
 
 add_subdirectory(source)

@@ -568,7 +568,7 @@ static auto test_random = [] (settings::hist::HistogramManagerChoice choice) {
             set_unity_charge(m2);
             auto h2 = m2.get_histogram()->get_weighted_counts();
 
-            compare_hist_approx(h, h2);
+            CHECK(compare_hist_approx(h, h2));
         }
     }
 };

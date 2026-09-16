@@ -118,13 +118,6 @@ namespace {
             set_unity_charge(m2);
             auto h2 = m2.get_histogram()->get_weighted_counts();
 
-            // equalise lengths so compare_hist_approx's +-1 window is not truncated at the tail: a reuse representative and the 
-            // individually-binned explicit pairs of the same group can differ by sub-bin FP (their relative transforms match only 
-            // to the bucketer tolerance), and near a bin edge at the histogram tail that benign 1-bin drift would otherwise escape
-            // the window where one histogram has already been trimmed to its last non-zero bin.
-            std::size_t n = std::max(h.size(), h2.size());
-            h.resize(n, 0); h2.resize(n, 0);
-
             INFO("fuzz iteration " << iter);
             CHECK(compare_hist_approx(h, h2));
         }
