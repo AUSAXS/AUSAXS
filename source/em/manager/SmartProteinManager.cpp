@@ -118,14 +118,9 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_new_protein(double
     return std::make_unique<data::Molecule>(std::move(bodies));
 }
 
-void SmartProteinManager::toggle_histogram_manager_init(bool state) {
-    settings::internal_state::init_histogram_manager = state;
-}
-
 void SmartProteinManager::update_protein(double cutoff) {
     if (protein == nullptr || protein->size_atom() == 0) {
         // the protein is not initialized, so simply assign it a new one
-        toggle_histogram_manager_init(false);
         logging::log("SmartProteinManager::update_protein: protein is nullptr or empty. Generating new protein.");
         protein = generate_new_protein(cutoff); 
         protein->set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);

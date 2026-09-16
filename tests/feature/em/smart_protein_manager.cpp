@@ -1,7 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/atoms/AtomFF.h>
 #include <em/ImageStack.h>
 #include <em/manager/SimpleProteinManager.h>
 #include <em/manager/SmartProteinManager.h>
@@ -47,6 +49,39 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein", "[files]") {
 TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram", "[files]") {
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
     CHECK(manager->get_histogram(1)->get_weighted_counts() == manager->get_protein(1)->get_histogram()->get_weighted_counts());
+}
+
+// SmartProteinManager used to switch Molecule::initialize() off process-wide and never switch it
+// back, so every later move-assign silently kept a histogram manager bound to the destination's old bodies.
+TEST_CASE("SmartProteinManager: driving the manager does not leak into later Molecule moves", "[files]") {
+    settings::molecule::implicit_hydrogens = false;
+
+    auto build = [] (int n) {
+        std::vector<data::Body> bodies;
+        bodies.reserve(n);
+        for (int b = 0; b < n; ++b) {
+            std::vector<data::AtomFF> atoms;
+            atoms.reserve(10);
+            for (int i = 0; i < 10; ++i) {
+                atoms.emplace_back(Vector3<double>(i*1.5 + b*20., b*5., 0), form_factor::form_factor_t::C);
+            }
+            bodies.emplace_back(std::move(atoms));
+        }
+        return data::Molecule(std::move(bodies));
+    };
+
+    em::ImageStack stack("tests/files/A2M_2020_Q4.ccp4");
+    em::managers::SmartProteinManager manager(&stack);
+    REQUIRE(manager.get_protein(2)->size_atom() != 0);          // drives update_protein at least once
+
+    data::Molecule dst = build(2);
+    dst.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+    REQUIRE(!dst.get_histogram()->get_weighted_counts().empty()); // force the manager into existence
+    dst = build(3);                                              // bodies come from the source; the manager must not survive
+
+    data::Molecule ref = build(3);
+    REQUIRE(dst.size_body() == 3);
+    CHECK(dst.get_histogram()->get_weighted_counts() == ref.get_histogram()->get_weighted_counts());
 }
 
 TEST_CASE("SmartProteinManager::generate_protein", "[files]") {

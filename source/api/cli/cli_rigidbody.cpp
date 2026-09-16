@@ -94,7 +94,6 @@ int cli_rigidbody(int argc, char const *argv[]) {
     CLI11_PARSE(app, argc, argv);
 
     console::print_info("Running AUSAXS " + std::string(constants::version));
-    settings::internal_state::init_histogram_manager = false;
     logging::start("rigidbody");
 
     //###################//

@@ -58,14 +58,6 @@ namespace ausaxs::em::managers {
              */
             virtual void update_protein(double cutoff);
 
-            /**
-             * @brief Enable or disable the histogram manager initialization for generated molecules.
-             * 
-             * This is used to prevent expensive initialization of the histogram managers whenever a new 
-             * molecule is generated, since they will be cannibalized by the member variable anyway. 
-             */
-            static void toggle_histogram_manager_init(bool state);
-
         private:
             double previous_cutoff = 0;
 
