@@ -29,7 +29,7 @@ TEST_CASE("TransformGroup::TransformGroup") {
         std::vector<int> indices = {0};
         Vector3<double> pivot(1, 2, 3);
         
-        transform::TransformGroup group(bodies, indices, nullptr, pivot);
+        rigidbody::transform::TransformGroup group(bodies, indices, nullptr, pivot);
         
         CHECK(group.bodies.size() == 1);
         CHECK(group.indices.size() == 1);
@@ -58,7 +58,7 @@ TEST_CASE("TransformGroup::TransformGroup") {
         std::vector<int> indices = {0, 1, 2};
         Vector3<double> pivot(0, 0, 0);
         
-        transform::TransformGroup group(bodies, indices, nullptr, pivot);
+        rigidbody::transform::TransformGroup group(bodies, indices, nullptr, pivot);
         
         CHECK(group.bodies.size() == 3);
         CHECK(group.indices.size() == 3);
@@ -86,7 +86,7 @@ TEST_CASE("TransformGroup::TransformGroup") {
         std::vector<int> indices = {0};
         Vector3<double> pivot = constraint->get_atom1().coordinates();
         
-        transform::TransformGroup group(bodies, indices, constraint, pivot);
+        rigidbody::transform::TransformGroup group(bodies, indices, constraint, pivot);
         
         CHECK(group.target == constraint);
         CHECK(group.pivot == constraint->get_atom1().coordinates());
