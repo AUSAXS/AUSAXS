@@ -23,6 +23,8 @@ add_library(libausaxs SHARED $<TARGET_OBJECTS:ausaxs_core>)
 target_include_directories(libausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
 set_target_properties(libausaxs
 	PROPERTIES OUTPUT_NAME ausaxs
+	PREFIX "lib"
+	IMPORT_PREFIX "lib"
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
 
