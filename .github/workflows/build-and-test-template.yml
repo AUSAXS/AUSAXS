@@ -110,7 +110,8 @@ jobs:
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
             -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\scripts\buildsystems\vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="x64-windows-static"
+            -DVCPKG_TARGET_TRIPLET="x64-windows-static" \
+            -DBUILD_TESTS=OFF
           cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs -j12
 
       - name: Configure output folders for upload
