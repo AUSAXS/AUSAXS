@@ -67,12 +67,12 @@ TEST_CASE("TransformFactory::create_transform_strategy") {
 
     SECTION("SingleTransform") {
         auto strat = factory::create_transform_strategy(&rb, settings::rigidbody::TransformationStrategyChoice::SingleTransform);
-        REQUIRE(dynamic_cast<transform::SingleTransform*>(strat.get()) != nullptr);
+        REQUIRE(dynamic_cast<rigidbody::transform::SingleTransform*>(strat.get()) != nullptr);
     }
 
     SECTION("RigidTransform") {
         auto strat = factory::create_transform_strategy(&rb, settings::rigidbody::TransformationStrategyChoice::RigidTransform);
-        REQUIRE(dynamic_cast<transform::RigidTransform*>(strat.get()) != nullptr);
+        REQUIRE(dynamic_cast<rigidbody::transform::RigidTransform*>(strat.get()) != nullptr);
     }
 }
 

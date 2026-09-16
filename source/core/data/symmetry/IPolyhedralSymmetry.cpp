@@ -52,7 +52,7 @@ IPolyhedralSymmetry::GroupData IPolyhedralSymmetry::build(const std::vector<Matr
 
     // distance-reuse schedule: the equivalence classes depend only on the fixed group structure,
     // not on the optimisable offset/frame, so the placements are the bare group rotations about the origin.
-    std::vector<AffineTransform> placements;
+    std::vector<transform::Affine> placements;
     placements.reserve(elements.size());
     for (const auto& M : elements) {placements.push_back({M, {0, 0, 0}});}
     return GroupData{.elements=std::move(elements), .schedule=compute_pair_schedule(placements)};
@@ -64,7 +64,7 @@ int IPolyhedralSymmetry::repetitions() const {
 
 bool IPolyhedralSymmetry::is_closed() const {return false;}
 
-AffineTransform IPolyhedralSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
+transform::Affine IPolyhedralSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
     const auto& G = group().elements;
     assert(0 < rep && rep < static_cast<int>(G.size()) && "PolyhedralSymmetry::_make_transform: repetition index out of range.");
 

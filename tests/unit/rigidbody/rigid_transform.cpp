@@ -35,7 +35,7 @@ TEST_CASE("RigidTransform::apply single body group") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
         
-        transform::RigidTransform transformer(&rigidbody);
+        rigidbody::transform::RigidTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         auto cm0_before = rigidbody.molecule.get_body(0).get_cm();
@@ -82,7 +82,7 @@ TEST_CASE("RigidTransform::apply multi-body group") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 2, 3)
         );
         
-        transform::RigidTransform transformer(&rigidbody);
+        rigidbody::transform::RigidTransform transformer(&rigidbody);
         
         // Transform at constraint 1 (between bodies 1 and 2)
         // Should move the smaller group
@@ -127,7 +127,7 @@ TEST_CASE("RigidTransform::apply multi-body group") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 1, 2)
         );
         
-        transform::RigidTransform transformer(&rigidbody);
+        rigidbody::transform::RigidTransform transformer(&rigidbody);
         
         // Transform at constraint 1 - should rotate bodies 0 and 1 together
         auto* constraint = rigidbody.constraints->discoverable_constraints[1].get();
@@ -179,7 +179,7 @@ TEST_CASE("RigidTransform::apply branched structure") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 1, 3)
         );
         
-        transform::RigidTransform transformer(&rigidbody);
+        rigidbody::transform::RigidTransform transformer(&rigidbody);
         
         // Transform at constraint 0 - should move only body 0
         auto* constraint0 = rigidbody.constraints->discoverable_constraints[0].get();
@@ -217,7 +217,7 @@ TEST_CASE("RigidTransform::undo") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 1, 2)
         );
         
-        transform::RigidTransform transformer(&rigidbody);
+        rigidbody::transform::RigidTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[1].get();
         
         auto cm0_before = rigidbody.molecule.get_body(0).get_cm();

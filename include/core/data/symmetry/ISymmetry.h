@@ -4,6 +4,7 @@
 #pragma once
 
 #include <math/Matrix.h>
+#include <math/Transform.h>
 #include <math/Vector3.h>
 #include <utility/observer_ptr.h>
 
@@ -14,16 +15,6 @@
 #include <vector>
 
 namespace ausaxs::symmetry {
-    /**
-     * @brief A rigid affine map  v -> rotation*v + translation.
-     */
-    struct AffineTransform {
-        Matrix<double> rotation = Matrix<double>::identity(3);
-        Vector3<double> translation{0, 0, 0};
-
-        Vector3<double> operator()(const Vector3<double>& v) const {return rotation*v + translation;}
-    };
-
     /**
      * @brief One representative inter-copy distance correlation job.
      *
@@ -53,7 +44,7 @@ namespace ausaxs::symmetry {
         /**
          * @brief Get the transform generating copy @p rep from the body's current coordinates.
          */
-        [[nodiscard]] AffineTransform _get_transform(const Vector3<double>& cm, int rep = 1) const;
+        [[nodiscard]] transform::Affine _get_transform(const Vector3<double>& cm, int rep = 1) const;
 
         /**
          * @brief Get the transform generating copy @p rep from the body's current coordinates, for a body whose orientation has
@@ -62,7 +53,7 @@ namespace ausaxs::symmetry {
          * @param body_orientation The rotation taking the owning body from the orientation it had when the symmetry was defined
          *                         to its current one. An empty optional means the body has not been reoriented.
          */
-        [[nodiscard]] AffineTransform _get_transform(
+        [[nodiscard]] transform::Affine _get_transform(
             const Vector3<double>& cm, const std::optional<Matrix<double>>& body_orientation, int rep = 1
         ) const;
 
@@ -112,7 +103,7 @@ namespace ausaxs::symmetry {
          *
          * @param anchor The point to anchor the copies to, already resolved through _transform_anchor() by the caller.
          */
-        [[nodiscard]] virtual AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const = 0;
+        [[nodiscard]] virtual transform::Affine _make_transform(const Vector3<double>& anchor, int rep) const = 0;
 
         /**
          * @brief The point _make_transform anchors its copies to. Defaults to the body's centre of mass; symmetries anchored

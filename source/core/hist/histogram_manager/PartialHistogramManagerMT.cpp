@@ -5,6 +5,7 @@
 
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>  // IWYU pragma: keep
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/SimpleCalculator.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -172,13 +173,13 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::update_compact_representation_body(int index) {
-    this->coords_a[index] = detail::CompactCoordinates<variable_bin_width>(this->protein->get_body(index).get_atoms());
+    this->coords_a[index] = hist::detail::factory::construct<variable_bin_width>(this->protein->get_body(index).get_atoms());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(this->coords_a[index], this->protein);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::update_compact_representation_water() {
-    this->coords_w = detail::CompactCoordinates<variable_bin_width>(this->protein->get_waters());
+    this->coords_w = hist::detail::factory::construct_from_waters<variable_bin_width>(this->protein);
 }
 
 template<bool weighted_bins, bool variable_bin_width>

@@ -43,7 +43,7 @@ Vector3<double> ReferenceSymmetry::combined_cm() const {
     return sum/total;
 }
 
-AffineTransform ReferenceSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
+transform::Affine ReferenceSymmetry::_make_transform(const Vector3<double>& anchor, int rep) const {
     return base->_get_transform(anchor, rep);
 }
 
@@ -91,7 +91,7 @@ observer_ptr<const ReferenceSymmetry> ReferenceSymmetryView::target() const {
 }
 
 // the view must place its copies with exactly the operator the target does, so it borrows the target's anchor rather than deriving one of its own
-AffineTransform ReferenceSymmetryView::_make_transform(const Vector3<double>& anchor, int rep) const {
+transform::Affine ReferenceSymmetryView::_make_transform(const Vector3<double>& anchor, int rep) const {
     return target()->_make_transform(anchor, rep);
 }
 

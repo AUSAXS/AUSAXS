@@ -3,12 +3,7 @@
 
 /**
  * @brief This file contains custom vector instructions for efficient scattering calculations.
- * 
- * The implementation is specialized for generic systems defined by a collection of [x: float, y: float, z: float, ff_type: int32] vectors.
- * This is useful for X-ray calculations with different atomic species, where each atom may have a different form factor type.
- * Note the distinction from CompactCoordinatesXYZFF, which is specialized for systems defined by a collection of [x, y, z, w] float vectors.
- *
- * The returned form factor bin is calculated as ff_bin = ff2 + ff1 * N_ff_types, where N_ff_types is the total number of form factor types.
+ *       The implementation is specialized for generic systems defined by separate x, y, z and int32 form factor index array.
  */
 
 #pragma once
@@ -18,56 +13,61 @@
 #include <hist/detail/data/IntrinsicHelpers.h>
 #include <hist/detail/data/IntrinsicMacros.h>
 #include <hist/detail/data/WidthControllers.h>
-#include <math/Vector3.h>
 #include <settings/InternalState.h>
 
 #include <array>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
-#include <span>
+#include <type_traits>
 
 namespace ausaxs::hist::detail::xyzff {
     struct EvaluatedResult {
-        float distance;      // The exact distance 
         int32_t distance_bin; // The distance bin index
-        int32_t ff_bin;      // The form factor bin index
+        int32_t ff_bin;       // The form factor bin index
+        float distance;       // The exact distance
     };
 
+    // same as above, except it does not provide the exact distance
     struct EvaluatedResultRounded {
-        int32_t distance;   // The distance bin 
-        int32_t ff_bin;     // The form factor bin index
+        int32_t distance_bin;
+        int32_t ff_bin;
     };
 
+    // the block results share a common prefix layout: the bin indices, followed by the ff bins, followed by
+    // the exact distances for the non-rounded variants. this lets the kernels fill both variants through the
+    // same two pointers, writing the exact distances just past the end of the ff bins.
     struct alignas(16) QuadEvaluatedResult {
-        std::array<float, 4> distances;       // The raw distances (for weighted bin center calculation)
-        std::array<int32_t, 4> distance_bins; // The distance bin indices (for array indexing)
-        std::array<int32_t, 4> ff_bins;       // The form factor bin indices
+        std::array<int32_t, 4> distance_bins;
+        std::array<int32_t, 4> ff_bins;
+        std::array<float, 4>   distances;
     };
 
     struct alignas(16) QuadEvaluatedResultRounded {
-        std::array<int32_t, 4> distances;   // The distance bin
-        std::array<int32_t, 4> ff_bins;     // The form factor bin indices
+        std::array<int32_t, 4> distance_bins;
+        std::array<int32_t, 4> ff_bins;
     };
 
     struct alignas(32) OctoEvaluatedResult {
-        std::array<float, 8> distances;       // The raw distances (for weighted bin center calculation)
-        std::array<int32_t, 8> distance_bins; // The distance bin indices (for array indexing)
-        std::array<int32_t, 8> ff_bins;       // The form factor bin indices
+        std::array<int32_t, 8> distance_bins;
+        std::array<int32_t, 8> ff_bins;
+        std::array<float, 8>   distances;
     };
 
     struct alignas(32) OctoEvaluatedResultRounded {
-        std::array<int32_t, 8> distances;   // The distance bin
-        std::array<int32_t, 8> ff_bins;     // The form factor bin indices
+        std::array<int32_t, 8> distance_bins;
+        std::array<int32_t, 8> ff_bins;
     };
 
     struct alignas(64) HexaEvaluatedResult {
-        std::array<float, 16> distances;       // The raw distances
-        std::array<int32_t, 16> distance_bins; // The distance bin indices
-        std::array<int32_t, 16> ff_bins;       // The form factor bin indices
+        std::array<int32_t, 16> distance_bins;
+        std::array<int32_t, 16> ff_bins;
+        std::array<float, 16>   distances;
     };
 
     struct alignas(64) HexaEvaluatedResultRounded {
-        std::array<int32_t, 16> distances;   // The distance bin
-        std::array<int32_t, 16> ff_bins;     // The form factor bin indices
+        std::array<int32_t, 16> distance_bins;
+        std::array<int32_t, 16> ff_bins;
     };
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
@@ -80,15 +80,6 @@ namespace ausaxs::hist::detail::xyzff {
     static_assert(sizeof(HexaEvaluatedResult)        == 192, "hist::detail::HexaEvaluatedResult is not 192 bytes long");
     static_assert(sizeof(HexaEvaluatedResultRounded) == 128, "hist::detail::HexaEvaluatedResultRounded is not 128 bytes long");
 
-    // the SIMD kernels write their results with aligned stores, so the destination alignment must match the widest
-    // vector written into each struct: 16B for the SSE quads, 32B for the AVX2 octos, and 64B for the AVX-512 hexas
-    static_assert(alignof(QuadEvaluatedResult)        == 16, "hist::detail::QuadEvaluatedResult is not 16-byte aligned");
-    static_assert(alignof(QuadEvaluatedResultRounded) == 16, "hist::detail::QuadEvaluatedResultRounded is not 16-byte aligned");
-    static_assert(alignof(OctoEvaluatedResult)        == 32, "hist::detail::OctoEvaluatedResult is not 32-byte aligned");
-    static_assert(alignof(OctoEvaluatedResultRounded) == 32, "hist::detail::OctoEvaluatedResultRounded is not 32-byte aligned");
-    static_assert(alignof(HexaEvaluatedResult)        == 64, "hist::detail::HexaEvaluatedResult is not 64-byte aligned");
-    static_assert(alignof(HexaEvaluatedResultRounded) == 64, "hist::detail::HexaEvaluatedResultRounded is not 64-byte aligned");
-
     // ensure our structures are trivially copyable
     static_assert(std::is_trivial_v<EvaluatedResult>,            "hist::detail::EvaluatedResult is not trivial");
     static_assert(std::is_trivial_v<EvaluatedResultRounded>,     "hist::detail::EvaluatedResultRounded is not trivial");
@@ -100,104 +91,44 @@ namespace ausaxs::hist::detail::xyzff {
     static_assert(std::is_trivial_v<HexaEvaluatedResultRounded>, "hist::detail::HexaEvaluatedResultRounded is not trivial");
 
     // check that the structures have a standard memory layout. this is required for the reinterpret_casts.
-    static_assert(std::is_standard_layout_v<EvaluatedResult>,            "hist::detail::EvaluatedResult is not trivial");
-    static_assert(std::is_standard_layout_v<EvaluatedResultRounded>,     "hist::detail::EvaluatedResultRounded is not trivial");
-    static_assert(std::is_standard_layout_v<QuadEvaluatedResult>,        "hist::detail::QuadEvaluatedResult is not trivial");
-    static_assert(std::is_standard_layout_v<QuadEvaluatedResultRounded>, "hist::detail::QuadEvaluatedResultRounded is not trivial");
-    static_assert(std::is_standard_layout_v<OctoEvaluatedResult>,        "hist::detail::OctoEvaluatedResult is not trivial");
-    static_assert(std::is_standard_layout_v<OctoEvaluatedResultRounded>, "hist::detail::OctoEvaluatedResultRounded is not trivial");
-    static_assert(std::is_standard_layout_v<HexaEvaluatedResult>,        "hist::detail::HexaEvaluatedResult is not trivial");
-    static_assert(std::is_standard_layout_v<HexaEvaluatedResultRounded>, "hist::detail::HexaEvaluatedResultRounded is not trivial");
-}
+    static_assert(std::is_standard_layout_v<EvaluatedResult>,            "hist::detail::EvaluatedResult is not standard layout");
+    static_assert(std::is_standard_layout_v<EvaluatedResultRounded>,     "hist::detail::EvaluatedResultRounded is not standard layout");
+    static_assert(std::is_standard_layout_v<QuadEvaluatedResult>,        "hist::detail::QuadEvaluatedResult is not standard layout");
+    static_assert(std::is_standard_layout_v<QuadEvaluatedResultRounded>, "hist::detail::QuadEvaluatedResultRounded is not standard layout");
+    static_assert(std::is_standard_layout_v<OctoEvaluatedResult>,        "hist::detail::OctoEvaluatedResult is not standard layout");
+    static_assert(std::is_standard_layout_v<OctoEvaluatedResultRounded>, "hist::detail::OctoEvaluatedResultRounded is not standard layout");
+    static_assert(std::is_standard_layout_v<HexaEvaluatedResult>,        "hist::detail::HexaEvaluatedResult is not standard layout");
+    static_assert(std::is_standard_layout_v<HexaEvaluatedResultRounded>, "hist::detail::HexaEvaluatedResultRounded is not standard layout");
 
-namespace ausaxs::hist::detail {
-    template<bool variable_bin_width>
-    class alignas(16) CompactCoordinatesXYZFF : public WidthController<variable_bin_width> {
-        public:
-            using WidthController<variable_bin_width>::get_inv_width;
-            CompactCoordinatesXYZFF() noexcept = default;
-            CompactCoordinatesXYZFF(const CompactCoordinatesXYZFF& other) noexcept = default;
-            CompactCoordinatesXYZFF(CompactCoordinatesXYZFF&& other) noexcept = default;
-            CompactCoordinatesXYZFF& operator= (const CompactCoordinatesXYZFF& other) noexcept = default;
-            CompactCoordinatesXYZFF& operator= (CompactCoordinatesXYZFF&& other) noexcept = default;
+    // the kernels write the exact distances N entries past the start of the ff bins, so the arrays must be contiguous
+    static_assert(offsetof(QuadEvaluatedResult, ff_bins) ==  4*sizeof(int32_t) && offsetof(QuadEvaluatedResult, distances) ==  8*sizeof(int32_t), "hist::detail::QuadEvaluatedResult is not contiguous");
+    static_assert(offsetof(OctoEvaluatedResult, ff_bins) ==  8*sizeof(int32_t) && offsetof(OctoEvaluatedResult, distances) == 16*sizeof(int32_t), "hist::detail::OctoEvaluatedResult is not contiguous");
+    static_assert(offsetof(HexaEvaluatedResult, ff_bins) == 16*sizeof(int32_t) && offsetof(HexaEvaluatedResult, distances) == 32*sizeof(int32_t), "hist::detail::HexaEvaluatedResult is not contiguous");
 
-            template<numeric T>
-            CompactCoordinatesXYZFF(const Vector3<T>& v, int32_t ff) noexcept : value{.pos={static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z())}, .ff=ff} {}
-            CompactCoordinatesXYZFF(const Vector3<float>& v, int32_t ff) noexcept : value{.pos=v, .ff=ff} {}
-
-            /**
-             * @brief Calculate the @a binned distance and combined ff_bin between this and a single other CompactCoordinatesXYZFF.
-             */
-            xyzff::EvaluatedResultRounded evaluate_rounded(const CompactCoordinatesXYZFF& other) const noexcept;
-            xyzff::EvaluatedResult evaluate(const CompactCoordinatesXYZFF& other) const noexcept;
-
-            xyzff::QuadEvaluatedResultRounded evaluate_rounded_4(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
-            xyzff::QuadEvaluatedResult evaluate_4(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
-
-            xyzff::OctoEvaluatedResultRounded evaluate_rounded_8(std::span<const CompactCoordinatesXYZFF, 8> others) const noexcept;
-            xyzff::OctoEvaluatedResult evaluate_8(std::span<const CompactCoordinatesXYZFF, 8> others) const noexcept;
-
-            xyzff::HexaEvaluatedResultRounded evaluate_rounded_16(std::span<const CompactCoordinatesXYZFF, 16> others) const noexcept;
-            xyzff::HexaEvaluatedResult evaluate_16(std::span<const CompactCoordinatesXYZFF, 16> others) const noexcept;
-
-            union {
-                struct {Vector3<float> pos; int32_t ff;} value;
-                std::array<float, 4> data;
-            };
-
-        protected:
-            xyzff::EvaluatedResultRounded evaluate_rounded_scalar(const CompactCoordinatesXYZFF& other) const noexcept;
-            xyzff::EvaluatedResult evaluate_scalar(const CompactCoordinatesXYZFF& other) const noexcept;
-
-            xyzff::QuadEvaluatedResultRounded evaluate_rounded_4_scalar(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
-            xyzff::QuadEvaluatedResult evaluate_4_scalar(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
-            void evaluate_rounded_4_scalar_into(std::span<const CompactCoordinatesXYZFF, 4> others, int32_t* dist_out, int32_t* ff_out) const noexcept;
-            void evaluate_4_scalar_into(std::span<const CompactCoordinatesXYZFF, 4> others, float* dist_out, int32_t* bin_out, int32_t* ff_out) const noexcept;
-            void evaluate_rounded_8_scalar_into(std::span<const CompactCoordinatesXYZFF, 8> others, int32_t* dist_out, int32_t* ff_out) const noexcept;
-            void evaluate_8_scalar_into(std::span<const CompactCoordinatesXYZFF, 8> others, float* dist_out, int32_t* bin_out, int32_t* ff_out) const noexcept;
-
-            #if defined AUSAXS_USE_SSE2
-                xyzff::QuadEvaluatedResultRounded evaluate_rounded_4_sse(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
-                xyzff::QuadEvaluatedResult evaluate_4_sse(std::span<const CompactCoordinatesXYZFF, 4> others) const noexcept;
-                void evaluate_rounded_4_sse_into(std::span<const CompactCoordinatesXYZFF, 4> others, int32_t* dist_out, int32_t* ff_out) const noexcept;
-                void evaluate_4_sse_into(std::span<const CompactCoordinatesXYZFF, 4> others, float* dist_out, int32_t* bin_out, int32_t* ff_out) const noexcept;
-            #endif
-
-            #if defined AUSAXS_USE_AVX2
-                xyzff::OctoEvaluatedResultRounded evaluate_rounded_8_avx(std::span<const CompactCoordinatesXYZFF, 8> others) const noexcept;
-                xyzff::OctoEvaluatedResult evaluate_8_avx(std::span<const CompactCoordinatesXYZFF, 8> others) const noexcept;
-                void evaluate_rounded_8_avx_into(std::span<const CompactCoordinatesXYZFF, 8> others, int32_t* dist_out, int32_t* ff_out) const noexcept;
-                void evaluate_8_avx_into(std::span<const CompactCoordinatesXYZFF, 8> others, float* dist_out, int32_t* bin_out, int32_t* ff_out) const noexcept;
-            #endif
-
-            #if defined AUSAXS_USE_AVX512
-                xyzff::HexaEvaluatedResultRounded evaluate_rounded_16_avx512(std::span<const CompactCoordinatesXYZFF, 16> others) const noexcept;
-                xyzff::HexaEvaluatedResult evaluate_16_avx512(std::span<const CompactCoordinatesXYZFF, 16> others) const noexcept;
-            #endif
+    /**
+     * @brief A single atom, broadcast against a block of others.
+     */
+    struct Atom {
+        float x = 0, y = 0, z = 0;
+        int32_t ff = 0;
     };
-    static_assert(sizeof(CompactCoordinatesXYZFF<true>) == 16,               "CompactCoordinatesXYZFF is not 16 bytes. This is required for aligning SIMD instructions.");
-    static_assert(alignof(CompactCoordinatesXYZFF<true>) == 16,              "CompactCoordinatesXYZFF is not 16-byte aligned. This is required for the aligned SIMD loads of its own data.");
-    static_assert(std::is_trivial_v<CompactCoordinatesXYZFF<true>>,          "CompactCoordinatesXYZFF is not trivial");
-    static_assert(std::is_standard_layout_v<CompactCoordinatesXYZFF<true>>,  "CompactCoordinatesXYZFF is not standard layout");
-    static_assert(supports_nothrow_move_v<CompactCoordinatesXYZFF<true>>,    "CompactCoordinatesXYZFF should support nothrow move semantics.");
-    static_assert(sizeof(CompactCoordinatesXYZFF<false>) == 16,              "CompactCoordinatesXYZFF is not 16 bytes. This is required for aligning SIMD instructions.");
-    static_assert(alignof(CompactCoordinatesXYZFF<false>) == 16,             "CompactCoordinatesXYZFF is not 16-byte aligned. This is required for the aligned SIMD loads of its own data.");
-    static_assert(std::is_trivial_v<CompactCoordinatesXYZFF<false>>,         "CompactCoordinatesXYZFF is not trivial");
-    static_assert(std::is_standard_layout_v<CompactCoordinatesXYZFF<false>>, "CompactCoordinatesXYZFF is not standard layout");
-    static_assert(supports_nothrow_move_v<CompactCoordinatesXYZFF<false>>,   "CompactCoordinatesXYZFF should support nothrow move semantics.");
-}
 
-//#########################################//
-//############ IMPLEMENTATION #############//
-//#########################################//
+    /**
+     * @brief The first element of a block of atoms, one pointer per component.
+     *        The kernels read N consecutive entries from each; the caller guarantees they exist.
+     */
+    struct Block {
+        const float* x = nullptr;
+        const float* y = nullptr;
+        const float* z = nullptr;
+        const int32_t* ff = nullptr;
+    };
 
-// implementation defined in header to support efficient inlining
+    inline Block advance(Block b, int n) noexcept {return Block{.x=b.x+n, .y=b.y+n, .z=b.z+n, .ff=b.ff+n};}
 
-namespace ausaxs::hist::detail::xyzff {
     /**
      * @brief The row stride of the packed (ff1, ff2) index.
-     *        This must match the second dimension of the distribution the packed index is used as a
-     *        linear index into - see e.g. Distribution3D::increment_linear_index.
+     *        This must match the second dimension of the distribution the packed index is used as a linear index into.
      */
     inline int32_t ff_stride() noexcept {
         return static_cast<int32_t>(form_factor::get_active_count());
@@ -208,546 +139,234 @@ namespace ausaxs::hist::detail::xyzff {
     }
 }
 
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate(const CompactCoordinatesXYZFF& other) const  noexcept{
-    return evaluate_scalar(other);
-}
+//#########################################//
+//############ IMPLEMENTATION #############//
+//#########################################//
 
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::EvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded(const CompactCoordinatesXYZFF& other) const  noexcept{
-    return evaluate_rounded_scalar(other);
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_4(
-    std::span<const CompactCoordinatesXYZFF, 4> others
-) const noexcept {
-    #if defined AUSAXS_USE_SSE2
-        return evaluate_4_sse(others);
-    #else
-        return evaluate_4_scalar(others);
-    #endif
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_4(
-    std::span<const CompactCoordinatesXYZFF, 4> others
-) const noexcept {
-    #if defined AUSAXS_USE_SSE2
-        return evaluate_rounded_4_sse(others);
-    #else
-        return evaluate_rounded_4_scalar(others);
-    #endif
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_8(
-    std::span<const CompactCoordinatesXYZFF, 8> others
-) const noexcept {
-    #if defined AUSAXS_USE_AVX2
-        return evaluate_8_avx(others);
-    #elif defined AUSAXS_USE_SSE2
-        xyzff::OctoEvaluatedResult result;
-        evaluate_4_sse_into(others.template first<4>(), result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
-        evaluate_4_sse_into(others.template last<4>(), result.distances.data()+4, result.distance_bins.data()+4, result.ff_bins.data()+4);
-        return result;
-    #else
-        xyzff::OctoEvaluatedResult result;
-        evaluate_8_scalar_into(others, result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
-        return result;
-    #endif
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_8(
-    std::span<const CompactCoordinatesXYZFF, 8> others
-) const noexcept {
-    #if defined AUSAXS_USE_AVX2
-        return evaluate_rounded_8_avx(others);
-    #elif defined AUSAXS_USE_SSE2
-        xyzff::OctoEvaluatedResultRounded result;
-        evaluate_rounded_4_sse_into(others.template first<4>(), result.distances.data(), result.ff_bins.data());
-        evaluate_rounded_4_sse_into(others.template last<4>(), result.distances.data()+4, result.ff_bins.data()+4);
-        return result;
-    #else
-        xyzff::OctoEvaluatedResultRounded result;
-        evaluate_rounded_8_scalar_into(others, result.distances.data(), result.ff_bins.data());
-        return result;
-    #endif
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::HexaEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_16(
-    std::span<const CompactCoordinatesXYZFF, 16> others
-) const noexcept {
-    #if defined AUSAXS_USE_AVX512
-        return evaluate_16_avx512(others);
-    #elif defined AUSAXS_USE_AVX2
-        xyzff::HexaEvaluatedResult result;
-        evaluate_8_avx_into(others.template first<8>(), result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
-        evaluate_8_avx_into(others.template last<8>(), result.distances.data()+8, result.distance_bins.data()+8, result.ff_bins.data()+8);
-        return result;
-    #elif defined AUSAXS_USE_SSE2
-        xyzff::HexaEvaluatedResult result;
-        evaluate_4_sse_into(others.template first<4>(), result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
-        evaluate_4_sse_into(others.template subspan<4,4>(), result.distances.data()+4, result.distance_bins.data()+4, result.ff_bins.data()+4);
-        evaluate_4_sse_into(others.template subspan<8,4>(), result.distances.data()+8, result.distance_bins.data()+8, result.ff_bins.data()+8);
-        evaluate_4_sse_into(others.template last<4>(), result.distances.data()+12, result.distance_bins.data()+12, result.ff_bins.data()+12);
-        return result;
-    #else
-        xyzff::HexaEvaluatedResult result;
-        evaluate_8_scalar_into(others.template first<8>(), result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
-        evaluate_8_scalar_into(others.template last<8>(), result.distances.data()+8, result.distance_bins.data()+8, result.ff_bins.data()+8);
-        return result;
-    #endif
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::HexaEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_16(
-    std::span<const CompactCoordinatesXYZFF, 16> others
-) const noexcept {
-    #if defined AUSAXS_USE_AVX512
-        return evaluate_rounded_16_avx512(others);
-    #elif defined AUSAXS_USE_AVX2
-        xyzff::HexaEvaluatedResultRounded result;
-        evaluate_rounded_8_avx_into(others.template first<8>(), result.distances.data(), result.ff_bins.data());
-        evaluate_rounded_8_avx_into(others.template last<8>(), result.distances.data()+8, result.ff_bins.data()+8);
-        return result;
-    #elif defined AUSAXS_USE_SSE2
-        xyzff::HexaEvaluatedResultRounded result;
-        evaluate_rounded_4_sse_into(others.template first<4>(), result.distances.data(), result.ff_bins.data());
-        evaluate_rounded_4_sse_into(others.template subspan<4,4>(), result.distances.data()+4, result.ff_bins.data()+4);
-        evaluate_rounded_4_sse_into(others.template subspan<8,4>(), result.distances.data()+8, result.ff_bins.data()+8);
-        evaluate_rounded_4_sse_into(others.template last<4>(), result.distances.data()+12, result.ff_bins.data()+12);
-        return result;
-    #else
-        xyzff::HexaEvaluatedResultRounded result;
-        evaluate_rounded_8_scalar_into(others.template first<8>(), result.distances.data(), result.ff_bins.data());
-        evaluate_rounded_8_scalar_into(others.template last<8>(), result.distances.data()+8, result.ff_bins.data()+8);
-        return result;
-    #endif
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::EvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_scalar(
-    const CompactCoordinatesXYZFF& other
-) const noexcept {
-    float dist = std::sqrt(squared_dot_product(this->data.data(), other.data.data()));
-    int32_t dist_bin = std::round(get_inv_width() * dist);
-    int32_t ff_bin = xyzff::ff_bin_index(this->value.ff, other.value.ff);
-    return xyzff::EvaluatedResult(dist, dist_bin, ff_bin);
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::EvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_scalar(
-    const CompactCoordinatesXYZFF& other
-) const noexcept {
-    int32_t dist = std::round(get_inv_width()*std::sqrt(squared_dot_product(this->data.data(), other.data.data())));
-    int32_t ff_bin = xyzff::ff_bin_index(this->value.ff, other.value.ff);
-    return xyzff::EvaluatedResultRounded(dist, ff_bin);
-}
-
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_4_scalar_into(
-    std::span<const CompactCoordinatesXYZFF, 4> others,
-    float* dist_out, int32_t* bin_out, int32_t* ff_out
-) const noexcept {
-    float inv_width = get_inv_width();
-    for (int i = 0; i < 4; ++i) {
-        float dist = std::sqrt(squared_dot_product(this->data.data(), others[i].data.data()));
-        dist_out[i] = dist;
-        bin_out[i] = static_cast<int32_t>(std::round(inv_width * dist));
-        ff_out[i] = xyzff::ff_bin_index(this->value.ff, others[i].value.ff);
-    }
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_4_scalar(
-    std::span<const CompactCoordinatesXYZFF, 4> others
-) const noexcept {
-    xyzff::QuadEvaluatedResult result;
-    evaluate_4_scalar_into(others, result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
-    return result;
-}
-
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_4_scalar_into(
-    std::span<const CompactCoordinatesXYZFF, 4> others,
-    int32_t* dist_out, int32_t* ff_out
-) const noexcept {
-    float inv_width = get_inv_width();
-    for (int i = 0; i < 4; ++i) {
-        dist_out[i] = static_cast<int32_t>(std::round(inv_width * std::sqrt(squared_dot_product(this->data.data(), others[i].data.data()))));
-        ff_out[i] = xyzff::ff_bin_index(this->value.ff, others[i].value.ff);
-    }
-}
-
-template<bool vbw>
-inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_4_scalar(
-    std::span<const CompactCoordinatesXYZFF, 4> others
-) const noexcept {
-    xyzff::QuadEvaluatedResultRounded result;
-    evaluate_rounded_4_scalar_into(others, result.distances.data(), result.ff_bins.data());
-    return result;
-}
-
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_8_scalar_into(
-    std::span<const CompactCoordinatesXYZFF, 8> others,
-    float* dist_out, int32_t* bin_out, int32_t* ff_out
-) const noexcept {
-    evaluate_4_scalar_into(others.template first<4>(), dist_out,     bin_out,     ff_out);
-    evaluate_4_scalar_into(others.template last<4>(),  dist_out + 4, bin_out + 4, ff_out + 4);
-}
-
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_8_scalar_into(
-    std::span<const CompactCoordinatesXYZFF, 8> others,
-    int32_t* dist_out, int32_t* ff_out
-) const noexcept {
-    evaluate_rounded_4_scalar_into(others.template first<4>(), dist_out,     ff_out);
-    evaluate_rounded_4_scalar_into(others.template last<4>(),  dist_out + 4, ff_out + 4);
-}
-
+// implementation defined in header to support efficient inlining
 #if defined AUSAXS_USE_SSE2
     #include <nmmintrin.h>
-    namespace ausaxs::hist::detail::xyzff {
-        template<bool vbw>
-        inline static __m128i ff_bin_index(int32_t ff_self, __m128 ff_others_raw) noexcept {
-            __m128 ff_others = _mm_cvtepi32_ps(_mm_castps_si128(ff_others_raw));
-            __m128 ff1_scaled = _mm_set_ps1(static_cast<float>(ff_self*ff_stride()));
-            return _mm_cvtps_epi32(_mm_add_ps(ff_others, ff1_scaled));
+#endif
+#if defined AUSAXS_USE_AVX2 || defined AUSAXS_USE_AVX512
+    #include <immintrin.h>
+#endif
+
+namespace ausaxs::hist::detail::xyzff {
+    //=========================== scalar ===========================//
+    /**
+     * @brief Evaluate a block of N atoms into the arrays starting at @a bin_out and @a ff_out. 
+     * 
+     * @a W is the width of the result being filled, which is larger than N when a result is assembled from several narrower blocks. 
+     * The exact distances are written to the array starting @a W entries past @a ff_out; the default 0 skips them, which is what 
+     * the rounded results want.
+     */
+    template<bool vbw, int N, int W = 0>
+    inline void evaluate_N_scalar(Atom self, Block other, int32_t* bin_out, int32_t* ff_out) noexcept {
+        const float inv_width = WidthController<vbw>::get_inv_width();
+        const int32_t ff_offset = self.ff*ff_stride();
+        for (int k = 0; k < N; ++k) {
+            float dx = self.x - other.x[k];
+            float dy = self.y - other.y[k];
+            float dz = self.z - other.z[k];
+            float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
+            bin_out[k] = static_cast<int32_t>(std::round(inv_width*dist));
+            ff_out[k] = other.ff[k] + ff_offset;
+            if constexpr (W != 0) {reinterpret_cast<float*>(ff_out + W)[k] = dist;}
         }
     }
 
+    //=========================== SSE2 ===========================//
+    #if defined AUSAXS_USE_SSE2
+        inline void body_4_sse(Atom self, Block other, __m128& dist, __m128i& ff_bins) noexcept {
+            __m128 dx = _mm_sub_ps(_mm_set_ps1(self.x), _mm_loadu_ps(other.x));
+            __m128 dy = _mm_sub_ps(_mm_set_ps1(self.y), _mm_loadu_ps(other.y));
+            __m128 dz = _mm_sub_ps(_mm_set_ps1(self.z), _mm_loadu_ps(other.z));
+            __m128 d2 = _mm_add_ps(_mm_add_ps(_mm_mul_ps(dx, dx), _mm_mul_ps(dy, dy)), _mm_mul_ps(dz, dz));
+            dist = _mm_sqrt_ps(d2);
+            ff_bins = _mm_add_epi32(
+                _mm_loadu_si128(reinterpret_cast<const __m128i*>(other.ff)),
+                _mm_set1_epi32(self.ff*ff_stride())
+            );
+        }
+
+        /// @brief Evaluate a block of 4 atoms. See evaluate_N_scalar for the meaning of the arguments.
+        template<bool vbw, int W = 0>
+        inline void evaluate_4_sse_into(Atom self, Block other, int32_t* bin_out, int32_t* ff_out) noexcept {
+            __m128 dist; __m128i ff_bins;
+            body_4_sse(self, other, dist, ff_bins);
+            _mm_storeu_si128(
+                reinterpret_cast<__m128i*>(bin_out),
+                _mm_cvtps_epi32(_mm_mul_ps(dist, _mm_set_ps1(WidthController<vbw>::get_inv_width())))
+            );
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(ff_out), ff_bins);
+            if constexpr (W != 0) {_mm_storeu_ps(reinterpret_cast<float*>(ff_out + W), dist);}
+        }
+    #endif
+
+    //=========================== AVX2 ===========================//
+    #if defined AUSAXS_USE_AVX2
+        inline void body_8_avx(Atom self, Block other, __m256& dist, __m256i& ff_bins) noexcept {
+            __m256 dx = _mm256_sub_ps(_mm256_set1_ps(self.x), _mm256_loadu_ps(other.x));
+            __m256 dy = _mm256_sub_ps(_mm256_set1_ps(self.y), _mm256_loadu_ps(other.y));
+            __m256 dz = _mm256_sub_ps(_mm256_set1_ps(self.z), _mm256_loadu_ps(other.z));
+            __m256 d2 = _mm256_fmadd_ps(dz, dz, _mm256_fmadd_ps(dy, dy, _mm256_mul_ps(dx, dx)));
+            dist = _mm256_sqrt_ps(d2);
+            ff_bins = _mm256_add_epi32(
+                _mm256_loadu_si256(reinterpret_cast<const __m256i*>(other.ff)),
+                _mm256_set1_epi32(self.ff*ff_stride())
+            );
+        }
+
+        /// @brief Evaluate a block of 8 atoms. See evaluate_N_scalar for the meaning of the arguments.
+        template<bool vbw, int W = 0>
+        inline void evaluate_8_avx_into(Atom self, Block other, int32_t* bin_out, int32_t* ff_out) noexcept {
+            __m256 dist; __m256i ff_bins;
+            body_8_avx(self, other, dist, ff_bins);
+            _mm256_storeu_si256(
+                reinterpret_cast<__m256i*>(bin_out),
+                _mm256_cvtps_epi32(_mm256_mul_ps(dist, _mm256_set1_ps(WidthController<vbw>::get_inv_width())))
+            );
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(ff_out), ff_bins);
+            if constexpr (W != 0) {_mm256_storeu_ps(reinterpret_cast<float*>(ff_out + W), dist);}
+        }
+    #endif
+
+    //=========================== AVX512 ===========================//
+    #if defined AUSAXS_USE_AVX512
+        inline void body_16_avx512(Atom self, Block other, __m512& dist, __m512i& ff_bins) noexcept {
+            __m512 dx = _mm512_sub_ps(_mm512_set1_ps(self.x), _mm512_loadu_ps(other.x));
+            __m512 dy = _mm512_sub_ps(_mm512_set1_ps(self.y), _mm512_loadu_ps(other.y));
+            __m512 dz = _mm512_sub_ps(_mm512_set1_ps(self.z), _mm512_loadu_ps(other.z));
+            __m512 d2 = _mm512_fmadd_ps(dz, dz, _mm512_fmadd_ps(dy, dy, _mm512_mul_ps(dx, dx)));
+            dist = _mm512_sqrt_ps(d2);
+            ff_bins = _mm512_add_epi32(
+                _mm512_loadu_si512(reinterpret_cast<const __m512i*>(other.ff)),
+                _mm512_set1_epi32(self.ff*ff_stride())
+            );
+        }
+
+        /// @brief Evaluate a block of 16 atoms. See evaluate_N_scalar for the meaning of the arguments.
+        template<bool vbw, int W = 0>
+        inline void evaluate_16_avx512_into(Atom self, Block other, int32_t* bin_out, int32_t* ff_out) noexcept {
+            __m512 dist; __m512i ff_bins;
+            body_16_avx512(self, other, dist, ff_bins);
+            _mm512_storeu_si512(
+                reinterpret_cast<__m512i*>(bin_out),
+                _mm512_cvtps_epi32(_mm512_mul_ps(dist, _mm512_set1_ps(WidthController<vbw>::get_inv_width())))
+            );
+            _mm512_storeu_si512(reinterpret_cast<__m512i*>(ff_out), ff_bins);
+            if constexpr (W != 0) {_mm512_storeu_ps(reinterpret_cast<float*>(ff_out + W), dist);}
+        }
+    #endif
+
+    //=========================== dispatch ===========================//
+    /**
+     * @brief Calculate the distance and combined ff_bin between @a self and a single other atom.
+     */
     template<bool vbw>
-    inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_4_sse_into(
-        std::span<const CompactCoordinatesXYZFF, 4> others,
-        float* dist_out, int32_t* bin_out, int32_t* ff_out
-    ) const noexcept {
-        const auto* p = reinterpret_cast<const float*>(others.data());
-        __m128 r1 = _mm_loadu_ps(p);
-        __m128 r2 = _mm_loadu_ps(p + 4);
-        __m128 r3 = _mm_loadu_ps(p + 8);
-        __m128 r4 = _mm_loadu_ps(p + 12);
+    inline EvaluatedResult evaluate(Atom self, Block other) noexcept {
+        float dx = self.x - other.x[0], dy = self.y - other.y[0], dz = self.z - other.z[0];
+        float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
+        return EvaluatedResult{
+            .distance_bin=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*dist)),
+            .ff_bin=ff_bin_index(self.ff, other.ff[0]),
+            .distance=dist};
+    }
 
-        // extract ff values (position 3, stored as int32) before computing differences
-        __m128i ff_bins = xyzff::ff_bin_index<vbw>(this->value.ff,
-            _mm_movehl_ps(_mm_unpackhi_ps(r3, r4), _mm_unpackhi_ps(r1, r2)));
-
-        __m128 sv = _mm_load_ps(this->data.data());
-        __m128 d1 = _mm_sub_ps(sv, r1);
-        __m128 d2 = _mm_sub_ps(sv, r2);
-        __m128 d3 = _mm_sub_ps(sv, r3);
-        __m128 d4 = _mm_sub_ps(sv, r4);
-        d1 = _mm_mul_ps(d1, d1);
-        d2 = _mm_mul_ps(d2, d2);
-        d3 = _mm_mul_ps(d3, d3);
-        d4 = _mm_mul_ps(d4, d4);
-
-        // 4x4 transpose: converts per-atom [dx²,dy²,dz²,dff²] to per-component rows, discarding ff
-        __m128 t0 = _mm_unpacklo_ps(d1, d2);   // [dx1²,dx2²,dy1²,dy2²]
-        __m128 t1 = _mm_unpackhi_ps(d1, d2);   // [dz1²,dz2²,dff1²,dff2²]
-        __m128 t2 = _mm_unpacklo_ps(d3, d4);   // [dx3²,dx4²,dy3²,dy4²]
-        __m128 t3 = _mm_unpackhi_ps(d3, d4);   // [dz3²,dz4²,dff3²,dff4²]
-        __m128 row_x = _mm_movelh_ps(t0, t2);  // [dx1²,dx2²,dx3²,dx4²]
-        __m128 row_y = _mm_movehl_ps(t2, t0);  // [dy1²,dy2²,dy3²,dy4²]
-        __m128 row_z = _mm_movelh_ps(t1, t3);  // [dz1²,dz2²,dz3²,dz4²]
-
-        __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
-        __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
-
-        _mm_store_ps(dist_out, dist_sqrt);
-        _mm_store_si128(reinterpret_cast<__m128i*>(bin_out), dist_bin);
-        _mm_store_si128(reinterpret_cast<__m128i*>(ff_out), ff_bins);
+    /**
+     * @brief Calculate the @a binned distance and combined ff_bin between @a self and a single other atom.
+     */
+    template<bool vbw>
+    inline EvaluatedResultRounded evaluate_rounded(Atom self, Block other) noexcept {
+        float dx = self.x - other.x[0], dy = self.y - other.y[0], dz = self.z - other.z[0];
+        return EvaluatedResultRounded{
+            .distance_bin=static_cast<int32_t>(std::round(WidthController<vbw>::get_inv_width()*std::sqrt(dx*dx + dy*dy + dz*dz))),
+            .ff_bin=ff_bin_index(self.ff, other.ff[0])};
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzff::QuadEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_4_sse(
-        std::span<const CompactCoordinatesXYZFF, 4> others
-    ) const noexcept {
-        xyzff::QuadEvaluatedResult result;
-        evaluate_4_sse_into(others, result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
-        return result;
+    inline QuadEvaluatedResult evaluate_4(Atom self, Block other) noexcept {
+        QuadEvaluatedResult r;
+        #if defined AUSAXS_USE_SSE2
+            evaluate_4_sse_into<vbw, 4>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #else
+            evaluate_N_scalar<vbw, 4, 4>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #endif
+        return r;
     }
 
     template<bool vbw>
-    inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_4_sse_into(
-        std::span<const CompactCoordinatesXYZFF, 4> others,
-        int32_t* dist_out, int32_t* ff_out
-    ) const noexcept {
-        const auto* p = reinterpret_cast<const float*>(others.data());
-        __m128 r1 = _mm_loadu_ps(p);
-        __m128 r2 = _mm_loadu_ps(p + 4);
-        __m128 r3 = _mm_loadu_ps(p + 8);
-        __m128 r4 = _mm_loadu_ps(p + 12);
-
-        // extract ff values (position 3, stored as int32) before computing differences
-        __m128i ff_bins = xyzff::ff_bin_index<vbw>(this->value.ff,
-            _mm_movehl_ps(_mm_unpackhi_ps(r3, r4), _mm_unpackhi_ps(r1, r2)));
-
-        __m128 sv = _mm_load_ps(this->data.data());
-        __m128 d1 = _mm_sub_ps(sv, r1);
-        __m128 d2 = _mm_sub_ps(sv, r2);
-        __m128 d3 = _mm_sub_ps(sv, r3);
-        __m128 d4 = _mm_sub_ps(sv, r4);
-        d1 = _mm_mul_ps(d1, d1);
-        d2 = _mm_mul_ps(d2, d2);
-        d3 = _mm_mul_ps(d3, d3);
-        d4 = _mm_mul_ps(d4, d4);
-
-        __m128 t0 = _mm_unpacklo_ps(d1, d2);
-        __m128 t1 = _mm_unpackhi_ps(d1, d2);
-        __m128 t2 = _mm_unpacklo_ps(d3, d4);
-        __m128 t3 = _mm_unpackhi_ps(d3, d4);
-        __m128 row_x = _mm_movelh_ps(t0, t2);
-        __m128 row_y = _mm_movehl_ps(t2, t0);
-        __m128 row_z = _mm_movelh_ps(t1, t3);
-
-        __m128 dist2 = _mm_add_ps(_mm_add_ps(row_x, row_y), row_z);
-        __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(get_inv_width()));
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);
-
-        _mm_store_si128(reinterpret_cast<__m128i*>(dist_out), dist_bin);
-        _mm_store_si128(reinterpret_cast<__m128i*>(ff_out), ff_bins);
+    inline QuadEvaluatedResultRounded evaluate_rounded_4(Atom self, Block other) noexcept {
+        QuadEvaluatedResultRounded r;
+        #if defined AUSAXS_USE_SSE2
+            evaluate_4_sse_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #else
+            evaluate_N_scalar<vbw, 4>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #endif
+        return r;
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzff::QuadEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_4_sse(
-        std::span<const CompactCoordinatesXYZFF, 4> others
-    ) const noexcept {
-        xyzff::QuadEvaluatedResultRounded result;
-        evaluate_rounded_4_sse_into(others, result.distances.data(), result.ff_bins.data());
-        return result;
-    }
-
-#endif
-
-#if defined AUSAXS_USE_AVX2
-    #include <immintrin.h>
-    template<bool vbw>
-    inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_8_avx_into(
-        std::span<const CompactCoordinatesXYZFF, 8> others,
-        float* dist_out, int32_t* bin_out, int32_t* ff_out
-    ) const noexcept {
-        const auto* p = reinterpret_cast<const float*>(others.data());
-        __m256 v12 = _mm256_loadu_ps(p);
-        __m256 v34 = _mm256_loadu_ps(p + 8);
-        __m256 v56 = _mm256_loadu_ps(p + 16);
-        __m256 v78 = _mm256_loadu_ps(p + 24);
-
-        // extract ff values (int32 at position 3 in each lane) before computing differences
-        __m256 fft0 = _mm256_unpackhi_ps(v12, v34);
-        __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
-        __m256 ff_raw = _mm256_shuffle_ps(fft0, fft1, _MM_SHUFFLE(3,2,3,2));
-        __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
-        __m256 ff1_scaled = _mm256_set1_ps(static_cast<float>(this->value.ff*xyzff::ff_stride()));
-        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, ff1_scaled));
-
-        // compute differences and square
-        __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
-        __m256 d12 = _mm256_sub_ps(svv, v12);
-        __m256 d34 = _mm256_sub_ps(svv, v34);
-        __m256 d56 = _mm256_sub_ps(svv, v56);
-        __m256 d78 = _mm256_sub_ps(svv, v78);
-        d12 = _mm256_mul_ps(d12, d12);
-        d34 = _mm256_mul_ps(d34, d34);
-        d56 = _mm256_mul_ps(d56, d56);
-        d78 = _mm256_mul_ps(d78, d78);
-
-        // in-lane 4x4 transpose: lo lanes → atoms {1,3,5,7}, hi lanes → atoms {2,4,6,8}
-        __m256 t0 = _mm256_unpacklo_ps(d12, d34);
-        __m256 t1 = _mm256_unpackhi_ps(d12, d34);
-        __m256 t2 = _mm256_unpacklo_ps(d56, d78);
-        __m256 t3 = _mm256_unpackhi_ps(d56, d78);
-        __m256 row_x = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1,0,1,0));
-        __m256 row_y = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3,2,3,2));
-        __m256 row_z = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1,0,1,0));
-
-        __m256 dist2 = _mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z);
-        __m256 dist_sqrt = _mm256_sqrt_ps(dist2);
-        __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(dist_sqrt, _mm256_set1_ps(get_inv_width())));
-
-        _mm256_store_ps(dist_out, dist_sqrt);
-        _mm256_store_si256(reinterpret_cast<__m256i*>(bin_out), dist_bin);
-        _mm256_store_si256(reinterpret_cast<__m256i*>(ff_out), ff_bins);
+    inline OctoEvaluatedResult evaluate_8(Atom self, Block other) noexcept {
+        OctoEvaluatedResult r;
+        #if defined AUSAXS_USE_AVX2
+            evaluate_8_avx_into<vbw, 8>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #elif defined AUSAXS_USE_SSE2
+            evaluate_4_sse_into<vbw, 8>(self, other, r.distance_bins.data(), r.ff_bins.data());
+            evaluate_4_sse_into<vbw, 8>(self, advance(other, 4), r.distance_bins.data()+4, r.ff_bins.data()+4);
+        #else
+            evaluate_N_scalar<vbw, 8, 8>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #endif
+        return r;
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzff::OctoEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_8_avx(
-        std::span<const CompactCoordinatesXYZFF, 8> others
-    ) const noexcept {
-        xyzff::OctoEvaluatedResult result;
-        evaluate_8_avx_into(others, result.distances.data(), result.distance_bins.data(), result.ff_bins.data());
-        return result;
+    inline OctoEvaluatedResultRounded evaluate_rounded_8(Atom self, Block other) noexcept {
+        OctoEvaluatedResultRounded r;
+        #if defined AUSAXS_USE_AVX2
+            evaluate_8_avx_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #elif defined AUSAXS_USE_SSE2
+            evaluate_4_sse_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
+            evaluate_4_sse_into<vbw>(self, advance(other, 4), r.distance_bins.data()+4, r.ff_bins.data()+4);
+        #else
+            evaluate_N_scalar<vbw, 8>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #endif
+        return r;
     }
 
     template<bool vbw>
-    inline void ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_8_avx_into(
-        std::span<const CompactCoordinatesXYZFF, 8> others,
-        int32_t* dist_out, int32_t* ff_out
-    ) const noexcept {
-        const auto* p = reinterpret_cast<const float*>(others.data());
-        __m256 v12 = _mm256_loadu_ps(p);
-        __m256 v34 = _mm256_loadu_ps(p + 8);
-        __m256 v56 = _mm256_loadu_ps(p + 16);
-        __m256 v78 = _mm256_loadu_ps(p + 24);
-
-        __m256 fft0 = _mm256_unpackhi_ps(v12, v34);
-        __m256 fft1 = _mm256_unpackhi_ps(v56, v78);
-        __m256 ff_raw = _mm256_shuffle_ps(fft0, fft1, _MM_SHUFFLE(3,2,3,2));
-        __m256 ff_float = _mm256_cvtepi32_ps(_mm256_castps_si256(ff_raw));
-        __m256 ff1_scaled = _mm256_set1_ps(static_cast<float>(this->value.ff*xyzff::ff_stride()));
-        __m256i ff_bins = _mm256_cvtps_epi32(_mm256_add_ps(ff_float, ff1_scaled));
-
-        __m256 svv = _mm256_broadcast_ps(reinterpret_cast<const __m128*>(this->data.data()));
-        __m256 d12 = _mm256_sub_ps(svv, v12);
-        __m256 d34 = _mm256_sub_ps(svv, v34);
-        __m256 d56 = _mm256_sub_ps(svv, v56);
-        __m256 d78 = _mm256_sub_ps(svv, v78);
-        d12 = _mm256_mul_ps(d12, d12);
-        d34 = _mm256_mul_ps(d34, d34);
-        d56 = _mm256_mul_ps(d56, d56);
-        d78 = _mm256_mul_ps(d78, d78);
-
-        __m256 t0 = _mm256_unpacklo_ps(d12, d34);
-        __m256 t1 = _mm256_unpackhi_ps(d12, d34);
-        __m256 t2 = _mm256_unpacklo_ps(d56, d78);
-        __m256 t3 = _mm256_unpackhi_ps(d56, d78);
-        __m256 row_x = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1,0,1,0));
-        __m256 row_y = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3,2,3,2));
-        __m256 row_z = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1,0,1,0));
-
-        __m256i dist_bin = _mm256_cvtps_epi32(_mm256_mul_ps(_mm256_sqrt_ps(_mm256_add_ps(_mm256_add_ps(row_x, row_y), row_z)), _mm256_set1_ps(get_inv_width())));
-
-        _mm256_store_si256(reinterpret_cast<__m256i*>(dist_out), dist_bin);
-        _mm256_store_si256(reinterpret_cast<__m256i*>(ff_out), ff_bins);
+    inline HexaEvaluatedResult evaluate_16(Atom self, Block other) noexcept {
+        HexaEvaluatedResult r;
+        #if defined AUSAXS_USE_AVX512
+            evaluate_16_avx512_into<vbw, 16>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #elif defined AUSAXS_USE_AVX2
+            evaluate_8_avx_into<vbw, 16>(self, other, r.distance_bins.data(), r.ff_bins.data());
+            evaluate_8_avx_into<vbw, 16>(self, advance(other, 8), r.distance_bins.data()+8, r.ff_bins.data()+8);
+        #elif defined AUSAXS_USE_SSE2
+            for (int b = 0; b < 4; ++b) {
+                evaluate_4_sse_into<vbw, 16>(self, advance(other, 4*b), r.distance_bins.data()+4*b, r.ff_bins.data()+4*b);
+            }
+        #else
+            evaluate_N_scalar<vbw, 16, 16>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #endif
+        return r;
     }
 
     template<bool vbw>
-    inline ausaxs::hist::detail::xyzff::OctoEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_8_avx(
-        std::span<const CompactCoordinatesXYZFF, 8> others
-    ) const noexcept {
-        xyzff::OctoEvaluatedResultRounded result;
-        evaluate_rounded_8_avx_into(others, result.distances.data(), result.ff_bins.data());
-        return result;
+    inline HexaEvaluatedResultRounded evaluate_rounded_16(Atom self, Block other) noexcept {
+        HexaEvaluatedResultRounded r;
+        #if defined AUSAXS_USE_AVX512
+            evaluate_16_avx512_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #elif defined AUSAXS_USE_AVX2
+            evaluate_8_avx_into<vbw>(self, other, r.distance_bins.data(), r.ff_bins.data());
+            evaluate_8_avx_into<vbw>(self, advance(other, 8), r.distance_bins.data()+8, r.ff_bins.data()+8);
+        #elif defined AUSAXS_USE_SSE2
+            for (int b = 0; b < 4; ++b) {
+                evaluate_4_sse_into<vbw>(self, advance(other, 4*b), r.distance_bins.data()+4*b, r.ff_bins.data()+4*b);
+            }
+        #else
+            evaluate_N_scalar<vbw, 16>(self, other, r.distance_bins.data(), r.ff_bins.data());
+        #endif
+        return r;
     }
-#endif
-
-#if defined AUSAXS_USE_AVX512
-
-    template<bool vbw>
-    inline ausaxs::hist::detail::xyzff::HexaEvaluatedResult ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_16_avx512(
-        std::span<const CompactCoordinatesXYZFF, 16> others
-    ) const noexcept {
-        const auto* p = reinterpret_cast<const float*>(others.data());
-        __m512 v03   = _mm512_loadu_ps(p);
-        __m512 v47   = _mm512_loadu_ps(p + 16);
-        __m512 v811  = _mm512_loadu_ps(p + 32);
-        __m512 v1215 = _mm512_loadu_ps(p + 48);
-
-        // extract ff values from raw data before computing differences
-        const __m512i gather_ff = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
-        __m256 ff_lo_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v03, gather_ff, v47));
-        __m256 ff_hi_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v811, gather_ff, v1215));
-        __m512 ff_all_float = _mm512_cvtepi32_ps(_mm512_castps_si512(
-            _mm512_insertf32x8(_mm512_castps256_ps512(ff_lo_raw), ff_hi_raw, 1)));
-        __m512 ff1_scaled = _mm512_set1_ps(static_cast<float>(this->value.ff*xyzff::ff_stride()));
-        __m512i ff_bins = _mm512_cvtps_epi32(_mm512_add_ps(ff_all_float, ff1_scaled));
-
-        // compute squared differences (square-first for ILP)
-        __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
-        __m512 d03   = _mm512_sub_ps(svv, v03);
-        __m512 d47   = _mm512_sub_ps(svv, v47);
-        __m512 d811  = _mm512_sub_ps(svv, v811);
-        __m512 d1215 = _mm512_sub_ps(svv, v1215);
-        d03   = _mm512_mul_ps(d03, d03);
-        d47   = _mm512_mul_ps(d47, d47);
-        d811  = _mm512_mul_ps(d811, d811);
-        d1215 = _mm512_mul_ps(d1215, d1215);
-
-        // gather x², y², z² from each pair, then combine into full 512-bit vectors
-        const __m512i gather_x = _mm512_setr_epi32(0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0);
-        const __m512i gather_y = _mm512_setr_epi32(1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0);
-        const __m512i gather_z = _mm512_setr_epi32(2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0);
-
-        __m256 rx_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_x, d47));
-        __m256 rx_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_x, d1215));
-        __m512 row_x = _mm512_insertf32x8(_mm512_castps256_ps512(rx_lo), rx_hi, 1);
-
-        __m256 ry_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_y, d47));
-        __m256 ry_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_y, d1215));
-        __m512 row_y = _mm512_insertf32x8(_mm512_castps256_ps512(ry_lo), ry_hi, 1);
-
-        __m256 rz_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_z, d47));
-        __m256 rz_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_z, d1215));
-        __m512 row_z = _mm512_insertf32x8(_mm512_castps256_ps512(rz_lo), rz_hi, 1);
-
-        __m512 dist2 = _mm512_add_ps(_mm512_add_ps(row_x, row_y), row_z);
-        __m512 dist_sqrt = _mm512_sqrt_ps(dist2);
-        __m512i dist_bin = _mm512_cvtps_epi32(_mm512_mul_ps(dist_sqrt, _mm512_set1_ps(get_inv_width())));
-
-        xyzff::HexaEvaluatedResult result;
-        _mm512_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
-        _mm512_store_si512(reinterpret_cast<__m512i*>(result.distance_bins.data()), dist_bin);
-        _mm512_store_si512(reinterpret_cast<__m512i*>(result.ff_bins.data()), ff_bins);
-        return result;
-    }
-
-    template<bool vbw>
-    inline ausaxs::hist::detail::xyzff::HexaEvaluatedResultRounded ausaxs::hist::detail::CompactCoordinatesXYZFF<vbw>::evaluate_rounded_16_avx512(
-        std::span<const CompactCoordinatesXYZFF, 16> others
-    ) const noexcept {
-        const auto* p = reinterpret_cast<const float*>(others.data());
-        __m512 v03   = _mm512_loadu_ps(p);
-        __m512 v47   = _mm512_loadu_ps(p + 16);
-        __m512 v811  = _mm512_loadu_ps(p + 32);
-        __m512 v1215 = _mm512_loadu_ps(p + 48);
-
-        const __m512i gather_ff = _mm512_setr_epi32(3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0);
-        __m256 ff_lo_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v03, gather_ff, v47));
-        __m256 ff_hi_raw = _mm512_castps512_ps256(_mm512_permutex2var_ps(v811, gather_ff, v1215));
-        __m512 ff_all_float = _mm512_cvtepi32_ps(_mm512_castps_si512(
-            _mm512_insertf32x8(_mm512_castps256_ps512(ff_lo_raw), ff_hi_raw, 1)));
-        __m512 ff1_scaled = _mm512_set1_ps(static_cast<float>(this->value.ff*xyzff::ff_stride()));
-        __m512i ff_bins = _mm512_cvtps_epi32(_mm512_add_ps(ff_all_float, ff1_scaled));
-
-        __m512 svv = _mm512_broadcast_f32x4(_mm_load_ps(this->data.data()));
-        __m512 d03   = _mm512_sub_ps(svv, v03);
-        __m512 d47   = _mm512_sub_ps(svv, v47);
-        __m512 d811  = _mm512_sub_ps(svv, v811);
-        __m512 d1215 = _mm512_sub_ps(svv, v1215);
-        d03   = _mm512_mul_ps(d03, d03);
-        d47   = _mm512_mul_ps(d47, d47);
-        d811  = _mm512_mul_ps(d811, d811);
-        d1215 = _mm512_mul_ps(d1215, d1215);
-
-        const __m512i gather_x = _mm512_setr_epi32(0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0);
-        const __m512i gather_y = _mm512_setr_epi32(1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0);
-        const __m512i gather_z = _mm512_setr_epi32(2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0);
-
-        __m256 rx_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_x, d47));
-        __m256 rx_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_x, d1215));
-        __m512 row_x = _mm512_insertf32x8(_mm512_castps256_ps512(rx_lo), rx_hi, 1);
-
-        __m256 ry_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_y, d47));
-        __m256 ry_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_y, d1215));
-        __m512 row_y = _mm512_insertf32x8(_mm512_castps256_ps512(ry_lo), ry_hi, 1);
-
-        __m256 rz_lo = _mm512_castps512_ps256(_mm512_permutex2var_ps(d03, gather_z, d47));
-        __m256 rz_hi = _mm512_castps512_ps256(_mm512_permutex2var_ps(d811, gather_z, d1215));
-        __m512 row_z = _mm512_insertf32x8(_mm512_castps256_ps512(rz_lo), rz_hi, 1);
-
-        __m512i dist_bin = _mm512_cvtps_epi32(_mm512_mul_ps(
-            _mm512_sqrt_ps(_mm512_add_ps(_mm512_add_ps(row_x, row_y), row_z)),
-            _mm512_set1_ps(get_inv_width())));
-
-        xyzff::HexaEvaluatedResultRounded result;
-        _mm512_store_si512(reinterpret_cast<__m512i*>(result.distances.data()), dist_bin);
-        _mm512_store_si512(reinterpret_cast<__m512i*>(result.ff_bins.data()), ff_bins);
-        return result;
-    }
-#endif
+}

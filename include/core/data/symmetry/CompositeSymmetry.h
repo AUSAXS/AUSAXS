@@ -38,7 +38,7 @@ namespace ausaxs::symmetry {
         std::unique_ptr<ISymmetry> outer;
 
     protected:
-        AffineTransform _make_transform(const Vector3<double>& anchor, int rep) const override;
+        transform::Affine _make_transform(const Vector3<double>& anchor, int rep) const override;
     };
 
     /**

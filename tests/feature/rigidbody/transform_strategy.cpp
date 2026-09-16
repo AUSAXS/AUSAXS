@@ -191,7 +191,7 @@ TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
     settings::general::verbose = false;
 
     SECTION("get_connected") {
-        struct TestRigidTransform : public transform::RigidTransform {
+        struct TestRigidTransform : public rigidbody::transform::RigidTransform {
             using RigidTransform::RigidTransform;
             using RigidTransform::get_connected;
         };

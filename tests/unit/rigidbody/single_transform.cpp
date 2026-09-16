@@ -36,7 +36,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
         
-        transform::SingleTransform transformer(&rigidbody);
+        rigidbody::transform::SingleTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply translation
@@ -61,7 +61,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
         
-        transform::SingleTransform transformer(&rigidbody);
+        rigidbody::transform::SingleTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply 90-degree rotation around z-axis
@@ -86,7 +86,7 @@ TEST_CASE("SingleTransform::apply basic transformations") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
         
-        transform::SingleTransform transformer(&rigidbody);
+        rigidbody::transform::SingleTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply rotation then translation
@@ -116,7 +116,7 @@ TEST_CASE("SingleTransform::undo") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
         
-        transform::SingleTransform transformer(&rigidbody);
+        rigidbody::transform::SingleTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         auto original_cm = rigidbody.molecule.get_body(0).get_cm();
@@ -161,7 +161,7 @@ TEST_CASE("SingleTransform::reconstructed body from stored parameters matches tr
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
         
-        transform::SingleTransform transformer(&rigidbody);
+        rigidbody::transform::SingleTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply transformation
@@ -202,7 +202,7 @@ TEST_CASE("SingleTransform::apply multiple sequential transformations") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 0, 1)
         );
         
-        transform::SingleTransform transformer(&rigidbody);
+        rigidbody::transform::SingleTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         // Apply first transformation
@@ -244,7 +244,7 @@ TEST_CASE("SingleTransform::apply only affects single body") {
             std::make_unique<constraints::DistanceConstraintBond>(&rigidbody.molecule, 1, 2)
         );
         
-        transform::SingleTransform transformer(&rigidbody);
+        rigidbody::transform::SingleTransform transformer(&rigidbody);
         auto* constraint = rigidbody.constraints->discoverable_constraints[0].get();
         
         auto body1_cm_before = rigidbody.molecule.get_body(1).get_cm();

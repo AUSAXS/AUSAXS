@@ -3,13 +3,14 @@
 
 #include <data/symmetry/ISymmetry.h>
 
+using namespace ausaxs;
 using namespace ausaxs::symmetry;
 
-AffineTransform ISymmetry::_get_transform(const Vector3<double>& cm, int rep) const {
+transform::Affine ISymmetry::_get_transform(const Vector3<double>& cm, int rep) const {
     return _make_transform(_transform_anchor(cm), rep);
 }
 
-AffineTransform ISymmetry::_get_transform(
+transform::Affine ISymmetry::_get_transform(
     const Vector3<double>& cm, const std::optional<Matrix<double>>& body_orientation, int rep
 ) const {
     auto c = _transform_anchor(cm);
@@ -22,7 +23,7 @@ AffineTransform ISymmetry::_get_transform(
     const auto& F = orientation.value();
     auto t = _make_transform(c, rep);
 
-    AffineTransform out;
+    transform::Affine out;
     out.rotation = F*t.rotation*F.transpose();
     out.translation = c + F*(t.rotation*c + t.translation - c) - out.rotation*c;
     return out;

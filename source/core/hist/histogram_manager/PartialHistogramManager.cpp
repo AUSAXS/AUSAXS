@@ -6,6 +6,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/detail/TemplateHelperSimple.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -15,8 +16,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <functional>
-#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -73,7 +72,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variab
                 calc_self_correlation(i);
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
-                this->coords_a[i] = detail::CompactCoordinates<variable_bin_width>(this->protein->get_body(i).get_atoms());
+                this->coords_a[i] = hist::detail::factory::construct<variable_bin_width>(this->protein->get_body(i).get_atoms());
                 hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], protein);
             }
         }
@@ -81,7 +80,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variab
 
     // check if the hydration layer was modified
     if (this->statemanager->is_modified_hydration()) {
-        this->coords_w = detail::CompactCoordinates<variable_bin_width>(this->protein->get_waters()); // if so, first update the compact coordinate representation
+        this->coords_w = hist::detail::factory::construct_from_waters<variable_bin_width>(this->protein); // if so, first update the compact coordinate representation
         calc_ww(); // then update the partial histogram
 
         // iterate through the lower triangle
@@ -203,38 +202,36 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bi
 
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_correlation(int index) {
-    detail::CompactCoordinates<variable_bin_width> current(this->protein->get_body(index).get_atoms());
+    auto current = hist::detail::factory::construct<variable_bin_width>(this->protein->get_body(index).get_atoms());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
 
     // calculate internal distances between atoms
     GenericDistribution1D_t p_aa(this->master.axis.bins);
-    for (int i = 0; i < static_cast<int>(current.size()); i++) {
+    for (int i = 0; i < current.size(); i++) {
         int j = i+1;
-        for (; j+15 < static_cast<int>(current.size()); j+=16) {
+        for (; j+15 < current.size(); j+=16) {
             evaluate16<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
 
-        for (; j+7 < static_cast<int>(current.size()); j+=8) {
+        for (; j+7 < current.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
 
-        for (; j+3 < static_cast<int>(current.size()); j+=4) {
+        for (; j+3 < current.size(); j+=4) {
             evaluate4<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
 
-        for (; j < static_cast<int>(current.size()); ++j) {
+        for (; j < current.size(); ++j) {
             evaluate1<variable_bin_width, 2>(p_aa, current, current, i, j);
         }
     }
 
     // calculate self-correlation
-    double total_weight = std::transform_reduce(
-        current.get_data().begin(), 
-        current.get_data().end(), 
-        0.0, 
-        std::plus{},
-        [] (const auto& val) {return val.value.w*val.value.w;}
-    );
+    double total_weight = 0;
+    for (int i = 0; i < current.size(); ++i) {
+        double w = current.get_weight(i);
+        total_weight += w*w;
+    }
     if constexpr (weighted_bins) {
         p_aa.add_index(0, WeightedEntry(total_weight, static_cast<std::int64_t>(total_weight), 0));
     } else {
@@ -257,21 +254,21 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aa(int n, 
     auto& coords_m = this->coords_a[m];
 
     GenericDistribution1D_t p_aa(this->master.axis.bins);
-    for (int i = 0; i < static_cast<int>(coords_n.size()); i++) {
+    for (int i = 0; i < coords_n.size(); i++) {
         int j = 0;
-        for (; j+15 < static_cast<int>(coords_m.size()); j+=16) {
+        for (; j+15 < coords_m.size(); j+=16) {
             evaluate16<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
 
-        for (; j+7 < static_cast<int>(coords_m.size()); j+=8) {
+        for (; j+7 < coords_m.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
 
-        for (; j+3 < static_cast<int>(coords_m.size()); j+=4) {
+        for (; j+3 < coords_m.size(); j+=4) {
             evaluate4<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
 
-        for (; j < static_cast<int>(coords_m.size()); ++j) {
+        for (; j < coords_m.size(); ++j) {
             evaluate1<variable_bin_width, 2>(p_aa, coords_n, coords_m, i, j);
         }
     }
@@ -306,19 +303,19 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aw(int ind
     GenericDistribution1D_t p_aw(this->master.axis.bins);
     for (int i = 0; i < static_cast<int>(coords.size()); i++) {
         int j = 0;
-        for (; j+15 < static_cast<int>(this->coords_w.size()); j+=16) {
+        for (; j+15 < this->coords_w.size(); j+=16) {
             evaluate16<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
-        for (; j+7 < static_cast<int>(this->coords_w.size()); j+=8) {
+        for (; j+7 < this->coords_w.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
-        for (; j+3 < static_cast<int>(this->coords_w.size()); j+=4) {
+        for (; j+3 < this->coords_w.size(); j+=4) {
             evaluate4<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
 
-        for (; j < static_cast<int>(this->coords_w.size()); ++j) {
+        for (; j < this->coords_w.size(); ++j) {
             evaluate1<variable_bin_width, 2>(p_aw, coords, this->coords_w, i, j);
         }
     }
@@ -333,33 +330,31 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
     GenericDistribution1D_t p_ww(this->master.axis.bins);
 
     // calculate internal distances for the hydration layer
-    for (int i = 0; i < static_cast<int>(this->coords_w.size()); i++) {
+    for (int i = 0; i < this->coords_w.size(); i++) {
         int j = i+1;
-        for (; j+15 < static_cast<int>(this->coords_w.size()); j+=16) {
+        for (; j+15 < this->coords_w.size(); j+=16) {
             evaluate16<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
 
-        for (; j+7 < static_cast<int>(this->coords_w.size()); j+=8) {
+        for (; j+7 < this->coords_w.size(); j+=8) {
             evaluate8<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
 
-        for (; j+3 < static_cast<int>(this->coords_w.size()); j+=4) {
+        for (; j+3 < this->coords_w.size(); j+=4) {
             evaluate4<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
 
-        for (; j < static_cast<int>(this->coords_w.size()); ++j) {
+        for (; j < this->coords_w.size(); ++j) {
             evaluate1<variable_bin_width, 2>(p_ww, this->coords_w, this->coords_w, i, j);
         }
     }
 
     // calculate self-correlation
-    double total_weight = std::transform_reduce(
-        this->coords_w.get_data().begin(), 
-        this->coords_w.get_data().end(), 
-        0.0, 
-        std::plus{},
-        [](const auto& val) {return val.value.w*val.value.w;}
-    );
+    double total_weight = 0;
+    for (int i = 0; i < this->coords_w.size(); ++i) {
+        double w = this->coords_w.get_weight(i);
+        total_weight += w*w;
+    }
 
     if constexpr (weighted_bins) {
         p_ww.add_index(0, WeightedEntry(total_weight, static_cast<std::int64_t>(total_weight), 0));
