@@ -563,7 +563,7 @@ TEST_CASE_METHOD(fixture, "Molecule::operator=: moving a Molecule keeps its grid
 TEST_CASE_METHOD(fixture, "Molecule::operator=: moving a Molecule discards its histogram manager") {
     Molecule dst({Body{std::vector{a1, a2}}, Body{std::vector{a3, a4}}});
     dst.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
-    REQUIRE(dst.get_histogram()->get_weighted_counts().size() != 0);     // force the manager into existence
+    REQUIRE(!dst.get_histogram()->get_weighted_counts().empty());       // force the manager into existence
 
     Molecule src(bodies);                                               // four bodies, eight atoms
     REQUIRE(src.size_body() == 4);
