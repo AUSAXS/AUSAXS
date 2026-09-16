@@ -9,8 +9,8 @@ namespace ausaxs::em::detail::header {
     enum class DataType {
         int8,       // int8 --> short int
         int16,      // int16 --> int
-        uint8,      // uint8 --> short int
-        uint16,     // uint16 --> int
+        uint8,      // uint8 --> short unsigned int
+        uint16,     // uint16 --> unsigned int
         float16,    // float16 --> float
         float32,    // float32 --> float
         complex32,  // complex32 (2x 16bit int)
