@@ -10,3 +10,8 @@ using namespace ausaxs::form_factor;
 double ausaxs::constants::charge::get_ff_charge(form_factor_t type) {
     return lookup::atomic::raw::get(type).I0();
 }
+
+double ausaxs::constants::charge::get_ff_charge(form_factor_t type, atom_t fallback_element) {
+    if (type == form_factor_t::OTHER) {return ausaxs::constants::charge::nuclear::get_charge(fallback_element);}
+    return get_ff_charge(type);
+}
