@@ -14,6 +14,7 @@ using namespace rigidbody;
 // test that we can consistently fit the same protein
 TEST_CASE("RigidBody: reusable fitter", "[files]") {
     settings::general::verbose = false;
+    settings::internal_state::allow_decorrelate_atom_order = false;
 
     Molecule protein_2epe("tests/files/2epe.pdb");
     Molecule protein_LAR12("tests/files/LAR1-2.pdb");

@@ -5,6 +5,7 @@
 
 #include <constants/ConstantsAxes.h>
 #include <hist/distribution/detail/WeightedEntry.h>
+#include <settings/InternalState.h>
 
 #include <ranges>
 
@@ -56,6 +57,7 @@ namespace ausaxs::hist::detail {
      */
     template<bool weighted_bins, typename... Sets>
     void decorrelate_order(int bin_count, Sets&... sets) {
+        if (!settings::internal_state::allow_decorrelate_atom_order) {return;}
         if (!atom_order::is_beneficial<weighted_bins>(bin_count)) {return;}
         (atom_order::shuffle_all(sets), ...);
     }
