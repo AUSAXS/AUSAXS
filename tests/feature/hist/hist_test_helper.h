@@ -35,14 +35,14 @@ double bin_or_zero(const T& p, int i) {
 }
 
 /**
- * @brief Check that the two containers are exactly identical. 
+ * @brief Check that the two containers are exactly identical over their common prefix.
  */
 template<container_type T1, container_type T2>
-bool compare_hist(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
-    int pmax = std::max<int>(p1.size(), p2.size());
-    for (int i = 0; i < pmax; ++i) {
-        if (!utility::approx(bin_or_zero(p1, i), bin_or_zero(p2, i), abs, rel)) {
-            std::cout << "Failed on index " << i << ". Values: " << bin_or_zero(p1, i) << ", " << bin_or_zero(p2, i) << std::endl;
+bool compare_hist(const T1& p1, const T2& p2, double abs = 1e-6, double rel = 1e-3) {
+    int pmin = std::min<int>(p1.size(), p2.size());
+    for (int i = 0; i < pmin; ++i) {
+        if (!utility::approx(p1[i], p2[i], abs, rel)) {
+            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
             return false;
         }
     }
