@@ -23,7 +23,7 @@ PDBAtom::PDBAtom() : uid(uid_counter++) {}
 
 PDBAtom::PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element, std::string resName, int serial) : 
     coords(v), resName(std::move(resName)), element(element), occupancy(occupancy), serial(serial), 
-    effective_charge(constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown))), uid(uid_counter++)
+    effective_charge(constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown), this->element)), uid(uid_counter++)
 {}
 
 PDBAtom::PDBAtom(int serial, std::string name, std::string altLoc, std::string resName, char chainID, int resSeq, std::string iCode, 
@@ -31,7 +31,7 @@ PDBAtom::PDBAtom(int serial, std::string name, std::string altLoc, std::string r
 : 
     coords(coords), name(std::move(name)), altLoc(std::move(altLoc)), resName(std::move(resName)), iCode(std::move(iCode)), charge(std::move(charge)), chainID(chainID),
     element(element), occupancy(occupancy), tempFactor(tempFactor), serial(serial), resSeq(resSeq), 
-    effective_charge(constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown))),
+    effective_charge(constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown), this->element)),
     uid(uid_counter++)
 {}
 
@@ -125,7 +125,7 @@ void PDBAtom::parse_pdb(const std::string& str) {
     }
 
     atomic_group = constants::atomic_group_t::unknown;
-    effective_charge = constants::charge::get_ff_charge(get_form_factor_type());
+    effective_charge = constants::charge::get_ff_charge(get_form_factor_type(), this->element);
 }
 
 void PDBAtom::add_implicit_hydrogens() {
@@ -133,7 +133,7 @@ void PDBAtom::add_implicit_hydrogens() {
     try {
         // First determine the atomic group, then get the form factor for that group
         atomic_group = constants::symbols::get_atomic_group(resName, name, element);
-        effective_charge = constants::charge::get_ff_charge(get_form_factor_type()) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
+        effective_charge = constants::charge::get_ff_charge(get_form_factor_type(), element) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
     } catch (const except::base&) {
         throw except::invalid_argument(
             "PDBAtom::add_implicit_hydrogens: Unknown atom name \"" + name + "\" in residue \"" + resName + "\"" 

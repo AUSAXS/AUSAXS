@@ -236,4 +236,10 @@ namespace ausaxs::constants::charge {
      *        This represents the scattering power of the atom/group.
      */
     double get_ff_charge(ausaxs::form_factor::form_factor_t type);
+
+    /**
+     * @brief Get the effective charge of an atom, with its element as a fallback.
+     *        When the form factor is unknown, the atomic charge is returned instead.
+     */
+    double get_ff_charge(ausaxs::form_factor::form_factor_t type, ausaxs::constants::atom_t fallback_element);
 }
