@@ -54,6 +54,16 @@ namespace ausaxs::em::detail::header {
             virtual int get_header_size() const = 0;
 
             /**
+             * @brief Get the size of the extended header in bytes.
+             *
+             * The extended header sits between the main header and the data section, so the voxels start at 
+             * get_header_size() + get_extended_header_size(). 
+             *
+             * @return The size in bytes, or 0 if the format has no extended header. 
+             */
+            virtual int get_extended_header_size() const {return 0;}
+
+            /**
              * @brief Get the axes of this map.
              */
             virtual Axis3D get_axes() const noexcept = 0;

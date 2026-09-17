@@ -7,10 +7,12 @@
 #include <em/detail/header/data/MRCData.h>
 #include <io/ExistingFile.h>
 #include <utility/Axis3D.h>
+#include <utility/Exceptions.h>
 
 #include <support/temp_file.h>
 
 #include <array>
+#include <filesystem>
 #include <fstream>
 
 using namespace ausaxs;
@@ -89,10 +91,12 @@ namespace {
         return static_cast<float>(100*x + 10*y + z);
     }
 
-    // write the density on an extent[0] x extent[1] x extent[2] grid of 1 Å voxels, stored in the given axis order
-    void write_map(const io::File& file, const std::array<int, 3>& extent, const std::array<int, 3>& order) {
+    // write the density on an extent[0] x extent[1] x extent[2] grid of 1 Å voxels, stored in the given axis order,
+    // preceded by an extended header of ext_size bytes
+    void write_map(const io::File& file, const std::array<int, 3>& extent, const std::array<int, 3>& order, int ext_size = 0) {
         em::detail::header::MRCData data;
         data.mode = 2;                                                      // float32
+        data.nsymbt = ext_size;
         data.mapc = order[0]; data.mapr = order[1]; data.maps = order[2];
         data.nx = extent[order[0]-1];                                       // the columns span axis order[0], and so on
         data.ny = extent[order[1]-1];
@@ -105,6 +109,12 @@ namespace {
         std::ofstream out(file.path(), std::ios::binary);
         REQUIRE(out.is_open());
         out.write(reinterpret_cast<const char*>(&data), sizeof(data));
+
+        // the extended header is opaque to us, so fill it with something that would be read as a voxel if it were skipped wrongly
+        for (int i = 0; i < ext_size; ++i) {
+            char byte = static_cast<char>(0xAB);
+            out.write(&byte, 1);
+        }
 
         // sections outermost, then rows, then columns, with counter c driving crystallographic axis order[c]
         for (int s = 0; s < data.nz; ++s) {
@@ -182,5 +192,60 @@ TEST_CASE("ImageStackBase::read: an unusable axis order falls back to the identi
                 CHECK(isb.image(z).index(x, y) == density(x, y, z));
             }
         }
+    }
+}
+
+// a crystallographic CCP4 map carries 80 bytes per symmetry operator between the header and the data, and nsymbt states how many.
+// That is an encoding detail the density does not know about, so a map must decode identically whether or not it has one.
+TEST_CASE("ImageStackBase::read: the extended header is skipped") {
+    std::array<int, 3> extent = {2, 3, 4};
+    auto ext_size = GENERATE(0, 80, 800);   // no operators, one, and the ten of a typical space group
+    INFO("extended header size " << ext_size);
+
+    test::TempFile file(".ccp4");
+    write_map(file, extent, {1, 2, 3}, ext_size);
+
+    em::ImageStackBase isb{io::ExistingFile(file.path())};
+    REQUIRE(isb.size() == extent[2]);
+    REQUIRE(isb.get_header()->get_extended_header_size() == ext_size);
+
+    for (int x = 0; x < extent[0]; ++x) {
+        for (int y = 0; y < extent[1]; ++y) {
+            for (int z = 0; z < extent[2]; ++z) {
+                INFO("voxel (" << x << ", " << y << ", " << z << ")");
+                CHECK(isb.image(z).index(x, y) == density(x, y, z));
+            }
+        }
+    }
+}
+
+// a file that stops short of what its own header promises must be rejected, not decoded into whatever the unread voxels happen to hold
+TEST_CASE("ImageStackBase::read: a truncated file is rejected") {
+    std::array<int, 3> extent = {2, 3, 4};
+
+    SECTION("truncated data section") {
+        test::TempFile file(".mrc");
+        write_map(file, extent, {1, 2, 3}, 80);
+
+        // drop the last four voxels
+        std::filesystem::resize_file(file.path(), std::filesystem::file_size(file.path()) - 4*sizeof(float));
+        CHECK_THROWS_AS(em::ImageStackBase{io::ExistingFile(file.path())}, except::io_error);
+    }
+
+    SECTION("truncated extended header") {
+        test::TempFile file(".mrc");
+        write_map(file, extent, {1, 2, 3}, 80);
+
+        // keep the header, but cut the extended header in half and lose the data with it
+        std::filesystem::resize_file(file.path(), sizeof(em::detail::header::MRCData) + 40);
+        CHECK_THROWS_AS(em::ImageStackBase{io::ExistingFile(file.path())}, except::io_error);
+    }
+
+    SECTION("truncated header") {
+        test::TempFile file(".mrc");
+        write_map(file, extent, {1, 2, 3});
+
+        std::filesystem::resize_file(file.path(), sizeof(em::detail::header::MRCData) - 1);
+        CHECK_THROWS_AS(em::ImageStackBase{io::ExistingFile(file.path())}, except::io_error);
     }
 }

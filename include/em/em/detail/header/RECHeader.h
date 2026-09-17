@@ -36,6 +36,11 @@ namespace ausaxs::em::detail::header {
             int get_header_size() const override;
 
             /**
+             * @brief Get the size of the extended header in bytes, as stated by the nsymbt field.
+             */
+            int get_extended_header_size() const override;
+
+            /**
              * @brief Get the index ordering of the data.
              * 
              * @return [x, y, z] where x, y, and z are the indices of the axes in the order they appear in the map.

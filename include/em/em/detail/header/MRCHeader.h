@@ -32,6 +32,11 @@ namespace ausaxs::em::detail::header {
             int get_header_size() const override;
 
             /**
+             * @brief Get the size of the extended header in bytes, as stated by the nsymbt field.
+             */
+            int get_extended_header_size() const override;
+
+            /**
              * @brief Get the data type for the map data. 
              * 
              * @return std::string representation of the data type. 

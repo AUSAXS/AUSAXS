@@ -44,6 +44,11 @@ int RECHeader::get_header_size() const {
     return sizeof(RECData);
 }
 
+int RECHeader::get_extended_header_size() const {
+    auto& p = cast_data();
+    return 0 < p.nsymbt ? p.nsymbt : 0;
+}
+
 Axis3D RECHeader::get_axes() const noexcept {
     return make_axes(cast_data());
 }
