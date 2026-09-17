@@ -122,5 +122,6 @@ namespace ausaxs::io::pdb {
             Terminate terminate;
             std::vector<PDBAtom> atoms;
             std::vector<PDBWater> waters;
+            bool supports_implicit_hydrogens = true;
     };
 }

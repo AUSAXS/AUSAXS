@@ -127,6 +127,11 @@ void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& h
 }
 
 void PDBStructure::add_implicit_hydrogens() {
+    if (!supports_implicit_hydrogens) {
+        console::print_text("\tPDBStructure::add_implicit_hydrogens: This structure does not carry the residue and atom naming required to assign implicit hydrogens. Skipping.");
+        return;
+    }
+
     for (auto& a : atoms) {
         // sanity check: if the structure already contains hydrogens, don't implicitly add more
         if (a.element != constants::atom_t::H) {continue;}

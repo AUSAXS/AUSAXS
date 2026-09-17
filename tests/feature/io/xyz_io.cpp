@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <data/Molecule.h>
 #include <io/detail/structure/XYZReader.h>
+#include <settings/All.h>
 
 #include <support/temp_file.h>
 
@@ -57,4 +59,26 @@ TEST_CASE("XYZReader::read") {
         REQUIRE_THAT(structure.atoms[1].coordinates().y(), Catch::Matchers::WithinAbs(-4.07825000, 1e-6));
         REQUIRE_THAT(structure.atoms[1].coordinates().z(), Catch::Matchers::WithinAbs(-6.11737500, 1e-6));
     }
+}
+
+TEST_CASE("XYZReader::read does not disable implicit hydrogens for later structures", "[files]") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = true;
+
+    Molecule before("tests/files/2epe.pdb");
+    double expected = before.get_total_atomic_charge();
+
+    {   // the .xyz itself must still get no implicit hydrogens
+        io::File file("tests/files/carbon_sphere.xyz");
+        auto structure = io::detail::xyz::read(file);
+        REQUIRE_FALSE(structure.supports_implicit_hydrogens);
+        structure.add_implicit_hydrogens();
+        for (const auto& a : structure.atoms) {REQUIRE(a.element == constants::atom_t::C);}
+    }
+
+    Molecule sphere("tests/files/carbon_sphere.xyz");
+    REQUIRE(settings::molecule::implicit_hydrogens);
+
+    Molecule after("tests/files/2epe.pdb");
+    REQUIRE_THAT(after.get_total_atomic_charge(), Catch::Matchers::WithinRel(expected, 1e-12));
 }
