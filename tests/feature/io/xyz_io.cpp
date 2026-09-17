@@ -42,6 +42,16 @@ TEST_CASE("XYZReader::read") {
         REQUIRE(structure.atoms[3].coordinates().x() == 1.2);
         REQUIRE(structure.atoms[3].coordinates().y() == 3.4);
         REQUIRE(structure.atoms[3].coordinates().z() == 5.6);
+
+        auto reduced = structure.reduced_representation();
+        for (int i = 0; i < static_cast<int>(reduced.atoms.size()); ++i) {
+            REQUIRE_THAT(
+                static_cast<double>(reduced.atoms[i].weight()),
+                Catch::Matchers::WithinRel(structure.atoms[i].effective_charge, 1e-6)
+            );
+        }
+        // gold must not be weighted as an unknown form factor would be
+        REQUIRE(reduced.atoms[3].weight() > 70);
     }
 
     SECTION("real file") {

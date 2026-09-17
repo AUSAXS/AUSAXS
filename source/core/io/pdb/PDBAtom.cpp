@@ -189,6 +189,7 @@ bool PDBAtom::is_water() const {return (resName == "HOH") || (resName == "SOL");
 void PDBAtom::set_element(constants::atom_t element) {
     assert(element != constants::atom_t::unknown && "PDBAtom::set_element: Attempted to set element to unknown.");
     this->element = element;
+    effective_charge = constants::charge::get_ff_charge(get_form_factor_type(), this->element);
 }
 
 void PDBAtom::set_element(const std::string& element) {

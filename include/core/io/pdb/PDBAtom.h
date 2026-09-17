@@ -142,7 +142,7 @@ namespace ausaxs::io::pdb {
             char chainID = ' ';
             constants::atom_t element = constants::atom_t::unknown;
             constants::atomic_group_t atomic_group = constants::atomic_group_t::unknown;
-            double occupancy = -1, tempFactor = -1;
+            double occupancy = 1, tempFactor = -1;
             int serial = -1, resSeq = -1; 
 
             // other properties

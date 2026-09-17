@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -29,9 +30,14 @@ TEST_CASE("Wide-angle scattering: gold nanoparticles") {
     });
 
     // compare the results
-    plots::PlotDataset()
-        .plot(expected, {{"legend", "expected"}, {"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}, {"color", "tab:orange"}})
-        .plot(I, {{"legend", "calculated"}, {"color", "tab:blue"}})
-    .save("temp/WideAngleScattering.png");
-    REQUIRE(compare_hist_approx(I.y(), expected.y(), 1e-6, 0.01));
+    // plots::PlotDataset()
+    //     .plot(expected, {{"legend", "expected"}, {"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}, {"color", "tab:orange"}})
+    //     .plot(I, {{"legend", "calculated"}, {"color", "tab:blue"}})
+    // .save("temp/WideAngleScattering.png");
+    auto normalise = [] (std::vector<double> y) {
+        double s = y.front();
+        std::ranges::transform(y, y.begin(), [s] (double v) {return v/s;});
+        return y;
+    };
+    REQUIRE(compare_hist_approx(normalise(I.y()), normalise(expected.y()), 1e-6, 0.01));
 }

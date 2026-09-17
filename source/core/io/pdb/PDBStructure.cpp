@@ -11,6 +11,7 @@
 #include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 
+#include <cassert>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -243,6 +244,8 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     md.residue_name.emplace().reserve(atoms.size());
 
     for (auto& a : atoms) {
+        assert(0 <= a.effective_charge && "PDBStructure::reduced_representation: encountered an atom whose effective_charge was never set. "
+            "Every reader must construct atoms through a path that derives it (set_element(), or a constructor/parse_pdb that takes an element).");
         res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);
 
         data::backbone_t bt = data::backbone_t::none;
@@ -256,7 +259,7 @@ PDBStructure::_res PDBStructure::reduced_representation() {
         md.chain_id->emplace_back(a.chainID);
         md.atom_name->emplace_back(a.name);
         md.residue_name->emplace_back(a.resName);
-        md.occupancy->emplace_back(0 <= a.occupancy ? static_cast<float>(a.occupancy) : 1.f);
+        md.occupancy->emplace_back(static_cast<float>(a.occupancy));
     }
 
     res.metadata = std::move(md);
