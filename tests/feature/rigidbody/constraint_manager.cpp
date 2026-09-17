@@ -3,15 +3,12 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <settings/All.h>
-
-#include <algorithm>
 
 #include <support/rb_metadata.h>
 
