@@ -83,21 +83,6 @@ if (DLIB)
 	add_compile_definitions("DLIB_AVAILABLE")
 endif()
 
-if(USE_SYSTEM_BACKWARD)
-	find_package(Backward REQUIRED)
-	find_path(BACKWARD_INCLUDE_DIR backward.hpp PATH_SUFFIXES backward)
-	if (NOT BACKWARD_INCLUDE_DIR)
-		message(FATAL_ERROR "backward-cpp headers not found")
-	endif()
-else()
-	FetchContent_Declare(
-		backward
-		GIT_REPOSITORY https://github.com/bombela/backward-cpp
-	)
-	FetchContent_MakeAvailable(Backward)
-	set(BACKWARD_INCLUDE_DIR ${backward_SOURCE_DIR})
-endif()
-
 if(USE_SYSTEM_THREADPOOL)
 	find_path(BS_THREAD_POOL_INCLUDE_DIR BS_thread_pool.hpp)
 	if (NOT BS_THREAD_POOL_INCLUDE_DIR)
@@ -132,8 +117,7 @@ set_property(
     PROPERTY COMPILE_OPTIONS ${compile_options}
 )
 unset(compile_options)
-
-include_directories(${BS_THREAD_POOL_INCLUDE_DIR} ${GCEM_INCLUDE_DIR} ${BACKWARD_INCLUDE_DIR})
+include_directories(${BS_THREAD_POOL_INCLUDE_DIR} ${GCEM_INCLUDE_DIR})
 
 ############################################
 ##           Find and link CURL           ##
@@ -154,6 +138,7 @@ elseif(UNIX)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
 	link_libraries("$<$<CONFIG:Debug>:-ldwarf>")
 endif()
+
 ############################################
 ##                Doxygen                 ##
 ############################################
@@ -169,15 +154,21 @@ if (DOXYGEN_FOUND)
 	)
 endif()
 
-
 ############################################
 ##           Build library                ##
 ############################################
-if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-	include(CheckIPOSupported)
-	check_ipo_supported(RESULT LTO_SUPPORTED)
-else()
+string(TOUPPER "${CMAKE_BUILD_TYPE}" AUSAXS_BUILD_TYPE_UPPER)
+if (NOT AUSAXS_BUILD_TYPE_UPPER STREQUAL "RELEASE")
 	set(LTO_SUPPORTED OFF)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND BUILD_TESTS)
+	set(LTO_SUPPORTED OFF)
+	message(STATUS "LTO disabled: MSVC cannot combine it with the symbol export BUILD_TESTS requires")
+else()
+	include(CheckIPOSupported)
+	check_ipo_supported(RESULT LTO_SUPPORTED OUTPUT LTO_MESSAGE)
+	if (NOT LTO_SUPPORTED)
+		message(STATUS "LTO unavailable: ${LTO_MESSAGE}")
+	endif()
 endif()
 
 add_subdirectory(source)

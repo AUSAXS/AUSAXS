@@ -10,7 +10,7 @@ else()
 	FetchContent_MakeAvailable(CLI11)
 endif()
 
-add_library(ausaxs_api OBJECT 
+add_library(ausaxs_api OBJECT
     "ObjectStorage.cpp"
 
     "api_helper.cpp"
@@ -34,4 +34,7 @@ add_library(ausaxs_api OBJECT
 
 target_include_directories(ausaxs_api PUBLIC "${CMAKE_SOURCE_DIR}/include/api")
 target_link_libraries(ausaxs_api ausaxs_core ausaxs_rigidbody ausaxs_em CLI11::CLI11)
-set_target_properties(ausaxs_api PROPERTIES POSITION_INDEPENDENT_CODE 1)
+set_target_properties(ausaxs_api PROPERTIES
+	POSITION_INDEPENDENT_CODE 1
+	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
+)

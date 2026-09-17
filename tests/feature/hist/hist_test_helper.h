@@ -27,10 +27,18 @@ class DebugMolecule : public data::Molecule {
 };
 
 /**
- * @brief Check that the two containers are exactly identical. 
+ * @brief Read a bin from a histogram, treating everything outside it as empty.
+ */
+template<container_type T>
+double bin_or_zero(const T& p, int i) {
+    return (0 <= i && i < static_cast<int>(p.size())) ? p[i] : 0;
+}
+
+/**
+ * @brief Check that the two containers are exactly identical over their common prefix.
  */
 template<container_type T1, container_type T2>
-bool compare_hist(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
+bool compare_hist(const T1& p1, const T2& p2, double abs = 1e-6, double rel = 1e-3) {
     int pmin = std::min<int>(p1.size(), p2.size());
     for (int i = 0; i < pmin; ++i) {
         if (!utility::approx(p1[i], p2[i], abs, rel)) {
@@ -46,24 +54,21 @@ bool compare_hist(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
  *        Variations across bin edges are allowed, meaning if a given bin is off by some amount, the following bin is checked for the difference. 
  */
 template<container_type T1, container_type T2>
-bool compare_hist_approx(T1 p1, T2 p2, double abs = 1e-6, double rel = 1e-3) {
-    int pmin = std::min<int>(p1.size(), p2.size());
-    for (int i = 0; i < pmin; ++i) {
-        if (!utility::approx(p1[i], p2[i], abs, rel)) {
+bool compare_hist_approx(const T1& p1, const T2& p2, double abs = 1e-6, double rel = 1e-3) {
+    int pmax = std::max<int>(p1.size(), p2.size());
+    for (int i = 0; i < pmax; ++i) {
+        if (!utility::approx(bin_or_zero(p1, i), bin_or_zero(p2, i), abs, rel)) {
             double sum1 = 0, sum2 = 0;
             for (int offset = -1; offset <= 1; ++offset) {
-                int idx = i + offset;
-                if (0 <= idx && idx < pmin) {
-                    sum1 += p1[idx];
-                    sum2 += p2[idx];    
-                }
+                sum1 += bin_or_zero(p1, i + offset);
+                sum2 += bin_or_zero(p2, i + offset);
             }
             if (!utility::approx(sum1, sum2, abs, rel)) {
                 std::cout << "Failed on index " << i << ". Window values: " << std::endl;
                 for (int offset = -1; offset <= 1; ++offset) {
                     int idx = i + offset;
-                    if (0 <= idx && idx < pmin) {
-                        std::cout << "\t" << p1[idx] << ", " << p2[idx] << std::endl;
+                    if (0 <= idx) {
+                        std::cout << "\t" << bin_or_zero(p1, idx) << ", " << bin_or_zero(p2, idx) << std::endl;
                     }
                 }
                 return false;

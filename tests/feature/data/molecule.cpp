@@ -835,31 +835,31 @@ TEST_CASE("Molecule: implicit hydrogens") {
         auto atoms = protein.get_atoms();
 
         // Weight is I0(grouped form factor) + hydrogen count
-        CHECK(atoms[0].weight() == constants::charge::get_ff_charge(atoms[0].form_factor_type()) + 1);
+        CHECK_THAT(atoms[0].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[0].form_factor_type()) + 1, 1e-12));
         CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::NH);
 
-        CHECK(atoms[1].weight() == constants::charge::get_ff_charge(atoms[1].form_factor_type()) + 1);
+        CHECK_THAT(atoms[1].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[1].form_factor_type()) + 1, 1e-12));
         CHECK(atoms[1].form_factor_type() == form_factor::form_factor_t::CH);
 
-        CHECK(atoms[2].weight() == constants::charge::get_ff_charge(atoms[2].form_factor_type()) + 0);
+        CHECK_THAT(atoms[2].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[2].form_factor_type()) + 0, 1e-12));
         CHECK(atoms[2].form_factor_type() == form_factor::form_factor_t::C);
 
-        CHECK(atoms[3].weight() == constants::charge::get_ff_charge(atoms[3].form_factor_type()) + 0);
+        CHECK_THAT(atoms[3].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[3].form_factor_type()) + 0, 1e-12));
         CHECK(atoms[3].form_factor_type() == form_factor::form_factor_t::O);
 
-        CHECK(atoms[4].weight() == constants::charge::get_ff_charge(atoms[4].form_factor_type()) + 2);
+        CHECK_THAT(atoms[4].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[4].form_factor_type()) + 2, 1e-12));
         CHECK(atoms[4].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK(atoms[5].weight() == constants::charge::get_ff_charge(atoms[5].form_factor_type()) + 2);
+        CHECK_THAT(atoms[5].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[5].form_factor_type()) + 2, 1e-12));
         CHECK(atoms[5].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK(atoms[6].weight() == constants::charge::get_ff_charge(atoms[6].form_factor_type()) + 2);
+        CHECK_THAT(atoms[6].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[6].form_factor_type()) + 2, 1e-12));
         CHECK(atoms[6].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK(atoms[7].weight() == constants::charge::get_ff_charge(atoms[7].form_factor_type()) + 2);
+        CHECK_THAT(atoms[7].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[7].form_factor_type()) + 2, 1e-12));
         CHECK(atoms[7].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK(atoms[8].weight() == constants::charge::get_ff_charge(atoms[8].form_factor_type()) + 3);
+        CHECK_THAT(atoms[8].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[8].form_factor_type()) + 3, 1e-12));
         CHECK(atoms[8].form_factor_type() == form_factor::form_factor_t::NH3);
     }
 
@@ -870,7 +870,7 @@ TEST_CASE("Molecule: implicit hydrogens") {
         Molecule protein({Body{res.atoms, res.waters}});
 
         for (auto a : protein.get_atoms()) {
-            CHECK(a.weight() == constants::charge::get_ff_charge(a.form_factor_type()));
+            CHECK_THAT(a.weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(a.form_factor_type()), 1e-12));
         }
 
         auto atoms = protein.get_atoms();

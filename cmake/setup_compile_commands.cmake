@@ -91,7 +91,11 @@ function(setup_compile_commands)
             "$<$<STREQUAL:${SYS_ARCH},arm64>:/arch:armv8.0>"
         )
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded" PARENT_SCOPE)
-        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE PARENT_SCOPE)
+
+        # only the test binaries need this: they link the DLL and reach into the library internals, so their export set is every symbol.
+        if (BUILD_TESTS)
+            set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE PARENT_SCOPE)
+        endif()
 
     else()
         list(APPEND CompilerFlags

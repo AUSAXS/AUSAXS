@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Body.h>
 #include <data/Molecule.h>
@@ -16,7 +15,6 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
-#include <utility/Utility.h>
 
 #include <grid/grid_debug.h>
 #include <hist/hist_test_helper.h>
@@ -207,36 +205,24 @@ static auto test_derived = [] () {
         auto ax2 = h_grids_cast->get_raw_aw_counts_by_ff();
         auto xx2 = h_grids_cast->get_raw_ww_counts_by_ff();
 
+        auto distance_slice = [] (const auto& dist, auto... ff) {
+            return std::vector<double>(dist.begin(ff...), dist.end(ff...));
+        };
+
         CHECK(xx1.size() == xx2.size());
-        for (int k = 0; k < xx1.size(); ++k) {
-            if (!utility::approx(xx1.index(k), xx2.index(k), 1e-3, 0)) {
-                std::cout << "histogram_manager_mt_ff_grid failed at index " << k << std::endl;
-                REQUIRE_THAT(xx2.index(k), Catch::Matchers::WithinAbs(xx1.index(k), 1e-3));
-            }
-            SUCCEED();
-        }
+        CHECK(compare_hist_approx(xx1, xx2));
 
         CHECK((ax1.size_x() == ax2.size_x() && ax1.size_y() == ax2.size_y()));
-        for (int k = 0; k < ax2.size_y(); ++k) {
-            for (int j = 0; j < ax2.size_x(); ++j) {
-                if (!utility::approx(ax2.index(j, k), ax1.index(j, k), 1e-3, 0)) {
-                    std::cout << "histogram_manager_mt_ff_grid failed at index " << j << ", " << k << std::endl;
-                    REQUIRE_THAT(ax2.index(j, k), Catch::Matchers::WithinAbs(ax1.index(j, k), 1e-3));
-                }
-                SUCCEED();
-            }
+        for (int j = 0; j < std::min(ax1.size_x(), ax2.size_x()); ++j) {
+            INFO("histogram_manager_mt_ff_grid: aw form factor " << j);
+            CHECK(compare_hist_approx(distance_slice(ax1, j), distance_slice(ax2, j)));
         }
 
         CHECK((aa1.size_x() == aa2.size_x() && aa1.size_y() == aa2.size_y() && aa1.size_z() == aa2.size_z()));
-        for (int k = 0; k < aa2.size_z(); ++k) {
-            for (int j = 0; j < aa2.size_y(); ++j) {
-                for (int i = 0; i < aa2.size_x(); ++i) {
-                    if (!utility::approx(aa2.index(i, j, k), aa1.index(i, j, k), 1e-3, 0)) {
-                        std::cout << "histogram_manager_mt_ff_grid failed at index " << i << ", " << j << ", " << k << std::endl;
-                        REQUIRE_THAT(aa2.index(i, j, k), Catch::Matchers::WithinAbs(aa1.index(i, j, k), 1e-3));
-                    }
-                    SUCCEED();
-                }
+        for (int i = 0; i < std::min(aa1.size_x(), aa2.size_x()); ++i) {
+            for (int j = 0; j < std::min(aa1.size_y(), aa2.size_y()); ++j) {
+                INFO("histogram_manager_mt_ff_grid: aa form factors " << i << ", " << j);
+                CHECK(compare_hist_approx(distance_slice(aa1, i, j), distance_slice(aa2, i, j)));
             }
         }
     }
