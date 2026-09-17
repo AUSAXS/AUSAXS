@@ -19,9 +19,9 @@ WeightedDistribution1D::WeightedDistribution1D(const Distribution1D& other) : Co
     }
 }
 
-WeightedDistribution1D::WeightedDistribution1D(const std::vector<constants::axes::d_type>& bins) : WeightedDistribution1D(Distribution1D(bins)) {}
+WeightedDistribution1D::WeightedDistribution1D(const std::vector<double>& bins) : WeightedDistribution1D(Distribution1D(bins)) {}
 
-std::vector<constants::axes::d_type> WeightedDistribution1D::as_vector() const {
+std::vector<double> WeightedDistribution1D::as_vector() const {
     return get_content();
 }
 
@@ -29,23 +29,23 @@ void WeightedDistribution1D::clear(int32_t i) {
     index(i) = detail::WeightedEntry();
 }
 
-std::vector<constants::axes::d_type> WeightedDistribution1D::get_content() const {
-    std::vector<constants::axes::d_type> result(size());
+std::vector<double> WeightedDistribution1D::get_content() const {
+    std::vector<double> result(size());
     for (int i = 0; i < size(); i++) {
         result[i] = index(i).value;
     }
     return result;
 }
 
-constants::axes::d_type& WeightedDistribution1D::get_content(int i) {
+double& WeightedDistribution1D::get_content(int i) {
     return index(i).value;
 }
 
-const constants::axes::d_type& WeightedDistribution1D::get_content(int i) const {
+const double& WeightedDistribution1D::get_content(int i) const {
     return index(i).value;
 }
 
-void WeightedDistribution1D::set_content(int i, constants::axes::d_type value) {
+void WeightedDistribution1D::set_content(int i, double value) {
     index(i).value = value;
 }
 

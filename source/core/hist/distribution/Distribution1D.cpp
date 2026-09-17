@@ -10,25 +10,25 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-Distribution1D::Distribution1D(const WeightedDistribution1D& other) : container::Container1D<constants::axes::d_type>(other.get_content()) {}
+Distribution1D::Distribution1D(const WeightedDistribution1D& other) : container::Container1D<double>(other.get_content()) {}
 
-std::vector<constants::axes::d_type> Distribution1D::as_vector() const {
+std::vector<double> Distribution1D::as_vector() const {
     return this->data;
 }
 
-const std::vector<constants::axes::d_type>& Distribution1D::get_content() const {
+const std::vector<double>& Distribution1D::get_content() const {
     return this->data;
 }
 
-constants::axes::d_type& Distribution1D::get_content(int i) {
+double& Distribution1D::get_content(int i) {
     return index(i);
 }
 
-const constants::axes::d_type& Distribution1D::get_content(int i) const {
+const double& Distribution1D::get_content(int i) const {
     return index(i);
 }
 
-void Distribution1D::set_content(int i, constants::axes::d_type value) {
+void Distribution1D::set_content(int i, double value) {
     index(i) = value;
 }
 

@@ -13,7 +13,7 @@ namespace ausaxs::hist {
      * @brief This is a small wrapper around the Container1D class, indicating that the data
      *        is distributed along the constants::axes::d_vals axis.
      */
-    class Distribution1D : public container::Container1D<constants::axes::d_type> {
+    class Distribution1D : public container::Container1D<double> {
         public:
             using Container1D::Container1D;
             explicit Distribution1D(const WeightedDistribution1D& other);
@@ -21,23 +21,23 @@ namespace ausaxs::hist {
             /**
              * @brief Convert this distribution to a vector format. 
              */
-            std::vector<constants::axes::d_type> as_vector() const;
+            std::vector<double> as_vector() const;
 
             /**
              * @brief Get the bin values from this distribution.
              */
-            const std::vector<constants::axes::d_type>& get_content() const;
+            const std::vector<double>& get_content() const;
 
             /**
              * @brief Get a bin value from this distribution.
              */
-            constants::axes::d_type& get_content(int i);
-            const constants::axes::d_type& get_content(int i) const; // @copydoc get_content(int i)
+            double& get_content(int i);
+            const double& get_content(int i) const; // @copydoc get_content(int i)
 
             /**
              * @brief Set the value of the ith bin.
              */
-            void set_content(int i, constants::axes::d_type value);
+            void set_content(int i, double value);
 
             /**
              * @brief Add a value for a given bin index.
@@ -48,7 +48,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void add_index(int32_t i, constants::axes::d_type value) {
+            void add_index(int32_t i, double value) {
                 index(i) += N*value;
             }
 

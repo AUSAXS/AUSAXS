@@ -18,7 +18,7 @@
          * 
          * This table is evaluated at compile-time for the default q and d axes defined in the constants namespace.
          */
-        class ArrayDebyeTable : public DebyeTable, private container::ArrayContainer2D<constants::axes::d_type, constants::axes::q_axis.bins, constants::axes::d_axis.bins> {
+        class ArrayDebyeTable : public DebyeTable, private container::ArrayContainer2D<double, constants::axes::q_axis.bins, constants::axes::d_axis.bins> {
             public:
                 /**
                  * @brief Initialize a compile-time sinc lookup table.
@@ -50,12 +50,12 @@
                 /**
                  * @brief Get an iterator to the beginning of the d-values for the given q-index.
                  */
-                [[nodiscard]] const constants::axes::d_type* begin(int q_index) const override {return &ArrayContainer2D::index(q_index, 0);}
+                [[nodiscard]] const double* begin(int q_index) const override {return &ArrayContainer2D::index(q_index, 0);}
 
                 /**
                  * @brief Get an iterator to the end of the d-values for the given q-index.
                  */
-                [[nodiscard]] const constants::axes::d_type* end(int q_index) const override {return &ArrayContainer2D::index(q_index, size_d());}
+                [[nodiscard]] const double* end(int q_index) const override {return &ArrayContainer2D::index(q_index, size_d());}
 
                 /**
                  * @brief Get the default table. 
@@ -66,13 +66,13 @@
                  * @brief Check if the two vectors are compatible with the default table. 
                  *        Note that this check is only performed in debug mode.
                  */
-                static void check_default(const std::vector<double>& q, const std::vector<constants::axes::d_type>& d);
+                static void check_default(const std::vector<double>& q, const std::vector<double>& d);
 
                 /**
                  * @brief Check if the vector is compatible with the default table. 
                  *        Note that this check is only performed in debug mode.
                  */
-                static void check_default(const std::vector<constants::axes::d_type>& d);
+                static void check_default(const std::vector<double>& d);
 
             private: 
                 constexpr void initialize() noexcept {
@@ -83,7 +83,7 @@
                     for (int i = 0; i < static_cast<int>(size_q()); ++i) {
                         double q = constants::axes::q_vals[i];
                         for (int j = 0; j < static_cast<int>(size_d()); ++j) {
-                            constants::axes::d_type d = constants::axes::d_vals[j];
+                            double d = constants::axes::d_vals[j];
                             double qd = q*d;
                             if (qd < tolerance) {
                                 double qd2 = qd*qd;

@@ -33,22 +33,22 @@ namespace ausaxs::table {
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.
              */
-            [[nodiscard]] const constants::axes::d_type* begin(int q_index) const override;
+            [[nodiscard]] const double* begin(int q_index) const override;
 
             /**
              * @brief Get an iterator to the end of the d-values for the given q-index.
              */
-            [[nodiscard]] const constants::axes::d_type* end(int q_index) const override;
+            [[nodiscard]] const double* end(int q_index) const override;
 
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.
              */
-            [[nodiscard]] constants::axes::d_type* begin(int q_index);
+            [[nodiscard]] double* begin(int q_index);
 
             /**
              * @brief Get an iterator to the end of the d-values for the given q-index.
              */
-            [[nodiscard]] constants::axes::d_type* end(int q_index);
+            [[nodiscard]] double* end(int q_index);
 
             /**
              * @brief Get the default table.
@@ -59,13 +59,13 @@ namespace ausaxs::table {
              * @brief Check if the two vectors are compatible with the default table. 
              *        Note that this check is only performed in debug mode.
              */
-            static void check_default(const std::vector<double>& q, const std::vector<constants::axes::d_type>& d);
+            static void check_default(const std::vector<double>& q, const std::vector<double>& d);
 
             /**
              * @brief Check if the vector is compatible with the default table. 
              *        Note that this check is only performed in debug mode.
              */
-            static void check_default(const std::vector<constants::axes::d_type>& d);
+            static void check_default(const std::vector<double>& d);
 
         private: 
             /**

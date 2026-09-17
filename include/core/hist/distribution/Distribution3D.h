@@ -15,7 +15,7 @@ namespace ausaxs::hist {
      * @brief This is a small wrapper around the Container3D class, indicating that the data
      *        is distributed along the constants::axes::d_vals axis.
      */
-    class Distribution3D : public container::Container3D<constants::axes::d_type> {
+    class Distribution3D : public container::Container3D<double> {
         public:
             using Container3D::Container3D;
             explicit Distribution3D(const WeightedDistribution3D& other);
@@ -31,7 +31,7 @@ namespace ausaxs::hist {
              * @tparam N A multiplicative factor for the value.
              */
             template<int N = 1>
-            void add_index(int x, int y, int32_t i, constants::axes::d_type value) {
+            void add_index(int x, int y, int32_t i, double value) {
                 index(x, y, i) += N*value;
             }
 

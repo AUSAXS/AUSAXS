@@ -48,7 +48,7 @@
         #endif
     }
 
-    void ArrayDebyeTable::check_default(const std::vector<constants::axes::d_type>& d) {
+    void ArrayDebyeTable::check_default(const std::vector<double>& d) {
         #ifdef DEBUG
             // check empty
             if (d.empty()) [[unlikely]] {

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <constants/ConstantsAxes.h>
 #include <container/Container1D.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <settings/InternalState.h>
@@ -21,29 +20,29 @@ namespace ausaxs::hist {
         public:
             using Container1D::Container1D;
             WeightedDistribution1D(const Distribution1D& other);
-            WeightedDistribution1D(const std::vector<constants::axes::d_type>& bins);
+            WeightedDistribution1D(const std::vector<double>& bins);
 
             /**
              * @brief Convert this distribution to a vector format. 
              *        This is equivalent to get_content() for this class. 
              */
-            std::vector<constants::axes::d_type> as_vector() const;
+            std::vector<double> as_vector() const;
 
             /**
              * @brief Get the bin values from this distribution.
              */
-            std::vector<constants::axes::d_type> get_content() const;
+            std::vector<double> get_content() const;
 
             /**
              * @brief Get a bin value from this distribution.
              */
-            constants::axes::d_type& get_content(int i);
-            const constants::axes::d_type& get_content(int i) const; // @copydoc get_content(int i)
+            double& get_content(int i);
+            const double& get_content(int i) const; // @copydoc get_content(int i)
 
             /**
              * @brief Set the value of the ith bin.
              */
-            void set_content(int i, constants::axes::d_type value);
+            void set_content(int i, double value);
 
             /**
              * @brief Extract the weights from this distribution.
