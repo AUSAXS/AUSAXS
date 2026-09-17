@@ -49,6 +49,13 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file.str() + "\"");}
     input.read(header->get_data_ptr(), header->get_header_size());
+    if (input.fail()) {throw except::io_error("ImageStackBase::ImageStackBase: File \"" + file.str() + "\" is too small to contain a header.");}
+
+    // the data section starts after the extended header, if the map has one
+    if (int ext = header->get_extended_header_size(); 0 < ext) {
+        input.seekg(ext, std::ios::cur);
+        if (input.fail()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not skip the " + std::to_string(ext) + "-byte extended header of \"" + file.str() + "\".");}
+    }
 
     auto map_axes = header->get_axes();
     size_x = map_axes.x.bins;
@@ -127,6 +134,7 @@ void ImageStackBase::read(std::ifstream& istream) {
         }
     }
     // check that we have read the correct number of bytes
+    if (istream.fail()) {throw except::io_error("ImageStackBase::read: File is smaller than expected.");}
     if (istream.peek() != EOF) {throw except::io_error("ImageStackBase::read: File is larger than expected.");}
 
     // set z values
