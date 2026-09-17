@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <constants/ConstantsAxes.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <settings/InternalState.h>
 
@@ -26,7 +25,7 @@ namespace ausaxs::hist::detail {
             if constexpr (weighted_bins) {
                 return bin_count*static_cast<int>(sizeof(hist::detail::WeightedEntry));
             } else {
-                return bin_count*static_cast<int>(sizeof(constants::axes::d_type));
+                return bin_count*static_cast<int>(sizeof(double));
             }
         }
 

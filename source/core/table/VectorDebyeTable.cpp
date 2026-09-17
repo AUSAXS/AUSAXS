@@ -3,6 +3,7 @@
 
 #include <table/VectorDebyeTable.h>
 
+#include <constants/ConstantsAxes.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Axis.h>
 #include <utility/Console.h>
@@ -38,10 +39,10 @@ void VectorDebyeTable::initialize(const T1& q, const T2& d) {
     }
 }
 
-template VectorDebyeTable::VectorDebyeTable(const std::vector<constants::axes::d_type>&, const std::vector<double>&);
-template VectorDebyeTable::VectorDebyeTable(const std::vector<constants::axes::d_type>&, const std::array<double, constants::axes::q_axis.bins>&);
-template VectorDebyeTable::VectorDebyeTable(const std::array<constants::axes::d_type, constants::axes::d_axis.bins>&, const std::vector<double>&);
-template VectorDebyeTable::VectorDebyeTable(const std::array<constants::axes::d_type, constants::axes::d_axis.bins>&, const std::array<double, constants::axes::q_axis.bins>&);
+template VectorDebyeTable::VectorDebyeTable(const std::vector<double>&, const std::vector<double>&);
+template VectorDebyeTable::VectorDebyeTable(const std::vector<double>&, const std::array<double, constants::axes::q_axis.bins>&);
+template VectorDebyeTable::VectorDebyeTable(const std::array<double, constants::axes::d_axis.bins>&, const std::vector<double>&);
+template VectorDebyeTable::VectorDebyeTable(const std::array<double, constants::axes::d_axis.bins>&, const std::array<double, constants::axes::q_axis.bins>&);
 
 bool VectorDebyeTable::is_empty() const {return N == 0 || M == 0;}
 
@@ -49,19 +50,19 @@ double VectorDebyeTable::lookup(int q_index, int d_index) const {
     return index(q_index, d_index);
 }
 
-const constants::axes::d_type* VectorDebyeTable::begin(int q_index) const {
+const double* VectorDebyeTable::begin(int q_index) const {
     return data.data() + q_index*M;
 }
 
-const constants::axes::d_type* VectorDebyeTable::end(int q_index) const {
+const double* VectorDebyeTable::end(int q_index) const {
     return data.data() + (q_index+1)*M;
 }
 
-constants::axes::d_type* VectorDebyeTable::begin(int q_index) {
+double* VectorDebyeTable::begin(int q_index) {
     return data.data() + q_index*M;
 }
 
-constants::axes::d_type* VectorDebyeTable::end(int q_index) {
+double* VectorDebyeTable::end(int q_index) {
     return data.data() + (q_index+1)*M;
 }
 
@@ -81,7 +82,7 @@ const VectorDebyeTable& VectorDebyeTable::get_default_table() {
 #if DEBUG 
     #include <iostream>
 #endif
-void VectorDebyeTable::check_default(const std::vector<double>& q, const std::vector<constants::axes::d_type>& d) {
+void VectorDebyeTable::check_default(const std::vector<double>& q, const std::vector<double>& d) {
     #if DEBUG 
         if (!settings::general::warnings) {return;}
         const Axis& axis = constants::axes::q_axis;
@@ -115,7 +116,7 @@ void VectorDebyeTable::check_default(const std::vector<double>& q, const std::ve
     #endif
 }
 
-void VectorDebyeTable::check_default(const std::vector<constants::axes::d_type>& d) {
+void VectorDebyeTable::check_default(const std::vector<double>& d) {
     #ifdef DEBUG
         // check empty
         if (d.empty()) [[unlikely]] {
