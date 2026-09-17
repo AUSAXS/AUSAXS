@@ -3,15 +3,12 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <settings/All.h>
-
-#include <algorithm>
 
 #include <support/rb_metadata.h>
 
@@ -55,11 +52,12 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
     Rigidbody protein(Molecule{ap});
     test::mark_backbone_carbons(protein.molecule);
 
-    SECTION("OverlapConstraint") {
+    SECTION("OverlapConstraint is rejected") {
+        // the manager creates the one and only OverlapConstraint itself; a second must not be accepted
         constraints::ConstraintManager cm(&protein);
         auto initial_non_disc = cm.non_discoverable_constraints.size();
-        cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule));
-        CHECK(cm.non_discoverable_constraints.size() == initial_non_disc + 1);
+        CHECK_THROWS(cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule)));
+        CHECK(cm.non_discoverable_constraints.size() == initial_non_disc);
     }
 
     SECTION("DistanceConstraintBond") {
@@ -68,10 +66,17 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
         CHECK(cm.discoverable_constraints.size() == 1);
     }
 
+    SECTION("DistanceConstraintAtom") {
+        constraints::ConstraintManager cm(&protein);
+        auto initial_non_disc = cm.non_discoverable_constraints.size();
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintAtom>(&protein.molecule, 0, 0, 1, 0));
+        CHECK(cm.non_discoverable_constraints.size() == initial_non_disc + 1);
+    }
+
     SECTION("Multiple") {
         constraints::ConstraintManager cm(&protein);
         auto initial_non_disc = cm.non_discoverable_constraints.size();
-        cm.add_constraint(std::make_unique<constraints::OverlapConstraint>(&protein.molecule));
+        cm.add_constraint(std::make_unique<constraints::DistanceConstraintAtom>(&protein.molecule, 0, 0, 1, 0));
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         cm.add_constraint(std::make_unique<constraints::DistanceConstraintBond>(&protein.molecule, 0, 1));
         CHECK(cm.non_discoverable_constraints.size() == initial_non_disc + 1);

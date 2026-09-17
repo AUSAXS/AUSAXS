@@ -46,9 +46,11 @@ void ConstraintManager::add_constraint(std::unique_ptr<Constraint> constraint) {
         return;
     }
 
-    if (auto* cast = dynamic_cast<OverlapConstraint*>(constraint.get()); cast != nullptr) {
-        non_discoverable_constraints.emplace_back(std::move(constraint));
-        return;
+    if (dynamic_cast<OverlapConstraint*>(constraint.get()) != nullptr) {
+        throw except::invalid_argument(
+            "ConstraintManager::add_constraint: An OverlapConstraint is created together with the manager and exactly one may exist; "
+            "use OverlapConstraint::set_overlap_function to change its behaviour instead of adding another."
+        );
     }
 
     auto* ptr = constraint.release();
