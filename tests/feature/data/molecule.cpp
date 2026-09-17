@@ -558,6 +558,23 @@ TEST_CASE_METHOD(fixture, "Molecule::operator=: moving a Molecule keeps its grid
     CHECK(dst.get_grid()->a_members.size() == 8);
 }
 
+// operator= takes the bodies and the grid from the source, but phm is the destination's own
+// leftover, still bound to the destination's old bodies. initialize() must always discard it.
+TEST_CASE_METHOD(fixture, "Molecule::operator=: moving a Molecule discards its histogram manager") {
+    Molecule dst({Body{std::vector{a1, a2}}, Body{std::vector{a3, a4}}});
+    dst.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+    REQUIRE(!dst.get_histogram()->get_weighted_counts().empty());       // force the manager into existence
+
+    Molecule src(bodies);                                               // four bodies, eight atoms
+    REQUIRE(src.size_body() == 4);
+    dst = std::move(src);
+
+    Molecule ref(bodies);
+    ref.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+    REQUIRE(dst.size_body() == 4);
+    CHECK(compare_hist(dst.get_histogram()->get_weighted_counts(), ref.get_histogram()->get_weighted_counts()));
+}
+
 TEST_CASE_METHOD(fixture, "Molecule::size_body") {
     Molecule protein(bodies);
     CHECK(protein.size_body() == 4);
