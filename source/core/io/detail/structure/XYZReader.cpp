@@ -15,12 +15,12 @@ using namespace ausaxs::io::pdb;
 io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
     console::print_info("Reading XYZ structure file from \"" + path.str() + "\"");
     console::indent();
-    if (settings::molecule::implicit_hydrogens) {
-        console::print_text("Note: implicit hydrogens setting is enabled, but XYZ files do not contain enough information to assign hydrogens. Disabling.");
-        settings::molecule::implicit_hydrogens = false;
-    }
-
     io::pdb::PDBStructure res;
+    if (settings::molecule::implicit_hydrogens) {
+        console::print_text("Note: implicit hydrogens setting is enabled, but XYZ files do not contain enough information to assign hydrogens. Skipping them for this structure.");
+    }
+    res.supports_implicit_hydrogens = false;
+
     std::ifstream input(path);
     if (!input.is_open()) {throw except::io_error("XYZReader::read: Could not open file \"" + path.str() + "\"");}
 

@@ -200,8 +200,8 @@ namespace {
                 console::print_text("Warning: CIF file missing required label \"group_PDB\". Assuming all atoms are standard ATOM records.");
                 default_to_ATOM = "ATOM";
             } if (!has_residue_name) {                  // residue name
-                console::print_text("Warning: CIF file missing required label \"" + s_residue_name + "\". Disabling implicit hydrogens.");
-                settings::molecule::implicit_hydrogens = false;
+                console::print_text("Warning: CIF file missing required label \"" + s_residue_name + "\". Skipping implicit hydrogens for this structure.");
+                collection.supports_implicit_hydrogens = false;
                 default_to_UNK = "UNK";
             } if (!labels.contains(s_coords_x)) {        // x-coordinate
                 if (allow_fractional_coords) {
@@ -261,8 +261,8 @@ namespace {
             console::print_text("CIFReader::parse_atom_site_section: Missing optional labels in \"_atom_site\" section. Loading whatever is available.");
         }
         if (!has_atom_name) {
-            console::print_warning("\tWarning: CIF file missing label \"" + s_atom_name + "\". Disabling implicit hydrogens.");
-            settings::molecule::implicit_hydrogens = false;
+            console::print_warning("\tWarning: CIF file missing label \"" + s_atom_name + "\". Skipping implicit hydrogens for this structure.");
+            collection.supports_implicit_hydrogens = false;
         }
 
         int i_id = 0, i_label_atom_id = 0, i_label_alt_id = 0, i_label_asym_id = 0, i_label_seq_id = 0,

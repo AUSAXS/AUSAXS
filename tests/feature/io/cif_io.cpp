@@ -210,3 +210,22 @@ TEST_CASE("CIFReader: compare with PDB", "[files]") {
     compare_atoms(cif2.atoms, pdb2.atoms);
     compare_atoms(cif3.atoms, pdb3.atoms);
 }
+
+TEST_CASE("CIFReader::read does not disable implicit hydrogens for later structures", "[files]") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = true;
+
+    Molecule before("tests/files/2epe.pdb");
+    double expected = before.get_total_atomic_charge();
+
+    Molecule crystal("tests/files/Ag_crystal.cif");
+    double crystal_charge = crystal.get_total_atomic_charge();
+    REQUIRE(settings::molecule::implicit_hydrogens);
+
+    Molecule after("tests/files/2epe.pdb");
+    REQUIRE_THAT(after.get_total_atomic_charge(), Catch::Matchers::WithinRel(expected, 1e-12));
+
+    // and the label-less structure itself must still be read without implicit hydrogens
+    Molecule crystal2("tests/files/Ag_crystal.cif");
+    REQUIRE_THAT(crystal2.get_total_atomic_charge(), Catch::Matchers::WithinRel(crystal_charge, 1e-12));
+}
