@@ -56,7 +56,7 @@ void SaveElement::run() {
         auto result = owner->_get_rigidbody()->controller->get_fitter()->fit();
         result->curves.select_columns({0, 1, 2, 3}).save(
             insert_counter(path, ++fit_counter),
-            "chi2=" + std::to_string(result->fval) + ", dof=" + std::to_string(result->dof)
+            "chi2=" + std::to_string(result->fval/result->dof) + ", dof=" + std::to_string(result->dof)
         );
     }
 
