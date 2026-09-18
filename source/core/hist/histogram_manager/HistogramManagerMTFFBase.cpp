@@ -3,20 +3,16 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFBase.h>
 
-#include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>  // IWYU pragma: keep
 #include <form_factor/FormFactorType.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
-#include <hist/histogram_manager/detail/HistogramManagerMTFFHelpers.h>
-#include <settings/GeneralSettings.h>
+#include <hist/distance_calculator/SimpleFFCPU.h>
 #include <utility/MultiThreading.h>
 
 #include <cassert>
 
 using namespace ausaxs;
-using namespace ausaxs::container;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
@@ -28,132 +24,24 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     assert(this->protein != nullptr && "HistogramManagerMTFFBase::compute_raw_distributions: Molecule is not set.");
 
     using GenericDistribution1D_t = typename GenericDistribution1D<wb>::type;
-    using GenericDistribution2D_t = typename GenericDistribution2D<wb>::type;
-    using GenericDistribution3D_t = typename GenericDistribution3D<wb>::type;
     auto* pool = utility::multi_threading::get_global_pool();
 
     data_a_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(hist::detail::factory::construct_ff_from_atoms<vbw>(this->protein));
     data_w_ptr = std::make_unique<CompactCoordinatesFF<vbw>>(hist::detail::factory::construct_ff_from_waters<vbw>(this->protein));
     auto& data_a = *data_a_ptr;
     auto& data_w = *data_w_ptr;
-    int data_a_size = data_a.size();
-    int data_w_size = data_w.size();
     int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
-    //########################//
-    // PREPARE MULTITHREADING //
-    //########################//
-    container::ThreadLocalWrapper<GenericDistribution3D_t> p_aa_all(form_factor::get_active_count(), form_factor::get_active_count(), bin_count); // ff_type1, ff_type2, distance
-    auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
-        auto& p_aa = p_aa_all.get();
-        for (int i = imin; i < imax; ++i) { // atom
-            int j = i+1;                    // atom
-            for (; j+15 < data_a_size; j+=16) {
-                evaluate_aa16<vbw, 2>(p_aa, data_a, i, j);
-            }
+    // the self-correlations are part of what the kernel evaluates, so they do not have to be added separately here
+    hist::distance_calculator::SimpleFFCPU<wb, vbw> calculator(bin_count);
+    calculator.enqueue_self_by_ff(data_a);
+    calculator.enqueue_cross_by_ff(data_a, data_w);
+    calculator.enqueue_self_flat(data_w);
+    auto res = calculator.run();
 
-            for (; j+7 < data_a_size; j+=8) {
-                evaluate_aa8<vbw, 2>(p_aa, data_a, i, j);
-            }
-
-            for (; j+3 < data_a_size; j+=4) {
-                evaluate_aa4<vbw, 2>(p_aa, data_a, i, j);
-            }
-
-            for (; j < data_a_size; ++j) {
-                evaluate_aa1<vbw, 2>(p_aa, data_a, i, j);
-            }
-        }
-    };
-
-    container::ThreadLocalWrapper<GenericDistribution2D_t> p_aw_all(form_factor::get_active_count(), bin_count); // ff_type, distance
-    auto calc_aw = [&data_w, &data_a, &p_aw_all, data_w_size] (int imin, int imax) {
-        auto& p_aw = p_aw_all.get();
-        for (int i = imin; i < imax; ++i) { // atom
-            int j = 0;                      // water
-            for (; j+15 < data_w_size; j+=16) {
-                evaluate_aw16<vbw, 1>(p_aw, data_a, data_w, i, j);
-            }
-
-            for (; j+7 < data_w_size; j+=8) {
-                evaluate_aw8<vbw, 1>(p_aw, data_a, data_w, i, j);
-            }
-
-            for (; j+3 < data_w_size; j+=4) {
-                evaluate_aw4<vbw, 1>(p_aw, data_a, data_w, i, j);
-            }
-
-            for (; j < data_w_size; ++j) {
-                evaluate_aw1<vbw, 1>(p_aw, data_a, data_w, i, j);
-            }
-        }
-    };
-
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(bin_count); // distance
-    auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
-        auto& p_ww = p_ww_all.get();
-        for (int i = imin; i < imax; ++i) { // water
-            int j = i+1;                    // water
-            for (; j+15 < data_w_size; j+=16) {
-                evaluate16<vbw, 2>(p_ww, data_w, data_w, i, j);
-            }
-
-            for (; j+7 < data_w_size; j+=8) {
-                evaluate8<vbw, 2>(p_ww, data_w, data_w, i, j);
-            }
-
-            for (; j+3 < data_w_size; j+=4) {
-                evaluate4<vbw, 2>(p_ww, data_w, data_w, i, j);
-            }
-
-            for (; j < data_w_size; ++j) {
-                evaluate1<vbw, 2>(p_ww, data_w, data_w, i, j);
-            }
-        }
-    };
-
-    //##############//
-    // SUBMIT TASKS //
-    //##############//
-    int job_size_a = settings::general::detail::get_job_size(data_a_size);
-    int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < data_a_size; i+=job_size_a) {
-        pool->detach_task(
-            [&calc_aa, i, job_size_a, data_a_size] () {calc_aa(i, std::min(i+job_size_a, data_a_size));}
-        );
-    }
-    for (int i = 0; i < data_a_size; i+=job_size_a) {
-        pool->detach_task(
-            [&calc_aw, i, job_size_a, data_a_size] () {calc_aw(i, std::min(i+job_size_a, data_a_size));}
-        );
-    }
-    for (int i = 0; i < data_w_size; i+=job_size_w) {
-        pool->detach_task(
-            [&calc_ww, i, job_size_w, data_w_size] () {calc_ww(i, std::min(i+job_size_w, data_w_size));}
-        );
-    }
-
-    pool->wait();
-    auto p_aa = p_aa_all.merge();
-    auto p_aw = p_aw_all.merge();
-    auto p_ww = p_ww_all.merge();
-
-    //###################//
-    // SELF-CORRELATIONS //
-    //###################//
-    // save the self-correlations for later use in the intensity calculation
-    for (int i = 0; i < data_a_size; ++i) {
-        if constexpr (wb) {
-            p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, 0.0f);
-        } else {
-            p_aa.increment_index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0);
-        }
-    }
-    if constexpr (wb) {
-        p_ww.add_index(0, WeightedEntry(data_w_size, data_w_size, 0));
-    } else {
-        p_ww.add_index(0, data_w_size);
-    }
+    auto p_aa = std::move(res.aa);
+    auto p_aw = std::move(res.aw);
+    auto p_ww = std::move(res.ww);
 
     GenericDistribution1D_t p_tot(bin_count);
     {   // sum all elements to the total

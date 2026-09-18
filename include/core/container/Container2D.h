@@ -22,6 +22,8 @@ namespace ausaxs::container {
     class Container2D : utility::indexer::Indexer2D<Container2D<T>> {
         friend class utility::indexer::Indexer2D<Container2D<T>>;
         public:
+            using value_type = T;
+
             Container2D() : N(0), M(0), data(0) {}
             Container2D(int width, int height) : N(width), M(height), data(width*height) {}
             Container2D(int width, int height, const T& value) : N(width), M(height), data(width*height, value) {}
