@@ -5,14 +5,16 @@
 
 #include <container/ThreadLocalWrapper.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
+#include <hist/distance_calculator/detail/AccumulationTasks.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
+#include <utility/observer_ptr.h>
 
-#include <cstdint>
+#include <memory>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -31,13 +33,18 @@ namespace ausaxs::hist::distance_calculator {
      * Jobs that share a @c merge_id accumulate into the same result histogram, which saves memory
      * when many calculations contribute to a single histogram (e.g. symmetry copies). The optional
      * integer @c scaling factor multiplies a job's contribution; it is dispatched to a templated
-     * implementation, so only a bounded set of values is supported (see the .tpp definitions).
+     * implementation, so only a bounded set of values is supported (see detail::dispatch_scaling).
+     *
+     * This class owns the result histograms and decides which one a job accumulates into; the
+     * evaluation itself lives in detail::enqueue_self and detail::enqueue_cross, which only know the
+     * target they were handed and are therefore shared with the form factor-aware kernel.
      *
      * The caller must keep all submitted data alive until run() returns.
      */
     template<bool weighted_bins, bool variable_bin_width>
     class SimpleCPU {
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
+        using ThreadLocalResult = container::ThreadLocalWrapper<GenericDistribution1D_t>;
         public:
             struct run_result {
                 std::unordered_map<int, GenericDistribution1D_t> self;
@@ -63,19 +70,26 @@ namespace ausaxs::hist::distance_calculator {
             }
 
             /**
-             * @brief Queue a self-correlation calculation. 
-             *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made. 
+             * @brief Queue a self-correlation calculation.
+             *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made.
              *
              * @param a The data to calculate the self-correlation for. The reference must be valid until calculate is called.
-             * @param merge_id The result vector id this calculation can be merged into. Supplying this can save significant memory resources. 
+             * @param merge_id The result vector id this calculation can be merged into. Supplying this can save significant memory resources.
              * @param scaling The scaling factor to apply to the result.
              *
              * @return The index of the data in the result vector.
              */
-            int enqueue_calculate_self(const hist::detail::CompactCoordinates<variable_bin_width>& a, int scaling = 1, int merge_id = -1);
+            int enqueue_calculate_self(const hist::detail::CompactCoordinates<variable_bin_width>& a, int scaling = 1, int merge_id = -1) {
+                auto [target, index] = resolve(self_results, self_merge_ids, merge_id);
+                // every unordered pair is counted twice by this convention, but the diagonal only once
+                detail::dispatch_scaling(scaling, [&a, target] (auto s) {
+                    detail::enqueue_self<weighted_bins, variable_bin_width, 2*decltype(s)::value, decltype(s)::value>(a, target);
+                });
+                return index;
+            }
 
             /**
-             * @brief Queue a cross-correlation calculation. 
+             * @brief Queue a cross-correlation calculation.
              *
              * @param a1 The first set of data to calculate the cross-correlation for. The reference must be valid until calculate is called.
              * @param a2 The second set of data to calculate the cross-correlation for. The reference must be valid until calculate is called.
@@ -83,166 +97,76 @@ namespace ausaxs::hist::distance_calculator {
              * @param scaling The scaling factor to apply to the result.
              * @return The index of the data in the result vector.
              */
-            int enqueue_calculate_cross(const hist::detail::CompactCoordinates<variable_bin_width>& a1, const hist::detail::CompactCoordinates<variable_bin_width>& a2, int scaling = 1, int merge_id = -1);
+            int enqueue_calculate_cross(
+                const hist::detail::CompactCoordinates<variable_bin_width>& a1,
+                const hist::detail::CompactCoordinates<variable_bin_width>& a2,
+                int scaling = 1, int merge_id = -1
+            ) {
+                auto [target, index] = resolve(cross_results, cross_merge_ids, merge_id);
+                detail::dispatch_scaling(scaling, [&a1, &a2, target] (auto s) {
+                    detail::enqueue_cross<variable_bin_width, 2*decltype(s)::value>(a1, a2, target);
+                });
+                return index;
+            }
 
             /**
              * @brief Get the current size of the result vector.
              */
-            int size_self_result() const;
-            int size_cross_result() const; //< @copydoc size_self_result
+            int size_self_result() const {return static_cast<int>(self_results.size());}
+            int size_cross_result() const {return static_cast<int>(cross_results.size());} //< @copydoc size_self_result
 
             /**
-             * @brief Calculate the queued histograms. 
+             * @brief Calculate the queued histograms.
              *        This will block until all calculations are done.
              *
-             * @return The calculated histograms. 
+             * @return The calculated histograms.
              */
             run_result run();
 
         private:
+            /**
+             * @brief The handle the queued tasks accumulate through; see detail::Target.
+             */
+            struct Target {
+                using entry_type = typename GenericDistribution1D_t::value_type;
+                observer_ptr<ThreadLocalResult> results;
+                std::span<entry_type> get() const {
+                    auto& histogram = results->get();
+                    return {&*histogram.begin(), static_cast<std::size_t>(histogram.size())};
+                }
+            };
+
+            struct Resolved {
+                Target target;
+                int index; // position in the result vector, which is what callers index by
+            };
+
             int bin_count;
-            std::vector<std::unique_ptr<container::ThreadLocalWrapper<GenericDistribution1D_t>>> self_results, cross_results;
+            std::vector<std::unique_ptr<ThreadLocalResult>> self_results, cross_results;
             std::unordered_map<int, int> self_merge_ids, cross_merge_ids;
 
-            template<int scaling>
-            int enqueue_calculate_self(const hist::detail::CompactCoordinates<variable_bin_width>& data, int merge_id);
-
-            template<int scaling>
-            int enqueue_calculate_cross(const hist::detail::CompactCoordinates<variable_bin_width>& data_1, const hist::detail::CompactCoordinates<variable_bin_width>& data_2, int merge_id);
+            /**
+             * @brief Assign a merge id its result histogram, allocating one the first time it is seen.
+             *        An id of -1 always allocates a fresh one.
+             */
+            Resolved resolve(
+                std::vector<std::unique_ptr<ThreadLocalResult>>& results,
+                std::unordered_map<int, int>& merge_ids,
+                int merge_id
+            ) {
+                int res_idx;
+                if (!merge_ids.contains(merge_id)) {
+                    res_idx = static_cast<int>(results.size());
+                    merge_id = merge_id == -1 ? res_idx : merge_id;
+                    merge_ids[merge_id] = res_idx;
+                    results.emplace_back(std::make_unique<ThreadLocalResult>(bin_count));
+                } else {
+                    res_idx = merge_ids[merge_id];
+                    assert(results[res_idx]->get().size() == bin_count && "The result vector has the wrong size.");
+                }
+                return Resolved{.target=Target{results[res_idx].get()}, .index=res_idx};
+            }
     };
-}
-
-template<bool weighted_bins, bool variable_bin_width> template<int scaling>
-inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::enqueue_calculate_self(
-    const hist::detail::CompactCoordinates<variable_bin_width>& data, 
-    int merge_id
-) {
-    auto* pool = utility::multi_threading::get_global_pool();
-
-    int res_idx;
-    if (!self_merge_ids.contains(merge_id)) {
-        res_idx = self_results.size();
-        merge_id = merge_id == -1 ? res_idx : merge_id;
-        self_merge_ids[merge_id] = res_idx;
-        self_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(bin_count));
-    } else {
-        res_idx = self_merge_ids[merge_id];
-        assert(self_results[res_idx]->get().size() == bin_count && "The result vector has the wrong size.");
-    }
-
-    auto res_ptr = self_results[res_idx].get();
-    int data_size = data.size();
-    int job_size = settings::general::detail::get_job_size(data_size);
-
-    // calculate upper triangle
-    for (int i = 0; i < data_size; i+=job_size) {
-        pool->detach_task(
-            [&data, res_ptr, data_size, imin = i, imax = std::min(i+job_size, data_size)] () {
-                auto& p_aa = res_ptr->get();
-                for (int i = imin; i < imax; ++i) { // atom
-                    int j = i+1;                    // atom
-                    for (; j+15 < data_size; j+=16) {
-                        evaluate16<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
-                    }
-
-                    for (; j+7 < data_size; j+=8) {
-                        evaluate8<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
-                    }
-
-                    for (; j+3 < data_size; j+=4) {
-                        evaluate4<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
-                    }
-
-                    for (; j < data_size; ++j) {
-                        evaluate1<variable_bin_width, 2*scaling>(p_aa, data, data, i, j);
-                    }
-                }
-            }
-        );
-    }
-
-    // calculate skipped diagonal
-    pool->detach_task(
-        [&data, res_ptr, data_size] () {
-            auto& p_aa = res_ptr->get();
-            double total_weight = 0;
-            for (int i = 0; i < data_size; ++i) {
-                double weight = data.get_non_coordinate_value(i);
-                total_weight += weight*weight;
-            }
-            total_weight *= scaling;
-
-            if constexpr (weighted_bins) {
-                p_aa.add_index(0, detail::WeightedEntry(total_weight, static_cast<std::int64_t>(total_weight), 0));
-            } else {
-                p_aa.add_index(0, total_weight);
-            }
-        }
-    );
-    return res_idx;
-}
-
-template<bool weighted_bins, bool variable_bin_width> template<int scaling>
-int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::enqueue_calculate_cross(
-    const hist::detail::CompactCoordinates<variable_bin_width>& data_1, 
-    const hist::detail::CompactCoordinates<variable_bin_width>& data_2, 
-    int merge_id
-) {
-    auto* pool = utility::multi_threading::get_global_pool();
-
-    int res_idx;
-    if (!cross_merge_ids.contains(merge_id)) {
-        res_idx = cross_results.size();
-        merge_id = merge_id == -1 ? res_idx : merge_id;
-        cross_merge_ids[merge_id] = res_idx;
-        cross_results.emplace_back(std::make_unique<container::ThreadLocalWrapper<GenericDistribution1D_t>>(bin_count));
-    } else {
-        res_idx = cross_merge_ids[merge_id];
-        assert(cross_results[res_idx]->get().size() == bin_count && "The result vector has the wrong size.");
-    }
-
-    auto res_ptr = cross_results[res_idx].get();
-    int data_1_size = data_1.size();
-    int data_2_size = data_2.size();
-    int job_size = settings::general::detail::get_job_size(data_2_size);
-
-    for (int i = 0; i < data_2_size; i+=job_size) {
-        pool->detach_task(
-            [&data_1, &data_2, res_ptr, data_1_size, imin = i, imax = std::min(i+job_size, data_2_size)] () {
-                auto& p_ab = res_ptr->get();
-                for (int i = imin; i < imax; ++i) { // b
-                    int j = 0;                      // a
-                    for (; j+15 < data_1_size; j+=16) {
-                        evaluate16<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
-                    }
-
-                    for (; j+7 < data_1_size; j+=8) {
-                        evaluate8<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
-                    }
-
-                    for (; j+3 < data_1_size; j+=4) {
-                        evaluate4<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
-                    }
-
-                    for (; j < data_1_size; ++j) {
-                        evaluate1<variable_bin_width, 2*scaling>(p_ab, data_2, data_1, i, j);
-                    }
-                }
-            }
-        );
-    }
-
-    return res_idx;
-}
-
-template<bool weighted_bins, bool variable_bin_width>
-inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::size_self_result() const {
-    return self_results.size();
-}
-
-template<bool weighted_bins, bool variable_bin_width>
-inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::size_cross_result() const {
-    return cross_results.size();
 }
 
 template<bool weighted_bins, bool variable_bin_width>
@@ -302,97 +226,4 @@ inline typename ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, vari
     cross_merge_ids.clear();
 
     return result;
-}
-
-// this approach is not sustainable
-// should higher scaling factors be needed, new add1, add4, and add8 functions should be created which accepts the scaling factor as a parameter
-// for now, this is primarily meant for rigidbody optimizations, where larger symmetries are not expected
-// case 60 is included specifically for the icosahedral PolyhedralSymmetry (60 copies)
-template<bool weighted_bins, bool variable_bin_width>
-inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::enqueue_calculate_self(
-    const hist::detail::CompactCoordinates<variable_bin_width>& data,
-    int scaling,
-    int merge_id
-) {
-    switch (scaling) {
-        case 1:  return enqueue_calculate_self<1>(data, merge_id);
-        case 2:  return enqueue_calculate_self<2>(data, merge_id);
-        case 3:  return enqueue_calculate_self<3>(data, merge_id);
-        case 4:  return enqueue_calculate_self<4>(data, merge_id);
-        case 5:  return enqueue_calculate_self<5>(data, merge_id);
-        case 6:  return enqueue_calculate_self<6>(data, merge_id);
-        case 7:  return enqueue_calculate_self<7>(data, merge_id);
-        case 8:  return enqueue_calculate_self<8>(data, merge_id);
-        case 9:  return enqueue_calculate_self<9>(data, merge_id);
-        case 10: return enqueue_calculate_self<10>(data, merge_id);
-        case 11: return enqueue_calculate_self<11>(data, merge_id);
-        case 12: return enqueue_calculate_self<12>(data, merge_id);
-        case 13: return enqueue_calculate_self<13>(data, merge_id);
-        case 14: return enqueue_calculate_self<14>(data, merge_id);
-        case 15: return enqueue_calculate_self<15>(data, merge_id);
-        case 16: return enqueue_calculate_self<16>(data, merge_id);
-        case 17: return enqueue_calculate_self<17>(data, merge_id);
-        case 18: return enqueue_calculate_self<18>(data, merge_id);
-        case 19: return enqueue_calculate_self<19>(data, merge_id);
-        case 20: return enqueue_calculate_self<20>(data, merge_id);
-        case 21: return enqueue_calculate_self<21>(data, merge_id);
-        case 22: return enqueue_calculate_self<22>(data, merge_id);
-        case 23: return enqueue_calculate_self<23>(data, merge_id);
-        case 24: return enqueue_calculate_self<24>(data, merge_id);
-        case 25: return enqueue_calculate_self<25>(data, merge_id);
-        case 26: return enqueue_calculate_self<26>(data, merge_id);
-        case 27: return enqueue_calculate_self<27>(data, merge_id);
-        case 28: return enqueue_calculate_self<28>(data, merge_id);
-        case 29: return enqueue_calculate_self<29>(data, merge_id);
-        case 30: return enqueue_calculate_self<30>(data, merge_id);
-        case 60: return enqueue_calculate_self<60>(data, merge_id);
-        default: throw ausaxs::except::runtime_error("SimpleCPU::enqueue_calculate_self: unsupported scaling factor (" + std::to_string(scaling) + ")");
-    }
-}
-
-// this approach is not sustainable
-// should higher scaling factors be needed, new add1, add4, and add8 functions should be created which accepts the scaling factor as a parameter
-// for now, this is primarily meant for rigidbody optimizations, where larger symmetries are not expected
-// case 60 is included specifically for the icosahedral PolyhedralSymmetry (60 copies)
-template<bool weighted_bins, bool variable_bin_width>
-inline int ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::enqueue_calculate_cross(
-    const hist::detail::CompactCoordinates<variable_bin_width>& a1,
-    const hist::detail::CompactCoordinates<variable_bin_width>& a2,
-    int scaling,
-    int merge_id
-) {
-    switch (scaling) {
-        case 1:  return enqueue_calculate_cross<1>(a1, a2, merge_id);
-        case 2:  return enqueue_calculate_cross<2>(a1, a2, merge_id);
-        case 3:  return enqueue_calculate_cross<3>(a1, a2, merge_id);
-        case 4:  return enqueue_calculate_cross<4>(a1, a2, merge_id);
-        case 5:  return enqueue_calculate_cross<5>(a1, a2, merge_id);
-        case 6:  return enqueue_calculate_cross<6>(a1, a2, merge_id);
-        case 7:  return enqueue_calculate_cross<7>(a1, a2, merge_id);
-        case 8:  return enqueue_calculate_cross<8>(a1, a2, merge_id);
-        case 9:  return enqueue_calculate_cross<9>(a1, a2, merge_id);
-        case 10: return enqueue_calculate_cross<10>(a1, a2, merge_id);
-        case 11: return enqueue_calculate_cross<11>(a1, a2, merge_id);
-        case 12: return enqueue_calculate_cross<12>(a1, a2, merge_id);
-        case 13: return enqueue_calculate_cross<13>(a1, a2, merge_id);
-        case 14: return enqueue_calculate_cross<14>(a1, a2, merge_id);
-        case 15: return enqueue_calculate_cross<15>(a1, a2, merge_id);
-        case 16: return enqueue_calculate_cross<16>(a1, a2, merge_id);
-        case 17: return enqueue_calculate_cross<17>(a1, a2, merge_id);
-        case 18: return enqueue_calculate_cross<18>(a1, a2, merge_id);
-        case 19: return enqueue_calculate_cross<19>(a1, a2, merge_id);
-        case 20: return enqueue_calculate_cross<20>(a1, a2, merge_id);
-        case 21: return enqueue_calculate_cross<21>(a1, a2, merge_id);
-        case 22: return enqueue_calculate_cross<22>(a1, a2, merge_id);
-        case 23: return enqueue_calculate_cross<23>(a1, a2, merge_id);
-        case 24: return enqueue_calculate_cross<24>(a1, a2, merge_id);
-        case 25: return enqueue_calculate_cross<25>(a1, a2, merge_id);
-        case 26: return enqueue_calculate_cross<26>(a1, a2, merge_id);
-        case 27: return enqueue_calculate_cross<27>(a1, a2, merge_id);
-        case 28: return enqueue_calculate_cross<28>(a1, a2, merge_id);
-        case 29: return enqueue_calculate_cross<29>(a1, a2, merge_id);
-        case 30: return enqueue_calculate_cross<30>(a1, a2, merge_id);
-        case 60: return enqueue_calculate_cross<60>(a1, a2, merge_id);
-        default: throw ausaxs::except::runtime_error("SimpleCPU::enqueue_calculate_cross: unsupported scaling factor (" + std::to_string(scaling) + ")");
-    }
 }

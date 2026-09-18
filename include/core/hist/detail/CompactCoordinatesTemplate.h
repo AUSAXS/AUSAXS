@@ -121,12 +121,18 @@ namespace ausaxs::hist::detail {
             int size() const {return static_cast<int>(_x.size());}
             bool empty() const {return _x.empty();}
 
+            /**
+             * @brief Resize to @a n entries, keeping the first @a n of whatever is already stored.
+             *        Any entries this adds are value-initialized, to be filled through set_position()
+             *        and get_non_coordinate_value().
+             */
+            void resize(int n);
+
         protected:
             std::vector<float> _x, _y, _z;
             std::vector<NonCoordinateType> _w;
 
         private:
-            void resize(int n);
             void assign(int i, const data::AtomFF& a);
             void assign(int i, const data::Water& a);
     };

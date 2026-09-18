@@ -46,24 +46,27 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
     GenericDistribution1D_t p_aa(bin_count);
     GenericDistribution1D_t p_ww(bin_count);
     GenericDistribution1D_t p_aw(bin_count);
+    auto b_aa = hist::detail::bins(p_aa);
+    auto b_ww = hist::detail::bins(p_ww);
+    auto b_aw = hist::detail::bins(p_aw);
 
     // calculate aa distances
     for (int i = 0; i < data_a_size; ++i) {
         int j = i+1;
         for (; j+15 < data_a_size; j+=16) {
-            evaluate16<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
+            evaluate16<variable_bin_width, 2>(b_aa, data_a, data_a, i, j);
         }
 
         for (; j+7 < data_a_size; j+=8) {
-            evaluate8<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
+            evaluate8<variable_bin_width, 2>(b_aa, data_a, data_a, i, j);
         }
 
         for (; j+3 < data_a_size; j+=4) {
-            evaluate4<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
+            evaluate4<variable_bin_width, 2>(b_aa, data_a, data_a, i, j);
         }
 
         for (; j < data_a_size; ++j) {
-            evaluate1<variable_bin_width, 2>(p_aa, data_a, data_a, i, j);
+            evaluate1<variable_bin_width, 2>(b_aa, data_a, data_a, i, j);
         }
     }
 
@@ -71,38 +74,38 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins, var
         {   // calculate ww distances
             int j = i+1;
             for (; j+15 < data_w_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
+                evaluate16<variable_bin_width, 2>(b_ww, data_w, data_w, i, j);
             }
 
             for (; j+7 < data_w_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
+                evaluate8<variable_bin_width, 2>(b_ww, data_w, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
+                evaluate4<variable_bin_width, 2>(b_ww, data_w, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_ww, data_w, data_w, i, j);
+                evaluate1<variable_bin_width, 2>(b_ww, data_w, data_w, i, j);
             }
         }
 
         {   // calculate aw distances
             int j = 0;
             for (; j+15 < data_a_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
+                evaluate16<variable_bin_width, 2>(b_aw, data_w, data_a, i, j);
             }
 
             for (; j+7 < data_a_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
+                evaluate8<variable_bin_width, 2>(b_aw, data_w, data_a, i, j);
             }
 
             for (; j+3 < data_a_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
+                evaluate4<variable_bin_width, 2>(b_aw, data_w, data_a, i, j);
             }
 
             for (; j < data_a_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_aw, data_w, data_a, i, j);
+                evaluate1<variable_bin_width, 2>(b_aw, data_w, data_a, i, j);
             }
         }
     }

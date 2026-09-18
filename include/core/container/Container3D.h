@@ -22,6 +22,8 @@ namespace ausaxs::container {
     class Container3D : utility::indexer::Indexer3D<Container3D<T>> {
         friend class utility::indexer::Indexer3D<Container3D<T>>;
         public:
+            using value_type = T;
+
             Container3D() : N(0), M(0), L(0), data(0) {}
             Container3D(int width, int height, int depth) : N(width), M(height), L(depth), data(width * height * depth) {}
             Container3D(int width, int height, int depth, const T& value) : N(width), M(height), L(depth), data(width * height * depth, value) {}
