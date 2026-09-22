@@ -9,7 +9,7 @@
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/detail/LatticeCorrelation.h>
+#include <hist/detail/GridExvFFT.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>

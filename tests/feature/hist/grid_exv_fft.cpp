@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/detail/LatticeCorrelation.h>
+#include <hist/detail/GridExvFFT.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/BinEstimate.h>
@@ -49,7 +49,7 @@ namespace {
         REQUIRE(expected.size() == actual.size());
         for (unsigned int i = 0; i < expected.size(); ++i) {
             if (expected.index(i).count != actual.index(i).count) {
-                std::cout << "lattice_correlation: bin " << i << " holds " << actual.index(i).count
+                std::cout << "grid_exv_fft: bin " << i << " holds " << actual.index(i).count
                           << " pairs, expected " << expected.index(i).count << std::endl;
             }
             REQUIRE(expected.index(i).count == actual.index(i).count);

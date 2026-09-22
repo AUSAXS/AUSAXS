@@ -5,7 +5,7 @@
 // this has to be defined before the header is pulled in.
 #define POCKETFFT_NO_MULTITHREADING
 
-#include <hist/detail/LatticeCorrelation.h>
+#include <hist/detail/GridExvFFT.h>
 #include <math/Vector3.h>
 #include <utility/Logging.h>
 

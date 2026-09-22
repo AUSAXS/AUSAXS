@@ -20,7 +20,8 @@
  *
  * The result is *exact*, not an approximation: zero-padding each axis to at least 2*extent-1 removes the circular
  * wrap-around, every displacement has an exactly known integer squared length, and the counts come out as integers.
- * The distances are in fact more accurate than those of the pair loop, which works in float32 throughout.
+ * The distances are then rounded to float exactly as the pair loop's own evaluate1 does, so the two paths agree
+ * bit-for-bit rather than merely to a tolerance.
  *
  * The cost is memory - the transform buffer scales with the *bounding box* rather than the point count, so it grows
  * with the bounding volume rather than the occupied one. That buffer is a single copy of the padded box, 8 bytes per
