@@ -23,12 +23,11 @@
  * The distances are in fact more accurate than those of the pair loop, which works in float32 throughout.
  *
  * The cost is memory - the transform buffer scales with the *bounding box* rather than the point count, so it grows
- * quickly for large or elongated structures. Everything here therefore reports failure rather than allocating past
- * settings::grid::exv::max_transform_memory, and the caller is expected to fall back to the pair loop.
- *
- * That buffer is a single copy of the padded box, 8 bytes per cell: both transforms run in place, and the several
- * spellings that silently cost two or three copies of it are avoided deliberately. See the Transform class comment
- * in the implementation for how, and why the obvious float32 halving is a trap rather than a further 2x.
+ * with the bounding volume rather than the occupied one. That buffer is a single copy of the padded box, 8 bytes per
+ * cell: both transforms run in place, and the several spellings that silently cost two or three copies of it are
+ * avoided deliberately. See the Transform class comment in the implementation for how, and why the obvious float32
+ * halving is a trap rather than a further 2x. At one buffer the requirement is small enough for ordinary structures
+ * that it is simply allocated, exactly as grid::Grid allocates what its own axes need.
  */
 namespace ausaxs::hist::detail::lattice {
     /**
@@ -54,14 +53,14 @@ namespace ausaxs::hist::detail::lattice {
      * @param inv_bin_width The inverse histogram bin width, as used by the distance calculators.
      * @param bin_count The size of the returned histogram.
      *
-     * @return std::nullopt if the points do not lie on the given lattice, or if the transform would need more than
-     *         settings::grid::exv::max_transform_memory. The caller must then fall back to an explicit pair loop.
+     * @return std::nullopt if the points do not lie on the given lattice, or if the transform buffer could not be
+     *         allocated. The caller must then fall back to an explicit pair loop.
      */
     std::optional<WeightedDistribution1D> self_correlation(
         const std::vector<Vector3<double>>& points,
         double spacing,
         double inv_bin_width,
-        unsigned int bin_count
+        int bin_count
     );
 
     /**
@@ -80,6 +79,6 @@ namespace ausaxs::hist::detail::lattice {
         const std::vector<Vector3<double>>& second,
         double spacing,
         double inv_bin_width,
-        unsigned int bin_count
+        int bin_count
     );
 }

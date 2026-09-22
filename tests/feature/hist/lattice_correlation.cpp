@@ -119,11 +119,10 @@ TEST_CASE("lattice::correlations: matches the pair loops", "[files]") {
     SECTION("cross")    {compare(pair_loop(data_x_i, data_x_s, false, bin_count), lattice->cross);}
 }
 
-// Everything must report failure rather than allocate past its budget or make up an answer for points that are not
-// lattice-supported, since the callers rely on that to fall back to the pair loop.
+// Everything must report failure rather than make up an answer for points that are not lattice-supported, since the
+// callers rely on that to fall back to the pair loop.
 TEST_CASE("lattice: refuses what it cannot do") {
     settings::general::verbose = false;
-    unsigned int budget = settings::grid::exv::max_transform_memory;
 
     std::vector<Vector3<double>> lattice_points;
     for (int i = 0; i < 4; ++i) {
@@ -152,11 +151,5 @@ TEST_CASE("lattice: refuses what it cannot do") {
 
     SECTION("a wrong spacing is rejected") {
         CHECK(!hist::detail::lattice::self_correlation(lattice_points, 1.5, 1, 100).has_value());
-    }
-
-    SECTION("exceeding the memory budget is rejected") {
-        settings::grid::exv::max_transform_memory = 0;
-        CHECK(!hist::detail::lattice::self_correlation(lattice_points, 1, 1, 100).has_value());
-        settings::grid::exv::max_transform_memory = budget;
     }
 }

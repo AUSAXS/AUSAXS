@@ -7,8 +7,6 @@
 
 #include <hist/detail/LatticeCorrelation.h>
 #include <math/Vector3.h>
-#include <settings/GridSettings.h>
-#include <utility/Console.h>
 #include <utility/Logging.h>
 
 #include <pocketfft_hdronly.h>
@@ -21,7 +19,6 @@
 #include <cstdint>
 #include <initializer_list>
 #include <limits>
-#include <new>
 #include <string>
 
 using namespace ausaxs;
@@ -42,8 +39,6 @@ namespace {
         std::array<std::size_t, 3> shape;  // the padded transform shape
         std::array<int32_t, 3> extent;     // the number of lattice sites the points span along each axis
         double spacing;                    // the lattice spacing in Ångström
-
-        double cells() const {return static_cast<double>(shape[0])*static_cast<double>(shape[1])*static_cast<double>(shape[2]);}
     };
 
     /**
@@ -117,30 +112,6 @@ namespace {
     }
 
     /**
-     * @brief Whether the transform buffers for the given box stay within settings::grid::exv::max_transform_memory.
-     *
-     * The buffers scale with the padded bounding box rather than the point count, so this is the one way the lattice
-     * path can be worse than the pair loop it replaces. Elongated structures are where to expect it: the box grows
-     * with the bounding volume while the pair count grows with the occupied volume.
-     */
-    bool fits_in_memory(const Box& box) {
-        // a single buffer, allocated at the half-spectrum size and carrying the real box aliased inside it.
-        // the row pitch is 2*(n/2+1) reals rather than n, so this is marginally more than 8 bytes per real cell.
-        const double bytes = static_cast<double>(box.shape[0])*static_cast<double>(box.shape[1])
-            *static_cast<double>(box.shape[2]/2 + 1)*sizeof(std::complex<double>);
-        const double budget = static_cast<double>(settings::grid::exv::max_transform_memory)*1024*1024;
-        if (budget < bytes) {
-            console::print_warning(
-                "lattice::correlations: the excluded volume bounding box would need " + std::to_string(static_cast<int>(bytes/(1024*1024))) +
-                "MB of transform buffers, which exceeds the " + std::to_string(settings::grid::exv::max_transform_memory) +
-                "MB budget. Falling back to an explicit pair loop, which will be considerably slower."
-            );
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * @brief The occupancy box, reused across the correlations of a single point set pair.
      *
      * Both transforms run in place inside a single buffer of one complex value per half-spectrum cell, i.e. a little
@@ -183,7 +154,7 @@ namespace {
              * holding two spectra at once.
              */
             void autocorrelate(std::initializer_list<const std::vector<Coordinate>*> sets) {
-                std::fill(buffer.begin(), buffer.end(), std::complex<double>(0, 0));
+                std::ranges::fill(buffer, std::complex<double>(0, 0));
                 double* real = data();
                 for (const auto* set : sets) {
                     for (const auto& p : *set) {
@@ -277,69 +248,51 @@ namespace {
 }
 
 std::optional<WeightedDistribution1D> hist::detail::lattice::self_correlation(
-    const std::vector<Vector3<double>>& points, double spacing, double inv_bin_width, unsigned int bin_count)
+    const std::vector<Vector3<double>>& points, double spacing, double inv_bin_width, int bin_count)
 {
     auto projected = project(points, {}, spacing);
     if (!projected.has_value()) {
         logging::log("lattice::self_correlation: the given points are not lattice-supported. Falling back to a pair loop.");
         return std::nullopt;
     }
-    if (!fits_in_memory(projected->box)) {return std::nullopt;}
-
     WeightedDistribution1D out(bin_count);
-    try {
-        Transform transform(projected->box);
-        transform.autocorrelate({&projected->first});
-        assert(transform.rounding_error() < 0.1 && "lattice::self_correlation: the transform is losing integer precision");
-        transform.bin(projected->box, inv_bin_width, out);
-    } catch (const std::bad_alloc&) {
-        console::print_warning(
-            "lattice::self_correlation: could not allocate the transform buffers. Falling back to an explicit pair loop."
-        );
-        return std::nullopt;
-    }
+    Transform transform(projected->box);
+    transform.autocorrelate({&projected->first});
+    assert(transform.rounding_error() < 0.1 && "lattice::self_correlation: the transform is losing integer precision");
+    transform.bin(projected->box, inv_bin_width, out);
     logging::log("lattice::self_correlation: evaluated " + std::to_string(points.size()) + " excluded volume points by transform.");
     return out;
 }
 
 std::optional<Correlations> hist::detail::lattice::correlations(
     const std::vector<Vector3<double>>& first, const std::vector<Vector3<double>>& second,
-    double spacing, double inv_bin_width, unsigned int bin_count)
+    double spacing, double inv_bin_width, int bin_count)
 {
     auto projected = project(first, second, spacing);
     if (!projected.has_value()) {
         logging::log("lattice::correlations: the given points are not lattice-supported. Falling back to a pair loop.");
         return std::nullopt;
     }
-    if (!fits_in_memory(projected->box)) {return std::nullopt;}
-
     Correlations out{
-        WeightedDistribution1D(bin_count),
-        WeightedDistribution1D(bin_count),
-        WeightedDistribution1D(bin_count)
+        .first=WeightedDistribution1D(bin_count),
+        .second=WeightedDistribution1D(bin_count),
+        .cross=WeightedDistribution1D(bin_count)
     };
-    try {
-        Transform transform(projected->box);
+    Transform transform(projected->box);
 
-        transform.autocorrelate({&projected->first});
-        assert(transform.rounding_error() < 0.1 && "lattice::correlations: the transform is losing integer precision");
-        transform.bin(projected->box, inv_bin_width, out.first);
+    transform.autocorrelate({&projected->first});
+    assert(transform.rounding_error() < 0.1 && "lattice::correlations: the transform is losing integer precision");
+    transform.bin(projected->box, inv_bin_width, out.first);
 
-        transform.autocorrelate({&projected->second});
-        transform.bin(projected->box, inv_bin_width, out.second);
+    transform.autocorrelate({&projected->second});
+    transform.bin(projected->box, inv_bin_width, out.second);
 
-        // the cross term is whatever the correlation of the combined set holds beyond the two self-correlations.
-        // both sides are exact integer counts over the same displacements, so the subtraction is exact.
-        transform.autocorrelate({&projected->first, &projected->second});
-        transform.bin(projected->box, inv_bin_width, out.cross);
-        out.cross -= out.first;
-        out.cross -= out.second;
-    } catch (const std::bad_alloc&) {
-        console::print_warning(
-            "lattice::correlations: could not allocate the transform buffers. Falling back to an explicit pair loop."
-        );
-        return std::nullopt;
-    }
+    // the cross term is whatever the correlation of the combined set holds beyond the two self-correlations.
+    // both sides are exact integer counts over the same displacements, so the subtraction is exact.
+    transform.autocorrelate({&projected->first, &projected->second});
+    transform.bin(projected->box, inv_bin_width, out.cross);
+    out.cross -= out.first;
+    out.cross -= out.second;
     logging::log(
         "lattice::correlations: evaluated " + std::to_string(first.size()) + " interior and " +
         std::to_string(second.size()) + " surface excluded volume points by transform."
