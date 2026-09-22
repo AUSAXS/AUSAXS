@@ -27,8 +27,6 @@ using namespace ausaxs::hist::detail;
 using ausaxs::hist::detail::lattice::Correlations;
 
 namespace {
-    using Coordinate = std::array<int32_t, 3>;
-
     // how far a point may sit from its lattice site, in lattice units, before we refuse to treat the set as a lattice
     constexpr double lattice_tolerance = 1e-6;
 
@@ -45,8 +43,8 @@ namespace {
      * @brief One or two point sets expressed in integer coordinates on their common lattice.
      */
     struct Lattice {
-        std::vector<Coordinate> first;
-        std::vector<Coordinate> second;
+        std::vector<Vector3<int>> first;
+        std::vector<Vector3<int>> second;
         Box box;
     };
 
@@ -90,7 +88,7 @@ namespace {
         res.box.spacing = spacing;
         res.box.extent = {0, 0, 0};
         const double inv_spacing = 1/spacing;
-        auto convert = [&res, &origin, inv_spacing] (const std::vector<Vector3<double>>& set, std::vector<Coordinate>& out) {
+        auto convert = [&res, &origin, inv_spacing] (const std::vector<Vector3<double>>& set, std::vector<Vector3<int>>& out) {
             out.resize(set.size());
             for (std::size_t n = 0; n < set.size(); ++n) {
                 for (int k = 0; k < 3; ++k) {
@@ -153,7 +151,7 @@ namespace {
              * A_combined = A_first + A_second + A_cross + A_cross^T is how the cross term is recovered without ever
              * holding two spectra at once.
              */
-            void autocorrelate(std::initializer_list<const std::vector<Coordinate>*> sets) {
+            void autocorrelate(std::initializer_list<const std::vector<Vector3<int>>*> sets) {
                 std::ranges::fill(buffer, std::complex<double>(0, 0));
                 double* real = data();
                 for (const auto* set : sets) {
