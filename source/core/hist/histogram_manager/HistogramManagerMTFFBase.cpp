@@ -7,7 +7,7 @@
 #include <form_factor/FormFactorType.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/distance_calculator/SimpleFFCPU.h>
+#include <hist/distance_calculator/CalculatorFF.h>
 #include <utility/MultiThreading.h>
 
 #include <cassert>
@@ -33,7 +33,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
     // the self-correlations are part of what the kernel evaluates, so they do not have to be added separately here
-    hist::distance_calculator::SimpleFFCPU<wb, vbw> calculator(bin_count);
+    hist::distance_calculator::CalculatorFF<wb, vbw> calculator(bin_count);
     calculator.enqueue_self_by_ff(data_a);
     calculator.enqueue_cross_by_ff(data_a, data_w);
     calculator.enqueue_self_flat(data_w);

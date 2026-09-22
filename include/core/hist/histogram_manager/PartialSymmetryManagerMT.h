@@ -36,7 +36,7 @@ namespace ausaxs::hist {
 
 		private:
 			using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-			using calculator_t = observer_ptr<distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>>;
+			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins, variable_bin_width>>;
 
 			// 2D symmetry indexer to be stored within a BodyIndexer2D
 			template<typename T> struct SymmetryIndexer2D {

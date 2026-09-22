@@ -5,7 +5,7 @@
 
 #include <gpu/GPULoader.h>
 #include <hist/detail/data/WidthControllers.h>
-#include <hist/distance_calculator/SimpleCPU.h>
+#include <hist/distance_calculator/detail/CalculatorCPU.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/observer_ptr.h>
@@ -18,22 +18,22 @@
 #include <unordered_map>
 #include <vector>
 
-namespace ausaxs::hist::distance_calculator {
+namespace ausaxs::hist::distance_calculator::detail {
     /**
      * @brief Simple histogram calculation on whichever GPU backend is installed.
-     *        If the device fails, or if there is none, the CPU kernel is used instead.
+     *        If the device fails, or if there is none, the CPU calculator is used instead.
      */
     template<bool weighted_bins, bool variable_bin_width>
-    class SimpleGPU {
+    class GPUKernel {
         using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
         public:
-            using run_result = typename SimpleCPU<weighted_bins, variable_bin_width>::run_result;
+            using run_result = typename CalculatorCPU<weighted_bins, variable_bin_width>::run_result;
 
             /**
              * @brief Construct a kernel whose result histograms span @a bin_count bins.
              */
-            explicit SimpleGPU(int bin_count) : bin_count(bin_count) {
+            explicit GPUKernel(int bin_count) : bin_count(bin_count) {
                 if (!gpu::GPULoader::available()) {switch_to_cpu();}
             }
 
@@ -84,7 +84,7 @@ namespace ausaxs::hist::distance_calculator {
 
             run_result run() {
                 // sanity check: the caller should always remember to release a held group
-                assert(queued.empty() && "SimpleGPU::run: the held group was never released");
+                assert(queued.empty() && "GPUKernel::run: the held group was never released");
                 flush();
 
                 run_result result = on_cpu ? cpu->run() : read_back();
@@ -125,12 +125,12 @@ namespace ausaxs::hist::distance_calculator {
             std::vector<double> diagonal;                           // per slot, the zero-distance contribution
             std::deque<std::vector<float>> coordinate_buffers;
             int next_slot = 0;
-            std::unique_ptr<SimpleCPU<weighted_bins, variable_bin_width>> cpu;
+            std::unique_ptr<CalculatorCPU<weighted_bins, variable_bin_width>> cpu;
             bool on_cpu = false;                                    // whether the device was given up on, see switch_to_cpu()
 
             /**
              * @brief Open a device session, on the first job of a batch. Does nothing on later jobs.
-             *        A device that refuses to start hands this batch, and every later one, to the cpu kernel.
+             *        A device that refuses to start hands this batch, and every later one, to the CPU calculator.
              */
             void open_session() {
                 if (session_open || on_cpu) {return;}
@@ -152,7 +152,7 @@ namespace ausaxs::hist::distance_calculator {
              * before reusing the memory it holds.
              */
             void switch_to_cpu() {
-                cpu = std::make_unique<SimpleCPU<weighted_bins, variable_bin_width>>(bin_count);
+                cpu = std::make_unique<CalculatorCPU<weighted_bins, variable_bin_width>>(bin_count);
                 on_cpu = true;
                 for (const auto& job : self_jobs) {cpu->enqueue_calculate_self(*job.a1, job.scaling, job.merge_id);}
                 for (const auto& job : cross_jobs) {cpu->enqueue_calculate_cross(*job.a1, *job.a2, job.scaling, job.merge_id);}
@@ -176,7 +176,7 @@ namespace ausaxs::hist::distance_calculator {
             }
 
             /**
-             * @brief Hand the calculation to the cpu kernel unless the device call succeeded.
+             * @brief Hand the calculation to the CPU calculator unless the device call succeeded.
              * @param action What was attempted, for the warning GPULoader prints. See report_failure().
              */
             void check_status(gpu::abi::Status status, std::string_view action) {

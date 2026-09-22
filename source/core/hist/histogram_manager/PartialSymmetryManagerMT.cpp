@@ -8,7 +8,7 @@
 #include <data/state/StateManager.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/distance_calculator/Calculator.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -91,7 +91,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     propagate_reference_symmetry_modifications(externally_modified, internally_modified, symmetry_modified);
 
     auto* pool = utility::multi_threading::get_global_pool();
-    distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_count);
+    distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(bin_count);
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -166,7 +166,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
 
     // prepare a list of tasks to be run after the calculations are done
     // this way we avoid having to maintain two identical but separate loops for calculations and combining
-    using res_t = distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width>::run_result;
+    using res_t = distance_calculator::Calculator<weighted_bins, variable_bin_width>::run_result;
     std::list<std::function<void()>> combine_tasks;
     res_t res; // placeholder for future results
 

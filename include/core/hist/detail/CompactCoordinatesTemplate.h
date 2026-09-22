@@ -122,9 +122,7 @@ namespace ausaxs::hist::detail {
             bool empty() const {return _x.empty();}
 
             /**
-             * @brief Resize to @a n entries, keeping the first @a n of whatever is already stored.
-             *        Any entries this adds are value-initialized, to be filled through set_position()
-             *        and get_non_coordinate_value().
+             * @brief Resize to @a n entries.
              */
             void resize(int n);
 

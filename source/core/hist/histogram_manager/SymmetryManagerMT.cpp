@@ -7,7 +7,7 @@
 #include <data/Molecule.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/distance_calculator/Calculator.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -51,7 +51,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     auto atomic = data | std::views::transform([] (const auto& body) -> const auto& {return body.atomic;});
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(atomic, data_w);
 
-    hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_count);
+    hist::distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(bin_count);
 
     const auto& waters = data_w;
     int self_merge_id_aa = 0, self_merge_id_ww = 1;

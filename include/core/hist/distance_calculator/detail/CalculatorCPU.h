@@ -5,7 +5,7 @@
 
 #include <container/ThreadLocalWrapper.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/distance_calculator/detail/AccumulationTasks.h>
+#include <hist/distance_calculator/detail/CPUKernel.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/GeneralSettings.h>
@@ -20,7 +20,7 @@
 
 #define DEBUG_INFO false
 
-namespace ausaxs::hist::distance_calculator {
+namespace ausaxs::hist::distance_calculator::detail {
     /**
      * @brief Queues and evaluates pairwise distance histograms on the global thread pool.
      *
@@ -33,16 +33,12 @@ namespace ausaxs::hist::distance_calculator {
      * Jobs that share a @c merge_id accumulate into the same result histogram, which saves memory
      * when many calculations contribute to a single histogram (e.g. symmetry copies). The optional
      * integer @c scaling factor multiplies a job's contribution; it is dispatched to a templated
-     * implementation, so only a bounded set of values is supported (see detail::dispatch_scaling).
-     *
-     * This class owns the result histograms and decides which one a job accumulates into; the
-     * evaluation itself lives in detail::enqueue_self and detail::enqueue_cross, which only know the
-     * target they were handed and are therefore shared with the form factor-aware kernel.
+     * implementation, so only a bounded set of values is supported (see dispatch_scaling).
      *
      * The caller must keep all submitted data alive until run() returns.
      */
     template<bool weighted_bins, bool variable_bin_width>
-    class SimpleCPU {
+    class CalculatorCPU {
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
         using ThreadLocalResult = container::ThreadLocalWrapper<GenericDistribution1D_t>;
         public:
@@ -52,9 +48,9 @@ namespace ausaxs::hist::distance_calculator {
             };
 
             /**
-             * @brief Construct a kernel whose result histograms span @a bin_count bins.
+             * @brief Construct a calculator whose result histograms span @a bin_count bins.
              */
-            explicit SimpleCPU(int bin_count) : bin_count(bin_count) {}
+            explicit CalculatorCPU(int bin_count) : bin_count(bin_count) {}
 
             /**
              * @brief Drain the thread pool before any of this object's state is released.
@@ -63,7 +59,7 @@ namespace ausaxs::hist::distance_calculator {
              * must not outlive it. run() normally waits for them, but an exception between enqueue and run
              * would otherwise unwind past the results while the pool is still writing to them.
              */
-            ~SimpleCPU() {
+            ~CalculatorCPU() {
                 auto* pool = utility::multi_threading::get_global_pool();
                 pool->purge();
                 pool->wait();
@@ -82,8 +78,8 @@ namespace ausaxs::hist::distance_calculator {
             int enqueue_calculate_self(const hist::detail::CompactCoordinates<variable_bin_width>& a, int scaling = 1, int merge_id = -1) {
                 auto [target, index] = resolve(self_results, self_merge_ids, merge_id);
                 // every unordered pair is counted twice by this convention, but the diagonal only once
-                detail::dispatch_scaling(scaling, [&a, target] (auto s) {
-                    detail::enqueue_self<weighted_bins, variable_bin_width, 2*decltype(s)::value, decltype(s)::value>(a, target);
+                dispatch_scaling(scaling, [&a, target] (auto s) {
+                    enqueue_self<weighted_bins, variable_bin_width, 2*decltype(s)::value, decltype(s)::value>(a, target);
                 });
                 return index;
             }
@@ -103,8 +99,8 @@ namespace ausaxs::hist::distance_calculator {
                 int scaling = 1, int merge_id = -1
             ) {
                 auto [target, index] = resolve(cross_results, cross_merge_ids, merge_id);
-                detail::dispatch_scaling(scaling, [&a1, &a2, target] (auto s) {
-                    detail::enqueue_cross<variable_bin_width, 2*decltype(s)::value>(a1, a2, target);
+                dispatch_scaling(scaling, [&a1, &a2, target] (auto s) {
+                    enqueue_cross<variable_bin_width, 2*decltype(s)::value>(a1, a2, target);
                 });
                 return index;
             }
@@ -125,7 +121,7 @@ namespace ausaxs::hist::distance_calculator {
 
         private:
             /**
-             * @brief The handle the queued tasks accumulate through; see detail::Target.
+             * @brief The handle the queued tasks accumulate through; see Target.
              */
             struct Target {
                 using entry_type = typename GenericDistribution1D_t::value_type;
@@ -170,7 +166,7 @@ namespace ausaxs::hist::distance_calculator {
 }
 
 template<bool weighted_bins, bool variable_bin_width>
-inline typename ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::run_result ausaxs::hist::distance_calculator::SimpleCPU<weighted_bins, variable_bin_width>::run() {
+inline typename ausaxs::hist::distance_calculator::detail::CalculatorCPU<weighted_bins, variable_bin_width>::run_result ausaxs::hist::distance_calculator::detail::CalculatorCPU<weighted_bins, variable_bin_width>::run() {
     auto* pool = utility::multi_threading::get_global_pool();
     pool->wait();
     run_result result;

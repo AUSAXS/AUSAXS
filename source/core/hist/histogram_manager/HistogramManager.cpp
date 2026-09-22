@@ -8,7 +8,7 @@
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/SimpleExvModel.h>
-#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
+#include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>

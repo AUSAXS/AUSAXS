@@ -4,7 +4,7 @@
 #pragma once
 
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
+#include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Exceptions.h>
@@ -12,19 +12,14 @@
 
 #include <algorithm>
 #include <concepts>
-#include <span>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <type_traits>
 
 namespace ausaxs::hist::distance_calculator::detail {
     /**
      * @brief Where a queued calculation accumulates.
-     *
-     * A target is a small copyable handle rather than the bins themselves. The queued work runs on the thread pool,
-     * and the bins it must write into are those belonging to whichever worker thread picks it up - which is not
-     * known until it does. get() is therefore called from inside the task, and hands back the run of bins the
-     * evaluate* helpers accumulate into.
      */
     template<typename T>
     concept Target = std::copy_constructible<T> && requires (const T& t) {
@@ -33,11 +28,6 @@ namespace ausaxs::hist::distance_calculator::detail {
 
     /**
      * @brief Invoke @a f with the scaling factor as a compile-time constant, as the evaluators need it.
-     *
-     * This approach is not sustainable. Should higher scaling factors be needed, new add1, add4, and add8 functions
-     * should be created which accept the scaling factor as a parameter. For now, this is primarily meant for rigidbody
-     * optimizations, where larger symmetries are not expected. Case 60 is included specifically for the icosahedral
-     * PolyhedralSymmetry (60 copies).
      */
     template<typename F>
     void dispatch_scaling(int scaling, F&& f) {

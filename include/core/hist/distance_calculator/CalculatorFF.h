@@ -7,7 +7,7 @@
 #include <form_factor/FormFactorType.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFF.h>
-#include <hist/distance_calculator/detail/AccumulationTasks.h>
+#include <hist/distance_calculator/detail/CPUKernel.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
@@ -15,7 +15,6 @@
 #include <utility/observer_ptr.h>
 
 #include <cassert>
-#include <memory>
 #include <span>
 #include <unordered_map>
 #include <vector>
@@ -26,8 +25,8 @@ namespace ausaxs::hist::distance_calculator {
      *
      * The form factor of an atom only decides *which* histogram its pairs land in, never the distance itself, so a
      * calculation restricted to two form factor types is an ordinary pairwise distance calculation whose result
-     * happens to be one row of a larger distribution. This kernel therefore splits each input by form factor and
-     * hands the resulting subsets to the same detail::enqueue_self and detail::enqueue_cross the weight-based kernel
+     * happens to be one row of a larger distribution. This calculator therefore splits each input by form factor and
+     * hands the resulting subsets to the same detail::enqueue_self and detail::enqueue_cross the weight-based calculator
      * uses, with a target naming the row to accumulate into.
      *
      * The rows are rows of one distribution per thread, not histograms of their own, so a worker thread keeps
@@ -37,7 +36,7 @@ namespace ausaxs::hist::distance_calculator {
      * by the intensity calculator. The caller must keep all submitted data alive until run() returns.
      */
     template<bool weighted_bins, bool variable_bin_width>
-    class SimpleFFCPU {
+    class CalculatorFF {
         using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
         using GenericDistribution2D_t = typename hist::GenericDistribution2D<weighted_bins>::type;
         using GenericDistribution3D_t = typename hist::GenericDistribution3D<weighted_bins>::type;
@@ -51,17 +50,17 @@ namespace ausaxs::hist::distance_calculator {
             };
 
             /**
-             * @brief Construct a kernel whose result histograms span @a bin_count bins.
+             * @brief Construct a calculator whose result histograms span @a bin_count bins.
              */
-            explicit SimpleFFCPU(int bin_count)
+            explicit CalculatorFF(int bin_count)
                 : bin_count(bin_count), n_ff(form_factor::get_active_count()),
                   aa(n_ff, n_ff, bin_count), aw(n_ff, bin_count), ww(bin_count) {}
 
             /**
              * @brief Drain the thread pool before any of this object's state is released.
-             *        See SimpleCPU's destructor; the same reasoning applies.
+             *        See CalculatorCPU's destructor; the same reasoning applies.
              */
-            ~SimpleFFCPU() {
+            ~CalculatorFF() {
                 auto* pool = utility::multi_threading::get_global_pool();
                 pool->purge();
                 pool->wait();
@@ -191,12 +190,12 @@ namespace ausaxs::hist::distance_calculator {
             }
 
             TargetAA target_aa(int ff1, int ff2) {
-                assert(0 <= ff1 && ff1 < n_ff && 0 <= ff2 && ff2 < n_ff && "SimpleFFCPU::target_aa: form factor index out of bounds.");
+                assert(0 <= ff1 && ff1 < n_ff && 0 <= ff2 && ff2 < n_ff && "CalculatorFF::target_aa: form factor index out of bounds.");
                 return {&aa, ff1, ff2, bin_count};
             }
 
             TargetAW target_aw(int ff1) {
-                assert(0 <= ff1 && ff1 < n_ff && "SimpleFFCPU::target_aw: form factor index out of bounds.");
+                assert(0 <= ff1 && ff1 < n_ff && "CalculatorFF::target_aw: form factor index out of bounds.");
                 return {&aw, ff1, bin_count};
             }
 

@@ -8,7 +8,7 @@
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/SimpleExvModel.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/distance_calculator/Calculator.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Logging.h>
 
@@ -34,7 +34,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
     hist::detail::decorrelate_order<wb>(bin_count, data_a, data_w);
 
-    hist::distance_calculator::SimpleCalculator<wb, vbw> calculator(bin_count);
+    hist::distance_calculator::Calculator<wb, vbw> calculator(bin_count);
     // all three are known up front, so they are held and dispatched as one unit
     calculator.hold();
     calculator.enqueue_calculate_self(data_a);

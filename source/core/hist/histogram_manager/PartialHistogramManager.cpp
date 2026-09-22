@@ -7,7 +7,7 @@
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/distance_calculator/detail/TemplateHelperSimple.h>
+#include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>

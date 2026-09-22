@@ -6,7 +6,7 @@
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>  // IWYU pragma: keep
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/distance_calculator/Calculator.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/HistogramSettings.h>
@@ -49,7 +49,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
     auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto* pool = utility::multi_threading::get_global_pool();
-    distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_count);
+    distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(bin_count);
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {

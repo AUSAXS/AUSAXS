@@ -4,7 +4,11 @@
 #pragma once
 
 namespace ausaxs::hist::distance_calculator {
-    template<bool weighted_bins, bool variable_bin_width> class SimpleCalculator;
-    template<bool weighted_bins, bool variable_bin_width> class SimpleCPU;
-    template<bool weighted_bins, bool variable_bin_width> class SimpleGPU;
+    template<bool weighted_bins, bool variable_bin_width> class Calculator;
+    template<bool weighted_bins, bool variable_bin_width> class CalculatorFF;
+
+    namespace detail {
+        template<bool weighted_bins, bool variable_bin_width> class CalculatorCPU;
+        template<bool weighted_bins, bool variable_bin_width> class GPUKernel;
+    }
 }
