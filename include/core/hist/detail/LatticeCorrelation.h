@@ -22,9 +22,13 @@
  * wrap-around, every displacement has an exactly known integer squared length, and the counts come out as integers.
  * The distances are in fact more accurate than those of the pair loop, which works in float32 throughout.
  *
- * The cost is memory - the transform buffers scale with the *bounding box* rather than the point count, so they grow
+ * The cost is memory - the transform buffer scales with the *bounding box* rather than the point count, so it grows
  * quickly for large or elongated structures. Everything here therefore reports failure rather than allocating past
  * settings::grid::exv::max_transform_memory, and the caller is expected to fall back to the pair loop.
+ *
+ * That buffer is a single copy of the padded box, 8 bytes per cell: both transforms run in place, and the several
+ * spellings that silently cost two or three copies of it are avoided deliberately. See the Transform class comment
+ * in the implementation for how, and why the obvious float32 halving is a trap rather than a further 2x.
  */
 namespace ausaxs::hist::detail::lattice {
     /**

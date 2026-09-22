@@ -124,8 +124,10 @@ namespace {
      * with the bounding volume while the pair count grows with the occupied volume.
      */
     bool fits_in_memory(const Box& box) {
-        // one real box, plus a half-spectrum holding one complex value per two real cells
-        const double bytes = box.cells()*(sizeof(double) + sizeof(std::complex<double>)/2.);
+        // a single buffer, allocated at the half-spectrum size and carrying the real box aliased inside it.
+        // the row pitch is 2*(n/2+1) reals rather than n, so this is marginally more than 8 bytes per real cell.
+        const double bytes = static_cast<double>(box.shape[0])*static_cast<double>(box.shape[1])
+            *static_cast<double>(box.shape[2]/2 + 1)*sizeof(std::complex<double>);
         const double budget = static_cast<double>(settings::grid::exv::max_transform_memory)*1024*1024;
         if (budget < bytes) {
             console::print_warning(
@@ -139,16 +141,30 @@ namespace {
     }
 
     /**
-     * @brief The occupancy box and its half-spectrum, reused across the correlations of a single point set pair.
+     * @brief The occupancy box, reused across the correlations of a single point set pair.
+     *
+     * Both transforms run in place inside a single buffer of one complex value per half-spectrum cell, i.e. a little
+     * over 8 bytes per padded real cell. The two obvious spellings each cost a further copy of the box and are
+     * deliberately avoided: transforming out-of-place into a separate spectrum array doubles the peak, and pocketfft's
+     * multi-axis c2r is a wrapper that allocates a full half-spectrum temporary on every call, which doubles it again.
+     *
+     * The real box is therefore aliased into the same allocation, laid out FFTW-style: a row pitch of 2*(n/2+1) reals
+     * of which the leading n are live. That is what makes the forward r2c safe in place - general_r2c copies each line
+     * into scratch before writing the corresponding output line, and with this layout a line's input and output occupy
+     * exactly the same row, so no line can clobber another's input on either the scalar or the vectorised path. The
+     * inverse is spelled out as the two stages the wrapper would have run: the leading-axis c2c is genuinely in place,
+     * and the trailing single-axis c2r is line-buffered just like r2c.
      */
     class Transform {
         public:
             Transform(const Box& box)
                 : shape{box.shape[0], box.shape[1], box.shape[2]},
                   half_shape{box.shape[0], box.shape[1], box.shape[2]/2 + 1},
+                  pitch(2*half_shape[2]),
+                  cells(static_cast<double>(shape[0])*static_cast<double>(shape[1])*static_cast<double>(shape[2])),
                   real_stride{
-                      static_cast<std::ptrdiff_t>(shape[1]*shape[2]*sizeof(double)),
-                      static_cast<std::ptrdiff_t>(shape[2]*sizeof(double)),
+                      static_cast<std::ptrdiff_t>(shape[1]*pitch*sizeof(double)),
+                      static_cast<std::ptrdiff_t>(pitch*sizeof(double)),
                       static_cast<std::ptrdiff_t>(sizeof(double))
                   },
                   spectrum_stride{
@@ -156,8 +172,7 @@ namespace {
                       static_cast<std::ptrdiff_t>(half_shape[2]*sizeof(std::complex<double>)),
                       static_cast<std::ptrdiff_t>(sizeof(std::complex<double>))
                   },
-                  real(shape[0]*shape[1]*shape[2]),
-                  spectrum(half_shape[0]*half_shape[1]*half_shape[2])
+                  buffer(half_shape[0]*half_shape[1]*half_shape[2])
             {}
 
             /**
@@ -168,25 +183,25 @@ namespace {
              * holding two spectra at once.
              */
             void autocorrelate(std::initializer_list<const std::vector<Coordinate>*> sets) {
-                std::fill(real.begin(), real.end(), 0.);
+                std::fill(buffer.begin(), buffer.end(), std::complex<double>(0, 0));
+                double* real = data();
                 for (const auto* set : sets) {
                     for (const auto& p : *set) {
-                        real[(static_cast<std::size_t>(p[0])*shape[1] + p[1])*shape[2] + p[2]] += 1;
+                        real[(static_cast<std::size_t>(p[0])*shape[1] + p[1])*pitch + p[2]] += 1;
                     }
                 }
 
                 pocketfft::r2c(
-                    shape, real_stride, spectrum_stride, {0, 1, 2}, pocketfft::FORWARD, real.data(), spectrum.data(), 1., 1
+                    shape, real_stride, spectrum_stride, {0, 1, 2}, pocketfft::FORWARD, real, buffer.data(), 1., 1
                 );
-                for (auto& z : spectrum) {z = std::norm(z);}
+                for (auto& z : buffer) {z = std::norm(z);}
 
                 // the multi-axis c2r allocates a full-size scratch buffer internally, so we spell out its two steps ourselves
                 pocketfft::c2c(
-                    half_shape, spectrum_stride, spectrum_stride, {0, 1}, pocketfft::BACKWARD, spectrum.data(), spectrum.data(), 1., 1
+                    half_shape, spectrum_stride, spectrum_stride, {0, 1}, pocketfft::BACKWARD, buffer.data(), buffer.data(), 1., 1
                 );
                 pocketfft::c2r(
-                    shape, spectrum_stride, real_stride, 2, pocketfft::BACKWARD, spectrum.data(), real.data(),
-                    1./static_cast<double>(real.size()), 1
+                    shape, spectrum_stride, real_stride, 2, pocketfft::BACKWARD, buffer.data(), real, 1./cells, 1
                 );
             }
 
@@ -194,27 +209,32 @@ namespace {
              * @brief Radially bin the pair counts currently held in the box, adding them to @a out.
              *
              * Self-pairs are left out, since the callers add that term themselves. Every displacement has an exactly
-             * known integer squared length, so the distances carry no accumulated error; the bin index is formed in
-             * double precision, unlike the float32 of the pair loop, so the two can disagree on a bin edge.
+             * known integer squared length, so the distances carry no accumulated error.
+             *
+             * The distance is nonetheless formed in float, as the pair loop's own evaluate1 does - CompactCoordinates
+             * stores float coordinates throughout. The lattice offsets are exact integers, so this rounding is the
+             * only arithmetic difference between the two paths, and matching the convention keeps their bin indices
+             * and weighted bin centres equal rather than letting them disagree on a bin edge.
              */
             void bin(const Box& box, double inv_bin_width, WeightedDistribution1D& out) const {
+                const auto spacing = static_cast<float>(box.spacing);
                 for (int dx = -(box.extent[0]-1); dx < box.extent[0]; ++dx) {
                     const std::size_t ix = wrap(dx, shape[0]);
                     for (int dy = -(box.extent[1]-1); dy < box.extent[1]; ++dy) {
                         const std::size_t iy = wrap(dy, shape[1]);
-                        const double* row = real.data() + (ix*shape[1] + iy)*shape[2];
+                        const double* row = data() + (ix*shape[1] + iy)*pitch;
                         const std::int64_t dxy2 = std::int64_t(dx)*dx + std::int64_t(dy)*dy;
                         for (int dz = -(box.extent[2]-1); dz < box.extent[2]; ++dz) {
                             const double pairs = row[wrap(dz, shape[2])];
                             if (pairs < 0.5) {continue;} // exactly zero up to the rounding error of the transform
                             const std::int64_t d2 = dxy2 + std::int64_t(dz)*dz;
                             if (d2 == 0) {continue;}
-                            const double distance = std::sqrt(static_cast<double>(d2))*box.spacing;
+                            const float distance = std::sqrt(static_cast<float>(d2))*spacing;
                             // note that count is only 32 bits wide, exactly as in the pair loop this replaces
                             const unsigned int count = static_cast<unsigned int>(std::llround(pairs));
                             const auto index = static_cast<int32_t>(std::round(distance*inv_bin_width));
                             assert(index < static_cast<int32_t>(out.size()) && "lattice: distance bin out of range");
-                            out.add_index(index, WeightedEntry(count, count, count*distance));
+                            out.add_index(index, WeightedEntry(count, count, count*static_cast<double>(distance)));
                         }
                     }
                 }
@@ -225,17 +245,30 @@ namespace {
              */
             double rounding_error() const {
                 double worst = 0;
-                for (double pairs : real) {worst = std::max(worst, std::abs(pairs - std::round(pairs)));}
+                // only the leading shape[2] reals of each row are live; the rest of the pitch is stale spectrum
+                for (std::size_t i = 0; i < shape[0]; ++i) {
+                    for (std::size_t j = 0; j < shape[1]; ++j) {
+                        const double* row = data() + (i*shape[1] + j)*pitch;
+                        for (std::size_t k = 0; k < shape[2]; ++k) {
+                            worst = std::max(worst, std::abs(row[k] - std::round(row[k])));
+                        }
+                    }
+                }
                 return worst;
             }
 
         private:
             pocketfft::shape_t shape;            // the padded real box
             pocketfft::shape_t half_shape;       // the spectrum left by an r2c along the last axis
+            std::size_t pitch;                   // reals per row of the aliased real box, 2*half_shape[2]
+            double cells;                        // the number of real cells, i.e. the inverse transform normalisation
             pocketfft::stride_t real_stride;
             pocketfft::stride_t spectrum_stride;
-            std::vector<double> real;
-            std::vector<std::complex<double>> spectrum;
+            std::vector<std::complex<double>> buffer;
+
+            // the real box shares the spectrum's allocation; see the class comment for why that is safe
+            double* data() {return reinterpret_cast<double*>(buffer.data());}
+            const double* data() const {return reinterpret_cast<const double*>(buffer.data());}
 
             static std::size_t wrap(int d, std::size_t length) {
                 return static_cast<std::size_t>((d + static_cast<int>(length)) % static_cast<int>(length));

@@ -54,12 +54,10 @@ namespace {
             }
             REQUIRE(expected.index(i).count == actual.index(i).count);
 
-            // the transform works from exact integer displacements where the pair loop works in float32, so the
-            // accumulated distances agree only to the precision of the latter
-            REQUIRE_THAT(
-                actual.index(i).bin_center,
-                Catch::Matchers::WithinRel(expected.index(i).bin_center, 1e-6) || Catch::Matchers::WithinAbs(0, 1e-6)
-            );
+            // the transform forms its distances in float exactly as the pair loop's evaluate1 does, and the lattice
+            // offsets are exact integers, so the two agree to summation order - which on a lattice is bit-for-bit.
+            // a tolerance here would hide the one arithmetic difference the two paths can actually have.
+            REQUIRE(expected.index(i).bin_center == actual.index(i).bin_center);
         }
     }
 
