@@ -251,7 +251,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                     packed[4*i] = a.x(i);
                     packed[4*i + 1] = a.y(i);
                     packed[4*i + 2] = a.z(i);
-                    packed[4*i + 3] = a.get_non_coordinate_value(i);
+                    packed[4*i + 3] = a.get_weight(i);
                 }
                 return packed.data();
             }
@@ -262,7 +262,7 @@ namespace ausaxs::hist::distance_calculator::detail {
             static double self_weight(const CompactCoordinates_t& a, int scaling) {
                 double total_weight = 0;
                 for (int i = 0; i < a.size(); ++i) {
-                    double weight = a.get_non_coordinate_value(i);
+                    double weight = a.get_weight(i);
                     total_weight += weight*weight;
                 }
                 return scaling*total_weight;

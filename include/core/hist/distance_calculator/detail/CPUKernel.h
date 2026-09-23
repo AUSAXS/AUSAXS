@@ -5,7 +5,6 @@
 
 #include <container/ThreadLocalWrapper.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <settings/GeneralSettings.h>
@@ -152,7 +151,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                 auto&& p_aa = target.get();
                 double total_weight = 0;
                 for (int i = 0; i < data_size; ++i) {
-                    double weight = data.get_non_coordinate_value(i);
+                    double weight = data.get_weight(i);
                     total_weight += weight*weight;
                 }
                 total_weight *= self_factor;
@@ -232,48 +231,5 @@ namespace ausaxs::hist::distance_calculator::detail {
         } else {
             enqueue_cross<variable_bin_width, pair_factor>(b, a, target);
         }
-    }
-
-    /**
-     * @brief Split @a source into one unit-weight coordinate set per form factor type, indexed by type.
-     *        Types with no atoms get an empty set.
-     *
-     * The form factor of an atom only decides which histogram its pairs land in, never the distance itself, so a
-     * calculation restricted to fixed form factor types is an ordinary weighted one over these subsets. The unit
-     * weights make every pair count once; the form factor amplitudes are applied later, by the intensity calculator.
-     */
-    template<bool variable_bin_width>
-    std::vector<hist::detail::CompactCoordinates<variable_bin_width>> partition_by_ff(
-        const hist::detail::CompactCoordinatesFF<variable_bin_width>& source, int n_ff
-    ) {
-        std::vector<int> counts(n_ff, 0);
-        for (int i = 0; i < source.size(); ++i) {++counts[source.get_ff_type(i)];}
-
-        std::vector<hist::detail::CompactCoordinates<variable_bin_width>> parts(n_ff);
-        for (int ff = 0; ff < n_ff; ++ff) {parts[ff].resize(counts[ff]);}
-
-        std::vector<int> filled(n_ff, 0);
-        for (int i = 0; i < source.size(); ++i) {
-            int ff = source.get_ff_type(i);
-            int k = filled[ff]++;
-            parts[ff].set_position(k, source.position(i));
-            parts[ff].get_non_coordinate_value(k) = 1;
-        }
-        return parts;
-    }
-
-    /**
-     * @brief The whole of @a source as one unit-weight coordinate set, disregarding its form factor types.
-     *        See partition_by_ff.
-     */
-    template<bool variable_bin_width>
-    hist::detail::CompactCoordinates<variable_bin_width> flatten(const hist::detail::CompactCoordinatesFF<variable_bin_width>& source) {
-        hist::detail::CompactCoordinates<variable_bin_width> whole;
-        whole.resize(source.size());
-        for (int i = 0; i < source.size(); ++i) {
-            whole.set_position(i, source.position(i));
-            whole.get_non_coordinate_value(i) = 1;
-        }
-        return whole;
     }
 }

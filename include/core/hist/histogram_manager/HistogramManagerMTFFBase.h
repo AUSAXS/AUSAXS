@@ -3,11 +3,14 @@
 
 #pragma once
 
-#include <hist/detail/CompactCoordinatesFF.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
 #include <hist/histogram_manager/HistogramManager.h>
+
+#include <memory>
+#include <vector>
 
 namespace ausaxs::hist {
 	/**
@@ -38,8 +41,8 @@ namespace ausaxs::hist {
 			 */
 			RawDistributions compute_raw_distributions();
 
-			// data stored for inheritance
-			std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_a_ptr;
-		    std::unique_ptr<hist::detail::CompactCoordinatesFF<variable_bin_width>> data_w_ptr;
+			// data stored for inheritance, all with unit weights: the atoms split by form factor, one set per active type, and the waters whole
+			std::unique_ptr<std::vector<hist::detail::CompactCoordinates<variable_bin_width>>> data_a_ptr;
+			std::unique_ptr<hist::detail::CompactCoordinates<variable_bin_width>> data_w_ptr;
 	};
 }

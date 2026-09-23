@@ -44,44 +44,26 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     auto* pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
-    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x_i, data_x_s;
     auto exv = get_exv();
-    {   // generate the excluded volume representation
-        std::vector<data::AtomFF> interior(exv.interior.size()), surface(exv.surface.size());
-        std::transform(
-            exv.interior.begin(), exv.interior.end(), interior.begin(),
-            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
-        );
-        std::transform(
-            exv.surface.begin(), exv.surface.end(), surface.begin(),
-            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
-        );
-        data_x_i = hist::detail::factory::construct_ff<variable_bin_width>(interior);
-        data_x_s = hist::detail::factory::construct_ff<variable_bin_width>(surface);
-    }
-
-    auto& data_a = *this->data_a_ptr;
-    auto& data_w = *this->data_w_ptr;
+    auto data_x_i = hist::detail::factory::construct_unit_weight<variable_bin_width>(exv.interior);
+    auto data_x_s = hist::detail::factory::construct_unit_weight<variable_bin_width>(exv.surface);
+    const auto& data_a = *this->data_a_ptr;
+    const auto& data_w = *this->data_w_ptr;
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
 
     //##############//
     // SUBMIT TASKS //
     //##############//
-    // the atoms are resolved by form factor on their own side only; see kernel::partition_by_ff
+    // the atoms are resolved by form factor on their own side only
     int n_ff = form_factor::get_active_count();
-    auto parts_a = kernel::partition_by_ff(data_a, n_ff);
-    auto whole_w = kernel::flatten(data_w);
-    auto whole_x_i = kernel::flatten(data_x_i);
-    auto whole_x_s = kernel::flatten(data_x_s);
-
     container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_i_all(n_ff, bin_count), p_ax_s_all(n_ff, bin_count);
     container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_i_all(bin_count), p_wx_s_all(bin_count);
     for (int ff = 0; ff < n_ff; ++ff) {
-        kernel::enqueue_balanced_cross<variable_bin_width, 1>(parts_a[ff], whole_x_i, kernel::row_target(p_ax_i_all, bin_count, ff));
-        kernel::enqueue_balanced_cross<variable_bin_width, 1>(parts_a[ff], whole_x_s, kernel::row_target(p_ax_s_all, bin_count, ff));
+        kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_a[ff], data_x_i, kernel::row_target(p_ax_i_all, bin_count, ff));
+        kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_a[ff], data_x_s, kernel::row_target(p_ax_s_all, bin_count, ff));
     }
-    kernel::enqueue_balanced_cross<variable_bin_width, 1>(whole_w, whole_x_i, kernel::row_target(p_wx_i_all, bin_count));
-    kernel::enqueue_balanced_cross<variable_bin_width, 1>(whole_w, whole_x_s, kernel::row_target(p_wx_s_all, bin_count));
+    kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_w, data_x_i, kernel::row_target(p_wx_i_all, bin_count));
+    kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_w, data_x_s, kernel::row_target(p_wx_s_all, bin_count));
 
     XXContainer p_xx(0);
 #if defined(POCKETFFT_AVAILABLE)
@@ -97,9 +79,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     pool->wait();
 #else
     container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_i_all(bin_count), p_xx_s_all(bin_count), p_xx_c_all(bin_count);
-    kernel::enqueue_self<true, variable_bin_width, 2, 1>(whole_x_i, kernel::row_target(p_xx_i_all, bin_count));
-    kernel::enqueue_self<true, variable_bin_width, 2, 1>(whole_x_s, kernel::row_target(p_xx_s_all, bin_count));
-    kernel::enqueue_balanced_cross<variable_bin_width, 2>(whole_x_i, whole_x_s, kernel::row_target(p_xx_c_all, bin_count));
+    kernel::enqueue_self<true, variable_bin_width, 2, 1>(data_x_i, kernel::row_target(p_xx_i_all, bin_count));
+    kernel::enqueue_self<true, variable_bin_width, 2, 1>(data_x_s, kernel::row_target(p_xx_s_all, bin_count));
+    kernel::enqueue_balanced_cross<variable_bin_width, 2>(data_x_i, data_x_s, kernel::row_target(p_xx_c_all, bin_count));
     pool->wait();
     p_xx.interior = p_xx_i_all.merge();
     p_xx.surface  = p_xx_s_all.merge();

@@ -44,34 +44,22 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
     auto exv = get_exv();
-    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
-    {   // generate the excluded volume representation
-        std::vector<data::AtomFF> interior(exv.interior.size());
-        std::transform(
-            exv.interior.begin(), exv.interior.end(), interior.begin(),
-            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
-        );
-        data_x = hist::detail::factory::construct_ff<variable_bin_width>(interior);
-    }
-    auto& data_a = *this->data_a_ptr;
-    auto& data_w = *this->data_w_ptr;
+    auto data_x = hist::detail::factory::construct_unit_weight<variable_bin_width>(exv.interior);
+    const auto& data_a = *this->data_a_ptr;
+    const auto& data_w = *this->data_w_ptr;
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x);
 
     //##############//
     // SUBMIT TASKS //
     //##############//
-    // the atoms are resolved by form factor on their own side only; see kernel::partition_by_ff
+    // the atoms are resolved by form factor on their own side only
     int n_ff = form_factor::get_active_count();
-    auto parts_a = kernel::partition_by_ff(data_a, n_ff);
-    auto whole_w = kernel::flatten(data_w);
-    auto whole_x = kernel::flatten(data_x);
-
     container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(n_ff, bin_count);
     container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
     for (int ff = 0; ff < n_ff; ++ff) {
-        kernel::enqueue_balanced_cross<variable_bin_width, 1>(parts_a[ff], whole_x, kernel::row_target(p_ax_all, bin_count, ff));
+        kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_a[ff], data_x, kernel::row_target(p_ax_all, bin_count, ff));
     }
-    kernel::enqueue_balanced_cross<variable_bin_width, 1>(whole_w, whole_x, kernel::row_target(p_wx_all, bin_count));
+    kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_w, data_x, kernel::row_target(p_wx_all, bin_count));
 
 #if defined(POCKETFFT_AVAILABLE)
     // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
@@ -82,7 +70,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     pool->wait();
 #else
     container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
-    kernel::enqueue_self<true, variable_bin_width, 2, 1>(whole_x, kernel::row_target(p_xx_all, bin_count));
+    kernel::enqueue_self<true, variable_bin_width, 2, 1>(data_x, kernel::row_target(p_xx_all, bin_count));
     pool->wait();
     WeightedDistribution1D p_xx_generic = p_xx_all.merge();
 #endif

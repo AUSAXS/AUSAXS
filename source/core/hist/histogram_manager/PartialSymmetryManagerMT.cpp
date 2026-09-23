@@ -143,7 +143,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     #if DEBUG_INFO_PSMMT_EXTENDED
         auto print_atom = [] (const auto& c, int iatom) {
             std::cout << c.x(iatom) << " " << c.y(iatom) << " " << c.z(iatom) << " "
-                      << c.get_non_coordinate_value(iatom) << std::endl;
+                      << c.get_weight(iatom) << std::endl;
         };
 
         std::cout << "atomic setup: " << std::endl;

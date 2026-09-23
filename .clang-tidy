@@ -188,7 +188,7 @@ Checks: >
 #       Every header in the project uses `#pragma once`; 288 hits, all deliberate.
 #   portability-simd-intrinsics
 #       The histogram kernels use x86 intrinsics on purpose
-#       (hist/detail/data/CompactCoordinatesXYZFF.h and friends).
+#       (hist/detail/data/CompactCoordinatesXYZW.h and friends).
 #   portability-template-virtual-member-function
 #       Speculative ("might be instantiated with a different compiler") and noisy
 #       against the templated histogram hierarchy.

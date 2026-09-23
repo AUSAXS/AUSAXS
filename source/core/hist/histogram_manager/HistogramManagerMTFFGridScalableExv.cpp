@@ -46,19 +46,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
     WeightedDistribution1D p_tot = cast_res->get_weighted_counts();
     p_tot.set_bin_centers(cast_res->get_d_axis());
 
-    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
-    {   // generate the excluded volume representation
-        auto exv = get_exv().interior;
-        std::vector<data::AtomFF> interior(exv.size());
-        std::transform(
-            exv.begin(), exv.end(), interior.begin(),
-            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
-        );
-        data_x = hist::detail::factory::construct_ff<variable_bin_width>(interior);
-    }
-
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
-    // the atoms are resolved by form factor on their own side only; see kernel::partition_by_ff
+    // the atoms are resolved by form factor on their own side only
     int n_ff = form_factor::get_active_count();
     auto eval_scaled_exv = [
         p_tot = std::move(p_tot),
@@ -66,17 +55,16 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         p_aw = std::move(cast_res->get_raw_aw_counts_by_ff()),
         p_ww = std::move(cast_res->get_raw_ww_counts_by_ff()),
         data_a = *this->data_a_ptr,
-        parts_a = kernel::partition_by_ff(*this->data_a_ptr, n_ff),
-        whole_w = kernel::flatten(*this->data_w_ptr),
-        whole_x = kernel::flatten(data_x),
+        data_w = *this->data_w_ptr,
+        data_x = hist::detail::factory::construct_unit_weight<variable_bin_width>(get_exv().interior),
         n_ff,
         pool] 
         (double scale) 
     {
         // stretch the excluded volume cells by the given scale factor
-        auto scaled_x = whole_x;
+        auto scaled_x = data_x;
         scaled_x.scale_coordinates(scale);
-        int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, whole_w, scaled_x);
+        int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_x);
 
         //##############//
         // SUBMIT TASKS //
@@ -86,9 +74,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
         kernel::enqueue_self<true, variable_bin_width, 2, 1>(scaled_x, kernel::row_target(p_xx_all, bin_count));
         for (int ff = 0; ff < n_ff; ++ff) {
-            kernel::enqueue_balanced_cross<variable_bin_width, 1>(parts_a[ff], scaled_x, kernel::row_target(p_ax_all, bin_count, ff));
+            kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_a[ff], scaled_x, kernel::row_target(p_ax_all, bin_count, ff));
         }
-        kernel::enqueue_balanced_cross<variable_bin_width, 1>(whole_w, scaled_x, kernel::row_target(p_wx_all, bin_count));
+        kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_w, scaled_x, kernel::row_target(p_wx_all, bin_count));
 
         pool->wait();
         WeightedDistribution1D p_xx_generic = p_xx_all.merge();
