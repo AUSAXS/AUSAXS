@@ -4,7 +4,6 @@
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 
 #include <form_factor/lookup/ExvTableManager.h>
-#include <math/ConstexprMath.h>
 #include <settings/ExvSettings.h>
 
 #include <cmath>
