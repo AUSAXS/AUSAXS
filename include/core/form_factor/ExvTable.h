@@ -40,7 +40,7 @@ namespace ausaxs::constants::exv {
                     throw ausaxs::except::runtime_error(
                         "constants::exv::detail::ExvSet::get: No displaced volume for form factor type \"" + ausaxs::form_factor::to_string(type) + "\"");
                 }
-                return *volumes[static_cast<int>(type)];
+                return *volumes[static_cast<int>(type)]; // NOLINT(bugprone-unchecked-optional-access)
             }
         };
 

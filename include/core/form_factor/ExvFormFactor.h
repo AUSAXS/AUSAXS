@@ -56,7 +56,7 @@ namespace ausaxs::form_factor {
         struct ExvFormFactorSet {
             constexpr ExvFormFactorSet(const constants::exv::detail::ExvSet& set) {
                 for (int i = 0; i < total_ff_count; ++i) {
-                    if (set.volumes[i].has_value()) {form_factors[i] = ExvFormFactor(*set.volumes[i]);}
+                    if (const auto& v = set.volumes[i]; v.has_value()) {form_factors[i] = ExvFormFactor(*v);}
                 }
             }
 
@@ -71,7 +71,7 @@ namespace ausaxs::form_factor {
                 if (!contains(type)) {
                     throw ausaxs::except::runtime_error("form_factor::detail::ExvFormFactorSet::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
-                return *form_factors[static_cast<int>(type)];
+                return *form_factors[static_cast<int>(type)]; // NOLINT(bugprone-unchecked-optional-access)
             }
 
             std::array<std::optional<ExvFormFactor>, total_ff_count> form_factors;
