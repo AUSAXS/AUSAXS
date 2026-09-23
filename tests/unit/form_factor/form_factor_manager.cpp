@@ -1,15 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <constants/ConstantsAxes.h>
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
-#include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactor.h>
+#include <form_factor/FormFactorType.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
-#include <constants/ConstantsAxes.h>
 #include <settings/All.h>
 
 #include <concepts>

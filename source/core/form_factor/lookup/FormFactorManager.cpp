@@ -27,10 +27,7 @@ namespace {
 
     /**
      * @brief Evaluate every active atomic form factor over the default q axis.
-     *
-     * Each form factor appears in many products, so evaluating it once here rather than once per product is what
-     * makes the table build cheap: the form factor evaluation dominates everything else in the build.
-     *
+     *        Evaluating first & then multiplying the results is faster than evaluating each product individually. 
      */
     template<FormFactorLookupType FormFactorLookup>
     profile_set_t evaluate_atomic_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
