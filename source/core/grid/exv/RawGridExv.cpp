@@ -2,8 +2,8 @@
 // Author: Kristian Lytje
 
 #include <grid/exv/RawGridExv.h>
-#include <grid/exv/GridExvStrategy.h>
 
+#include <grid/exv/GridExvStrategy.h>
 #include <settings/GridSettings.h>
 #include <utility/Logging.h>
 
@@ -41,9 +41,10 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
 
     auto[imin, imax] = grid->bounding_box_index();
     Vector3<int> start{std::max(imin.x()-buffer, 0), std::max(imin.y()-buffer, 0), std::max(imin.z()-buffer, 0)};
-    for (int i = start.x(); i < std::min<int>(imax.x()+buffer+1, axes.x.bins); i+=stride) {
-        for (int j = start.y(); j < std::min<int>(imax.y()+buffer+1, axes.y.bins); j+=stride) {
-            for (int k = start.z(); k < std::min<int>(imax.z()+buffer+1, axes.z.bins); k+=stride) {
+    Vector3<int> end{std::min(imax.x()+buffer+1, axes.x.bins), std::min(imax.y()+buffer+1, axes.y.bins), std::min(imax.z()+buffer+1, axes.z.bins)};
+    for (int i = start.x(); i < end.x(); i+=stride) {
+        for (int j = start.y(); j < end.y(); j+=stride) {
+            for (int k = start.z(); k < end.z(); k+=stride) {
                 auto val = grid->index(i, j, k);
                 if (!acceptable_state(val)) {continue;}
                 vol.interior.emplace_back(grid->to_xyz(i, j, k));

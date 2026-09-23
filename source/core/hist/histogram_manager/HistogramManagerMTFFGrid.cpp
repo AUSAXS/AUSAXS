@@ -43,7 +43,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     auto* pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
-    // the excluded volume is kept alive past this point since the lattice self-correlation below needs its sites
     auto exv = get_exv();
     hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
     {   // generate the excluded volume representation
@@ -128,9 +127,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         );
     }
 
-    // the excluded volume points are the sites of a cubic lattice, so p_xx is the radially binned autocorrelation of a
-    // binary occupancy array rather than a pair loop; see hist::detail::lattice. this runs on the calling thread and so
-    // overlaps with the ax and wx jobs above.
+    // use the more efficient lattice transform for the self-correlation
     WeightedDistribution1D p_xx_generic = detail::lattice::self_correlation(
         exv, detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
     );

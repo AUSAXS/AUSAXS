@@ -45,8 +45,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
     hist::detail::CompactCoordinatesFF<variable_bin_width> data_x_i, data_x_s;
-
-    // the excluded volume is kept alive past this point since the lattice correlations below need its sites
     auto exv = get_exv();
     {   // generate the excluded volume representation
         std::vector<data::AtomFF> interior(exv.interior.size()), surface(exv.surface.size());
@@ -172,9 +170,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         );
     }
 
-    // both excluded volume point sets are drawn from the sites of one cubic lattice, so all three of their correlations
-    // are radially binned autocorrelations of binary occupancy arrays rather than pair loops; see hist::detail::lattice.
-    // this runs on the calling thread and so overlaps with the ax and wx jobs above.
+    // use the more efficient lattice transform for the self-correlation
     auto p_xx_lattice = detail::lattice::correlations(
         exv, hist::detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
     );

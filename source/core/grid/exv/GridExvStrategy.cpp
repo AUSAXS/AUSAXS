@@ -16,7 +16,7 @@ using namespace ausaxs;
 using namespace ausaxs::grid::exv;
 
 int grid::exv::point_stride() {
-    return std::max(1., std::round(settings::grid::exv::width/settings::grid::cell_width));
+    return std::max<int>(1, static_cast<int>(std::round(settings::grid::exv::width/settings::grid::cell_width)));
 }
 
 double grid::exv::point_spacing() {
@@ -34,6 +34,6 @@ GridExcludedVolume grid::exv::create(observer_ptr<grid::Grid> grid) {
 
         default:
             logging::log("GridExvStrategy::create: Chosen exv model does not use a grid-based excluded volume. Returning empty object.");
-            return {.interior={}, .surface={}};
+            return {.interior={}, .surface={}, .interior_sites={}, .surface_sites={}, .spacing=0};
     }
 }
