@@ -9,6 +9,8 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 #include <settings/GridSettings.h>
 
+#include <cmath>
+
 using namespace ausaxs;
 
 class GridDebug : public grid::Grid {
@@ -34,6 +36,29 @@ class GridDebug : public grid::Grid {
             {-1, 1, 1}, {-1, 1, -1}, {-1, -1, 1}, {-1, -1, -1}
         };
 
+        /**
+         * @brief Build an excluded volume from the given debug points, including the lattice sites the transform needs.
+         *        The debug points all lie on a unit lattice within [-1, 1], so they are shifted by one to make the sites non-negative.
+         */
+        static grid::exv::GridExcludedVolume make_exv(std::vector<Vector3<double>> interior, std::vector<Vector3<double>> surface) {
+            auto to_sites = [] (const std::vector<Vector3<double>>& points) {
+                std::vector<Vector3<int>> sites;
+                sites.reserve(points.size());
+                for (const auto& p : points) {
+                    sites.emplace_back(static_cast<int>(std::lround(p.x()))+1, static_cast<int>(std::lround(p.y()))+1, static_cast<int>(std::lround(p.z()))+1);
+                }
+                return sites;
+            };
+
+            grid::exv::GridExcludedVolume vol;
+            vol.interior_sites = to_sites(interior);
+            vol.surface_sites = to_sites(surface);
+            vol.interior = std::move(interior);
+            vol.surface = std::move(surface);
+            vol.spacing = 1;
+            return vol;
+        }
+
     private:
         double ra = 0, rh = 0;
 };
@@ -47,14 +72,7 @@ class GridDebug : public grid::Grid {
         using hist::HistogramManagerMTFFGrid<vbw>::HistogramManagerMTFFGrid;
 
         grid::exv::GridExcludedVolume get_exv() const override {
-            return {
-                .interior={
-                    GridDebug::exv[0], 
-                    GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
-                    GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
-                }, 
-                .surface={}
-            };
+            return GridDebug::make_exv(GridDebug::exv, {});
         }
 };
 
@@ -67,14 +85,7 @@ class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMT
         using hist::HistogramManagerMTFFGridScalableExv<vbw>::HistogramManagerMTFFGridScalableExv;
 
         grid::exv::GridExcludedVolume get_exv() const override {
-            return {
-                .interior={
-                    GridDebug::exv[0], 
-                    GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
-                    GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
-                }, 
-                .surface={}
-            };
+            return GridDebug::make_exv(GridDebug::exv, {});
         }
 };
 
@@ -87,27 +98,13 @@ class DebugHistogramManagerMTFFGridSurface : public hist::HistogramManagerMTFFGr
         using hist::HistogramManagerMTFFGridSurface<vbw>::HistogramManagerMTFFGridSurface;
 
         grid::exv::GridExcludedVolume get_exv() const override {
-            return {
-                .interior={GridDebug::exv[0]}, 
-                .surface={
-                    GridDebug::exv[1], GridDebug::exv[2], GridDebug::exv[3], GridDebug::exv[4], 
-                    GridDebug::exv[5], GridDebug::exv[6], GridDebug::exv[7], GridDebug::exv[8]
-                }
-            };
+            return GridDebug::make_exv({GridDebug::exv[0]}, std::vector<Vector3<double>>(GridDebug::exv.begin()+1, GridDebug::exv.end()));
         }
 };
 
 inline grid::exv::GridExcludedVolume GridDebug::generate_excluded_volume() {
     auto res = Grid::generate_excluded_volume();
 
-    grid::exv::GridExcludedVolume vol;
-    vol.interior = {exv[0]};
-    vol.surface = {exv[1], exv[2], exv[3], exv[4], exv[5], exv[6], exv[7], exv[8]};
-
-    if (!res.has_surface()) {
-        vol.interior.insert(vol.interior.end(), vol.surface.begin(), vol.surface.end());
-        vol.surface.clear();
-    }
-
-    return vol;
+    if (!res.has_surface()) {return make_exv(exv, {});}
+    return make_exv({exv[0]}, std::vector<Vector3<double>>(exv.begin()+1, exv.end()));
 }

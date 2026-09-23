@@ -223,6 +223,8 @@ namespace {
 }
 
 WeightedDistribution1D hist::detail::lattice::self_correlation(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count) {
+    assert(exv.interior_sites.size() == exv.interior.size() && "lattice::self_correlation: every interior position needs a lattice site");
+    assert((exv.interior_sites.empty() || 0 < exv.spacing) && "lattice::self_correlation: the lattice spacing is not set");
     WeightedDistribution1D out(bin_count);
     Box box = make_box({&exv.interior_sites}, exv.spacing);
     Transform transform(box);
@@ -234,6 +236,9 @@ WeightedDistribution1D hist::detail::lattice::self_correlation(const grid::exv::
 }
 
 Correlations hist::detail::lattice::correlations(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count) {
+    assert(exv.interior_sites.size() == exv.interior.size() && "lattice::correlations: every interior position needs a lattice site");
+    assert(exv.surface_sites.size() == exv.surface.size() && "lattice::correlations: every surface position needs a lattice site");
+    assert(((exv.interior_sites.empty() && exv.surface_sites.empty()) || 0 < exv.spacing) && "lattice::correlations: the lattice spacing is not set");
     Correlations out{
         .first=WeightedDistribution1D(bin_count),
         .second=WeightedDistribution1D(bin_count),
