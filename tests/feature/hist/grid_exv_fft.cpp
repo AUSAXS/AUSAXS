@@ -6,7 +6,6 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <form_factor/FormFactorType.h>
-#include <grid/Grid.h>
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <hist/detail/BinEstimate.h>
