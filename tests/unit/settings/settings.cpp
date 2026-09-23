@@ -6,11 +6,13 @@
 #include <settings/InternalState.h>
 #include <settings/SettingsHelper.h>
 
+#include <type_traits>
+
 using namespace ausaxs;
 
 TEST_CASE("Setting<T>::on_change_and_assignment") {
 	SECTION("on_change is called and can modify assigned value") {
-		settings::detail::Setting<int> s{.value=0, .on_change=nullptr};
+		settings::detail::Setting<int> s{0};
 		bool called = false;
 
 		// on_change will clamp the value to [0, 10] and mark called
@@ -31,7 +33,7 @@ TEST_CASE("Setting<T>::on_change_and_assignment") {
 	}
 
 	SECTION("operator= returns reference to stored value") {
-		settings::detail::Setting<int> s{.value=5, .on_change=nullptr};
+		settings::detail::Setting<int> s{5};
 		int& r = (s = 42);
 		r = 7;
 		CHECK(static_cast<int>(s) == 7);
@@ -39,9 +41,16 @@ TEST_CASE("Setting<T>::on_change_and_assignment") {
 }
 
 TEST_CASE("Setting<T>::conversion_operator") {
-	settings::detail::Setting<double> sd{.value=3.14, .on_change=nullptr};
+	settings::detail::Setting<double> sd{3.14};
 	double x = sd; // conversion operator
     CHECK_THAT(x, Catch::Matchers::WithinAbs(3.14, 1e-9));
+}
+
+TEST_CASE("Setting<T>::not_copyable") {
+	// copying a setting and assigning it back would silently skip on_change
+	STATIC_REQUIRE_FALSE(std::is_copy_constructible_v<settings::detail::Setting<int>>);
+	STATIC_REQUIRE_FALSE(std::is_copy_assignable_v<settings::detail::Setting<int>>);
+	STATIC_REQUIRE(std::is_assignable_v<settings::detail::Setting<int>&, int>);
 }
 
 TEST_CASE("HistogramSettings::axes::bin_width updates flags") {

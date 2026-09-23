@@ -305,7 +305,7 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
 TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded volume") {
     const int CH3   = static_cast<int>(form_factor_t::CH3);
     const int other = static_cast<int>(form_factor_t::OTHER);
-    auto original_method = settings::exv::exv_method;
+    auto original_method = settings::exv::exv_method.value;
     auto original_set = settings::exv::exv_set.value;
     manager::detail::use_form_factors(identity());
 

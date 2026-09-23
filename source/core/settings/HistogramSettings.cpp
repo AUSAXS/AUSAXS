@@ -17,9 +17,9 @@ using namespace ausaxs;
 int settings::axes::skip = 0;
 
 // qmin
-settings::detail::Setting<double> settings::axes::qmin = {
-    .value=constants::axes::q_axis.min,
-    .on_change=[](double& new_qmin) {
+settings::detail::Setting<double> settings::axes::qmin{
+    constants::axes::q_axis.min,
+    [](double& new_qmin) {
         if (new_qmin < 0. || new_qmin > constants::axes::q_axis.max) {
             console::print_warning(
                 "settings::axes::qmin: qmin must be in the range "
@@ -32,9 +32,9 @@ settings::detail::Setting<double> settings::axes::qmin = {
 };
 
 // qmax
-settings::detail::Setting<double> settings::axes::qmax = {
-    .value=0.5,
-    .on_change=[](double& new_qmax) {
+settings::detail::Setting<double> settings::axes::qmax{
+    0.5,
+    [](double& new_qmax) {
         if (new_qmax < 0. || new_qmax > constants::axes::q_axis.max) {
             console::print_warning(
                 "settings::axes::qmax: qmax must be in the range" 
@@ -47,9 +47,9 @@ settings::detail::Setting<double> settings::axes::qmax = {
 };
 
 // bin_width
-settings::detail::Setting<double> settings::axes::bin_width = {
-    .value=constants::axes::d_axis.width(),
-    .on_change=[](double& new_width) {
+settings::detail::Setting<double> settings::axes::bin_width{
+    constants::axes::d_axis.width(),
+    [](double& new_width) {
         settings::internal_state::custom_bin_width = std::abs(constants::axes::d_axis.width() - new_width) >= 1e-6;
         settings::internal_state::inv_bin_width = 1./new_width;
     }
