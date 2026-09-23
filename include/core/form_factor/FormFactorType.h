@@ -83,22 +83,21 @@ namespace ausaxs::form_factor {
          *        Its excluded volume is described separately in form_factor/ExvTable.h, and is optional. 
          */
         constexpr std::array<FormFactorInfo, total_ff_count> ff_info_table = {{
-            //  type                             name    element         H   e-  mass                coefficients
-            {form_factor_t::EXCLUDED_VOLUME,    "EXV",  atom_t::unknown, 0,  0,  0,                  ff::excluded_volume},
-            {form_factor_t::OH,                 "OH",   atom_t::O,       1,  9,  16.999,             ff::OH_alc},
-            {form_factor_t::H,                  "H",    atom_t::H,       0,  1,  get_mass(atom_t::H), ff::H},
-            {form_factor_t::C,                  "C",    atom_t::C,       0,  6,  get_mass(atom_t::C), ff::C},
-            {form_factor_t::CH,                 "CH",   atom_t::C,       1,  7,  13.019,             ff::CH_sp3},
-            {form_factor_t::CH2,                "CH2",  atom_t::C,       2,  8,  14.027,             ff::CH2_sp3},
-            {form_factor_t::CH3,                "CH3",  atom_t::C,       3,  9,  15.035,             ff::CH3_sp3},
-            {form_factor_t::N,                  "N",    atom_t::N,       0,  7,  14.00674,           ff::N},
-            {form_factor_t::NH,                 "NH",   atom_t::N,       1,  8,  15.01474,           ff::NH},
-            {form_factor_t::NH2,                "NH2",  atom_t::N,       2,  9,  16.02274,           ff::NH2},
-            {form_factor_t::NH3,                "NH3",  atom_t::N,       3,  10, 17.03074,           ff::NH3_plus},
-            {form_factor_t::O,                  "O",    atom_t::O,       0,  8,  15.999,             ff::O},
-            {form_factor_t::S,                  "S",    atom_t::S,       0,  16, 32.06,              ff::S},
-            {form_factor_t::SH,                 "SH",   atom_t::S,       1,  17, 33.06,              ff::SH},
-            {form_factor_t::OTHER,              "OTH",  atom_t::Ar,      0,  18, 39.948,             ff::other},
+            {.type=form_factor_t::EXCLUDED_VOLUME, .name="EXV", .element=atom_t::unknown, .hydrogens=0, .electrons=0,  .mass=0,                   .coefficients=ff::excluded_volume},
+            {.type=form_factor_t::OH,              .name="OH",  .element=atom_t::O,       .hydrogens=1, .electrons=9,  .mass=16.999,              .coefficients=ff::OH_alc         },
+            {.type=form_factor_t::H,               .name="H",   .element=atom_t::H,       .hydrogens=0, .electrons=1,  .mass=get_mass(atom_t::H), .coefficients=ff::H              },
+            {.type=form_factor_t::C,               .name="C",   .element=atom_t::C,       .hydrogens=0, .electrons=6,  .mass=get_mass(atom_t::C), .coefficients=ff::C              },
+            {.type=form_factor_t::CH,              .name="CH",  .element=atom_t::C,       .hydrogens=1, .electrons=7,  .mass=13.019,              .coefficients=ff::CH_sp3         },
+            {.type=form_factor_t::CH2,             .name="CH2", .element=atom_t::C,       .hydrogens=2, .electrons=8,  .mass=14.027,              .coefficients=ff::CH2_sp3        },
+            {.type=form_factor_t::CH3,             .name="CH3", .element=atom_t::C,       .hydrogens=3, .electrons=9,  .mass=15.035,              .coefficients=ff::CH3_sp3        },
+            {.type=form_factor_t::N,               .name="N",   .element=atom_t::N,       .hydrogens=0, .electrons=7,  .mass=14.00674,            .coefficients=ff::N              },
+            {.type=form_factor_t::NH,              .name="NH",  .element=atom_t::N,       .hydrogens=1, .electrons=8,  .mass=15.01474,            .coefficients=ff::NH             },
+            {.type=form_factor_t::NH2,             .name="NH2", .element=atom_t::N,       .hydrogens=2, .electrons=9,  .mass=16.02274,            .coefficients=ff::NH2            },
+            {.type=form_factor_t::NH3,             .name="NH3", .element=atom_t::N,       .hydrogens=3, .electrons=10, .mass=17.03074,            .coefficients=ff::NH3_plus       },
+            {.type=form_factor_t::O,               .name="O",   .element=atom_t::O,       .hydrogens=0, .electrons=8,  .mass=15.999,              .coefficients=ff::O              },
+            {.type=form_factor_t::S,               .name="S",   .element=atom_t::S,       .hydrogens=0, .electrons=16, .mass=32.06,               .coefficients=ff::S              },
+            {.type=form_factor_t::SH,              .name="SH",  .element=atom_t::S,       .hydrogens=1, .electrons=17, .mass=33.06,               .coefficients=ff::SH             },
+            {.type=form_factor_t::OTHER,           .name="OTH", .element=atom_t::Ar,      .hydrogens=0, .electrons=18, .mass=39.948,              .coefficients=ff::other          },
         }};
 
         constexpr bool ff_info_table_is_ordered() {

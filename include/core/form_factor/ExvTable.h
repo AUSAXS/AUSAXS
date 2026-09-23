@@ -83,23 +83,22 @@ namespace ausaxs::constants::exv {
          *   vdw:                           based on the van der Waals radii of each atom
          */
         constexpr std::array exv_info_table = {
-            //      type        Traube          Vor_iH  MF_iH   Vor_eH  MF_eH   vdw
-            ExvInfo{ff_t::H,    nm3(0.00515),   0,      0,      12.958, 0.347,  volume(vdw::H)},
-            ExvInfo{ff_t::C,    nm3(0.01644),   8.895,  12.352, 8.658,  12.734, volume(vdw::C)},
-            ExvInfo{ff_t::CH,   nm3(0.02159),   12.430, 11.640, 11.784, 11.399, volume(vdw::C) + 1*volume(vdw::H)},
-            ExvInfo{ff_t::CH2,  nm3(0.02674),   22.033, 34.583, 20.682, 34.828, volume(vdw::C) + 2*volume(vdw::H)},
-            ExvInfo{ff_t::CH3,  nm3(0.03189),   34.092, 41.851, 33.175, 42.011, volume(vdw::C) + 3*volume(vdw::H)},
-            ExvInfo{ff_t::N,    nm3(0.00249),   9.558,  0.027,  9.144,  0.018,  volume(vdw::N)},
-            ExvInfo{ff_t::NH,   nm3(0.00764),   14.944, 2.181,  7.119,  1.451,  volume(vdw::N) + 1*volume(vdw::H)},
-            ExvInfo{ff_t::NH2,  nm3(0.01279),   22.129, 20.562, 5.859,  19.064, volume(vdw::N) + 2*volume(vdw::H)},
-            ExvInfo{ff_t::NH3,  nm3(0.01794),   20.641, 20.722, 2.588,  17.498, volume(vdw::N) + 3*volume(vdw::H)},
-            ExvInfo{ff_t::O,    nm3(0.00913),   22.315, 14.238, 19.167, 14.334, volume(vdw::O)},
-            ExvInfo{ff_t::OH,   nm3(0.01428),   23.266, 20.911, 13.099, 20.312, volume(vdw::O) + volume(vdw::H)},
-            ExvInfo{ff_t::S,    nm3(0.01986),   26.356, 15.413, 25.715, 15.242, volume(vdw::S)},
-            ExvInfo{ff_t::SH,   nm3(0.02510),   34.192, 28.529, 32.333, 28.475, volume(vdw::S) + volume(vdw::H)},
+            ExvInfo{.type=ff_t::H,   .Traube=nm3(0.00515), .Voronoi_implicit_H=0,      .MinimumFluctuation_implicit_H=0,      .Voronoi_explicit_H=12.958, .MinimumFluctuation_explicit_H=0.347,  .vdw=volume(vdw::H)                   },
+            ExvInfo{.type=ff_t::C,   .Traube=nm3(0.01644), .Voronoi_implicit_H=8.895,  .MinimumFluctuation_implicit_H=12.352, .Voronoi_explicit_H=8.658,  .MinimumFluctuation_explicit_H=12.734, .vdw=volume(vdw::C)                   },
+            ExvInfo{.type=ff_t::CH,  .Traube=nm3(0.02159), .Voronoi_implicit_H=12.430, .MinimumFluctuation_implicit_H=11.640, .Voronoi_explicit_H=11.784, .MinimumFluctuation_explicit_H=11.399, .vdw=volume(vdw::C) + 1*volume(vdw::H)},
+            ExvInfo{.type=ff_t::CH2, .Traube=nm3(0.02674), .Voronoi_implicit_H=22.033, .MinimumFluctuation_implicit_H=34.583, .Voronoi_explicit_H=20.682, .MinimumFluctuation_explicit_H=34.828, .vdw=volume(vdw::C) + 2*volume(vdw::H)},
+            ExvInfo{.type=ff_t::CH3, .Traube=nm3(0.03189), .Voronoi_implicit_H=34.092, .MinimumFluctuation_implicit_H=41.851, .Voronoi_explicit_H=33.175, .MinimumFluctuation_explicit_H=42.011, .vdw=volume(vdw::C) + 3*volume(vdw::H)},
+            ExvInfo{.type=ff_t::N,   .Traube=nm3(0.00249), .Voronoi_implicit_H=9.558,  .MinimumFluctuation_implicit_H=0.027,  .Voronoi_explicit_H=9.144,  .MinimumFluctuation_explicit_H=0.018,  .vdw=volume(vdw::N)                   },
+            ExvInfo{.type=ff_t::NH,  .Traube=nm3(0.00764), .Voronoi_implicit_H=14.944, .MinimumFluctuation_implicit_H=2.181,  .Voronoi_explicit_H=7.119,  .MinimumFluctuation_explicit_H=1.451,  .vdw=volume(vdw::N) + 1*volume(vdw::H)},
+            ExvInfo{.type=ff_t::NH2, .Traube=nm3(0.01279), .Voronoi_implicit_H=22.129, .MinimumFluctuation_implicit_H=20.562, .Voronoi_explicit_H=5.859,  .MinimumFluctuation_explicit_H=19.064, .vdw=volume(vdw::N) + 2*volume(vdw::H)},
+            ExvInfo{.type=ff_t::NH3, .Traube=nm3(0.01794), .Voronoi_implicit_H=20.641, .MinimumFluctuation_implicit_H=20.722, .Voronoi_explicit_H=2.588,  .MinimumFluctuation_explicit_H=17.498, .vdw=volume(vdw::N) + 3*volume(vdw::H)},
+            ExvInfo{.type=ff_t::O,   .Traube=nm3(0.00913), .Voronoi_implicit_H=22.315, .MinimumFluctuation_implicit_H=14.238, .Voronoi_explicit_H=19.167, .MinimumFluctuation_explicit_H=14.334, .vdw=volume(vdw::O)                   },
+            ExvInfo{.type=ff_t::OH,  .Traube=nm3(0.01428), .Voronoi_implicit_H=23.266, .MinimumFluctuation_implicit_H=20.911, .Voronoi_explicit_H=13.099, .MinimumFluctuation_explicit_H=20.312, .vdw=volume(vdw::O) + volume(vdw::H)  },
+            ExvInfo{.type=ff_t::S,   .Traube=nm3(0.01986), .Voronoi_implicit_H=26.356, .MinimumFluctuation_implicit_H=15.413, .Voronoi_explicit_H=25.715, .MinimumFluctuation_explicit_H=15.242, .vdw=volume(vdw::S)                   },
+            ExvInfo{.type=ff_t::SH,  .Traube=nm3(0.02510), .Voronoi_implicit_H=34.192, .MinimumFluctuation_implicit_H=28.529, .Voronoi_explicit_H=32.333, .MinimumFluctuation_explicit_H=28.475, .vdw=volume(vdw::S) + volume(vdw::H)  },
 
             // all other atoms are treated as argon in every set
-            ExvInfo{ff_t::OTHER, volume(vdw::Ar), volume(vdw::Ar), volume(vdw::Ar), volume(vdw::Ar), volume(vdw::Ar), volume(vdw::Ar)},
+            ExvInfo{.type=ff_t::OTHER, .Traube=volume(vdw::Ar), .Voronoi_implicit_H=volume(vdw::Ar), .MinimumFluctuation_implicit_H=volume(vdw::Ar), .Voronoi_explicit_H=volume(vdw::Ar), .MinimumFluctuation_explicit_H=volume(vdw::Ar), .vdw=volume(vdw::Ar)},
         };
 
         /**
