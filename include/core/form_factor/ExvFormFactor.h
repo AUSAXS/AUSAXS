@@ -9,8 +9,10 @@
 #include <form_factor/FormFactorType.h>
 #include <math/ConstexprMath.h>
 
+#include <array>
 #include <cmath>
 #include <numbers>
+#include <optional>
 
 namespace ausaxs::form_factor {
     /**
@@ -47,41 +49,32 @@ namespace ausaxs::form_factor {
     };
 
     namespace detail {
+        /**
+         * @brief The excluded volume form factors of a single displaced volume set. 
+         *        Form factor types absent from the volume set are also absent here. 
+         */
         struct ExvFormFactorSet {
-            constexpr ExvFormFactorSet(const constants::exv::detail::ExvSet& set) : 
-                H(set.H), C(set.C), CH(set.CH), CH2(set.CH2), CH3(set.CH3), 
-                N(set.N), NH(set.NH), NH2(set.NH2), NH3(set.NH3), 
-                O(set.O), OH(set.OH), 
-                S(set.S), SH(set.SH),
-                Ar(constants::exv::Ar)
-            {}
-
-            constexpr ExvFormFactor get(form_factor_t type) const {
-                switch(type) {
-                    case form_factor_t::H:     return H;
-                    case form_factor_t::C:     return C;
-                    case form_factor_t::CH:    return CH;
-                    case form_factor_t::CH2:   return CH2;
-                    case form_factor_t::CH3:   return CH3;
-                    case form_factor_t::N:     return N;
-                    case form_factor_t::NH:    return NH;
-                    case form_factor_t::NH2:   return NH2;
-                    case form_factor_t::NH3:   return NH3;
-                    case form_factor_t::O:     return O;
-                    case form_factor_t::OH:    return OH;
-                    case form_factor_t::S:     return S;
-                    case form_factor_t::SH:    return SH;
-                    case form_factor_t::OTHER: return Ar;
-                    default: throw ausaxs::except::runtime_error("form_factor::detail::ExvFormFactorSet::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+            constexpr ExvFormFactorSet(const constants::exv::detail::ExvSet& set) {
+                for (int i = 0; i < total_ff_count; ++i) {
+                    if (const auto& v = set.volumes[i]; v.has_value()) {form_factors[i] = ExvFormFactor(*v);}
                 }
             }
 
-            ExvFormFactor H;
-            ExvFormFactor C, CH, CH2, CH3;
-            ExvFormFactor N, NH, NH2, NH3;
-            ExvFormFactor O, OH;
-            ExvFormFactor S, SH;
-            ExvFormFactor Ar;
+            /**
+             * @brief Check if this set has an excluded volume form factor for the given form factor type.
+             */
+            constexpr bool contains(form_factor_t type) const {
+                return form_factor::detail::is_tabulated(type) && form_factors[static_cast<int>(type)].has_value();
+            }
+
+            constexpr ExvFormFactor get(form_factor_t type) const {
+                if (!contains(type)) {
+                    throw ausaxs::except::runtime_error("form_factor::detail::ExvFormFactorSet::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                }
+                return *form_factors[static_cast<int>(type)]; // NOLINT(bugprone-unchecked-optional-access)
+            }
+
+            std::array<std::optional<ExvFormFactor>, total_ff_count> form_factors;
         };
     }
 }

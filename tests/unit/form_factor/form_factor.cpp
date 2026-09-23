@@ -77,37 +77,37 @@ TEST_CASE("FormFactor::set_normalization") {
 
 TEST_CASE("FormFactor::lookup::atomic::raw") {
     SECTION("get hydrogen form factor") {
-        const FormFactor& ff = lookup::atomic::raw::H;
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::H);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get carbon form factor") {
-        const FormFactor& ff = lookup::atomic::raw::C;
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::C);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get nitrogen form factor") {
-        const FormFactor& ff = lookup::atomic::raw::N;
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::N);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get oxygen form factor") {
-        const FormFactor& ff = lookup::atomic::raw::O;
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::O);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get sulfur form factor") {
-        const FormFactor& ff = lookup::atomic::raw::S;
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::S);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get excluded volume form factor") {
-        const FormFactor& ff = lookup::atomic::raw::excluded_volume;
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::EXCLUDED_VOLUME);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
@@ -121,10 +121,10 @@ TEST_CASE("FormFactor::lookup::atomic::raw") {
 
 TEST_CASE("FormFactor::comparison with normalized") {
     SECTION("raw form factors are not normalized to 1") {
-        const FormFactor& ff_h = lookup::atomic::raw::H;
-        const FormFactor& ff_c = lookup::atomic::raw::C;
-        const FormFactor& ff_n = lookup::atomic::raw::N;
-        const FormFactor& ff_o = lookup::atomic::raw::O;
+        const FormFactor& ff_h = lookup::atomic::raw::get(form_factor_t::H);
+        const FormFactor& ff_c = lookup::atomic::raw::get(form_factor_t::C);
+        const FormFactor& ff_n = lookup::atomic::raw::get(form_factor_t::N);
+        const FormFactor& ff_o = lookup::atomic::raw::get(form_factor_t::O);
         
         CHECK(ff_h.evaluate(0) != 1.0);
         CHECK(ff_c.evaluate(0) != 1.0);

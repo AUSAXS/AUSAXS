@@ -43,7 +43,7 @@ TEST_CASE("FormFactorProduct::table_comprehensive") {
 
 TEST_CASE("FormFactorProduct::specific_pairs") {
     SECTION("H-H product") {
-        const FormFactor& ff = lookup::atomic::raw::H;
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::H);
         FormFactorProduct ffp(ff, ff);
         
         CHECK(ffp.evaluate(0) > 0);
@@ -52,8 +52,8 @@ TEST_CASE("FormFactorProduct::specific_pairs") {
     }
 
     SECTION("C-N product") {
-        const FormFactor& ff_c = lookup::atomic::raw::C;
-        const FormFactor& ff_n = lookup::atomic::raw::N;
+        const FormFactor& ff_c = lookup::atomic::raw::get(form_factor_t::C);
+        const FormFactor& ff_n = lookup::atomic::raw::get(form_factor_t::N);
         FormFactorProduct ffp(ff_c, ff_n);
         
         CHECK(ffp.evaluate(0) > 0);
@@ -62,8 +62,8 @@ TEST_CASE("FormFactorProduct::specific_pairs") {
     }
 
     SECTION("O-S product") {
-        const FormFactor& ff_o = lookup::atomic::raw::O;
-        const FormFactor& ff_s = lookup::atomic::raw::S;
+        const FormFactor& ff_o = lookup::atomic::raw::get(form_factor_t::O);
+        const FormFactor& ff_s = lookup::atomic::raw::get(form_factor_t::S);
         FormFactorProduct ffp(ff_o, ff_s);
         
         CHECK(ffp.evaluate(0) > 0);

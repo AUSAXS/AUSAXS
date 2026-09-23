@@ -140,7 +140,7 @@ TEST_CASE("manager::normalized_cross_table: completeness") {
 
 TEST_CASE("ExvTableManager::set_custom_exv_table") {
     SECTION("set custom table") {
-        auto original_setting = settings::exv::exv_set;
+        auto original_setting = settings::exv::exv_set.value;
 
         constants::exv::detail::ExvSet custom_set = constants::exv::vdw;
         ExvTableManager::set_custom_exv_table(custom_set);
@@ -155,7 +155,7 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
     }
 
     SECTION("products match direct calculation after custom table is set") {
-        auto original_setting = settings::exv::exv_set;
+        auto original_setting = settings::exv::exv_set.value;
 
         constants::exv::detail::ExvSet custom_set = constants::exv::Traube;
         ExvTableManager::set_custom_exv_table(custom_set);
@@ -178,7 +178,7 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
 
 TEST_CASE("ExvSet switching") {
     SECTION("Traube") {
-        auto original_setting = settings::exv::exv_set;
+        auto original_setting = settings::exv::exv_set.value;
         settings::exv::exv_set = settings::exv::ExvSet::Traube;
 
         const auto& table = manager::get_active_product_tables()->raw_exv_table;
@@ -201,7 +201,7 @@ TEST_CASE("ExvSet switching") {
     }
 
     SECTION("vdw") {
-        auto original_setting = settings::exv::exv_set;
+        auto original_setting = settings::exv::exv_set.value;
         settings::exv::exv_set = settings::exv::ExvSet::vdw;
 
         const auto& table = manager::get_active_product_tables()->raw_exv_table;

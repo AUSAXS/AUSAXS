@@ -8,158 +8,127 @@
 #include <form_factor/FormFactorType.h>
 #include <math/ConstexprMath.h>
 
+#include <array>
 #include <numbers>
+#include <optional>
 
-// Per-atom-group displaced solvent volumes for the various excluded-volume sets.
-// Each set below is annotated with its literature source; see settings::exv::ExvSet for selection.
+// Per-type displaced solvent volumes for the various excluded-volume sets.
+// Each set is annotated with its literature source below; see settings::exv::ExvSet for selection.
 namespace ausaxs::constants::exv {
     namespace detail {
         /**
-         * @brief The displaced solvent volume of each atom group (a bare atom, or an atom with its
-         *        implicit hydrogens, e.g. CH3). Volumes are stored in Å³.
+         * @brief A set of displaced solvent volumes, with one optional entry per form factor type (a bare atom,
+         *        or an atom with its implicit hydrogens, e.g. CH3). Volumes are stored in Å³.
+         *        Types without an entry cannot be used with the Fraser excluded volume model.
          */
         struct ExvSet {
-            double H;
-            double C, CH, CH2, CH3;
-            double N, NH, NH2, NH3;
-            double O, OH;
-            double S, SH;
+            std::array<std::optional<double>, ausaxs::form_factor::total_ff_count> volumes;
             constexpr bool operator==(const ExvSet& other) const = default;
+
+            /**
+             * @brief Check if this set has a displaced solvent volume for the given form factor type.
+             */
+            constexpr bool contains(ausaxs::form_factor::form_factor_t type) const {
+                return ausaxs::form_factor::detail::is_tabulated(type) && volumes[static_cast<int>(type)].has_value();
+            }
 
             /**
              * @brief Get the displaced solvent volume of a single atom of the given form factor type, in cubic angstroms.
              */
-            constexpr double get(ausaxs::form_factor::form_factor_t type) const;
+            constexpr double get(ausaxs::form_factor::form_factor_t type) const {
+                if (!contains(type)) {
+                    throw ausaxs::except::runtime_error(
+                        "constants::exv::detail::ExvSet::get: No displaced volume for form factor type \"" + ausaxs::form_factor::to_string(type) + "\"");
+                }
+                return *volumes[static_cast<int>(type)]; // NOLINT(bugprone-unchecked-optional-access)
+            }
+        };
+
+        /**
+         * @brief Descriptor of the displaced solvent volumes of a single form factor type across all volume sets.
+         *        Each volume is optional; a missing volume means the type is absent from that set.
+         */
+        struct ExvInfo {
+            ausaxs::form_factor::form_factor_t type;
+            std::optional<double> Traube;
+            std::optional<double> Voronoi_implicit_H;
+            std::optional<double> MinimumFluctuation_implicit_H;
+            std::optional<double> Voronoi_explicit_H;
+            std::optional<double> MinimumFluctuation_explicit_H;
+            std::optional<double> vdw;
         };
 
         constexpr double volume(double radius) {
             return 4*std::numbers::pi/3*constexpr_math::pow(radius, 3);
         }
+
+        constexpr double A3 = constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+
+        namespace vdw = constants::radius::vdw;
+        using ff_t = ausaxs::form_factor::form_factor_t;
+
+        /**
+         * @brief The excluded volume descriptor table.
+         *        Rows may appear in any order, and form factor types without any known volumes can be omitted entirely.
+         *        OTHER must always be present, since it is the fallback type for everything else.
+         *
+         * Sources of each column:
+         *   Traube:                        original CRYSOL paper, 1995: https://doi.org/10.1107/S0021889895007047
+         *   Voronoi_implicit_H:            table I, V^vor   from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
+         *   MinimumFluctuation_implicit_H: table I, V^mf    from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
+         *   Voronoi_explicit_H:            table I, V^vor_H from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
+         *   MinimumFluctuation_explicit_H: table I, V^mf_H  from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
+         *   vdw:                           based on the van der Waals radii of each atom
+         */
+        constexpr std::array exv_info_table = {
+            ExvInfo{.type=ff_t::H,   .Traube=0.00515*A3, .Voronoi_implicit_H=0,      .MinimumFluctuation_implicit_H=0,      .Voronoi_explicit_H=12.958, .MinimumFluctuation_explicit_H=0.347,  .vdw=volume(vdw::H)                   },
+            ExvInfo{.type=ff_t::C,   .Traube=0.01644*A3, .Voronoi_implicit_H=8.895,  .MinimumFluctuation_implicit_H=12.352, .Voronoi_explicit_H=8.658,  .MinimumFluctuation_explicit_H=12.734, .vdw=volume(vdw::C)                   },
+            ExvInfo{.type=ff_t::CH,  .Traube=0.02159*A3, .Voronoi_implicit_H=12.430, .MinimumFluctuation_implicit_H=11.640, .Voronoi_explicit_H=11.784, .MinimumFluctuation_explicit_H=11.399, .vdw=volume(vdw::C) + 1*volume(vdw::H)},
+            ExvInfo{.type=ff_t::CH2, .Traube=0.02674*A3, .Voronoi_implicit_H=22.033, .MinimumFluctuation_implicit_H=34.583, .Voronoi_explicit_H=20.682, .MinimumFluctuation_explicit_H=34.828, .vdw=volume(vdw::C) + 2*volume(vdw::H)},
+            ExvInfo{.type=ff_t::CH3, .Traube=0.03189*A3, .Voronoi_implicit_H=34.092, .MinimumFluctuation_implicit_H=41.851, .Voronoi_explicit_H=33.175, .MinimumFluctuation_explicit_H=42.011, .vdw=volume(vdw::C) + 3*volume(vdw::H)},
+            ExvInfo{.type=ff_t::N,   .Traube=0.00249*A3, .Voronoi_implicit_H=9.558,  .MinimumFluctuation_implicit_H=0.027,  .Voronoi_explicit_H=9.144,  .MinimumFluctuation_explicit_H=0.018,  .vdw=volume(vdw::N)                   },
+            ExvInfo{.type=ff_t::NH,  .Traube=0.00764*A3, .Voronoi_implicit_H=14.944, .MinimumFluctuation_implicit_H=2.181,  .Voronoi_explicit_H=7.119,  .MinimumFluctuation_explicit_H=1.451,  .vdw=volume(vdw::N) + 1*volume(vdw::H)},
+            ExvInfo{.type=ff_t::NH2, .Traube=0.01279*A3, .Voronoi_implicit_H=22.129, .MinimumFluctuation_implicit_H=20.562, .Voronoi_explicit_H=5.859,  .MinimumFluctuation_explicit_H=19.064, .vdw=volume(vdw::N) + 2*volume(vdw::H)},
+            ExvInfo{.type=ff_t::NH3, .Traube=0.01794*A3, .Voronoi_implicit_H=20.641, .MinimumFluctuation_implicit_H=20.722, .Voronoi_explicit_H=2.588,  .MinimumFluctuation_explicit_H=17.498, .vdw=volume(vdw::N) + 3*volume(vdw::H)},
+            ExvInfo{.type=ff_t::O,   .Traube=0.00913*A3, .Voronoi_implicit_H=22.315, .MinimumFluctuation_implicit_H=14.238, .Voronoi_explicit_H=19.167, .MinimumFluctuation_explicit_H=14.334, .vdw=volume(vdw::O)                   },
+            ExvInfo{.type=ff_t::OH,  .Traube=0.01428*A3, .Voronoi_implicit_H=23.266, .MinimumFluctuation_implicit_H=20.911, .Voronoi_explicit_H=13.099, .MinimumFluctuation_explicit_H=20.312, .vdw=volume(vdw::O) + volume(vdw::H)  },
+            ExvInfo{.type=ff_t::S,   .Traube=0.01986*A3, .Voronoi_implicit_H=26.356, .MinimumFluctuation_implicit_H=15.413, .Voronoi_explicit_H=25.715, .MinimumFluctuation_explicit_H=15.242, .vdw=volume(vdw::S)                   },
+            ExvInfo{.type=ff_t::SH,  .Traube=0.02510*A3, .Voronoi_implicit_H=34.192, .MinimumFluctuation_implicit_H=28.529, .Voronoi_explicit_H=32.333, .MinimumFluctuation_explicit_H=28.475, .vdw=volume(vdw::S) + volume(vdw::H)  },
+
+            // all other atoms are treated as argon in every set
+            ExvInfo{.type=ff_t::OTHER, .Traube=volume(vdw::Ar), .Voronoi_implicit_H=volume(vdw::Ar), .MinimumFluctuation_implicit_H=volume(vdw::Ar), .Voronoi_explicit_H=volume(vdw::Ar), .MinimumFluctuation_explicit_H=volume(vdw::Ar), .vdw=volume(vdw::Ar)},
+        };
+
+        /**
+         * @brief Extract a single volume set (column) from the descriptor table.
+         */
+        constexpr ExvSet make_set(std::optional<double> ExvInfo::* column) {
+            ExvSet set{};
+            for (const auto& row : exv_info_table) {
+                if (set.volumes[static_cast<int>(row.type)].has_value()) {
+                    throw ausaxs::except::runtime_error("constants::exv::detail::make_set: Duplicate row in exv_info_table.");
+                }
+                set.volumes[static_cast<int>(row.type)] = row.*column;
+            }
+            return set;
+        }
     }
 
-    // from original CRYSOL paper, 1995: https://doi.org/10.1107/S0021889895007047
-    constexpr detail::ExvSet Traube {
-        .H   = 0.00515*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3),
-        .C   = 0.01644*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .CH  = 0.02159*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .CH2 = 0.02674*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .CH3 = 0.03189*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .N   = 0.00249*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .NH  = 0.00764*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .NH2 = 0.01279*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .NH3 = 0.01794*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .O   = 0.00913*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .OH  = 0.01428*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .S   = 0.01986*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3), 
-        .SH  = 0.02510*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3)
-    };
+    constexpr detail::ExvSet Traube                        = detail::make_set(&detail::ExvInfo::Traube);
+    constexpr detail::ExvSet Voronoi_implicit_H            = detail::make_set(&detail::ExvInfo::Voronoi_implicit_H);
+    constexpr detail::ExvSet MinimumFluctuation_implicit_H = detail::make_set(&detail::ExvInfo::MinimumFluctuation_implicit_H);
+    constexpr detail::ExvSet Voronoi_explicit_H            = detail::make_set(&detail::ExvInfo::Voronoi_explicit_H);
+    constexpr detail::ExvSet MinimumFluctuation_explicit_H = detail::make_set(&detail::ExvInfo::MinimumFluctuation_explicit_H);
+    constexpr detail::ExvSet vdw                           = detail::make_set(&detail::ExvInfo::vdw);
 
-    // table I, V^vor from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
-    constexpr detail::ExvSet Voronoi_implicit_H {
-        .H   = 0,
-        .C   = 8.895,
-        .CH  = 12.430,
-        .CH2 = 22.033,
-        .CH3 = 34.092,
-        .N   = 9.558,
-        .NH  = 14.944,
-        .NH2 = 22.129,
-        .NH3 = 20.641,
-        .O   = 22.315,
-        .OH  = 23.266,
-        .S   = 26.356,
-        .SH  = 34.192
-    };
-
-    // table I, V^mf from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
-    constexpr detail::ExvSet MinimumFluctuation_implicit_H {
-        .H   = 0,
-        .C   = 12.352,
-        .CH  = 11.640,
-        .CH2 = 34.583,
-        .CH3 = 41.851,
-        .N   = 0.027,
-        .NH  = 2.181,
-        .NH2 = 20.562,
-        .NH3 = 20.722,
-        .O   = 14.238,
-        .OH  = 20.911,
-        .S   = 15.413,
-        .SH  = 28.529
-    };
-
-    // table I, V^vor_H from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
-    constexpr detail::ExvSet Voronoi_explicit_H {
-        .H   = 12.958,
-        .C   = 8.658,
-        .CH  = 11.784,
-        .CH2 = 20.682,
-        .CH3 = 33.175,
-        .N   = 9.144,
-        .NH  = 7.119,
-        .NH2 = 5.859,
-        .NH3 = 2.588,
-        .O   = 19.167,
-        .OH  = 13.099,
-        .S   = 25.715,
-        .SH  = 32.333
-    };
-
-    // table I, V^mf_H from Schaefer et al, 2001: https://doi.org/10.1002/JCC.1137
-    constexpr detail::ExvSet MinimumFluctuation_explicit_H {
-        .H   = 0.347,
-        .C   = 12.734,
-        .CH  = 11.399,
-        .CH2 = 34.828,
-        .CH3 = 42.011,
-        .N   = 0.018,
-        .NH  = 1.451,
-        .NH2 = 19.064,
-        .NH3 = 17.498,
-        .O   = 14.334,
-        .OH  = 20.312,
-        .S   = 15.242,
-        .SH  = 28.475
-    };
-
-    // based on the van der waals radii of each atom
-    constexpr detail::ExvSet vdw {
-        .H   = detail::volume(constants::radius::vdw::H),
-        .C   = detail::volume(constants::radius::vdw::C),
-        .CH  = detail::volume(constants::radius::vdw::C) + 1*detail::volume(constants::radius::vdw::H),
-        .CH2 = detail::volume(constants::radius::vdw::C) + 2*detail::volume(constants::radius::vdw::H),
-        .CH3 = detail::volume(constants::radius::vdw::C) + 3*detail::volume(constants::radius::vdw::H),
-        .N   = detail::volume(constants::radius::vdw::N),
-        .NH  = detail::volume(constants::radius::vdw::N) + 1*detail::volume(constants::radius::vdw::H),
-        .NH2 = detail::volume(constants::radius::vdw::N) + 2*detail::volume(constants::radius::vdw::H),
-        .NH3 = detail::volume(constants::radius::vdw::N) + 3*detail::volume(constants::radius::vdw::H),
-        .O   = detail::volume(constants::radius::vdw::O),
-        .OH  = detail::volume(constants::radius::vdw::O) + detail::volume(constants::radius::vdw::H),
-        .S   = detail::volume(constants::radius::vdw::S),
-        .SH  = detail::volume(constants::radius::vdw::S) + detail::volume(constants::radius::vdw::H)
-    };
+    // the fallback type and water must be present in every set
+    static_assert(Traube.contains(ausaxs::form_factor::form_factor_t::OTHER) && Traube.contains(ausaxs::form_factor::form_factor_t::WATER));
+    static_assert(Voronoi_implicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && Voronoi_implicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
+    static_assert(MinimumFluctuation_implicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && MinimumFluctuation_implicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
+    static_assert(Voronoi_explicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && Voronoi_explicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
+    static_assert(MinimumFluctuation_explicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && MinimumFluctuation_explicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
+    static_assert(vdw.contains(ausaxs::form_factor::form_factor_t::OTHER) && vdw.contains(ausaxs::form_factor::form_factor_t::WATER));
 
     constexpr double OH2 = 2.98*constexpr_math::pow(10., -23)*constexpr_math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = detail::volume(constants::radius::vdw::Ar);
-
-    constexpr double detail::ExvSet::get(ausaxs::form_factor::form_factor_t type) const {
-        using ff_t = ausaxs::form_factor::form_factor_t;
-        switch (type) {
-            case ff_t::H:     return H;
-            case ff_t::C:     return C;
-            case ff_t::CH:    return CH;
-            case ff_t::CH2:   return CH2;
-            case ff_t::CH3:   return CH3;
-            case ff_t::N:     return N;
-            case ff_t::NH:    return NH;
-            case ff_t::NH2:   return NH2;
-            case ff_t::NH3:   return NH3;
-            case ff_t::O:     return O;
-            case ff_t::OH:    return OH;
-            case ff_t::S:     return S;
-            case ff_t::SH:    return SH;
-            case ff_t::OTHER: return Ar;
-            default: throw ausaxs::except::runtime_error("constants::exv::detail::ExvSet::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
-        }
-    }
 }

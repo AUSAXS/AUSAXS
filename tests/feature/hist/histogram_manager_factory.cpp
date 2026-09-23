@@ -39,7 +39,7 @@ template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::His
 template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFGridScalableExv>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;}
 
 TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") {
-    auto exv = settings::exv::exv_method;
+    auto exv = settings::exv::exv_method.value;
     auto threads = settings::general::threads;
     auto prefer_partial = settings::internal_state::prefer_partial_manager;
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;

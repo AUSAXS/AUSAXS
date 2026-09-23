@@ -81,7 +81,9 @@ double ExvTableManager::get_total_displaced_volume(observer_ptr<const data::Mole
     const auto& exv = *get_current_exv_table();
     double V = 0;
     for (const auto& atom : molecule->iterate_atoms()) {
-        V += exv.get(atom.form_factor_type());
+        // types without a volume in the current set are treated as OTHER, consistent with how the form factor manager substitutes them
+        auto type = atom.form_factor_type();
+        V += exv.get(exv.contains(type) ? type : form_factor_t::OTHER);
     }
     return V;
 }

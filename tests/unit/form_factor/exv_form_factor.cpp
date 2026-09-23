@@ -128,22 +128,22 @@ TEST_CASE("ExvFormFactor::volume_relationship") {
 TEST_CASE("ExvFormFactorSet::constructor") {
     SECTION("from standard set") {
         auto set = detail::ExvFormFactorSet(ExvTableManager::get_default_exv_table());
-        CHECK(set.C.is_initialized());
-        CHECK(set.N.is_initialized());
-        CHECK(set.O.is_initialized());
-        CHECK(set.S.is_initialized());
+        CHECK(set.get(form_factor_t::C).is_initialized());
+        CHECK(set.get(form_factor_t::N).is_initialized());
+        CHECK(set.get(form_factor_t::O).is_initialized());
+        CHECK(set.get(form_factor_t::S).is_initialized());
     }
 
     SECTION("from Traube set") {
         auto set = detail::ExvFormFactorSet(constants::exv::Traube);
-        CHECK(set.H.is_initialized());
-        CHECK(set.C.is_initialized());
+        CHECK(set.get(form_factor_t::H).is_initialized());
+        CHECK(set.get(form_factor_t::C).is_initialized());
     }
 
     SECTION("from vdw set") {
         auto set = detail::ExvFormFactorSet(constants::exv::vdw);
-        CHECK(set.H.is_initialized());
-        CHECK(set.C.is_initialized());
+        CHECK(set.get(form_factor_t::H).is_initialized());
+        CHECK(set.get(form_factor_t::C).is_initialized());
     }
 }
 
@@ -175,10 +175,10 @@ TEST_CASE("ExvFormFactorSet::get") {
 TEST_CASE("ExvTableManager::get_current_exv_form_factor_set") {
     SECTION("standard set is accessible") {
         const auto& set = ExvTableManager::get_current_exv_form_factor_set();
-        CHECK(set.C.is_initialized());
-        CHECK(set.N.is_initialized());
-        CHECK(set.O.is_initialized());
-        CHECK(set.S.is_initialized());
+        CHECK(set.get(form_factor_t::C).is_initialized());
+        CHECK(set.get(form_factor_t::N).is_initialized());
+        CHECK(set.get(form_factor_t::O).is_initialized());
+        CHECK(set.get(form_factor_t::S).is_initialized());
     }
 
     SECTION("all form factors evaluate properly") {
@@ -194,29 +194,29 @@ TEST_CASE("ExvTableManager::get_current_exv_form_factor_set") {
 
 TEST_CASE("constants::exv::ExvSet") {
     SECTION("Traube set values") {
-        CHECK(constants::exv::Traube.H > 0);
-        CHECK(constants::exv::Traube.C > 0);
-        CHECK(constants::exv::Traube.N > 0);
-        CHECK(constants::exv::Traube.O > 0);
-        CHECK(constants::exv::Traube.S > 0);
+        CHECK(constants::exv::Traube.get(form_factor_t::H) > 0);
+        CHECK(constants::exv::Traube.get(form_factor_t::C) > 0);
+        CHECK(constants::exv::Traube.get(form_factor_t::N) > 0);
+        CHECK(constants::exv::Traube.get(form_factor_t::O) > 0);
+        CHECK(constants::exv::Traube.get(form_factor_t::S) > 0);
     }
 
     SECTION("vdw set values") {
-        CHECK(constants::exv::vdw.H > 0);
-        CHECK(constants::exv::vdw.C > 0);
-        CHECK(constants::exv::vdw.N > 0);
-        CHECK(constants::exv::vdw.O > 0);
-        CHECK(constants::exv::vdw.S > 0);
+        CHECK(constants::exv::vdw.get(form_factor_t::H) > 0);
+        CHECK(constants::exv::vdw.get(form_factor_t::C) > 0);
+        CHECK(constants::exv::vdw.get(form_factor_t::N) > 0);
+        CHECK(constants::exv::vdw.get(form_factor_t::O) > 0);
+        CHECK(constants::exv::vdw.get(form_factor_t::S) > 0);
     }
 
     SECTION("Voronoi sets") {
-        CHECK(constants::exv::Voronoi_implicit_H.C > 0);
-        CHECK(constants::exv::Voronoi_explicit_H.H > 0);
+        CHECK(constants::exv::Voronoi_implicit_H.get(form_factor_t::C) > 0);
+        CHECK(constants::exv::Voronoi_explicit_H.get(form_factor_t::H) > 0);
     }
 
     SECTION("MinimumFluctuation sets") {
-        CHECK(constants::exv::MinimumFluctuation_implicit_H.C > 0);
-        CHECK(constants::exv::MinimumFluctuation_explicit_H.H >= 0);
+        CHECK(constants::exv::MinimumFluctuation_implicit_H.get(form_factor_t::C) > 0);
+        CHECK(constants::exv::MinimumFluctuation_explicit_H.get(form_factor_t::H) >= 0);
     }
 }
 
@@ -237,5 +237,31 @@ TEST_CASE("constants::exv::volume") {
         double volume1 = constants::exv::detail::volume(1.0);
         double volume2 = constants::exv::detail::volume(2.0);
         CHECK(volume2 > volume1);
+    }
+}
+
+TEST_CASE("constants::exv::detail::ExvSet: optional entries") {
+    SECTION("built-in sets match the tabulated values") {
+        CHECK_THAT(constants::exv::Traube.get(form_factor_t::CH3), Catch::Matchers::WithinRel(31.89, 1e-12));
+        CHECK(constants::exv::Voronoi_implicit_H.get(form_factor_t::NH2) == 22.129);
+        CHECK(constants::exv::MinimumFluctuation_explicit_H.get(form_factor_t::SH) == 28.475);
+        CHECK(constants::exv::vdw.get(form_factor_t::OTHER) == constants::exv::Ar);
+    }
+
+    SECTION("the excluded volume type has no entry") {
+        CHECK_FALSE(constants::exv::Traube.contains(form_factor_t::EXCLUDED_VOLUME));
+        CHECK_THROWS(constants::exv::Traube.get(form_factor_t::EXCLUDED_VOLUME));
+    }
+
+    SECTION("missing entries propagate to the form factor set") {
+        auto set = constants::exv::Traube;
+        set.volumes[static_cast<int>(form_factor_t::NH)].reset();
+        CHECK_FALSE(set.contains(form_factor_t::NH));
+        CHECK_THROWS(set.get(form_factor_t::NH));
+
+        auto ffset = detail::ExvFormFactorSet(set);
+        CHECK_FALSE(ffset.contains(form_factor_t::NH));
+        CHECK_THROWS(ffset.get(form_factor_t::NH));
+        CHECK(ffset.contains(form_factor_t::N));
     }
 }
