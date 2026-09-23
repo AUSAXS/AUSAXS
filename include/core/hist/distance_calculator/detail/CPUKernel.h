@@ -74,10 +74,8 @@ namespace ausaxs::hist::distance_calculator::detail {
      * @brief Queue the self-correlation of @a data into @a target.
      *        This is faster than cross-correlating the data with itself, since only the upper triangle has to be evaluated.
      *
-     * @tparam pair_factor What each evaluated pair contributes. Only the upper triangle is visited, so a convention that
-     *                     counts every unordered pair twice passes twice the scaling factor here.
-     * @tparam self_factor What the zero distance of each point with itself contributes. This is the same scaling factor,
-     *                     unmultiplied, since the diagonal is visited once either way.
+     * @tparam pair_factor What each evaluated pair contributes.
+     * @tparam self_factor What the zero distance of each point with itself contributes.
      *
      * The work is dispatched to the thread pool immediately; this does not wait for it. @a data must stay alive until it
      * has been waited for.
