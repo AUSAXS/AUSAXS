@@ -30,10 +30,6 @@ TEST_CASE("Wide-angle scattering: gold nanoparticles") {
     });
 
     // compare the results
-    // plots::PlotDataset()
-    //     .plot(expected, {{"legend", "expected"}, {"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}, {"color", "tab:orange"}})
-    //     .plot(I, {{"legend", "calculated"}, {"color", "tab:blue"}})
-    // .save("temp/WideAngleScattering.png");
     auto normalise = [] (std::vector<double> y) {
         double s = y.front();
         std::ranges::transform(y, y.begin(), [s] (double v) {return v/s;});
