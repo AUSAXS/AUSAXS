@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -24,7 +25,7 @@ using namespace ausaxs::hist;
 namespace {
     hist::detail::CompactCoordinatesFF<false> as_coordinates(const std::vector<Vector3<double>>& points) {
         std::vector<AtomFF> atoms(points.size());
-        std::transform(points.begin(), points.end(), atoms.begin(), [] (const Vector3<double>& p) {
+        std::ranges::transform(points, atoms.begin(), [] (const Vector3<double>& p) {
             return AtomFF{p, form_factor::form_factor_t::EXCLUDED_VOLUME};
         });
         return hist::detail::factory::construct_ff<false>(atoms);
@@ -37,8 +38,8 @@ namespace {
         bool same_set, unsigned int bin_count)
     {
         WeightedDistribution1D p(bin_count);
-        for (int i = 0; i < static_cast<int>(data_i.size()); ++i) {
-            for (int j = same_set ? i+1 : 0; j < static_cast<int>(data_j.size()); ++j) {
+        for (int i = 0; i < data_i.size(); ++i) {
+            for (int j = same_set ? i+1 : 0; j < data_j.size(); ++j) {
                 hist::detail::evaluate1<false, 2>(p, data_i, data_j, i, j);
             }
         }
@@ -54,10 +55,8 @@ namespace {
             }
             REQUIRE(expected.index(i).count == actual.index(i).count);
 
-            // the transform forms its distances in float exactly as the pair loop's evaluate1 does, and the lattice
-            // offsets are exact integers, so the two agree to summation order - which on a lattice is bit-for-bit.
-            // a tolerance here would hide the one arithmetic difference the two paths can actually have.
-            REQUIRE(expected.index(i).bin_center == actual.index(i).bin_center);
+            // the transform forms its distances in double while the pair loop uses float, so they only agree to float precision
+            REQUIRE_THAT(actual.index(i).bin_center, Catch::Matchers::WithinRel(expected.index(i).bin_center, 1e-6));
         }
     }
 
@@ -88,7 +87,7 @@ TEST_CASE("lattice::self_correlation: matches the pair loop", "[files]") {
     auto lattice = hist::detail::lattice::self_correlation(exv.interior, exv.spacing, inv_bin_width, bin_count);
     REQUIRE(lattice.has_value());
 
-    const double n = static_cast<double>(exv.interior.size());
+    auto n = static_cast<double>(exv.interior.size());
     CHECK(total_count(*lattice) == n*(n-1));
     compare(pair_loop(data_x, data_x, true, bin_count), *lattice);
 }
