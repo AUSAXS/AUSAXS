@@ -1,12 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <constants/ConstantsAxes.h>
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
+#include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/NormalizedFormFactor.h>
+#include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <settings/All.h>
 
+#include <concepts>
 #include <numeric>
 
 using namespace ausaxs;
@@ -241,4 +247,56 @@ TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table")
 
     settings::exv::exv_set.value = settings::exv::ExvSet::Default;
     manager::rebuild();
+}
+
+TEST_CASE("form_factor_manager: product tables hold the product their indices name") {
+    auto check = [] <std::invocable<form_factor_t, double> Row, std::invocable<form_factor_t, double> Col> (
+        const lookup::table_t& table, int i0, int j0, const Row& row, const Col& col
+    ) {
+        const auto* tables = manager::get_active_product_tables();
+        for (int i = i0; i < get_active_count(); ++i) {
+            for (int j = j0; j < get_active_count(); ++j) {
+                auto ti = static_cast<form_factor_t>(tables->ff_indices[i]);
+                auto tj = static_cast<form_factor_t>(tables->ff_indices[j]);
+                for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
+                    double expected = row(ti, constants::axes::q_vals[q])*col(tj, constants::axes::q_vals[q]);
+                    REQUIRE_THAT(
+                        table.index(i, j).evaluate(q),
+                        Catch::Matchers::WithinRel(expected, 1e-12) || Catch::Matchers::WithinAbs(expected, 1e-12)
+                    );
+                }
+            }
+        }
+    };
+
+    auto raw = [] (form_factor_t t, double q) {return lookup::atomic::raw::get(t).evaluate(q);};
+    auto normalized = [] (form_factor_t t, double q) {return lookup::atomic::normalized::get(t).evaluate(q);};
+    auto exv = [] (form_factor_t t, double q) {
+        return ExvTableManager::get_current_exv_form_factor_set().get(t).evaluate(q);
+    };
+    int s0 = start_index_for_explicit_exv();
+
+    SECTION("full default set") {
+        manager::detail::use_form_factors(identity());
+        const auto* tables = manager::get_active_product_tables();
+        check(tables->raw_atomic_table,        0,  0,  raw,        raw);
+        check(tables->normalized_atomic_table, 0,  0,  normalized, normalized);
+        check(tables->raw_cross_table,         0,  s0, raw,        exv);
+        check(tables->normalized_cross_table,  0,  s0, normalized, exv);
+        check(tables->raw_exv_table,           s0, s0, exv,        exv);
+    }
+
+    SECTION("truncated set from a molecule") {
+        data::Molecule molecule("tests/files/2epe.pdb");
+        manager::use_form_factors(molecule);
+        REQUIRE(get_active_count() < total_ff_count); // the truncation has to actually bite
+        const auto* tables = manager::get_active_product_tables();
+        check(tables->raw_atomic_table,        0,  0,  raw,        raw);
+        check(tables->normalized_atomic_table, 0,  0,  normalized, normalized);
+        check(tables->raw_cross_table,         0,  s0, raw,        exv);
+        check(tables->normalized_cross_table,  0,  s0, normalized, exv);
+        check(tables->raw_exv_table,           s0, s0, exv,        exv);
+    }
+
+    manager::detail::use_form_factors(identity());
 }

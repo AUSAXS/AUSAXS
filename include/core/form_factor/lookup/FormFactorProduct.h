@@ -22,9 +22,19 @@ namespace ausaxs::form_factor {
             }
 
             /**
+             * @brief Form the product of two form factors already evaluated over the default q axis.
+             */
+            constexpr FormFactorProduct(
+                const std::array<double, constants::axes::q_axis.bins>& ff1_q,
+                const std::array<double, constants::axes::q_axis.bins>& ff2_q
+            ) noexcept {
+                for (int i = 0; i < static_cast<int>(precalculated_ff_q.size()); ++i) {
+                    precalculated_ff_q[i] = ff1_q[i]*ff2_q[i];
+                }
+            }
+
+            /**
              * @brief Get the precalculated form factor product for a given q value.
-             * 
-             * These products are calculated at compile-time for the default q axis defined in the constants namespace.
              */
             constexpr double evaluate(int index) const noexcept {
                 return precalculated_ff_q[index];
