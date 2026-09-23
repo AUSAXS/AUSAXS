@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#if defined(POCKETFFT_AVAILABLE)
+
 #include <hist/detail/GridExvFFT.h>
 
 #include <math/Vector3.h>
@@ -259,3 +261,5 @@ Correlations hist::detail::lattice::correlations(const grid::exv::GridExcludedVo
     );
     return out;
 }
+
+#endif

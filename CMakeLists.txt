@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 cmake_minimum_required(VERSION 3.15)
 project(AUSAXS VERSION 1.3.0)
 option(DLIB "Use the dlib minimizers" ON)
+option(POCKETFFT "Use pocketfft for the lattice transform of the grid excluded volume" ON)
 option(BUILD_TESTS "Build the test suite" ON)
 option(BUILD_EXECUTABLES "Build the command-line executables" ON)
 option(STATIC_CURL "Link against a static CURL library on Windows" ON)
@@ -98,19 +99,22 @@ else()
 	set(BS_THREAD_POOL_INCLUDE_DIR ${thread_pool_SOURCE_DIR}/include)
 endif()
 
-if(USE_SYSTEM_POCKETFFT)
-	find_path(POCKETFFT_INCLUDE_DIR pocketfft_hdronly.h)
-	if (NOT POCKETFFT_INCLUDE_DIR)
-		message(FATAL_ERROR "pocketfft headers not found")
+if (POCKETFFT)
+	if(USE_SYSTEM_POCKETFFT)
+		find_path(POCKETFFT_INCLUDE_DIR pocketfft_hdronly.h)
+		if (NOT POCKETFFT_INCLUDE_DIR)
+			message(FATAL_ERROR "pocketfft headers not found")
+		endif()
+	else()
+		FetchContent_Declare(
+			pocketfft
+			GIT_REPOSITORY https://github.com/mreineck/pocketfft
+			GIT_TAG c90e55b3d529f8efa40ed01a20de22405f45fc65 # the header-only C++ version lives on the "cpp" branch, which carries no tags
+		)
+		FetchContent_MakeAvailable(pocketfft)
+		set(POCKETFFT_INCLUDE_DIR ${pocketfft_SOURCE_DIR})
 	endif()
-else()
-	FetchContent_Declare(
-		pocketfft
-		GIT_REPOSITORY https://github.com/mreineck/pocketfft
-		GIT_TAG c90e55b3d529f8efa40ed01a20de22405f45fc65 # the header-only C++ version lives on the "cpp" branch, which carries no tags
-	)
-	FetchContent_MakeAvailable(pocketfft)
-	set(POCKETFFT_INCLUDE_DIR ${pocketfft_SOURCE_DIR})
+	add_compile_definitions("POCKETFFT_AVAILABLE")
 endif()
 
 if(USE_SYSTEM_GCEM)
@@ -134,7 +138,9 @@ set_property(
 )
 unset(compile_options)
 include_directories(${BS_THREAD_POOL_INCLUDE_DIR} ${GCEM_INCLUDE_DIR})
-include_directories(SYSTEM ${POCKETFFT_INCLUDE_DIR})
+if (POCKETFFT)
+	include_directories(SYSTEM ${POCKETFFT_INCLUDE_DIR})
+endif()
 
 ############################################
 ##           Find and link CURL           ##

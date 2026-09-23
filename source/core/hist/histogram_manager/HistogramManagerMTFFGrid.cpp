@@ -63,6 +63,32 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
+#if !defined(POCKETFFT_AVAILABLE)
+    container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
+    auto calc_xx = [&data_x, &p_xx_all, data_x_size] (int imin, int imax) {
+        auto& p_xx = p_xx_all.get();
+        for (int i = imin; i < imax; ++i) { // exv
+            int j = i+1;                    // exv
+            for (; j+15 < data_x_size; j+=16) {
+                evaluate16<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
+            }
+
+            for (; j+7 < data_x_size; j+=8) {
+                evaluate8<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
+            }
+
+            for (; j+3 < data_x_size; j+=4) {
+                evaluate4<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
+            }
+
+            for (; j < data_x_size; ++j) {
+                evaluate1<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
+            }
+        }
+        return p_xx;
+    };
+#endif
+
     container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_active_count(), bin_count);
     auto calc_ax = [&data_a, &data_x, &p_ax_all, data_x_size] (int imin, int imax) {
         auto& p_ax = p_ax_all.get();
@@ -127,12 +153,22 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         );
     }
 
-    // use the more efficient lattice transform for the self-correlation
+#if defined(POCKETFFT_AVAILABLE)
+    // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
     WeightedDistribution1D p_xx_generic = detail::lattice::self_correlation(
         exv, detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
     );
-
     pool->wait();
+#else
+    int job_size_x = settings::general::detail::get_job_size(data_x_size);
+    for (int i = 0; i < data_x_size; i+=job_size_x) {
+        pool->detach_task(
+            [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
+        );
+    }
+    pool->wait();
+    WeightedDistribution1D p_xx_generic = p_xx_all.merge();
+#endif
     WeightedDistribution2D p_ax_generic = p_ax_all.merge();
     WeightedDistribution1D p_wx_generic = p_wx_all.merge();
 

@@ -71,6 +71,78 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
+#if !defined(POCKETFFT_AVAILABLE)
+    container::ThreadLocalWrapper<XXContainer> p_xx_all(bin_count);
+    auto calc_xx_ii = [&data_x_i, &p_xx_all, data_x_i_size] (int imin, int imax) {
+        auto& p_xx = p_xx_all.get();
+        for (int i = imin; i < imax; ++i) { // exv interior
+            int j = i+1;                    // exv interior
+            for (; j+15 < data_x_i_size; j+=16) {
+                evaluate16<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
+            }
+
+            for (; j+7 < data_x_i_size; j+=8) {
+                evaluate8<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
+            }
+
+            for (; j+3 < data_x_i_size; j+=4) {
+                evaluate4<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
+            }
+
+            for (; j < data_x_i_size; ++j) {
+                evaluate1<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
+            }
+        }
+        return p_xx;
+    };
+
+    auto calc_xx_ss = [&data_x_s, &p_xx_all, data_x_s_size] (int imin, int imax) {
+        auto& p_xx = p_xx_all.get();
+        for (int i = imin; i < imax; ++i) { // exv surface
+            int j = i+1;                    // exv surface
+            for (; j+15 < data_x_s_size; j+=16) {
+                evaluate16<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
+            }
+
+            for (; j+7 < data_x_s_size; j+=8) {
+                evaluate8<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
+            }
+
+            for (; j+3 < data_x_s_size; j+=4) {
+                evaluate4<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
+            }
+
+            for (; j < data_x_s_size; ++j) {
+                evaluate1<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
+            }
+        }
+        return p_xx;
+    };
+
+    auto calc_xx_si = [&data_x_i, &data_x_s, &p_xx_all, data_x_s_size] (int imin, int imax) {
+        auto& p_xx = p_xx_all.get();
+        for (int i = imin; i < imax; ++i) { // exv interior
+            int j = 0;                      // exv surface
+            for (; j+15 < data_x_s_size; j+=16) {
+                evaluate16<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
+            }
+
+            for (; j+7 < data_x_s_size; j+=8) {
+                evaluate8<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
+            }
+
+            for (; j+3 < data_x_s_size; j+=4) {
+                evaluate4<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
+            }
+
+            for (; j < data_x_s_size; ++j) {
+                evaluate1<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
+            }
+        }
+        return p_xx;
+    };
+#endif
+
     container::ThreadLocalWrapper<AXContainer> p_ax_all(form_factor::get_active_count(), bin_count);
     auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
         auto& p_ax = p_ax_all.get();
@@ -170,7 +242,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         );
     }
 
-    // use the more efficient lattice transform for the self-correlation
+#if defined(POCKETFFT_AVAILABLE)
+    // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
     auto p_xx_lattice = detail::lattice::correlations(
         exv, hist::detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
     );
@@ -178,8 +251,30 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     p_xx.interior = std::move(p_xx_lattice.first);
     p_xx.surface  = std::move(p_xx_lattice.second);
     p_xx.cross    = std::move(p_xx_lattice.cross);
-
     pool->wait();
+#else
+    int job_size_xi = settings::general::detail::get_job_size(data_x_i_size);
+    int job_size_xs = settings::general::detail::get_job_size(data_x_s_size);
+    for (int i = 0; i < data_x_i_size; i+=job_size_xi) {
+        pool->detach_task(
+            [&calc_xx_ii, i, job_size_xi, data_x_i_size] () {return calc_xx_ii(i, std::min(i+job_size_xi, data_x_i_size));}
+        );
+    }
+
+    for (int i = 0; i < data_x_s_size; i+=job_size_xs) {
+        pool->detach_task(
+            [&calc_xx_ss, i, job_size_xs, data_x_s_size] () {return calc_xx_ss(i, std::min(i+job_size_xs, data_x_s_size));}
+        );
+    }
+
+    for (int i = 0; i < data_x_i_size; i+=job_size_xi) {
+        pool->detach_task(
+            [&calc_xx_si, i, job_size_xi, data_x_i_size] () {return calc_xx_si(i, std::min(i+job_size_xi, data_x_i_size));}
+        );
+    }
+    pool->wait();
+    XXContainer p_xx = p_xx_all.merge();
+#endif
     AXContainer p_ax = p_ax_all.merge();
     WXContainer p_wx = p_wx_all.merge();
 

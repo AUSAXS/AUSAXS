@@ -3,6 +3,9 @@
 
 #pragma once
 
+// the lattice transform is only available when built with pocketfft; see the POCKETFFT option
+#if defined(POCKETFFT_AVAILABLE)
+
 #include <grid/detail/GridExcludedVolume.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 
@@ -37,3 +40,5 @@ namespace ausaxs::hist::detail::lattice {
      */
     Correlations correlations(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count);
 }
+
+#endif
