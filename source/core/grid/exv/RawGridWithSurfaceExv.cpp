@@ -90,6 +90,7 @@ namespace {
     GridExcludedVolume helper(observer_ptr<grid::Grid> grid) {
         GridExcludedVolume vol;
         vol.interior.reserve(static_cast<int>(grid->get_volume()));
+        vol.interior_sites.reserve(static_cast<int>(grid->get_volume()));
 
         grid::detail::State exv_state;
         switch (settings::grid::exv::expansion_strategy) {
@@ -114,21 +115,31 @@ namespace {
         int stride = point_stride();
         int buffer = static_cast<int>(std::max<double>(1, std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
 
-        // both point sets are made of grid->to_xyz(i, j, k) values, so they share the sites of a cubic lattice of this spacing
         vol.spacing = point_spacing();
 
         const auto& axes = grid->get_axes();
         auto& gobj = grid->grid;
         auto[vmin, vmax] = grid->bounding_box_index();
-        for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
-            for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
-                for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
+        Vector3<int> start{std::max<int>(vmin.x()-buffer, 0), std::max<int>(vmin.y()-buffer, 0), std::max<int>(vmin.z()-buffer, 0)};
+
+        // every point is recorded together with its site on the lattice spanned by the stride
+        auto add_interior = [&vol, &grid, &start, stride] (int i, int j, int k) {
+            vol.interior.emplace_back(grid->to_xyz(i, j, k));
+            vol.interior_sites.emplace_back((i-start.x())/stride, (j-start.y())/stride, (k-start.z())/stride);
+        };
+        auto add_surface = [&vol, &grid, &start, stride] (int i, int j, int k) {
+            vol.surface.emplace_back(grid->to_xyz(i, j, k));
+            vol.surface_sites.emplace_back((i-start.x())/stride, (j-start.y())/stride, (k-start.z())/stride);
+        };
+        for (int i = start.x(); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
+            for (int j = start.y(); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
+                for (int k = start.z(); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
                     auto& val = gobj.index(i, j, k);
                     if (!(val & exv_state)) {continue;}
 
                     // if we're not detecting the surface, everything is interior
                     if constexpr (!detect_surface) {
-                        vol.interior.emplace_back(grid->to_xyz(i, j, k));
+                        add_interior(i, j, k);
                         continue;
                     }
 
@@ -137,8 +148,8 @@ namespace {
                     if constexpr (!unity_width) {
                         if (!collision) {val |= grid::detail::RESERVED_1;}
                     } else { // with unity widths our work is already done here
-                        if (collision) {vol.interior.emplace_back(grid->to_xyz(i, j, k));}
-                        else           {vol.surface.emplace_back( grid->to_xyz(i, j, k));}
+                        if (collision) {add_interior(i, j, k);}
+                        else           {add_surface(i, j, k);}
                     }
                 }
             }
@@ -162,9 +173,9 @@ namespace {
             };
 
             // expand the area around each surface voxel
-            for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
-                for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
-                    for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
+            for (int i = start.x(); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
+                for (int j = start.y(); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
+                    for (int k = start.z(); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
                         if (gobj.index(i, j, k) & grid::detail::RESERVED_1) {
                             mark_adjacent(i, j, k);
                         }
@@ -173,18 +184,18 @@ namespace {
             }
 
             // collect the surface voxels
-            for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
-                for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
-                    for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
+            for (int i = start.x(); i < std::min<int>(vmax.x()+buffer+1, axes.x.bins); i+=stride) {
+                for (int j = start.y(); j < std::min<int>(vmax.y()+buffer+1, axes.y.bins); j+=stride) {
+                    for (int k = start.z(); k < std::min<int>(vmax.z()+buffer+1, axes.z.bins); k+=stride) {
                         auto& val = gobj.index(i, j, k);
                         if (val & (grid::detail::RESERVED_1 | grid::detail::RESERVED_2)) {
-                            vol.surface.emplace_back(grid->to_xyz(i, j, k));
+                            add_surface(i, j, k);
                             val &= ~(grid::detail::RESERVED_1 | grid::detail::RESERVED_2);
                             continue;
                         }
 
                         if (!(val & exv_state)) {continue;}
-                        vol.interior.emplace_back(grid->to_xyz(i, j, k));
+                        add_interior(i, j, k);
                     }
                 }
             }

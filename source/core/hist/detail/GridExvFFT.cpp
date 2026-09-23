@@ -2,8 +2,10 @@
 // Author: Kristian Lytje
 
 #include <hist/detail/GridExvFFT.h>
+
 #include <math/Vector3.h>
 #include <utility/Logging.h>
+#include <utility/observer_ptr.h>
 
 #include <pocketfft_hdronly.h>
 
@@ -14,7 +16,6 @@
 #include <complex>
 #include <cstdint>
 #include <initializer_list>
-#include <limits>
 #include <string>
 
 using namespace ausaxs;
@@ -23,9 +24,6 @@ using namespace ausaxs::hist::detail;
 using ausaxs::hist::detail::lattice::Correlations;
 
 namespace {
-    // how far a point may sit from its lattice site, in lattice units, before we refuse to treat the set as a lattice
-    constexpr double lattice_tolerance = 1e-6;
-
     /**
      * @brief The zero-padded box a correlation is evaluated in.
      */
@@ -33,15 +31,6 @@ namespace {
         std::array<std::size_t, 3> shape;  // the padded transform shape
         std::array<int32_t, 3> extent;     // the number of lattice sites the points span along each axis
         double spacing;                    // the lattice spacing in Ångström
-    };
-
-    /**
-     * @brief One or two point sets expressed in integer coordinates on their common lattice.
-     */
-    struct Lattice {
-        std::vector<Vector3<int>> first;
-        std::vector<Vector3<int>> second;
-        Box box;
     };
 
     // the smallest 5-smooth number >= n. pocketfft handles any length, but is considerably faster on these.
@@ -56,53 +45,23 @@ namespace {
     }
 
     /**
-     * @brief Express the given point sets in integer coordinates on their common cubic lattice.
+     * @brief The box spanned by the given lattice sites, which are non-negative by construction.
      *
-     * The origin is the lower corner of the combined bounding box, so both sets end up on a single lattice with
-     * non-negative coordinates. Padding each axis of the transform box to at least 2*extent-1 removes the circular
-     * wrap-around of the correlation, which is what makes the result exact rather than approximate.
-     *
-     * @return std::nullopt if any point does not sit on the lattice.
+     * Padding each axis of the transform box to at least 2*extent-1 removes the circular wrap-around of the
+     * correlation, which is what makes the result exact rather than approximate.
      */
-    std::optional<Lattice> project(
-        const std::vector<Vector3<double>>& first, const std::vector<Vector3<double>>& second, double spacing)
-    {
-        if (spacing <= 0 || (first.empty() && second.empty())) {return std::nullopt;}
-
-        std::array<double, 3> origin = {
-            std::numeric_limits<double>::max(),
-            std::numeric_limits<double>::max(),
-            std::numeric_limits<double>::max()
-        };
-        for (const auto* set : {&first, &second}) {
+    Box make_box(std::initializer_list<observer_ptr<const std::vector<Vector3<int>>>> sets, double spacing) {
+        Box box{.shape={}, .extent={0, 0, 0}, .spacing=spacing};
+        for (const auto* set : sets) {
             for (const auto& p : *set) {
-                for (int k = 0; k < 3; ++k) {origin[k] = std::min(origin[k], p[k]);}
-            }
-        }
-
-        Lattice res;
-        res.box.spacing = spacing;
-        res.box.extent = {0, 0, 0};
-        const double inv_spacing = 1/spacing;
-        auto convert = [&res, &origin, inv_spacing] (const std::vector<Vector3<double>>& set, std::vector<Vector3<int>>& out) {
-            out.resize(set.size());
-            for (int n = 0; n < static_cast<int>(set.size()); ++n) {
                 for (int k = 0; k < 3; ++k) {
-                    double site = (set[n][k] - origin[k])*inv_spacing;
-                    double rounded = std::round(site);
-                    if (lattice_tolerance < std::abs(site - rounded)) {return false;}
-                    out[n][k] = static_cast<int32_t>(rounded);
-                    res.box.extent[k] = std::max(res.box.extent[k], out[n][k] + 1);
+                    assert(0 <= p[k] && "lattice::make_box: lattice sites must be non-negative");
+                    box.extent[k] = std::max(box.extent[k], p[k] + 1);
                 }
             }
-            return true;
-        };
-        if (!convert(first, res.first) || !convert(second, res.second)) {return std::nullopt;}
-
-        for (int k = 0; k < 3; ++k) {
-            res.box.shape[k] = next_smooth(2*res.box.extent[k] - 1);
         }
-        return res;
+        for (int k = 0; k < 3; ++k) {box.shape[k] = next_smooth(2*box.extent[k] - 1);}
+        return box;
     }
 
     /**
@@ -141,12 +100,8 @@ namespace {
 
         /**
          * @brief Replace the box contents with the autocorrelation of the indicator function of the given sets.
-         *
-         * Passing more than one set gives the autocorrelation of their combined occupancy, which by
-         * A_combined = A_first + A_second + A_cross + A_cross^T is how the cross term is recovered without ever
-         * holding two spectra at once.
          */
-        void autocorrelate(std::initializer_list<const std::vector<Vector3<int>>*> sets) {
+        void autocorrelate(std::initializer_list<observer_ptr<const std::vector<Vector3<int>>>> sets) {
             std::ranges::fill(buffer, std::complex<double>(0, 0));
             double* real = data();
             for (const auto* set : sets) {
@@ -197,10 +152,10 @@ namespace {
         double rounding_error() const {
             double worst = 0;
             // only the leading real_dims[2] reals of each row are live; the rest of the padded row is stale spectrum
-            for (std::size_t i = 0; i < real_dims[0]; ++i) {
-                for (std::size_t j = 0; j < real_dims[1]; ++j) {
+            for (int i = 0; i < static_cast<int>(real_dims[0]); ++i) {
+                for (int j = 0; j < static_cast<int>(real_dims[1]); ++j) {
                     const double* row = data() + (i*real_dims[1] + j)*padded_row_length;
-                    for (std::size_t k = 0; k < real_dims[2]; ++k) {
+                    for (int k = 0; k < static_cast<int>(real_dims[2]); ++k) {
                         worst = std::max(worst, std::abs(row[k] - std::round(row[k])));
                     }
                 }
@@ -219,62 +174,46 @@ namespace {
         // the real box shares the spectrum's allocation; see the struct comment for why that is safe
         double* data() {return reinterpret_cast<double*>(buffer.data());}
         const double* data() const {return reinterpret_cast<const double*>(buffer.data());}
-
-        static int wrap(int d, int length) {
-            return (d + length) % length;
-        }
+        static int wrap(int d, int length) {return (d + length) % length;}
     };
 }
 
-std::optional<WeightedDistribution1D> hist::detail::lattice::self_correlation(
-    const std::vector<Vector3<double>>& points, double spacing, double inv_bin_width, int bin_count)
-{
-    auto projected = project(points, {}, spacing);
-    if (!projected.has_value()) {
-        logging::log("lattice::self_correlation: the given points are not lattice-supported. Falling back to a pair loop.");
-        return std::nullopt;
-    }
+WeightedDistribution1D hist::detail::lattice::self_correlation(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count) {
     WeightedDistribution1D out(bin_count);
-    Transform transform(projected->box);
-    transform.autocorrelate({&projected->first});
+    Box box = make_box({&exv.interior_sites}, exv.spacing);
+    Transform transform(box);
+    transform.autocorrelate({&exv.interior_sites});
     assert(transform.rounding_error() < 0.1 && "lattice::self_correlation: the transform is losing integer precision");
-    transform.bin(projected->box, inv_bin_width, out);
-    logging::log("lattice::self_correlation: evaluated " + std::to_string(points.size()) + " excluded volume points by transform.");
+    transform.bin(box, inv_bin_width, out);
+    logging::log("lattice::self_correlation: evaluated " + std::to_string(exv.interior_sites.size()) + " excluded volume points by transform.");
     return out;
 }
 
-std::optional<Correlations> hist::detail::lattice::correlations(
-    const std::vector<Vector3<double>>& first, const std::vector<Vector3<double>>& second,
-    double spacing, double inv_bin_width, int bin_count)
-{
-    auto projected = project(first, second, spacing);
-    if (!projected.has_value()) {
-        logging::log("lattice::correlations: the given points are not lattice-supported. Falling back to a pair loop.");
-        return std::nullopt;
-    }
+Correlations hist::detail::lattice::correlations(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count) {
     Correlations out{
         .first=WeightedDistribution1D(bin_count),
         .second=WeightedDistribution1D(bin_count),
         .cross=WeightedDistribution1D(bin_count)
     };
-    Transform transform(projected->box);
+    Box box = make_box({&exv.interior_sites, &exv.surface_sites}, exv.spacing);
+    Transform transform(box);
 
-    transform.autocorrelate({&projected->first});
+    transform.autocorrelate({&exv.interior_sites});
     assert(transform.rounding_error() < 0.1 && "lattice::correlations: the transform is losing integer precision");
-    transform.bin(projected->box, inv_bin_width, out.first);
+    transform.bin(box, inv_bin_width, out.first);
 
-    transform.autocorrelate({&projected->second});
-    transform.bin(projected->box, inv_bin_width, out.second);
+    transform.autocorrelate({&exv.surface_sites});
+    transform.bin(box, inv_bin_width, out.second);
 
     // the cross term is whatever the correlation of the combined set holds beyond the two self-correlations.
     // both sides are exact integer counts over the same displacements, so the subtraction is exact.
-    transform.autocorrelate({&projected->first, &projected->second});
-    transform.bin(projected->box, inv_bin_width, out.cross);
+    transform.autocorrelate({&exv.interior_sites, &exv.surface_sites});
+    transform.bin(box, inv_bin_width, out.cross);
     out.cross -= out.first;
     out.cross -= out.second;
     logging::log(
-        "lattice::correlations: evaluated " + std::to_string(first.size()) + " interior and " +
-        std::to_string(second.size()) + " surface excluded volume points by transform."
+        "lattice::correlations: evaluated " + std::to_string(exv.interior_sites.size()) + " interior and " +
+        std::to_string(exv.surface_sites.size()) + " surface excluded volume points by transform."
     );
     return out;
 }

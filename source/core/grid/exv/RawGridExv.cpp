@@ -10,8 +10,9 @@
 using namespace ausaxs::grid::exv;
 
 GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
-    std::vector<Vector3<double>> atoms;
-    atoms.reserve(static_cast<std::size_t>(grid->get_volume()));
+    GridExcludedVolume vol{.interior={}, .surface={}, .interior_sites={}, .surface_sites={}, .spacing=point_spacing()};
+    vol.interior.reserve(static_cast<std::size_t>(grid->get_volume()));
+    vol.interior_sites.reserve(static_cast<std::size_t>(grid->get_volume()));
 
     auto acceptable_state = settings::grid::exv::expansion_strategy == settings::grid::exv::ExvType::AtomicOnly
         ? [] (const detail::State& state) -> bool {
@@ -39,24 +40,25 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
     const auto& axes = grid->get_axes();
 
     auto[imin, imax] = grid->bounding_box_index();
-    for (int i = std::max(imin.x()-buffer, 0); i < std::min<int>(imax.x()+buffer+1, axes.x.bins); i+=stride) {
-        for (int j = std::max(imin.y()-buffer, 0); j < std::min<int>(imax.y()+buffer+1, axes.y.bins); j+=stride) {
-            for (int k = std::max(imin.z()-buffer, 0); k < std::min<int>(imax.z()+buffer+1, axes.z.bins); k+=stride) {
+    Vector3<int> start{std::max(imin.x()-buffer, 0), std::max(imin.y()-buffer, 0), std::max(imin.z()-buffer, 0)};
+    for (int i = start.x(); i < std::min<int>(imax.x()+buffer+1, axes.x.bins); i+=stride) {
+        for (int j = start.y(); j < std::min<int>(imax.y()+buffer+1, axes.y.bins); j+=stride) {
+            for (int k = start.z(); k < std::min<int>(imax.z()+buffer+1, axes.z.bins); k+=stride) {
                 auto val = grid->index(i, j, k);
                 if (!acceptable_state(val)) {continue;}
-                atoms.emplace_back(grid->to_xyz(i, j, k));
+                vol.interior.emplace_back(grid->to_xyz(i, j, k));
+                vol.interior_sites.emplace_back((i-start.x())/stride, (j-start.y())/stride, (k-start.z())/stride);
             }
         }
     }
 
     assert(
-        static_cast<int>(atoms.size()) == grid->get_volume_bins() 
+        static_cast<int>(vol.interior.size()) == grid->get_volume_bins() 
         && "RawGridExv: The number of interior and surface atoms does not match the number of volume bins."
     );
     logging::log(
-        "RawGridExv::create: added " + std::to_string(atoms.size()) + "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
+        "RawGridExv::create: added " + std::to_string(vol.interior.size()) + "/" + std::to_string(grid->get_volume_bins()) + " atoms to the excluded volume."
     );
 
-    // every point is a grid->to_xyz(i, j, k), so the set is exactly a subset of the sites of a cubic lattice of this spacing
-    return GridExcludedVolume{.interior=std::move(atoms), .surface={}, .spacing=point_spacing()};
+    return vol;
 }

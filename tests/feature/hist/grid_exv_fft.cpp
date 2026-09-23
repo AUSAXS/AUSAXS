@@ -84,12 +84,12 @@ TEST_CASE("lattice::self_correlation: matches the pair loop", "[files]") {
     unsigned int bin_count = hist::detail::required_bin_count<false>(data_x);
     double inv_bin_width = hist::detail::WidthController<false>::get_inv_width();
 
-    auto lattice = hist::detail::lattice::self_correlation(exv.interior, exv.spacing, inv_bin_width, bin_count);
-    REQUIRE(lattice.has_value());
+    REQUIRE(exv.interior_sites.size() == exv.interior.size());
 
+    auto lattice = hist::detail::lattice::self_correlation(exv, inv_bin_width, bin_count);
     auto n = static_cast<double>(exv.interior.size());
-    CHECK(total_count(*lattice) == n*(n-1));
-    compare(pair_loop(data_x, data_x, true, bin_count), *lattice);
+    CHECK(total_count(lattice) == n*(n-1));
+    compare(pair_loop(data_x, data_x, true, bin_count), lattice);
 }
 
 TEST_CASE("lattice::correlations: matches the pair loops", "[files]") {
@@ -110,45 +110,36 @@ TEST_CASE("lattice::correlations: matches the pair loops", "[files]") {
     unsigned int bin_count = hist::detail::required_bin_count<false>(data_x_i, data_x_s);
     double inv_bin_width = hist::detail::WidthController<false>::get_inv_width();
 
-    auto lattice = hist::detail::lattice::correlations(exv.interior, exv.surface, exv.spacing, inv_bin_width, bin_count);
-    REQUIRE(lattice.has_value());
+    REQUIRE(exv.interior_sites.size() == exv.interior.size());
+    REQUIRE(exv.surface_sites.size() == exv.surface.size());
 
-    SECTION("interior") {compare(pair_loop(data_x_i, data_x_i, true, bin_count), lattice->first);}
-    SECTION("surface")  {compare(pair_loop(data_x_s, data_x_s, true, bin_count), lattice->second);}
-    SECTION("cross")    {compare(pair_loop(data_x_i, data_x_s, false, bin_count), lattice->cross);}
+    auto lattice = hist::detail::lattice::correlations(exv, inv_bin_width, bin_count);
+    SECTION("interior") {compare(pair_loop(data_x_i, data_x_i, true, bin_count), lattice.first);}
+    SECTION("surface")  {compare(pair_loop(data_x_s, data_x_s, true, bin_count), lattice.second);}
+    SECTION("cross")    {compare(pair_loop(data_x_i, data_x_s, false, bin_count), lattice.cross);}
 }
 
-// Everything must report failure rather than make up an answer for points that are not lattice-supported, since the
-// callers rely on that to fall back to the pair loop.
-TEST_CASE("lattice: refuses what it cannot do") {
+// A filled 4x4x4 cube, small enough to count by hand: every ordered pair is counted exactly once, and the nearest
+// neighbours land in the bin of the lattice spacing.
+TEST_CASE("lattice::self_correlation: counts a small cube") {
     settings::general::verbose = false;
 
-    std::vector<Vector3<double>> lattice_points;
+    grid::exv::GridExcludedVolume exv;
+    exv.spacing = 2;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-            for (int k = 0; k < 4; ++k) {lattice_points.emplace_back(i, j, k);}
+            for (int k = 0; k < 4; ++k) {
+                exv.interior.emplace_back(2*i, 2*j, 2*k);
+                exv.interior_sites.emplace_back(i, j, k);
+            }
         }
     }
 
-    SECTION("lattice-supported points are accepted") {
-        CHECK(hist::detail::lattice::self_correlation(lattice_points, 1, 1, 100).has_value());
-    }
+    auto lattice = hist::detail::lattice::self_correlation(exv, 1, 100);
+    CHECK(total_count(lattice) == 64*63);
 
-    SECTION("an unknown spacing is rejected") {
-        CHECK(!hist::detail::lattice::self_correlation(lattice_points, 0, 1, 100).has_value());
-    }
-
-    SECTION("an empty set is rejected") {
-        CHECK(!hist::detail::lattice::self_correlation({}, 1, 1, 100).has_value());
-    }
-
-    SECTION("off-lattice points are rejected") {
-        auto off_lattice = lattice_points;
-        off_lattice.back().z() += 0.5;
-        CHECK(!hist::detail::lattice::self_correlation(off_lattice, 1, 1, 100).has_value());
-    }
-
-    SECTION("a wrong spacing is rejected") {
-        CHECK(!hist::detail::lattice::self_correlation(lattice_points, 1.5, 1, 100).has_value());
-    }
+    // 3*4*4 adjacent pairs along each of the three axes, counted in both directions
+    CHECK(lattice.index(2).count == 2*3*(3*4*4));
+    CHECK(lattice.index(0).count == 0);
+    CHECK(lattice.index(1).count == 0);
 }

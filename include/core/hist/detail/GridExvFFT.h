@@ -4,10 +4,7 @@
 #pragma once
 
 #include <hist/distribution/WeightedDistribution1D.h>
-#include <math/MathFwd.h>
-
-#include <optional>
-#include <vector>
+#include <grid/detail/GridExcludedVolume.h>
 
 /**
  * @brief Pair-distance histograms of point sets supported on a cubic lattice.
@@ -20,8 +17,8 @@
  *
  * The result is *exact*, not an approximation: zero-padding each axis to at least 2*extent-1 removes the circular
  * wrap-around, every displacement has an exactly known integer squared length, and the counts come out as integers.
- * The distances are then rounded to float exactly as the pair loop's own evaluate1 does, so the two paths agree
- * bit-for-bit rather than merely to a tolerance.
+ * The points are taken as the integer lattice sites the grid records alongside their positions, so no conversion
+ * back from Ångström is needed.
  *
  * The cost is memory - the transform buffer scales with the *bounding box* rather than the point count, so it grows
  * with the bounding volume rather than the occupied one. That buffer is a single copy of the padded box, 8 bytes per
@@ -44,42 +41,23 @@ namespace ausaxs::hist::detail::lattice {
     };
 
     /**
-     * @brief The self-correlation histogram of a point set lying on a cubic lattice of the given spacing.
+     * @brief The self-correlation histogram of the interior excluded volume points.
      *
      * The returned counts are for *ordered* pairs, matching a pair loop using evaluate<..., 2>. Self-pairs are
      * excluded, since the callers add that term themselves.
      *
-     * @param points The point set. Must lie on a common cubic lattice of the given spacing.
-     * @param spacing The lattice spacing in Ångström. A non-positive value is interpreted as "not lattice-supported".
+     * @param exv The excluded volume. Only its interior sites and the lattice spacing are used.
      * @param inv_bin_width The inverse histogram bin width, as used by the distance calculators.
      * @param bin_count The size of the returned histogram.
-     *
-     * @return std::nullopt if the points do not lie on the given lattice, or if the transform buffer could not be
-     *         allocated. The caller must then fall back to an explicit pair loop.
      */
-    std::optional<WeightedDistribution1D> self_correlation(
-        const std::vector<Vector3<double>>& points,
-        double spacing,
-        double inv_bin_width,
-        int bin_count
-    );
+    WeightedDistribution1D self_correlation(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count);
 
     /**
-     * @brief The three correlation histograms of two point sets sharing a cubic lattice of the given spacing.
+     * @brief The three correlation histograms of the interior and surface excluded volume points.
      *
-     * @param first The first point set. Must lie on a common cubic lattice of the given spacing.
-     * @param second The second point set. Must lie on the same lattice as @a first.
-     * @param spacing The lattice spacing in Ångström. A non-positive value is interpreted as "not lattice-supported".
+     * @param exv The excluded volume. Its interior and surface sites and the lattice spacing are used.
      * @param inv_bin_width The inverse histogram bin width, as used by the distance calculators.
      * @param bin_count The size of the returned histograms.
-     *
-     * @return std::nullopt under the same conditions as self_correlation.
      */
-    std::optional<Correlations> correlations(
-        const std::vector<Vector3<double>>& first,
-        const std::vector<Vector3<double>>& second,
-        double spacing,
-        double inv_bin_width,
-        int bin_count
-    );
+    Correlations correlations(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count);
 }

@@ -18,12 +18,16 @@ namespace ausaxs::grid::exv {
         std::vector<Vector3<double>> surface;
 
         /**
-         * @brief The spacing in Ångström of the cubic lattice the points lie on, or 0 if they are not lattice-supported.
+         * @brief The integer lattice sites of @a interior and @a surface, index for index.
          *
          * The grid-based models emit voxel centers, so both point sets are exact subsets of the sites of a single cubic
-         * lattice. Recording the spacing lets consumers exploit that structure; see hist::detail::lattice, which replaces
+         * lattice. The sites let consumers exploit that structure directly; see hist::detail::lattice, which replaces
          * the quadratic self-correlation loop with a transform on the strength of it.
          */
+        std::vector<Vector3<int>> interior_sites;
+        std::vector<Vector3<int>> surface_sites;
+
+        // the spacing in Ångström of the lattice the sites are expressed on
         double spacing = 0;
 
         bool has_surface() const;
