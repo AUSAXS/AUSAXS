@@ -3,19 +3,25 @@
 
 #pragma once
 
+#include <container/ThreadLocalWrapper.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Exceptions.h>
 #include <utility/MultiThreading.h>
+#include <utility/observer_ptr.h>
 
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <cstdint>
 #include <span>
 #include <string>
+#include <tuple>
 #include <type_traits>
+#include <vector>
 
 namespace ausaxs::hist::distance_calculator::detail {
     /**
@@ -25,6 +31,33 @@ namespace ausaxs::hist::distance_calculator::detail {
     concept Target = std::copy_constructible<T> && requires (const T& t) {
         {t.get()} -> std::convertible_to<std::span<typename T::entry_type>>;
     };
+
+    /**
+     * @brief A Target accumulating into one row of a thread-local distribution: the whole of a 1D distribution, or
+     *        the distance axis at fixed leading indices of a 2D or 3D one.
+     *
+     * The distance axis varies fastest in all of them, so a row is a contiguous run of bins that the evaluators can
+     * write into as if it were a histogram of its own.
+     */
+    template<typename Distribution, std::size_t rank>
+    struct RowTarget {
+        using entry_type = typename Distribution::value_type;
+        observer_ptr<container::ThreadLocalWrapper<Distribution>> results;
+        std::array<int, rank> row;
+        int bins;
+        std::span<entry_type> get() const {
+            auto first = std::apply([this] (auto... i) {return results->get().begin(i...);}, row);
+            return {&*first, static_cast<std::size_t>(bins)};
+        }
+    };
+
+    /**
+     * @brief The row of @a results at the leading indices @a row, spanning @a bins bins.
+     */
+    template<typename Distribution, std::same_as<int>... Row>
+    RowTarget<Distribution, sizeof...(Row)> row_target(container::ThreadLocalWrapper<Distribution>& results, int bins, Row... row) {
+        return {&results, {row...}, bins};
+    }
 
     /**
      * @brief Invoke @a f with the scaling factor as a compile-time constant, as the evaluators need it.
@@ -178,5 +211,69 @@ namespace ausaxs::hist::distance_calculator::detail {
                 }
             );
         }
+    }
+
+    /**
+     * @brief Queue the cross-correlation of @a a and @a b into @a target, chunked over the larger of the two.
+     *
+     * enqueue_cross splits its second argument into the tasks it dispatches and loops the first inside each of them, so
+     * a pair of very different sizes would otherwise collapse to a single task holding the whole product. The pairs are
+     * the same either way, since a distance does not care which side it is read from. An empty set queues nothing.
+     */
+    template<bool variable_bin_width, int pair_factor, Target T>
+    void enqueue_balanced_cross(
+        const hist::detail::CompactCoordinates<variable_bin_width>& a,
+        const hist::detail::CompactCoordinates<variable_bin_width>& b,
+        T target
+    ) {
+        if (a.empty() || b.empty()) {return;}
+        if (a.size() < b.size()) {
+            enqueue_cross<variable_bin_width, pair_factor>(a, b, target);
+        } else {
+            enqueue_cross<variable_bin_width, pair_factor>(b, a, target);
+        }
+    }
+
+    /**
+     * @brief Split @a source into one unit-weight coordinate set per form factor type, indexed by type.
+     *        Types with no atoms get an empty set.
+     *
+     * The form factor of an atom only decides which histogram its pairs land in, never the distance itself, so a
+     * calculation restricted to fixed form factor types is an ordinary weighted one over these subsets. The unit
+     * weights make every pair count once; the form factor amplitudes are applied later, by the intensity calculator.
+     */
+    template<bool variable_bin_width>
+    std::vector<hist::detail::CompactCoordinates<variable_bin_width>> partition_by_ff(
+        const hist::detail::CompactCoordinatesFF<variable_bin_width>& source, int n_ff
+    ) {
+        std::vector<int> counts(n_ff, 0);
+        for (int i = 0; i < source.size(); ++i) {++counts[source.get_ff_type(i)];}
+
+        std::vector<hist::detail::CompactCoordinates<variable_bin_width>> parts(n_ff);
+        for (int ff = 0; ff < n_ff; ++ff) {parts[ff].resize(counts[ff]);}
+
+        std::vector<int> filled(n_ff, 0);
+        for (int i = 0; i < source.size(); ++i) {
+            int ff = source.get_ff_type(i);
+            int k = filled[ff]++;
+            parts[ff].set_position(k, source.position(i));
+            parts[ff].get_non_coordinate_value(k) = 1;
+        }
+        return parts;
+    }
+
+    /**
+     * @brief The whole of @a source as one unit-weight coordinate set, disregarding its form factor types.
+     *        See partition_by_ff.
+     */
+    template<bool variable_bin_width>
+    hist::detail::CompactCoordinates<variable_bin_width> flatten(const hist::detail::CompactCoordinatesFF<variable_bin_width>& source) {
+        hist::detail::CompactCoordinates<variable_bin_width> whole;
+        whole.resize(source.size());
+        for (int i = 0; i < source.size(); ++i) {
+            whole.set_position(i, source.position(i));
+            whole.get_non_coordinate_value(i) = 1;
+        }
+        return whole;
     }
 }

@@ -9,8 +9,7 @@
 #include <grid/exv/RawGridExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
-#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
+#include <hist/distance_calculator/detail/CPUKernel.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -20,6 +19,7 @@
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
+namespace kernel = ausaxs::hist::distance_calculator::detail;
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGridScalableExv<variable_bin_width>::~HistogramManagerMTFFGridScalableExv() = default;
@@ -58,129 +58,42 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
     }
 
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
+    // the atoms are resolved by form factor on their own side only; see kernel::partition_by_ff
+    int n_ff = form_factor::get_active_count();
     auto eval_scaled_exv = [
         p_tot = std::move(p_tot),
         p_aa = std::move(cast_res->get_raw_aa_counts_by_ff()),
         p_aw = std::move(cast_res->get_raw_aw_counts_by_ff()),
         p_ww = std::move(cast_res->get_raw_ww_counts_by_ff()),
-        data_a = *this->data_a_ptr, 
-        data_w = *this->data_w_ptr, 
-        data_x = std::move(data_x),
+        data_a = *this->data_a_ptr,
+        parts_a = kernel::partition_by_ff(*this->data_a_ptr, n_ff),
+        whole_w = kernel::flatten(*this->data_w_ptr),
+        whole_x = kernel::flatten(data_x),
+        n_ff,
         pool] 
         (double scale) 
     {
-        int data_a_size = data_a.size();
-        int data_w_size = data_w.size();
-        int data_x_size = data_x.size();
-
         // stretch the excluded volume cells by the given scale factor
-        auto scaled_data_x = data_x;
-        scaled_data_x.scale_coordinates(scale);
-        int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_data_x);
-
-        //########################//
-        // PREPARE MULTITHREADING //
-        //########################//
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
-        auto calc_xx = [&scaled_data_x, &p_xx_all, data_x_size] (int imin, int imax) {
-            auto& p_xx = p_xx_all.get();
-            for (int i = imin; i < imax; ++i) { // exv
-                int j = i+1;                    // exv
-                for (; j+15 < data_x_size; j+=16) {
-                    evaluate16<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
-                }
-
-                for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
-                }
-
-                for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
-                }
-
-                for (; j < data_x_size; ++j) {
-                    evaluate1<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
-                }
-            }
-            return p_xx;
-        };
-
-        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_active_count(), bin_count);
-        auto calc_ax = [&data_a, &scaled_data_x, &p_ax_all, data_x_size] (int imin, int imax) {
-            auto& p_ax = p_ax_all.get();
-            for (int i = imin; i < imax; ++i) { // atoms
-                int j = 0;                      // exv
-                for (; j+15 < data_x_size; j+=16) {
-                    detail::grid::evaluate16<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
-                }
-
-                for (; j+7 < data_x_size; j+=8) {
-                    detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
-                }
-
-                for (; j+3 < data_x_size; j+=4) {
-                    detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
-                }
-
-                for (; j < data_x_size; ++j) {
-                    detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
-                }
-            }
-            return p_ax;
-        };
-
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
-        auto calc_wx = [&data_w, &scaled_data_x, &p_wx_all, data_x_size] (int imin, int imax) {
-            auto& p_wx = p_wx_all.get();
-            for (int i = imin; i < imax; ++i) { // waters
-                int j = 0;                      // exv
-                for (; j+15 < data_x_size; j+=16) {
-                    evaluate16<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
-                }
-
-                for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
-                }
-
-                for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
-                }
-
-                for (; j < data_x_size; ++j) {
-                    evaluate1<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
-                }
-            }
-            return p_wx;
-        };
+        auto scaled_x = whole_x;
+        scaled_x.scale_coordinates(scale);
+        int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, whole_w, scaled_x);
 
         //##############//
         // SUBMIT TASKS //
         //##############//
-        int job_size_x = settings::general::detail::get_job_size(data_x_size);
-        int job_size_a = settings::general::detail::get_job_size(data_a_size);
-        int job_size_w = settings::general::detail::get_job_size(data_w_size);
-        for (int i = 0; i < data_x_size; i+=job_size_x) {
-            pool->detach_task(
-                [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
-            );
+        container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
+        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(n_ff, bin_count);
+        container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
+        kernel::enqueue_self<true, variable_bin_width, 2, 1>(scaled_x, kernel::row_target(p_xx_all, bin_count));
+        for (int ff = 0; ff < n_ff; ++ff) {
+            kernel::enqueue_balanced_cross<variable_bin_width, 1>(parts_a[ff], scaled_x, kernel::row_target(p_ax_all, bin_count, ff));
         }
-        for (int i = 0; i < data_a_size; i+=job_size_a) {
-            pool->detach_task(
-                [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
-            );
-        }
-        for (int i = 0; i < data_w_size; i+=job_size_w) {
-            pool->detach_task(
-                [&calc_wx, i, job_size_w, data_w_size] () {return calc_wx(i, std::min(i+job_size_w, data_w_size));}
-            );
-        }
+        kernel::enqueue_balanced_cross<variable_bin_width, 1>(whole_w, scaled_x, kernel::row_target(p_wx_all, bin_count));
 
         pool->wait();
         WeightedDistribution1D p_xx_generic = p_xx_all.merge();
         WeightedDistribution2D p_ax_generic = p_ax_all.merge();
         WeightedDistribution1D p_wx_generic = p_wx_all.merge();
-
-        p_xx_generic.add_index(0, detail::WeightedEntry(data_x_size, data_x_size, 0)); // self-correlations
 
         // downsize our axes to only the relevant area
         int max_bin = 10; // minimum size is 10

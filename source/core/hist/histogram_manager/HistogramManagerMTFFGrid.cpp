@@ -10,8 +10,7 @@
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/GridExvFFT.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>
-#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
+#include <hist/distance_calculator/detail/CPUKernel.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -23,6 +22,7 @@ using namespace ausaxs;
 using namespace ausaxs::container;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
+namespace kernel = ausaxs::hist::distance_calculator::detail;
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGrid<variable_bin_width>::~HistogramManagerMTFFGrid() = default;
@@ -55,127 +55,39 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     }
     auto& data_a = *this->data_a_ptr;
     auto& data_w = *this->data_w_ptr;
-    int data_a_size = data_a.size();
-    int data_w_size = data_w.size();
-    int data_x_size = data_x.size();
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x);
-
-    //########################//
-    // PREPARE MULTITHREADING //
-    //########################//
-#if !defined(POCKETFFT_AVAILABLE)
-    container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
-    auto calc_xx = [&data_x, &p_xx_all, data_x_size] (int imin, int imax) {
-        auto& p_xx = p_xx_all.get();
-        for (int i = imin; i < imax; ++i) { // exv
-            int j = i+1;                    // exv
-            for (; j+15 < data_x_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
-            }
-
-            for (; j+7 < data_x_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
-            }
-
-            for (; j+3 < data_x_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
-            }
-
-            for (; j < data_x_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_xx, data_x, data_x, i, j);
-            }
-        }
-        return p_xx;
-    };
-#endif
-
-    container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_active_count(), bin_count);
-    auto calc_ax = [&data_a, &data_x, &p_ax_all, data_x_size] (int imin, int imax) {
-        auto& p_ax = p_ax_all.get();
-        for (int i = imin; i < imax; ++i) { // atoms
-            int j = 0;                      // exv
-            for (; j+15 < data_x_size; j+=16) {
-                detail::grid::evaluate16<variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
-            }
-
-            for (; j+7 < data_x_size; j+=8) {
-                detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
-            }
-
-            for (; j+3 < data_x_size; j+=4) {
-                detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
-            }
-
-            for (; j < data_x_size; ++j) {
-                detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, data_x, i, j);
-            }
-        }
-        return p_ax;
-    };
-
-    container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
-    auto calc_wx = [&data_w, &data_x, &p_wx_all, data_x_size] (int imin, int imax) {
-        auto& p_wx = p_wx_all.get();
-        for (int i = imin; i < imax; ++i) { // waters
-            int j = 0;                      // exv
-            for (; j+15 < data_x_size; j+=16) {
-                evaluate16<variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
-            }
-
-            for (; j+7 < data_x_size; j+=8) {
-                evaluate8<variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
-            }
-
-            for (; j+3 < data_x_size; j+=4) {
-                evaluate4<variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
-            }
-
-            for (; j < data_x_size; ++j) {
-                evaluate1<variable_bin_width, 1>(p_wx, data_w, data_x, i, j);
-            }
-        }
-        return p_wx;
-    };
 
     //##############//
     // SUBMIT TASKS //
     //##############//
-    int job_size_a = settings::general::detail::get_job_size(data_a_size);
-    int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < data_a_size; i+=job_size_a) {
-        pool->detach_task(
-            [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
-        );
+    // the atoms are resolved by form factor on their own side only; see kernel::partition_by_ff
+    int n_ff = form_factor::get_active_count();
+    auto parts_a = kernel::partition_by_ff(data_a, n_ff);
+    auto whole_w = kernel::flatten(data_w);
+    auto whole_x = kernel::flatten(data_x);
+
+    container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(n_ff, bin_count);
+    container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
+    for (int ff = 0; ff < n_ff; ++ff) {
+        kernel::enqueue_balanced_cross<variable_bin_width, 1>(parts_a[ff], whole_x, kernel::row_target(p_ax_all, bin_count, ff));
     }
-    for (int i = 0; i < data_w_size; i+=job_size_w) {
-        pool->detach_task(
-            [&calc_wx, i, job_size_w, data_w_size] () {return calc_wx(i, std::min(i+job_size_w, data_w_size));}
-        );
-    }
+    kernel::enqueue_balanced_cross<variable_bin_width, 1>(whole_w, whole_x, kernel::row_target(p_wx_all, bin_count));
 
 #if defined(POCKETFFT_AVAILABLE)
     // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
     WeightedDistribution1D p_xx_generic = detail::lattice::self_correlation(
         exv, detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
     );
+    p_xx_generic.add_index(0, detail::WeightedEntry(data_x.size(), data_x.size(), 0)); // self-correlations
     pool->wait();
 #else
-    int job_size_x = settings::general::detail::get_job_size(data_x_size);
-    for (int i = 0; i < data_x_size; i+=job_size_x) {
-        pool->detach_task(
-            [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
-        );
-    }
+    container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
+    kernel::enqueue_self<true, variable_bin_width, 2, 1>(whole_x, kernel::row_target(p_xx_all, bin_count));
     pool->wait();
     WeightedDistribution1D p_xx_generic = p_xx_all.merge();
 #endif
     WeightedDistribution2D p_ax_generic = p_ax_all.merge();
     WeightedDistribution1D p_wx_generic = p_wx_all.merge();
-
-    //###################//
-    // SELF-CORRELATIONS //
-    //###################//
-    p_xx_generic.add_index(0, detail::WeightedEntry(data_x_size, data_x_size, 0));
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10

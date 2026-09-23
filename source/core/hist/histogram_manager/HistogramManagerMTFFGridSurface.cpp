@@ -10,8 +10,7 @@
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/GridExvFFT.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
-#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
+#include <hist/distance_calculator/detail/CPUKernel.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -21,6 +20,7 @@
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
+namespace kernel = ausaxs::hist::distance_calculator::detail;
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGridSurface<variable_bin_width>::~HistogramManagerMTFFGridSurface() = default;
@@ -62,227 +62,55 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 
     auto& data_a = *this->data_a_ptr;
     auto& data_w = *this->data_w_ptr;
-    int data_a_size = data_a.size();
-    int data_w_size = data_w.size();
-    int data_x_i_size = data_x_i.size();
-    int data_x_s_size = data_x_s.size();
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
-
-    //########################//
-    // PREPARE MULTITHREADING //
-    //########################//
-#if !defined(POCKETFFT_AVAILABLE)
-    container::ThreadLocalWrapper<XXContainer> p_xx_all(bin_count);
-    auto calc_xx_ii = [&data_x_i, &p_xx_all, data_x_i_size] (int imin, int imax) {
-        auto& p_xx = p_xx_all.get();
-        for (int i = imin; i < imax; ++i) { // exv interior
-            int j = i+1;                    // exv interior
-            for (; j+15 < data_x_i_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
-            }
-
-            for (; j+7 < data_x_i_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
-            }
-
-            for (; j+3 < data_x_i_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
-            }
-
-            for (; j < data_x_i_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
-            }
-        }
-        return p_xx;
-    };
-
-    auto calc_xx_ss = [&data_x_s, &p_xx_all, data_x_s_size] (int imin, int imax) {
-        auto& p_xx = p_xx_all.get();
-        for (int i = imin; i < imax; ++i) { // exv surface
-            int j = i+1;                    // exv surface
-            for (; j+15 < data_x_s_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
-            }
-
-            for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
-            }
-
-            for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
-            }
-
-            for (; j < data_x_s_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
-            }
-        }
-        return p_xx;
-    };
-
-    auto calc_xx_si = [&data_x_i, &data_x_s, &p_xx_all, data_x_s_size] (int imin, int imax) {
-        auto& p_xx = p_xx_all.get();
-        for (int i = imin; i < imax; ++i) { // exv interior
-            int j = 0;                      // exv surface
-            for (; j+15 < data_x_s_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
-            }
-
-            for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
-            }
-
-            for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
-            }
-
-            for (; j < data_x_s_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
-            }
-        }
-        return p_xx;
-    };
-#endif
-
-    container::ThreadLocalWrapper<AXContainer> p_ax_all(form_factor::get_active_count(), bin_count);
-    auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
-        auto& p_ax = p_ax_all.get();
-        for (int i = imin; i < imax; ++i) { // atoms
-            int j = 0;                      // exv interior
-            for (; j+15 < data_x_i_size; j+=16) {
-                detail::grid::evaluate16<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
-            }
-
-            for (; j+7 < data_x_i_size; j+=8) {
-                detail::grid::evaluate8<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
-            }
-
-            for (; j+3 < data_x_i_size; j+=4) {
-                detail::grid::evaluate4<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
-            }
-
-            for (; j < data_x_i_size; ++j) {
-                detail::grid::evaluate1<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
-            }
-
-            j = 0;                          // exv surface
-            for (; j+15 < data_x_s_size; j+=16) {
-                detail::grid::evaluate16<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
-            }
-
-            for (; j+7 < data_x_s_size; j+=8) {
-                detail::grid::evaluate8<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
-            }
-
-            for (; j+3 < data_x_s_size; j+=4) {
-                detail::grid::evaluate4<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
-            }
-
-            for (; j < data_x_s_size; ++j) {
-                detail::grid::evaluate1<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
-            }
-        }
-        return p_ax;
-    };
-
-    container::ThreadLocalWrapper<WXContainer> p_wx_all(bin_count);
-    auto calc_wx = [&data_w, &data_x_i, &data_x_s, &p_wx_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
-        auto& p_wx = p_wx_all.get();
-        for (int i = imin; i < imax; ++i) { // waters
-            int j = 0;                      // exv interior
-            for (; j+15 < data_x_i_size; j+=16) {
-                evaluate16<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
-            }
-
-            for (; j+7 < data_x_i_size; j+=8) {
-                evaluate8<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
-            }
-
-            for (; j+3 < data_x_i_size; j+=4) {
-                evaluate4<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
-            }
-
-            for (; j < data_x_i_size; ++j) {
-                evaluate1<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
-            }
-
-            j = 0;                          // exv surface
-            for (; j+15 < data_x_s_size; j+=16) {
-                evaluate16<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
-            }
-
-            for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
-            }
-
-            for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
-            }
-
-            for (; j < data_x_s_size; ++j) {
-                evaluate1<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
-            }
-        }
-        return p_wx;
-    };
 
     //##############//
     // SUBMIT TASKS //
     //##############//
-    int job_size_a = settings::general::detail::get_job_size(data_a_size);
-    int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < data_a_size; i+=job_size_a) {
-        pool->detach_task(
-            [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
-        );
-    }
+    // the atoms are resolved by form factor on their own side only; see kernel::partition_by_ff
+    int n_ff = form_factor::get_active_count();
+    auto parts_a = kernel::partition_by_ff(data_a, n_ff);
+    auto whole_w = kernel::flatten(data_w);
+    auto whole_x_i = kernel::flatten(data_x_i);
+    auto whole_x_s = kernel::flatten(data_x_s);
 
-    for (int i = 0; i < data_w_size; i+=job_size_w) {
-        pool->detach_task(
-            [&calc_wx, i, job_size_w, data_w_size] () {return calc_wx(i, std::min(i+job_size_w, data_w_size));}
-        );
+    container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_i_all(n_ff, bin_count), p_ax_s_all(n_ff, bin_count);
+    container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_i_all(bin_count), p_wx_s_all(bin_count);
+    for (int ff = 0; ff < n_ff; ++ff) {
+        kernel::enqueue_balanced_cross<variable_bin_width, 1>(parts_a[ff], whole_x_i, kernel::row_target(p_ax_i_all, bin_count, ff));
+        kernel::enqueue_balanced_cross<variable_bin_width, 1>(parts_a[ff], whole_x_s, kernel::row_target(p_ax_s_all, bin_count, ff));
     }
+    kernel::enqueue_balanced_cross<variable_bin_width, 1>(whole_w, whole_x_i, kernel::row_target(p_wx_i_all, bin_count));
+    kernel::enqueue_balanced_cross<variable_bin_width, 1>(whole_w, whole_x_s, kernel::row_target(p_wx_s_all, bin_count));
 
+    XXContainer p_xx(0);
 #if defined(POCKETFFT_AVAILABLE)
     // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
     auto p_xx_lattice = detail::lattice::correlations(
         exv, hist::detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
     );
-    XXContainer p_xx(0);
     p_xx.interior = std::move(p_xx_lattice.first);
     p_xx.surface  = std::move(p_xx_lattice.second);
     p_xx.cross    = std::move(p_xx_lattice.cross);
+    p_xx.interior.add_index(0, detail::WeightedEntry(data_x_i.size(), data_x_i.size(), 0)); // self-correlations
+    p_xx.surface.add_index(0, detail::WeightedEntry(data_x_s.size(), data_x_s.size(), 0));  // self-correlations
     pool->wait();
 #else
-    int job_size_xi = settings::general::detail::get_job_size(data_x_i_size);
-    int job_size_xs = settings::general::detail::get_job_size(data_x_s_size);
-    for (int i = 0; i < data_x_i_size; i+=job_size_xi) {
-        pool->detach_task(
-            [&calc_xx_ii, i, job_size_xi, data_x_i_size] () {return calc_xx_ii(i, std::min(i+job_size_xi, data_x_i_size));}
-        );
-    }
-
-    for (int i = 0; i < data_x_s_size; i+=job_size_xs) {
-        pool->detach_task(
-            [&calc_xx_ss, i, job_size_xs, data_x_s_size] () {return calc_xx_ss(i, std::min(i+job_size_xs, data_x_s_size));}
-        );
-    }
-
-    for (int i = 0; i < data_x_i_size; i+=job_size_xi) {
-        pool->detach_task(
-            [&calc_xx_si, i, job_size_xi, data_x_i_size] () {return calc_xx_si(i, std::min(i+job_size_xi, data_x_i_size));}
-        );
-    }
+    container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_i_all(bin_count), p_xx_s_all(bin_count), p_xx_c_all(bin_count);
+    kernel::enqueue_self<true, variable_bin_width, 2, 1>(whole_x_i, kernel::row_target(p_xx_i_all, bin_count));
+    kernel::enqueue_self<true, variable_bin_width, 2, 1>(whole_x_s, kernel::row_target(p_xx_s_all, bin_count));
+    kernel::enqueue_balanced_cross<variable_bin_width, 2>(whole_x_i, whole_x_s, kernel::row_target(p_xx_c_all, bin_count));
     pool->wait();
-    XXContainer p_xx = p_xx_all.merge();
+    p_xx.interior = p_xx_i_all.merge();
+    p_xx.surface  = p_xx_s_all.merge();
+    p_xx.cross    = p_xx_c_all.merge();
 #endif
-    AXContainer p_ax = p_ax_all.merge();
-    WXContainer p_wx = p_wx_all.merge();
-
-    //###################//
-    // SELF-CORRELATIONS //
-    //###################//
-    p_xx.interior.add_index(0, detail::WeightedEntry(data_x_i_size, data_x_i_size, 0));
-    p_xx.surface.add_index(0, detail::WeightedEntry(data_x_s_size, data_x_s_size, 0));
+    AXContainer p_ax(0, 0);
+    p_ax.interior = p_ax_i_all.merge();
+    p_ax.surface  = p_ax_s_all.merge();
+    WXContainer p_wx(0);
+    p_wx.interior = p_wx_i_all.merge();
+    p_wx.surface  = p_wx_s_all.merge();
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10

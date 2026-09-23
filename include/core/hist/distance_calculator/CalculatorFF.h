@@ -12,10 +12,8 @@
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
 #include <utility/MultiThreading.h>
-#include <utility/observer_ptr.h>
 
 #include <cassert>
-#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -57,16 +55,6 @@ namespace ausaxs::hist::distance_calculator {
                   aa(n_ff, n_ff, bin_count), aw(n_ff, bin_count), ww(bin_count) {}
 
             /**
-             * @brief Drain the thread pool before any of this object's state is released.
-             *        See CalculatorCPU's destructor; the same reasoning applies.
-             */
-            ~CalculatorFF() {
-                auto* pool = utility::multi_threading::get_global_pool();
-                pool->purge();
-                pool->wait();
-            }
-
-            /**
              * @brief Queue the self-correlation of @a a, resolved by form factor on both sides, into the aa result.
              *
              * Every unordered pair is counted twice, once in each of the two form factor orders it could be read in;
@@ -79,8 +67,7 @@ namespace ausaxs::hist::distance_calculator {
                     if (parts[ff1].empty()) {continue;}
                     detail::enqueue_self<weighted_bins, variable_bin_width, 2, 1>(parts[ff1], target_aa(ff1, ff1));
                     for (int ff2 = ff1+1; ff2 < n_ff; ++ff2) {
-                        if (parts[ff2].empty()) {continue;}
-                        enqueue_balanced_cross<2>(parts[ff1], parts[ff2], target_aa(ff1, ff2));
+                        detail::enqueue_balanced_cross<variable_bin_width, 2>(parts[ff1], parts[ff2], target_aa(ff1, ff2));
                     }
                 }
             }
@@ -92,10 +79,8 @@ namespace ausaxs::hist::distance_calculator {
             void enqueue_cross_by_ff(const CompactCoordinatesFF_t& a, const CompactCoordinatesFF_t& b) {
                 const auto& parts = partition(a);
                 const auto& whole = flatten(b);
-                if (whole.empty()) {return;}
                 for (int ff1 = 0; ff1 < n_ff; ++ff1) {
-                    if (parts[ff1].empty()) {continue;}
-                    enqueue_balanced_cross<1>(parts[ff1], whole, target_aw(ff1));
+                    detail::enqueue_balanced_cross<variable_bin_width, 1>(parts[ff1], whole, target_aw(ff1));
                 }
             }
 
@@ -130,39 +115,6 @@ namespace ausaxs::hist::distance_calculator {
             }
 
         private:
-            /**
-             * @brief The handles the queued tasks accumulate through; see detail::Target.
-             *
-             * The distance axis varies fastest in all three results, so a fixed form factor index names a contiguous
-             * run of bins that the evaluators can write into as if it were a histogram of its own.
-             */
-            struct TargetAA {
-                using entry_type = typename GenericDistribution3D_t::value_type;
-                observer_ptr<container::ThreadLocalWrapper<GenericDistribution3D_t>> results;
-                int ff1, ff2, bins;
-                std::span<entry_type> get() const {
-                    return {&*results->get().begin(ff1, ff2), static_cast<std::size_t>(bins)};
-                }
-            };
-
-            struct TargetAW {
-                using entry_type = typename GenericDistribution2D_t::value_type;
-                observer_ptr<container::ThreadLocalWrapper<GenericDistribution2D_t>> results;
-                int ff1, bins;
-                std::span<entry_type> get() const {
-                    return {&*results->get().begin(ff1), static_cast<std::size_t>(bins)};
-                }
-            };
-
-            struct TargetWW {
-                using entry_type = typename GenericDistribution1D_t::value_type;
-                observer_ptr<container::ThreadLocalWrapper<GenericDistribution1D_t>> results;
-                int bins;
-                std::span<entry_type> get() const {
-                    return {&*results->get().begin(), static_cast<std::size_t>(bins)};
-                }
-            };
-
             int bin_count;
             int n_ff;
             container::ThreadLocalWrapper<GenericDistribution3D_t> aa;
@@ -173,70 +125,33 @@ namespace ausaxs::hist::distance_calculator {
             std::unordered_map<const void*, std::vector<CompactCoordinates_t>> partitions;
             std::unordered_map<const void*, CompactCoordinates_t> flattened;
 
-            /**
-             * @brief Cross-correlate two sets, chunked over the larger of the two.
-             *
-             * detail::enqueue_cross splits its second argument into the tasks it dispatches and loops the first inside
-             * each of them, so a pair of very different sizes would otherwise collapse to a single task holding the
-             * whole product. The pairs are the same either way, since a distance does not care which side it is read from.
-             */
-            template<int pair_factor, detail::Target T>
-            void enqueue_balanced_cross(const CompactCoordinates_t& a, const CompactCoordinates_t& b, T target) {
-                if (a.size() < b.size()) {
-                    detail::enqueue_cross<variable_bin_width, pair_factor>(a, b, target);
-                } else {
-                    detail::enqueue_cross<variable_bin_width, pair_factor>(b, a, target);
-                }
-            }
-
-            TargetAA target_aa(int ff1, int ff2) {
+            // the handles the queued tasks accumulate through; see detail::RowTarget
+            detail::RowTarget<GenericDistribution3D_t, 2> target_aa(int ff1, int ff2) {
                 assert(0 <= ff1 && ff1 < n_ff && 0 <= ff2 && ff2 < n_ff && "CalculatorFF::target_aa: form factor index out of bounds.");
-                return {&aa, ff1, ff2, bin_count};
+                return detail::row_target(aa, bin_count, ff1, ff2);
             }
 
-            TargetAW target_aw(int ff1) {
+            detail::RowTarget<GenericDistribution2D_t, 1> target_aw(int ff1) {
                 assert(0 <= ff1 && ff1 < n_ff && "CalculatorFF::target_aw: form factor index out of bounds.");
-                return {&aw, ff1, bin_count};
+                return detail::row_target(aw, bin_count, ff1);
             }
 
-            TargetWW target_ww() {return {&ww, bin_count};}
+            detail::RowTarget<GenericDistribution1D_t, 0> target_ww() {return detail::row_target(ww, bin_count);}
 
             /**
-             * @brief Split @a source into one unit-weight coordinate set per active form factor, memoized on its address.
-             *        Form factors with no atoms get an empty set, which the callers skip.
+             * @brief detail::partition_by_ff over the active form factors, memoized on the address of @a source.
              */
             const std::vector<CompactCoordinates_t>& partition(const CompactCoordinatesFF_t& source) {
                 if (auto it = partitions.find(&source); it != partitions.end()) {return it->second;}
-
-                std::vector<int> counts(n_ff, 0);
-                for (int i = 0; i < source.size(); ++i) {++counts[source.get_ff_type(i)];}
-
-                std::vector<CompactCoordinates_t> parts(n_ff);
-                for (int ff = 0; ff < n_ff; ++ff) {parts[ff].resize(counts[ff]);}
-
-                std::vector<int> filled(n_ff, 0);
-                for (int i = 0; i < source.size(); ++i) {
-                    int ff = source.get_ff_type(i);
-                    int k = filled[ff]++;
-                    parts[ff].set_position(k, source.position(i));
-                    parts[ff].get_non_coordinate_value(k) = 1;
-                }
-                return partitions.emplace(&source, std::move(parts)).first->second;
+                return partitions.emplace(&source, detail::partition_by_ff(source, n_ff)).first->second;
             }
 
             /**
-             * @brief The whole of @a source as one unit-weight coordinate set, memoized on its address.
+             * @brief detail::flatten, memoized on the address of @a source.
              */
             const CompactCoordinates_t& flatten(const CompactCoordinatesFF_t& source) {
                 if (auto it = flattened.find(&source); it != flattened.end()) {return it->second;}
-
-                CompactCoordinates_t whole;
-                whole.resize(source.size());
-                for (int i = 0; i < source.size(); ++i) {
-                    whole.set_position(i, source.position(i));
-                    whole.get_non_coordinate_value(i) = 1;
-                }
-                return flattened.emplace(&source, std::move(whole)).first->second;
+                return flattened.emplace(&source, detail::flatten(source)).first->second;
             }
     };
 }

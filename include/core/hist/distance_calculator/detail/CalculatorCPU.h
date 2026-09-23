@@ -11,10 +11,8 @@
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
-#include <utility/observer_ptr.h>
 
 #include <memory>
-#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -92,16 +90,11 @@ namespace ausaxs::hist::distance_calculator::detail {
             run_result run();
 
         private:
-            struct Target { // A handle to the thread-local output buffer for a given histogram calculation. 
-                using entry_type = typename GenericDistribution1D_t::value_type;
-                observer_ptr<ThreadLocalResult> results;
-                std::span<entry_type> get() const {
-                    auto& histogram = results->get();
-                    return {&*histogram.begin(), static_cast<std::size_t>(histogram.size())};
-                }
-            };
+            // A handle to the thread-local output buffer for a given histogram calculation.
+            using Target = RowTarget<GenericDistribution1D_t, 0>;
 
-            struct Resolved { // A resolved result buffer and its index in the result vector.
+            // A resolved result buffer and its index in the result vector.
+            struct Resolved {
                 Target target;
                 int index;
             };
@@ -129,7 +122,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                     res_idx = merge_ids[merge_id];
                     assert(results[res_idx]->get().size() == bin_count && "The result vector has the wrong size.");
                 }
-                return Resolved{.target=Target{results[res_idx].get()}, .index=res_idx};
+                return Resolved{.target=row_target(*results[res_idx], bin_count), .index=res_idx};
             }
     };
 }
