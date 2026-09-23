@@ -36,7 +36,7 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
         if (tokens.size() != 4 && section_id == 1) {break;} // progress to footer
 
         PDBAtom atom;
-        atom.element = constants::symbols::parse_element_string(tokens[0]);
+        atom.set_element(constants::symbols::parse_element_string(tokens[0]));
         atom.coordinates().x() = std::stod(tokens[1]);
         atom.coordinates().y() = std::stod(tokens[2]);
         atom.coordinates().z() = std::stod(tokens[3]);
