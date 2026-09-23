@@ -38,6 +38,7 @@ namespace {
             case settings::exv::ExvMethod::Fraser:
             case settings::exv::ExvMethod::CRYSOL:
             case settings::exv::ExvMethod::Pepsi:
+            case settings::exv::ExvMethod::FoXS:
                 return true;
             default:
                 return false;

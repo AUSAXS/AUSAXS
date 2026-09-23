@@ -10,9 +10,7 @@
 
 namespace ausaxs::hist {
     /**
-     * @brief An alternative to CompositeDistanceHistogramFFExplicit that mimics the CRYSOL excluded volume fitting.
-     *        The form factor tables are shared with CompositeDistanceHistogramFFExplicit, and only the excluded volume scaling G(q)
-     *        and its fitting limits differ. Like CRYSOL, this always uses the Traube volumes: constructing it sets settings::exv::exv_set accordingly.
+     * @brief An alternative to CompositeDistanceHistogramFFExplicit that mimics the CRYSOL excluded volume fitting. 
      */
     class CompositeDistanceHistogramCrysol : public CompositeDistanceHistogramFFExplicit {
         public:
