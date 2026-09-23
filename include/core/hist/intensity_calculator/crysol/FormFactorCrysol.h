@@ -11,8 +11,8 @@
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/lookup/FormFactorLookupFwd.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <math/ConstexprMath.h>
 
+#include <cmath>
 #include <numbers>
 
 namespace ausaxs::form_factor::crysol {
@@ -27,15 +27,15 @@ namespace ausaxs::form_factor::crysol {
          *
          * @param volume The excluded volume of the atom in cubic angstroms.
          */
-        constexpr ExvFormFactorCrysol(double volume) 
-            : exponent(constexpr_math::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*constants::charge::density::water) 
+        ExvFormFactorCrysol(double volume) 
+            : exponent(std::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*constants::charge::density::water) 
         {}
 
-        constexpr double evaluate_normalized(double q) const {
-            return constexpr_math::exp(-exponent*q*q);
+        double evaluate_normalized(double q) const {
+            return std::exp(-exponent*q*q);
         }
 
-        constexpr double evaluate(double q) const {
+        double evaluate(double q) const {
             return q0*evaluate_normalized(q);
         }
 

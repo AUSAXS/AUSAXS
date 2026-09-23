@@ -3,9 +3,13 @@
 
 #include <form_factor/lookup/FormFactorManager.h>
 
+#include <constants/ConstantsAxes.h>
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
-#include <form_factor/lookup/detail/FormFactorProductBase.h>
+#include <form_factor/FormFactorConcepts.h>
+#include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/ExvTableManager.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
 #include <utility/Logging.h>
 
@@ -18,18 +22,103 @@ using namespace ausaxs::form_factor;
 
 namespace {
     std::unique_ptr<manager::detail::ActiveTables> active_tables;
+    using ff_profile_t = std::array<double, constants::axes::q_axis.bins>; // A single form factor evaluated over the default q axis.
+    using profile_set_t = std::array<ff_profile_t, form_factor::total_ff_count>; // One such profile per active form factor slot.
+
+    /**
+     * @brief Evaluate every active atomic form factor over the default q axis.
+     *
+     * Each form factor appears in many products, so evaluating it once here rather than once per product is what
+     * makes the table build cheap: the form factor evaluation dominates everything else in the build.
+     *
+     */
+    template<FormFactorLookupType FormFactorLookup>
+    profile_set_t evaluate_atomic_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
+        profile_set_t profiles{};
+        for (int i = 0; i < form_factor::get_active_count(); ++i) {
+            const auto& ff = FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i]));
+            for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
+                profiles[i][q] = ff.evaluate(constants::axes::q_vals[q]);
+            }
+        }
+        return profiles;
+    }
+
+    /**
+     * @brief Evaluate every explicit excluded volume form factor of the current EXV set over the default q axis.
+     */
+    profile_set_t evaluate_exv_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
+        auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
+
+        profile_set_t profiles{};
+        for (int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
+            auto ff = exv_set.get(static_cast<form_factor_t>(ff_indices[i]));
+            for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
+                profiles[i][q] = ff.evaluate(constants::axes::q_vals[q]);
+            }
+        }
+        return profiles;
+    }
+
+    /**
+     * @brief Generate an atomic form factor product table.
+     */
+    lookup::table_t generate_atomic_table(const profile_set_t& atomic) {
+        lookup::table_t table;
+        for (int i = 0; i < form_factor::get_active_count(); ++i) {
+            for (int j = 0; j < i; ++j) {
+                table.index(i, j) = FormFactorProduct(atomic[i], atomic[j]);
+                table.index(j, i) = table.index(i, j);
+            }
+            table.index(i, i) = FormFactorProduct(atomic[i], atomic[i]);
+        }
+        return table;
+    }
+
+    /**
+     * @brief Generate an excluded volume form factor product table (exv-exv). This is a symmetric table.
+     */
+    lookup::table_t generate_exv_table(const profile_set_t& exv) {
+        lookup::table_t table;
+        for (int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
+            for (int j = start_index_for_explicit_exv(); j < i; ++j) {
+                table.index(i, j) = FormFactorProduct(exv[i], exv[j]);
+                table.index(j, i) = table.index(i, j);
+            }
+            table.index(i, i) = FormFactorProduct(exv[i], exv[i]);
+        }
+        return table;
+    }
+
+    /**
+     * @brief Generate a cross form factor product table (atomic-exv).
+     */
+    lookup::table_t generate_cross_table(const profile_set_t& atomic, const profile_set_t& exv) {
+        lookup::table_t table;
+        for (int i = 0; i < form_factor::get_active_count(); ++i) {
+            for (int j = start_index_for_explicit_exv(); j < form_factor::get_active_count(); ++j) {
+                table.index(i, j) = FormFactorProduct(atomic[i], exv[j]);
+            }
+        }
+        return table;
+    }
 }
 
 manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::total_ff_count>& ff_indices, int active_count) 
     : active_count(active_count), ff_indices(ff_indices)
 {
-    // must come first; the table generators below only fill the active sub-block, which they read from here
+    // must come first; the profile evaluations and table generators below only fill the active sub-block, which they read from here
     form_factor::detail::active_ff_count = active_count;
-    this->raw_atomic_table         = lookup::detail::generate_atomic_table<lookup::detail::RawFormFactorLookup>(this->ff_indices);
-    this->raw_cross_table          = lookup::detail::generate_cross_table<lookup::detail::RawFormFactorLookup>(this->ff_indices);
-    this->raw_exv_table            = lookup::detail::generate_exv_table(this->ff_indices);
-    this->normalized_atomic_table  = lookup::detail::generate_atomic_table<lookup::detail::NormalizedFormFactorLookup>(this->ff_indices);
-    this->normalized_cross_table   = lookup::detail::generate_cross_table<lookup::detail::NormalizedFormFactorLookup>(this->ff_indices);
+
+    const auto raw_profiles        = evaluate_atomic_profiles<lookup::detail::RawFormFactorLookup>(this->ff_indices);
+    const auto normalized_profiles = evaluate_atomic_profiles<lookup::detail::NormalizedFormFactorLookup>(this->ff_indices);
+    const auto exv_profiles        = evaluate_exv_profiles(this->ff_indices);
+
+    this->raw_atomic_table         = generate_atomic_table(raw_profiles);
+    this->raw_cross_table          = generate_cross_table(raw_profiles, exv_profiles);
+    this->raw_exv_table            = generate_exv_table(exv_profiles);
+    this->normalized_atomic_table  = generate_atomic_table(normalized_profiles);
+    this->normalized_cross_table   = generate_cross_table(normalized_profiles, exv_profiles);
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() noexcept {
@@ -48,9 +137,7 @@ std::vector<int> manager::get_active_mapping() {
         mapping[ff_indices[i]] = i;
     }
 
-    // form factors not in the active set fall back to the OTHER slot (see header docs).
-    // mapping them to a real slot - rather than an out-of-range sentinel - keeps the
-    // generated histograms in-bounds.
+    // form factors not in the active set fall back to the OTHER slot
     int other_slot = mapping[static_cast<int>(form_factor::form_factor_t::OTHER)];
     assert(other_slot != -1 && "OTHER must always be part of the active form factor set.");
     for (auto& m : mapping) {if (m == -1) {m = other_slot;}}

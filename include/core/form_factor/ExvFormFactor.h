@@ -9,6 +9,7 @@
 #include <form_factor/FormFactorType.h>
 #include <math/ConstexprMath.h>
 
+#include <cmath>
 #include <numbers>
 
 namespace ausaxs::form_factor {
@@ -27,7 +28,10 @@ namespace ausaxs::form_factor {
             {}
 
             constexpr double evaluate_normalized(double q) const {
-                return constexpr_math::exp(-exponent*q*q);
+                if (std::is_constant_evaluated()) {
+                    return constexpr_math::exp(-exponent*q*q);
+                }
+                return std::exp(-exponent*q*q);
             }
 
             constexpr double evaluate(double q) const {
