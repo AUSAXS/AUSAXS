@@ -10,8 +10,8 @@ using namespace form_factor;
 
 TEST_CASE("FormFactorProduct::constructor") {
     SECTION("construct from two FormFactors") {
-        const FormFactor& ff1 = lookup::atomic::raw::H;
-        const FormFactor& ff2 = lookup::atomic::raw::C;
+        const FormFactor& ff1 = lookup::atomic::raw::get(form_factor_t::H);
+        const FormFactor& ff2 = lookup::atomic::raw::get(form_factor_t::C);
         FormFactorProduct ffp(ff1, ff2);
 
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -21,7 +21,7 @@ TEST_CASE("FormFactorProduct::constructor") {
     }
 
     SECTION("construct from same FormFactor") {
-        const FormFactor& ff = lookup::atomic::raw::C;
+        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::C);
         FormFactorProduct ffp(ff, ff);
 
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -33,8 +33,8 @@ TEST_CASE("FormFactorProduct::constructor") {
 
 TEST_CASE("FormFactorProduct::evaluate") {
     SECTION("product decreases with q") {
-        const FormFactor& ff1 = lookup::atomic::raw::C;
-        const FormFactor& ff2 = lookup::atomic::raw::N;
+        const FormFactor& ff1 = lookup::atomic::raw::get(form_factor_t::C);
+        const FormFactor& ff2 = lookup::atomic::raw::get(form_factor_t::N);
         FormFactorProduct ffp(ff1, ff2);
 
         double val1 = ffp.evaluate(0);
@@ -46,8 +46,8 @@ TEST_CASE("FormFactorProduct::evaluate") {
     }
 
     SECTION("product is positive") {
-        const FormFactor& ff1 = lookup::atomic::raw::O;
-        const FormFactor& ff2 = lookup::atomic::raw::S;
+        const FormFactor& ff1 = lookup::atomic::raw::get(form_factor_t::O);
+        const FormFactor& ff2 = lookup::atomic::raw::get(form_factor_t::S);
         FormFactorProduct ffp(ff1, ff2);
 
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -58,8 +58,8 @@ TEST_CASE("FormFactorProduct::evaluate") {
 
 TEST_CASE("FormFactorProduct::symmetry") {
     SECTION("product is symmetric") {
-        const FormFactor& ff1 = lookup::atomic::raw::H;
-        const FormFactor& ff2 = lookup::atomic::raw::O;
+        const FormFactor& ff1 = lookup::atomic::raw::get(form_factor_t::H);
+        const FormFactor& ff2 = lookup::atomic::raw::get(form_factor_t::O);
         FormFactorProduct ffp1(ff1, ff2);
         FormFactorProduct ffp2(ff2, ff1);
 

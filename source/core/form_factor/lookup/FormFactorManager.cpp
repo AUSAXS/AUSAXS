@@ -11,6 +11,8 @@
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
+#include <settings/ExvSettings.h>
+#include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
 #include <algorithm>
@@ -22,6 +24,19 @@ using namespace ausaxs::form_factor;
 
 namespace {
     std::unique_ptr<manager::detail::ActiveTables> active_tables;
+    std::vector<int> requested_indices = [] () { // the form factor selection before removing those unavailable for the current exv model
+        std::vector<int> indices(form_factor::total_ff_count);
+        std::iota(indices.begin(), indices.end(), 0);
+        return indices;
+    }();
+
+    /**
+     * @brief Check if the current excluded volume model uses the explicit per-type excluded volume tables.
+     */
+    bool requires_explicit_exv() {
+        return settings::exv::exv_method == settings::exv::ExvMethod::Fraser;
+    }
+
     using ff_profile_t = std::array<double, constants::axes::q_axis.bins>; // A single form factor evaluated over the default q axis.
     using profile_set_t = std::array<ff_profile_t, form_factor::total_ff_count>; // One such profile per active form factor slot.
 
@@ -49,6 +64,8 @@ namespace {
 
         profile_set_t profiles{};
         for (int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
+            // types without a volume are only active when the explicit exv tables are unused (see requires_explicit_exv)
+            if (!exv_set.contains(static_cast<form_factor_t>(ff_indices[i]))) {continue;}
             auto ff = exv_set.get(static_cast<form_factor_t>(ff_indices[i]));
             for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
                 profiles[i][q] = ff.evaluate(constants::axes::q_vals[q]);
@@ -99,6 +116,52 @@ namespace {
         }
         return table;
     }
+
+    /**
+     * @brief Remove the form factors which cannot be used with the current excluded volume model.
+     *        The Fraser model needs an explicit excluded volume for each form factor, so only types present in the current volume set can be used.
+     *        Atoms of removed types fall back to OTHER through get_active_mapping.
+     */
+    std::vector<int> remove_unavailable(std::vector<int> ff_indices) {
+        if (!requires_explicit_exv()) {return ff_indices;}
+
+        const auto& exv_set = *ExvTableManager::get_current_exv_table();
+        if (!exv_set.contains(form_factor_t::WATER) || !exv_set.contains(form_factor_t::OTHER)) {
+            throw except::invalid_argument("form_factor::manager: The current excluded volume set must define both WATER and OTHER to be used with the Fraser model.");
+        }
+
+        std::string removed;
+        std::erase_if(ff_indices, [&exv_set, &removed] (int index) {
+            auto type = static_cast<form_factor_t>(index);
+            if (type == form_factor_t::EXCLUDED_VOLUME || exv_set.contains(type)) {return false;}
+            removed += " " + form_factor::to_string(type);
+            return true;
+        });
+        if (!removed.empty()) {
+            logging::log("form_factor::manager: No excluded volume in the current set for form factors" + removed + "; they are treated as OTHER.");
+        }
+        return ff_indices;
+    }
+
+    /**
+     * @brief Build and activate the product tables for the given form factor selection.
+     *        form_factor_t::OTHER is appended if it is not already present.
+     */
+    void build_tables(std::vector<int> ff_indices) {
+        ff_indices = remove_unavailable(std::move(ff_indices));
+
+        // ensure form_factor_t::OTHER is always present
+        constexpr int other = static_cast<int>(form_factor::form_factor_t::OTHER);
+        if (std::ranges::find(ff_indices, other) == ff_indices.end()) {
+            assert(ff_indices.size() < form_factor::total_ff_count && "Cannot append OTHER to a full form factor set.");
+            ff_indices.push_back(other);
+        }
+
+        std::array<int, form_factor::total_ff_count> ff_indices_array;
+        std::ranges::copy(ff_indices, ff_indices_array.begin());
+        std::fill(ff_indices_array.begin() + ff_indices.size(), ff_indices_array.end(), other);
+        active_tables = std::make_unique<manager::detail::ActiveTables>(ff_indices_array, ff_indices.size());
+    }
 }
 
 manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::total_ff_count>& ff_indices, int active_count) 
@@ -119,11 +182,7 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() noexcept {
-    if (!active_tables) { // initialize default tables
-        std::array<int, form_factor::total_ff_count> default_indices;
-        std::iota(default_indices.begin(), default_indices.end(), 0);
-        active_tables = std::make_unique<detail::ActiveTables>(default_indices, form_factor::total_ff_count);
-    }
+    if (!active_tables) {build_tables(requested_indices);} // initialize default tables
     return active_tables.get();
 }
 
@@ -144,18 +203,8 @@ std::vector<int> manager::get_active_mapping() {
 void manager::detail::use_form_factors(std::vector<int> ff_indices) {
     assert(!ff_indices.empty() && "Custom form factors cannot be empty.");
     assert(ff_indices.size() <= form_factor::total_ff_count && "Custom form factors cannot exceed the total number of available form factors.");
-
-    // ensure form_factor_t::OTHER is always present
-    constexpr int other = static_cast<int>(form_factor::form_factor_t::OTHER);
-    if (std::ranges::find(ff_indices, other) == ff_indices.end()) {
-        assert(ff_indices.size() < form_factor::total_ff_count && "Cannot append OTHER to a full form factor set.");
-        ff_indices.push_back(other);
-    }
-
-    std::array<int, form_factor::total_ff_count> ff_indices_array;
-    std::ranges::copy(ff_indices, ff_indices_array.begin());
-    std::fill(ff_indices_array.begin() + ff_indices.size(), ff_indices_array.end(), static_cast<int>(form_factor::form_factor_t::OTHER));
-    active_tables = std::make_unique<detail::ActiveTables>(ff_indices_array, ff_indices.size());
+    requested_indices = std::move(ff_indices);
+    build_tables(requested_indices);
 }
 
 void manager::use_form_factors(data::Molecule& molecule) {
@@ -198,8 +247,5 @@ void manager::use_form_factors(data::Molecule& molecule) {
 
 void manager::rebuild() {
     if (!active_tables) {return;} // lazy init will pick up the new EXV set
-    active_tables = std::make_unique<detail::ActiveTables>(
-        std::array<int, form_factor::total_ff_count>(active_tables->ff_indices),
-        active_tables->active_count
-    );
+    build_tables(requested_indices);
 }

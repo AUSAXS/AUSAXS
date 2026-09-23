@@ -51,7 +51,7 @@ namespace ausaxs::settings {
             // Disable excluded volume modeling.
             None
         };
-        static ExvMethod exv_method; // The method used to model the excluded volume.
+        static detail::Setting<ExvMethod> exv_method; // The method used to model the excluded volume.
 
         /// @brief The available sets of per-atom displaced solvent volumes.
         enum class ExvSet { //NOLINT

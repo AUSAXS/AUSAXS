@@ -198,3 +198,40 @@ TEST_CASE("form_factor_t::bins") {
         CHECK(water_bin == static_cast<int>(form_factor_t::OH));
     }
 }
+
+TEST_CASE("form_factor::get_info") {
+    SECTION("rows describe their own type") {
+        for (int i = 0; i < total_ff_count; ++i) {
+            CHECK(static_cast<int>(get_info(static_cast<form_factor_t>(i)).type) == i);
+        }
+    }
+
+    SECTION("to_string and from_string round trip") {
+        for (int i = 0; i < total_ff_count; ++i) {
+            auto type = static_cast<form_factor_t>(i);
+            CHECK(from_string(to_string(type)) == type);
+        }
+    }
+
+    SECTION("electrons are the element plus its hydrogens") {
+        for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
+            const auto& info = get_info(static_cast<form_factor_t>(i));
+            CHECK(info.electrons == constants::charge::nuclear::get_charge(info.element) + info.hydrogens);
+        }
+    }
+
+    SECTION("invalid types throw") {
+        CHECK_THROWS(get_info(form_factor_t::COUNT));
+        CHECK_THROWS(get_info(form_factor_t::UNKNOWN));
+    }
+}
+
+TEST_CASE("form_factor::get_type from element") {
+    CHECK(get_type(constants::atom_t::H) == form_factor_t::H);
+    CHECK(get_type(constants::atom_t::C) == form_factor_t::C);
+    CHECK(get_type(constants::atom_t::N) == form_factor_t::N);
+    CHECK(get_type(constants::atom_t::O) == form_factor_t::O);
+    CHECK(get_type(constants::atom_t::S) == form_factor_t::S);
+    CHECK(get_type(constants::atom_t::P) == form_factor_t::OTHER);
+    CHECK(get_type(constants::atom_t::unknown) == form_factor_t::OTHER);
+}

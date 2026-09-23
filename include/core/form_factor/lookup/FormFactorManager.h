@@ -28,6 +28,7 @@ namespace ausaxs::form_factor::manager {
         /**
          * @brief Activate a custom form factor set.
          *        form_factor_t::OTHER is appended if it is not already present.
+         *        With the Fraser excluded volume model, form factors without a volume in the current set are removed and treated as OTHER.
          */
         void use_form_factors(std::vector<int> ff_indices);
     }
@@ -50,7 +51,7 @@ namespace ausaxs::form_factor::manager {
 
     /**
      * @brief Rebuild the active product tables in-place, preserving the current form factor selection.
-     *        Should be called whenever the EXV parameter set changes.
+     *        Called whenever the EXV method or parameter set changes, since this may also change which form factors are available (see detail::use_form_factors).
      */
     void rebuild();
 }

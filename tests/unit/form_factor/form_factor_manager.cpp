@@ -12,6 +12,7 @@
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <settings/All.h>
 
+#include <algorithm>
 #include <concepts>
 #include <numeric>
 
@@ -298,5 +299,58 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
         check(tables->raw_exv_table,           s0, s0, exv,        exv);
     }
 
+    manager::detail::use_form_factors(identity());
+}
+
+TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded volume") {
+    const int CH3   = static_cast<int>(form_factor_t::CH3);
+    const int other = static_cast<int>(form_factor_t::OTHER);
+    auto original_method = settings::exv::exv_method;
+    auto original_set = settings::exv::exv_set.value;
+    manager::detail::use_form_factors(identity());
+
+    // a volume set without CH3
+    auto set = constants::exv::MinimumFluctuation_implicit_H;
+    set.volumes[CH3].reset();
+    ExvTableManager::set_custom_exv_table(set);
+
+    auto is_active = [] (int type) {
+        const auto* tables = manager::get_active_product_tables();
+        return std::ranges::find(tables->ff_indices.begin(), tables->ff_indices.begin() + tables->active_count, type) != tables->ff_indices.begin() + tables->active_count;
+    };
+
+    SECTION("Fraser removes the type, and maps it onto OTHER") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
+        CHECK(get_active_count() == total_ff_count-1);
+        CHECK_FALSE(is_active(CH3));
+        CHECK(is_active(other));
+        auto mapping = manager::get_active_mapping();
+        CHECK(mapping[CH3] == mapping[other]);
+    }
+
+    SECTION("other models keep the type") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Grid;
+        CHECK(get_active_count() == total_ff_count);
+        CHECK(is_active(CH3));
+    }
+
+    SECTION("switching the model restores the requested selection") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
+        CHECK_FALSE(is_active(CH3));
+        settings::exv::exv_method = settings::exv::ExvMethod::Grid;
+        CHECK(is_active(CH3));
+    }
+
+    SECTION("molecule-based selection skips the type") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
+        data::Molecule molecule("tests/files/2epe.pdb");
+        auto atoms = molecule.iterate_atoms();
+        REQUIRE(std::ranges::any_of(atoms, [] (const auto& a) {return a.form_factor_type() == form_factor_t::CH3;}));
+        manager::use_form_factors(molecule);
+        CHECK_FALSE(is_active(CH3));
+    }
+
+    settings::exv::exv_method = original_method;
+    settings::exv::exv_set = original_set;
     manager::detail::use_form_factors(identity());
 }
