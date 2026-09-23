@@ -3,7 +3,6 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 
-#include <form_factor/lookup/ExvTableManager.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
@@ -42,7 +41,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
                 Distribution2D(std::move(raw.p_aw)), 
                 Distribution1D(std::move(raw.p_ww)),
                 std::move(raw.p_tot),
-                form_factor::ExvTableManager::get_average_displaced_volume(this->protein)
+                this->protein
             );
         case settings::exv::ExvMethod::CRYSOL:
             return std::make_unique<CompositeDistanceHistogramCrysol>(
@@ -50,7 +49,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
                 Distribution2D(std::move(raw.p_aw)), 
                 Distribution1D(std::move(raw.p_ww)),
                 std::move(raw.p_tot),
-                form_factor::ExvTableManager::get_average_displaced_volume(this->protein)
+                this->protein
             );
         default:
             return std::make_unique<CompositeDistanceHistogramFFExplicit>(

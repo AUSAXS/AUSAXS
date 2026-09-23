@@ -28,7 +28,7 @@ namespace ausaxs::form_factor::manager {
         /**
          * @brief Activate a custom form factor set.
          *        form_factor_t::OTHER is appended if it is not already present.
-         *        With the Fraser excluded volume model, form factors without a volume in the current set are removed and treated as OTHER.
+         *        With the Fraser-based excluded volume models (Fraser, CRYSOL, Pepsi), form factors without a volume in the current set are removed and treated as OTHER.
          */
         void use_form_factors(std::vector<int> ff_indices);
     }
