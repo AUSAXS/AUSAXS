@@ -3,6 +3,7 @@ target_sources(ausaxs_core PRIVATE
 	"Histogram2D.cpp"
 
 	"detail/BodyTracker.cpp"
+	"detail/GridExvFFT.cpp"
 	"detail/MasterHistogram.cpp"
 	"detail/SimpleExvModel.cpp"
 

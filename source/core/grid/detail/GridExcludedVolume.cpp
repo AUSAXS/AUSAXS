@@ -20,8 +20,8 @@ void GridExcludedVolume::save(const io::File& file) const {
         logging::log("GridExcludedVolume::save: No interior or surface atoms to save. Skipping write.");
         return;
     }
+
     std::vector<AtomFF> atoms1, atoms2;
-    
     for (const auto& i : interior) {
         atoms1.emplace_back(i, form_factor::form_factor_t::C);
     }

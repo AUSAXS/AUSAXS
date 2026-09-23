@@ -35,7 +35,7 @@ namespace ausaxs::settings {
             // The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Å.
             static double width;
 
-            // The surface thickness of the grid in Ångström. This is used for fitting the excluded volume. 
+            // The surface thickness of the grid in Ångström. This is used for fitting the excluded volume.
             static double surface_thickness;
 
             enum class ExvType {

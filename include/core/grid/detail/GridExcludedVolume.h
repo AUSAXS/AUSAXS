@@ -14,8 +14,11 @@ namespace ausaxs::grid::exv {
      * 
      */
     struct GridExcludedVolume {
-        std::vector<Vector3<double>> interior;
-        std::vector<Vector3<double>> surface;
+        std::vector<Vector3<double>> interior;    // real interior positions
+        std::vector<Vector3<double>> surface;     // real surface positions
+        std::vector<Vector3<int>> interior_sites; // interior indices
+        std::vector<Vector3<int>> surface_sites;  // surface indices
+        double spacing = 0; // cell spacing of the interior/surface indices
 
         bool has_surface() const;
         void save(const io::File& file) const;

@@ -9,6 +9,7 @@
 #include <grid/exv/RawGridExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
+#include <hist/detail/GridExvFFT.h>
 #include <hist/distance_calculator/detail/TemplateHelperAvg.h>
 #include <hist/distance_calculator/detail/TemplateHelperGrid.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
@@ -42,12 +43,12 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     auto* pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
+    auto exv = get_exv();
     hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
     {   // generate the excluded volume representation
-        auto exv = get_exv().interior;
-        std::vector<data::AtomFF> interior(exv.size());
+        std::vector<data::AtomFF> interior(exv.interior.size());
         std::transform(
-            exv.begin(), exv.end(), interior.begin(),
+            exv.interior.begin(), exv.interior.end(), interior.begin(),
             [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
         );
         data_x = hist::detail::factory::construct_ff<variable_bin_width>(interior);
@@ -62,6 +63,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
+#if !defined(POCKETFFT_AVAILABLE)
     container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
     auto calc_xx = [&data_x, &p_xx_all, data_x_size] (int imin, int imax) {
         auto& p_xx = p_xx_all.get();
@@ -85,6 +87,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         }
         return p_xx;
     };
+#endif
 
     container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_active_count(), bin_count);
     auto calc_ax = [&data_a, &data_x, &p_ax_all, data_x_size] (int imin, int imax) {
@@ -137,14 +140,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     //##############//
     // SUBMIT TASKS //
     //##############//
-    int job_size_x = settings::general::detail::get_job_size(data_x_size);
     int job_size_a = settings::general::detail::get_job_size(data_a_size);
     int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < data_x_size; i+=job_size_x) {
-        pool->detach_task(
-            [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
-        );
-    }
     for (int i = 0; i < data_a_size; i+=job_size_a) {
         pool->detach_task(
             [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
@@ -156,8 +153,22 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         );
     }
 
+#if defined(POCKETFFT_AVAILABLE)
+    // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
+    WeightedDistribution1D p_xx_generic = detail::lattice::self_correlation(
+        exv, detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
+    );
+    pool->wait();
+#else
+    int job_size_x = settings::general::detail::get_job_size(data_x_size);
+    for (int i = 0; i < data_x_size; i+=job_size_x) {
+        pool->detach_task(
+            [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
+        );
+    }
     pool->wait();
     WeightedDistribution1D p_xx_generic = p_xx_all.merge();
+#endif
     WeightedDistribution2D p_ax_generic = p_ax_all.merge();
     WeightedDistribution1D p_wx_generic = p_wx_all.merge();
 
