@@ -37,7 +37,7 @@ namespace ausaxs::constants::form_factor {
 
     // International Tables for Crystallography, https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php        
     constexpr FiveGaussian H {
-        .a = {0.489918, 0.262003, 0.196767, 0.049879, 0},
+        .a =        {0.489918, 0.262003, 0.196767, 0.049879, 0},
         .b = s_to_q({20.6593, 7.74039, 49.5519, 2.20159, 0}),
         .c = 0.001305
     };

@@ -23,11 +23,9 @@ namespace ausaxs::form_factor {
      */
     namespace lookup::atomic::normalized {
         namespace detail {
-            constexpr auto table = [] () {
-                return [] <std::size_t... I> (std::index_sequence<I...>) {
-                    return std::array<NormalizedFormFactor, total_ff_count>{NormalizedFormFactor(raw::detail::table[I])...};
-                }(std::make_index_sequence<total_ff_count>{});
-            }();
+            constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
+                return std::array<NormalizedFormFactor, total_ff_count>{NormalizedFormFactor(raw::detail::table[I])...};
+            }(std::make_index_sequence<total_ff_count>{});
         }
 
         constexpr const NormalizedFormFactor& get(form_factor_t type) {

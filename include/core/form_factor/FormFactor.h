@@ -11,8 +11,8 @@
 #include <math/ConstexprMath.h>
 
 #include <array>
-#include <utility>
 #include <cmath>
+#include <utility>
 
 namespace ausaxs::form_factor {
     class FormFactor {
@@ -79,11 +79,9 @@ namespace ausaxs::form_factor {
      */
     namespace lookup::atomic::raw {
         namespace detail {
-            constexpr auto table = [] () {
-                return [] <std::size_t... I> (std::index_sequence<I...>) {
-                    return std::array<FormFactor, total_ff_count>{FormFactor(form_factor::detail::ff_info_table[I].coefficients)...};
-                }(std::make_index_sequence<total_ff_count>{});
-            }();
+            constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
+                return std::array<FormFactor, total_ff_count>{FormFactor(form_factor::detail::ff_info_table[I].coefficients)...};
+            }(std::make_index_sequence<total_ff_count>{});
         }
 
         constexpr const FormFactor& get(form_factor_t type) {
