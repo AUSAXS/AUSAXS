@@ -3,7 +3,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <dataset/SimpleDataset.h>
-#include <plots/PlotDataset.h>
 #include <settings/All.h>
 
 #include <hist/hist_test_helper.h>
