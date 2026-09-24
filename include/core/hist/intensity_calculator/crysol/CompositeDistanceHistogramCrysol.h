@@ -3,63 +3,56 @@
 
 #pragma once
 
+#include <data/DataFwd.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
-#include <hist/intensity_calculator/crysol/FormFactorCrysol.h>
+#include <utility/TypeTraits.h>
+#include <utility/observer_ptr.h>
 
 namespace ausaxs::hist {
     /**
      * @brief An alternative to CompositeDistanceHistogramFFExplicit that mimics the CRYSOL excluded volume fitting. 
      */
-    class CompositeDistanceHistogramCrysol : public CompositeDistanceHistogramFFExplicitBase<form_factor::lookup::table_t, form_factor::lookup::table_t, form_factor::lookup::table_t>{
+    class CompositeDistanceHistogramCrysol : public CompositeDistanceHistogramFFExplicit {
         public:
-            CompositeDistanceHistogramCrysol();
-            CompositeDistanceHistogramCrysol(const CompositeDistanceHistogramCrysol&);
-            CompositeDistanceHistogramCrysol(CompositeDistanceHistogramCrysol&&) noexcept;
-            CompositeDistanceHistogramCrysol& operator=(CompositeDistanceHistogramCrysol&&) noexcept;
-            CompositeDistanceHistogramCrysol& operator=(const CompositeDistanceHistogramCrysol&);
-            ~CompositeDistanceHistogramCrysol() override;
+            CompositeDistanceHistogramCrysol() = default;
 
             /**
              * @brief Create a new unweighted composite distance histogram with form factors.
              *        The same distance histogram is used for aa, ax, and xx interactions (with different form factor tables).
              *        Similarly, the same histogram is used for aw and wx interactions.
-             * 
+             *
              * @param p_aa The partial distance histogram for atom-atom interactions (also used for ax and xx).
              * @param p_aw The partial distance histogram for atom-water interactions (also used for wx).
              * @param p_ww The partial distance histogram for water-water interactions.
              * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
-             * @param avg_displaced_V The average displaced volume per atom.
+             * @param molecule The molecule the histograms were calculated from. Its average displaced volume per atom determines G(q).
              */
             CompositeDistanceHistogramCrysol(
-                hist::Distribution3D&& p_aa, 
-                hist::Distribution2D&& p_aw, 
+                hist::Distribution3D&& p_aa,
+                hist::Distribution2D&& p_aw,
                 hist::Distribution1D&& p_ww,
                 hist::Distribution1D&& p_tot,
-                double avg_displaced_V
+                observer_ptr<const data::Molecule> molecule
             );
 
             /**
              * @brief Create a new weighted composite distance histogram with form factors.
              *        The same distance histogram is used for aa, ax, and xx interactions (with different form factor tables).
              *        Similarly, the same histogram is used for aw and wx interactions.
-             * 
+             *
              * @param p_aa The partial distance histogram for atom-atom interactions (also used for ax and xx).
              * @param p_aw The partial distance histogram for atom-water interactions (also used for wx).
              * @param p_ww The partial distance histogram for water-water interactions.
              * @param p_tot The total distance histogram. This is only used to extract the bin centers.
-             * @param avg_displaced_V The average displaced volume per atom.
+             * @param molecule The molecule the histograms were calculated from. Its average displaced volume per atom determines G(q).
              */
             CompositeDistanceHistogramCrysol(
-                hist::Distribution3D&& p_aa, 
-                hist::Distribution2D&& p_aw, 
-                hist::Distribution1D&& p_ww, 
+                hist::Distribution3D&& p_aa,
+                hist::Distribution2D&& p_aw,
+                hist::Distribution1D&& p_ww,
                 hist::WeightedDistribution1D&& p_tot,
-                double avg_displaced_V
+                observer_ptr<const data::Molecule> molecule
             );
-
-            const form_factor::lookup::table_t& get_ff_table() const override;
-            const form_factor::lookup::table_t& get_ffax_table() const override;
-            const form_factor::lookup::table_t& get_ffxx_table() const override;
 
             Limit get_excluded_volume_scaling_factor_limits() const override;
 
@@ -76,10 +69,6 @@ namespace ausaxs::hist {
 
         protected:
             double exv_factor(double q) const override;
-            void initialize();
-
-            form_factor::lookup::table_t ffaa_table;
-            form_factor::lookup::table_t  ffax_table;
-            form_factor::lookup::table_t    ffxx_table;
     };
+    static_assert(supports_nothrow_move_v<CompositeDistanceHistogramCrysol>, "CompositeDistanceHistogramCrysol should be nothrow move constructible");
 }

@@ -190,8 +190,8 @@ TEST_CASE("form_factor_manager: truncated ff set scattering consistent across al
 }
 
 TEST_CASE("form_factor_manager: truncated ff set scattering consistent for special exv calculators") {
-    // the FoXS/CRYSOL product tables are only filled over the active sub-block, so they need the same
-    // check as the histograms - and they are only reachable through these exv models
+    // the FoXS product tables are only filled over the active sub-block, so they need the same check as the histograms.
+    // Pepsi and CRYSOL share the manager tables, but switch them to the Traube volumes - and all of these are only reachable through their exv models
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
 

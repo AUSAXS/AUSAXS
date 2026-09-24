@@ -34,7 +34,15 @@ namespace {
      * @brief Check if the current excluded volume model uses the explicit per-type excluded volume tables.
      */
     bool requires_explicit_exv() {
-        return settings::exv::exv_method == settings::exv::ExvMethod::Fraser;
+        switch (settings::exv::exv_method) {
+            case settings::exv::ExvMethod::Fraser:
+            case settings::exv::ExvMethod::CRYSOL:
+            case settings::exv::ExvMethod::Pepsi:
+            case settings::exv::ExvMethod::FoXS:
+                return true;
+            default:
+                return false;
+        }
     }
 
     using ff_profile_t = std::array<double, constants::axes::q_axis.bins>; // A single form factor evaluated over the default q axis.
@@ -119,7 +127,7 @@ namespace {
 
     /**
      * @brief Remove the form factors which cannot be used with the current excluded volume model.
-     *        The Fraser model needs an explicit excluded volume for each form factor, so only types present in the current volume set can be used.
+     *        The Fraser-based models need an explicit excluded volume for each form factor, so only types present in the current volume set can be used.
      *        Atoms of removed types fall back to OTHER through get_active_mapping.
      */
     std::vector<int> remove_unavailable(std::vector<int> ff_indices) {
@@ -127,7 +135,7 @@ namespace {
 
         const auto& exv_set = *ExvTableManager::get_current_exv_table();
         if (!exv_set.contains(form_factor_t::WATER) || !exv_set.contains(form_factor_t::OTHER)) {
-            throw except::invalid_argument("form_factor::manager: The current excluded volume set must define both WATER and OTHER to be used with the Fraser model.");
+            throw except::invalid_argument("form_factor::manager: The current excluded volume set must define both WATER and OTHER to be used with the Fraser-based models.");
         }
 
         std::string removed;

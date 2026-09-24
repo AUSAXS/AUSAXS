@@ -19,7 +19,7 @@ namespace ausaxs::constants::exv {
         /**
          * @brief A set of displaced solvent volumes, with one optional entry per form factor type (a bare atom,
          *        or an atom with its implicit hydrogens, e.g. CH3). Volumes are stored in Å³.
-         *        Types without an entry cannot be used with the Fraser excluded volume model.
+         *        Types without an entry cannot be used with the Fraser-based excluded volume models.
          */
         struct ExvSet {
             std::array<std::optional<double>, ausaxs::form_factor::total_ff_count> volumes;

@@ -3,45 +3,42 @@
 
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 
-#include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/ExvTableManager.h>
+#include <settings/ExvSettings.h>
 
+#include <cmath>
 #include <numbers>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol() = default;
-CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(const CompositeDistanceHistogramCrysol&) = default;
-CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(CompositeDistanceHistogramCrysol&&) noexcept = default;
-CompositeDistanceHistogramCrysol& CompositeDistanceHistogramCrysol::operator=(CompositeDistanceHistogramCrysol&&) noexcept = default;
-CompositeDistanceHistogramCrysol& CompositeDistanceHistogramCrysol::operator=(const CompositeDistanceHistogramCrysol&) = default;
-CompositeDistanceHistogramCrysol::~CompositeDistanceHistogramCrysol() = default;
+namespace {
+    /**
+     * @brief Switch to the Traube volumes used by CRYSOL, and get the average displaced volume per atom of @a molecule.
+     *        The switch must happen first, since the average volume depends on the volume set.
+     */
+    double use_traube_volumes(observer_ptr<const data::Molecule> molecule) {
+        // only assign when needed, since every assignment rebuilds the form factor tables
+        if (settings::exv::exv_set != settings::exv::ExvSet::Traube) {settings::exv::exv_set = settings::exv::ExvSet::Traube;}
+        return form_factor::ExvTableManager::get_average_displaced_volume(molecule);
+    }
+}
 
 CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution3D&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot,
-    double V
-) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(V) {
-    initialize();
-}
+    observer_ptr<const data::Molecule> molecule
+) : CompositeDistanceHistogramFFExplicit(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(use_traube_volumes(molecule)) {}
 
 CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution3D&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot,
-    double V
-) : CompositeDistanceHistogramFFExplicitBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(V) {
-    initialize();
-}
-
-void CompositeDistanceHistogramCrysol::initialize() {
-    ffaa_table = form_factor::manager::get_active_product_tables()->raw_atomic_table;
-    ffax_table = form_factor::crysol::storage::cross::generate_table();
-    ffxx_table = form_factor::crysol::storage::exv::generate_table();
-}
+    observer_ptr<const data::Molecule> molecule
+) : CompositeDistanceHistogramFFExplicit(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(use_traube_volumes(molecule)) {}
 
 double CompositeDistanceHistogramCrysol::exv_factor(double q, double cx, double avg_displaced_V) {
     // G(q) factor from CRYSOL: https://doi.org/10.1107/S0021889895007047
@@ -55,16 +52,4 @@ double CompositeDistanceHistogramCrysol::exv_factor(double q) const {
 
 Limit CompositeDistanceHistogramCrysol::get_excluded_volume_scaling_factor_limits() const {
     return {0.8, 1.265};
-}
-
-const form_factor::lookup::table_t& CompositeDistanceHistogramCrysol::get_ff_table() const {
-    return ffaa_table;
-}
-
-const form_factor::lookup::table_t& CompositeDistanceHistogramCrysol::get_ffax_table() const {
-    return ffax_table;
-}
-
-const form_factor::lookup::table_t& CompositeDistanceHistogramCrysol::get_ffxx_table() const {
-    return ffxx_table;
 }
