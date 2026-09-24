@@ -58,16 +58,16 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     auto* sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
     sub_data->add_option(
         "--qmax", 
-        settings::axes::qmax, 
+        settings::axes::qmax.value,
         "Upper limit on used q values from the measurement file.")
-        ->default_val(settings::axes::qmax)
+        ->default_val(settings::axes::qmax.value)
         ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
     ;
     sub_data->add_option(
         "--qmin", 
-        settings::axes::qmin, 
+        settings::axes::qmin.value,
         "Lower limit on used q values from the measurement file.")
-        ->default_val(settings::axes::qmin)
+        ->default_val(settings::axes::qmin.value)
         ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
     ;
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
