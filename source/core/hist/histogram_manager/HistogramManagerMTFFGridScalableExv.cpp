@@ -3,23 +3,22 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 
-#include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>  // IWYU pragma: keep
 #include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/distance_calculator/detail/CPUKernel.h>
+#include <hist/distance_calculator/Calculator.h>
+#include <hist/distance_calculator/CalculatorFF.h>
+#include <hist/distance_calculator/HistogramStore.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
-#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
-namespace kernel = ausaxs::hist::distance_calculator::detail;
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGridScalableExv<variable_bin_width>::~HistogramManagerMTFFGridScalableExv() = default;
@@ -37,7 +36,6 @@ grid::exv::GridExcludedVolume HistogramManagerMTFFGridScalableExv<variable_bin_w
 template<bool variable_bin_width>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv<variable_bin_width>::calculate_all() {
     logging::log("HistogramManagerMTFFGridScalableExv::calculate: starting calculation");
-    auto* pool = utility::multi_threading::get_global_pool();
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
 
     // ensure that our new vectors are compatible with those from the base class
@@ -57,8 +55,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         data_a = *this->data_a_ptr,
         data_w = *this->data_w_ptr,
         data_x = hist::detail::factory::construct_unit_weight<variable_bin_width>(get_exv().interior),
-        n_ff,
-        pool] 
+        n_ff] 
         (double scale) 
     {
         // stretch the excluded volume cells by the given scale factor
@@ -69,28 +66,21 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         //##############//
         // SUBMIT TASKS //
         //##############//
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
-        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(n_ff, bin_count);
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
-        kernel::enqueue_self<true, variable_bin_width, 2, 1>(scaled_x, kernel::row_target(p_xx_all, bin_count));
-        for (int ff = 0; ff < n_ff; ++ff) {
-            kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_a[ff], scaled_x, kernel::row_target(p_ax_all, bin_count, ff));
-        }
-        kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_w, scaled_x, kernel::row_target(p_wx_all, bin_count));
+        // the rows of the store: ax (ff) from 0, then wx and xx
+        int wx = n_ff, xx = n_ff + 1;
+        distance_calculator::HistogramStore<true> store(xx + 1, bin_count);
+        distance_calculator::Calculator<true, variable_bin_width> calculator(store);
+        calculator.enqueue_calculate_self(scaled_x, xx);
+        distance_calculator::CalculatorFF<true, variable_bin_width>(calculator).enqueue_cross_by_ff(data_a, scaled_x, 0);
+        calculator.enqueue_calculate_cross(data_w, scaled_x, wx, 1);
 
-        pool->wait();
-        WeightedDistribution1D p_xx_generic = p_xx_all.merge();
-        WeightedDistribution2D p_ax_generic = p_ax_all.merge();
-        WeightedDistribution1D p_wx_generic = p_wx_all.merge();
+        calculator.run();
+        WeightedDistribution1D p_xx_generic = store.export_1d(xx);
+        WeightedDistribution2D p_ax_generic = store.export_2d(0, n_ff);
+        WeightedDistribution1D p_wx_generic = store.export_1d(wx);
 
         // downsize our axes to only the relevant area
-        int max_bin = 10; // minimum size is 10
-        for (int i = p_xx_generic.size()-1; i >= 10; --i) {
-            if (p_xx_generic.index(i) != 0 || p_wx_generic.index(i) != 0) {
-                max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
-                break;
-            }
-        }
+        int max_bin = hist::detail::trimmed_bin_count(p_xx_generic, p_wx_generic);
 
         // downsize the axes to only the relevant area
         auto new_p_aa = p_aa;

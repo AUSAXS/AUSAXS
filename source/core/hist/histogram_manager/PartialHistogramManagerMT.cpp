@@ -5,13 +5,17 @@
 
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>  // IWYU pragma: keep
+#include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/Calculator.h>
+#include <hist/distance_calculator/HistogramStore.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
+
+#include <cassert>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -24,17 +28,6 @@ PartialHistogramManagerMT<weighted_bins, variable_bin_width>::PartialHistogramMa
 template<bool weighted_bins, bool variable_bin_width> 
 PartialHistogramManagerMT<weighted_bins, variable_bin_width>::~PartialHistogramManagerMT() = default;
 
-namespace {
-    int water_res_index = 1.31e4;
-    int to_res_index(int body1, int body2) {
-        return body1 + body2*100;
-    }
-
-    int to_res_index_water(int body) {
-        return body + water_res_index;
-    }
-}
-
 template<bool weighted_bins, bool variable_bin_width> 
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calculate() {
     if (!this->statemanager->is_modified() && !cache.p_tot.empty()) {
@@ -45,35 +38,29 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
 
     logging::log("PartialHistogramManagerMT::calculate: starting calculation");
     int bin_count = this->prepare_axis();
-    auto& externally_modified = this->statemanager->get_externally_modified_bodies();
-    auto& internally_modified = this->statemanager->get_internally_modified_bodies();
+    const auto& externally_modified = this->statemanager->get_externally_modified_bodies();
+    const auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     bool hydration_modified = this->statemanager->is_modified_hydration();
     auto* pool = utility::multi_threading::get_global_pool();
-    distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(bin_count);
 
     // check if the object has already been initialized
-    if (this->master.empty()) [[unlikely]] {
-        initialize(&calculator, bin_count);
-
-        // since the initialization also calculates the self-correlation, mark it as unmodified to avoid desyncing its state
-        internally_modified = std::vector<bool>(this->body_size, false);
+    bool initialized = !this->master.empty();
+    if (!initialized) [[unlikely]] {
+        initialize(bin_count);
     }
+    distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(*store);
 
-    // if not, we must first check if the atom coordinates have been changed in any of the bodies
-    else {
-        for (int i = 0; i < this->body_size; ++i) {
+    for (int i = 0; i < this->body_size; ++i) {
+        // the self-correlation is calculated when the body is first seen, and again whenever its internal state was modified
+        if (!initialized || internally_modified[i]) {
+            calc_self_correlation(&calculator, i);
+        }
 
-            // if the internal state was modified, we have to recalculate the self-correlation
-            if (internally_modified[i]) {
-                calc_self_correlation(&calculator, i);
-            }
-
-            // if the external state was modified, we have to update the coordinate representations for later calculations (implicitly done in calc_self_correlation)
-            else if (externally_modified[i]) {
-                pool->detach_task(
-                    [this, i] () {update_compact_representation_body(i);}
-                );
-            }
+        // if only the external state was modified, we have to update the coordinate representations for later calculations (implicitly done in calc_self_correlation)
+        else if (externally_modified[i]) {
+            pool->detach_task(
+                [this, i] () {update_compact_representation_body(i);}
+            );
         }
     }
 
@@ -109,61 +96,15 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
         calculator.release_hold();
     }
 
-    // merge the partial results from each thread and add it to the master histogram
-    // for this process, we first have to wait for all threads to finish
-    // then we extract the results in the same order they were submitted to ensure correctness
-    auto res = calculator.run();
-    {
-        if (hydration_modified) {
-            assert(res.self.contains(water_res_index) && "PartialHistogramManagerMT::calculate: water result not found");
-            pool->detach_task(
-                [this, r = std::move(res.self[water_res_index])]
-                () mutable {combine_ww(std::move(r));}
-            );
-        }
-
-        for (int i = 0; i < this->body_size; ++i) {
-            if (internally_modified[i]) {
-                assert(res.self.contains(to_res_index(i, i)) && "PartialHistogramManagerMT::calculate: self result not found");
-                pool->detach_task(
-                    [this, i, r = std::move(res.self[to_res_index(i, i)])]
-                    () mutable {combine_self_correlation(i, std::move(r));}
-                );
-            }
-
-            for (int j = 0; j < i; ++j) {
-                if (externally_modified[i] || externally_modified[j]) {
-                    assert(res.cross.contains(to_res_index(i, j)) && "PartialHistogramManagerMT::calculate: cross result not found");
-                    pool->detach_task(
-                        [this, i, j, r = std::move(res.cross[to_res_index(i, j)])]
-                        () mutable {combine_aa(i, j, std::move(r));}
-                    );
-                }
-            }
-
-            if (externally_modified[i] || hydration_modified) {
-                assert(res.cross.contains(to_res_index_water(i)) && "PartialHistogramManagerMT::calculate: water result not found");
-                pool->detach_task(
-                    [this, i, r = std::move(res.cross[to_res_index_water(i)])]
-                    () mutable {combine_aw(i, std::move(r));}
-                );
-            }
-        }
-    }
-
+    // the recalculated partial histograms replace their old contents in the store, which were taken out of the master histogram as they were queued
+    calculator.run();
+    for (int h : recalculated) {this->master += store->row(h);}
+    recalculated.clear();
     this->statemanager->reset_to_false();
-    pool->wait();
 
     // downsize our axes to only the relevant area
     GenericDistribution1D_t p_tot = this->master; // NOLINT - intentional slicing
-    int max_bin = 10; // minimum size is 10
-    for (int i = (int) p_tot.size()-1; i >= 10; i--) {
-        if (p_tot.index(i) != 0) {
-            max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
-            break;
-        }
-    }
-    p_tot.resize(max_bin);
+    p_tot.resize(hist::detail::trimmed_bin_count(p_tot));
 
     // update cache
     cache.p_tot = p_tot;
@@ -221,7 +162,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<weighted_
     }
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    GenericDistribution1D_t p_ww = this->partials_ww;
+    GenericDistribution1D_t p_ww = store->export_1d(handle_ww());
     GenericDistribution1D_t p_aa = this->master.base;
     GenericDistribution1D_t p_aw(bins);
     p_ww.resize(bins);
@@ -231,14 +172,14 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<weighted_
     for (int i = 0; i < this->body_size; ++i) {
         for (int j = 0; j <= i; ++j) {
             // iterate through each entry in the partial histogram
-            std::transform(p_aa.begin(), p_aa.end(), this->partials_aa.index(i, j).begin(), p_aa.begin(), std::plus<>());
+            std::transform(p_aa.begin(), p_aa.end(), store->row(handle_aa(i, j)).begin(), p_aa.begin(), std::plus<>());
         }
     }
 
     // iterate through all partial hydration-protein histograms
     for (int i = 0; i < this->body_size; ++i) {
         // iterate through each entry in the partial histogram
-        std::transform(p_aw.begin(), p_aw.end(), this->partials_aw.index(i).begin(), p_aw.begin(), std::plus<>());
+        std::transform(p_aw.begin(), p_aw.end(), store->row(handle_aw(i)).begin(), p_aw.begin(), std::plus<>());
     }
 
     if constexpr (weighted_bins) {
@@ -258,88 +199,60 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<weighted_
     }
 }
 
+template<bool weighted_bins, bool variable_bin_width>
+int PartialHistogramManagerMT<weighted_bins, variable_bin_width>::handle_aa(int n, int m) const {
+    assert(0 <= m && m <= n && n < this->body_size && "PartialHistogramManagerMT::handle_aa: expected a body pair in the lower triangle.");
+    return n*(n+1)/2 + m;
+}
+
+template<bool weighted_bins, bool variable_bin_width>
+int PartialHistogramManagerMT<weighted_bins, variable_bin_width>::handle_aw(int index) const {
+    return this->body_size*(this->body_size+1)/2 + index;
+}
+
+template<bool weighted_bins, bool variable_bin_width>
+int PartialHistogramManagerMT<weighted_bins, variable_bin_width>::handle_ww() const {
+    return handle_aw(this->body_size);
+}
+
 template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::initialize(calculator_t calculator, int bin_count) {
-    auto* pool = utility::multi_threading::get_global_pool();
+void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::initialize(int bin_count) {
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
-    this->partials_ww = detail::PartialHistogram<weighted_bins>(axis.bins);
-    for (int i = 0; i < this->body_size; ++i) {
-        this->partials_aw.index(i) = detail::PartialHistogram<weighted_bins>(axis.bins);
-        this->partials_aa.index(i, i) = detail::PartialHistogram<weighted_bins>(axis.bins);
-        calc_self_correlation(calculator, i);
+    store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(handle_ww()+1, axis.bins);
+}
 
-        for (int j = 0; j < i; ++j) {
-            this->partials_aa.index(i, j) = detail::PartialHistogram<weighted_bins>(axis.bins);
-        }
-    }
-
-    auto res = calculator->run();
-    assert(static_cast<int>(res.self.size()) == this->body_size && "The number of self-correlation results does not match the number of bodies.");
-    for (int i = 0; i < static_cast<int>(this->body_size); ++i) {
-        assert(res.self.contains(to_res_index(i, i)) && "PartialHistogramManagerMT::initialize: self result not found");
-        pool->detach_task(
-            [this, i, r = std::move(res.self[to_res_index(i, i)])] () mutable {combine_self_correlation(i, std::move(r));}
-        );
-    }
+template<bool weighted_bins, bool variable_bin_width>
+void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::recalculate(int h) {
+    // the row is not written until the calculator runs, so its old contents are still there to be taken out
+    this->master -= store->row(h);
+    recalculated.push_back(h);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calc_self_correlation(calculator_t calculator, int index) {
     update_compact_representation_body(index);
-    calculator->enqueue_calculate_self(this->coords_a[index], 1, to_res_index(index, index));
+    recalculate(handle_aa(index, index));
+    calculator->enqueue_calculate_self(this->coords_a[index], handle_aa(index, index));
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calc_aa(calculator_t calculator, int n, int m) {
-    calculator->enqueue_calculate_cross(this->coords_a[n], this->coords_a[m], 1, to_res_index(n, m));
+    recalculate(handle_aa(n, m));
+    calculator->enqueue_calculate_cross(this->coords_a[n], this->coords_a[m], handle_aa(n, m), 2);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calc_aw(calculator_t calculator, int index) {
-    calculator->enqueue_calculate_cross(this->coords_a[index], this->coords_w, 1, to_res_index_water(index));
+    recalculate(handle_aw(index));
+    calculator->enqueue_calculate_cross(this->coords_a[index], this->coords_w, handle_aw(index), 2);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calc_ww(calculator_t calculator) {
-    calculator->enqueue_calculate_self(this->coords_w, 1, water_res_index);
-}
-
-template<bool weighted_bins, bool variable_bin_width>
-void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::combine_self_correlation(int index, GenericDistribution1D_t&& res) {
-    master_hist_mutex.lock();
-    this->master -= this->partials_aa.index(index, index);
-    this->partials_aa.index(index, index) = std::move(res);
-    this->master += this->partials_aa.index(index, index);
-    master_hist_mutex.unlock();
-}
-
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::combine_aa(int n, int m, GenericDistribution1D_t&& res) {
-    master_hist_mutex.lock();
-    this->master -= this->partials_aa.index(n, m);
-    this->partials_aa.index(n, m) = std::move(res);
-    this->master += this->partials_aa.index(n, m);
-    master_hist_mutex.unlock();
-}
-
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::combine_aw(int index, GenericDistribution1D_t&& res) {
-    master_hist_mutex.lock();
-    this->master -= this->partials_aw.index(index);
-    this->partials_aw.index(index) = std::move(res);
-    this->master += this->partials_aw.index(index);
-    master_hist_mutex.unlock();
-}
-
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::combine_ww(GenericDistribution1D_t&& res) {
-    master_hist_mutex.lock();
-    this->master -= this->partials_ww;
-    this->partials_ww = std::move(res);
-    this->master += this->partials_ww;
-    master_hist_mutex.unlock();
+    recalculate(handle_ww());
+    calculator->enqueue_calculate_self(this->coords_w, handle_ww());
 }
 
 template class hist::PartialHistogramManagerMT<false, false>;

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <hist/distance_calculator/HistogramStore.h>
 #include <hist/distance_calculator/detail/CalculatorCPU.h>
 #include <hist/distance_calculator/detail/GPUKernel.h>
 #include <settings/GeneralSettings.h>
@@ -12,86 +13,72 @@
 
 namespace ausaxs::hist::distance_calculator {
     /**
-     * @brief Queues pairwise distance histogram calculations on the CPU or GPU kernel.
+     * @brief Queues pairwise distance histogram calculations on the CPU or GPU kernel, into the rows of a HistogramStore.
      *        The backend is picked once, on construction, from settings::general::gpu.
-     *
-     * The caller must keep all submitted data alive until run() returns.
      */
     template<bool weighted_bins, bool variable_bin_width>
     class Calculator {
         using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
         public:
-            using run_result = typename detail::CalculatorCPU<weighted_bins, variable_bin_width>::run_result;
-
             /**
-             * @brief Construct a calculator whose result histograms span @a bin_count bins.
+             * @brief Construct a calculator accumulating into @a store, which must outlive it.
              */
-            explicit Calculator(int bin_count) {
-                if (settings::general::gpu) {gpu.emplace(bin_count);}
-                else {cpu.emplace(bin_count);}
+            explicit Calculator(HistogramStore<weighted_bins>& store) {
+                if (settings::general::gpu) {gpu.emplace(store);}
+                else {cpu.emplace(store);}
             }
 
             /**
              * @brief Queue a self-correlation calculation.
-             *        This is faster than calling the cross-correlation method with the same data, as some optimizations can be made.
+             *        The data reference must be valid until run() is called. 
              *
              * @param a The data to calculate the self-correlation for. The reference must be valid until run() is called.
-             * @param scaling The scaling factor to apply to the result.
-             * @param merge_id The result vector id this calculation can be merged into. Supplying this can save significant memory resources.
-             *
-             * @return The index of the data in the result vector.
+             * @param h The handle to accumulate into.
+             * @param scaling The scaling factor to apply to the pair counts. 
              */
-            int enqueue_calculate_self(const CompactCoordinates_t& a, int scaling = 1, int merge_id = -1) {
+            void enqueue_calculate_self(const CompactCoordinates_t& a, int h, int scaling = 1) {
                 assert((cpu.has_value() || gpu.has_value()) && "Calculator: the constructor engages exactly one backend.");
-                return cpu ? cpu->enqueue_calculate_self(a, scaling, merge_id)
-                           : gpu->enqueue_calculate_self(a, scaling, merge_id);
+                if (cpu) {cpu->enqueue_calculate_self(a, h, scaling);}
+                else {gpu->enqueue_calculate_self(a, h, scaling);}
             }
 
             /**
              * @brief Queue a cross-correlation calculation.
+             *        The data references must be valid until run() is called. 
              *
-             * @param a1 The first set of data to calculate the cross-correlation for. The reference must be valid until run() is called.
-             * @param a2 The second set of data to calculate the cross-correlation for. The reference must be valid until run() is called.
-             * @param scaling The scaling factor to apply to the result.
-             * @param merge_id The result vector id this calculation can be merged into. Supplying this can save significant memory resources.
-             *
-             * @return The index of the data in the result vector.
+             * @param a1 The first set of data to calculate the cross-correlation for.
+             * @param a2 The second set of data to calculate the cross-correlation for.
+             * @param h The handle to accumulate into.
+             * @param scaling The scaling factor to apply to the pair counts. 
              */
-            int enqueue_calculate_cross(const CompactCoordinates_t& a1, const CompactCoordinates_t& a2, int scaling = 1, int merge_id = -1) {
+            void enqueue_calculate_cross(const CompactCoordinates_t& a1, const CompactCoordinates_t& a2, int h, int scaling) {
                 assert((cpu.has_value() || gpu.has_value()) && "Calculator: the constructor engages exactly one backend.");
-                return cpu ? cpu->enqueue_calculate_cross(a1, a2, scaling, merge_id)
-                           : gpu->enqueue_calculate_cross(a1, a2, scaling, merge_id);
+                if (cpu) {cpu->enqueue_calculate_cross(a1, a2, h, scaling);}
+                else {gpu->enqueue_calculate_cross(a1, a2, h, scaling);}
             }
 
             /**
              * @brief Withhold everything enqueued from here on, as one group, until release_hold().
              *
-             * This is useful for batching calculations that share a merge_id, so they can be dispatched together. This only does
-             * anything on the GPU backend, where each submission would otherwise be allocated its own buffer on the device;
-             * holding allows them to share. The CPU kernel dispatches every job immediately regardless.
+             * This only does anything on the GPU backend, where each submission would otherwise be dispatched to the device
+             * on its own; holding lets a group of related jobs go as one. The CPU kernel dispatches every job immediately regardless.
              */
             void hold() {if (gpu) {gpu->hold();}}
 
             /**
-             * @brief Dispatch the group held since hold(), and stop holding.
-             *        Call this as soon as the group is complete, as the work proceeds asynchronously from
-             *        there: whatever the caller does before run() overlaps with it.
+             * @brief Dispatch the groups held since hold(), and stop holding.
              */
             void release_hold() {if (gpu) {gpu->release_hold();}}
 
             /**
-             * @brief Get the current size of the result vector.
-             */
-            int size_self_result() const {assert((cpu.has_value() || gpu.has_value()) && "Calculator: the constructor engages exactly one backend."); return cpu ? cpu->size_self_result() : gpu->size_self_result();}
-            int size_cross_result() const {assert((cpu.has_value() || gpu.has_value()) && "Calculator: the constructor engages exactly one backend."); return cpu ? cpu->size_cross_result() : gpu->size_cross_result();} //< @copydoc size_self_result
-
-            /**
-             * @brief Calculate the queued histograms.
+             * @brief Calculate the queued histograms into their rows of the store.
              *        This will block until all calculations are done.
-             *
-             * @return The calculated histograms.
              */
-            run_result run() {assert((cpu.has_value() || gpu.has_value()) && "Calculator: the constructor engages exactly one backend."); return cpu ? cpu->run() : gpu->run();}
+            void run() {
+                assert((cpu.has_value() || gpu.has_value()) && "Calculator: the constructor engages exactly one backend.");
+                if (cpu) {cpu->run();}
+                else {gpu->run();}
+            }
 
         private:
             // exactly one of these is engaged, as decided by the constructor

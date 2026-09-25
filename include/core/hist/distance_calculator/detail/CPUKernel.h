@@ -3,28 +3,25 @@
 
 #pragma once
 
-#include <container/ThreadLocalWrapper.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Exceptions.h>
 #include <utility/MultiThreading.h>
-#include <utility/observer_ptr.h>
 
 #include <algorithm>
-#include <array>
 #include <concepts>
 #include <cstdint>
 #include <span>
 #include <string>
-#include <tuple>
 #include <type_traits>
-#include <vector>
 
 namespace ausaxs::hist::distance_calculator::detail {
     /**
-     * @brief Where a queued calculation accumulates.
+     * @brief Where a queued calculation accumulates, see HistogramStore::Target.
+     *
+     * get() returns the calling thread's own bins.
      */
     template<typename T>
     concept Target = std::copy_constructible<T> && requires (const T& t) {
@@ -32,88 +29,59 @@ namespace ausaxs::hist::distance_calculator::detail {
     };
 
     /**
-     * @brief A Target accumulating into one row of a thread-local distribution: the whole of a 1D distribution, or
-     *        the distance axis at fixed leading indices of a 2D or 3D one.
-     *
-     * The distance axis varies fastest in all of them, so a row is a contiguous run of bins that the evaluators can
-     * write into as if it were a histogram of its own.
-     */
-    template<typename Distribution, std::size_t rank>
-    struct RowTarget {
-        using entry_type = typename Distribution::value_type;
-        observer_ptr<container::ThreadLocalWrapper<Distribution>> results;
-        std::array<int, rank> row;
-        int bins;
-        std::span<entry_type> get() const {
-            auto first = std::apply([this] (auto... i) {return results->get().begin(i...);}, row);
-            return {&*first, static_cast<std::size_t>(bins)};
-        }
-    };
-
-    /**
-     * @brief The row of @a results at the leading indices @a row, spanning @a bins bins.
-     */
-    template<typename Distribution, std::same_as<int>... Row>
-    RowTarget<Distribution, sizeof...(Row)> row_target(container::ThreadLocalWrapper<Distribution>& results, int bins, Row... row) {
-        return {&results, {row...}, bins};
-    }
-
-    /**
-     * @brief Invoke @a f with the scaling factor as a compile-time constant, as the evaluators need it.
+     * @brief Invoke @a f with the pair factor as a compile-time constant, as the evaluators need it.
      */
     template<typename F>
-    void dispatch_scaling(int scaling, F&& f) {
-        switch (scaling) {
-            case 1:  f(std::integral_constant<int, 1>{});  return;
-            case 2:  f(std::integral_constant<int, 2>{});  return;
-            case 3:  f(std::integral_constant<int, 3>{});  return;
-            case 4:  f(std::integral_constant<int, 4>{});  return;
-            case 5:  f(std::integral_constant<int, 5>{});  return;
-            case 6:  f(std::integral_constant<int, 6>{});  return;
-            case 7:  f(std::integral_constant<int, 7>{});  return;
-            case 8:  f(std::integral_constant<int, 8>{});  return;
-            case 9:  f(std::integral_constant<int, 9>{});  return;
-            case 10: f(std::integral_constant<int, 10>{}); return;
-            case 11: f(std::integral_constant<int, 11>{}); return;
-            case 12: f(std::integral_constant<int, 12>{}); return;
-            case 13: f(std::integral_constant<int, 13>{}); return;
-            case 14: f(std::integral_constant<int, 14>{}); return;
-            case 15: f(std::integral_constant<int, 15>{}); return;
-            case 16: f(std::integral_constant<int, 16>{}); return;
-            case 17: f(std::integral_constant<int, 17>{}); return;
-            case 18: f(std::integral_constant<int, 18>{}); return;
-            case 19: f(std::integral_constant<int, 19>{}); return;
-            case 20: f(std::integral_constant<int, 20>{}); return;
-            case 21: f(std::integral_constant<int, 21>{}); return;
-            case 22: f(std::integral_constant<int, 22>{}); return;
-            case 23: f(std::integral_constant<int, 23>{}); return;
-            case 24: f(std::integral_constant<int, 24>{}); return;
-            case 25: f(std::integral_constant<int, 25>{}); return;
-            case 26: f(std::integral_constant<int, 26>{}); return;
-            case 27: f(std::integral_constant<int, 27>{}); return;
-            case 28: f(std::integral_constant<int, 28>{}); return;
-            case 29: f(std::integral_constant<int, 29>{}); return;
-            case 30: f(std::integral_constant<int, 30>{}); return;
-            case 60: f(std::integral_constant<int, 60>{}); return;
+    void dispatch_scaling(int pair_factor, F&& f) {
+        switch (pair_factor) {
+            case 1:   f(std::integral_constant<int, 1>{});   return;
+            case 2:   f(std::integral_constant<int, 2>{});   return;
+            case 4:   f(std::integral_constant<int, 4>{});   return;
+            case 6:   f(std::integral_constant<int, 6>{});   return;
+            case 8:   f(std::integral_constant<int, 8>{});   return;
+            case 10:  f(std::integral_constant<int, 10>{});  return;
+            case 12:  f(std::integral_constant<int, 12>{});  return;
+            case 14:  f(std::integral_constant<int, 14>{});  return;
+            case 16:  f(std::integral_constant<int, 16>{});  return;
+            case 18:  f(std::integral_constant<int, 18>{});  return;
+            case 20:  f(std::integral_constant<int, 20>{});  return;
+            case 22:  f(std::integral_constant<int, 22>{});  return;
+            case 24:  f(std::integral_constant<int, 24>{});  return;
+            case 26:  f(std::integral_constant<int, 26>{});  return;
+            case 28:  f(std::integral_constant<int, 28>{});  return;
+            case 30:  f(std::integral_constant<int, 30>{});  return;
+            case 32:  f(std::integral_constant<int, 32>{});  return;
+            case 34:  f(std::integral_constant<int, 34>{});  return;
+            case 36:  f(std::integral_constant<int, 36>{});  return;
+            case 38:  f(std::integral_constant<int, 38>{});  return;
+            case 40:  f(std::integral_constant<int, 40>{});  return;
+            case 42:  f(std::integral_constant<int, 42>{});  return;
+            case 44:  f(std::integral_constant<int, 44>{});  return;
+            case 46:  f(std::integral_constant<int, 46>{});  return;
+            case 48:  f(std::integral_constant<int, 48>{});  return;
+            case 50:  f(std::integral_constant<int, 50>{});  return;
+            case 52:  f(std::integral_constant<int, 52>{});  return;
+            case 54:  f(std::integral_constant<int, 54>{});  return;
+            case 56:  f(std::integral_constant<int, 56>{});  return;
+            case 58:  f(std::integral_constant<int, 58>{});  return;
+            case 60:  f(std::integral_constant<int, 60>{});  return;
+            case 120: f(std::integral_constant<int, 120>{}); return;
             default: throw ausaxs::except::runtime_error(
-                "distance_calculator::dispatch_scaling: unsupported scaling factor (" + std::to_string(scaling) + "). "
-                "Supported factors are 1-30 and 60."
+                "distance_calculator::dispatch_scaling: unsupported pair factor (" + std::to_string(pair_factor) + "). "
+                "Supported factors are 1, the even numbers 2-60, and 120."
             );
         }
     }
 
     /**
      * @brief Queue the self-correlation of @a data into @a target.
-     *        This is faster than cross-correlating the data with itself, since only the upper triangle has to be evaluated.
      *
      * @tparam pair_factor What each evaluated pair contributes.
      * @tparam self_factor What the zero distance of each point with itself contributes.
-     *
-     * The work is dispatched to the thread pool immediately; this does not wait for it. @a data must stay alive until it
-     * has been waited for.
      */
-    template<bool weighted_bins, bool variable_bin_width, int pair_factor, int self_factor, Target T>
+    template<int pair_factor, int self_factor, bool variable_bin_width, Target T>
     void enqueue_self(const hist::detail::CompactCoordinates<variable_bin_width>& data, T target) {
+        if (data.empty()) {return;}
         auto* pool = utility::multi_threading::get_global_pool();
         int data_size = data.size();
         int job_size = settings::general::detail::get_job_size(data_size);
@@ -156,7 +124,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                 }
                 total_weight *= self_factor;
 
-                if constexpr (weighted_bins) {
+                if constexpr (std::is_same_v<typename T::entry_type, hist::detail::WeightedEntry>) {
                     p_aa[0] += hist::detail::WeightedEntry(total_weight, static_cast<std::int64_t>(total_weight), 0);
                 } else {
                     p_aa[0] += total_weight;
@@ -168,13 +136,9 @@ namespace ausaxs::hist::distance_calculator::detail {
     /**
      * @brief Queue the cross-correlation of @a data_1 and @a data_2 into @a target.
      *
-     * @tparam pair_factor What each evaluated pair contributes. Every pair of the two sets is visited exactly once, so a
-     *                     convention that counts every unordered pair twice passes twice the scaling factor here.
-     *
-     * The work is dispatched to the thread pool immediately; this does not wait for it. Both sets must stay alive until
-     * it has been waited for.
+     * @tparam pair_factor What each evaluated pair contributes.
      */
-    template<bool variable_bin_width, int pair_factor, Target T>
+    template<int pair_factor, bool variable_bin_width, Target T>
     void enqueue_cross(
         const hist::detail::CompactCoordinates<variable_bin_width>& data_1,
         const hist::detail::CompactCoordinates<variable_bin_width>& data_2,
@@ -214,12 +178,9 @@ namespace ausaxs::hist::distance_calculator::detail {
 
     /**
      * @brief Queue the cross-correlation of @a a and @a b into @a target, chunked over the larger of the two.
-     *
-     * enqueue_cross splits its second argument into the tasks it dispatches and loops the first inside each of them, so
-     * a pair of very different sizes would otherwise collapse to a single task holding the whole product. The pairs are
-     * the same either way, since a distance does not care which side it is read from. An empty set queues nothing.
+     *        This leads to a more balanced work distribution for strongly asymmetric sizes. 
      */
-    template<bool variable_bin_width, int pair_factor, Target T>
+    template<int pair_factor, bool variable_bin_width, Target T>
     void enqueue_balanced_cross(
         const hist::detail::CompactCoordinates<variable_bin_width>& a,
         const hist::detail::CompactCoordinates<variable_bin_width>& b,
@@ -227,9 +188,9 @@ namespace ausaxs::hist::distance_calculator::detail {
     ) {
         if (a.empty() || b.empty()) {return;}
         if (a.size() < b.size()) {
-            enqueue_cross<variable_bin_width, pair_factor>(a, b, target);
+            enqueue_cross<pair_factor>(a, b, target);
         } else {
-            enqueue_cross<variable_bin_width, pair_factor>(b, a, target);
+            enqueue_cross<pair_factor>(b, a, target);
         }
     }
 }

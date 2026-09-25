@@ -10,7 +10,7 @@
 #include <hist/histogram_manager/PartialHistogramManager.h>
 
 #include <memory>
-#include <mutex>
+#include <vector>
 
 namespace ausaxs::hist {
 	/**
@@ -42,13 +42,24 @@ namespace ausaxs::hist {
 				GenericDistribution1D_t p_ww;
 				GenericDistribution1D_t p_tot;
 			} cache;
-			std::mutex master_hist_mutex;
+			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
+			std::vector<int> recalculated; // the rows queued for recalculation in the current run, see recalculate()
+
+			int handle_aa(int n, int m) const; // m <= n
+			int handle_aw(int index) const;
+			int handle_ww() const;
 
 			/**
-			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
-			 *        They are unaffected by both rotations and translations, and so we precalculate them. 
+			 * @brief Initialize the master histogram and the storage of the partial histograms.
 			 */
-			void initialize(calculator_t calculator, int bin_count);
+			void initialize(int bin_count);
+
+			/**
+			 * @brief Take the partial histogram @a h out of the master histogram before it is recalculated.
+			 *        Must be called before the first calculation into @a h is queued; the new contents are added back once
+			 *        the calculator has run.
+			 */
+			void recalculate(int h);
 
 			/**
 			 * @brief Calculate the self-correlation of a body.
@@ -73,14 +84,6 @@ namespace ausaxs::hist {
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
 			void calc_ww(calculator_t calculator);
-
-			void combine_self_correlation(int index, GenericDistribution1D_t&& /*res*/);
-
-			void combine_aa(int n, int m, GenericDistribution1D_t&& /*res*/);
-
-			void combine_aw(int index, GenericDistribution1D_t&& /*res*/);
-
-			void combine_ww(GenericDistribution1D_t&& /*res*/);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.

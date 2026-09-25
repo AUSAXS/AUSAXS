@@ -7,8 +7,10 @@
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <data/symmetry/ReferenceSymmetry.h>
+#include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/Calculator.h>
+#include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -18,9 +20,6 @@
 #include <utility/MultiThreading.h>
 
 #include <cassert>
-#include <functional>
-#include <list>
-#include <utility>
 
 /**
 The indexing in this file is a bit tricky. 
@@ -28,9 +27,6 @@ The body symmetries (body.symmetry.get) contains the first actual symmetry at in
 The coordinates are indexed such that the main body is at index 0, with the symmetries starting from index 1
 Thus, we have a lot of +1s and -1s in the indexing to account for this.
 **/
-
-#define DEBUG_INFO_PSMMT false
-#define DEBUG_INFO_PSMMT_EXTENDED false
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -40,28 +36,11 @@ template<bool weighted_bins, bool variable_bin_width>
 PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein) 
     : IPartialHistogramManager(protein), 
       protein(protein),
-      coords(this->body_size), 
-      partials_aa(this->body_size, this->body_size), 
-      partials_aw(this->body_size)
+      coords(this->body_size)
 {}
 
 template<bool weighted_bins, bool variable_bin_width> 
 PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::~PartialSymmetryManagerMT() = default;
-
-namespace {
-    int water_res_index = 1.31e8;
-    int to_res_index(int body1, int symmetry1, int body2, int symmetry2) {
-        return symmetry2 + body2*100 + symmetry1*10000 + body1*1000000;
-    }
-
-    int to_res_index_self(int body, int symmetry) {
-        return to_res_index(body, symmetry, body, symmetry);
-    }
-
-    int to_res_index_water(int body, int symmetry) {
-        return to_res_index_self(body, symmetry) + water_res_index;
-    }    
-}
 
 template<bool weighted_bins, bool variable_bin_width>
 std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calculate() {
@@ -91,7 +70,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     propagate_reference_symmetry_modifications(externally_modified, internally_modified, symmetry_modified);
 
     auto* pool = utility::multi_threading::get_global_pool();
-    distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(bin_count);
 
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
@@ -140,123 +118,12 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
     }
     pool->wait(); // ensure the compact representations have been updated before continuing
 
-    #if DEBUG_INFO_PSMMT_EXTENDED
-        auto print_atom = [] (const auto& c, int iatom) {
-            std::cout << c.x(iatom) << " " << c.y(iatom) << " " << c.z(iatom) << " "
-                      << c.get_weight(iatom) << std::endl;
-        };
-
-        std::cout << "atomic setup: " << std::endl;
-        for (int ibody = 0; ibody < static_cast<int>(this->body_size); ++ibody) {
-            for (int iatom = 0; iatom < static_cast<int>(this->protein->get_body(ibody).get_atoms().size()); ++iatom) {
-                std::cout << "[" << ibody << 0 << 0 << iatom << "]: ";
-                print_atom(coords[ibody].atomic[0][0], iatom);
-            }
-
-            for (int isym = 0; isym < static_cast<int>(this->protein->get_body(ibody).size_symmetry()); ++isym) {
-                for (int irepeat = 0; irepeat < static_cast<int>(this->protein->get_body(ibody).symmetry().get(isym)->repetitions()); ++irepeat) {
-                    for (int iatom = 0; iatom < static_cast<int>(this->protein->get_body(ibody).get_atoms().size()); ++iatom) {
-                        std::cout << "[" << ibody << isym+1 << irepeat << iatom << "]: ";
-                        print_atom(coords[ibody].atomic[isym+1][irepeat], iatom);
-                    }
-                }
-            }
-        }
-    #endif
-
-    // prepare a list of tasks to be run after the calculations are done
-    // this way we avoid having to maintain two identical but separate loops for calculations and combining
-    using res_t = distance_calculator::Calculator<weighted_bins, variable_bin_width>::run_result;
-    std::list<std::function<void()>> combine_tasks;
-    res_t res; // placeholder for future results
-
-    auto enqueue_combine_ww = [this, pool, &res, &combine_tasks] () {
-        combine_tasks.emplace_back(
-            [this, pool, &res] () {
-                #if DEBUG_INFO_PSMMT
-                    std::cout << "combine_ww accessing self index " << water_res_index << std::endl;
-                #endif
-                assert(res.self.contains(water_res_index) && "SymmetryManager::calculate: water result not found");
-                pool->detach_task(
-                    [this, r = std::move(res.self[water_res_index])] () mutable {combine_ww(std::move(r));}
-                );
-
-                // in debug mode, remove the result from the map to catch multiple accesses since the result is moved
-                #if DEBUG
-                    res.self.erase(water_res_index);
-                #endif
-            }
-        );
-    };
-
-    auto enqueue_combine_aw = [this, pool, &res, &combine_tasks] (int ibody, int isym) {
-        combine_tasks.emplace_back(
-            [this, pool, &res, ibody, isym] () {
-                #if DEBUG_INFO_PSMMT
-                    std::cout << "combine_aw accessing cross index " << to_res_index_water(ibody, isym)
-                              << "([" << ibody << isym << "])" << std::endl;
-                #endif
-                assert(res.cross.contains(to_res_index_water(ibody, isym)) && "SymmetryManager::calculate: aw cross result not found");
-                pool->detach_task(
-                    [this, ibody, isym, r = std::move(res.cross[to_res_index_water(ibody, isym)])] 
-                    () mutable {combine_aw(ibody, isym, std::move(r));}
-                );
-
-                // in debug mode, remove the result from the map to catch multiple accesses since the result is moved
-                #if DEBUG
-                    res.cross.erase(to_res_index_water(ibody, isym));
-                #endif
-            }
-        );
-    };
-
-    auto enqueue_combine_aa = [this, pool, &res, &combine_tasks] (int ibody1, int isym1, int ibody2, int isym2) {
-        combine_tasks.emplace_back(
-            [this, pool, &res, ibody1, isym1, ibody2, isym2] () {
-                #if DEBUG_INFO_PSMMT
-                    std::cout << "combine_aa accessing cross index " << to_res_index(ibody1, isym1, ibody2, isym2) 
-                              << "([" << ibody1 << isym1 << "][" << ibody2 << isym2 << "])" << std::endl;
-                #endif
-                assert(res.cross.contains(to_res_index(ibody1, isym1, ibody2, isym2)) && "SymmetryManager::calculate: aa cross result not found");
-                pool->detach_task(
-                    [this, ibody1, isym1, ibody2, isym2, r = std::move(res.cross[to_res_index(ibody1, isym1, ibody2, isym2)])] 
-                    () mutable {combine_aa(ibody1, isym1, ibody2, isym2, std::move(r));}
-                );
-
-                // in debug mode, remove the result from the map to catch multiple accesses since the result is moved
-                #if DEBUG
-                    res.cross.erase(to_res_index(ibody1, isym1, ibody2, isym2));
-                #endif
-            }
-        );
-    };
-
-    auto enqueue_combine_aa_self = [this, pool, &res, &combine_tasks] (int ibody1, int isym1, int ibody2, int isym2) {
-        combine_tasks.emplace_back(
-            [this, pool, &res, ibody1, isym1, ibody2, isym2] () {
-                #if DEBUG_INFO_PSMMT
-                    std::cout << "combine_aa_self accessing self index " << to_res_index(ibody1, isym1, ibody2, isym2)
-                              << "([" << ibody1 << isym1 << "][" << ibody2 << isym2 << "])" << std::endl;
-                #endif
-                assert(res.self.contains(to_res_index(ibody1, isym1, ibody2, isym2)) && "SymmetryManager::calculate: aa self result not found");
-                pool->detach_task(
-                    [this, ibody1, isym1, ibody2, isym2, r = std::move(res.self[to_res_index(ibody1, isym1, ibody2, isym2)])] 
-                    () mutable {combine_aa(ibody1, isym1, ibody2, isym2, std::move(r));}
-                );
-
-                // in debug mode, remove the result from the map to catch multiple accesses since the result is moved
-                #if DEBUG
-                    res.self.erase(to_res_index(ibody1, isym1, ibody2, isym2));
-                #endif
-            }
-        );
-    };
+    distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(*store);
 
     if constexpr (hydration_enabled) {
         // check if the hydration layer was modified
         if (hydration_modified) {
             calc_ww(&calculator);
-            enqueue_combine_ww();
         }
     }
 
@@ -265,7 +132,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
         // check for internal modifications
         if (internally_modified[ibody1]) {
             calc_aa_self(&calculator, ibody1);
-            enqueue_combine_aa_self(ibody1, 0, ibody1, 0);
 
             // internal modification implies external modification
             // everything connected to this body must be recalculated
@@ -282,7 +148,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 for (int isym1 = 0; isym1 < 1+this->protein->get_body(ibody1).size_symmetry(); ++isym1) {
                     for (int isym2 = 0; isym2 < 1+this->protein->get_body(ibody2).size_symmetry(); ++isym2) {
                         calc_aa(&calculator, ibody1, isym1, ibody2, isym2);
-                        enqueue_combine_aa(ibody1, isym1, ibody2, isym2);
                     }
                 }
             }
@@ -298,7 +163,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 for (int isym2 = 0; isym2 < this->protein->get_body(ibody2).size_symmetry(); ++isym2) {
                     if (symmetry_modified[ibody2][isym2]) {
                         calc_aa(&calculator, ibody1, 0, ibody2, isym2+1);
-                        enqueue_combine_aa(ibody1, 0, ibody2, isym2+1);
                     }
                 }
             }
@@ -311,14 +175,12 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                     // cross-correlation with other main body
                     if (symmetry_modified[ibody1][isym1]) {
                         calc_aa(&calculator, ibody1, isym1+1, ibody2, 0);
-                        enqueue_combine_aa(ibody1, isym1+1, ibody2, 0);
                     }
                     
                     // cross-correlations with symmetries in other main body
                     for (int isym2 = 0; isym2 < this->protein->get_body(ibody2).size_symmetry(); ++isym2) {
                         if (!(symmetry_modified[ibody1][isym1] || symmetry_modified[ibody2][isym2])) {continue;}
                         calc_aa(&calculator, ibody1, isym1+1, ibody2, isym2+1);
-                        enqueue_combine_aa(ibody1, isym1+1, ibody2, isym2+1);
                     }
                 }
             }
@@ -330,14 +192,12 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 // cross-correlation with main body
                 if (symmetry_modified[ibody1][isym1]) {
                     calc_aa(&calculator, ibody1, isym1+1, ibody1, 0);
-                    enqueue_combine_aa(ibody1, isym1+1, ibody1, 0);
                 }
 
                 // cross-correlations with other symmetries
                 for (int isym2 = 0; isym2 < isym1; ++isym2) {
                     if (!(symmetry_modified[ibody1][isym1] || symmetry_modified[ibody1][isym2])) {continue;}
                     calc_aa(&calculator, ibody1, isym1+1, ibody1, isym2+1);
-                    enqueue_combine_aa(ibody1, isym1+1, ibody1, isym2+1);
                 }
             }
         }
@@ -349,7 +209,6 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 // update all by looping from 0 (main body) to 1+size_symmetry (last symmetry)
                 for (int isym1 = 0; isym1 < 1+this->protein->get_body(ibody1).size_symmetry(); ++isym1) {
                     calc_aw(&calculator, ibody1, isym1);
-                    enqueue_combine_aw(ibody1, isym1);
                 }
             } else {
 
@@ -357,35 +216,21 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
                 for (int isym1 = 0; isym1 < this->protein->get_body(ibody1).size_symmetry(); ++isym1) {
                     if (symmetry_modified[ibody1][isym1]) {
                         calc_aw(&calculator, ibody1, isym1+1);
-                        enqueue_combine_aw(ibody1, isym1+1);
                     }
                 }
             }
         }
     }
 
-    // wait for all calculations to finish
-    res = calculator.run();
-
-    // start all queued combine tasks
-    // these will update all partial histograms with the results of the calculations
-    for (auto& task : combine_tasks) {
-        task();
-    }
-
+    // the recalculated partial histograms replace their old contents in the store, which were taken out of the master histogram as they were queued
+    calculator.run();
+    for (int h : recalculated) {this->master += store->row(h);}
+    recalculated.clear();
     this->statemanager->reset_to_false();
-    pool->wait();
 
     // downsize our axes to only the relevant area
     GenericDistribution1D_t p_tot = this->master; // NOLINT - intentional slicing
-    int max_bin = 10; // minimum size is 10
-    for (int i = (int) p_tot.size()-1; i >= 10; i--) {
-        if (p_tot.index(i) != 0) {
-            max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
-            break;
-        }
-    }
-    p_tot.resize(max_bin);
+    p_tot.resize(hist::detail::trimmed_bin_count(p_tot));
 
     // update cache
     cache.p_tot = p_tot;
@@ -455,25 +300,19 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_b
         p_tot.index(i) = this->master.index(i);
     }
 
-    // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    GenericDistribution1D_t p_ww = this->partials_ww;
+    // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions.
+    // the aa rows come first in the store, then the aw rows, then ww; a row that is never calculated is zero, so each
+    // contribution is simply the sum over its block of rows
+    GenericDistribution1D_t p_ww = store->export_1d(handle_ww());
     GenericDistribution1D_t p_aa = this->master.base;
     GenericDistribution1D_t p_aw(bins);
     p_ww.resize(bins);
     p_aa.resize(bins);
-
-    // iterate through all partial histograms in the upper triangle
-    for (int ibody1 = 0; ibody1 < this->body_size; ++ibody1) {
-        for (int isym1 = 0; isym1 < 1+this->protein->get_body(ibody1).size_symmetry(); ++isym1) {
-            for (int ibody2 = 0; ibody2 <= ibody1; ++ibody2) {
-                for (int isym2 = 0; isym2 < 1+this->protein->get_body(ibody2).size_symmetry(); ++isym2) {
-                    // iterate through each entry in the partial histogram
-                    std::transform(p_aa.begin(), p_aa.end(), this->partials_aa.index(ibody1, ibody2).index(isym1, isym2).begin(), p_aa.begin(), std::plus<>());
-                }
-            }
-            // iterate through each entry in the partial hydration-atom histograms
-            std::transform(p_aw.begin(), p_aw.end(), this->partials_aw.index(ibody1).index(isym1).begin(), p_aw.begin(), std::plus<>());
-        }
+    for (int h = 0; h < handle_aw(0, 0); ++h) {
+        std::transform(p_aa.begin(), p_aa.end(), store->row(h).begin(), p_aa.begin(), std::plus<>());
+    }
+    for (int h = handle_aw(0, 0); h < handle_ww(); ++h) {
+        std::transform(p_aw.begin(), p_aw.end(), store->row(h).begin(), p_aw.begin(), std::plus<>());
     }
 
     if constexpr (weighted_bins) {
@@ -508,42 +347,63 @@ int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::prepare_axis() 
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize(int bin_count) {
-    auto* pool = utility::multi_threading::get_global_pool();
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
-    this->partials_ww = detail::PartialHistogram<weighted_bins>(axis.bins);
+
+    // lay out the rows: the aa partials of every body pair, then the aw partials of every body, then ww. a pair of different
+    // bodies holds every combination of their symmetries, while a body with itself only holds a lower triangle, as the
+    // upper one would duplicate it
+    sym_count.resize(this->body_size);
+    aa_offset.resize(this->body_size*(this->body_size+1)/2);
+    aw_offset.resize(this->body_size);
+    int rows = 0;
     for (int ibody = 0; ibody < this->body_size; ++ibody) {
-        const auto& body = this->protein->get_body(ibody);
-        this->partials_aw.index(ibody) = SymmetryIndexer1D<detail::PartialHistogram<weighted_bins>>(
-            body.size_symmetry()+1,
-            detail::PartialHistogram<weighted_bins>(axis.bins)
-        );
-
-        // initialize body diagonal
-        this->partials_aa.index(ibody, ibody) = 
-            SymmetryIndexer2D<detail::PartialHistogram<weighted_bins>>(
-                body.size_symmetry()+1, 
-                axis.bins
-            )
-        ;
-
-        // initialize body cross indexes
-        for (int ibody2 = 0; ibody2 < ibody; ++ibody2) {
-            const auto& body2 = this->protein->get_body(ibody2);
-            this->partials_aa.index(ibody, ibody2) = 
-                SymmetryIndexer2D<detail::PartialHistogram<weighted_bins>>(
-                    body.size_symmetry()+1, 
-                    body2.size_symmetry()+1, 
-                    axis.bins
-                )
-            ;
+        sym_count[ibody] = 1 + this->protein->get_body(ibody).size_symmetry();
+        for (int ibody2 = 0; ibody2 <= ibody; ++ibody2) {
+            aa_offset[ibody*(ibody+1)/2 + ibody2] = rows;
+            rows += ibody2 == ibody ? sym_count[ibody]*(sym_count[ibody]+1)/2 : sym_count[ibody]*sym_count[ibody2];
         }
+    }
+    for (int ibody = 0; ibody < this->body_size; ++ibody) {
+        aw_offset[ibody] = rows;
+        rows += sym_count[ibody];
+    }
+    store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(rows+1, axis.bins); // +1 for ww
 
-        // calculate the self-correlation of each body
+    for (int ibody = 0; ibody < this->body_size; ++ibody) {
         update_compact_representation_body(ibody); //? unnecessary to update whole body; enough to update main body
     }
-    pool->wait();
+}
+
+template<bool weighted_bins, bool variable_bin_width>
+int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::handle_aa(int ibody1, int isym1, int ibody2, int isym2) const {
+    assert(0 <= ibody2 && ibody2 <= ibody1 && ibody1 < this->body_size && "PartialSymmetryManagerMT::handle_aa: expected a body pair in the lower triangle");
+    assert(0 <= isym1 && isym1 < sym_count[ibody1] && 0 <= isym2 && isym2 < sym_count[ibody2] && "PartialSymmetryManagerMT::handle_aa: symmetry index out of range; symmetries may not be added after the first calculation");
+    int offset = aa_offset[ibody1*(ibody1+1)/2 + ibody2];
+    if (ibody1 == ibody2) {
+        assert(isym2 <= isym1 && "PartialSymmetryManagerMT::handle_aa: expected a symmetry pair in the lower triangle");
+        return offset + isym1*(isym1+1)/2 + isym2;
+    }
+    return offset + isym1*sym_count[ibody2] + isym2;
+}
+
+template<bool weighted_bins, bool variable_bin_width>
+int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::handle_aw(int ibody, int isym) const {
+    assert(0 <= isym && isym < sym_count[ibody] && "PartialSymmetryManagerMT::handle_aw: symmetry index out of range; symmetries may not be added after the first calculation");
+    return aw_offset[ibody] + isym;
+}
+
+template<bool weighted_bins, bool variable_bin_width>
+int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::handle_ww() const {
+    return store->rows()-1;
+}
+
+template<bool weighted_bins, bool variable_bin_width>
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::recalculate(int h) {
+    // the row is not written until the calculator runs, so its old contents are still there to be taken out
+    this->master -= store->row(h);
+    recalculated.push_back(h);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
@@ -576,37 +436,27 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::propagate_refe
 }
 
 template<bool weighted_bins, bool variable_bin_width>
-void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa_self(calculator_t calculator, int ibody) const {
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa_self(calculator_t calculator, int ibody) {
     const auto& body = protein->get_body(ibody);
-    #if DEBUG_INFO_PSMMT
-        std::cout << "calc_aa_self[" << ibody << "]" << std::endl;
-        std::cout << "\t[" << ibody << "][0]" << std::endl;
-        std::cout << "\t\tstored at self index " << to_res_index_self(ibody, 0) << std::endl;
-    #endif
     // calculate the self correlation within each body and symmetry, equal to (N_sym+1) * (main body self corr)
-    calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], 1+body.size_symmetry_total(), to_res_index_self(ibody, 0));
+    int h = handle_aa(ibody, 0, ibody, 0);
+    recalculate(h);
+    calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], h, 1+body.size_symmetry_total());
 }
 
 template<bool weighted_bins, bool variable_bin_width> 
-void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_ww(calculator_t calculator) const {
-    #if DEBUG_INFO_PSMMT
-        std::cout << "calc_ww" << std::endl;
-        std::cout << "\tstored at self index " << water_res_index << std::endl;
-    #endif
-    calculator->enqueue_calculate_self(coords_w, 1, water_res_index);
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_ww(calculator_t calculator) {
+    recalculate(handle_ww());
+    calculator->enqueue_calculate_self(coords_w, handle_ww());
 }
 
 template<bool weighted_bins, bool variable_bin_width> 
-void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) const {
-    // every job below shares one res_index, so each loop is held and dispatched as a single group.
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) {
+    // every job below accumulates into the same row, so each loop is held and dispatched as a single group.
     const auto& body1 = protein->get_body(ibody1);
     const auto& body2 = protein->get_body(ibody2);
-    int res_index = to_res_index(ibody1, isym1, ibody2, isym2);
-    assert(ibody2 <= ibody1 && "ibody2 must be less than or equal to ibody1 to avoid double-counting");
-
-    #if DEBUG_INFO_PSMMT
-        std::cout << "calc_aa[" << ibody1 << isym1 << "][" << ibody2 << isym2 << "]" << std::endl;
-    #endif
+    int h = handle_aa(ibody1, isym1, ibody2, isym2);
+    recalculate(h);
 
     // internal correlations within the same body
     if (ibody1 == ibody2) {
@@ -625,12 +475,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
                 assert((pair.repB == 0 || pair.repB-1 < static_cast<int>(coords[ibody1].atomic[isym1].size())) && "internal_pair_schedule: repB out of range for atomic copies");
                 const auto& atomicA = pair.repA == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repA-1];
                 const auto& atomicB = pair.repB == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repB-1];
-                calculator->enqueue_calculate_cross(atomicA, atomicB, pair.scale, res_index);
-
-                #if DEBUG_INFO_PSMMT
-                    std::cout << "\t[" << ibody1 << isym1 << pair.repA << "][" << ibody1 << isym1 << pair.repB << "] x" << pair.scale << std::endl;
-                    std::cout << "\t\tstored at cross index " << res_index << std::endl;
-                #endif
+                calculator->enqueue_calculate_cross(atomicA, atomicB, h, 2*pair.scale);
             }
             calculator->release_hold();
             return;
@@ -640,11 +485,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
 
     // symmetry 0 is the main body, so we have to treat it separately
     if (isym1 == 0 && isym2 == 0) {
-        #if DEBUG_INFO_PSMMT
-            std::cout << "\t[" << ibody1 << "00][" << ibody2 << "00]" << std::endl;
-            std::cout << "\t\tstored at cross index " << res_index << std::endl;
-        #endif
-        calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], coords[ibody2].atomic[0][0], 1, res_index);
+        calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], coords[ibody2].atomic[0][0], h, 2);
         return;
     }
     if (isym1 == 0) {
@@ -653,12 +494,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         calculator->hold();
         for (int irepeat2 = 0; irepeat2 < sym2->repetitions(); ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[isym2][irepeat2];
-            calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, 1, res_index);
-
-            #if DEBUG_INFO_PSMMT
-                std::cout << "\t[" << ibody1 << "00][" << ibody2 << isym2 << irepeat2 << "]" << std::endl;
-                std::cout << "\t\tstored at cross index " << res_index << std::endl;
-            #endif
+            calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, h, 2);
         }
         calculator->release_hold();
         return;
@@ -669,12 +505,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         calculator->hold();
         for (int irepeat1 = 0; irepeat1 < sym1->repetitions(); ++irepeat1) {
             const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
-            calculator->enqueue_calculate_cross(body1_sym_atomic, coords[ibody2].atomic[0][0], 1, res_index);
-
-            #if DEBUG_INFO_PSMMT
-                std::cout << "\t[" << ibody1 << isym1 << irepeat1 << "][" << ibody2 << "00]" << std::endl;
-                std::cout << "\t\tstored at cross index " << res_index << std::endl;
-            #endif
+            calculator->enqueue_calculate_cross(body1_sym_atomic, coords[ibody2].atomic[0][0], h, 2);
         }
         calculator->release_hold();
         return;
@@ -691,137 +522,34 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
         for (int irepeat2 = 0; irepeat2 < sym2->repetitions(); ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[isym2][irepeat2];
-            calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, res_index);
-
-            #if DEBUG_INFO_PSMMT
-                std::cout << "\t[" << ibody1 << isym1 << irepeat1 << "][" << ibody2 << isym2 << irepeat2 << "]" << std::endl;
-                std::cout << "\t\tstored at cross index " << res_index << std::endl;
-            #endif
+            calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, h, 2);
         }
     }
     calculator->release_hold();
 }
 
 template<bool weighted_bins, bool variable_bin_width> 
-void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calculator_t calculator, int ibody, int isym) const {
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calculator_t calculator, int ibody, int isym) {
     const auto& body = protein->get_body(ibody);
     const auto& waters = coords_w;
-    int res_index = to_res_index_water(ibody, isym);
-
-    #if DEBUG_INFO_PSMMT
-        std::cout << "calc_aw[" << ibody << isym << "]" << std::endl;
-    #endif
+    int h = handle_aw(ibody, isym);
+    recalculate(h);
 
     // symmetry 0 is the main body, so we have to treat it separately
     if (isym == 0) {
-        #if DEBUG_INFO_PSMMT
-            std::cout << "\t[" << ibody << "0]" << std::endl;
-            std::cout << "\t\tstored at cross index " << res_index << std::endl;
-        #endif
-        calculator->enqueue_calculate_cross(coords[ibody].atomic[0][0], waters, 1, res_index);
+        calculator->enqueue_calculate_cross(coords[ibody].atomic[0][0], waters, h, 2);
         return;
     }
 
     // else iterate over its repititions
     assert(isym < 1+static_cast<int>(body.size_symmetry()) && "symmetry index out of bounds");
     const auto& sym = body.symmetry().get(isym-1);
-    calculator->hold(); // one res_index for every copy, see calc_aa
+    calculator->hold(); // one row for every copy, see calc_aa
     for (int irepeat = 0; irepeat < sym->repetitions(); ++irepeat) {
         const auto& body1_sym_atomic = coords[ibody].atomic[isym][irepeat];
-        #if DEBUG_INFO_PSMMT
-            std::cout << "\t[" << ibody << isym << irepeat << "]" << std::endl;
-            std::cout << "\t\tstored at cross index " << res_index << std::endl;
-        #endif
-        calculator->enqueue_calculate_cross(body1_sym_atomic, waters, 1, res_index);
+        calculator->enqueue_calculate_cross(body1_sym_atomic, waters, h, 2);
     }
     calculator->release_hold();
-}
-
-#if DEBUG_INFO_PSMMT_EXTENDED
-    #include <iomanip>
-#endif
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res) {
-    #if DEBUG_INFO_PSMMT_EXTENDED
-        const Axis& axis = this->master.axis;
-        std::cout << "combine_aa[" << ibody1 << isym1 << ", " << ibody2 << isym2 << "]" << std::endl;
-        std::cout << "\tremoving " << std::endl << "\t\t";
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << axis.get_bin_value(i) << " ";
-        }
-        std::cout << "\n\t\t" << std::flush;
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4)<< this->partials_aa.index(ibody1, ibody2).index(isym1, isym2).get_content(i) << " ";
-        }
-        std::cout << "\n\tadding " << std::endl << "\t\t";
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4)<< res.get_content(i) << " ";
-        }
-        std::cout << std::endl;
-    #endif
-
-    assert(!res.empty() && "res is empty. Was it already moved?");
-    master_hist_mutex.lock();
-    this->master -= this->partials_aa.index(ibody1, ibody2).index(isym1, isym2);
-    this->partials_aa.index(ibody1, ibody2).index(isym1, isym2) = std::move(res);
-    this->master += this->partials_aa.index(ibody1, ibody2).index(isym1, isym2);
-    master_hist_mutex.unlock();
-}
-
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_aw(int ibody, int isym, GenericDistribution1D_t&& res) {
-    #if DEBUG_INFO_PSMMT_EXTENDED
-        const Axis& axis = this->master.axis;
-        std::cout << "combine_aw[" << ibody << isym << "]" << std::endl;
-        std::cout << "\tremoving " << std::endl << "\t\t";
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << axis.get_bin_value(i) << " ";
-        }
-        std::cout << "\n\t\t" << std::flush;
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4)<< this->partials_aw.index(ibody).index(isym).get_content(i) << " ";
-        }
-        std::cout << "\n\tadding " << std::endl << "\t\t";
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4)<< res.get_content(i) << " ";
-        }
-        std::cout << std::endl;
-    #endif
-
-    assert(!res.empty() && "res is empty. Was it already moved?");
-    master_hist_mutex.lock();
-    this->master -= this->partials_aw.index(ibody).index(isym);
-    this->partials_aw.index(ibody).index(isym) = std::move(res);
-    this->master += this->partials_aw.index(ibody).index(isym);
-    master_hist_mutex.unlock();
-}
-
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::combine_ww(GenericDistribution1D_t&& res) {
-    #if DEBUG_INFO_PSMMT_EXTENDED
-        const Axis& axis = this->master.axis;
-        std::cout << "combine_ww" << std::endl;
-        std::cout << "\tremoving " << std::endl << "\t\t";
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4) << axis.get_bin_value(i) << " ";
-        }
-        std::cout << "\n\t\t" << std::flush;
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4)<< this->partials_ww.get_content(i) << " ";
-        }
-        std::cout << "\n\tadding " << std::endl << "\t\t";
-        for (int i = 0; i < 20; ++i) {
-            std::cout << std::setw(4)<< this->partials_ww.get_content(i) << " ";
-        }
-        std::cout << std::endl;
-    #endif
-
-    assert(!res.empty() && "res is empty. Was it already moved?");
-    master_hist_mutex.lock();
-    this->master -= this->partials_ww;
-    this->partials_ww = std::move(res);
-    this->master += this->partials_ww;
-    master_hist_mutex.unlock();
 }
 
 template class hist::PartialSymmetryManagerMT<false, false>;

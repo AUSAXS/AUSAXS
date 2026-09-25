@@ -122,4 +122,17 @@ namespace ausaxs::hist::detail {
         return std::max<int>(static_cast<int>(bins), bin_estimate::min_bin_count);
     }
 
+    /**
+     * @brief The number of leading bins holding everything in the given distance distributions: one past the last bin at which any of 
+     *        them is non-zero, but at least bin_estimate::min_bin_count. This is what a histogram is cut down to once it has been 
+     *        calculated, as required_bin_count only bounds it from above.
+     */
+    template<typename... Distributions>
+    int trimmed_bin_count(const Distributions&... distributions) {
+        int size = std::min({static_cast<int>(distributions.size())...});
+        for (int i = size-1; i >= bin_estimate::min_bin_count; --i) {
+            if (((distributions.index(i) != 0) || ...)) {return i+1;} // +1 since this is used as a loop bound
+        }
+        return bin_estimate::min_bin_count;
+    }
 }

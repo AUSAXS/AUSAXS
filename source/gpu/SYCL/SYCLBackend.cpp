@@ -160,9 +160,9 @@ namespace {
                 held[k] = active[k] ? job.a1[index[k]] : sycl::float4{0.f, 0.f, 0.f, 0.f};
             }
 
-            // every contribution counts the pair twice, since each unordered pair is visited once
-            const float scale = 2.f*static_cast<float>(job.scaling);
-            const std::uint32_t count = 2*job.scaling;
+            // the caller's pair factor, applied as-is; see Job::scaling
+            const auto scale = static_cast<float>(job.scaling);
+            const std::uint32_t count = job.scaling;
 
             const int j_start = static_cast<int>(tile.j_block)*tile_size;
             const int j_end = sycl::min(j_start + tile_size, static_cast<int>(job.n2));
@@ -539,8 +539,8 @@ namespace {
         // one self and one cross job, so both the diagonal and the regular kernel are compiled
         const std::vector<float> atoms(4*tile_size, 1.f);
         const std::array<Job, 2> jobs = {
-            Job{.a1=atoms.data(), .a2=nullptr, .n1=tile_size, .n2=0, .scaling=1, .slot=0},
-            Job{.a1=atoms.data(), .a2=atoms.data(), .n1=tile_size, .n2=tile_size, .scaling=1, .slot=0}
+            Job{.a1=atoms.data(), .a2=nullptr, .n1=tile_size, .n2=0, .scaling=2, .slot=0},
+            Job{.a1=atoms.data(), .a2=atoms.data(), .n1=tile_size, .n2=tile_size, .scaling=2, .slot=0}
         };
         begin_on(*this, 8, 1.f, false);
         submit_on<false>(*this, jobs.data(), 2);

@@ -10,9 +10,8 @@
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/detail/SymmetryDetailFwd.h>
 
-#include <cassert>
 #include <memory>
-#include <mutex>
+#include <vector>
 
 namespace ausaxs::hist {
 	/**
@@ -38,31 +37,6 @@ namespace ausaxs::hist {
 			using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins, variable_bin_width>>;
 
-			// 2D symmetry indexer to be stored within a BodyIndexer2D
-			template<typename T> struct SymmetryIndexer2D {
-				SymmetryIndexer2D() = default;
-				SymmetryIndexer2D(int size, T&& value) : data(size, std::vector<T>(size, std::move(value))) {}
-				SymmetryIndexer2D(int size_x, int size_y, T&& value) : data(size_x, std::vector<T>(size_y, std::move(value))) {}
-				T& index(int isym1, int isym2) {
-					assert(isym1 >= 0 && isym1 < static_cast<int>(data.size()) && "SymmetryIndexer2D: isym1 out of range");
-					assert(isym2 >= 0 && isym2 < static_cast<int>(data[isym1].size()) && "SymmetryIndexer2D: isym2 out of range");
-					return data[isym1][isym2];
-				}
-				std::vector<std::vector<T>> data;
-			};
-
-			// 1D symmetry indexer to be stored within a BodyIndexer1D
-			template<typename T> struct SymmetryIndexer1D {
-				SymmetryIndexer1D() = default;
-				SymmetryIndexer1D(int size, T&& value) : data(size, std::move(value)) {}
-				template<typename ...Arg> SymmetryIndexer1D(Arg&&... args) : data(std::forward<Arg>(args)...) {}
-				T& index(int isym) {
-					assert(isym >= 0 && isym < static_cast<int>(data.size()) && "SymmetryIndexer1D: isym out of range");
-					return data[isym];
-				}
-				std::vector<T> data;
-			};
-
 			struct { // cache for early return
 				GenericDistribution1D_t p_aa;
 				GenericDistribution1D_t p_aw;
@@ -74,16 +48,29 @@ namespace ausaxs::hist {
             detail::MasterHistogram<weighted_bins> master;								// the current total histogram
 			std::vector<symmetry::detail::BodySymmetryData<variable_bin_width>> coords;	// a compact representation of the relevant data from the managed bodies
 			hist::detail::CompactCoordinates<variable_bin_width> coords_w;				// a compact representation of the relevant data from the hydration layer
-			std::unordered_map<int, int> res_self_index_map;							// a map to keep track of result indexes in the self-correlation results
-			std::unordered_map<int, int> res_cross_index_map;							// a map to keep track of result indexes in the cross-correlation results
-			template<typename T> using BodyIndexer2D = typename container::Container2D<T>;
-			template<typename T> using BodyIndexer1D = typename container::Container1D<T>;
+			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
+			std::vector<int> recalculated; // the rows queued for recalculation in the current run, see recalculate()
 
-			// partial histograms - the types are quite complex since we must track both bodies and symmetries
-			BodyIndexer2D<SymmetryIndexer2D<detail::PartialHistogram<weighted_bins>>> partials_aa;
-			BodyIndexer1D<SymmetryIndexer1D<detail::HydrationHistogram<weighted_bins>>> partials_aw;
-			detail::HydrationHistogram<weighted_bins> partials_ww;
-			std::mutex master_hist_mutex;
+			// the layout of the store, fixed by initialize(). the symmetry index isym runs over the main body (0) and its symmetries (1..)
+			std::vector<int> sym_count; // per body, 1 + its number of symmetries
+			std::vector<int> aa_offset; // per body pair (ibody1, ibody2 <= ibody1), packed as a lower triangle, its first row
+			std::vector<int> aw_offset; // per body, its first row
+
+			/**
+			 * @brief The row of the atom-atom partial histogram between symmetry @a isym1 of body @a ibody1 and symmetry
+			 *        @a isym2 of body @a ibody2, where @a ibody2 <= @a ibody1, and @a isym2 <= @a isym1 if the bodies are the same.
+			 */
+			int handle_aa(int ibody1, int isym1, int ibody2, int isym2) const;
+
+			/**
+			 * @brief The row of the hydration-atom partial histogram of symmetry @a isym of body @a ibody.
+			 */
+			int handle_aw(int ibody, int isym) const;
+
+			/**
+			 * @brief The row of the hydration-hydration partial histogram.
+			 */
+			int handle_ww() const;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 
@@ -92,20 +79,23 @@ namespace ausaxs::hist {
 			std::unique_ptr<DistanceHistogram> _calculate();
 
 			/**
-			 * @brief Initialize the storage spaces of this object.
+			 * @brief Determine the number of bins, discarding everything calculated so far if the structure outgrew them.
 			 */
 			int prepare_axis();
 
+			/**
+			 * @brief Initialize the master histogram, the layout of the partial histograms, and their storage.
+			 *        The number of symmetries of each body is fixed from here on.
+			 */
 			void initialize(int bin_count);
 
 			/**
+			 * @brief Take the partial histogram @a h out of the master histogram before it is recalculated.
+			 */
+			void recalculate(int h);
+
+			/**
 			 * @brief Expand the modification flags for shared reference symmetries.
-			 *
-			 * A ReferenceSymmetry is shared across several bodies through views, and its copies
-			 * depend on every participating body (the shared parameters and the group's combined
-			 * centre of mass). So if any participating body — or the shared symmetry itself — has
-			 * been modified, the symmetric copies of the whole group are stale. This marks the
-			 * owning slot and every linked view as symmetry-modified so they are all recomputed.
 			 */
 			void propagate_reference_symmetry_modifications(
 				const std::vector<bool>& externally_modified,
@@ -123,19 +113,19 @@ namespace ausaxs::hist {
 			 *
 			 * @param ibody The index of the body to calculate the self-correlation for.
 			 */
-			void calc_aa_self(calculator_t calculator, int ibody) const;
+			void calc_aa_self(calculator_t calculator, int ibody);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_ww(calculator_t calculator) const;
+			void calc_ww(calculator_t calculator);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) const;
+			void calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
@@ -144,30 +134,7 @@ namespace ausaxs::hist {
 			 * @param ibody The index of the body to calculate the self-correlation for.
 			 * @param isym The index of the symmetry to calculate the self-correlation for. Index 0 is the main body.
 			 */
-			void calc_aw(calculator_t calculator, int ibody, int isym) const;
-
-			/**
-			 * @brief Combine the atom-atom correlation of two bodies into the master histogram.
-			 *
-			 * @param ibody1 The index of the first body to combine the correlation for.
-			 * @param isym1 The index of the symmetry of the first body to combine the correlation for. Index 0 is the main body.
-			 * @param ibody2 The index of the second body to combine the correlation for.
-			 * @param isym2 The index of the symmetry of the second body to combine the correlation for. Index 0 is the main body.
-			 */
-			void combine_aa(int ibody1, int isym1, int ibody2, int isym2, GenericDistribution1D_t&& res);
-
-			/**
-			 * @brief Combine the atom-hydration correlation of a body symmetry into the master histogram.
-			 *
-			 * @param ibody The index of the body to combine the correlation for.
-			 * @param isym The index of the symmetry to combine the correlation for. Index 0 is the main body.
-			 */
-			void combine_aw(int ibody, int isym, GenericDistribution1D_t&& res);
-
-			/**
-			 * @brief Combine the hydration-hydration correlation into the master histogram.
-			 */
-			void combine_ww(GenericDistribution1D_t&& res);
+			void calc_aw(calculator_t calculator, int ibody, int isym);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.

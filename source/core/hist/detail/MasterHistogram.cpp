@@ -35,5 +35,17 @@ MasterHistogram<use_weighted_distribution>& MasterHistogram<use_weighted_distrib
     return *this;
 }
 
+template<bool use_weighted_distribution>
+MasterHistogram<use_weighted_distribution>& MasterHistogram<use_weighted_distribution>::operator+=(std::span<const typename GenericDistribution1D_t::value_type> rhs) {
+    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::plus<>());
+    return *this;
+}
+
+template<bool use_weighted_distribution>
+MasterHistogram<use_weighted_distribution>& MasterHistogram<use_weighted_distribution>::operator-=(std::span<const typename GenericDistribution1D_t::value_type> rhs) {
+    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::minus<>());
+    return *this;
+}
+
 template class hist::detail::MasterHistogram<true>;
 template class hist::detail::MasterHistogram<false>;

@@ -5,9 +5,8 @@
 
 #include <gpu/GPULoader.h>
 #include <hist/detail/data/WidthControllers.h>
+#include <hist/distance_calculator/HistogramStore.h>
 #include <hist/distance_calculator/detail/CalculatorCPU.h>
-#include <settings/GeneralSettings.h>
-#include <settings/HistogramSettings.h>
 #include <utility/observer_ptr.h>
 
 #include <cassert>
@@ -20,59 +19,46 @@
 
 namespace ausaxs::hist::distance_calculator::detail {
     /**
-     * @brief Simple histogram calculation on whichever GPU backend is installed.
+     * @brief Simple histogram calculation on whichever GPU backend is installed, into the rows of a HistogramStore.
      *        If the device fails, or if there is none, the CPU calculator is used instead.
      */
     template<bool weighted_bins, bool variable_bin_width>
     class GPUKernel {
         using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
-        using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
         public:
-            using run_result = typename CalculatorCPU<weighted_bins, variable_bin_width>::run_result;
-
             /**
-             * @brief Construct a kernel whose result histograms span @a bin_count bins.
+             * @brief Construct a kernel accumulating into @a store, which must outlive it.
              */
-            explicit GPUKernel(int bin_count) : bin_count(bin_count) {
+            explicit GPUKernel(HistogramStore<weighted_bins>& store) : store(&store) {
                 if (!gpu::GPULoader::available()) {switch_to_cpu();}
             }
 
-            int enqueue_calculate_self(const CompactCoordinates_t& a, int scaling = 1, int merge_id = -1) {
+            void enqueue_calculate_self(const CompactCoordinates_t& a, int h, int scaling) {
+                if (a.empty()) {store->clear(h); return;}
                 open_session();
-                if (on_cpu) {return cpu->enqueue_calculate_self(a, scaling, merge_id);}
+                if (on_cpu) {cpu->enqueue_calculate_self(a, h, scaling); return;}
 
-                auto [slot, index] = resolve(self_slots, merge_id);
-                self_jobs.emplace_back(Job{&a, nullptr, scaling, merge_id});
+                jobs.emplace_back(Job{&a, nullptr, h, scaling});
+                int slot = resolve(h);
                 diagonal[slot] += self_weight(a, scaling);
                 submit(gpu::abi::Job{
                     coordinates(a), nullptr, static_cast<std::uint32_t>(a.size()), 0,
-                    static_cast<std::uint32_t>(scaling), static_cast<std::uint32_t>(slot)
+                    static_cast<std::uint32_t>(2*scaling), static_cast<std::uint32_t>(slot)
                 });
-                return index;
             }
 
-            int enqueue_calculate_cross(const CompactCoordinates_t& a1, const CompactCoordinates_t& a2, int scaling = 1, int merge_id = -1) {
+            void enqueue_calculate_cross(const CompactCoordinates_t& a1, const CompactCoordinates_t& a2, int h, int pair_factor) {
+                if (a1.empty() || a2.empty()) {store->clear(h); return;}
                 open_session();
-                if (on_cpu) {return cpu->enqueue_calculate_cross(a1, a2, scaling, merge_id);}
+                if (on_cpu) {cpu->enqueue_calculate_cross(a1, a2, h, pair_factor); return;}
 
-                auto [slot, index] = resolve(cross_slots, merge_id);
-                cross_jobs.emplace_back(Job{&a1, &a2, scaling, merge_id});
+                jobs.emplace_back(Job{&a1, &a2, h, pair_factor});
+                int slot = resolve(h);
                 submit(gpu::abi::Job{
                     coordinates(a1), coordinates(a2),
                     static_cast<std::uint32_t>(a1.size()), static_cast<std::uint32_t>(a2.size()),
-                    static_cast<std::uint32_t>(scaling), static_cast<std::uint32_t>(slot)
+                    static_cast<std::uint32_t>(pair_factor), static_cast<std::uint32_t>(slot)
                 });
-                return index;
-            }
-
-            int size_self_result() const {
-                if (on_cpu) {return cpu->size_self_result();}
-                return static_cast<int>(self_slots.size());
-            }
-
-            int size_cross_result() const {
-                if (on_cpu) {return cpu->size_cross_result();}
-                return static_cast<int>(cross_slots.size());
             }
 
             void hold() {holding = true;}
@@ -82,49 +68,41 @@ namespace ausaxs::hist::distance_calculator::detail {
                 flush();
             }
 
-            run_result run() {
+            void run() {
                 // sanity check: the caller should always remember to release a held group
                 assert(queued.empty() && "GPUKernel::run: the held group was never released");
                 flush();
 
-                run_result result = on_cpu ? cpu->run() : read_back();
+                if (on_cpu) {cpu->run();}
+                else {read_back();}
 
                 // cleanup
-                self_jobs.clear();
-                cross_jobs.clear();
-                self_slots.clear();
-                cross_slots.clear();
+                jobs.clear();
+                slots.clear();
+                handles.clear();
                 diagonal.clear();
                 coordinate_buffers.clear();
                 queued.clear();
-                next_slot = 0;
                 session_open = false;
                 holding = false;
-
-                return result;
             }
 
         private:
             struct Job {
                 observer_ptr<const CompactCoordinates_t> a1, a2; // a2 is null for self-correlations
-                int scaling;
-                int merge_id; // as resolved by resolve(), never -1
+                int handle;
+                int factor; // the scaling of a self-correlation, or the pair factor of a cross-correlation
             };
 
-            struct Slot {
-                int slot;   // index of the device histogram, from one counter shared by self and cross
-                int index;  // position among the results of its own kind, which is what callers index by
-            };
-
-            int bin_count;                                          // bins spanned by every histogram in this batch
+            observer_ptr<HistogramStore<weighted_bins>> store;
             std::vector<gpu::abi::Job> queued;                      // held jobs, dispatched by release_hold()
-            std::vector<Job> self_jobs{}, cross_jobs{};                 // kept only to replay on the cpu if the device fails
-            std::unordered_map<int, Slot> self_slots{}, cross_slots{};  // merge id -> where its result is
+            std::vector<Job> jobs;                                  // kept only to replay on the cpu if the device fails
+            std::unordered_map<int, int> slots;                     // handle -> the device histogram it accumulates into
+            std::vector<int> handles;                               // device histogram -> the handle it belongs to
+            std::vector<double> diagonal;                           // per device histogram, the zero-distance contribution
             bool session_open = false;                              // whether begin() has been issued for the batch being built
             bool holding = false;                                   // whether jobs are being collected into a group, see hold()
-            std::vector<double> diagonal;                           // per slot, the zero-distance contribution
             std::deque<std::vector<float>> coordinate_buffers;
-            int next_slot = 0;
             std::unique_ptr<CalculatorCPU<weighted_bins, variable_bin_width>> cpu;
             bool on_cpu = false;                                    // whether the device was given up on, see switch_to_cpu()
 
@@ -138,7 +116,7 @@ namespace ausaxs::hist::distance_calculator::detail {
 
                 const auto& backend = gpu::GPULoader::get();
                 auto status = backend.begin(
-                    static_cast<std::int32_t>(bin_count),
+                    static_cast<std::int32_t>(store->bins()),
                     hist::detail::WidthController<variable_bin_width>::get_inv_width(),
                     weighted_bins
                 );
@@ -148,14 +126,15 @@ namespace ausaxs::hist::distance_calculator::detail {
             /**
              * @brief Give up on the device and replay whatever was already submitted to it.
              *
-             * Anything still queued on the device is simply abandoned; the next begin() waits for it
-             * before reusing the memory it holds.
+             * Anything still queued on the device is simply abandoned; the next begin() waits for it before reusing the memory it holds. 
              */
             void switch_to_cpu() {
-                cpu = std::make_unique<CalculatorCPU<weighted_bins, variable_bin_width>>(bin_count);
+                cpu = std::make_unique<CalculatorCPU<weighted_bins, variable_bin_width>>(*store);
                 on_cpu = true;
-                for (const auto& job : self_jobs) {cpu->enqueue_calculate_self(*job.a1, job.scaling, job.merge_id);}
-                for (const auto& job : cross_jobs) {cpu->enqueue_calculate_cross(*job.a1, *job.a2, job.scaling, job.merge_id);}
+                for (const auto& job : jobs) {
+                    if (job.a2 == nullptr) {cpu->enqueue_calculate_self(*job.a1, job.handle, job.factor);}
+                    else {cpu->enqueue_calculate_cross(*job.a1, *job.a2, job.handle, job.factor);}
+                }
             }
 
             void submit(const gpu::abi::Job& job) {
@@ -186,62 +165,46 @@ namespace ausaxs::hist::distance_calculator::detail {
             }
 
             /**
-             * @brief Wait for the device and turn the returned histograms into distributions.
-             *        A batch with no jobs in it never opened a session, and finish() without a matching
-             *        begin() is an error, so there is nothing to wait for and nothing to read.
+             * @brief Wait for the device and assign each returned histogram, plus its diagonal, to the row of its handle.
              */
-            run_result read_back() {
-                if (!session_open) {return run_result{};}
+            void read_back() {
+                if (!session_open) {return;}
 
-                const int bin_count = this->bin_count;
+                const int bin_count = store->bins();
+                const int n_slots = static_cast<int>(handles.size());
                 const auto& backend = gpu::GPULoader::get();
-                std::vector<GenericDistribution1D_t> slots(next_slot);
 
                 if constexpr (weighted_bins) {
-                    std::vector<gpu::abi::WeightedBin> out(static_cast<std::size_t>(next_slot)*bin_count);
-                    auto status = backend.finish_weighted(next_slot, out.data());
-                    if (status != gpu::abi::Status::ok) {return replay_on_cpu(status);}
-                    for (int slot = 0; slot < next_slot; ++slot) {
-                        slots[slot] = GenericDistribution1D_t(bin_count);
+                    std::vector<gpu::abi::WeightedBin> out(static_cast<std::size_t>(n_slots)*bin_count);
+                    auto status = backend.finish_weighted(n_slots, out.data());
+                    if (status != gpu::abi::Status::ok) {replay_on_cpu(status); return;}
+                    for (int slot = 0; slot < n_slots; ++slot) {
+                        auto row = store->row(handles[slot]);
                         for (int i = 0; i < bin_count; ++i) {
                             const auto& bin = out[static_cast<std::size_t>(slot)*bin_count + i];
-                            slots[slot].add_index(i, hist::detail::WeightedEntry{
-                                bin.value,
-                                bin.count,
-                                bin.center
-                            });
+                            row[i] = hist::detail::WeightedEntry{bin.value, bin.count, bin.center};
                         }
-                        if (diagonal[slot] == 0) {continue;}
-                        slots[slot].add_index(0, hist::detail::WeightedEntry{
-                            diagonal[slot], static_cast<std::int64_t>(diagonal[slot]), 0
-                        });
+                        row[0] += hist::detail::WeightedEntry{diagonal[slot], static_cast<std::int64_t>(diagonal[slot]), 0};
                     }
                 } else {
-                    std::vector<double> out(static_cast<std::size_t>(next_slot)*bin_count);
-                    auto status = backend.finish_unweighted(next_slot, out.data());
-                    if (status != gpu::abi::Status::ok) {return replay_on_cpu(status);}
-                    for (int slot = 0; slot < next_slot; ++slot) {
-                        slots[slot] = GenericDistribution1D_t(bin_count);
-                        for (int i = 0; i < bin_count; ++i) {
-                            slots[slot].add_index(i, out[static_cast<std::size_t>(slot)*bin_count + i]);
-                        }
-                        if (diagonal[slot] != 0) {slots[slot].add_index(0, diagonal[slot]);}
+                    std::vector<double> out(static_cast<std::size_t>(n_slots)*bin_count);
+                    auto status = backend.finish_unweighted(n_slots, out.data());
+                    if (status != gpu::abi::Status::ok) {replay_on_cpu(status); return;}
+                    for (int slot = 0; slot < n_slots; ++slot) {
+                        auto row = store->row(handles[slot]);
+                        std::copy_n(out.begin() + static_cast<std::ptrdiff_t>(slot)*bin_count, bin_count, row.begin());
+                        row[0] += diagonal[slot];
                     }
                 }
-
-                run_result result;
-                for (const auto& [merge_id, where] : self_slots) {result.self[merge_id] = slots[where.slot];}
-                for (const auto& [merge_id, where] : cross_slots) {result.cross[merge_id] = slots[where.slot];}
-                return result;
             }
 
             /**
              * @brief A device that failed at the last moment should still produce a histogram.
-             */ 
-            run_result replay_on_cpu(gpu::abi::Status status) {
+             */
+            void replay_on_cpu(gpu::abi::Status status) {
                 gpu::GPULoader::report_failure("read the histograms back", status);
                 switch_to_cpu();
-                return cpu->run();
+                cpu->run();
             }
 
             const float* coordinates(const CompactCoordinates_t& a) {
@@ -269,15 +232,15 @@ namespace ausaxs::hist::distance_calculator::detail {
             }
 
             /**
-             * @brief Assign a merge id its slot, allocating one the first time it is seen.
+             * @brief The device histogram of handle @a h, allocating one the first time it is seen in this batch.
+             *        Only handles with device work get one, so every histogram finish() is asked for was submitted to.
              */
-            Slot resolve(std::unordered_map<int, Slot>& slots, int& merge_id) {
-                if (auto it = slots.find(merge_id); merge_id != -1 && it != slots.end()) {return it->second;}
-                if (merge_id == -1) {merge_id = static_cast<int>(slots.size());}
-
-                Slot where{next_slot++, static_cast<int>(slots.size())};
-                diagonal.resize(next_slot, 0);
-                return slots[merge_id] = where;
+            int resolve(int h) {
+                if (auto it = slots.find(h); it != slots.end()) {return it->second;}
+                int slot = static_cast<int>(handles.size());
+                handles.push_back(h);
+                diagonal.push_back(0);
+                return slots[h] = slot;
             }
     };
 }

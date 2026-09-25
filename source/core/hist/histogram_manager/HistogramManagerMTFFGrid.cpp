@@ -3,26 +3,24 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 
-#include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>  // IWYU pragma: keep
 #include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/GridExvFFT.h>
-#include <hist/distance_calculator/detail/CPUKernel.h>
+#include <hist/distance_calculator/Calculator.h>
+#include <hist/distance_calculator/CalculatorFF.h>
+#include <hist/distance_calculator/HistogramStore.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
-#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
-using namespace ausaxs::container;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
-namespace kernel = ausaxs::hist::distance_calculator::detail;
 
 template<bool variable_bin_width>
 HistogramManagerMTFFGrid<variable_bin_width>::~HistogramManagerMTFFGrid() = default;
@@ -40,7 +38,6 @@ ausaxs::grid::exv::GridExcludedVolume HistogramManagerMTFFGrid<variable_bin_widt
 template<bool variable_bin_width>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_bin_width>::calculate_all() {
     logging::log("HistogramManagerMTFFGrid::calculate: starting calculation");
-    auto* pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
     auto exv = get_exv();
@@ -52,14 +49,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     //##############//
     // SUBMIT TASKS //
     //##############//
-    // the atoms are resolved by form factor on their own side only
+    // the rows of the store: ax (ff) from 0, then wx and xx. the atoms are resolved by form factor on their own side only
     int n_ff = form_factor::get_active_count();
-    container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(n_ff, bin_count);
-    container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
-    for (int ff = 0; ff < n_ff; ++ff) {
-        kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_a[ff], data_x, kernel::row_target(p_ax_all, bin_count, ff));
-    }
-    kernel::enqueue_balanced_cross<variable_bin_width, 1>(data_w, data_x, kernel::row_target(p_wx_all, bin_count));
+    int wx = n_ff, xx = n_ff + 1;
+    distance_calculator::HistogramStore<true> store(xx + 1, bin_count);
+    distance_calculator::Calculator<true, variable_bin_width> calculator(store);
+    calculator.hold();
+    distance_calculator::CalculatorFF<true, variable_bin_width>(calculator).enqueue_cross_by_ff(data_a, data_x, 0);
+    calculator.enqueue_calculate_cross(data_w, data_x, wx, 1);
+    calculator.release_hold();
 
 #if defined(POCKETFFT_AVAILABLE)
     // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
@@ -67,24 +65,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
         exv, detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
     );
     p_xx_generic.add_index(0, detail::WeightedEntry(data_x.size(), data_x.size(), 0)); // self-correlations
-    pool->wait();
+    calculator.run();
 #else
-    container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
-    kernel::enqueue_self<true, variable_bin_width, 2, 1>(data_x, kernel::row_target(p_xx_all, bin_count));
-    pool->wait();
-    WeightedDistribution1D p_xx_generic = p_xx_all.merge();
+    calculator.enqueue_calculate_self(data_x, xx);
+    calculator.run();
+    WeightedDistribution1D p_xx_generic = store.export_1d(xx);
 #endif
-    WeightedDistribution2D p_ax_generic = p_ax_all.merge();
-    WeightedDistribution1D p_wx_generic = p_wx_all.merge();
+    WeightedDistribution2D p_ax_generic = store.export_2d(0, n_ff);
+    WeightedDistribution1D p_wx_generic = store.export_1d(wx);
 
     // downsize our axes to only the relevant area
-    int max_bin = 10; // minimum size is 10
-    for (int i = p_xx_generic.size()-1; i >= 10; i--) {
-        if (p_xx_generic.index(i) != 0 || p_wx_generic.index(i) != 0) {
-            max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
-            break;
-        }
-    }
+    int max_bin = hist::detail::trimmed_bin_count(p_xx_generic, p_wx_generic);
 
     // ensure that our new vectors are compatible with those from the base class
     // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
