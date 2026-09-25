@@ -27,8 +27,8 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     using GenericDistribution1D_t = typename GenericDistribution1D<wb>::type;
     auto* pool = utility::multi_threading::get_global_pool();
 
-    data_a_ptr = std::make_unique<std::vector<CompactCoordinates<vbw>>>(hist::detail::factory::construct_unit_weight_by_ff_from_atoms<vbw>(this->protein));
-    data_w_ptr = std::make_unique<CompactCoordinates<vbw>>(hist::detail::factory::construct_unit_weight_from_waters<vbw>(this->protein));
+    data_a_ptr = std::make_unique<std::vector<CompactCoordinates<vbw>>>(hist::detail::factory::construct_by_ff_from_atoms<vbw>(this->protein));
+    data_w_ptr = std::make_unique<CompactCoordinates<vbw>>(hist::detail::factory::construct_from_waters<vbw>(this->protein));
     auto& data_a = *data_a_ptr;
     auto& data_w = *data_w_ptr;
     int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
@@ -37,7 +37,8 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     int n_ff = form_factor::get_active_count();
     hist::distance_calculator::HistogramStore<wb> store(bin_count, static_cast<int>(data_a.size()));
     int aa = store.allocate_3d(), aw = store.allocate_2d(), ww = store.allocate_1d();
-    hist::distance_calculator::Calculator<wb, vbw> calculator(store);
+    // the form factors are applied later by the intensity calculator, so the pairs are only counted here
+    hist::distance_calculator::Calculator<wb, vbw, TRACK_FF> calculator(store);
 
     // the self-correlations are part of what the kernel evaluates, so they do not have to be added separately here.
     // all of them are known up front, so they are held and dispatched as one unit

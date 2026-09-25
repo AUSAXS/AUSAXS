@@ -51,7 +51,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         p_ww = std::move(cast_res->get_raw_ww_counts_by_ff()),
         data_a = *this->data_a_ptr,
         data_w = *this->data_w_ptr,
-        data_x = hist::detail::factory::construct_unit_weight<variable_bin_width>(get_exv().interior)] 
+        data_x = hist::detail::factory::construct<variable_bin_width>(get_exv().interior)] 
         (double scale) 
     {
         // stretch the excluded volume cells by the given scale factor
@@ -64,7 +64,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         //##############//
         distance_calculator::HistogramStore<true> store(bin_count, static_cast<int>(data_a.size()));
         int ax = store.allocate_2d(), wx = store.allocate_1d(), xx = store.allocate_1d();
-        distance_calculator::Calculator<true, variable_bin_width> calculator(store);
+        distance_calculator::Calculator<true, variable_bin_width, TRACK_FF> calculator(store);
         calculator.enqueue_calculate_self(scaled_x, xx);
         calculator.enqueue_calculate_cross(data_a, scaled_x, ax, 1);
         calculator.enqueue_calculate_cross(data_w, scaled_x, wx, 1);

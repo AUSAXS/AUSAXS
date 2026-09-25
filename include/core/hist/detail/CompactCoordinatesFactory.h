@@ -48,13 +48,10 @@ namespace ausaxs::hist::detail::factory {
     }
 
     /**
-     * @brief Construct a unit-weight representation of @a points.
-     *
-     * The form factor-aware managers count pairs rather than weigh them, since the form factor amplitudes are applied
-     * later, by the intensity calculator. Unit weights make every pair count once.
+     * @brief Construct a representation of @a points. A bare point has no weight of its own, so each weighs 1.
      */
     template<bool variable_bin_width>
-    CompactCoordinates<variable_bin_width> construct_unit_weight(const std::vector<Vector3<double>>& points) {
+    CompactCoordinates<variable_bin_width> construct(const std::vector<Vector3<double>>& points) {
         CompactCoordinates<variable_bin_width> c;
         c.resize(static_cast<int>(points.size()));
         for (int i = 0; i < c.size(); ++i) {
@@ -65,34 +62,16 @@ namespace ausaxs::hist::detail::factory {
     }
 
     /**
-     * @brief Construct a unit-weight representation of every water in @a molecule. See construct_unit_weight.
-     */
-    template<bool variable_bin_width>
-    CompactCoordinates<variable_bin_width> construct_unit_weight_from_waters(observer_ptr<const data::Molecule> molecule) {
-        CompactCoordinates<variable_bin_width> c;
-        c.resize(molecule->size_water());
-        int i = 0;
-        for (const auto& w : molecule->iterate_waters()) {
-            c.set_position(i, w.coordinates());
-            c.get_weight(i++) = 1;
-        }
-        return c;
-    }
-
-    /**
-     * @brief Construct a unit-weight representation of every atom in @a molecule, split by form factor type.
+     * @brief Construct a weight-based representation of every atom in @a molecule, split by form factor type.
      *        The result is indexed by active form factor index, and types with no atoms get an empty set.
-     *        See construct_unit_weight.
-     *
-     * @throws except::runtime_error if any atom has an UNKNOWN form factor type.
      */
     template<bool variable_bin_width>
-    std::vector<CompactCoordinates<variable_bin_width>> construct_unit_weight_by_ff_from_atoms(observer_ptr<const data::Molecule> molecule) {
+    std::vector<CompactCoordinates<variable_bin_width>> construct_by_ff_from_atoms(observer_ptr<const data::Molecule> molecule) {
         auto map = form_factor::manager::get_active_mapping();
         auto active_index = [&map] (const data::AtomFF& a) {
             if (a.form_factor_type() == form_factor::form_factor_t::UNKNOWN) {
                 throw except::runtime_error(
-                    "factory::construct_unit_weight_by_ff_from_atoms: Attempted to use an atom with UNKNOWN form factor type.\n"
+                    "factory::construct_by_ff_from_atoms: Attempted to use an atom with UNKNOWN form factor type.\n"
                     "Form factor information is required for the selected excluded volume model."
                 );
             }
@@ -111,7 +90,7 @@ namespace ausaxs::hist::detail::factory {
             int ff = active_index(a);
             int k = filled[ff]++;
             parts[ff].set_position(k, a.coordinates());
-            parts[ff].get_weight(k) = 1;
+            parts[ff].get_weight(k) = static_cast<float>(a.weight());
         }
         return parts;
     }

@@ -22,8 +22,10 @@ namespace ausaxs::hist::distance_calculator::detail {
     /**
      * @brief Simple histogram calculation on whichever GPU backend is installed, into the rows of a HistogramStore.
      *        If the device fails, or if there is none, the CPU calculator is used instead.
+     *
+     * @tparam unit_weights Whether every point weighs 1. The device always multiplies the weights, so they are sent as 1.
      */
-    template<bool weighted_bins, bool variable_bin_width>
+    template<bool weighted_bins, bool variable_bin_width, bool unit_weights>
     class GPUKernel {
         using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
         using Row = std::span<typename HistogramStore<weighted_bins>::entry_type>;
@@ -114,7 +116,7 @@ namespace ausaxs::hist::distance_calculator::detail {
             bool session_open = false;                              // whether begin() has been issued for the batch being built
             bool holding = false;                                   // whether jobs are being collected into a group, see hold()
             std::deque<std::vector<float>> coordinate_buffers;
-            std::unique_ptr<CalculatorCPU<weighted_bins, variable_bin_width>> cpu;
+            std::unique_ptr<CalculatorCPU<weighted_bins, variable_bin_width, unit_weights>> cpu;
             bool on_cpu = false;                                    // whether the device was given up on, see switch_to_cpu()
 
             /**
@@ -140,7 +142,7 @@ namespace ausaxs::hist::distance_calculator::detail {
              * Anything still queued on the device is simply abandoned; the next begin() waits for it before reusing the memory it holds. 
              */
             void switch_to_cpu() {
-                cpu = std::make_unique<CalculatorCPU<weighted_bins, variable_bin_width>>(*store);
+                cpu = std::make_unique<CalculatorCPU<weighted_bins, variable_bin_width, unit_weights>>(*store);
                 on_cpu = true;
                 for (const auto& job : jobs) {
                     if (job.a2 == nullptr) {cpu->enqueue_calculate_self(*job.a1, job.row, job.factor);}
@@ -225,7 +227,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                     packed[4*i] = a.x(i);
                     packed[4*i + 1] = a.y(i);
                     packed[4*i + 2] = a.z(i);
-                    packed[4*i + 3] = a.get_weight(i);
+                    packed[4*i + 3] = unit_weights ? 1 : a.get_weight(i);
                 }
                 return packed.data();
             }
@@ -234,6 +236,7 @@ namespace ausaxs::hist::distance_calculator::detail {
              * @brief The contribution of the zero distance of every atom with itself.
              */
             static double self_weight(const CompactCoordinates_t& a, int scaling) {
+                if constexpr (unit_weights) {return static_cast<double>(scaling)*a.size();}
                 double total_weight = 0;
                 for (int i = 0; i < a.size(); ++i) {
                     double weight = a.get_weight(i);

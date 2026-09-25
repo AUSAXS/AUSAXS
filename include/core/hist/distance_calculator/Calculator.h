@@ -14,6 +14,11 @@
 #include <span>
 #include <vector>
 
+namespace ausaxs::hist {
+    constexpr bool TRACK_FF = true;
+    constexpr bool WITHOUT_FF = false;
+}
+
 namespace ausaxs::hist::distance_calculator {
     /**
      * @brief Queues pairwise distance histogram calculations on the CPU or GPU kernel, into the results of a HistogramStore.
@@ -28,9 +33,13 @@ namespace ausaxs::hist::distance_calculator {
      * puts each pair of unlike classes in the (k1, k2) histogram with k1 < k2 only, while the cross-correlation of two
      * partitioned sets fills both orderings, so a result mixing the two must be read symmetrically in the class pair.
      *
+     * Each pair contributes the product of the weights of its two points, unless @a unit_weights is set: then every point
+     * weighs 1, the stored weights are never read, and the histograms are plain pair counts. This is for calculations whose
+     * weighting is applied later, by class, such as the form factors applied by the intensity calculator.
+     *
      * All data references must be valid until run() is called.
      */
-    template<bool weighted_bins, bool variable_bin_width>
+    template<bool weighted_bins, bool variable_bin_width, bool unit_weights>
     class Calculator {
         using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
         using PartitionedCoordinates_t = std::vector<CompactCoordinates_t>;
@@ -121,8 +130,8 @@ namespace ausaxs::hist::distance_calculator {
             observer_ptr<HistogramStore<weighted_bins>> store;
 
             // exactly one of these is engaged, as decided by the constructor
-            std::optional<detail::CalculatorCPU<weighted_bins, variable_bin_width>> cpu;
-            std::optional<detail::GPUKernel<weighted_bins, variable_bin_width>> gpu;
+            std::optional<detail::CalculatorCPU<weighted_bins, variable_bin_width, unit_weights>> cpu;
+            std::optional<detail::GPUKernel<weighted_bins, variable_bin_width, unit_weights>> gpu;
 
             void self(const CompactCoordinates_t& a, Row row, int scaling) {
                 assert((cpu.has_value() || gpu.has_value()) && "Calculator: the constructor engages exactly one backend.");

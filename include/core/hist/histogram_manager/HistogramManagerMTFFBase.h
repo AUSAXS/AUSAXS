@@ -41,7 +41,8 @@ namespace ausaxs::hist {
 			 */
 			RawDistributions compute_raw_distributions();
 
-			// data stored for inheritance, all with unit weights: the atoms split by form factor, one set per active type, and the waters whole
+			// data stored for inheritance: the atoms split by form factor, one set per active type, and the waters whole.
+			// their pairs are only counted, so any calculation on them must use a unit_weights Calculator
 			std::unique_ptr<std::vector<hist::detail::CompactCoordinates<variable_bin_width>>> data_a_ptr;
 			std::unique_ptr<hist::detail::CompactCoordinates<variable_bin_width>> data_w_ptr;
 	};

@@ -78,8 +78,9 @@ namespace ausaxs::hist::distance_calculator::detail {
      *
      * @tparam pair_factor What each evaluated pair contributes.
      * @tparam self_factor What the zero distance of each point with itself contributes.
+     * @tparam unit_weights Whether every point weighs 1, in which case the stored weights are never read.
      */
-    template<int pair_factor, int self_factor, bool variable_bin_width, Target T>
+    template<int pair_factor, int self_factor, bool unit_weights, bool variable_bin_width, Target T>
     void enqueue_self(const hist::detail::CompactCoordinates<variable_bin_width>& data, T target) {
         if (data.empty()) {return;}
         auto* pool = utility::multi_threading::get_global_pool();
@@ -94,19 +95,19 @@ namespace ausaxs::hist::distance_calculator::detail {
                     for (int i = imin; i < imax; ++i) { // atom
                         int j = i+1;                    // atom
                         for (; j+15 < data_size; j+=16) {
-                            hist::detail::evaluate16<variable_bin_width, pair_factor>(p_aa, data, data, i, j);
+                            hist::detail::evaluate16<variable_bin_width, pair_factor, unit_weights>(p_aa, data, data, i, j);
                         }
 
                         for (; j+7 < data_size; j+=8) {
-                            hist::detail::evaluate8<variable_bin_width, pair_factor>(p_aa, data, data, i, j);
+                            hist::detail::evaluate8<variable_bin_width, pair_factor, unit_weights>(p_aa, data, data, i, j);
                         }
 
                         for (; j+3 < data_size; j+=4) {
-                            hist::detail::evaluate4<variable_bin_width, pair_factor>(p_aa, data, data, i, j);
+                            hist::detail::evaluate4<variable_bin_width, pair_factor, unit_weights>(p_aa, data, data, i, j);
                         }
 
                         for (; j < data_size; ++j) {
-                            hist::detail::evaluate1<variable_bin_width, pair_factor>(p_aa, data, data, i, j);
+                            hist::detail::evaluate1<variable_bin_width, pair_factor, unit_weights>(p_aa, data, data, i, j);
                         }
                     }
                 }
@@ -118,9 +119,13 @@ namespace ausaxs::hist::distance_calculator::detail {
             [&data, target, data_size] () {
                 auto&& p_aa = target.get();
                 double total_weight = 0;
-                for (int i = 0; i < data_size; ++i) {
-                    double weight = data.get_weight(i);
-                    total_weight += weight*weight;
+                if constexpr (unit_weights) {
+                    total_weight = data_size;
+                } else {
+                    for (int i = 0; i < data_size; ++i) {
+                        double weight = data.get_weight(i);
+                        total_weight += weight*weight;
+                    }
                 }
                 total_weight *= self_factor;
 
@@ -137,8 +142,9 @@ namespace ausaxs::hist::distance_calculator::detail {
      * @brief Queue the cross-correlation of @a data_1 and @a data_2 into @a target.
      *
      * @tparam pair_factor What each evaluated pair contributes.
+     * @tparam unit_weights Whether every point weighs 1, in which case the stored weights are never read.
      */
-    template<int pair_factor, bool variable_bin_width, Target T>
+    template<int pair_factor, bool unit_weights, bool variable_bin_width, Target T>
     void enqueue_cross(
         const hist::detail::CompactCoordinates<variable_bin_width>& data_1,
         const hist::detail::CompactCoordinates<variable_bin_width>& data_2,
@@ -156,19 +162,19 @@ namespace ausaxs::hist::distance_calculator::detail {
                     for (int i = imin; i < imax; ++i) { // b
                         int j = 0;                      // a
                         for (; j+15 < data_1_size; j+=16) {
-                            hist::detail::evaluate16<variable_bin_width, pair_factor>(p_ab, data_2, data_1, i, j);
+                            hist::detail::evaluate16<variable_bin_width, pair_factor, unit_weights>(p_ab, data_2, data_1, i, j);
                         }
 
                         for (; j+7 < data_1_size; j+=8) {
-                            hist::detail::evaluate8<variable_bin_width, pair_factor>(p_ab, data_2, data_1, i, j);
+                            hist::detail::evaluate8<variable_bin_width, pair_factor, unit_weights>(p_ab, data_2, data_1, i, j);
                         }
 
                         for (; j+3 < data_1_size; j+=4) {
-                            hist::detail::evaluate4<variable_bin_width, pair_factor>(p_ab, data_2, data_1, i, j);
+                            hist::detail::evaluate4<variable_bin_width, pair_factor, unit_weights>(p_ab, data_2, data_1, i, j);
                         }
 
                         for (; j < data_1_size; ++j) {
-                            hist::detail::evaluate1<variable_bin_width, pair_factor>(p_ab, data_2, data_1, i, j);
+                            hist::detail::evaluate1<variable_bin_width, pair_factor, unit_weights>(p_ab, data_2, data_1, i, j);
                         }
                     }
                 }
@@ -180,7 +186,7 @@ namespace ausaxs::hist::distance_calculator::detail {
      * @brief Queue the cross-correlation of @a a and @a b into @a target, chunked over the larger of the two.
      *        This leads to a more balanced work distribution for strongly asymmetric sizes. 
      */
-    template<int pair_factor, bool variable_bin_width, Target T>
+    template<int pair_factor, bool unit_weights, bool variable_bin_width, Target T>
     void enqueue_balanced_cross(
         const hist::detail::CompactCoordinates<variable_bin_width>& a,
         const hist::detail::CompactCoordinates<variable_bin_width>& b,
@@ -188,9 +194,9 @@ namespace ausaxs::hist::distance_calculator::detail {
     ) {
         if (a.empty() || b.empty()) {return;}
         if (a.size() < b.size()) {
-            enqueue_cross<pair_factor>(a, b, target);
+            enqueue_cross<pair_factor, unit_weights>(a, b, target);
         } else {
-            enqueue_cross<pair_factor>(b, a, target);
+            enqueue_cross<pair_factor, unit_weights>(b, a, target);
         }
     }
 }

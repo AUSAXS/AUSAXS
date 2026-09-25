@@ -124,8 +124,7 @@ namespace ausaxs::hist::detail {
 
     /**
      * @brief The number of leading bins holding everything in the given distance distributions: one past the last bin at which any of 
-     *        them is non-zero, but at least bin_estimate::min_bin_count. This is what a histogram is cut down to once it has been 
-     *        calculated, as required_bin_count only bounds it from above.
+     *        them is non-zero, but at least bin_estimate::min_bin_count. This is needed since required_bin_count only bounds it from above.
      */
     template<typename... Distributions>
     int trimmed_bin_count(const Distributions&... distributions) {

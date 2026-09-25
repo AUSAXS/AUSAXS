@@ -42,8 +42,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
     auto exv = get_exv();
-    auto data_x_i = hist::detail::factory::construct_unit_weight<variable_bin_width>(exv.interior);
-    auto data_x_s = hist::detail::factory::construct_unit_weight<variable_bin_width>(exv.surface);
+    auto data_x_i = hist::detail::factory::construct<variable_bin_width>(exv.interior);
+    auto data_x_s = hist::detail::factory::construct<variable_bin_width>(exv.surface);
     const auto& data_a = *this->data_a_ptr;
     const auto& data_w = *this->data_w_ptr;
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
@@ -58,7 +58,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 #if !defined(POCKETFFT_AVAILABLE)
     int xx_i = store.allocate_1d(), xx_s = store.allocate_1d(), xx_is = store.allocate_1d();
 #endif
-    distance_calculator::Calculator<true, variable_bin_width> calculator(store);
+    distance_calculator::Calculator<true, variable_bin_width, TRACK_FF> calculator(store);
     calculator.hold();
     calculator.enqueue_calculate_cross(data_a, data_x_i, ax_i, 1);
     calculator.enqueue_calculate_cross(data_a, data_x_s, ax_s, 1);
