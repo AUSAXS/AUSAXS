@@ -7,8 +7,6 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <utility/Axis.h>
 
-#include <span>
-
 namespace ausaxs::hist::detail {
     // Simple typedef for clarity.
     template<bool use_weighted_distribution>
@@ -52,12 +50,6 @@ namespace ausaxs::hist::detail {
              *        reverse the order of the entries.
              */
             MasterHistogram& operator-=(const GenericDistribution1D_t& rhs);
-
-            /**
-             * @brief Add or subtract a partial histogram given as its bins, e.g. a row of a distance_calculator::HistogramStore.
-             */
-            MasterHistogram& operator+=(std::span<const typename GenericDistribution1D_t::value_type> rhs);
-            MasterHistogram& operator-=(std::span<const typename GenericDistribution1D_t::value_type> rhs); //< @copydoc operator+=(std::span<const typename GenericDistribution1D_t::value_type>)
 
             // The base part of the histogram which will never change. This contains all internal distances between atoms in each individual body.
             GenericDistribution1D_t base; //? remove?

@@ -35,8 +35,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
     hist::detail::decorrelate_order<wb>(bin_count, data_a, data_w);
 
-    constexpr int aa = 0, ww = 1, aw = 2; // the rows of the store
-    hist::distance_calculator::HistogramStore<wb> store(3, bin_count);
+    hist::distance_calculator::HistogramStore<wb> store(bin_count);
+    int aa = store.allocate_1d(), ww = store.allocate_1d(), aw = store.allocate_1d();
     hist::distance_calculator::Calculator<wb, vbw> calculator(store);
     // all three are known up front, so they are held and dispatched as one unit
     calculator.hold();

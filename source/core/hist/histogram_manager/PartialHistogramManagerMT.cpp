@@ -15,7 +15,6 @@
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
 
-#include <cassert>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -98,7 +97,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<weighted_bins, vari
 
     // the recalculated partial histograms replace their old contents in the store, which were taken out of the master histogram as they were queued
     calculator.run();
-    for (int h : recalculated) {this->master += store->row(h);}
+    for (int id : recalculated) {this->master += store->get_1d(id);}
     recalculated.clear();
     this->statemanager->reset_to_false();
 
@@ -162,24 +161,24 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<weighted_
     }
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    GenericDistribution1D_t p_ww = store->export_1d(handle_ww());
+    GenericDistribution1D_t p_ww = store->get_1d(ww);
     GenericDistribution1D_t p_aa = this->master.base;
     GenericDistribution1D_t p_aw(bins);
     p_ww.resize(bins);
     p_aa.resize(bins);
 
-    // iterate through all partial histograms in the upper triangle
+    // iterate through all partial histograms in the lower triangle, the only ones ever calculated
     for (int i = 0; i < this->body_size; ++i) {
         for (int j = 0; j <= i; ++j) {
             // iterate through each entry in the partial histogram
-            std::transform(p_aa.begin(), p_aa.end(), store->row(handle_aa(i, j)).begin(), p_aa.begin(), std::plus<>());
+            std::transform(p_aa.begin(), p_aa.end(), store->get_1d(aa[i][j]).begin(), p_aa.begin(), std::plus<>());
         }
     }
 
     // iterate through all partial hydration-protein histograms
     for (int i = 0; i < this->body_size; ++i) {
         // iterate through each entry in the partial histogram
-        std::transform(p_aw.begin(), p_aw.end(), store->row(handle_aw(i)).begin(), p_aw.begin(), std::plus<>());
+        std::transform(p_aw.begin(), p_aw.end(), store->get_1d(aw[i]).begin(), p_aw.begin(), std::plus<>());
     }
 
     if constexpr (weighted_bins) {
@@ -199,60 +198,51 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<weighted_
     }
 }
 
-template<bool weighted_bins, bool variable_bin_width>
-int PartialHistogramManagerMT<weighted_bins, variable_bin_width>::handle_aa(int n, int m) const {
-    assert(0 <= m && m <= n && n < this->body_size && "PartialHistogramManagerMT::handle_aa: expected a body pair in the lower triangle.");
-    return n*(n+1)/2 + m;
-}
-
-template<bool weighted_bins, bool variable_bin_width>
-int PartialHistogramManagerMT<weighted_bins, variable_bin_width>::handle_aw(int index) const {
-    return this->body_size*(this->body_size+1)/2 + index;
-}
-
-template<bool weighted_bins, bool variable_bin_width>
-int PartialHistogramManagerMT<weighted_bins, variable_bin_width>::handle_ww() const {
-    return handle_aw(this->body_size);
-}
-
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::initialize(int bin_count) {
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
-    store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(handle_ww()+1, axis.bins);
+    store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(axis.bins);
+    aa.assign(this->body_size, std::vector<int>(this->body_size));
+    aw.resize(this->body_size);
+    for (int n = 0; n < this->body_size; ++n) {
+        for (int m = 0; m < this->body_size; ++m) {aa[n][m] = store->allocate_1d();}
+        aw[n] = store->allocate_1d();
+    }
+    ww = store->allocate_1d();
 }
 
 template<bool weighted_bins, bool variable_bin_width>
-void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::recalculate(int h) {
-    // the row is not written until the calculator runs, so its old contents are still there to be taken out
-    this->master -= store->row(h);
-    recalculated.push_back(h);
+void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::recalculate(int id) {
+    // the result is not written until the calculator runs, so its old contents are still there to be taken out
+    this->master -= store->get_1d(id);
+    recalculated.push_back(id);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calc_self_correlation(calculator_t calculator, int index) {
     update_compact_representation_body(index);
-    recalculate(handle_aa(index, index));
-    calculator->enqueue_calculate_self(this->coords_a[index], handle_aa(index, index));
+    recalculate(aa[index][index]);
+    calculator->enqueue_calculate_self(this->coords_a[index], aa[index][index]);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calc_aa(calculator_t calculator, int n, int m) {
-    recalculate(handle_aa(n, m));
-    calculator->enqueue_calculate_cross(this->coords_a[n], this->coords_a[m], handle_aa(n, m), 2);
+    recalculate(aa[n][m]);
+    calculator->enqueue_calculate_cross(this->coords_a[n], this->coords_a[m], aa[n][m], 2);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calc_aw(calculator_t calculator, int index) {
-    recalculate(handle_aw(index));
-    calculator->enqueue_calculate_cross(this->coords_a[index], this->coords_w, handle_aw(index), 2);
+    recalculate(aw[index]);
+    calculator->enqueue_calculate_cross(this->coords_a[index], this->coords_w, aw[index], 2);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
 void PartialHistogramManagerMT<weighted_bins, variable_bin_width>::calc_ww(calculator_t calculator) {
-    recalculate(handle_ww());
-    calculator->enqueue_calculate_self(this->coords_w, handle_ww());
+    recalculate(ww);
+    calculator->enqueue_calculate_self(this->coords_w, ww);
 }
 
 template class hist::PartialHistogramManagerMT<false, false>;

@@ -6,6 +6,7 @@
 #include <math/indexers/Indexer2D.h>
 
 #include <cassert>
+#include <span>
 #include <vector>
 
 #ifndef NDEBUG
@@ -80,6 +81,16 @@ namespace ausaxs::container {
                 }() && "Container2D::end: Index out of bounds.");
                 return data.begin() + i*M + M;
             }
+
+            /**
+             * @brief Get the vector at index i.
+             */
+            std::span<T> row(int i) {return {begin(i), static_cast<std::size_t>(M)};}
+
+            /**
+             * @brief Get the vector at index i.
+             */
+            std::span<const T> row(int i) const {return {begin(i), static_cast<std::size_t>(M)};}
 
             /**
              * @brief Get an iterator to the beginning of the entire container.

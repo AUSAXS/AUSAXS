@@ -224,7 +224,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins, varia
 
     // the recalculated partial histograms replace their old contents in the store, which were taken out of the master histogram as they were queued
     calculator.run();
-    for (int h : recalculated) {this->master += store->row(h);}
+    for (int id : recalculated) {this->master += store->get_1d(id);}
     recalculated.clear();
     this->statemanager->reset_to_false();
 
@@ -301,18 +301,25 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_b
     }
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions.
-    // the aa rows come first in the store, then the aw rows, then ww; a row that is never calculated is zero, so each
-    // contribution is simply the sum over its block of rows
-    GenericDistribution1D_t p_ww = store->export_1d(handle_ww());
+    // a result that is never calculated is zero, so each contribution is simply the sum over all of its results
+    GenericDistribution1D_t p_ww = store->get_1d(ww);
     GenericDistribution1D_t p_aa = this->master.base;
     GenericDistribution1D_t p_aw(bins);
     p_ww.resize(bins);
     p_aa.resize(bins);
-    for (int h = 0; h < handle_aw(0, 0); ++h) {
-        std::transform(p_aa.begin(), p_aa.end(), store->row(h).begin(), p_aa.begin(), std::plus<>());
+    auto add = [this] (GenericDistribution1D_t& total, int id) {
+        const auto& partial = store->get_1d(id);
+        std::transform(total.begin(), total.end(), partial.begin(), total.begin(), std::plus<>());
+    };
+    for (const auto& body_pairs : aa) {
+        for (const auto& symmetry_pairs : body_pairs) {
+            for (const auto& ids : symmetry_pairs) {
+                for (int id : ids) {add(p_aa, id);}
+            }
+        }
     }
-    for (int h = handle_aw(0, 0); h < handle_ww(); ++h) {
-        std::transform(p_aw.begin(), p_aw.end(), store->row(h).begin(), p_aw.begin(), std::plus<>());
+    for (const auto& ids : aw) {
+        for (int id : ids) {add(p_aw, id);}
     }
 
     if constexpr (weighted_bins) {
@@ -351,25 +358,22 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize(int
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
 
-    // lay out the rows: the aa partials of every body pair, then the aw partials of every body, then ww. a pair of different
-    // bodies holds every combination of their symmetries, while a body with itself only holds a lower triangle, as the
-    // upper one would duplicate it
-    sym_count.resize(this->body_size);
-    aa_offset.resize(this->body_size*(this->body_size+1)/2);
-    aw_offset.resize(this->body_size);
-    int rows = 0;
-    for (int ibody = 0; ibody < this->body_size; ++ibody) {
-        sym_count[ibody] = 1 + this->protein->get_body(ibody).size_symmetry();
-        for (int ibody2 = 0; ibody2 <= ibody; ++ibody2) {
-            aa_offset[ibody*(ibody+1)/2 + ibody2] = rows;
-            rows += ibody2 == ibody ? sym_count[ibody]*(sym_count[ibody]+1)/2 : sym_count[ibody]*sym_count[ibody2];
+    // one result for every pair of symmetries of every body pair, and one for every symmetry of every body
+    auto sym_count = [this] (int ibody) {return 1 + static_cast<int>(this->protein->get_body(ibody).size_symmetry());};
+    store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(axis.bins);
+    aa.assign(this->body_size, std::vector<std::vector<std::vector<int>>>(this->body_size));
+    aw.assign(this->body_size, {});
+    for (int ibody1 = 0; ibody1 < this->body_size; ++ibody1) {
+        for (int ibody2 = 0; ibody2 < this->body_size; ++ibody2) {
+            aa[ibody1][ibody2].assign(sym_count(ibody1), std::vector<int>(sym_count(ibody2)));
+            for (auto& ids : aa[ibody1][ibody2]) {
+                for (int& id : ids) {id = store->allocate_1d();}
+            }
         }
+        aw[ibody1].resize(sym_count(ibody1));
+        for (int& id : aw[ibody1]) {id = store->allocate_1d();}
     }
-    for (int ibody = 0; ibody < this->body_size; ++ibody) {
-        aw_offset[ibody] = rows;
-        rows += sym_count[ibody];
-    }
-    store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(rows+1, axis.bins); // +1 for ww
+    ww = store->allocate_1d();
 
     for (int ibody = 0; ibody < this->body_size; ++ibody) {
         update_compact_representation_body(ibody); //? unnecessary to update whole body; enough to update main body
@@ -377,33 +381,10 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize(int
 }
 
 template<bool weighted_bins, bool variable_bin_width>
-int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::handle_aa(int ibody1, int isym1, int ibody2, int isym2) const {
-    assert(0 <= ibody2 && ibody2 <= ibody1 && ibody1 < this->body_size && "PartialSymmetryManagerMT::handle_aa: expected a body pair in the lower triangle");
-    assert(0 <= isym1 && isym1 < sym_count[ibody1] && 0 <= isym2 && isym2 < sym_count[ibody2] && "PartialSymmetryManagerMT::handle_aa: symmetry index out of range; symmetries may not be added after the first calculation");
-    int offset = aa_offset[ibody1*(ibody1+1)/2 + ibody2];
-    if (ibody1 == ibody2) {
-        assert(isym2 <= isym1 && "PartialSymmetryManagerMT::handle_aa: expected a symmetry pair in the lower triangle");
-        return offset + isym1*(isym1+1)/2 + isym2;
-    }
-    return offset + isym1*sym_count[ibody2] + isym2;
-}
-
-template<bool weighted_bins, bool variable_bin_width>
-int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::handle_aw(int ibody, int isym) const {
-    assert(0 <= isym && isym < sym_count[ibody] && "PartialSymmetryManagerMT::handle_aw: symmetry index out of range; symmetries may not be added after the first calculation");
-    return aw_offset[ibody] + isym;
-}
-
-template<bool weighted_bins, bool variable_bin_width>
-int PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::handle_ww() const {
-    return store->rows()-1;
-}
-
-template<bool weighted_bins, bool variable_bin_width>
-void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::recalculate(int h) {
-    // the row is not written until the calculator runs, so its old contents are still there to be taken out
-    this->master -= store->row(h);
-    recalculated.push_back(h);
+void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::recalculate(int id) {
+    // the result is not written until the calculator runs, so its old contents are still there to be taken out
+    this->master -= store->get_1d(id);
+    recalculated.push_back(id);
 }
 
 template<bool weighted_bins, bool variable_bin_width>
@@ -439,24 +420,26 @@ template<bool weighted_bins, bool variable_bin_width>
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa_self(calculator_t calculator, int ibody) {
     const auto& body = protein->get_body(ibody);
     // calculate the self correlation within each body and symmetry, equal to (N_sym+1) * (main body self corr)
-    int h = handle_aa(ibody, 0, ibody, 0);
-    recalculate(h);
-    calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], h, 1+body.size_symmetry_total());
+    int id = aa[ibody][ibody][0][0];
+    recalculate(id);
+    calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], id, 1+body.size_symmetry_total());
 }
 
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_ww(calculator_t calculator) {
-    recalculate(handle_ww());
-    calculator->enqueue_calculate_self(coords_w, handle_ww());
+    recalculate(ww);
+    calculator->enqueue_calculate_self(coords_w, ww);
 }
 
 template<bool weighted_bins, bool variable_bin_width> 
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) {
-    // every job below accumulates into the same row, so each loop is held and dispatched as a single group.
+    // every job below accumulates into the same result, so each loop is held and dispatched as a single group.
     const auto& body1 = protein->get_body(ibody1);
     const auto& body2 = protein->get_body(ibody2);
-    int h = handle_aa(ibody1, isym1, ibody2, isym2);
-    recalculate(h);
+    assert(ibody2 <= ibody1 && "PartialSymmetryManagerMT::calc_aa: expected a body pair in the lower triangle");
+    assert(isym1 < static_cast<int>(aa[ibody1][ibody2].size()) && isym2 < static_cast<int>(aa[ibody1][ibody2][isym1].size()) && "PartialSymmetryManagerMT::calc_aa: symmetry index out of range; symmetries may not be added after the first calculation");
+    int id = aa[ibody1][ibody2][isym1][isym2];
+    recalculate(id);
 
     // internal correlations within the same body
     if (ibody1 == ibody2) {
@@ -475,7 +458,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
                 assert((pair.repB == 0 || pair.repB-1 < static_cast<int>(coords[ibody1].atomic[isym1].size())) && "internal_pair_schedule: repB out of range for atomic copies");
                 const auto& atomicA = pair.repA == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repA-1];
                 const auto& atomicB = pair.repB == 0 ? coords[ibody1].atomic[0][0] : coords[ibody1].atomic[isym1][pair.repB-1];
-                calculator->enqueue_calculate_cross(atomicA, atomicB, h, 2*pair.scale);
+                calculator->enqueue_calculate_cross(atomicA, atomicB, id, 2*pair.scale);
             }
             calculator->release_hold();
             return;
@@ -485,7 +468,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
 
     // symmetry 0 is the main body, so we have to treat it separately
     if (isym1 == 0 && isym2 == 0) {
-        calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], coords[ibody2].atomic[0][0], h, 2);
+        calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], coords[ibody2].atomic[0][0], id, 2);
         return;
     }
     if (isym1 == 0) {
@@ -494,7 +477,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         calculator->hold();
         for (int irepeat2 = 0; irepeat2 < sym2->repetitions(); ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[isym2][irepeat2];
-            calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, h, 2);
+            calculator->enqueue_calculate_cross(coords[ibody1].atomic[0][0], body2_sym_atomic, id, 2);
         }
         calculator->release_hold();
         return;
@@ -505,7 +488,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         calculator->hold();
         for (int irepeat1 = 0; irepeat1 < sym1->repetitions(); ++irepeat1) {
             const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
-            calculator->enqueue_calculate_cross(body1_sym_atomic, coords[ibody2].atomic[0][0], h, 2);
+            calculator->enqueue_calculate_cross(body1_sym_atomic, coords[ibody2].atomic[0][0], id, 2);
         }
         calculator->release_hold();
         return;
@@ -522,7 +505,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
         const auto& body1_sym_atomic = coords[ibody1].atomic[isym1][irepeat1];
         for (int irepeat2 = 0; irepeat2 < sym2->repetitions(); ++irepeat2) {
             const auto& body2_sym_atomic = coords[ibody2].atomic[isym2][irepeat2];
-            calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, h, 2);
+            calculator->enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, id, 2);
         }
     }
     calculator->release_hold();
@@ -532,22 +515,23 @@ template<bool weighted_bins, bool variable_bin_width>
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aw(calculator_t calculator, int ibody, int isym) {
     const auto& body = protein->get_body(ibody);
     const auto& waters = coords_w;
-    int h = handle_aw(ibody, isym);
-    recalculate(h);
+    assert(isym < static_cast<int>(aw[ibody].size()) && "PartialSymmetryManagerMT::calc_aw: symmetry index out of range; symmetries may not be added after the first calculation");
+    int id = aw[ibody][isym];
+    recalculate(id);
 
     // symmetry 0 is the main body, so we have to treat it separately
     if (isym == 0) {
-        calculator->enqueue_calculate_cross(coords[ibody].atomic[0][0], waters, h, 2);
+        calculator->enqueue_calculate_cross(coords[ibody].atomic[0][0], waters, id, 2);
         return;
     }
 
     // else iterate over its repititions
     assert(isym < 1+static_cast<int>(body.size_symmetry()) && "symmetry index out of bounds");
     const auto& sym = body.symmetry().get(isym-1);
-    calculator->hold(); // one row for every copy, see calc_aa
+    calculator->hold(); // one result for every copy, see calc_aa
     for (int irepeat = 0; irepeat < sym->repetitions(); ++irepeat) {
         const auto& body1_sym_atomic = coords[ibody].atomic[isym][irepeat];
-        calculator->enqueue_calculate_cross(body1_sym_atomic, waters, h, 2);
+        calculator->enqueue_calculate_cross(body1_sym_atomic, waters, id, 2);
     }
     calculator->release_hold();
 }

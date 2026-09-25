@@ -8,7 +8,6 @@
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/Calculator.h>
-#include <hist/distance_calculator/CalculatorFF.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <utility/MultiThreading.h>
 
@@ -34,24 +33,23 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     auto& data_w = *data_w_ptr;
     int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
 
-    // the rows of the store: aa (ff1, ff2) from 0, aw (ff) from aw, and ww last
+    // the atoms are partitioned by form factor, the waters are not
     int n_ff = form_factor::get_active_count();
-    int aw = n_ff*n_ff, ww = aw + n_ff;
-    hist::distance_calculator::HistogramStore<wb> store(ww + 1, bin_count);
+    hist::distance_calculator::HistogramStore<wb> store(bin_count, static_cast<int>(data_a.size()));
+    int aa = store.allocate_3d(), aw = store.allocate_2d(), ww = store.allocate_1d();
     hist::distance_calculator::Calculator<wb, vbw> calculator(store);
-    hist::distance_calculator::CalculatorFF<wb, vbw> calculator_ff(calculator);
 
     // the self-correlations are part of what the kernel evaluates, so they do not have to be added separately here.
     // all of them are known up front, so they are held and dispatched as one unit
     calculator.hold();
-    calculator_ff.enqueue_self_by_ff(data_a, 0);
-    calculator_ff.enqueue_cross_by_ff(data_a, data_w, aw);
-    calculator_ff.enqueue_self_flat(data_w, ww);
+    calculator.enqueue_calculate_self(data_a, aa);
+    calculator.enqueue_calculate_cross(data_a, data_w, aw, 1);
+    calculator.enqueue_calculate_self(data_w, ww);
     calculator.release_hold();
     calculator.run();
 
-    auto p_aa = store.export_3d(0, n_ff, n_ff);
-    auto p_aw = store.export_2d(aw, n_ff);
+    auto p_aa = store.export_3d(aa);
+    auto p_aw = store.export_2d(aw);
     auto p_ww = store.export_1d(ww);
 
     GenericDistribution1D_t p_tot(bin_count);

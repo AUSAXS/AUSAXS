@@ -52,8 +52,8 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(atomic, data_w);
 
     // every self and cross contribution of a kind sums into the same row
-    constexpr int aa = 0, aw = 1, ww = 2; // the rows of the store
-    hist::distance_calculator::HistogramStore<weighted_bins> store(3, bin_count);
+    hist::distance_calculator::HistogramStore<weighted_bins> store(bin_count);
+    int aa = store.allocate_1d(), aw = store.allocate_1d(), ww = store.allocate_1d();
     hist::distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(store);
 
     const auto& waters = data_w;

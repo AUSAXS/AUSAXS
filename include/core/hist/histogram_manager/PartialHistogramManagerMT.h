@@ -43,11 +43,10 @@ namespace ausaxs::hist {
 				GenericDistribution1D_t p_tot;
 			} cache;
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
-			std::vector<int> recalculated; // the rows queued for recalculation in the current run, see recalculate()
-
-			int handle_aa(int n, int m) const; // m <= n
-			int handle_aw(int index) const;
-			int handle_ww() const;
+			std::vector<std::vector<int>> aa; // the result ids in the store per body pair [n][m], only calculated for m <= n
+			std::vector<int> aw;              // the result ids in the store per body
+			int ww = -1;                      // the result id in the store of the hydration layer
+			std::vector<int> recalculated;    // the results queued for recalculation in the current run, see recalculate()
 
 			/**
 			 * @brief Initialize the master histogram and the storage of the partial histograms.
@@ -55,11 +54,10 @@ namespace ausaxs::hist {
 			void initialize(int bin_count);
 
 			/**
-			 * @brief Take the partial histogram @a h out of the master histogram before it is recalculated.
-			 *        Must be called before the first calculation into @a h is queued; the new contents are added back once
-			 *        the calculator has run.
+			 * @brief Take the partial histogram @a id out of the master histogram before it is recalculated.
+			 *        The new contents are added back once the calculator has run.
 			 */
-			void recalculate(int h);
+			void recalculate(int id);
 
 			/**
 			 * @brief Calculate the self-correlation of a body.

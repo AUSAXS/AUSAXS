@@ -9,7 +9,6 @@
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/Calculator.h>
-#include <hist/distance_calculator/CalculatorFF.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
@@ -45,8 +44,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
     p_tot.set_bin_centers(cast_res->get_d_axis());
 
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
-    // the atoms are resolved by form factor on their own side only
-    int n_ff = form_factor::get_active_count();
     auto eval_scaled_exv = [
         p_tot = std::move(p_tot),
         p_aa = std::move(cast_res->get_raw_aa_counts_by_ff()),
@@ -54,8 +51,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         p_ww = std::move(cast_res->get_raw_ww_counts_by_ff()),
         data_a = *this->data_a_ptr,
         data_w = *this->data_w_ptr,
-        data_x = hist::detail::factory::construct_unit_weight<variable_bin_width>(get_exv().interior),
-        n_ff] 
+        data_x = hist::detail::factory::construct_unit_weight<variable_bin_width>(get_exv().interior)] 
         (double scale) 
     {
         // stretch the excluded volume cells by the given scale factor
@@ -66,17 +62,16 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
         //##############//
         // SUBMIT TASKS //
         //##############//
-        // the rows of the store: ax (ff) from 0, then wx and xx
-        int wx = n_ff, xx = n_ff + 1;
-        distance_calculator::HistogramStore<true> store(xx + 1, bin_count);
+        distance_calculator::HistogramStore<true> store(bin_count, static_cast<int>(data_a.size()));
+        int ax = store.allocate_2d(), wx = store.allocate_1d(), xx = store.allocate_1d();
         distance_calculator::Calculator<true, variable_bin_width> calculator(store);
         calculator.enqueue_calculate_self(scaled_x, xx);
-        distance_calculator::CalculatorFF<true, variable_bin_width>(calculator).enqueue_cross_by_ff(data_a, scaled_x, 0);
+        calculator.enqueue_calculate_cross(data_a, scaled_x, ax, 1);
         calculator.enqueue_calculate_cross(data_w, scaled_x, wx, 1);
 
         calculator.run();
         WeightedDistribution1D p_xx_generic = store.export_1d(xx);
-        WeightedDistribution2D p_ax_generic = store.export_2d(0, n_ff);
+        WeightedDistribution2D p_ax_generic = store.export_2d(ax);
         WeightedDistribution1D p_wx_generic = store.export_1d(wx);
 
         // downsize our axes to only the relevant area

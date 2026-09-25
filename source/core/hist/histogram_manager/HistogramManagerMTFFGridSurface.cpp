@@ -10,7 +10,6 @@
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/GridExvFFT.h>
 #include <hist/distance_calculator/Calculator.h>
-#include <hist/distance_calculator/CalculatorFF.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
@@ -52,17 +51,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     //##############//
     // SUBMIT TASKS //
     //##############//
-    // the rows of the store: ax (ff) of the interior from 0 and of the surface from n_ff, then wx of the interior and
-    // surface, then xx of the interior, the surface, and their cross term. the atoms are resolved by form factor on their
-    // own side only
-    int n_ff = form_factor::get_active_count();
-    int ax_i = 0, ax_s = n_ff, wx_i = 2*n_ff, wx_s = wx_i + 1, xx = wx_i + 2;
-    distance_calculator::HistogramStore<true> store(xx + 3, bin_count);
+    // the atoms are partitioned by form factor, the waters and excluded volume cells are not
+    distance_calculator::HistogramStore<true> store(bin_count, static_cast<int>(data_a.size()));
+    int ax_i = store.allocate_2d(), ax_s = store.allocate_2d();
+    int wx_i = store.allocate_1d(), wx_s = store.allocate_1d();
+#if !defined(POCKETFFT_AVAILABLE)
+    int xx_i = store.allocate_1d(), xx_s = store.allocate_1d(), xx_is = store.allocate_1d();
+#endif
     distance_calculator::Calculator<true, variable_bin_width> calculator(store);
-    distance_calculator::CalculatorFF<true, variable_bin_width> calculator_ff(calculator);
     calculator.hold();
-    calculator_ff.enqueue_cross_by_ff(data_a, data_x_i, ax_i);
-    calculator_ff.enqueue_cross_by_ff(data_a, data_x_s, ax_s);
+    calculator.enqueue_calculate_cross(data_a, data_x_i, ax_i, 1);
+    calculator.enqueue_calculate_cross(data_a, data_x_s, ax_s, 1);
     calculator.enqueue_calculate_cross(data_w, data_x_i, wx_i, 1);
     calculator.enqueue_calculate_cross(data_w, data_x_s, wx_s, 1);
     calculator.release_hold();
@@ -80,17 +79,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     p_xx.surface.add_index(0, detail::WeightedEntry(data_x_s.size(), data_x_s.size(), 0));  // self-correlations
     calculator.run();
 #else
-    calculator.enqueue_calculate_self(data_x_i, xx);
-    calculator.enqueue_calculate_self(data_x_s, xx + 1);
-    calculator.enqueue_calculate_cross(data_x_i, data_x_s, xx + 2, 2);
+    calculator.enqueue_calculate_self(data_x_i, xx_i);
+    calculator.enqueue_calculate_self(data_x_s, xx_s);
+    calculator.enqueue_calculate_cross(data_x_i, data_x_s, xx_is, 2);
     calculator.run();
-    p_xx.interior = store.export_1d(xx);
-    p_xx.surface  = store.export_1d(xx + 1);
-    p_xx.cross    = store.export_1d(xx + 2);
+    p_xx.interior = store.export_1d(xx_i);
+    p_xx.surface  = store.export_1d(xx_s);
+    p_xx.cross    = store.export_1d(xx_is);
 #endif
     AXContainer p_ax(0, 0);
-    p_ax.interior = store.export_2d(ax_i, n_ff);
-    p_ax.surface  = store.export_2d(ax_s, n_ff);
+    p_ax.interior = store.export_2d(ax_i);
+    p_ax.surface  = store.export_2d(ax_s);
     WXContainer p_wx(0);
     p_wx.interior = store.export_1d(wx_i);
     p_wx.surface  = store.export_1d(wx_s);

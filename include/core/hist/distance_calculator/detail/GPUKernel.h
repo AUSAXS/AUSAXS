@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <deque>
 #include <memory>
+#include <span>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -25,6 +26,7 @@ namespace ausaxs::hist::distance_calculator::detail {
     template<bool weighted_bins, bool variable_bin_width>
     class GPUKernel {
         using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
+        using Row = std::span<typename HistogramStore<weighted_bins>::entry_type>;
         public:
             /**
              * @brief Construct a kernel accumulating into @a store, which must outlive it.
@@ -33,13 +35,13 @@ namespace ausaxs::hist::distance_calculator::detail {
                 if (!gpu::GPULoader::available()) {switch_to_cpu();}
             }
 
-            void enqueue_calculate_self(const CompactCoordinates_t& a, int h, int scaling) {
-                if (a.empty()) {store->clear(h); return;}
+            void enqueue_calculate_self(const CompactCoordinates_t& a, Row row, int scaling) {
+                if (a.empty()) {store->reset(row); return;}
                 open_session();
-                if (on_cpu) {cpu->enqueue_calculate_self(a, h, scaling); return;}
+                if (on_cpu) {cpu->enqueue_calculate_self(a, row, scaling); return;}
 
-                jobs.emplace_back(Job{&a, nullptr, h, scaling});
-                int slot = resolve(h);
+                jobs.emplace_back(Job{&a, nullptr, row, scaling});
+                int slot = resolve(row);
                 diagonal[slot] += self_weight(a, scaling);
                 submit(gpu::abi::Job{
                     coordinates(a), nullptr, static_cast<std::uint32_t>(a.size()), 0,
@@ -47,13 +49,13 @@ namespace ausaxs::hist::distance_calculator::detail {
                 });
             }
 
-            void enqueue_calculate_cross(const CompactCoordinates_t& a1, const CompactCoordinates_t& a2, int h, int pair_factor) {
-                if (a1.empty() || a2.empty()) {store->clear(h); return;}
+            void enqueue_calculate_cross(const CompactCoordinates_t& a1, const CompactCoordinates_t& a2, Row row, int pair_factor) {
+                if (a1.empty() || a2.empty()) {store->reset(row); return;}
                 open_session();
-                if (on_cpu) {cpu->enqueue_calculate_cross(a1, a2, h, pair_factor); return;}
+                if (on_cpu) {cpu->enqueue_calculate_cross(a1, a2, row, pair_factor); return;}
 
-                jobs.emplace_back(Job{&a1, &a2, h, pair_factor});
-                int slot = resolve(h);
+                jobs.emplace_back(Job{&a1, &a2, row, pair_factor});
+                int slot = resolve(row);
                 submit(gpu::abi::Job{
                     coordinates(a1), coordinates(a2),
                     static_cast<std::uint32_t>(a1.size()), static_cast<std::uint32_t>(a2.size()),
@@ -73,13 +75,17 @@ namespace ausaxs::hist::distance_calculator::detail {
                 assert(queued.empty() && "GPUKernel::run: the held group was never released");
                 flush();
 
+                // the cpu calculator folds by itself; the device writes its rows directly, but the resets still need to be folded
                 if (on_cpu) {cpu->run();}
-                else {read_back();}
+                else {
+                    store->fold();
+                    read_back();
+                }
 
                 // cleanup
                 jobs.clear();
                 slots.clear();
-                handles.clear();
+                rows.clear();
                 diagonal.clear();
                 coordinate_buffers.clear();
                 queued.clear();
@@ -90,15 +96,15 @@ namespace ausaxs::hist::distance_calculator::detail {
         private:
             struct Job {
                 observer_ptr<const CompactCoordinates_t> a1, a2; // a2 is null for self-correlations
-                int handle;
+                Row row;
                 int factor; // the scaling of a self-correlation, or the pair factor of a cross-correlation
             };
 
             observer_ptr<HistogramStore<weighted_bins>> store;
             std::vector<gpu::abi::Job> queued;                      // held jobs, dispatched by release_hold()
             std::vector<Job> jobs;                                  // kept only to replay on the cpu if the device fails
-            std::unordered_map<int, int> slots;                     // handle -> the device histogram it accumulates into
-            std::vector<int> handles;                               // device histogram -> the handle it belongs to
+            std::unordered_map<const void*, int> slots;             // row -> the device histogram it accumulates into, keyed by its first bin
+            std::vector<Row> rows;                                  // device histogram -> the row it belongs to
             std::vector<double> diagonal;                           // per device histogram, the zero-distance contribution
             bool session_open = false;                              // whether begin() has been issued for the batch being built
             bool holding = false;                                   // whether jobs are being collected into a group, see hold()
@@ -132,8 +138,8 @@ namespace ausaxs::hist::distance_calculator::detail {
                 cpu = std::make_unique<CalculatorCPU<weighted_bins, variable_bin_width>>(*store);
                 on_cpu = true;
                 for (const auto& job : jobs) {
-                    if (job.a2 == nullptr) {cpu->enqueue_calculate_self(*job.a1, job.handle, job.factor);}
-                    else {cpu->enqueue_calculate_cross(*job.a1, *job.a2, job.handle, job.factor);}
+                    if (job.a2 == nullptr) {cpu->enqueue_calculate_self(*job.a1, job.row, job.factor);}
+                    else {cpu->enqueue_calculate_cross(*job.a1, *job.a2, job.row, job.factor);}
                 }
             }
 
@@ -165,13 +171,13 @@ namespace ausaxs::hist::distance_calculator::detail {
             }
 
             /**
-             * @brief Wait for the device and assign each returned histogram, plus its diagonal, to the row of its handle.
+             * @brief Wait for the device and assign each returned histogram, plus its diagonal, to its row.
              */
             void read_back() {
                 if (!session_open) {return;}
 
                 const int bin_count = store->bins();
-                const int n_slots = static_cast<int>(handles.size());
+                const int n_slots = static_cast<int>(rows.size());
                 const auto& backend = gpu::GPULoader::get();
 
                 if constexpr (weighted_bins) {
@@ -179,7 +185,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                     auto status = backend.finish_weighted(n_slots, out.data());
                     if (status != gpu::abi::Status::ok) {replay_on_cpu(status); return;}
                     for (int slot = 0; slot < n_slots; ++slot) {
-                        auto row = store->row(handles[slot]);
+                        auto row = rows[slot];
                         for (int i = 0; i < bin_count; ++i) {
                             const auto& bin = out[static_cast<std::size_t>(slot)*bin_count + i];
                             row[i] = hist::detail::WeightedEntry{bin.value, bin.count, bin.center};
@@ -191,7 +197,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                     auto status = backend.finish_unweighted(n_slots, out.data());
                     if (status != gpu::abi::Status::ok) {replay_on_cpu(status); return;}
                     for (int slot = 0; slot < n_slots; ++slot) {
-                        auto row = store->row(handles[slot]);
+                        auto row = rows[slot];
                         std::copy_n(out.begin() + static_cast<std::ptrdiff_t>(slot)*bin_count, bin_count, row.begin());
                         row[0] += diagonal[slot];
                     }
@@ -232,15 +238,15 @@ namespace ausaxs::hist::distance_calculator::detail {
             }
 
             /**
-             * @brief The device histogram of handle @a h, allocating one the first time it is seen in this batch.
-             *        Only handles with device work get one, so every histogram finish() is asked for was submitted to.
+             * @brief The device histogram of @a row, allocating one the first time it is seen in this batch.
+             *        Only rows with device work get one, so every histogram finish() is asked for was submitted to.
              */
-            int resolve(int h) {
-                if (auto it = slots.find(h); it != slots.end()) {return it->second;}
-                int slot = static_cast<int>(handles.size());
-                handles.push_back(h);
+            int resolve(Row row) {
+                if (auto it = slots.find(row.data()); it != slots.end()) {return it->second;}
+                int slot = static_cast<int>(rows.size());
+                rows.push_back(row);
                 diagonal.push_back(0);
-                return slots[h] = slot;
+                return slots[row.data()] = slot;
             }
     };
 }

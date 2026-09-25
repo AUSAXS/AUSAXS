@@ -10,7 +10,6 @@
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/GridExvFFT.h>
 #include <hist/distance_calculator/Calculator.h>
-#include <hist/distance_calculator/CalculatorFF.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
@@ -49,13 +48,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     //##############//
     // SUBMIT TASKS //
     //##############//
-    // the rows of the store: ax (ff) from 0, then wx and xx. the atoms are resolved by form factor on their own side only
-    int n_ff = form_factor::get_active_count();
-    int wx = n_ff, xx = n_ff + 1;
-    distance_calculator::HistogramStore<true> store(xx + 1, bin_count);
+    // the atoms are partitioned by form factor, the waters and excluded volume cells are not
+    distance_calculator::HistogramStore<true> store(bin_count, static_cast<int>(data_a.size()));
+    int ax = store.allocate_2d(), wx = store.allocate_1d();
+#if !defined(POCKETFFT_AVAILABLE)
+    int xx = store.allocate_1d();
+#endif
     distance_calculator::Calculator<true, variable_bin_width> calculator(store);
     calculator.hold();
-    distance_calculator::CalculatorFF<true, variable_bin_width>(calculator).enqueue_cross_by_ff(data_a, data_x, 0);
+    calculator.enqueue_calculate_cross(data_a, data_x, ax, 1);
     calculator.enqueue_calculate_cross(data_w, data_x, wx, 1);
     calculator.release_hold();
 
@@ -71,7 +72,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     calculator.run();
     WeightedDistribution1D p_xx_generic = store.export_1d(xx);
 #endif
-    WeightedDistribution2D p_ax_generic = store.export_2d(0, n_ff);
+    WeightedDistribution2D p_ax_generic = store.export_2d(ax);
     WeightedDistribution1D p_wx_generic = store.export_1d(wx);
 
     // downsize our axes to only the relevant area

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <container/ThreadLocalWrapper.h>
+#include <hist/distance_calculator/DistanceCalculatorFwd.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
@@ -12,13 +13,23 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
-#include <optional>
 #include <span>
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace ausaxs::hist::distance_calculator {
     /**
-     * @brief Temporary storage space for the pairwise distance histograms calculated by the CPU or GPU kernel.
+     * @brief Storage for the results of the pairwise distance histograms queued on a Calculator.
+     *
+     * The caller allocates one result per quantity it needs, before queueing anything into it. The shape of a result
+     * follows from the coordinate sets it is calculated from, where a set is either flat or partitioned into classes():
+     *   - allocate_1d(): a single histogram, for a flat set with itself or with another flat set.
+     *   - allocate_2d(): one histogram per class, for a partitioned set with a flat set.
+     *   - allocate_3d(): one histogram per class pair, for a partitioned set with itself or with another partitioned set.
+     *
+     * The store owns the results. They are only written when the calculator runs, so until then they hold what the
+     * previous run left, and they are zero before the first. Read them with get_*() or move them out with export_*().
      */
     template<bool weighted_bins>
     class HistogramStore {
@@ -29,8 +40,58 @@ namespace ausaxs::hist::distance_calculator {
             using entry_type = typename GenericDistribution1D_t::value_type;
 
             /**
-             * @brief Where the tasks of one handle accumulate, as handed to the kernels in CPUKernel.h.
-             *        Must be obtained from target(), on the thread that enqueues.
+             * @brief Construct an empty store of histograms spanning @a bins bins.
+             * @param classes The number of classes the partitioned coordinate sets are split into.
+             */
+            explicit HistogramStore(int bins, int classes = 1) : n_bins(bins), n_classes(classes) {
+                assert(0 <= bins && 0 < classes && "HistogramStore: invalid size.");
+            }
+
+            HistogramStore(const HistogramStore&) = delete;
+            HistogramStore& operator=(const HistogramStore&) = delete;
+            HistogramStore(HistogramStore&&) = default;
+            HistogramStore& operator=(HistogramStore&&) = default;
+
+            int bins() const {return n_bins;}
+            int classes() const {return n_classes;}
+
+            /**
+             * @brief Allocate a zeroed result of a single histogram, and return its id.
+             */
+            int allocate_1d() {return allocate(GenericDistribution1D_t(n_bins));}
+
+            /**
+             * @brief Allocate a zeroed result of one histogram per class, and return its id.
+             */
+            int allocate_2d() {return allocate(GenericDistribution2D_t(n_classes, n_bins));}
+
+            /**
+             * @brief Allocate a zeroed result of one histogram per class pair, and return its id.
+             */
+            int allocate_3d() {return allocate(GenericDistribution3D_t(n_classes, n_classes, n_bins));}
+
+            /**
+             * @brief The result @a id, as the last run of the calculator left it.
+             */
+            const GenericDistribution1D_t& get_1d(int id) const {return std::get<GenericDistribution1D_t>(results[checked(id)]);}
+            const GenericDistribution2D_t& get_2d(int id) const {return std::get<GenericDistribution2D_t>(results[checked(id)]);} //< @copydoc get_1d
+            const GenericDistribution3D_t& get_3d(int id) const {return std::get<GenericDistribution3D_t>(results[checked(id)]);} //< @copydoc get_1d
+
+            /**
+             * @brief Move the result @a id out of the store. It must not be used again afterwards.
+             */
+            GenericDistribution1D_t export_1d(int id) {return take<GenericDistribution1D_t>(id);}
+            GenericDistribution2D_t export_2d(int id) {return take<GenericDistribution2D_t>(id);} //< @copydoc export_1d
+            GenericDistribution3D_t export_3d(int id) {return take<GenericDistribution3D_t>(id);} //< @copydoc export_1d
+
+        private:
+            template<bool, bool> friend class Calculator;
+            template<bool, bool> friend class detail::CalculatorCPU;
+            template<bool, bool> friend class detail::GPUKernel;
+            using Scratch = container::ThreadLocalWrapper<std::vector<entry_type>>;
+
+            /**
+             * @brief Where the tasks of one row accumulate, as handed to the kernels in CPUKernel.h.
              */
             class Target {
                 public:
@@ -39,121 +100,81 @@ namespace ausaxs::hist::distance_calculator {
                     /**
                      * @brief The calling thread's copy of the row.
                      */
-                    std::span<entry_type> get() const {return store->scratch[handle]->get();}
+                    std::span<entry_type> get() const {return scratch->get();}
 
                 private:
                     friend class HistogramStore;
-                    Target(observer_ptr<HistogramStore> store, int handle) : store(store), handle(handle) {}
+                    explicit Target(observer_ptr<Scratch> scratch) : scratch(scratch) {}
 
-                    observer_ptr<HistogramStore> store;
-                    int handle;
+                    observer_ptr<Scratch> scratch;
             };
 
-            /**
-             * @brief Construct a store of @a rows zeroed rows, each spanning @a bins bins.
-             */
-            HistogramStore(int rows, int bins)
-                : n_rows(rows), n_bins(bins), primary(static_cast<std::size_t>(rows)*bins),
-                  scratch(rows)
-            {assert(0 <= rows && 0 <= bins && "HistogramStore: negative size.");}
-
-            HistogramStore(const HistogramStore&) = delete;
-            HistogramStore& operator=(const HistogramStore&) = delete;
-            HistogramStore(HistogramStore&&) = default;
-            HistogramStore& operator=(HistogramStore&&) = default;
-
-            int rows() const {return n_rows;}
-            int bins() const {return n_bins;}
+            int n_bins, n_classes;
+            std::vector<std::variant<GenericDistribution1D_t, GenericDistribution2D_t, GenericDistribution3D_t>> results;
+            std::unordered_map<entry_type*, Scratch> scratch; // per row with queued calculations, keyed by its first bin
+            std::vector<std::span<entry_type>> resets;        // rows calculated from an empty set, zeroed by the next fold
 
             /**
-             * @brief The bins of the row @a h.
+             * @brief The histogram of the result @a id of allocate_1d(), the one of class @a i of the result @a id of
+             *        allocate_2d(), and the one of the class pair (@a i, @a j) of the result @a id of allocate_3d().
              */
-            std::span<entry_type> row(int h) {
-                assert(0 <= h && h < n_rows && "HistogramStore::row: handle out of bounds.");
-                return {primary.data() + static_cast<std::size_t>(h)*n_bins, static_cast<std::size_t>(n_bins)};
+            std::span<entry_type> row(int id) {
+                auto& result = std::get<GenericDistribution1D_t>(results[checked(id)]);
+                return {result.begin(), result.end()};
             }
-
-            std::span<const entry_type> row(int h) const {
-                assert(0 <= h && h < n_rows && "HistogramStore::row: handle out of bounds.");
-                return {primary.data() + static_cast<std::size_t>(h)*n_bins, static_cast<std::size_t>(n_bins)};
-            } //< @copydoc row(int)
+            std::span<entry_type> row(int id, int i) {return std::get<GenericDistribution2D_t>(results[checked(id)]).row(i);}                //< @copydoc row(int)
+            std::span<entry_type> row(int id, int i, int j) {return std::get<GenericDistribution3D_t>(results[checked(id)]).row(i, j);}      //< @copydoc row(int)
 
             /**
-             * @brief Zero the row @a h.
+             * @brief The target a CPU calculation into @a row accumulates through. Must be called on the thread that enqueues.
              */
-            void clear(int h) {
-                auto r = row(h);
-                std::fill(r.begin(), r.end(), entry_type{});
+            Target target(std::span<entry_type> row) {
+                auto [it, _] = scratch.try_emplace(row.data(), n_bins);
+                return Target(&it->second);
             }
 
             /**
-             * @brief The target a CPU calculation into @a h accumulates through.
+             * @brief Zero @a row on the next fold, since the calculation queued into it has nothing to calculate.
              */
-            Target target(int h) {
-                assert(0 <= h && h < n_rows && "HistogramStore::target: handle out of bounds.");
-                if (!scratch[h].has_value()) {
-                    scratch[h].emplace(n_bins);
-                    touched.push_back(h);
-                }
-                return Target(this, h);
-            }
+            void reset(std::span<entry_type> row) {resets.push_back(row);}
 
             /**
-             * @brief Assign the sum of the per-thread copies of every handle given a target since the last call to its
-             *        row, and free them. This must only be done after all calculations have finished. 
+             * @brief Zero the rows that were reset, and assign every row given a target the sum of its per-thread copies.
+             *        This must only be done after all calculations have finished.
              */
             void fold() {
-                for (int h : touched) {
-                    auto r = row(h);
-                    std::fill(r.begin(), r.end(), entry_type{});
-                    for (const auto& local : scratch[h]->get_all()) {
-                        std::transform(r.begin(), r.end(), local.get().begin(), r.begin(), std::plus<>());
-                    }
-                    scratch[h].reset();
-                }
-                touched.clear();
-            }
-
-            /**
-             * @brief Get the result as a 1D distribution.
-             */
-            GenericDistribution1D_t export_1d(int h) const {
-                auto r = row(h);
-                return GenericDistribution1D_t(std::vector<entry_type>(r.begin(), r.end()));
-            }
-
-            /**
-             * @brief Get the results as a 2D distribution. 
-             */
-            GenericDistribution2D_t export_2d(int first, int n) const {
-                GenericDistribution2D_t result(n, n_bins);
-                for (int i = 0; i < n; ++i) {
-                    auto r = row(first + i);
-                    std::copy(r.begin(), r.end(), result.begin(i));
-                }
-                return result;
-            }
-
-            /**
-             * @brief Get the results as a 3D distribution. 
-             */
-            GenericDistribution3D_t export_3d(int first, int n1, int n2) const {
-                GenericDistribution3D_t result(n1, n2, n_bins);
-                for (int i = 0; i < n1; ++i) {
-                    for (int j = 0; j < n2; ++j) {
-                        auto r = row(first + i*n2 + j);
-                        std::copy(r.begin(), r.end(), result.begin(i, j));
+                for (auto row : resets) {std::fill(row.begin(), row.end(), entry_type{});}
+                resets.clear();
+                for (auto& [start, local] : scratch) {
+                    std::span<entry_type> row(start, static_cast<std::size_t>(n_bins));
+                    std::fill(row.begin(), row.end(), entry_type{});
+                    for (const auto& copy : local.get_all()) {
+                        std::transform(row.begin(), row.end(), copy.get().begin(), row.begin(), std::plus<>());
                     }
                 }
-                return result;
+                scratch.clear();
             }
 
-        private:
-            using Scratch = container::ThreadLocalWrapper<std::vector<entry_type>>;
+            template<typename T>
+            int allocate(T&& result) {
+                // a queued calculation holds a pointer into its result, which must not be moved while it is queued
+                assert(scratch.empty() && resets.empty() && "HistogramStore: results must be allocated before anything is queued.");
+                results.emplace_back(std::forward<T>(result));
+                return static_cast<int>(results.size())-1;
+            }
 
-            int n_rows = 0, n_bins = 0;
-            std::vector<entry_type> primary; // the final, folded storage
-            std::vector<std::optional<Scratch>> scratch; // one per row, lazily allocated
-            std::vector<int> touched; // updated results since the last fold, required for the persistent (partial) managers
+            template<typename T>
+            T take(int id) {
+                assert(scratch.empty() && resets.empty() && "HistogramStore: the calculator must run before its results are exported.");
+                auto& result = std::get<T>(results[checked(id)]);
+                T taken = std::move(result);
+                result = T{};
+                return taken;
+            }
+
+            int checked(int id) const {
+                assert(0 <= id && id < static_cast<int>(results.size()) && "HistogramStore: unknown result id.");
+                return id;
+            }
     };
 }

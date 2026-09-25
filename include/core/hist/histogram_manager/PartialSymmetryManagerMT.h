@@ -49,28 +49,12 @@ namespace ausaxs::hist {
 			std::vector<symmetry::detail::BodySymmetryData<variable_bin_width>> coords;	// a compact representation of the relevant data from the managed bodies
 			hist::detail::CompactCoordinates<variable_bin_width> coords_w;				// a compact representation of the relevant data from the hydration layer
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
-			std::vector<int> recalculated; // the rows queued for recalculation in the current run, see recalculate()
+			std::vector<int> recalculated; // the results queued for recalculation in the current run, see recalculate()
 
-			// the layout of the store, fixed by initialize(). the symmetry index isym runs over the main body (0) and its symmetries (1..)
-			std::vector<int> sym_count; // per body, 1 + its number of symmetries
-			std::vector<int> aa_offset; // per body pair (ibody1, ibody2 <= ibody1), packed as a lower triangle, its first row
-			std::vector<int> aw_offset; // per body, its first row
-
-			/**
-			 * @brief The row of the atom-atom partial histogram between symmetry @a isym1 of body @a ibody1 and symmetry
-			 *        @a isym2 of body @a ibody2, where @a ibody2 <= @a ibody1, and @a isym2 <= @a isym1 if the bodies are the same.
-			 */
-			int handle_aa(int ibody1, int isym1, int ibody2, int isym2) const;
-
-			/**
-			 * @brief The row of the hydration-atom partial histogram of symmetry @a isym of body @a ibody.
-			 */
-			int handle_aw(int ibody, int isym) const;
-
-			/**
-			 * @brief The row of the hydration-hydration partial histogram.
-			 */
-			int handle_ww() const;
+			// the result ids in the store, fixed by initialize(). the symmetry index isym runs over the main body (0) and its symmetries (1..)
+			std::vector<std::vector<std::vector<std::vector<int>>>> aa; // [ibody1][ibody2][isym1][isym2]; only calculated for ibody2 <= ibody1, and isym2 < isym1 or (0, 0) within a body
+			std::vector<std::vector<int>> aw;                           // [ibody][isym]
+			int ww = -1;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 
@@ -90,9 +74,9 @@ namespace ausaxs::hist {
 			void initialize(int bin_count);
 
 			/**
-			 * @brief Take the partial histogram @a h out of the master histogram before it is recalculated.
+			 * @brief Take the partial histogram @a id out of the master histogram before it is recalculated.
 			 */
-			void recalculate(int h);
+			void recalculate(int id);
 
 			/**
 			 * @brief Expand the modification flags for shared reference symmetries.

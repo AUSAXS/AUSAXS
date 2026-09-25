@@ -5,7 +5,6 @@
 
 namespace ausaxs::hist::distance_calculator {
     template<bool weighted_bins, bool variable_bin_width> class Calculator;
-    template<bool weighted_bins, bool variable_bin_width> class CalculatorFF;
     template<bool weighted_bins> class HistogramStore;
 
     namespace detail {
