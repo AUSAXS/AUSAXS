@@ -73,9 +73,9 @@ namespace ausaxs::hist::distance_calculator {
             /**
              * @brief The result @a id, as the last run of the calculator left it.
              */
-            const GenericDistribution1D_t& get_1d(int id) const {return std::get<GenericDistribution1D_t>(results[checked(id)]);}
-            const GenericDistribution2D_t& get_2d(int id) const {return std::get<GenericDistribution2D_t>(results[checked(id)]);} //< @copydoc get_1d
-            const GenericDistribution3D_t& get_3d(int id) const {return std::get<GenericDistribution3D_t>(results[checked(id)]);} //< @copydoc get_1d
+            const GenericDistribution1D_t& get_1d(int id) const {return std::get<GenericDistribution1D_t>(results[check_valid_id(id)]);}
+            const GenericDistribution2D_t& get_2d(int id) const {return std::get<GenericDistribution2D_t>(results[check_valid_id(id)]);} //< @copydoc get_1d
+            const GenericDistribution3D_t& get_3d(int id) const {return std::get<GenericDistribution3D_t>(results[check_valid_id(id)]);} //< @copydoc get_1d
 
             /**
              * @brief Move the result @a id out of the store. It must not be used again afterwards.
@@ -119,11 +119,12 @@ namespace ausaxs::hist::distance_calculator {
              *        allocate_2d(), and the one of the class pair (@a i, @a j) of the result @a id of allocate_3d().
              */
             std::span<entry_type> row(int id) {
-                auto& result = std::get<GenericDistribution1D_t>(results[checked(id)]);
-                return {result.begin(), result.end()};
+                auto& result = std::get<GenericDistribution1D_t>(results[check_valid_id(id)]);
+                assert(static_cast<int>(result.size()) == n_bins && "HistogramStore: calculation queued into an exported result.");
+                return check_live_result({result.begin(), result.end()});
             }
-            std::span<entry_type> row(int id, int i) {return std::get<GenericDistribution2D_t>(results[checked(id)]).row(i);}                //< @copydoc row(int)
-            std::span<entry_type> row(int id, int i, int j) {return std::get<GenericDistribution3D_t>(results[checked(id)]).row(i, j);}      //< @copydoc row(int)
+            std::span<entry_type> row(int id, int i) {return check_live_result(std::get<GenericDistribution2D_t>(results[check_valid_id(id)]).row(i));}           //< @copydoc row(int)
+            std::span<entry_type> row(int id, int i, int j) {return check_live_result(std::get<GenericDistribution3D_t>(results[check_valid_id(id)]).row(i, j));} //< @copydoc row(int)
 
             /**
              * @brief The target a CPU calculation into @a row accumulates through. Must be called on the thread that enqueues.
@@ -166,15 +167,20 @@ namespace ausaxs::hist::distance_calculator {
             template<typename T>
             T take(int id) {
                 assert(scratch.empty() && resets.empty() && "HistogramStore: the calculator must run before its results are exported.");
-                auto& result = std::get<T>(results[checked(id)]);
+                auto& result = std::get<T>(results[check_valid_id(id)]);
                 T taken = std::move(result);
                 result = T{};
                 return taken;
             }
 
-            int checked(int id) const {
+            int check_valid_id(int id) const {
                 assert(0 <= id && id < static_cast<int>(results.size()) && "HistogramStore: unknown result id.");
                 return id;
+            }
+
+            // an exported result is left empty, and fold() would write n_bins entries past its end
+            std::span<entry_type> check_live_result(std::span<entry_type> row) const {
+                return row;
             }
     };
 }

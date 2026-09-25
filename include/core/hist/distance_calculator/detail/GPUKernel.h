@@ -63,9 +63,14 @@ namespace ausaxs::hist::distance_calculator::detail {
                 });
             }
 
-            void hold() {holding = true;}
+            void hold() {
+                // holds do not nest: an inner release_hold() would dispatch the outer group early
+                assert(!holding && "GPUKernel::hold: already holding");
+                holding = true;
+            }
 
             void release_hold() {
+                assert(holding && "GPUKernel::release_hold: not holding");
                 holding = false;
                 flush();
             }
