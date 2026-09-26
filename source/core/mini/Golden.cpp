@@ -10,19 +10,13 @@
 using namespace ausaxs;
 using namespace ausaxs::mini;
 
-Golden::Golden(double(&func)(std::vector<double>)) : Minimizer(func) {}
+Golden::Golden(residual_function func) : Minimizer(std::move(func)) {}
 
-Golden::Golden(std::function<double(std::vector<double>)> func) : Minimizer(std::move(func)) {}
-
-Golden::Golden(double(&func)(std::vector<double>), const Parameter& param) : Minimizer(func) {
+Golden::Golden(residual_function func, const Parameter& param) : Minimizer(std::move(func)) {
     Golden::add_parameter(param);
 }
 
-Golden::Golden(std::function<double(std::vector<double>)> func, const Parameter& param) : Minimizer(std::move(func)) {
-    Golden::add_parameter(param);
-}
-
-Limit Golden::search(Limit bounds) const {
+Limit Golden::search(Limit bounds) {
     // Code adapted from the python implementation from Wikipedia: https://en.wikipedia.org/wiki/Golden-section_search 
     double a = bounds.min, b = bounds.max;
     double temp = a + b;

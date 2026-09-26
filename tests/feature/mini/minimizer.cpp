@@ -12,9 +12,10 @@
 using std::vector;
 using namespace ausaxs;
 
+// every minimized function is a sum of squared residuals, so the test problems are least-squares problems
 struct TestFunction {
-    TestFunction(std::function<double(std::vector<double>)> function, const std::vector<Limit>& bounds, const std::vector<double>& min) : function(std::move(function)), bounds(bounds), min(min) {}
-    TestFunction(std::function<double(std::vector<double>)> function, const Limit& bounds, double min) : TestFunction(std::move(function), vector{bounds}, vector{min}) {}
+    TestFunction(mini::Minimizer::residual_function function, const std::vector<Limit>& bounds, const std::vector<double>& min) : function(std::move(function)), bounds(bounds), min(min) {}
+    TestFunction(mini::Minimizer::residual_function function, const Limit& bounds, double min) : TestFunction(std::move(function), vector{bounds}, vector{min}) {}
 
     std::vector<double> get_center() const {
         std::vector<double> v;
@@ -22,40 +23,47 @@ struct TestFunction {
         return v;
     }
 
-    std::function<double(std::vector<double>)> function;
+    std::vector<mini::Parameter> get_parameters() const {
+        std::vector<mini::Parameter> p;
+        for (int i = 0; i < static_cast<int>(bounds.size()); ++i) {p.emplace_back("p" + std::to_string(i), bounds[i].center(), bounds[i]);}
+        return p;
+    }
+
+    mini::Minimizer::residual_function function;
     std::vector<Limit> bounds;
     std::vector<double> min;
 };
 
-// 1D functions
-static TestFunction problem04([] (std::vector<double> pars) {double x = pars[0]; return -(16*x*x - 24*x + 5)*std::exp(-x);}, Limit(1, 6), 2.868034);
-static TestFunction problem13([] (std::vector<double> pars) {double x = pars[0]; return -std::pow(x, 0.66) - std::pow(1 - x*x, 0.33);}, Limit(0, 1), 1./std::numbers::sqrt2);
-static TestFunction problem18([] (std::vector<double> pars) {double x = pars[0]; return x <= 3 ? (x-2)*(x-2) : 2*std::log(x - 2) + 1;}, Limit(0, 6), 2);
+// noise-free samples of y = A exp(-k t), with A = 3 and k = 0.7
+static std::vector<double> decay_data(double A, double k) {
+    std::vector<double> y;
+    for (int i = 0; i < 50; ++i) {y.push_back(A*std::exp(-k*0.1*i));}
+    return y;
+}
+static std::vector<double> decay_residuals(double A, double k) {
+    static const auto y = decay_data(3, 0.7);
+    auto model = decay_data(A, k);
+    for (int i = 0; i < static_cast<int>(y.size()); ++i) {model[i] -= y[i];}
+    return model;
+}
 
-// 2D functions (nice)
-static TestFunction Decanomial([] (std::vector<double> pars) {
-    double x1 = pars[0], x2 = pars[1]; 
-    return 0.001*std::pow(std::abs(std::pow(x2, 4) + 12*std::pow(x2, 3) + 54*std::pow(x2, 2) + 108*x2 + 81) 
-                        + std::abs(std::pow(x1, 10) - 20*std::pow(x1, 9) + 180*std::pow(x1, 8) - 960*std::pow(x1, 7) + 3360*std::pow(x1, 6) - 
-                              8064*std::pow(x1, 5) + 13340*std::pow(x1, 4) - 15360*std::pow(x1, 3) + 11520*std::pow(x1, 2) - 5120*x1 + 2624), 2);}, 
-    {Limit(0, 2.5), Limit(-4, -2)}, 
-    {2, -3}
+// 1D functions
+static TestFunction decay1d([] (const std::vector<double>& p) {return decay_residuals(3, p[0]);}, Limit(0, 5), 0.7);
+static TestFunction sqrt2([] (const std::vector<double>& p) {return std::vector{p[0]*p[0] - 2};}, Limit(0, 3), std::numbers::sqrt2);
+static TestFunction euler([] (const std::vector<double>& p) {return std::vector{std::log(p[0]) - 1};}, Limit(0.5, 6), std::numbers::e);
+
+// 2D functions
+static TestFunction Rosenbrock([] (const std::vector<double>& p) {return std::vector{1 - p[0], 10*(p[1] - p[0]*p[0])};}, {Limit(-2, 2), Limit(-2, 2)}, {1, 1});
+static TestFunction Beale([] (const std::vector<double>& p) {
+    double x = p[0], y = p[1];
+    return std::vector{1.5 - x + x*y, 2.25 - x + x*y*y, 2.625 - x + x*y*y*y};},
+    {Limit(0, 4), Limit(0, 1)},
+    {3, 0.5}
 );
-static TestFunction Hosaki([] (std::vector<double> pars) {
-    double x1 = pars[0], x2 = pars[1]; 
-    return (1 - 8*x1 + 7*x1*x1 - 7*std::pow(x1, 3)/3 + std::pow(x1, 4)/4)*x2*x2*std::exp(-x2);}, 
-    {Limit(0, 5), Limit(0, 5)}, 
-    {4, 2}
-);
-static TestFunction Rosenbrock([] (std::vector<double> pars) {
-    double x1 = pars[0], x2 = pars[1]; 
-    return std::pow(1-x1, 2) + 100*std::pow(x2-x1*x1, 2);}, 
-    {Limit(-2, 2), Limit(-2, 2)}, 
-    {1, 1}
-);
+static TestFunction decay2d([] (const std::vector<double>& p) {return decay_residuals(p[0], p[1]);}, {Limit(0, 10), Limit(0, 5)}, {3, 0.7});
 
 TEST_CASE("1d_landscape", "[manual]") {
-    mini::Golden mini(problem04.function, {"x1", problem04.bounds[0]});
+    mini::Golden mini(decay1d.function, {"x1", decay1d.bounds[0]});
     auto res = mini.minimize();
 
     SimpleDataset evaluations = mini.get_evaluated_points().as_dataset();
@@ -73,9 +81,9 @@ TEST_CASE("Minimizer: golden") {
         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
     };
 
-    SECTION("problem04") {GoldenTest(problem04);}
-    SECTION("problem13") {GoldenTest(problem13);}
-    SECTION("problem18") {GoldenTest(problem18);}
+    SECTION("decay") {GoldenTest(decay1d);}
+    SECTION("sqrt2") {GoldenTest(sqrt2);}
+    SECTION("euler") {GoldenTest(euler);}
 }
 
 TEST_CASE("Minimizer: scan") {
@@ -94,97 +102,111 @@ TEST_CASE("Minimizer: scan") {
     };
 
     // test with a fine grid
-    SECTION("problem04") {ScanTest1D(problem04);}
-    SECTION("problem13") {ScanTest1D(problem13);}
-    SECTION("problem18") {ScanTest1D(problem18);}
+    SECTION("decay") {ScanTest1D(decay1d);}
+    SECTION("sqrt2") {ScanTest1D(sqrt2);}
+    SECTION("euler") {ScanTest1D(euler);}
 
     // test with a rough grid & let the local minimizer find the actual minima
-    SECTION("problem04 rough") {ScanTest1DRough(problem04);}
-    SECTION("problem13 rough") {ScanTest1DRough(problem13);}
-    SECTION("problem18 rough") {ScanTest1DRough(problem18);}
+    SECTION("decay rough") {ScanTest1DRough(decay1d);}
+    SECTION("sqrt2 rough") {ScanTest1DRough(sqrt2);}
+    SECTION("euler rough") {ScanTest1DRough(euler);}
 }
-
-// TEST_CASE("Minimizer: minimum_explorer") {
-//     auto ExplorerTest1D = [] (const TestFunction& test) {
-//         mini::dlibMinimizer<mini::algorithm::BFGS> mini1(test.function, {{"a", test.bounds[0]}});
-//         auto res = mini1.minimize();
-
-//         mini::Parameter p = res.get_parameter("a");
-//         mini::MinimumExplorer mini2(test.function, p, 100);
-//         res = mini2.minimize();
-//         mini::Golden mini3(test.function, {"a", test.bounds[0]});
-//         SimpleDataset line = mini3.landscape(1000).as_dataset();
-//         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini1.tol));
-//     };
-
-//     // test with a fine grid
-//     SECTION("problem04") {ExplorerTest1D(problem04);}
-//     SECTION("problem13") {ExplorerTest1D(problem13);}
-//     SECTION("problem18") {ExplorerTest1D(problem18);}
-// }
 
 #ifdef DLIB_AVAILABLE
 TEST_CASE("Minimizer: dlib") {
-    auto dlibTest1D = [] (const TestFunction& test, mini::algorithm type) {
+    auto dlibTest = [] (const TestFunction& test, mini::algorithm type) {
+        std::unique_ptr<mini::Minimizer> mini;
         if (type == mini::algorithm::BFGS) {
-            auto mini = mini::dlibMinimizer<mini::algorithm::BFGS>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
-            auto res = mini.minimize();
-            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
-        } else if (type == mini::algorithm::DLIB_GLOBAL) {
-            auto mini = mini::dlibMinimizer<mini::algorithm::DLIB_GLOBAL>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
-            auto res = mini.minimize();
-            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+            mini = std::make_unique<mini::dlibMinimizer<mini::algorithm::BFGS>>(test.function, test.get_parameters());
+        } else {
+            mini = std::make_unique<mini::dlibMinimizer<mini::algorithm::DLIB_GLOBAL>>(test.function, test.get_parameters());
         }
-    };
-
-    auto dlibTest2D = [] (const TestFunction& test, mini::algorithm type) {
-        if (type == mini::algorithm::BFGS) {
-            auto mini = mini::dlibMinimizer<mini::algorithm::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
-            auto res = mini.minimize();
-            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
-            CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
-        } else if (type == mini::algorithm::DLIB_GLOBAL) {
-            auto mini = mini::dlibMinimizer<mini::algorithm::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
-            auto res = mini.minimize();
-            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
-            CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
+        auto res = mini->minimize();
+        for (int i = 0; i < static_cast<int>(test.min.size()); ++i) {
+            CHECK_THAT(res.get_parameter(i).value, Catch::Matchers::WithinAbs(test.min[i], mini->tol));
         }
     };
 
     SECTION("bfgs") {
-        SECTION("problem04") {dlibTest1D(problem04, mini::algorithm::BFGS);}
-        SECTION("problem13") {dlibTest1D(problem13, mini::algorithm::BFGS);}
-        SECTION("problem18") {dlibTest1D(problem18, mini::algorithm::BFGS);}
+        SECTION("decay") {dlibTest(decay1d, mini::algorithm::BFGS);}
+        SECTION("sqrt2") {dlibTest(sqrt2, mini::algorithm::BFGS);}
+        SECTION("euler") {dlibTest(euler, mini::algorithm::BFGS);}
 
-        SECTION("Decanomial") {dlibTest2D(Decanomial, mini::algorithm::BFGS);}
-        SECTION("Hosaki")     {dlibTest2D(Hosaki, mini::algorithm::BFGS);}
-        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::algorithm::BFGS);}
+        SECTION("Rosenbrock") {dlibTest(Rosenbrock, mini::algorithm::BFGS);}
+        SECTION("Beale")      {dlibTest(Beale, mini::algorithm::BFGS);}
+        SECTION("decay2d")    {dlibTest(decay2d, mini::algorithm::BFGS);}
     }
 
     SECTION("dlib_global") {
-        SECTION("problem04") {dlibTest1D(problem04, mini::algorithm::DLIB_GLOBAL);}
-        SECTION("problem13") {dlibTest1D(problem13, mini::algorithm::DLIB_GLOBAL);}
-        SECTION("problem18") {dlibTest1D(problem18, mini::algorithm::DLIB_GLOBAL);}
-
-        SECTION("Decanomial") {dlibTest2D(Decanomial, mini::algorithm::DLIB_GLOBAL);}
-        SECTION("Hosaki")     {dlibTest2D(Hosaki, mini::algorithm::DLIB_GLOBAL);}
-        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::algorithm::DLIB_GLOBAL);}
+        SECTION("decay") {dlibTest(decay1d, mini::algorithm::DLIB_GLOBAL);}
+        SECTION("sqrt2") {dlibTest(sqrt2, mini::algorithm::DLIB_GLOBAL);}
+        SECTION("euler") {dlibTest(euler, mini::algorithm::DLIB_GLOBAL);}
     }
 }
 #endif
 
-TEST_CASE("Minimizer: create_minimizer") {
-    #ifdef DLIB_AVAILABLE
-        SECTION("dlib") {
-            auto dlib = mini::create_minimizer(mini::algorithm::BFGS, problem04.function, {"a", problem04.bounds[0]});
-            auto res = dlib->minimize();
-            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], dlib->tol));
+TEST_CASE("Minimizer: levenberg_marquardt") {
+    auto LMTest = [] (const TestFunction& test) {
+        mini::LevenbergMarquardt mini(test.function, test.get_parameters());
+        auto res = mini.minimize();
+        CHECK(res.status == 0);
+        for (int i = 0; i < static_cast<int>(test.min.size()); ++i) {
+            CHECK_THAT(res.get_parameter(i).value, Catch::Matchers::WithinAbs(test.min[i], 1e-6));
         }
+    };
+
+    SECTION("decay")      {LMTest(decay1d);}
+    SECTION("sqrt2")      {LMTest(sqrt2);}
+    SECTION("euler")      {LMTest(euler);}
+    SECTION("Rosenbrock") {LMTest(Rosenbrock);}
+    SECTION("Beale")      {LMTest(Beale);}
+    SECTION("decay2d")    {LMTest(decay2d);}
+
+    SECTION("Rosenbrock from the classic start") {
+        mini::LevenbergMarquardt mini(Rosenbrock.function, {mini::Parameter("a", -1.2, {-2, 2}), mini::Parameter("b", 1, {-2, 2})});
+        auto res = mini.minimize();
+        CHECK(res.status == 0);
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(1, 1e-6));
+        CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(1, 1e-6));
+    }
+
+    SECTION("exponential decay with offset") {
+        // noise-free y = 3 exp(-0.7 x) + 0.5, so the true parameters must be recovered exactly
+        std::vector<double> x, y;
+        for (int i = 0; i < 50; ++i) {x.push_back(0.1*i); y.push_back(3*std::exp(-0.7*x.back()) + 0.5);}
+        mini::Minimizer::residual_function r = [&] (const std::vector<double>& p) {
+            std::vector<double> res(x.size());
+            for (int i = 0; i < static_cast<int>(x.size()); ++i) {res[i] = y[i] - (p[0]*std::exp(-p[1]*x[i]) + p[2]);}
+            return res;
+        };
+        mini::LevenbergMarquardt mini(r, {mini::Parameter("A", 1, {0, 10}), mini::Parameter("k", 0.1, {0, 5}), mini::Parameter("c", 0, {-5, 5})});
+        auto res = mini.minimize();
+        CHECK(res.status == 0);
+        CHECK_THAT(res.get_parameter("A").value, Catch::Matchers::WithinAbs(3, 1e-6));
+        CHECK_THAT(res.get_parameter("k").value, Catch::Matchers::WithinAbs(0.7, 1e-6));
+        CHECK_THAT(res.get_parameter("c").value, Catch::Matchers::WithinAbs(0.5, 1e-6));
+    }
+
+    SECTION("minimum outside the bounds") {
+        // unconstrained minimum near (3, -1); the box pins the first parameter to its upper bound, while the second is free
+        mini::Minimizer::residual_function r = [] (const std::vector<double>& p) {return std::vector{p[0] - 3, p[1] + 1, 0.1*p[0]*p[1]};};
+        mini::LevenbergMarquardt mini(r, {mini::Parameter("a", 0.5, {0, 2}), mini::Parameter("b", 0, {-5, 5})});
+        auto res = mini.minimize();
+        CHECK(res.status == 0);
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(2, 1e-9));
+        CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(-1/1.04, 1e-6)); // minimizes (b+1)^2 + (0.2b)^2
+    }
+}
+
+TEST_CASE("Minimizer: create_minimizer") {
+    std::vector<mini::algorithm> algorithms = {mini::algorithm::GOLDEN, mini::algorithm::LEVENBERG_MARQUARDT};
+    #ifdef DLIB_AVAILABLE
+        algorithms.push_back(mini::algorithm::BFGS);
     #endif
 
-    SECTION("golden") {
-        auto golden = mini::create_minimizer(mini::algorithm::GOLDEN, problem04.function, {"a", problem04.bounds[0]});
-        auto res = golden->minimize();
-        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], golden->tol));
+    for (auto t : algorithms) {
+        auto mini = mini::create_minimizer(t, euler.function, {"a", euler.min[0] - 1, euler.bounds[0]});
+        auto res = mini->minimize();
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(euler.min[0], mini->tol));
     }
 }

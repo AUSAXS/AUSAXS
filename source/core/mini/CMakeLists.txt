@@ -1,6 +1,7 @@
 target_sources(ausaxs_core PRIVATE 
 	"dlibMinimizer.cpp"
 	"Golden.cpp"
+	"LevenbergMarquardt.cpp"
 	"LimitedScan.cpp"
 	"Minimizer.cpp"
 	"MinimumExplorer.cpp"

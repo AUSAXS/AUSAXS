@@ -15,13 +15,9 @@ namespace ausaxs::mini {
 		public:
 			Scan() = default;
 
-			Scan(double(&func)(std::vector<double>), int evals = 100);
+            Scan(residual_function func, int evals = 100);
 
-            Scan(std::function<double(std::vector<double>)> func, int evals = 100);
-
-            Scan(double(&func)(std::vector<double>), const Parameter& param, int evals = 100);
-
-            Scan(std::function<double(std::vector<double>)> func, const Parameter& param, int evals = 100);
+            Scan(residual_function func, const Parameter& param, int evals = 100);
 
             /**
              * @brief Destructor.

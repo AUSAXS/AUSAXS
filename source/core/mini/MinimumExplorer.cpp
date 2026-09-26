@@ -12,20 +12,11 @@
 using namespace ausaxs;
 using namespace ausaxs::mini;
 
-MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), int evals) : Minimizer(func) {
+MinimumExplorer::MinimumExplorer(residual_function func, int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
 }
 
-MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, int evals) : Minimizer(std::move(func)) {
-    set_max_evals(evals);
-}
-
-MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, int evals) : Minimizer(func) {
-    set_max_evals(evals);
-    MinimumExplorer::add_parameter(param);
-}
-
-MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, int evals) : Minimizer(std::move(func)) {
+MinimumExplorer::MinimumExplorer(residual_function func, const Parameter& param, int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
     MinimumExplorer::add_parameter(param);
 }

@@ -149,7 +149,7 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     if (enabled_fit_parameters.atomic_debye_waller) {
         guess.emplace_back(
             constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC), 
-            0, 
+            0.5, // not 0: the factor exp(-q^2 sigma^2/2) has zero derivative there, so a gradient-based minimizer cannot leave it
             cast_exv(model.get())->get_debye_waller_factor_limits()
         );
     }
@@ -157,7 +157,7 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     if (enabled_fit_parameters.exv_debye_waller) {
         guess.emplace_back(
             constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV), 
-            0, 
+            0.5, // not 0: the factor exp(-q^2 sigma^2/2) has zero derivative there, so a gradient-based minimizer cannot leave it
             cast_exv(model.get())->get_debye_waller_factor_limits()
         );
     }
@@ -178,15 +178,16 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     enabled_fit_parameters.validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
-    if (enabled_fit_parameters.get_enabled_pars_count() == 0) {
-        auto linear_fitter = prepare_linear_fitter({});
-        return linear_fitter.fit();    
+    // with no free parameters only the inner linear fit remains, but the result is assembled the same way
+    mini::Result res(std::vector<mini::FittedParameter>{}, 0, 1);
+    mini::Landscape evaluated_points;
+    if (enabled_fit_parameters.get_enabled_pars_count() != 0) {
+        auto mini = mini::create_minimizer(algorithm, [this] (const std::vector<double>& params) {return get_residuals(params);}, guess);
+        res = mini->minimize();
+        warn_if_parameter_on_bound(guess, res);
+        evaluated_points = mini->get_evaluated_points();
     }
-
-    auto f = [this] (const std::vector<double>& params) {return chi2(params);};
-    auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
-    auto res = mini->minimize();
-    warn_if_parameter_on_bound(guess, res);
+    res.fval = chi2(res.get_parameter_values()); // the minimizer only sees the residuals, so include any terms a subclass adds to chi2
 
     auto linear_fitter = prepare_linear_fitter(res.get_parameter_values());
     auto linear_fit = linear_fitter.fit();
@@ -200,7 +201,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
         linear_fitter.get_model_curve(linear_fit->get_parameter_values()),  // I_fit
         linear_fitter.get_residuals(linear_fit->get_parameter_values())     // residuals
     );
-    fit_result->evaluated_points = mini->get_evaluated_points();            // add the evaluated points
+    fit_result->evaluated_points = std::move(evaluated_points);
     return fit_result;
 }
 
@@ -209,8 +210,7 @@ std::vector<double> SmartFitter::fit_params_only() {
     enabled_fit_parameters.validate_model(model.get());
     if (guess.empty()) {guess = get_default_guess();}
 
-    std::function<double(std::vector<double>)> f = [this](auto && PH1) { return chi2(std::forward<decltype(PH1)>(PH1)); };
-    auto mini = mini::create_minimizer(algorithm, std::move(f), guess);
+    auto mini = mini::create_minimizer(algorithm, [this] (const std::vector<double>& params) {return get_residuals(params);}, guess);
     return mini->minimize().get_parameter_values();
 }
 

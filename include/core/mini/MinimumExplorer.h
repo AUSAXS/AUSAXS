@@ -14,13 +14,9 @@ namespace ausaxs::mini {
 		public:
             MinimumExplorer() = default;
 
-            MinimumExplorer(double(&func)(std::vector<double>), int evals = 100);
+            MinimumExplorer(residual_function func, int evals = 100);
 
-            MinimumExplorer(std::function<double(std::vector<double>)> func, int evals = 100);
-
-            MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, int evals = 100);
-
-            MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, int evals = 100);
+            MinimumExplorer(residual_function func, const Parameter& param, int evals = 100);
 
             /**
              * @brief Destructor.

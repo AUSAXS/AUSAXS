@@ -9,28 +9,16 @@
 #include <utility/Exceptions.h>
 
 #include <functional>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::mini;
-
-namespace {
-    // a plain function has no state to own, so it is captured as a pointer rather than by reference
-    std::function<double(std::vector<double>)> as_function(double(&f)(std::vector<double>)) {
-        return [fp = &f] (std::vector<double> p) {return fp(std::move(p));};
-    }
-}
 
 Minimizer::Minimizer() = default;
 
 Minimizer::~Minimizer() = default;
 
-Minimizer::Minimizer(double(&f)(std::vector<double>)) {
-    _set_function(as_function(f));
-}
-
-Minimizer::Minimizer(std::function<double(std::vector<double>)>&& f) {
-    _set_function(std::move(f));
-}
+Minimizer::Minimizer(residual_function f) : objective(std::move(f)) {}
 
 Result Minimizer::minimize() {
     if (!is_parameter_set()) {throw except::bad_order("Minimizer::minimize: No parameters were supplied.");}
@@ -40,24 +28,27 @@ Result Minimizer::minimize() {
     return minimize_override();
 }
 
-void Minimizer::set_function(double(&f)(std::vector<double>)) {
-    set_function(as_function(f));
+void Minimizer::set_function(residual_function f) {
+    objective = std::move(f);
 }
 
-void Minimizer::set_function(std::function<double(std::vector<double>)>&& f) {
-    _set_function(std::move(f));
+std::vector<double> Minimizer::residuals(const std::vector<double>& params) {
+    auto r = objective(params);
+    fevals++;
+    if (record) {evaluations.evals.emplace_back(params, chi2(r));}
+    return r;
 }
 
-void Minimizer::_set_function(std::function<double(std::vector<double>)>&& f) {
-    raw = std::move(f);
-    wrapper = [this] (std::vector<double> p) {
-        double fval = raw(p);
-        evaluations.evals.emplace_back(std::move(p), fval);
-        fevals++;
-        return fval;
-    };
+double Minimizer::function(const std::vector<double>& params) {
+    return chi2(residuals(params));
+}
 
-    function = wrapper;
+double Minimizer::chi2(const std::vector<double>& r) {
+    return std::transform_reduce(r.begin(), r.end(), 0.0, std::plus{}, [] (double v) {return v*v;});
+}
+
+Minimizer::residual_function Minimizer::get_recording_function() {
+    return [this] (const std::vector<double>& params) {return residuals(params);};
 }
 
 bool Minimizer::empty() const noexcept {
@@ -69,7 +60,7 @@ void Minimizer::clear_parameters() noexcept {
 }
 
 void Minimizer::record_evaluations(bool setting) {
-    function = setting ? wrapper : raw;
+    record = setting;
 }
 
 void Minimizer::add_parameter(const Parameter& param) {
@@ -84,7 +75,7 @@ void Minimizer::clear_evaluated_points() noexcept {
 }
 
 bool Minimizer::is_function_set() const noexcept {
-    return bool(function); // functions are explicitly convertable to a bool which is true if a function has been set
+    return bool(objective); // functions are explicitly convertable to a bool which is true if a function has been set
 }
 
 bool Minimizer::is_parameter_set() const noexcept {
