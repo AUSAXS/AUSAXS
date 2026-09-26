@@ -90,7 +90,7 @@ namespace ausaxs::utility::indexer {
              * @brief The position of the row of the pair (i, j) among the stored rows.
              */
             constexpr int pair_offset(int i, int j) const {
-                if constexpr (S == Shape::Square) {return square::pair_index(i, j, derived().N);}
+                if constexpr (S == Shape::Square) {return square::pair_index(i, j, derived().M);}
                 assert(derived().N == derived().M && "Indexer3D: a triangular container must have equal pair dimensions.");
                 return triangular::pair_index(i, j, derived().N);
             }
