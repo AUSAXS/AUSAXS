@@ -9,8 +9,8 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/detail/SymmetryDetailFwd.h>
+#include <hist/histogram_manager/detail/SymmetryPairIds.h>
 
-#include <cassert>
 #include <memory>
 #include <vector>
 
@@ -52,62 +52,8 @@ namespace ausaxs::hist {
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
 			std::vector<int> recalculated; // the results queued for recalculation in the current run, see recalculate()
 
-			/**
-			 * @brief The store ids of the atom-atom results, one for each pair of symmetries of each body pair.
-			 *        The symmetry index isym runs over the main body (0) and its symmetries (1..).
-			 *        Only the lower triangle is calculated: ibody2 <= ibody1, and within a body isym2 < isym1 or (0, 0).
-			 *        The other pairs get no result, so they cost no histogram.
-			 */
-			class SymmetryPairIds {
-				public:
-					SymmetryPairIds() = default;
-
-					/**
-					 * @brief Lay out the pairs of bodies with @a sym_counts symmetry indices each, and give each calculated pair the id returned by @a allocate.
-					 */
-					template<typename Allocate>
-					SymmetryPairIds(std::vector<int> sym_counts, Allocate&& allocate) : sym_counts(std::move(sym_counts)) {
-						int n = static_cast<int>(this->sym_counts.size());
-						for (int ibody1 = 0; ibody1 < n; ++ibody1) {
-							for (int ibody2 = 0; ibody2 <= ibody1; ++ibody2) {
-								offsets.push_back(static_cast<int>(ids.size()));
-								for (int isym1 = 0; isym1 < this->sym_counts[ibody1]; ++isym1) {
-									for (int isym2 = 0; isym2 < this->sym_counts[ibody2]; ++isym2) {
-										ids.push_back(calculated(ibody1, isym1, ibody2, isym2) ? allocate() : -1);
-									}
-								}
-							}
-						}
-					}
-
-					int id(int ibody1, int isym1, int ibody2, int isym2) const {
-						assert(0 <= ibody2 && ibody2 <= ibody1 && ibody1 < static_cast<int>(sym_counts.size()) && "SymmetryPairIds::id: expected a body pair in the lower triangle");
-						assert(0 <= isym1 && isym1 < sym_counts[ibody1] && 0 <= isym2 && isym2 < sym_counts[ibody2] && "SymmetryPairIds::id: symmetry index out of range; symmetries may not be added after the first calculation");
-						int id = ids[offsets[ibody1*(ibody1+1)/2 + ibody2] + isym1*sym_counts[ibody2] + isym2];
-						assert(id != -1 && "SymmetryPairIds::id: expected a symmetry pair in the lower triangle");
-						return id;
-					}
-
-					/**
-					 * @brief Call @a f with the id of every calculated pair.
-					 */
-					template<typename F>
-					void for_each_id(F&& f) const {
-						for (int id : ids) {if (id != -1) {f(id);}}
-					}
-
-				private:
-					static bool calculated(int ibody1, int isym1, int ibody2, int isym2) {
-						return ibody1 != ibody2 || isym2 < isym1 || (isym1 == 0 && isym2 == 0);
-					}
-
-					std::vector<int> sym_counts; // [ibody]
-					std::vector<int> offsets;    // [ibody1*(ibody1+1)/2 + ibody2], the start of the pair's block in ids
-					std::vector<int> ids;        // each block is [isym1][isym2]; -1 for a pair that is not calculated
-			};
-
 			// the result ids in the store, fixed by initialize()
-			SymmetryPairIds aa;
+			detail::SymmetryPairIds aa;
 			std::vector<std::vector<int>> aw; // [ibody][isym]
 			int ww = -1;
 

@@ -356,7 +356,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize(int
     std::vector<int> sym_counts(this->body_size);
     for (int ibody = 0; ibody < this->body_size; ++ibody) {sym_counts[ibody] = 1 + this->protein->get_body(ibody).size_symmetry();}
     store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(axis.bins);
-    aa = SymmetryPairIds(sym_counts, [this] () {return store->allocate_1d();});
+    aa = detail::SymmetryPairIds(sym_counts, [this] () {return store->allocate_1d();});
     aw.assign(this->body_size, {});
     for (int ibody = 0; ibody < this->body_size; ++ibody) {
         aw[ibody].resize(sym_counts[ibody]);
