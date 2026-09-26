@@ -179,9 +179,10 @@ int molecule_debye(
     molecule->reset_histogram_manager();
     auto hist = molecule->get_histogram();
     auto debye_I = hist->debye_transform();
+    auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
     for (int i = 0; i < debye_I.size(); ++i) {
-        data.q[i] = constants::axes::q_vals[i];
+        data.q[i] = qv[i];
         data.I[i] = debye_I[i];
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
@@ -220,9 +221,10 @@ int molecule_debye_raw(
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
     auto debye_I = hist->debye_transform();
+    auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
     for (int i = 0; i < debye_I.size(); ++i) {
-        data.q[i] = constants::axes::q_vals[i];
+        data.q[i] = qv[i];
         data.I[i] = debye_I[i]*std::exp(data.q[i]*data.q[i]); // remove form factor added by debye transform
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));

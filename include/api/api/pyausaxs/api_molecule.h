@@ -38,6 +38,21 @@ extern "C" API int molecule_distance_histogram(
     int* status
 );
 
+/**
+ * The three Debye families below differ in what they include, and share their q axis:
+ *
+ * - molecule_debye: the molecule's configured model (histogram manager and excluded volume), including its hydration
+ *   shell if it has one. With the default Simple model every atom carries the one Gaussian form factor of the Debye
+ *   transform, so I(q) keeps an overall exp(-q^2); the other exv models apply their per-species form factors instead.
+ * - molecule_debye_raw: the plain binned Debye sum of the atoms and any waters as point scatterers with their weights:
+ *   no excluded volume, and the exp(-q^2) divided out.
+ * - molecule_debye_exact: as _raw, but summed over all pairs without distance binning. Exists only as a reference
+ *   for _raw; far too slow for practical use.
+ *
+ * The variants without a q argument evaluate on the default q axis from settings::axes::qmin to settings::axes::qmax and
+ * return those q values; the _userq variants evaluate at the given q values. The returned id owns the arrays and is
+ * released with deallocate.
+ */
 extern "C" API int molecule_debye(
     int molecule_id,
     double** q, double** I, int* n_points, 
@@ -50,13 +65,13 @@ extern "C" API void molecule_debye_userq(
     int* status
 );
 
-extern "C" int molecule_debye_raw(
+extern "C" API int molecule_debye_raw(
     int molecule_id,
     double** q, double** I, int* n_points,
     int* status
 );
 
-extern "C" void molecule_debye_raw_userq(
+extern "C" API void molecule_debye_raw_userq(
     int molecule_id, 
     double* q, double* I, int n_points,
     int* status

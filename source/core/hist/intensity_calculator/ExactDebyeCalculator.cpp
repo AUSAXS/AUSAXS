@@ -13,7 +13,9 @@
 using namespace ausaxs;
 
 std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, const std::vector<double>& q_vals) {
+    // atoms and waters are summed as one set of scatterers
     auto data = hist::detail::factory::construct_from_atoms<false>(&molecule);
+    data.append(hist::detail::factory::construct_from_waters<false>(&molecule));
     const int data_size = data.size();
 
     auto contribution = [] (double qr, float w) -> double {
