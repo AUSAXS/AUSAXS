@@ -27,9 +27,9 @@ namespace ausaxs::hist::distance_calculator {
      * @brief Queues pairwise distance histogram calculations on the CPU or GPU kernel, into the results of a HistogramStore.
      *        The backend is picked once, on construction, from settings::general::gpu.
      */
-    template<bool weighted_bins, bool variable_bin_width, bool unit_weights>
+    template<bool weighted_bins, bool unit_weights>
     class Calculator {
-        using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
+        using CompactCoordinates_t = hist::detail::CompactCoordinates;
         using PartitionedCoordinates_t = std::vector<CompactCoordinates_t>;
         using Row = std::span<typename HistogramStore<weighted_bins>::entry_type>;
         public:
@@ -117,8 +117,8 @@ namespace ausaxs::hist::distance_calculator {
             observer_ptr<HistogramStore<weighted_bins>> store;
 
             // exactly one of these is engaged, as decided by the constructor
-            std::optional<detail::CalculatorCPU<weighted_bins, variable_bin_width, unit_weights>> cpu;
-            std::optional<detail::GPUKernel<weighted_bins, variable_bin_width, unit_weights>> gpu;
+            std::optional<detail::CalculatorCPU<weighted_bins, unit_weights>> cpu;
+            std::optional<detail::GPUKernel<weighted_bins, unit_weights>> gpu;
 
             void self(const CompactCoordinates_t& a, Row row, int scaling) {
                 assert((cpu.has_value() || gpu.has_value()) && "Calculator: the constructor engages exactly one backend.");

@@ -12,7 +12,6 @@ namespace ausaxs::hist::detail {
      * The bound includes the molecule's atoms and waters, plus transformed corners of
      * each symmetric copy that has not been materialized in the molecule.
      */
-    template<bool variable_bin_width>
     int required_partial_bin_count(const data::Molecule& protein);
 
     /**

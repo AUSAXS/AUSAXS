@@ -4,7 +4,7 @@
 #pragma once
 
 #include <gpu/GPULoader.h>
-#include <hist/detail/data/WidthControllers.h>
+#include <hist/detail/data/BinWidth.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/distance_calculator/detail/CalculatorCPU.h>
 #include <utility/observer_ptr.h>
@@ -25,9 +25,9 @@ namespace ausaxs::hist::distance_calculator::detail {
      *
      * @tparam unit_weights Whether every point weighs 1. The device always multiplies the weights, so they are sent as 1.
      */
-    template<bool weighted_bins, bool variable_bin_width, bool unit_weights>
+    template<bool weighted_bins, bool unit_weights>
     class GPUKernel {
-        using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
+        using CompactCoordinates_t = hist::detail::CompactCoordinates;
         using Row = std::span<typename HistogramStore<weighted_bins>::entry_type>;
         public:
             /**
@@ -116,7 +116,7 @@ namespace ausaxs::hist::distance_calculator::detail {
             bool session_open = false;                              // whether begin() has been issued for the batch being built
             bool holding = false;                                   // whether jobs are being collected into a group, see hold()
             std::deque<std::vector<float>> coordinate_buffers;
-            std::unique_ptr<CalculatorCPU<weighted_bins, variable_bin_width, unit_weights>> cpu;
+            std::unique_ptr<CalculatorCPU<weighted_bins, unit_weights>> cpu;
             bool on_cpu = false;                                    // whether the device was given up on, see switch_to_cpu()
 
             /**
@@ -130,7 +130,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                 const auto& backend = gpu::GPULoader::get();
                 auto status = backend.begin(
                     static_cast<std::int32_t>(store->bins()),
-                    hist::detail::WidthController<variable_bin_width>::get_inv_width(),
+                    hist::detail::inv_bin_width(),
                     weighted_bins
                 );
                 check_status(status, "open a device session");
@@ -142,7 +142,7 @@ namespace ausaxs::hist::distance_calculator::detail {
              * Anything still queued on the device is simply abandoned; the next begin() waits for it before reusing the memory it holds. 
              */
             void switch_to_cpu() {
-                cpu = std::make_unique<CalculatorCPU<weighted_bins, variable_bin_width, unit_weights>>(*store);
+                cpu = std::make_unique<CalculatorCPU<weighted_bins, unit_weights>>(*store);
                 on_cpu = true;
                 for (const auto& job : jobs) {
                     if (job.a2 == nullptr) {cpu->enqueue_calculate_self(*job.a1, job.row, job.factor);}

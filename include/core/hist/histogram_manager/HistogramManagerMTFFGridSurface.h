@@ -12,11 +12,9 @@ namespace ausaxs::hist {
      *        Due to the highly ordered grid structure, weighted bins is required to use this class. 
      *        This class is equivalent to HistogramManagerMTFFGrid, except the excluded volume is separated into an interior and surface component.
      */
-    template<bool variable_bin_width>
-    // NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-    class HistogramManagerMTFFGridSurface : public HistogramManagerMTFFAvg<true, variable_bin_width> {
+    class HistogramManagerMTFFGridSurface : public HistogramManagerMTFFAvg<true> {
         public:
-            using HistogramManagerMTFFAvg<true, variable_bin_width>::HistogramManagerMTFFAvg;
+            using HistogramManagerMTFFAvg<true>::HistogramManagerMTFFAvg;
 
             ~HistogramManagerMTFFGridSurface() override;
 

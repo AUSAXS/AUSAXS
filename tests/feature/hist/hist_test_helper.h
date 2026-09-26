@@ -191,8 +191,8 @@ inline auto get_raw_counts(hist::ICompositeDistanceHistogram* h) {
     return h->get_weighted_counts();
 }
 
-// This function uses template magic to invoke a given function template for all histogram manager variants, including weighted/unweighted and variable/fixed bin width versions.
-// This is PART ONE of a two-part function, where this part handles the histogram managers that only vary in one template parameter.
+// This function uses template magic to invoke a given function template for all histogram manager variants, including weighted/unweighted versions.
+// This is PART ONE of a two-part function, where this part handles the histogram managers that are not templates, so f takes a plain type.
 template<typename F, typename ...Args>
 void invoke_for_all_histogram_manager_variants_one(F&& f, Args&&... args) {
     SECTION("HistogramManagerMTFFGrid") {f.template operator()<hist::HistogramManagerMTFFGrid>((args)...);}
@@ -200,8 +200,8 @@ void invoke_for_all_histogram_manager_variants_one(F&& f, Args&&... args) {
     SECTION("HistogramManagerMTFFGridScalableExv") {f.template operator()<hist::HistogramManagerMTFFGridScalableExv>((args)...);}
 }
 
-// This function uses template magic to invoke a given function template for all histogram manager variants, including weighted/unweighted and variable/fixed bin width versions.
-// This is PART TWO of a two-part function, where this part handles the histogram managers that vary in two template parameters.
+// This function uses template magic to invoke a given function template for all histogram manager variants, including weighted/unweighted versions.
+// This is PART TWO of a two-part function, where this part handles the histogram managers templated on weighted_bins, so f takes a template<bool> class.
 template<typename F, typename ...Args>
 void invoke_for_all_histogram_manager_variants_two(F&& f, Args&&... args) {
     SECTION("HistogramManager") {f.template operator()<hist::HistogramManager>((args)...);}

@@ -6,6 +6,7 @@
 #include <data/Molecule.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
+#include <hist/detail/data/BinWidth.h>
 #include <utility/MultiThreading.h>
 
 #include <cmath>
@@ -14,9 +15,10 @@ using namespace ausaxs;
 
 std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, const std::vector<double>& q_vals) {
     // atoms and waters are summed as one set of scatterers
-    auto data = hist::detail::factory::construct_from_atoms<false>(&molecule);
-    data.append(hist::detail::factory::construct_from_waters<false>(&molecule));
+    auto data = hist::detail::factory::construct_from_atoms(&molecule);
+    data.append(hist::detail::factory::construct_from_waters(&molecule));
     const int data_size = data.size();
+    const float inv_width = hist::detail::inv_bin_width(); // only the exact distances are used, but the kernels also bin them
 
     auto contribution = [] (double qr, float w) -> double {
         if (qr < 1e-9) {
@@ -28,28 +30,28 @@ std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, 
     std::vector<double> I(q_vals.size());
     auto* pool = utility::multi_threading::get_global_pool();
     pool->detach_blocks(0, static_cast<int>(q_vals.size()),
-        [&data, &q_vals, &I, &contribution, data_size] (int start, int end) {
+        [&data, &q_vals, &I, &contribution, data_size, inv_width] (int start, int end) {
             for (int qi = start; qi < end; ++qi) {
                 double q = q_vals[qi];
                 double sum = 0;
                 for (int i = 0; i < data_size; ++i) {
                     int j = i+1;
                     for (; j+7 < data_size; j+=8) {
-                        auto res = hist::detail::xyzw::evaluate_8<false>(data.atom(i), data.block(j));
+                        auto res = hist::detail::xyzw::evaluate_8(data.atom(i), data.block(j), inv_width);
                         for (int k = 0; k < 8; ++k) {
                             sum += contribution(q*res.distances[k], 2*res.weights[k]);
                         }
                     }
 
                     for (; j+3 < data_size; j+=4) {
-                        auto res = hist::detail::xyzw::evaluate_4<false>(data.atom(i), data.block(j));
+                        auto res = hist::detail::xyzw::evaluate_4(data.atom(i), data.block(j), inv_width);
                         for (int k = 0; k < 4; ++k) {
                             sum += contribution(q*res.distances[k], 2*res.weights[k]);
                         }
                     }
 
                     for (; j < data_size; ++j) {
-                        auto res = hist::detail::xyzw::evaluate<false>(data.atom(i), data.block(j));
+                        auto res = hist::detail::xyzw::evaluate(data.atom(i), data.block(j), inv_width);
                         sum += contribution(q*res.distance, 2*res.weight);
                     }
 

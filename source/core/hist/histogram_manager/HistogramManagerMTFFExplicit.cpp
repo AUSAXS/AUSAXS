@@ -16,14 +16,14 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-template<bool wb, bool vbw>
-HistogramManagerMTFFExplicit<wb, vbw>::~HistogramManagerMTFFExplicit() = default;
+template<bool wb>
+HistogramManagerMTFFExplicit<wb>::~HistogramManagerMTFFExplicit() = default;
 
-template<bool wb, bool vbw>
-std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit<wb, vbw>::calculate() {return calculate_all();}
+template<bool wb>
+std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit<wb>::calculate() {return calculate_all();}
 
-template<bool wb, bool vbw>
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vbw>::calculate_all() {
+template<bool wb>
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb>::calculate_all() {
     logging::log("HistogramManagerMTFFExplicit::calculate: starting calculation");
     auto raw = this->compute_raw_distributions();
 
@@ -61,7 +61,5 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     }
 }
 
-template class hist::HistogramManagerMTFFExplicit<false, false>;
-template class hist::HistogramManagerMTFFExplicit<false, true>;
-template class hist::HistogramManagerMTFFExplicit<true, false>;
-template class hist::HistogramManagerMTFFExplicit<true, true>;
+template class hist::HistogramManagerMTFFExplicit<false>;
+template class hist::HistogramManagerMTFFExplicit<true>;

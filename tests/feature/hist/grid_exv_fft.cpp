@@ -66,8 +66,8 @@ TEST_CASE("lattice::self_correlation: matches the pair loop", "[files]") {
     REQUIRE(!exv.interior.empty());
     REQUIRE(exv.interior_sites.size() == exv.interior.size());
 
-    int bin_count = hist::detail::required_bin_count<false>(exv.interior);
-    double inv_bin_width = hist::detail::WidthController<false>::get_inv_width();
+    int bin_count = hist::detail::required_bin_count(exv.interior);
+    double inv_bin_width = hist::detail::inv_bin_width();
     auto lattice = hist::detail::lattice::self_correlation(exv, inv_bin_width, bin_count);
     int n = static_cast<int>(exv.interior.size());
     CHECK(total_count(lattice) == static_cast<double>(n)*(n-1));
@@ -92,8 +92,8 @@ TEST_CASE("lattice::correlations: matches the pair loops", "[files]") {
     REQUIRE(exv.interior_sites.size() == exv.interior.size());
     REQUIRE(exv.surface_sites.size() == exv.surface.size());
 
-    int bin_count = hist::detail::required_bin_count<false>(exv.interior, exv.surface);
-    double inv_bin_width = hist::detail::WidthController<false>::get_inv_width();
+    int bin_count = hist::detail::required_bin_count(exv.interior, exv.surface);
+    double inv_bin_width = hist::detail::inv_bin_width();
     auto lattice = hist::detail::lattice::correlations(exv, inv_bin_width, bin_count);
 
     int n_i = static_cast<int>(exv.interior.size());

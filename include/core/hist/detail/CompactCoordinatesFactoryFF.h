@@ -20,8 +20,7 @@ namespace ausaxs::hist::detail::factory {
      * @brief Construct a weight-based representation of every atom in @a molecule, split by form factor type.
      *        The result is indexed by active form factor index, and types with no atoms get an empty set.
      */
-    template<bool variable_bin_width>
-    std::vector<CompactCoordinates<variable_bin_width>> construct_by_ff_from_atoms(observer_ptr<const data::Molecule> molecule) {
+    inline std::vector<CompactCoordinates> construct_by_ff_from_atoms(observer_ptr<const data::Molecule> molecule) {
         auto map = form_factor::manager::get_active_mapping();
         auto active_index = [&map] (const data::AtomFF& a) {
             if (a.form_factor_type() == form_factor::form_factor_t::UNKNOWN) {
@@ -37,7 +36,7 @@ namespace ausaxs::hist::detail::factory {
         std::vector<int> counts(n_ff, 0);
         for (const auto& a : molecule->iterate_atoms()) {++counts[active_index(a)];}
 
-        std::vector<CompactCoordinates<variable_bin_width>> parts(n_ff);
+        std::vector<CompactCoordinates> parts(n_ff);
         for (int ff = 0; ff < n_ff; ++ff) {parts[ff].resize(counts[ff]);}
 
         std::vector<int> filled(n_ff, 0);

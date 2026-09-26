@@ -30,7 +30,7 @@ namespace ausaxs::hist {
 	/**
 	 * @brief A single-threaded smart distance calculator which efficiently calculates the simple distance histogram.
 	 */
-    template<bool weighted_bins, bool variable_bin_width> 
+    template<bool weighted_bins> 
 	class PartialHistogramManager : public IPartialHistogramManager {
 		public:
 			PartialHistogramManager(observer_ptr<const data::Molecule> protein); 
@@ -51,8 +51,8 @@ namespace ausaxs::hist {
 
 			observer_ptr<const data::Molecule> protein;										// the molecule we are calculating the histogram for
             detail::MasterHistogram<weighted_bins> master;									// the current total histogram
-            std::vector<detail::CompactCoordinates<variable_bin_width>> coords_a;			// a compact representation of the relevant data from the managed bodies
-            detail::CompactCoordinates<variable_bin_width> coords_w;                		// a compact representation of the hydration data
+            std::vector<detail::CompactCoordinates> coords_a;			// a compact representation of the relevant data from the managed bodies
+            detail::CompactCoordinates coords_w;                		// a compact representation of the hydration data
 			container::Container2D<detail::PartialHistogram<weighted_bins>> partials_aa; 	// the partial histograms
 			container::Container1D<detail::HydrationHistogram<weighted_bins>> partials_aw;	// the partial hydration-atom histograms
 			detail::HydrationHistogram<weighted_bins> partials_ww;               			// the partial histogram for the hydration layer

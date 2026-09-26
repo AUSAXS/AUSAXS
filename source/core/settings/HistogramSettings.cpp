@@ -50,7 +50,6 @@ settings::detail::Setting<double> settings::axes::qmax{
 settings::detail::Setting<double> settings::axes::bin_width{
     constants::axes::d_axis.width(),
     [](double& new_width) {
-        settings::internal_state::custom_bin_width = std::abs(constants::axes::d_axis.width() - new_width) >= 1e-6;
         settings::internal_state::inv_bin_width = 1./new_width;
     }
 };

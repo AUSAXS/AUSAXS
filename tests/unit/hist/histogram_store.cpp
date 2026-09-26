@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/detail/data/WidthControllers.h>
+#include <hist/detail/data/BinWidth.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <settings/GeneralSettings.h>
@@ -12,16 +12,16 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 
 namespace {
-    using Coordinates = hist::detail::CompactCoordinates<false>;
-    using Calculator = distance_calculator::Calculator<false, false, UNIT_WEIGHTS>;
+    using Coordinates = hist::detail::CompactCoordinates;
+    using Calculator = distance_calculator::Calculator<false, UNIT_WEIGHTS>;
 
     // points on a line, each at the centre of the given distance bin from the origin
     Coordinates points_at(const std::vector<int>& bins) {
-        double width = 1./hist::detail::WidthController<false>::get_inv_width();
+        double width = 1./hist::detail::inv_bin_width();
         std::vector<Vector3<double>> points;
         points.reserve(bins.size());
         for (int bin : bins) {points.emplace_back(bin*width, 0, 0);}
-        return hist::detail::factory::construct<false>(points);
+        return hist::detail::factory::construct(points);
     }
 
     void self(distance_calculator::HistogramStore<false>& store, const Coordinates& a, int id) {

@@ -20,33 +20,29 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-template<bool variable_bin_width>
-HistogramManagerMTFFGridSurface<variable_bin_width>::~HistogramManagerMTFFGridSurface() = default;
+HistogramManagerMTFFGridSurface::~HistogramManagerMTFFGridSurface() = default;
 
-template<bool variable_bin_width>
-std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridSurface<variable_bin_width>::calculate() {
+std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridSurface::calculate() {
     return calculate_all();
 }
 
-template<bool variable_bin_width>
-grid::exv::GridExcludedVolume HistogramManagerMTFFGridSurface<variable_bin_width>::get_exv() const {
+grid::exv::GridExcludedVolume HistogramManagerMTFFGridSurface::get_exv() const {
     return grid::exv::RawGridWithSurfaceExv::create(this->protein->get_grid());
 }
 
-template<bool variable_bin_width>
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<variable_bin_width>::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::calculate_all() {
     logging::log("HistogramManagerMTFFGridSurface::calculate: starting calculation");
     using XXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::XXContainer;
     using AXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::AXContainer;
     using WXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::WXContainer;
 
-    auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
+    auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
     auto exv = get_exv();
-    auto data_x_i = hist::detail::factory::construct<variable_bin_width>(exv.interior);
-    auto data_x_s = hist::detail::factory::construct<variable_bin_width>(exv.surface);
+    auto data_x_i = hist::detail::factory::construct(exv.interior);
+    auto data_x_s = hist::detail::factory::construct(exv.surface);
     const auto& data_a = *this->data_a_ptr;
     const auto& data_w = *this->data_w_ptr;
-    int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
+    int bin_count = hist::detail::required_bin_count(data_a, data_w, data_x_i, data_x_s);
 
     //##############//
     // SUBMIT TASKS //
@@ -58,7 +54,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 #if !defined(POCKETFFT_AVAILABLE)
     int xx_i = store.allocate_1d(), xx_s = store.allocate_1d(), xx_is = store.allocate_1d();
 #endif
-    distance_calculator::Calculator<true, variable_bin_width, UNIT_WEIGHTS> calculator(store);
+    distance_calculator::Calculator<true, UNIT_WEIGHTS> calculator(store);
     calculator.hold();
     calculator.enqueue_calculate_cross(data_a, data_x_i, ax_i, 1);
     calculator.enqueue_calculate_cross(data_a, data_x_s, ax_s, 1);
@@ -70,7 +66,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 #if defined(POCKETFFT_AVAILABLE)
     // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
     auto p_xx_lattice = detail::lattice::correlations(
-        exv, hist::detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
+        exv, hist::detail::inv_bin_width(), bin_count
     );
     p_xx.interior = std::move(p_xx_lattice.first);
     p_xx.surface  = std::move(p_xx_lattice.second);
@@ -141,6 +137,3 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
         std::move(p_tot_xx)
     );
 }
-
-template class ausaxs::hist::HistogramManagerMTFFGridSurface<true>;
-template class ausaxs::hist::HistogramManagerMTFFGridSurface<false>;

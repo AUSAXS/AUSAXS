@@ -4,5 +4,5 @@
 #pragma once
 
 namespace ausaxs::symmetry::detail {
-    template<bool variable_bin_width> struct BodySymmetryData;
+    struct BodySymmetryData;
 }

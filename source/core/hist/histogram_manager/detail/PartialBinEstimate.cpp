@@ -12,7 +12,6 @@
 
 using namespace ausaxs;
 
-template<bool variable_bin_width>
 int hist::detail::required_partial_bin_count(const data::Molecule& protein) {
     std::vector<Vector3<double>> copies;
     for (const auto& body : protein.get_bodies()) {
@@ -54,7 +53,7 @@ int hist::detail::required_partial_bin_count(const data::Molecule& protein) {
             }
         }
     }
-    return required_bin_count<variable_bin_width>(protein.iterate_atoms(), protein.iterate_waters(), copies);
+    return required_bin_count(protein.iterate_atoms(), protein.iterate_waters(), copies);
 }
 
 int hist::detail::grown_partial_bin_count(int required) {
@@ -62,6 +61,3 @@ int hist::detail::grown_partial_bin_count(int required) {
     constexpr int headroom = 2;
     return std::max(static_cast<int>(std::ceil(required*(1+growth_margin))), required+headroom);
 }
-
-template int hist::detail::required_partial_bin_count<true>(const data::Molecule&);
-template int hist::detail::required_partial_bin_count<false>(const data::Molecule&);

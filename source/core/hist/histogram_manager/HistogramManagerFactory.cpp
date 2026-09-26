@@ -24,7 +24,7 @@ using namespace ausaxs;
 using namespace ausaxs::hist::factory;
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
-    observer_ptr<const data::Molecule> protein, bool weighted_bins, bool variable_bin_width
+    observer_ptr<const data::Molecule> protein, bool weighted_bins
 ) {
     auto choice = settings::hist::get_histogram_manager();
     if (settings::internal_state::prefer_partial_manager && !settings::hist::supports_partial_calculation(choice)) {
@@ -52,28 +52,13 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 break;
         }
     }
-    return construct_histogram_manager(protein, choice, weighted_bins, variable_bin_width);
+    return construct_histogram_manager(protein, choice, weighted_bins);
 }
 
 namespace {
-    template<template<bool, bool> class MANAGER>
-    std::unique_ptr<hist::IHistogramManager> create_manager(observer_ptr<const data::Molecule> protein, bool weighted_bins, bool variable_bin_width) {
-        if (weighted_bins) {
-            if (variable_bin_width) {
-                return std::make_unique<MANAGER<true, true>>(protein);
-            }
-            return std::make_unique<MANAGER<true, false>>(protein);
-        }
-
-        if (variable_bin_width) {
-            return std::make_unique<MANAGER<false, true>>(protein);
-        }
-        return std::make_unique<MANAGER<false, false>>(protein);
-    }
-
     template<template<bool> class MANAGER>
-    std::unique_ptr<hist::IHistogramManager> create_manager(observer_ptr<const data::Molecule> protein, bool variable_bin_width) {
-        if (variable_bin_width) {
+    std::unique_ptr<hist::IHistogramManager> create_manager(observer_ptr<const data::Molecule> protein, bool weighted_bins) {
+        if (weighted_bins) {
             return std::make_unique<MANAGER<true>>(protein);
         }
         return std::make_unique<MANAGER<false>>(protein);
@@ -81,41 +66,41 @@ namespace {
 }
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
-    observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins, bool variable_bin_width
+    observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins
 ) {
     switch (choice) {
         case settings::hist::HistogramManagerChoice::HistogramManager:
-            return create_manager<HistogramManager>(protein, weighted_bins, variable_bin_width);
+            return create_manager<HistogramManager>(protein, weighted_bins);
 
         case settings::hist::HistogramManagerChoice::HistogramManagerMT:
-            return create_manager<HistogramManagerMT>(protein, weighted_bins, variable_bin_width);
+            return create_manager<HistogramManagerMT>(protein, weighted_bins);
 
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-            return create_manager<HistogramManagerMTFFAvg>(protein, weighted_bins, variable_bin_width);
+            return create_manager<HistogramManagerMTFFAvg>(protein, weighted_bins);
 
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
-            return create_manager<HistogramManagerMTFFExplicit>(protein, weighted_bins, variable_bin_width);
+            return create_manager<HistogramManagerMTFFExplicit>(protein, weighted_bins);
 
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: 
-            return create_manager<HistogramManagerMTFFGrid>(protein, variable_bin_width);
+            return std::make_unique<HistogramManagerMTFFGrid>(protein);
 
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: 
-            return create_manager<HistogramManagerMTFFGridSurface>(protein, variable_bin_width);
+            return std::make_unique<HistogramManagerMTFFGridSurface>(protein);
 
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: 
-            return create_manager<HistogramManagerMTFFGridScalableExv>(protein, variable_bin_width);
+            return std::make_unique<HistogramManagerMTFFGridScalableExv>(protein);
 
         case settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT:
-            return create_manager<SymmetryManagerMT>(protein, weighted_bins, variable_bin_width);
+            return create_manager<SymmetryManagerMT>(protein, weighted_bins);
 
         case settings::hist::HistogramManagerChoice::PartialHistogramManager:
-            return create_manager<PartialHistogramManager>(protein, weighted_bins, variable_bin_width);
+            return create_manager<PartialHistogramManager>(protein, weighted_bins);
 
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-            return create_manager<PartialHistogramManagerMT>(protein, weighted_bins, variable_bin_width);
+            return create_manager<PartialHistogramManagerMT>(protein, weighted_bins);
 
         case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
-            return create_manager<PartialSymmetryManagerMT>(protein, weighted_bins, variable_bin_width);
+            return create_manager<PartialSymmetryManagerMT>(protein, weighted_bins);
 
         // case settings::hist::HistogramManagerChoice::DebugManager:
         //     return std::make_unique<DebugManager<true>>(protein);
@@ -124,7 +109,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
         case settings::hist::HistogramManagerChoice::PepsiManager:
         case settings::hist::HistogramManagerChoice::CrysolManager:
             // FoXSManager, PepsiManager, and CrysolManager are all extensions of the HistogramManagerMTFFExplicit method
-            return create_manager<HistogramManagerMTFFExplicit>(protein, weighted_bins, variable_bin_width);
+            return create_manager<HistogramManagerMTFFExplicit>(protein, weighted_bins);
 
         default:
             throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");

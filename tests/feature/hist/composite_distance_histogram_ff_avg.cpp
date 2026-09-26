@@ -78,7 +78,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);
         }
 
-        auto Iq = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
         CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -136,7 +136,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 }
             #endif
         }
-        auto Iq = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
         CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -185,7 +185,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] -= 2*ZX*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);      // -2wx
             Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
         }
-        auto Iq = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
         CHECK(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -217,7 +217,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     settings::general::verbose = false;
     data::Molecule protein("tests/files/2epe.pdb");
-    auto hist_data = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
+    auto hist_data = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
     auto* hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
     auto Iq = hist->debye_transform();
     auto profile_sum = 
@@ -232,7 +232,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
 TEST_CASE("CompositeDistanceHistogramFFAvg: Debye-Waller factors") {
     settings::general::verbose = false;
     data::Molecule protein("tests/files/2epe.pdb");
-    auto h = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
+    auto h = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
     auto* h_cast = static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
 
     auto analytical = [&] (double Ba_, double Bx_) {
@@ -302,7 +302,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: exv term normalization") {
     std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
     Molecule protein(a);
 
-    auto hist_data = hist::HistogramManagerMTFFAvg<false, false>(&protein).calculate_all();
+    auto hist_data = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
     auto* hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
     auto aa = hist->get_profile_aa();
     auto ax = hist->get_profile_ax();

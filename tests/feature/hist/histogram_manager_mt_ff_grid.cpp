@@ -62,7 +62,7 @@ static auto test_normalized = [] (Molecule& protein, const std::function<std::un
         xx1 = std::move(temp_xx);
     }
 
-    auto h_exv = hist::HistogramManager<true, false>(&exv).calculate_all();
+    auto h_exv = hist::HistogramManager<true>(&exv).calculate_all();
     auto xx2 = h_exv->get_ww_counts();
     auto ax2 = h_exv->get_aw_counts();
     auto aa2 = h_exv->get_aa_counts();
@@ -104,7 +104,7 @@ static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::u
     }
 
     // Calculate atom-atom histogram using simple HistogramManager (which uses atom weights directly)
-    auto h_simple = hist::HistogramManager<true, false>(&protein).calculate_all();
+    auto h_simple = hist::HistogramManager<true>(&protein).calculate_all();
     auto aa2 = h_simple->get_aa_counts();
 
     REQUIRE(compare_hist_approx(aa1, aa2));
@@ -121,7 +121,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
             AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
             Molecule protein({Body{std::vector{a1}}});
             set_unity_charge(protein);
-            test_normalized(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+            test_normalized(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
         }
     }
 
@@ -131,7 +131,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
         settings::grid::exv::width = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
-        test_normalized(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+        test_normalized(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
     }
 }
 
@@ -146,7 +146,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
         
         std::vector<AtomFF> atoms = SimpleCube::get_atoms();
         Molecule protein({Body{atoms}});
-        test_absolute_aa(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+        test_absolute_aa(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
     }
 
     SECTION("actual data") {
@@ -154,7 +154,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
         settings::grid::exv::width = 1;
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.clear_hydration();
-        test_absolute_aa(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();});
+        test_absolute_aa(protein, [](const Molecule& protein) {return hist::HistogramManagerMTFFGrid(&protein).calculate_all();});
     }
 }
 
@@ -192,7 +192,7 @@ static auto test_derived = [] () {
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.generate_new_hydration();
 
-        auto h_grid  = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+        auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
         auto h_grids = H(&protein).calculate_all();
 
         auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
@@ -230,11 +230,11 @@ static auto test_derived = [] () {
 
 // Check that the GridSurface histograms are correct
 TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
-    test_derived<HistogramManagerMTFFGridSurface<false>, CompositeDistanceHistogramFFGridSurface>();
+    test_derived<HistogramManagerMTFFGridSurface, CompositeDistanceHistogramFFGridSurface>();
 }
 
 TEST_CASE("HistogramManagerMTFFGridScalableExv::calculate", "[files]") {
-    test_derived<HistogramManagerMTFFGridScalableExv<false>, CompositeDistanceHistogramFFGridScalableExv>();
+    test_derived<HistogramManagerMTFFGridScalableExv, CompositeDistanceHistogramFFGridScalableExv>();
 }
 
 // Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
@@ -262,11 +262,11 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         }
         Molecule exv({Body{std::vector{atoms}}});
 
-        auto h_grid  = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
-        auto h_grids = hist::HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
-        auto h_gridsx= hist::HistogramManagerMTFFGridScalableExv<false>(&protein).calculate_all();
-        auto h_exv   = hist::HistogramManagerMT<true, false>(&exv).calculate_all();
-        auto h_atom  = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
+        auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h_grids = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto h_gridsx= hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+        auto h_exv   = hist::HistogramManagerMT<true>(&exv).calculate_all();
+        auto h_atom  = hist::HistogramManagerMT<true>(&protein).calculate_all();
 
         auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
         auto* h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grids.get());
@@ -289,7 +289,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation
-        auto h = DebugHistogramManagerMTFFGrid<false>(&protein).calculate_all();
+        auto h = DebugHistogramManagerMTFFGrid(&protein).calculate_all();
         auto* h_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h.get());
 
         // check the distance axes
@@ -307,11 +307,11 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         Molecule exv({Body{atoms}});
         set_unity_charge(exv);
 
-        auto h_grid  = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
-        auto h_grids = hist::HistogramManagerMTFFGridSurface<false>(&protein).calculate_all();
-        auto h_gridsx= hist::HistogramManagerMTFFGridScalableExv<false>(&protein).calculate_all();
-        auto h_exv   = hist::HistogramManagerMT<true, false>(&exv).calculate_all();
-        auto h_atom  = hist::HistogramManagerMT<true, false>(&protein).calculate_all();
+        auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+        auto h_grids = hist::HistogramManagerMTFFGridSurface(&protein).calculate_all();
+        auto h_gridsx= hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
+        auto h_exv   = hist::HistogramManagerMT<true>(&exv).calculate_all();
+        auto h_atom  = hist::HistogramManagerMT<true>(&protein).calculate_all();
 
         auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
         auto* h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grid.get());

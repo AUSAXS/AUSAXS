@@ -4,7 +4,7 @@
 #pragma once
 
 #include <constants/ConstantsAxes.h>
-#include <hist/detail/data/WidthControllers.h>
+#include <hist/detail/data/BinWidth.h>
 #include <settings/HistogramSettings.h>
 
 #include <algorithm>
@@ -114,10 +114,10 @@ namespace ausaxs::hist::detail {
      * @brief The number of distance bins required to histogram every pairwise distance within the given sets, as a strict upper bound.
      * @param sets Any number of coordinate sets, or (possibly nested) containers of them.
      */
-    template<bool variable_bin_width, typename... Sets>
+    template<typename... Sets>
     int required_bin_count(const Sets&... sets) {
-        auto inv_bin_width = static_cast<double>(WidthController<variable_bin_width>::get_inv_width());
-        double bins = std::ceil(bin_estimate::max_distance(sets...)*inv_bin_width) + bin_estimate::headroom;
+        auto inv_width = static_cast<double>(inv_bin_width());
+        double bins = std::ceil(bin_estimate::max_distance(sets...)*inv_width) + bin_estimate::headroom;
         assert(std::isfinite(bins) && 0 < bins && "Determined bin count is not finite.");
         return std::max<int>(static_cast<int>(bins), bin_estimate::min_bin_count);
     }

@@ -18,7 +18,7 @@ namespace ausaxs::hist {
 	 *
 	 * This class is not meant for production use. 
 	 */
-	template<bool weighted_bins, bool variable_bin_width>
+	template<bool weighted_bins>
 	class HistogramManager : public IHistogramManager {
 		public:
 			~HistogramManager() override;
