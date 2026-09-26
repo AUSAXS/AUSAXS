@@ -12,9 +12,9 @@
 
 #include <algorithm>
 #include <cassert>
-#include <functional>
+#include <map>
 #include <span>
-#include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -91,7 +91,8 @@ namespace ausaxs::hist::distance_calculator {
             using Scratch = container::ThreadLocalWrapper<std::vector<entry_type>>;
 
             /**
-             * @brief Where the tasks of one row accumulate, as handed to the kernels in CPUKernel.h.
+             * @brief Where the tasks of one row accumulate at one factor, as handed to the kernels in CPUKernel.h.
+             *        Everything accumulated through it is multiplied by that factor when it is folded into the row.
              */
             class Target {
                 public:
@@ -111,7 +112,7 @@ namespace ausaxs::hist::distance_calculator {
 
             int n_bins, n_classes;
             std::vector<std::variant<GenericDistribution1D_t, GenericDistribution2D_t, GenericDistribution3D_t>> results;
-            std::unordered_map<entry_type*, Scratch> scratch; // per row with queued calculations, keyed by its first bin
+            std::map<std::pair<entry_type*, int>, Scratch> scratch; // per (row, factor) with queued calculations, keyed by the first bin of the row
             std::vector<std::span<entry_type>> resets;        // rows calculated from an empty set, zeroed by the next fold
 
             /**
@@ -126,10 +127,13 @@ namespace ausaxs::hist::distance_calculator {
             std::span<entry_type> row(int id, int i, int j) {return check_live_result(std::get<GenericDistribution3D_t>(results[check_valid_id(id)]).row(i, j));} //< @copydoc row(int)
 
             /**
-             * @brief The target a CPU calculation into @a row accumulates through. Must be called on the thread that enqueues.
+             * @brief The target a CPU calculation into @a row accumulates through, scaled by @a factor on the next fold.
+             *        Calculations at different factors into the same row get separate targets, so each can be scaled on its own.
+             *        Must be called on the thread that enqueues.
              */
-            Target target(std::span<entry_type> row) {
-                auto [it, _] = scratch.try_emplace(row.data(), n_bins);
+            Target target(std::span<entry_type> row, int factor) {
+                assert(0 < factor && "HistogramStore: the factor must be positive.");
+                auto [it, _] = scratch.try_emplace(std::pair(row.data(), factor), n_bins);
                 return Target(&it->second);
             }
 
@@ -139,17 +143,26 @@ namespace ausaxs::hist::distance_calculator {
             void reset(std::span<entry_type> row) {resets.push_back(row);}
 
             /**
-             * @brief Zero the rows that were reset, and assign every row given a target the sum of its per-thread copies.
-             *        This must only be done after all calculations have finished.
+             * @brief Zero the rows that were reset, and assign every row given a target the sum over its targets of the
+             *        factor times the sum of its per-thread copies. This must only be done after all calculations have finished.
              */
             void fold() {
                 for (auto row : resets) {std::fill(row.begin(), row.end(), entry_type{});}
                 resets.clear();
-                for (auto& [start, local] : scratch) {
+                entry_type* previous = nullptr;
+                for (auto& [key, local] : scratch) {
+                    auto [start, factor] = key;
                     std::span<entry_type> row(start, static_cast<std::size_t>(n_bins));
-                    std::fill(row.begin(), row.end(), entry_type{});
+
+                    // the targets of a row are adjacent, since the map is ordered by row first
+                    if (start != previous) {std::fill(row.begin(), row.end(), entry_type{});}
+                    previous = start;
+
                     for (const auto& copy : local.get_all()) {
-                        std::transform(row.begin(), row.end(), copy.get().begin(), row.begin(), std::plus<>());
+                        std::transform(
+                            row.begin(), row.end(), copy.get().begin(), row.begin(),
+                            [factor] (const entry_type& sum, const entry_type& bin) {return sum + bin*factor;}
+                        );
                     }
                 }
                 scratch.clear();
