@@ -64,7 +64,7 @@ TEST_CASE("molecule_debye: q axis honours qmin") {
         x.push_back(7*std::sin(1.3*i)); y.push_back(5*std::cos(0.7*i)); z.push_back(0.4*i - 8); w.push_back(6);
     }
     int status = 1;
-    int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), x.size(), &status);
+    int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), static_cast<int>(x.size()), &status);
     REQUIRE(status == 0);
 
     double qmin = GENERATE(1e-4, 0.05, 0.2);
