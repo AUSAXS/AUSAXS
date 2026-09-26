@@ -26,7 +26,7 @@ AtomicDistributions AtomicDistributions::take(CompositeDistanceHistogramFFAvg& b
 }
 
 int AtomicDistributions::grow(int bins) {
-    if (bins <= static_cast<int>(p_tot.size())) {return p_tot.size();}
+    if (bins <= p_tot.size()) {return p_tot.size();}
     p_aa.resize(bins);
     p_aw.resize(bins);
     p_ww.resize(bins);

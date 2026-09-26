@@ -15,7 +15,6 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
-#include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;

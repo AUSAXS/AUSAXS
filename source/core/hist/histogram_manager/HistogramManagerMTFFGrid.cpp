@@ -12,9 +12,8 @@
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/GridExvHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>  // IWYU pragma: keep
 #include <hist/intensity_calculator/DistanceHistogram.h>
-#include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
