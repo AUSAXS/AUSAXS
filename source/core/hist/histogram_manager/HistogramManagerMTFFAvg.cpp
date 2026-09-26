@@ -23,7 +23,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg<wb>::calculate() {ret
 template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb>::calculate_all() {
     logging::log("HistogramManagerMTFFAvg::calculate: starting calculation");
-    auto raw = this->compute_raw_distributions();
+    auto raw = this->compute_distributions();
     double Z_exv_avg = this->protein->size_atom() == 0 ? 0 : this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom();
 
     return std::make_unique<CompositeDistanceHistogramFFAvg>(

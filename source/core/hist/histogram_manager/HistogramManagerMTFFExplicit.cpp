@@ -25,7 +25,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit<wb>::calculate()
 template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb>::calculate_all() {
     logging::log("HistogramManagerMTFFExplicit::calculate: starting calculation");
-    auto raw = this->compute_raw_distributions();
+    auto raw = this->compute_distributions();
 
     switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::FoXS:

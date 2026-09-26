@@ -10,7 +10,7 @@ target_sources(ausaxs_core PRIVATE
 	"histogram_manager/HistogramManager.cpp"
 	"histogram_manager/HistogramManagerFactory.cpp"
 	"histogram_manager/HistogramManagerMT.cpp"
-	"histogram_manager/HistogramManagerMTFFBase.cpp"
+	"histogram_manager/HistogramManagerMTBase.cpp"
 	"histogram_manager/HistogramManagerMTFFAvg.cpp"
 	"histogram_manager/HistogramManagerMTFFExplicit.cpp"
 	"histogram_manager/HistogramManagerMTFFGrid.cpp"
