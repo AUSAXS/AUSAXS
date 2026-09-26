@@ -16,20 +16,19 @@ namespace ausaxs::mini {
      */
     class Minimizer {
         public:
+            /**
+             * @brief The function to be minimized, given as its vector of residuals r(p). The minimized quantity is chi2 = sum_i r_i(p)^2.
+             */
+            using residual_function = std::function<std::vector<double>(const std::vector<double>&)>;
+
             Minimizer();
-            Minimizer(double(&function)(std::vector<double>));
-            Minimizer(std::function<double(std::vector<double>)>&& function);
+            Minimizer(residual_function function);
             virtual ~Minimizer();
 
             /**
              * @brief Set the function to be minimized.
              */
-            virtual void set_function(double(&function)(std::vector<double>));
-
-            /**
-             * @brief Set the function to be minimized.
-             */
-            virtual void set_function(std::function<double(std::vector<double>)>&& function);
+            void set_function(residual_function function);
 
             /**
              * @brief Perform the minimization.
@@ -76,10 +75,32 @@ namespace ausaxs::mini {
             double tol = 1e-4;
         protected:
             std::vector<Parameter> parameters;
-            std::function<double(std::vector<double>)> function = [] (const std::vector<double>&) -> double {throw ausaxs::except::runtime_error("Minimizer::function: Function was not initialized.");};
             mini::Landscape evaluations;
             int fevals = 0;
             int max_evals = 100;
+
+            /**
+             * @brief Evaluate the residuals at the given point.
+             *        The evaluation is recorded with its chi2 unless recording has been disabled.
+             */
+            [[nodiscard]] std::vector<double> residuals(const std::vector<double>& params);
+
+            /**
+             * @brief Evaluate chi2, the sum of the squared residuals, at the given point.
+             *        The evaluation is recorded unless recording has been disabled.
+             */
+            double function(const std::vector<double>& params);
+
+            /**
+             * @brief Get the sum of the squares of a residual vector.
+             */
+            [[nodiscard]] static double chi2(const std::vector<double>& r);
+
+            /**
+             * @brief Get the residual function of this minimizer, such that it can be handed to another minimizer.
+             *        Evaluations made through it are recorded by both.
+             */
+            [[nodiscard]] residual_function get_recording_function();
 
             /**
              * @brief Clear the evaluated points.
@@ -97,14 +118,8 @@ namespace ausaxs::mini {
             [[nodiscard]] bool is_parameter_set() const noexcept;
 
         private:
-            std::function<double(std::vector<double>)> wrapper;
-            std::function<double(std::vector<double>)> raw;
-
-            /**
-             * @brief Install the function to be minimized.
-             *        Non-virtual, so that the constructors can use it without their behaviour depending on a subclass override.
-             */
-            void _set_function(std::function<double(std::vector<double>)>&& function);
+            residual_function objective;
+            bool record = true;
 
             /**
              * @brief The minimization function to be defined by subclasses. 

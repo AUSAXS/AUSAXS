@@ -10,20 +10,11 @@
 using namespace ausaxs;
 using namespace ausaxs::mini;
 
-Scan::Scan(double(&func)(std::vector<double>), int evals) : Minimizer(func) {
+Scan::Scan(residual_function func, int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
 }
 
-Scan::Scan(std::function<double(std::vector<double>)> func, int evals) : Minimizer(std::move(func)) {
-    set_max_evals(evals);
-}
-
-Scan::Scan(double(&func)(std::vector<double>), const Parameter& param, int evals) : Minimizer(func) {
-    set_max_evals(evals);
-    Scan::add_parameter(param);
-}
-
-Scan::Scan(std::function<double(std::vector<double>)> func, const Parameter& param, int evals) : Minimizer(std::move(func)) {
+Scan::Scan(residual_function func, const Parameter& param, int evals) : Minimizer(std::move(func)) {
     set_max_evals(evals);
     Scan::add_parameter(param);
 }
@@ -69,6 +60,6 @@ Result Scan::minimize_override() {
     parameters[0].guess = {}; // remove guess to avoid warning
 
     // record_evaluations(false);
-    mini::Golden golden(function, parameters[0]);
+    mini::Golden golden(get_recording_function(), parameters[0]);
     return golden.minimize();
 }

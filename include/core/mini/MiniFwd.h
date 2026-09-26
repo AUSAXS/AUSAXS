@@ -13,12 +13,11 @@ namespace ausaxs::mini {
         MINIMUM_EXPLORER,
         SCAN,
         LIMITED_SCAN,
+        LEVENBERG_MARQUARDT,
         #if defined(DLIB_AVAILABLE)
             DLIB_GLOBAL,
             BFGS,
-            DEFAULT=DLIB_GLOBAL
-        #else
-            DEFAULT=GOLDEN
         #endif
+        DEFAULT=LEVENBERG_MARQUARDT
     };
 }

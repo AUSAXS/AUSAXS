@@ -15,13 +15,9 @@ namespace ausaxs::mini {
 		public:
             Golden() = default;
 
-            Golden(double(&func)(std::vector<double>));
+            Golden(residual_function func);
 
-            Golden(std::function<double(std::vector<double>)> func);
-
-            Golden(double(&func)(std::vector<double>), const Parameter& param);
-
-            Golden(std::function<double(std::vector<double>)> func, const Parameter& param);
+            Golden(residual_function func, const Parameter& param);
 
             /**
              * @brief Destructor.
@@ -50,6 +46,6 @@ namespace ausaxs::mini {
              * 
 			 * @param bounds The bounds to search within. 
              */
-            Limit search(Limit bounds) const;
+            Limit search(Limit bounds);
 	};
 }

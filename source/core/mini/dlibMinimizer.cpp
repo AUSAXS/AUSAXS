@@ -22,20 +22,10 @@
     dlibMinimizer<algo>::dlibMinimizer() = default;
 
     template<mini::algorithm algo>
-    dlibMinimizer<algo>::dlibMinimizer(std::function<double(double)> function, const Parameter& param) {
-        auto f = [_function = std::move(function)] (std::vector<double> x) {
-            return _function(x[0]);
-        };
-        add_parameter(param);
-        set_function(std::move(f));
-    }
-
-    template<mini::algorithm algo>
-    dlibMinimizer<algo>::dlibMinimizer(std::function<double(std::vector<double>)> function, const std::vector<Parameter>& param) {
+    dlibMinimizer<algo>::dlibMinimizer(residual_function function, const std::vector<Parameter>& param) : Minimizer(std::move(function)) {
         for (const auto& p : param) {
             add_parameter(p);
         }
-        set_function(std::move(function));
     }
 
     template<mini::algorithm algo>

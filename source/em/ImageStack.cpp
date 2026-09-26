@@ -62,7 +62,7 @@ namespace {
     std::shared_ptr<FitResult> last_fit; //? not the prettiest option, but it works for now
 }
 
-std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<SmartFitter> _fitter) {
+std::function<std::vector<double>(const std::vector<double>&)> ImageStack::prepare_function(std::shared_ptr<SmartFitter> _fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
@@ -82,7 +82,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
     // 'this' is ok since prepare_function is private and thus only used within the class itself
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};}); // ensure hydration shell is deterministic
-    return [this, fitter = std::move(_fitter)] (const std::vector<double>& params) -> double {
+    return [this, fitter = std::move(_fitter)] (const std::vector<double>& params) -> std::vector<double> {
         if (settings::em::hydrate) {
             // pointer cast is ok since the type should always be HydrationFitter when hydration is enabled
             fitter->set_guess({mini::Parameter{constants::fit::to_string(constants::fit::Parameters::SCALING_WATER), last_c, {0, 200}}});
@@ -106,7 +106,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
         if (settings::fit::verbose) {
             console::print_text_minor("Step " + std::to_string(counter) + ": Evaluated cutoff value " + std::to_string(params[0]) + " with chi2 " + std::to_string(val));
         }
-        return val;
+        return last_fit->curves.col("residuals");
     }; 
 }
 
@@ -447,7 +447,8 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
-    double fval = func({min_abs.x});
+    func({min_abs.x});
+    double fval = last_fit->fval;
     assert(std::abs(fval - min_abs.y) < 1e-6 && "ImageStack::fit: The minimum found by the minimizer does not match the minimum found in the dataset.");
 
     std::unique_ptr<fitter::EMFitResult> emfit = std::make_unique<EMFitResult>(res, dof+3); // +3 because they'll be subtracted again by the add_fit call

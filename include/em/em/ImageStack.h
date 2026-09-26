@@ -97,7 +97,7 @@ namespace ausaxs::em {
              * @brief Prepare the fitting function. 
              *        Note that the lifetime of the returned function is the same as that of the fitter.
              */
-            std::function<double(std::vector<double>)> prepare_function(std::shared_ptr<fitter::SmartFitter> fitter);
+            std::function<std::vector<double>(const std::vector<double>&)> prepare_function(std::shared_ptr<fitter::SmartFitter> fitter);
 
             /**
              * @brief A helper function for the fitting methods. This performs the actual fit. 
