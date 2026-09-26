@@ -149,7 +149,7 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     if (enabled_fit_parameters.atomic_debye_waller) {
         guess.emplace_back(
             constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_ATOMIC), 
-            0.5, // not 0: the factor exp(-q^2 sigma^2/2) has zero derivative there, so a gradient-based minimizer cannot leave it
+            0.5,
             cast_exv(model.get())->get_debye_waller_factor_limits()
         );
     }
@@ -157,7 +157,7 @@ std::vector<mini::Parameter> SmartFitter::get_default_guess() const {
     if (enabled_fit_parameters.exv_debye_waller) {
         guess.emplace_back(
             constants::fit::to_string(constants::fit::Parameters::DEBYE_WALLER_EXV), 
-            0.5, // not 0: the factor exp(-q^2 sigma^2/2) has zero derivative there, so a gradient-based minimizer cannot leave it
+            0.5,
             cast_exv(model.get())->get_debye_waller_factor_limits()
         );
     }
