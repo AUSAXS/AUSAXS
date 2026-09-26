@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <limits>
 
 using namespace ausaxs;
 
@@ -38,9 +39,44 @@ namespace {
         return matrix::inverse(normal)*rhs;
     }
 
+    // Refine a frame estimate by iteratively averaging the conjugation relation R[k] = F G[k] F^T, projecting back onto SO(3) after each step.
+    Matrix<double> refine_frame(const std::vector<Matrix<double>>& R, const std::vector<Matrix<double>>& G, Matrix<double> F) {
+        for (int iteration = 0; iteration < 200; ++iteration) {
+            Matrix<double> B(3, 3);
+            for (std::size_t k = 1; k < R.size(); ++k) {B += R[k]*F*G[k].transpose();}
+            Matrix<double> F_next = matrix::optimal_rotation(B);
+            double delta = 0;
+            for (int i = 0; i < 3; ++i) {
+                for (int j = 0; j < 3; ++j) {delta += std::abs(F_next(i, j) - F(i, j));}
+            }
+            F = std::move(F_next);
+            if (delta < 1e-12) {break;}
+        }
+        return F;
+    }
+
+    // Squared residual of the linear frame constraints: sum_k ||R[k]F - FG[k]||².
+    double frame_residual(const std::vector<Matrix<double>>& R, const std::vector<Matrix<double>>& G, const Matrix<double>& F) {
+        double r = 0;
+        for (std::size_t k = 1; k < R.size(); ++k) {
+            Matrix<double> D = R[k]*F - F*G[k];
+            for (int i = 0; i < 3; ++i) {
+                for (int j = 0; j < 3; ++j) {r += D(i, j)*D(i, j);}
+            }
+        }
+        return r;
+    }
+
     // Recover the group frame F relating the ideal symmetry operators G[k] to the observed copy rotations R[k] = F G[k] F^T.
-    // An initial estimate is obtained from the linear constraints R[k]F - FG[k] = 0. This seed is projected onto SO(3) and then refined by iteratively 
+    // An initial estimate is obtained from the linear constraints R[k]F - FG[k] = 0. This seed is projected onto SO(3) and then refined by iteratively
     // averaging the conjugation relation above. The result is a rotation matrix F that best maps the ideal group frame onto the observed one.
+    //
+    // The solutions of the linear constraints are F0*C, with F0 the true frame and C any matrix commuting with every G[k]. For the polyhedral groups C
+    // is a multiple of the identity, but for D_n (n > 2) it is diag(a, a, b), and D_2 allows diag(a, b, c). The eigen solver returns an arbitrary vector
+    // in that null space, and when one of its components vanishes the SO(3) projection of the seed is undetermined. It can then land on a two-fold
+    // flip of the frame, which the refinement cannot leave, but which pairs each copy with the wrong group element. So every sign combination of the
+    // null-space basis is tried as a seed, and the frame with the smallest constraint residual kept. At least one combination has all components
+    // well away from zero.
     Matrix<double> solve_frame(const std::vector<Matrix<double>>& R, const std::vector<Matrix<double>>& G) {
         assert(R.size() == G.size() && "solve_frame: rotation/element count mismatch.");
         Matrix<double> Q(9, 9);
@@ -56,28 +92,35 @@ namespace {
             Q += L.transpose()*L;
         }
 
-        auto eig = matrix::symmetric_eigen(Q);
-        const auto& vecF = eig.vectors.front(); // smallest eigenvalue -> initial null-vector estimate
-        Matrix<double> F(3, 3);
-        for (int i = 0; i < 3; ++i) {
-            for (int j = 0; j < 3; ++j) {F(i, j) = vecF[3*i + j];}
+        // the null-space dimension is the dimension of the commutant of the group, which is exactly sum_k tr(G[k])²/|G|.
+        // taken from the group rather than from the eigenvalues, it is independent of noise in the input.
+        double chi_sq = 0;
+        for (const auto& g : G) {
+            double tr = g(0, 0) + g(1, 1) + g(2, 2);
+            chi_sq += tr*tr;
         }
-        if (matrix::det(F) < 0) {F *= -1;} // resolve the sign ambiguity of the null vector
-        F = matrix::optimal_rotation(F); // snap the seed onto SO(3)
+        int null_dim = std::clamp(static_cast<int>(std::lround(chi_sq/static_cast<double>(G.size()))), 1, 3);
 
-        // refine to a valid frame by conjugation averaging
-        for (int iteration = 0; iteration < 200; ++iteration) {
-            Matrix<double> B(3, 3);
-            for (std::size_t k = 1; k < R.size(); ++k) {B += R[k]*F*G[k].transpose();}
-            Matrix<double> F_next = matrix::optimal_rotation(B);
-            double delta = 0;
-            for (int i = 0; i < 3; ++i) {
-                for (int j = 0; j < 3; ++j) {delta += std::abs(F_next(i, j) - F(i, j));}
+        auto eig = matrix::symmetric_eigen(Q); // ascending: the first null_dim vectors span the null space
+        Matrix<double> best_F;
+        double best_residual = std::numeric_limits<double>::infinity();
+        for (int signs = 0; signs < (1 << (null_dim - 1)); ++signs) { // the overall sign is fixed by the determinant below
+            Matrix<double> F(3, 3);
+            for (int v = 0; v < null_dim; ++v) {
+                double s = (0 < v && ((signs >> (v - 1)) & 1) != 0) ? -1 : 1;
+                for (int i = 0; i < 3; ++i) {
+                    for (int j = 0; j < 3; ++j) {F(i, j) += s*eig.vectors[v][3*i + j];}
+                }
             }
-            F = std::move(F_next);
-            if (delta < 1e-12) {break;}
+            if (matrix::det(F) < 0) {F *= -1;} // resolve the sign ambiguity of the null vector
+            F = refine_frame(R, G, matrix::optimal_rotation(F)); // snap the seed onto SO(3) and refine
+            double residual = frame_residual(R, G, F);
+            if (residual < best_residual) {
+                best_residual = residual;
+                best_F = std::move(F);
+            }
         }
-        return F;
+        return best_F;
     }
 
     // Detect the trivial cyclic solution (identity repeat transform). 
