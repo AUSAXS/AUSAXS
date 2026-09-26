@@ -122,7 +122,7 @@ void SmartProteinManager::update_protein(double cutoff) {
         // the protein is not initialized, so simply assign it a new one
         logging::log("SmartProteinManager::update_protein: protein is nullptr or empty. Generating new protein.");
         protein = generate_new_protein(cutoff); 
-        protein->set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+        protein->set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT, settings::exv::ExvMethod::Simple); // the voxel densities are the weights
         previous_cutoff = cutoff;
         return;
     }

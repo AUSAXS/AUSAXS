@@ -80,13 +80,13 @@ static void histogram_benchmarks(const MolSpec& spec) {
 
         BENCHMARK_ADVANCED("Fraser") (Catch::Benchmark::Chronometer meter) {
             data::Molecule mol(spec.pdb);
-            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Fraser);
             meter.measure([&] { return mol.get_histogram(); });
         };
 
         BENCHMARK_ADVANCED("Grid") (Catch::Benchmark::Chronometer meter) {
             data::Molecule mol(spec.pdb);
-            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Grid);
             meter.measure([&] { return mol.get_histogram(); });
         };
     }
@@ -105,7 +105,7 @@ static void intensity_benchmarks(const MolSpec& spec) {
         // Fraser: sinqd cache warm — measures only intensity-profile assembly from cached sinqd values.
         BENCHMARK_ADVANCED("Fraser (sinqd warm)") (Catch::Benchmark::Chronometer meter) {
             data::Molecule mol(spec.pdb);
-            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Fraser);
             auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFExplicit>(
                 dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(mol.get_histogram().release()));
             BenchFFExplicit bench(std::move(*ptr));
@@ -116,7 +116,7 @@ static void intensity_benchmarks(const MolSpec& spec) {
         // Fraser: sinqd cache cold — measures the full Debye inner-product pass + assembly.
         BENCHMARK_ADVANCED("Fraser (sinqd cold)") (Catch::Benchmark::Chronometer meter) {
             data::Molecule mol(spec.pdb);
-            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Fraser);
             auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFExplicit>(
                 dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(mol.get_histogram().release()));
             BenchFFExplicit bench(std::move(*ptr));
@@ -130,7 +130,7 @@ static void intensity_benchmarks(const MolSpec& spec) {
         // Grid: sinqd cache warm.
         BENCHMARK_ADVANCED("Grid (sinqd warm)") (Catch::Benchmark::Chronometer meter) {
             data::Molecule mol(spec.pdb);
-            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Grid);
             auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFGrid>(
                 dynamic_cast<hist::CompositeDistanceHistogramFFGrid*>(mol.get_histogram().release()));
             BenchFFGrid bench(std::move(*ptr));
@@ -141,7 +141,7 @@ static void intensity_benchmarks(const MolSpec& spec) {
         // Grid: sinqd cache cold.
         BENCHMARK_ADVANCED("Grid (sinqd cold)") (Catch::Benchmark::Chronometer meter) {
             data::Molecule mol(spec.pdb);
-            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid);
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Grid);
             auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFGrid>(
                 dynamic_cast<hist::CompositeDistanceHistogramFFGrid*>(mol.get_histogram().release()));
             BenchFFGrid bench(std::move(*ptr));

@@ -219,7 +219,7 @@ int molecule_debye_raw(
 
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::hist::weighted_bins.is_true(), settings::exv::ExvMethod::Simple)->calculate();
     auto debye_I = hist->debye_transform();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
@@ -247,7 +247,7 @@ void molecule_debye_raw_userq(
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     std::vector<double> q_vals(q, q + n_points);
-    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::hist::weighted_bins.is_true(), settings::exv::ExvMethod::Simple)->calculate();
     auto debye_I = hist->debye_transform(q_vals);
     if (debye_I.size() != n_points) {
         hist::detail::SimpleExvModel::enable();

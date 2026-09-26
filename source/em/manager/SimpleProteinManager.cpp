@@ -25,5 +25,5 @@ void em::managers::SimpleProteinManager::update_protein(double cutoff) {
     std::vector<data::AtomFF> converted(atoms.size());
     std::ranges::transform(atoms, converted.begin(), [] (const data::EMAtom& atom) {return atom.get_atom_ff();});
     protein = std::make_unique<data::Molecule>(std::vector{data::Body{converted}});
-    protein->set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+    protein->set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Simple); // the voxel densities are the weights
 }

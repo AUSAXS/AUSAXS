@@ -16,9 +16,9 @@ add_custom_target(benchmarks DEPENDS benchmark_pr benchmark_rigidbody)
 
 # Per-SIMD histogram benchmark variants.
 #
-# Each variant recompiles the hot histogram-manager TU with a specific -march flag so
+# Each variant recompiles the hot histogram-manager TUs with a specific -march flag so
 # the SIMD dispatch macros (__SSE2__, __AVX2__, __AVX512F__) reflect that level.  The
-# fresh object is linked first; GNU ld then skips the matching archive member from
+# fresh objects are linked first; GNU ld then skips the matching archive members from
 # libausaxs_static, so no duplicate-symbol issues arise.
 #
 # Variants:
@@ -30,6 +30,7 @@ add_custom_target(benchmarks DEPENDS benchmark_pr benchmark_rigidbody)
 
 set(_hist_hot_src
     ${CMAKE_SOURCE_DIR}/source/core/hist/histogram_manager/HistogramManagerMT.cpp
+    ${CMAKE_SOURCE_DIR}/source/core/hist/histogram_manager/HistogramManagerMTBase.cpp
 )
 set(_hist_includes
     ${CMAKE_SOURCE_DIR}/include/core

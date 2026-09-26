@@ -17,15 +17,18 @@
  */
 namespace ausaxs::hist::detail::factory {
     /**
-     * @brief Construct a weight-based representation of every atom in @a molecule, split by form factor type.
+     * @brief Construct a weight-based representation of @a atoms, split by form factor type.
      *        The result is indexed by active form factor index, and types with no atoms get an empty set.
+     *
+     * @param atoms Any range of data::AtomFF, traversed twice.
      */
-    inline std::vector<CompactCoordinates> construct_by_ff_from_atoms(observer_ptr<const data::Molecule> molecule) {
+    template<typename Atoms>
+    std::vector<CompactCoordinates> construct_by_ff(const Atoms& atoms) {
         auto map = form_factor::manager::get_active_mapping();
         auto active_index = [&map] (const data::AtomFF& a) {
             if (a.form_factor_type() == form_factor::form_factor_t::UNKNOWN) {
                 throw except::runtime_error(
-                    "factory::construct_by_ff_from_atoms: Attempted to use an atom with UNKNOWN form factor type.\n"
+                    "factory::construct_by_ff: Attempted to use an atom with UNKNOWN form factor type.\n"
                     "Form factor information is required for the selected excluded volume model."
                 );
             }
@@ -34,18 +37,26 @@ namespace ausaxs::hist::detail::factory {
 
         int n_ff = form_factor::get_active_count();
         std::vector<int> counts(n_ff, 0);
-        for (const auto& a : molecule->iterate_atoms()) {++counts[active_index(a)];}
+        for (const auto& a : atoms) {++counts[active_index(a)];}
 
         std::vector<CompactCoordinates> parts(n_ff);
         for (int ff = 0; ff < n_ff; ++ff) {parts[ff].resize(counts[ff]);}
 
         std::vector<int> filled(n_ff, 0);
-        for (const auto& a : molecule->iterate_atoms()) {
+        for (const auto& a : atoms) {
             int ff = active_index(a);
             int k = filled[ff]++;
             parts[ff].set_position(k, a.coordinates());
             parts[ff].get_weight(k) = static_cast<float>(a.weight());
         }
         return parts;
+    }
+
+    /**
+     * @brief Construct a weight-based representation of every atom in @a molecule, split by form factor type.
+     *        The result is indexed by active form factor index, and types with no atoms get an empty set.
+     */
+    inline std::vector<CompactCoordinates> construct_by_ff_from_atoms(observer_ptr<const data::Molecule> molecule) {
+        return construct_by_ff(molecule->iterate_atoms());
     }
 }
