@@ -39,6 +39,11 @@ namespace ausaxs::hist::detail {
             void fill_from_waters(observer_ptr<const data::Molecule> molecule);
 
             /**
+             * @brief Append the contents of @a other.
+             */
+            void append(const CompactCoordinates& other);
+
+            /**
              * @brief Calculate and subtract the average excluded volume charge from each atom to implicitly account for the excluded volume contribution.
              */
             void implicit_excluded_volume(double volume_per_atom);
@@ -144,6 +149,14 @@ inline void ausaxs::hist::detail::CompactCoordinates<vbw>::fill_from_waters(obse
     resize(molecule->size_water());
     int i = 0;
     for (const auto& w : molecule->iterate_waters()) {assign(i++, w);}
+}
+
+template<bool vbw>
+inline void ausaxs::hist::detail::CompactCoordinates<vbw>::append(const CompactCoordinates& other) {
+    _x.insert(_x.end(), other._x.begin(), other._x.end());
+    _y.insert(_y.end(), other._y.begin(), other._y.end());
+    _z.insert(_z.end(), other._z.begin(), other._z.end());
+    _w.insert(_w.end(), other._w.begin(), other._w.end());
 }
 
 template<bool vbw>

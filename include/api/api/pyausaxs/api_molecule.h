@@ -46,8 +46,8 @@ extern "C" API int molecule_distance_histogram(
  *   transform, so I(q) keeps an overall exp(-q^2); the other exv models apply their per-species form factors instead.
  * - molecule_debye_raw: the plain binned Debye sum of the atoms and any waters as point scatterers with their weights:
  *   no excluded volume, and the exp(-q^2) divided out.
- * - molecule_debye_exact: as _raw, but summed over all atom pairs without distance binning, and over the atoms only:
- *   a hydration shell is ignored. Slow; meant as a reference for _raw on a molecule without waters.
+ * - molecule_debye_exact: as _raw, but summed over all pairs without distance binning. Exists only as a reference
+ *   for _raw; far too slow for practical use.
  *
  * The variants without a q argument evaluate on the default q axis from settings::axes::qmin to settings::axes::qmax and
  * return those q values; the _userq variants evaluate at the given q values. The returned id owns the arrays and is
