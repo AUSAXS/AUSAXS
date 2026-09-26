@@ -1,17 +1,62 @@
-// The q values the C API returns alongside a profile must be the ones the profile was computed at, also when qmin is raised.
+// Tests of the molecule_* functions of the C API backing pyausaxs.
 
 #include <api/api_pyausaxs.h>
+#include <api/pyausaxs/api_settings.h>
 #include <settings/HistogramSettings.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <array>
 #include <cmath>
+#include <string>
 #include <vector>
 
 using namespace ausaxs;
 
+TEST_CASE("molecule_distance_histogram: UNKNOWN form factors with Fraser exv model") {
+    // Create atoms without form factor information (like molecule_from_arrays does)
+    std::array x = {0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, -1.0};
+    std::array y = {0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 1.0, -1.0};
+    std::array z = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 1.0, -1.0};
+    std::array w = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    int n_atoms = 9;
+
+    int status = 0;
+
+    // Create molecule from arrays
+    int mol_id = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), n_atoms, &status);
+    REQUIRE(status == 0);
+    REQUIRE(mol_id >= 0);
+
+    // Set problematic settings via C API
+    set_setting("exv_model", "Fraser", &status);
+    REQUIRE(status == 0);
+
+    set_setting("N", "10", &status);
+    set_setting("excluded_volume", "true", &status);
+    set_setting("solvent_density", "true", &status);
+    REQUIRE(status == 0);
+
+    // This should fail when trying to create the histogram because Fraser ExV requires form factor info
+    double *aa, *aw, *ww, *axis;
+    int n_bins;
+    molecule_distance_histogram(mol_id, &aa, &aw, &ww, &axis, &n_bins, &status);
+
+    // We expect this to fail because the Fraser model requires form factor information
+    REQUIRE(status != 0);
+
+    char* error_msg = nullptr;
+    int error_status = 0;
+    get_last_error_msg(&error_msg, &error_status);
+    REQUIRE(error_msg != nullptr);
+
+    std::string error_str(error_msg);
+    CHECK(error_str.find("UNKNOWN form factor") != std::string::npos);
+}
+
+// The q values returned alongside a profile must be the ones the profile was computed at, also when qmin is raised.
 TEST_CASE("molecule_debye: q axis honours qmin") {
     // a small deterministic cluster; the Simple path is enough since only the q labelling is under test
     std::vector<double> x, y, z, w;
