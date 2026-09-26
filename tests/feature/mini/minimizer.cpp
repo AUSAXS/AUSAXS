@@ -19,12 +19,13 @@ struct TestFunction {
 
     std::vector<double> get_center() const {
         std::vector<double> v;
-        std::ranges::for_each(bounds, [&v] (const Limit& lim) {v.push_back(lim.center());});
+        std::ranges::for_each(bounds, [&v] (const Limit& lim) {v.emplace_back(lim.center());});
         return v;
     }
 
     std::vector<mini::Parameter> get_parameters() const {
         std::vector<mini::Parameter> p;
+        p.reserve(static_cast<int>(bounds.size()));
         for (int i = 0; i < static_cast<int>(bounds.size()); ++i) {p.emplace_back("p" + std::to_string(i), bounds[i].center(), bounds[i]);}
         return p;
     }
@@ -37,7 +38,8 @@ struct TestFunction {
 // noise-free samples of y = A exp(-k t), with A = 3 and k = 0.7
 static std::vector<double> decay_data(double A, double k) {
     std::vector<double> y;
-    for (int i = 0; i < 50; ++i) {y.push_back(A*std::exp(-k*0.1*i));}
+    y.reserve(50);
+    for (int i = 0; i < 50; ++i) {y.emplace_back(A*std::exp(-k*0.1*i));}
     return y;
 }
 static std::vector<double> decay_residuals(double A, double k) {
