@@ -37,7 +37,7 @@ namespace ausaxs::hist {
              * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
              */
             CompositeDistanceHistogramFFExplicitBase(
-                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww,
                 hist::Distribution1D&& p_tot
@@ -54,7 +54,7 @@ namespace ausaxs::hist {
              * @param p_tot The total distance histogram. This is only used to extract the bin centers.
              */
             CompositeDistanceHistogramFFExplicitBase(
-                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
                 hist::WeightedDistribution1D&& p_tot

@@ -38,7 +38,7 @@ CompositeDistanceHistogramFFGridSurface::WXContainer CompositeDistanceHistogramF
 }
 
 CompositeDistanceHistogramFFGridSurface::CompositeDistanceHistogramFFGridSurface(
-    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     XXContainer&& xx, // NOLINT 

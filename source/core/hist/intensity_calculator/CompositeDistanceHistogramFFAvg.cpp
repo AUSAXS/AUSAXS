@@ -15,7 +15,7 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 
 CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(
-    hist::Distribution3D&& p_aa,
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
     hist::Distribution2D&& p_aw,
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot,
@@ -23,7 +23,7 @@ CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(
 ) : CompositeDistanceHistogramFFAvgBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), Z_exv_avg(Z_exv_avg) {}
 
 CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(
-    hist::Distribution3D&& p_aa,
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
     hist::Distribution2D&& p_aw,
     hist::Distribution1D&& p_ww,
     hist::WeightedDistribution1D&& p_tot,
@@ -44,11 +44,11 @@ void CompositeDistanceHistogramFFAvg::cache_refresh_intensity_exv(const std::vec
         // ax
         pool->detach_blocks(q0, q0+bins, [this, &cx, q0, Z, ff_table] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+                for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
                     for (int q = start; q < end; ++q) {
-                        cache.intensity_profiles.ax[q-q0] += Z*free_params.crho*cx[q-q0]*cache.sinqd.aa.index(ff1, ff2, q-q0)*(
-                            ff_table->index(ff1, form_factor::exv_bin).evaluate(q) + ff_table->index(ff2, form_factor::exv_bin).evaluate(q)
-                        );
+                        cache.intensity_profiles.ax[q-q0] += Z*free_params.crho*cx[q-q0]*cache.sinqd.aa.index(ff1, ff2, q-q0)
+                            *(ff_table->index(ff1, form_factor::exv_bin).evaluate(q) + ff_table->index(ff2, form_factor::exv_bin).evaluate(q))
+                        ;
                     }
                 }
             }
@@ -57,10 +57,11 @@ void CompositeDistanceHistogramFFAvg::cache_refresh_intensity_exv(const std::vec
         // xx
         pool->detach_blocks(q0, q0+bins, [this, &cx, q0, Z, ff_table] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+                for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
                     for (int q = start; q < end; ++q) {
                         cache.intensity_profiles.xx[q-q0] += std::pow(Z*cx[q-q0]*free_params.crho, 2)*cache.sinqd.aa.index(ff1, ff2, q-q0)
-                            *ff_table->index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
+                            *ff_table->index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q)
+                        ;
                     }
                 }
             }
@@ -73,7 +74,8 @@ void CompositeDistanceHistogramFFAvg::cache_refresh_intensity_exv(const std::vec
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (int q = start; q < end; ++q) {
                     cache.intensity_profiles.wx[q-q0] += 2*Z*free_params.crho*cx[q-q0]*free_params.cw*cache.sinqd.aw.index(ff1, q-q0)
-                        *ff_table->index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
+                        *ff_table->index(form_factor::exv_bin, form_factor::water_bin).evaluate(q)
+                    ;
                 }
             }
         });

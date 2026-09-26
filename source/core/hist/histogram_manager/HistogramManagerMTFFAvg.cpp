@@ -27,7 +27,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb, vbw>::c
     double Z_exv_avg = this->protein->size_atom() == 0 ? 0 : this->protein->get_volume_grid()*constants::charge::density::water/this->protein->size_atom();
 
     return std::make_unique<CompositeDistanceHistogramFFAvg>(
-        Distribution3D(std::move(raw.p_aa)), 
+        Distribution3D<hist::Shape::Triangular>(std::move(raw.p_aa)), 
         Distribution2D(std::move(raw.p_aw)), 
         Distribution1D(std::move(raw.p_ww)), 
         std::move(raw.p_tot),

@@ -30,14 +30,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
     switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::FoXS:
             return std::make_unique<CompositeDistanceHistogramFoXS>(
-                Distribution3D(std::move(raw.p_aa)), 
+                Distribution3D<hist::Shape::Triangular>(std::move(raw.p_aa)), 
                 Distribution2D(std::move(raw.p_aw)), 
                 Distribution1D(std::move(raw.p_ww)),
                 std::move(raw.p_tot)
             );
         case settings::exv::ExvMethod::Pepsi:
             return std::make_unique<CompositeDistanceHistogramPepsi>(
-                Distribution3D(std::move(raw.p_aa)), 
+                Distribution3D<hist::Shape::Triangular>(std::move(raw.p_aa)), 
                 Distribution2D(std::move(raw.p_aw)), 
                 Distribution1D(std::move(raw.p_ww)),
                 std::move(raw.p_tot),
@@ -45,7 +45,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
             );
         case settings::exv::ExvMethod::CRYSOL:
             return std::make_unique<CompositeDistanceHistogramCrysol>(
-                Distribution3D(std::move(raw.p_aa)), 
+                Distribution3D<hist::Shape::Triangular>(std::move(raw.p_aa)), 
                 Distribution2D(std::move(raw.p_aw)), 
                 Distribution1D(std::move(raw.p_ww)),
                 std::move(raw.p_tot),
@@ -53,7 +53,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb, vb
             );
         default:
             return std::make_unique<CompositeDistanceHistogramFFExplicit>(
-                Distribution3D(std::move(raw.p_aa)), 
+                Distribution3D<hist::Shape::Triangular>(std::move(raw.p_aa)), 
                 Distribution2D(std::move(raw.p_aw)), 
                 Distribution1D(std::move(raw.p_ww)),
                 std::move(raw.p_tot)

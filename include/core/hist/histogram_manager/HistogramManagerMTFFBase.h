@@ -29,7 +29,7 @@ namespace ausaxs::hist {
 			 * @brief The raw pairwise distance distributions, before any excluded volume accounting.
 			 */
 			struct RawDistributions {
-				typename GenericDistribution3D<weighted_bins>::type p_aa; // ff_type1, ff_type2, distance
+				typename GenericDistribution3D<weighted_bins, Shape::Triangular>::type p_aa; // unordered (ff_type1, ff_type2), distance
 				typename GenericDistribution2D<weighted_bins>::type p_aw; // ff_type, distance
 				typename GenericDistribution1D<weighted_bins>::type p_ww; // distance
 				typename GenericDistribution1D<weighted_bins>::type p_tot;

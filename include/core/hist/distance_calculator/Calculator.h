@@ -80,7 +80,6 @@ namespace ausaxs::hist::distance_calculator {
 
             /**
              * @brief Queue the cross-correlation of the partitioned sets @a a1 and @a a2 into the allocate_3d() @a result.
-             *        The (k1, k2) histogram holds class k1 of @a a1 against class k2 of @a a2.
              */
             void enqueue_calculate_cross(const PartitionedCoordinates_t& a1, const PartitionedCoordinates_t& a2, int result, int pair_factor) {
                 assert(static_cast<int>(a1.size()) == store->classes() && static_cast<int>(a2.size()) == store->classes() && "Calculator: expected one set per class of the store.");

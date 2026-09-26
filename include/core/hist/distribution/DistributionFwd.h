@@ -3,11 +3,15 @@
 
 #pragma once
 
+#include <math/indexers/Shape.h>
+
 namespace ausaxs::hist {
+    using utility::indexer::Shape;
+
     class Distribution1D;
     class Distribution2D;
-    class Distribution3D;
+    template<Shape S = Shape::Square> class Distribution3D;
     class WeightedDistribution1D;
     class WeightedDistribution2D;
-    class WeightedDistribution3D;
+    template<Shape S = Shape::Square> class WeightedDistribution3D;
 }

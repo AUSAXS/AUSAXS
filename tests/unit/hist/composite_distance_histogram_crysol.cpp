@@ -27,7 +27,7 @@ namespace {
     template<typename T>
     T construct(const Molecule& molecule) {
         constexpr int n = form_factor::total_ff_count;
-        return T(hist::Distribution3D(n, n, 1), hist::Distribution2D(n, 1), hist::Distribution1D(1), hist::Distribution1D(1), &molecule);
+        return T(hist::Distribution3D<hist::Shape::Triangular>(n, n, 1), hist::Distribution2D(n, 1), hist::Distribution1D(1), hist::Distribution1D(1), &molecule);
     }
 }
 

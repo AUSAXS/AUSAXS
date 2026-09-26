@@ -21,7 +21,7 @@ namespace ausaxs::hist::detail::grid_exv {
 	 * @brief The distributions of a form factor-averaged result, which the grid-based managers extend with their own excluded volume.
 	 */
 	struct AtomicDistributions {
-		Distribution3D p_aa;
+		Distribution3D<hist::Shape::Triangular> p_aa;
 		Distribution2D p_aw;
 		Distribution1D p_ww;
 		WeightedDistribution1D p_tot;

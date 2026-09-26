@@ -7,16 +7,16 @@
 #include <hist/distribution/WeightedDistribution3D.h>
 
 namespace ausaxs::hist {
-    template <bool UseWeightedContainer>
+    template <bool UseWeightedContainer, Shape S = Shape::Square>
     struct GenericDistribution3D;
 
-    template <>
-    struct GenericDistribution3D<true> {
-        using type = WeightedDistribution3D;
+    template <Shape S>
+    struct GenericDistribution3D<true, S> {
+        using type = WeightedDistribution3D<S>;
     };
 
-    template <>
-    struct GenericDistribution3D<false> {
-        using type = Distribution3D;
+    template <Shape S>
+    struct GenericDistribution3D<false, S> {
+        using type = Distribution3D<S>;
     };
 }
