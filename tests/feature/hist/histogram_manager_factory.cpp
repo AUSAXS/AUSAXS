@@ -23,20 +23,27 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
-template<typename MANAGER> constexpr settings::hist::HistogramManagerChoice choice_for();
-template<template<bool> class MANAGER> constexpr settings::hist::HistogramManagerChoice choice_for();
+// the kind of manager and the excluded volume model which the factory turns into MANAGER
+struct Request {
+    settings::hist::HistogramManagerChoice kind;
+    settings::exv::ExvMethod exv;
+};
+template<typename MANAGER> constexpr Request request_for();
+template<template<bool> class MANAGER> constexpr Request request_for();
 
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManager>() {return settings::hist::HistogramManagerChoice::HistogramManager;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMT>() {return settings::hist::HistogramManagerChoice::HistogramManagerMT;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFAvg>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFExplicit>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::SymmetryManagerMT>() {return settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::PartialHistogramManager>() {return settings::hist::HistogramManagerChoice::PartialHistogramManager;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::PartialHistogramManagerMT>() {return settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::PartialSymmetryManagerMT>() {return settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFGrid>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFGridSurface>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface;}
-template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMTFFGridScalableExv>() {return settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;}
+using Choice = settings::hist::HistogramManagerChoice;
+using Exv = settings::exv::ExvMethod;
+template<> constexpr Request request_for<hist::HistogramManager>() {return {Choice::HistogramManager, Exv::Simple};}
+template<> constexpr Request request_for<hist::HistogramManagerMT>() {return {Choice::HistogramManagerMT, Exv::Simple};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFAvg>() {return {Choice::HistogramManagerMT, Exv::Average};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFExplicit>() {return {Choice::HistogramManagerMT, Exv::Fraser};}
+template<> constexpr Request request_for<hist::SymmetryManagerMT>() {return {Choice::HistogramSymmetryManagerMT, Exv::Simple};}
+template<> constexpr Request request_for<hist::PartialHistogramManager>() {return {Choice::PartialHistogramManager, Exv::Simple};}
+template<> constexpr Request request_for<hist::PartialHistogramManagerMT>() {return {Choice::PartialHistogramManagerMT, Exv::Simple};}
+template<> constexpr Request request_for<hist::PartialSymmetryManagerMT>() {return {Choice::PartialHistogramSymmetryManagerMT, Exv::Simple};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFGrid>() {return {Choice::HistogramManagerMT, Exv::Grid};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFGridSurface>() {return {Choice::HistogramManagerMT, Exv::GridSurface};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFGridScalableExv>() {return {Choice::HistogramManagerMT, Exv::GridScalable};}
 
 TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") {
     auto exv = settings::exv::exv_method.value;
@@ -72,12 +79,31 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
         CHECK(dynamic_cast<hist::PartialSymmetryManagerMT<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
     }
 
-    SECTION("preference is dropped when the excluded volume method has no partial implementation") {
-        settings::internal_state::prefer_partial_manager = true;
+    SECTION("form factor models get the form factor variant of each kind") {
         settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
+        settings::internal_state::prefer_partial_manager = false;
+        CHECK(dynamic_cast<hist::HistogramManagerMTFFExplicit<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::SymmetryManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+
+        settings::internal_state::prefer_partial_manager = true;
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialSymmetryManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+
+        // the single-threaded partial manager is a weighted reference implementation, so the form factor models use the MT one
+        settings::general::threads = 1;
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+
+        settings::internal_state::prefer_partial_manager = false;
+        settings::exv::exv_method = settings::exv::ExvMethod::Average;
+        CHECK(dynamic_cast<hist::HistogramManagerMTFFAvg<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+    }
+
+    SECTION("preference is dropped when the excluded volume model has no partial implementation") {
+        settings::internal_state::prefer_partial_manager = true;
+        settings::exv::exv_method = settings::exv::ExvMethod::Grid;
 
         // the excluded volume model wins: it changes the result, whereas dropping the partial preference only costs time
-        CHECK(dynamic_cast<hist::HistogramManagerMTFFExplicit<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::HistogramManagerMTFFGrid*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
     }
 
     settings::exv::exv_method = exv;
@@ -88,20 +114,25 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
 TEST_CASE("HistogramManagerFactory: creates expected manager") {
     Molecule protein({Body{SimpleCube::get_atoms()}});
 
+    // the surface and scalable grid managers are only used when the excluded volume is fitted
+    auto fit_excluded_volume = settings::fit::fit_excluded_volume;
+    settings::fit::fit_excluded_volume = true;
+
     invoke_for_all_histogram_manager_variants(
         []<typename MANAGER>(const Molecule& protein) {
-            auto hm = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
+            constexpr auto request = request_for<MANAGER>();
+            auto hm = hist::factory::construct_histogram_manager(&protein, request.kind, true, request.exv);
             REQUIRE(dynamic_cast<MANAGER*>(hm.get()) != nullptr);
         },
         []<template<bool> class MANAGER>(const Molecule& protein) {
-            settings::hist::weighted_bins = false;
-            auto hm = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
+            constexpr auto request = request_for<MANAGER>();
+            auto hm = hist::factory::construct_histogram_manager(&protein, request.kind, false, request.exv);
             REQUIRE(dynamic_cast<MANAGER<false>*>(hm.get()) != nullptr);
 
-            settings::hist::weighted_bins = true;
-            auto hm_w = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
+            auto hm_w = hist::factory::construct_histogram_manager(&protein, request.kind, true, request.exv);
             REQUIRE(dynamic_cast<MANAGER<true>*>(hm_w.get()) != nullptr);
         },
         protein
     );
+    settings::fit::fit_excluded_volume = fit_excluded_volume;
 }

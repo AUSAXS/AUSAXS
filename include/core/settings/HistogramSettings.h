@@ -4,6 +4,7 @@
 #pragma once
 
 #include <settings/ExportMacro.h>
+#include <settings/ExvSettings.h>
 #include <settings/SettingsHelper.h>
 
 #include <string_view>
@@ -21,25 +22,20 @@ namespace ausaxs::settings {
 
     /// @brief Settings selecting how distance histograms are computed.
     struct EXPORT hist {
-        /// @brief The available histogram-manager implementations; see get_histogram_manager().
+        /**
+         * @brief The available kinds of histogram manager; see get_histogram_manager().
+         *
+         * A kind only decides how the histogram is recalculated. Which variant of it is used follows from the excluded volume
+         * model, settings::exv::exv_method: the simple model weights each atom, the form factor models resolve the atoms by form
+         * factor type, and the grid models have their own managers, which always recalculate everything.
+         */
         enum class HistogramManagerChoice {
-            HistogramManager,                    // A simple manager that recalculates the entire histogram every time.
-            HistogramManagerMT,                  // A multithreaded implementation of the simple manager.
-            HistogramManagerMTFFAvg,             // A multithreaded implementation of the simple manager that uses precalculated form factor products and an average for the excluded volume.
-            HistogramManagerMTFFExplicit,        // A multithreaded implementation of the simple manager that uses precalculated form factor products for both the protein and the excluded volume. 
-            HistogramManagerMTFFGrid,            // A multithreaded implementation of the simple manager using a grid-based approach to evaluate the excluded volume. 
-            HistogramManagerMTFFGridSurface,     // A multithreaded implementation of the simple manager using a grid-based approach to evaluate the excluded volume with a surface correction.
-            HistogramManagerMTFFGridScalableExv, // A multithreaded implementation of the simple manager using a grid-based approach to evaluate a scalable excluded volume.
-            HistogramSymmetryManagerMT,          // A multithreaded implementation of the partial symmetry manager.
-            PartialHistogramManager,             // A smart manager that only recalculates the parts of the histogram that have been changed between each call. 
+            HistogramManager,                    // A single-threaded manager that recalculates the entire histogram every time. A reference implementation, for the simple model only.
+            HistogramManagerMT,                  // A multithreaded manager that recalculates the entire histogram every time.
+            HistogramSymmetryManagerMT,          // A multithreaded manager for molecules with symmetries, evaluating each symmetric copy only once.
+            PartialHistogramManager,             // A single-threaded manager that only recalculates the parts of the histogram that have been changed between each call. A reference implementation, for the simple model only.
             PartialHistogramManagerMT,           // A multithreaded implementation of the partial manager.
-            // PartialHistogramManagerMTFFAvg,      // A multithreaded implementation of the partial manager that uses precalculated form factor products and an average for the excluded volume.
-            // PartialHistogramManagerMTFFExplicit, // A multithreaded implementation of the partial manager that uses precalculated form factor products for both the protein and the excluded volume. 
-            // PartialHistogramManagerMTFFGrid,     // A multithreaded implementation of the partial manager using a grid-based approach to evaluate the excluded volume.
-            PartialHistogramSymmetryManagerMT,   // A multithreaded implementation of the partial symmetry manager.
-            FoXSManager,                         // A manager that mimics the FoXS method to evaluate the scattering intensity.
-            PepsiManager,                        // A manager that mimics the Pepsi method to evaluate the scattering intensity.
-            CrysolManager,                       // A manager that mimics the Crysol method to evaluate the scattering intensity.
+            PartialHistogramSymmetryManagerMT,   // A multithreaded implementation of the partial manager for molecules with symmetries.
             Count,
         };
         struct WeightedBins {
@@ -63,14 +59,17 @@ namespace ausaxs::settings {
         static WeightedBins weighted_bins;
 
         /**
-         * @brief Get the histogram manager corresponding to the current combination of excluded volume model and number of threads.
+         * @brief Get the kind of histogram manager corresponding to the current number of threads and partial preference.
          */
         static HistogramManagerChoice get_histogram_manager();
 
         /**
          * @brief Check if a manager supports partial calculations, where only the contributions of a changed body are recalculated.
          *        These are the only managers suitable for iterative optimization, where a single body is moved between each evaluation.
+         *
+         * @param choice The kind of manager.
+         * @param exv_method The excluded volume model, which decides the variant of the kind. The grid models have no partial variant.
          */
-        static bool supports_partial_calculation(HistogramManagerChoice choice);
+        static bool supports_partial_calculation(HistogramManagerChoice choice, exv::ExvMethod exv_method = exv::exv_method);
     };
 }

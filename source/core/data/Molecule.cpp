@@ -74,16 +74,13 @@ void Molecule::lazy_histogram_manager_init() const {
     }
 
     // First build the cheap representation. Ordering must be measured from the atom-atom component: hydration can hide sharp peaks in the total p(r).
-    const auto choice = settings::hist::get_histogram_manager();
     settings::hist::weighted_bins = false;
     phm = hist::factory::construct_histogram_manager(this, false);
     bind_body_signallers();
     const auto histogram = phm->calculate_all();
     const bool ordered = hist::DistanceHistogram::is_highly_ordered(histogram->get_aa_counts().get_content());
 
-    const bool grid = choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid
-        || choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface
-        || choice == settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv;
+    const bool grid = hist::factory::uses_grid_exv();
     settings::hist::weighted_bins = ordered || grid;
 
     if (settings::hist::weighted_bins.is_true()) {
@@ -379,8 +376,8 @@ void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> ma
     bind_body_signallers();
 }
 
-void Molecule::set_histogram_manager(settings::hist::HistogramManagerChoice choice) {
-    phm = hist::factory::construct_histogram_manager(this, choice);
+void Molecule::set_histogram_manager(settings::hist::HistogramManagerChoice choice, settings::exv::ExvMethod exv_method) {
+    phm = hist::factory::construct_histogram_manager(this, choice, settings::hist::weighted_bins.is_true(), exv_method);
     bind_body_signallers();
 }
 

@@ -3,36 +3,35 @@
 
 #include <settings/SettingsValidation.h>
 
+#include <hist/detail/SimpleExvModel.h>
 #include <settings/All.h>
 #include <utility/Console.h>
 
 using namespace ausaxs;
 
 void settings::validate_settings() {
-    // check for exv fitting support
-    switch (settings::hist::get_histogram_manager()) {
-        // the following managers do not support exv fitting
-        case settings::hist::HistogramManagerChoice::HistogramManager:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMT:
-        case settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManager:
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-        case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
+    // check for exv fitting support: the simple models have no separate excluded volume to fit
+    switch (settings::exv::exv_method) {
+        case settings::exv::ExvMethod::None:
+            ausaxs::hist::detail::SimpleExvModel::disable(); // no excluded volume at all, so not even the effective charges of the simple model
+            [[fallthrough]];
+        case settings::exv::ExvMethod::Simple:
             if (settings::fit::fit_excluded_volume) {
-                console::print_warning("Warning: The chosen histogram manager does not support excluded volume fitting. Disabling excluded volume fitting.");
+                console::print_warning("Warning: The chosen excluded volume model does not support excluded volume fitting. Disabling excluded volume fitting.");
                 settings::fit::fit_excluded_volume = false;
             }
+            break;
 
-        // we explicitly write each case to ensure we will get a compiler warning for new managers in the future
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
-        case settings::hist::HistogramManagerChoice::FoXSManager:
-        case settings::hist::HistogramManagerChoice::PepsiManager:
-        case settings::hist::HistogramManagerChoice::CrysolManager:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv:
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface:
-        case settings::hist::HistogramManagerChoice::Count:
+        // we explicitly write each case to ensure we will get a compiler warning for new models in the future
+        case settings::exv::ExvMethod::Average:
+        case settings::exv::ExvMethod::Fraser:
+        case settings::exv::ExvMethod::Grid:
+        case settings::exv::ExvMethod::GridSurface:
+        case settings::exv::ExvMethod::GridScalable:
+        case settings::exv::ExvMethod::CRYSOL:
+        case settings::exv::ExvMethod::FoXS:
+        case settings::exv::ExvMethod::Pepsi:
+        case settings::exv::ExvMethod::WAXSiS:
             break;
     }
 
