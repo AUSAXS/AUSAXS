@@ -4,7 +4,6 @@
 #include <hist/histogram_manager/HistogramManagerMTBase.h>
 
 #include <data/Molecule.h>  // IWYU pragma: keep
-#include <form_factor/FormFactorType.h>
 #include <hist/detail/AtomOrdering.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
@@ -13,9 +12,7 @@
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
 
-#include <algorithm>
 #include <cassert>
-#include <functional>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -27,7 +24,6 @@ HistogramManagerMTBase<wb, ff>::~HistogramManagerMTBase() = default;
 template<bool wb, bool ff>
 typename HistogramManagerMTBase<wb, ff>::Distributions HistogramManagerMTBase<wb, ff>::compute_distributions() {
     assert(this->protein != nullptr && "HistogramManagerMTBase::compute_distributions: Molecule is not set.");
-    using GenericDistribution1D_t = typename GenericDistribution1D<wb>::type;
 
     // the waters are a single set either way; with form factors their weights are simply never read
     data_w_ptr = std::make_unique<CompactCoordinates>(factory::construct_from_waters(this->protein));
@@ -64,35 +60,7 @@ typename HistogramManagerMTBase<wb, ff>::Distributions HistogramManagerMTBase<wb
     calculator.release_hold();
     calculator.run();
 
-    Distributions res;
-    res.p_ww = store.export_1d(ww);
-    res.p_tot = GenericDistribution1D_t(bin_count);
-    auto add = [&p_tot = res.p_tot] (auto begin) {std::transform(p_tot.begin(), p_tot.end(), begin, p_tot.begin(), std::plus<>());};
-    if constexpr (ff) {
-        res.p_aa = store.export_3d(aa);
-        res.p_aw = store.export_2d(aw);
-
-        // no atom has the excluded volume type, so its rows are empty; they are skipped to make that explicit
-        int n_ff = form_factor::get_active_count();
-        for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_ff; ++ff1) {
-            for (int ff2 = ff1; ff2 < n_ff; ++ff2) {add(res.p_aa.begin(ff1, ff2));}
-            add(res.p_aw.begin(ff1));
-        }
-    } else {
-        res.p_aa = store.export_1d(aa);
-        res.p_aw = store.export_1d(aw);
-        add(res.p_aa.begin());
-        add(res.p_aw.begin());
-    }
-    add(res.p_ww.begin());
-
-    // downsize our axes to only the relevant area
-    int max_bin = hist::detail::trimmed_bin_count(res.p_tot);
-    res.p_aa.resize(max_bin);
-    res.p_aw.resize(max_bin);
-    res.p_ww.resize(max_bin);
-    res.p_tot.resize(max_bin);
-    return res;
+    return hist::detail::export_distributions<wb, ff>(store, aa, aw, ww);
 }
 
 template class hist::HistogramManagerMTBase<false, false>;

@@ -23,6 +23,7 @@ target_sources(ausaxs_core PRIVATE
 	"histogram_manager/detail/SymmetryHelpers.cpp"
 	"histogram_manager/detail/PartialBinEstimate.cpp"
 	"histogram_manager/detail/GridExvHelpers.cpp"
+	"histogram_manager/detail/ManagerResults.cpp"
 
 	"distribution/Distribution1D.cpp"
 	"distribution/Distribution2D.cpp"

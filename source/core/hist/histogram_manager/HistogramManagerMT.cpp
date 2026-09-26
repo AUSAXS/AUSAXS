@@ -3,8 +3,7 @@
 
 #include <hist/histogram_manager/HistogramManagerMT.h>
 
-#include <hist/distribution/Distribution1D.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
@@ -19,13 +18,8 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMT<wb>::calculate() {return c
 template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb>::calculate_all() {
     logging::log("HistogramManagerMT::calculate: starting calculation");
-    auto res = this->compute_distributions();
-    return std::make_unique<CompositeDistanceHistogram>(
-        Distribution1D(std::move(res.p_aa)),
-        Distribution1D(std::move(res.p_aw)),
-        Distribution1D(std::move(res.p_ww)),
-        std::move(res.p_tot)
-    );
+    // the simple model has no excluded volume method to choose
+    return hist::detail::make_histogram(this->compute_distributions(), settings::exv::ExvMethod::Simple, this->protein);
 }
 
 template class hist::HistogramManagerMT<false>;

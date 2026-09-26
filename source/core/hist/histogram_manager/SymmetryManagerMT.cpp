@@ -5,13 +5,15 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <form_factor/FormFactorType.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
-#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <utility/Logging.h>
 
 #include <ranges>
@@ -21,46 +23,56 @@ using namespace ausaxs;
 using namespace ausaxs::hist::detail;
 using namespace ausaxs::symmetry::detail;
 
-template<bool weighted_bins>
-hist::SymmetryManagerMT<weighted_bins>::SymmetryManagerMT(observer_ptr<const data::Molecule> protein) : protein(protein) {}
+template<bool weighted_bins, bool form_factors>
+hist::SymmetryManagerMTBase<weighted_bins, form_factors>::SymmetryManagerMTBase(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method) 
+    : protein(protein), exv_method(exv_method) 
+{}
 
-template<bool weighted_bins>
-std::unique_ptr<hist::DistanceHistogram> hist::SymmetryManagerMT<weighted_bins>::calculate() {
+template<bool weighted_bins, bool form_factors>
+std::unique_ptr<hist::DistanceHistogram> hist::SymmetryManagerMTBase<weighted_bins, form_factors>::calculate() {
     return calculate_all();
 }
 
-template<bool weighted_bins>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins>::calculate_all() {
+template<bool weighted_bins, bool form_factors>
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<weighted_bins, form_factors>::calculate_all() {
     if (protein->size_water() == 0) {
         return calculate<false>();
     }
     return calculate<true>();
 }
 
-template<bool weighted_bins> template <bool contains_waters>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins>::calculate() {
+template<bool weighted_bins, bool form_factors> template <bool contains_waters>
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<weighted_bins, form_factors>::calculate() {
     logging::log("SymmetryManagerMT::calculate: starting calculation");
-
-    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 
     // start by generating the transformed data
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
-    auto[data, data_w] = generate_transformed_data(*protein);
+    auto[data, data_w] = generate_transformed_data<form_factors>(*protein);
+    if constexpr (!form_factors) {
+        for (auto& body : data) {
+            for (auto& copies : body.atomic) {
+                for (auto& copy : copies) {hist::detail::SimpleExvModel::apply_simple_excluded_volume(copy, protein);}
+            }
+        }
+    }
 
     // the per-body data is a struct rather than a range, so project out the coordinate sets for the estimator
     auto atomic = data | std::views::transform([] (const auto& body) -> const auto& {return body.atomic;});
     int bin_count = hist::detail::required_bin_count(atomic, data_w);
 
-    // every self and cross contribution of a kind sums into the same row
-    hist::distance_calculator::HistogramStore<weighted_bins> store(bin_count);
-    int aa = store.allocate_1d(), aw = store.allocate_1d(), ww = store.allocate_1d();
-    hist::distance_calculator::Calculator<weighted_bins> calculator(store);
+    // every self and cross contribution of a kind sums into the same result; with form factors the atoms are partitioned by type
+    hist::distance_calculator::HistogramStore<weighted_bins> store(bin_count, form_factors ? form_factor::get_active_count() : 1);
+    int aa = form_factors ? store.allocate_3d() : store.allocate_1d();
+    int aw = form_factors ? store.allocate_2d() : store.allocate_1d();
+    int ww = store.allocate_1d();
+    hist::distance_calculator::Calculator<weighted_bins, form_factors> calculator(store);
+    constexpr int aw_pair_factor = form_factors ? 1 : 2; // see HistogramManagerMTBase
 
     const auto& waters = data_w;
 
     // resolve a (body, symmetry, repetition) triple to its transformed coordinates;
     // repetition 0 is the original body, 1..N are the generated copies
-    auto atomic_at = [&data](int i_body, int i_sym, int rep) -> const CompactCoordinates& {
+    auto atomic_at = [&data](int i_body, int i_sym, int rep) -> const AtomicCoordinates<form_factors>& {
         return rep == 0 ? data[i_body].atomic[0][0] : data[i_body].atomic[1+i_sym][rep-1];
     };
 
@@ -70,7 +82,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
         // every copy has identical internal distances, so evaluate once and scale
         calculator.enqueue_calculate_self(body1_atomic, aa, 1 + body.size_symmetry_total());
         if constexpr (contains_waters) {
-            calculator.enqueue_calculate_cross(waters, body1_atomic, aw, 2);
+            calculator.enqueue_calculate_cross(body1_atomic, waters, aw, aw_pair_factor);
         }
 
         for (int i_sym1 = 0; i_sym1 < body.size_symmetry(); ++i_sym1) {
@@ -94,7 +106,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                 // this copy against everything it can pair with, as one group
                 calculator.hold();
                 if constexpr (contains_waters) {
-                    calculator.enqueue_calculate_cross(waters, body1_sym_atomic, aw, 2);
+                    calculator.enqueue_calculate_cross(body1_sym_atomic, waters, aw, aw_pair_factor);
                 }
 
                 // external histograms with other bodies
@@ -151,37 +163,10 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     calculator.run();
 
     // without waters, aw and ww were never named, and are still zero
-    GenericDistribution1D_t p_aa = store.export_1d(aa);
-    GenericDistribution1D_t p_aw = store.export_1d(aw);
-    GenericDistribution1D_t p_ww = store.export_1d(ww);
-
-    // calculate p_tot
-    GenericDistribution1D_t p_tot(bin_count);
-    for (int i = 0; i < static_cast<int>(p_tot.size()); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
-
-    // downsize our axes to only the relevant area
-    int max_bin = hist::detail::trimmed_bin_count(p_tot);
-    p_aa.resize(max_bin);
-    p_ww.resize(max_bin);
-    p_aw.resize(max_bin);
-    p_tot.resize(max_bin);
-
-    if constexpr (weighted_bins) {
-        return std::make_unique<hist::CompositeDistanceHistogram>(
-            hist::Distribution1D(std::move(p_aa)), 
-            hist::Distribution1D(std::move(p_aw)), 
-            hist::Distribution1D(std::move(p_ww)), 
-            std::move(p_tot)
-        );
-    } else {
-        return std::make_unique<hist::CompositeDistanceHistogram>(
-            std::move(p_aa), 
-            std::move(p_aw), 
-            std::move(p_ww), 
-            std::move(p_tot)
-        );
-    }
+    return hist::detail::make_histogram(hist::detail::export_distributions<weighted_bins, form_factors>(store, aa, aw, ww), exv_method, protein);
 }
 
-template class hist::SymmetryManagerMT<false>;
-template class hist::SymmetryManagerMT<true>;
+template class hist::SymmetryManagerMTBase<false, false>;
+template class hist::SymmetryManagerMTBase<false, true>;
+template class hist::SymmetryManagerMTBase<true, false>;
+template class hist::SymmetryManagerMTBase<true, true>;

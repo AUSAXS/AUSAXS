@@ -7,14 +7,17 @@
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <data/symmetry/ReferenceSymmetry.h>
+#include <form_factor/FormFactorType.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
+#include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
+#include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
@@ -32,18 +35,19 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
-template<bool weighted_bins> 
-PartialSymmetryManagerMT<weighted_bins>::PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein) 
+template<bool weighted_bins, bool form_factors>
+PartialSymmetryManagerMTBase<weighted_bins, form_factors>::PartialSymmetryManagerMTBase(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method) 
     : IPartialHistogramManager(protein), 
       protein(protein),
+      exv_method(exv_method),
       coords(this->body_size)
 {}
 
-template<bool weighted_bins> 
-PartialSymmetryManagerMT<weighted_bins>::~PartialSymmetryManagerMT() = default;
+template<bool weighted_bins, bool form_factors>
+PartialSymmetryManagerMTBase<weighted_bins, form_factors>::~PartialSymmetryManagerMTBase() = default;
 
-template<bool weighted_bins>
-std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins>::calculate() {
+template<bool weighted_bins, bool form_factors>
+std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calculate() {
     logging::log("PartialSymmetryManagerMT::calculate: starting calculation");
     if (protein->size_water() == 0 && !this->statemanager->is_modified_hydration()) {
         return _calculate<false>();
@@ -51,8 +55,8 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins>::calc
     return _calculate<true>();
 }
 
-template<bool weighted_bins> template<bool hydration_enabled>
-std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins>::_calculate() {
+template<bool weighted_bins, bool form_factors> template<bool hydration_enabled>
+std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMTBase<weighted_bins, form_factors>::_calculate() {
     if (!this->statemanager->is_modified() && !cached_p_tot.empty()) {
         logging::log("PartialSymmetryManagerMT::calculate: returning cached value");
         auto p_tot = cached_p_tot; // if the state was not modified, we can return the cached value
@@ -118,7 +122,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins>::_cal
     }
     pool->wait(); // ensure the compact representations have been updated before continuing
 
-    distance_calculator::Calculator<weighted_bins> calculator(*store);
+    distance_calculator::Calculator<weighted_bins, form_factors> calculator(*store);
 
     if constexpr (hydration_enabled) {
         // check if the hydration layer was modified
@@ -175,7 +179,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins>::_cal
 
     // the recalculated partial histograms replace their old contents in the store, which were taken out of the master histogram as they were queued
     calculator.run();
-    for (int id : recalculated) {this->master += store->get_1d(id);}
+    for (int id : recalculated) {store->visit(id, [this] (const auto& result) {fold_classes(this->master, result, std::plus<>());});}
     recalculated.clear();
     this->statemanager->reset_to_false();
 
@@ -189,77 +193,58 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMT<weighted_bins>::_cal
     return std::make_unique<DistanceHistogram>(std::move(p_tot));
 }
 
-template<bool weighted_bins>
-void PartialSymmetryManagerMT<weighted_bins>::update_compact_representation_body(int ibody) {
-    coords[ibody] = symmetry::detail::generate_transformed_data(this->protein->get_body(ibody));
-    for (auto& c : coords[ibody].atomic) {
-        for (auto& sym : c) {
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_representation_body(int ibody) {
+    coords[ibody] = symmetry::detail::generate_transformed_data<form_factors>(this->protein->get_body(ibody));
+    if constexpr (!form_factors) {
+        for (auto& c : coords[ibody].atomic) {
+            for (auto& sym : c) {
+                hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
+            }
+        }
+    }
+}
+
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_representation_symmetry(int ibody, int isym) {
+    assert(ibody < static_cast<int>(coords.size()) && "update_compact_representation_symmetry: ibody out of range");
+    assert(isym > 0 && isym < static_cast<int>(coords[ibody].atomic.size()) && "update_compact_representation_symmetry: isym out of range");
+    coords[ibody].atomic[isym] = symmetry::detail::generate_transformed_data<form_factors>(this->protein->get_body(ibody), isym-1).data;
+    if constexpr (!form_factors) {
+        for (auto& sym : coords[ibody].atomic[isym]) {
             hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
         }
     }
 }
 
-template<bool weighted_bins>
-void PartialSymmetryManagerMT<weighted_bins>::update_compact_representation_symmetry(int ibody, int isym) {
-    assert(ibody < static_cast<int>(coords.size()) && "update_compact_representation_symmetry: ibody out of range");
-    assert(isym > 0 && isym < static_cast<int>(coords[ibody].atomic.size()) && "update_compact_representation_symmetry: isym out of range");
-    coords[ibody].atomic[isym] = symmetry::detail::generate_transformed_data(this->protein->get_body(ibody), isym-1).data;
-    for (auto& sym : coords[ibody].atomic[isym]) {
-        hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
-    }
-}
-
-template<bool weighted_bins>
-void PartialSymmetryManagerMT<weighted_bins>::update_compact_representation_water() {
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_representation_water() {
     coords_w = hist::detail::factory::construct_from_waters(this->protein);
 }
 
-template<bool weighted_bins>
-std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_bins>::calculate_all() {
+template<bool weighted_bins, bool form_factors>
+std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calculate_all() {
     auto total = calculate();
     int bins = total->get_weighted_counts().size();
 
-    // determine p_tot
-    GenericDistribution1D_t p_tot(bins);
-    for (int i = 0; i < bins; ++i) {
-        p_tot.index(i) = this->master.index(i);
-    }
-
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions.
     // a result that is never calculated is zero, so each contribution is simply the sum over all of its results
-    GenericDistribution1D_t p_ww = store->get_1d(ww);
-    GenericDistribution1D_t p_aa = this->master.base;
-    GenericDistribution1D_t p_aw(bins);
-    p_ww.resize(bins);
-    p_aa.resize(bins);
-    auto add = [this] (GenericDistribution1D_t& total, int id) {
-        const auto& partial = store->get_1d(id);
-        std::transform(total.begin(), total.end(), partial.begin(), total.begin(), std::plus<>());
-    };
-    aa.for_each_id([&] (int id) {add(p_aa, id);});
-    for (const auto& ids : aw) {
-        for (int id : ids) {add(p_aw, id);}
-    }
+    using Distributions = ManagerDistributions<weighted_bins, form_factors>;
+    std::vector<int> aa_ids, aw_ids;
+    aa.for_each_id([&aa_ids] (int id) {aa_ids.push_back(id);});
+    for (const auto& ids : aw) {aw_ids.insert(aw_ids.end(), ids.begin(), ids.end());}
 
-    if constexpr (weighted_bins) {
-        return std::make_unique<CompositeDistanceHistogram>(
-            std::move(Distribution1D(p_aa)), 
-            std::move(Distribution1D(p_aw)), 
-            std::move(Distribution1D(p_ww)), 
-            std::move(p_tot)
-        );
-    } else {
-        return std::make_unique<CompositeDistanceHistogram>(
-            std::move(p_aa), 
-            std::move(p_aw), 
-            std::move(p_ww), 
-            std::move(p_tot)
-        );
-    }
+    Distributions d;
+    d.p_aa = sum_results<typename Distributions::aa_t>(*store, aa_ids);
+    d.p_aw = sum_results<typename Distributions::aw_t>(*store, aw_ids);
+    d.p_ww = store->get_1d(ww);
+    d.p_tot = this->master; // NOLINT - intentional slicing
+    d.resize(bins);
+    return make_histogram(std::move(d), exv_method, protein);
 }
 
-template<bool weighted_bins> 
-int PartialSymmetryManagerMT<weighted_bins>::prepare_axis() {
+template<bool weighted_bins, bool form_factors>
+int PartialSymmetryManagerMTBase<weighted_bins, form_factors>::prepare_axis() {
     int required = hist::detail::required_partial_bin_count(*this->protein);
     if (!this->master.empty()) {
         if (required <= this->master.axis.bins) {return this->master.axis.bins;}
@@ -271,8 +256,8 @@ int PartialSymmetryManagerMT<weighted_bins>::prepare_axis() {
     return hist::detail::grown_partial_bin_count(required);
 }
 
-template<bool weighted_bins>
-void PartialSymmetryManagerMT<weighted_bins>::initialize(int bin_count) {
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::initialize(int bin_count) {
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
@@ -280,12 +265,12 @@ void PartialSymmetryManagerMT<weighted_bins>::initialize(int bin_count) {
     // one result for every calculated pair of symmetries of every body pair, and one for every symmetry of every body
     std::vector<int> sym_counts(this->body_size);
     for (int ibody = 0; ibody < this->body_size; ++ibody) {sym_counts[ibody] = 1 + this->protein->get_body(ibody).size_symmetry();}
-    store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(axis.bins);
-    aa = detail::SymmetryPairIds(sym_counts, [this] () {return store->allocate_1d();});
+    store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(axis.bins, form_factors ? form_factor::get_active_count() : 1);
+    aa = detail::SymmetryPairIds(sym_counts, [this] () {return form_factors ? store->allocate_3d() : store->allocate_1d();});
     aw.assign(this->body_size, {});
     for (int ibody = 0; ibody < this->body_size; ++ibody) {
         aw[ibody].resize(sym_counts[ibody]);
-        for (int& id : aw[ibody]) {id = store->allocate_1d();}
+        for (int& id : aw[ibody]) {id = form_factors ? store->allocate_2d() : store->allocate_1d();}
     }
     ww = store->allocate_1d();
 
@@ -294,15 +279,15 @@ void PartialSymmetryManagerMT<weighted_bins>::initialize(int bin_count) {
     }
 }
 
-template<bool weighted_bins>
-void PartialSymmetryManagerMT<weighted_bins>::recalculate(int id) {
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::recalculate(int id) {
     // the result is not written until the calculator runs, so its old contents are still there to be taken out
-    this->master -= store->get_1d(id);
+    store->visit(id, [this] (const auto& result) {fold_classes(this->master, result, std::minus<>());});
     recalculated.push_back(id);
 }
 
-template<bool weighted_bins>
-void PartialSymmetryManagerMT<weighted_bins>::propagate_reference_symmetry_modifications(
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::propagate_reference_symmetry_modifications(
     const std::vector<bool>& externally_modified,
     const std::vector<bool>& internally_modified,
     std::vector<std::vector<bool>>& symmetry_modified
@@ -330,8 +315,8 @@ void PartialSymmetryManagerMT<weighted_bins>::propagate_reference_symmetry_modif
     }
 }
 
-template<bool weighted_bins>
-void PartialSymmetryManagerMT<weighted_bins>::calc_aa_self(calculator_t calculator, int ibody) {
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calc_aa_self(calculator_t calculator, int ibody) {
     const auto& body = protein->get_body(ibody);
     // calculate the self correlation within each body and symmetry, equal to (N_sym+1) * (main body self corr)
     int id = aa.id(ibody, 0, ibody, 0);
@@ -339,14 +324,14 @@ void PartialSymmetryManagerMT<weighted_bins>::calc_aa_self(calculator_t calculat
     calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], id, 1+body.size_symmetry_total());
 }
 
-template<bool weighted_bins> 
-void PartialSymmetryManagerMT<weighted_bins>::calc_ww(calculator_t calculator) {
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calc_ww(calculator_t calculator) {
     recalculate(ww);
     calculator->enqueue_calculate_self(coords_w, ww);
 }
 
-template<bool weighted_bins> 
-void PartialSymmetryManagerMT<weighted_bins>::calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) {
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calc_aa(calculator_t calculator, int ibody1, int isym1, int ibody2, int isym2) {
     // every job below accumulates into the same result, so each loop is held and dispatched as a single group.
     int id = aa.id(ibody1, isym1, ibody2, isym2);
     recalculate(id);
@@ -388,8 +373,8 @@ void PartialSymmetryManagerMT<weighted_bins>::calc_aa(calculator_t calculator, i
     calculator->release_hold();
 }
 
-template<bool weighted_bins> 
-void PartialSymmetryManagerMT<weighted_bins>::calc_aw(calculator_t calculator, int ibody, int isym) {
+template<bool weighted_bins, bool form_factors>
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calc_aw(calculator_t calculator, int ibody, int isym) {
     assert(isym < static_cast<int>(aw[ibody].size()) && "PartialSymmetryManagerMT::calc_aw: symmetry index out of range; symmetries may not be added after the first calculation");
     int id = aw[ibody][isym];
     recalculate(id);
@@ -397,10 +382,12 @@ void PartialSymmetryManagerMT<weighted_bins>::calc_aw(calculator_t calculator, i
     // every copy against the hydration layer; the main body (0) is its own single copy
     calculator->hold(); // one result for every copy, see calc_aa
     for (const auto& copy : coords[ibody].atomic[isym]) {
-        calculator->enqueue_calculate_cross(copy, coords_w, id, 2);
+        calculator->enqueue_calculate_cross(copy, coords_w, id, form_factors ? 1 : 2); // see HistogramManagerMTBase
     }
     calculator->release_hold();
 }
 
-template class hist::PartialSymmetryManagerMT<false>;
-template class hist::PartialSymmetryManagerMT<true>;
+template class hist::PartialSymmetryManagerMTBase<false, false>;
+template class hist::PartialSymmetryManagerMTBase<false, true>;
+template class hist::PartialSymmetryManagerMTBase<true, false>;
+template class hist::PartialSymmetryManagerMTBase<true, true>;

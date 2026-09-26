@@ -4,10 +4,8 @@
 #pragma once
 
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/distribution/GenericDistribution1D.h>
-#include <hist/distribution/GenericDistribution2D.h>
-#include <hist/distribution/GenericDistribution3D.h>
 #include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/detail/ManagerResults.h>
 
 #include <memory>
 #include <type_traits>
@@ -31,25 +29,11 @@ namespace ausaxs::hist {
 			~HistogramManagerMTBase() override;
 
 		protected:
-			/**
-			 * @brief The pairwise distance distributions, trimmed to the bins holding anything, before any excluded volume accounting.
-			 *        With form_factors, the atomic distributions are resolved by form factor type.
-			 */
-			struct Distributions {
-				std::conditional_t<form_factors,
-					typename GenericDistribution3D<weighted_bins, Shape::Triangular>::type, // unordered (ff_type1, ff_type2), distance
-					typename GenericDistribution1D<weighted_bins>::type
-				> p_aa;
-				std::conditional_t<form_factors,
-					typename GenericDistribution2D<weighted_bins>::type,                     // ff_type, distance
-					typename GenericDistribution1D<weighted_bins>::type
-				> p_aw;
-				typename GenericDistribution1D<weighted_bins>::type p_ww;
-				typename GenericDistribution1D<weighted_bins>::type p_tot;
-			};
+			using Distributions = hist::detail::ManagerDistributions<weighted_bins, form_factors>;
 
 			/**
 			 * @brief Build the compact coordinates for the atoms and waters, and evaluate all pairwise distances between them, including the self-correlations.
+			 *        The distributions are trimmed to the bins holding anything.
 			 */
 			Distributions compute_distributions();
 
