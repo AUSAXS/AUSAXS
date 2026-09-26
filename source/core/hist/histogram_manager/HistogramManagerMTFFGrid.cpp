@@ -4,13 +4,13 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 
 #include <data/Molecule.h>  // IWYU pragma: keep
-#include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/GridExvFFT.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
+#include <hist/histogram_manager/detail/GridExvHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -54,7 +54,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
 #if !defined(POCKETFFT_AVAILABLE)
     int xx = store.allocate_1d();
 #endif
-    distance_calculator::Calculator<true, variable_bin_width, TRACK_FF> calculator(store);
+    distance_calculator::Calculator<true, variable_bin_width, UNIT_WEIGHTS> calculator(store);
     calculator.hold();
     calculator.enqueue_calculate_cross(data_a, data_x, ax, 1);
     calculator.enqueue_calculate_cross(data_w, data_x, wx, 1);
@@ -75,65 +75,10 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<variable_b
     WeightedDistribution2D p_ax_generic = store.export_2d(ax);
     WeightedDistribution1D p_wx_generic = store.export_1d(wx);
 
-    // downsize our axes to only the relevant area
-    int max_bin = hist::detail::trimmed_bin_count(p_xx_generic, p_wx_generic);
-
-    // ensure that our new vectors are compatible with those from the base class
-    // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
-    auto* cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    WeightedDistribution1D p_tot = cast_res->get_weighted_counts();
-    p_tot.set_bin_centers(cast_res->get_d_axis());
-
-    Distribution3D p_aa = std::move(cast_res->get_raw_aa_counts_by_ff());
-    Distribution2D p_aw = std::move(cast_res->get_raw_aw_counts_by_ff());
-    Distribution1D p_ww = std::move(cast_res->get_raw_ww_counts_by_ff());
-
-    // either xx or ww are largest of all components
-    max_bin = std::max<int>(max_bin, p_tot.size());
-
-    // downsize the axes to only the relevant area
-    if (static_cast<int>(base_res->get_d_axis().size()) < max_bin) {
-        p_aa.resize(max_bin);
-        p_aw.resize(max_bin);
-        p_ww.resize(max_bin);
-    } else {
-        max_bin = base_res->get_d_axis().size(); // make sure we overwrite anything which may already be stored
-    }
-
-    // calculate weighted distance bins
-    p_tot.resize(max_bin);
-    WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx_generic.size());
-    for (int i = 0; i < max_bin; ++i) {
-        p_tot_ax.add_index(i, p_wx_generic.index(i));
-    }
-
-    for (int i = 0; i < p_ax_generic.size_x(); ++i) {
-        for (int j = 0; j < max_bin; ++j) {
-            p_tot_ax.add_index(j, p_ax_generic.index(i, j));
-        }
-    }
-
-    // overwrite the excluded volume calculations from the HistogramManagerMTFFAvg calculations with our new grid-based ones
-    // first cast the weighted distributions to make iteration simpler
-    Distribution2D p_ax(p_ax_generic);
-    Distribution1D p_wx(p_wx_generic);
-    Distribution1D p_xx(p_xx_generic);
-
-    // replace the calculations
-    for (int i = 0; i < p_aa.size_x(); ++i) {
-        std::move(p_ax.begin(i), p_ax.begin(i)+max_bin, p_aa.begin(i, form_factor::exv_bin));
-    }
-    std::move(p_wx.begin(), p_wx.begin()+max_bin, p_aw.begin(form_factor::exv_bin));
-    std::move(p_xx.begin(), p_xx.begin()+max_bin, p_aa.begin(form_factor::exv_bin, form_factor::exv_bin));
-
-    return std::make_unique<CompositeDistanceHistogramFFGrid>(
-        std::move(p_aa), 
-        std::move(p_aw), 
-        std::move(p_ww), 
-        std::move(p_tot),
-        std::move(p_tot_ax),
-        std::move(p_xx_generic)
-    );
+    // the excluded volume may reach further than the atoms, in which case the atomic distributions are grown to match
+    auto atomic = grid_exv::AtomicDistributions::take(static_cast<CompositeDistanceHistogramFFAvg&>(*base_res));
+    atomic.grow(hist::detail::trimmed_bin_count(p_xx_generic, p_wx_generic));
+    return grid_exv::splice(std::move(atomic), p_ax_generic, p_wx_generic, std::move(p_xx_generic));
 }
 
 template class ausaxs::hist::HistogramManagerMTFFGrid<false>;

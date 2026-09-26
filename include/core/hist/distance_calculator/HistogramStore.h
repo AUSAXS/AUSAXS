@@ -120,7 +120,6 @@ namespace ausaxs::hist::distance_calculator {
              */
             std::span<entry_type> row(int id) {
                 auto& result = std::get<GenericDistribution1D_t>(results[check_valid_id(id)]);
-                assert(static_cast<int>(result.size()) == n_bins && "HistogramStore: calculation queued into an exported result.");
                 return check_live_result({result.begin(), result.end()});
             }
             std::span<entry_type> row(int id, int i) {return check_live_result(std::get<GenericDistribution2D_t>(results[check_valid_id(id)]).row(i));}           //< @copydoc row(int)
@@ -180,6 +179,7 @@ namespace ausaxs::hist::distance_calculator {
 
             // an exported result is left empty, and fold() would write n_bins entries past its end
             std::span<entry_type> check_live_result(std::span<entry_type> row) const {
+                assert(static_cast<int>(row.size()) == n_bins && "HistogramStore: calculation queued into an exported result.");
                 return row;
             }
     };

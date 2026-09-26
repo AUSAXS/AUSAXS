@@ -11,6 +11,7 @@
 #include <hist/detail/GridExvFFT.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
+#include <hist/histogram_manager/detail/GridExvHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -58,7 +59,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
 #if !defined(POCKETFFT_AVAILABLE)
     int xx_i = store.allocate_1d(), xx_s = store.allocate_1d(), xx_is = store.allocate_1d();
 #endif
-    distance_calculator::Calculator<true, variable_bin_width, TRACK_FF> calculator(store);
+    distance_calculator::Calculator<true, variable_bin_width, UNIT_WEIGHTS> calculator(store);
     calculator.hold();
     calculator.enqueue_calculate_cross(data_a, data_x_i, ax_i, 1);
     calculator.enqueue_calculate_cross(data_a, data_x_s, ax_s, 1);
@@ -94,33 +95,12 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     p_wx.interior = store.export_1d(wx_i);
     p_wx.surface  = store.export_1d(wx_s);
 
-    // downsize our axes to only the relevant area
-    int max_bin = hist::detail::trimmed_bin_count(p_xx.surface, p_xx.interior, p_wx.surface, p_wx.interior);
-
-    // ensure that our new vectors are compatible with those from the base class
-    // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
-    auto* cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    WeightedDistribution1D p_tot = cast_res->get_weighted_counts();
-    p_tot.set_bin_centers(cast_res->get_d_axis());
-
-    Distribution3D p_aa = std::move(cast_res->get_raw_aa_counts_by_ff());
-    Distribution2D p_aw = std::move(cast_res->get_raw_aw_counts_by_ff());
-    Distribution1D p_ww = std::move(cast_res->get_raw_ww_counts_by_ff());
-
-    // either xx or ww are largest of all components
-    max_bin = std::max<int>(max_bin, p_tot.size());
-
-    // downsize the axes to only the relevant area
-    if (static_cast<int>(base_res->get_d_axis().size()) < max_bin) {
-        p_aa.resize(max_bin);
-        p_aw.resize(max_bin);
-        p_ww.resize(max_bin);
-    } else {
-        max_bin = base_res->get_d_axis().size(); // make sure we overwrite anything which may already be stored
-    }
+    // the excluded volume may reach further than the atoms, in which case the atomic distributions are grown to match
+    auto atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<CompositeDistanceHistogramFFAvg&>(*base_res));
+    int max_bin = atomic.grow(hist::detail::trimmed_bin_count(p_xx.surface, p_xx.interior, p_wx.surface, p_wx.interior));
+    auto& [p_aa, p_aw, p_ww, p_tot] = atomic;
 
     // calculate weighted distance bins
-    p_tot.resize(max_bin);
     WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx.surface.size());
     for (int i = 0; i < max_bin; ++i) {
         p_tot_ax.add_index(i, p_wx.interior.index(i));

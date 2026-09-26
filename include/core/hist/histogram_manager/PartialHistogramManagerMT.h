@@ -36,12 +36,7 @@ namespace ausaxs::hist {
 		private:
 		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins, variable_bin_width>>;
-			struct { // cache for early return
-				GenericDistribution1D_t p_aa;
-				GenericDistribution1D_t p_aw;
-				GenericDistribution1D_t p_ww;
-				GenericDistribution1D_t p_tot;
-			} cache;
+			GenericDistribution1D_t cached_p_tot; // the total histogram of the last calculation, returned as is while nothing is modified
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
 			std::vector<std::vector<int>> aa; // the result ids in the store per body pair [n][m], only calculated for m <= n
 			std::vector<int> aw;              // the result ids in the store per body

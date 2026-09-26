@@ -15,8 +15,11 @@
 #include <vector>
 
 namespace ausaxs::hist {
-    constexpr bool TRACK_FF = true;
-    constexpr bool WITHOUT_FF = false;
+    /**
+     * @brief The unit_weights argument of a Calculator whose points all weigh 1, so their weights are never read.
+     *        This is needed for calculations which are later rescaled by e.g. form factors. 
+     */
+    constexpr bool UNIT_WEIGHTS = true;
 }
 
 namespace ausaxs::hist::distance_calculator {

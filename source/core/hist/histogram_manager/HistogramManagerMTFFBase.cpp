@@ -6,7 +6,7 @@
 #include <data/Molecule.h>  // IWYU pragma: keep
 #include <form_factor/FormFactorType.h>
 #include <hist/detail/BinEstimate.h>
-#include <hist/detail/CompactCoordinatesFactory.h>
+#include <hist/detail/CompactCoordinatesFactoryFF.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <utility/MultiThreading.h>
@@ -38,7 +38,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     hist::distance_calculator::HistogramStore<wb> store(bin_count, static_cast<int>(data_a.size()));
     int aa = store.allocate_3d(), aw = store.allocate_2d(), ww = store.allocate_1d();
     // the form factors are applied later by the intensity calculator, so the pairs are only counted here
-    hist::distance_calculator::Calculator<wb, vbw, TRACK_FF> calculator(store);
+    hist::distance_calculator::Calculator<wb, vbw, UNIT_WEIGHTS> calculator(store);
 
     // the self-correlations are part of what the kernel evaluates, so they do not have to be added separately here.
     // all of them are known up front, so they are held and dispatched as one unit

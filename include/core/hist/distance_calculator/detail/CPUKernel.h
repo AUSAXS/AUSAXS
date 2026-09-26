@@ -82,7 +82,6 @@ namespace ausaxs::hist::distance_calculator::detail {
      */
     template<int pair_factor, int self_factor, bool unit_weights, bool variable_bin_width, Target T>
     void enqueue_self(const hist::detail::CompactCoordinates<variable_bin_width>& data, T target) {
-        if (data.empty()) {return;}
         auto* pool = utility::multi_threading::get_global_pool();
         int data_size = data.size();
         int job_size = settings::general::detail::get_job_size(data_size);
@@ -192,7 +191,6 @@ namespace ausaxs::hist::distance_calculator::detail {
         const hist::detail::CompactCoordinates<variable_bin_width>& b,
         T target
     ) {
-        if (a.empty() || b.empty()) {return;}
         if (a.size() < b.size()) {
             enqueue_cross<pair_factor, unit_weights>(a, b, target);
         } else {

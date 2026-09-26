@@ -38,12 +38,7 @@ namespace ausaxs::hist {
 			using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins, variable_bin_width>>;
 
-			struct { // cache for early return
-				GenericDistribution1D_t p_aa;
-				GenericDistribution1D_t p_aw;
-				GenericDistribution1D_t p_ww;
-				GenericDistribution1D_t p_tot;
-			} cache;
+			GenericDistribution1D_t cached_p_tot; // the total histogram of the last calculation, returned as is while nothing is modified
 
 			observer_ptr<const data::Molecule> protein;									// the molecule we are calculating the histogram for
             detail::MasterHistogram<weighted_bins> master;								// the current total histogram
