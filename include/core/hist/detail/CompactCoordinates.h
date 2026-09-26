@@ -155,7 +155,7 @@ inline void ausaxs::hist::detail::CompactCoordinates::append(const CompactCoordi
 inline void ausaxs::hist::detail::CompactCoordinates::implicit_excluded_volume(double volume_per_atom) {
     double displaced_charge = constants::charge::density::water*volume_per_atom;
     auto charge_per_atom = static_cast<float>(-displaced_charge);
-    std::for_each(_w.begin(), _w.end(), [charge_per_atom] (float& w) {w += charge_per_atom;});
+    std::ranges::for_each(_w, [charge_per_atom] (float& w) {w += charge_per_atom;});
 }
 
 inline void ausaxs::hist::detail::CompactCoordinates::shuffle_order() {
