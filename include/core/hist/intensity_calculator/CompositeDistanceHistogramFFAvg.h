@@ -25,7 +25,7 @@ namespace ausaxs::hist {
              * @param Z_exv_avg The average excluded volume charge displaced by a single atom.
              */
             CompositeDistanceHistogramFFAvg(
-                hist::Distribution3D&& p_aa,
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
                 hist::Distribution2D&& p_aw,
                 hist::Distribution1D&& p_ww,
                 hist::Distribution1D&& p_tot,
@@ -37,7 +37,7 @@ namespace ausaxs::hist {
              *        @a p_tot is only used to extract the bin centers.
              */
             CompositeDistanceHistogramFFAvg(
-                hist::Distribution3D&& p_aa,
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
                 hist::Distribution2D&& p_aw,
                 hist::Distribution1D&& p_ww,
                 hist::WeightedDistribution1D&& p_tot,

@@ -25,7 +25,7 @@ namespace {
 }
 
 CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
-    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot,
@@ -33,7 +33,7 @@ CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
 ) : CompositeDistanceHistogramFFExplicit(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(use_traube_volumes(molecule)) {}
 
 CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
-    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot,

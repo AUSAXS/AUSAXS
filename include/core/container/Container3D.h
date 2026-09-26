@@ -5,32 +5,33 @@
 
 #include <math/indexers/Indexer3D.h>
 
-#include <cassert>
-#include <span>
+#include <algorithm>
 #include <vector>
 
-#ifndef NDEBUG
-    #include <iostream>  // only the asserts below print
-#endif
-
 namespace ausaxs::container {
+    using utility::indexer::Shape;
+
     /**
      * @brief Representation of a dense 3D container. 
      * 
-     * This is just a convenience class supporting only basic indexing.
+     * This is just a convenience class supporting only basic indexing. With Shape::Triangular, the first two dimensions must be
+     * equal, and only one row per unordered pair (i, j) is stored; (i, j) and (j, i) then name the same row.
      */
-    template <typename T>
-    class Container3D : utility::indexer::Indexer3D<Container3D<T>> {
-        friend class utility::indexer::Indexer3D<Container3D<T>>;
+    template <typename T, Shape S = Shape::Square>
+    class Container3D : utility::indexer::Indexer3D<Container3D<T, S>, S> {
+        using Indexer = utility::indexer::Indexer3D<Container3D<T, S>, S>;
+        friend Indexer;
         public:
             using value_type = T;
+            using Indexer::row;
+            using Indexer::rows;
+            using Indexer::index;
+            using Indexer::linear_index;
 
             Container3D() : N(0), M(0), L(0), data(0) {}
-            Container3D(int width, int height, int depth) : N(width), M(height), L(depth), data(width * height * depth) {}
-            Container3D(int width, int height, int depth, const T& value) : N(width), M(height), L(depth), data(width * height * depth, value) {}
+            Container3D(int width, int height, int depth) : N(width), M(height), L(depth), data(pair_count() * depth) {}
+            Container3D(int width, int height, int depth, const T& value) : N(width), M(height), L(depth), data(pair_count() * depth, value) {}
 
-            using utility::indexer::Indexer3D<Container3D<T>>::index;
-            using utility::indexer::Indexer3D<Container3D<T>>::linear_index;
             T& operator()(int i, int j, int k) {return this->index(i, j, k);}
             const T& operator()(int i, int j, int k) const {return this->index(i, j, k);}
 
@@ -46,60 +47,22 @@ namespace ausaxs::container {
             /**
              * @brief Get an iterator to the beginning of the vector at index i, j.
              */
-            typename std::vector<T>::const_iterator begin(int i, int j) const {
-                assert([&]() -> bool {
-                    if (0 <= i && i < N && 0 <= j && j < M) {return true;}
-                    std::cout << "Container3D::begin: Index out of bounds (" << N << ", " << M << ") <= (" << i << ", " << j << ")" << std::endl;
-                    return false;
-                }() && "Container3D::begin: Index out of bounds.");
-                return data.begin() + L*(j + M*i);
-            }
+            auto begin(int i, int j) const {return row(i, j).begin();}
 
             /**
              * @brief Get an iterator to the end of the vector at index i, j.
              */
-            typename std::vector<T>::const_iterator end(int i, int j) const {
-                assert([&]() -> bool {
-                    if (0 <= i && i < N && 0 <= j && j < M) {return true;}
-                    std::cout << "Container3D::end: Index out of bounds (" << N << ", " << M << ") <= (" << i << ", " << j << ")" << std::endl;
-                    return false;
-                }() && "Container3D::end: Index out of bounds.");
-                return data.begin() + L*(j + M*i) + L;
-            }
+            auto end(int i, int j) const {return row(i, j).end();}
 
             /**
              * @brief Get an iterator to the beginning of the vector at index i, j.
              */
-            typename std::vector<T>::iterator begin(int i, int j) {
-                assert([&]() -> bool {
-                    if (0 <= i && i < N && 0 <= j && j < M) {return true;}
-                    std::cout << "Container3D::begin: Index out of bounds (" << N << ", " << M << ") <= (" << i << ", " << j << ")" << std::endl;
-                    return false;
-                }() && "Container3D::begin: Index out of bounds.");
-                return data.begin() + L*(j + M*i);
-            }
+            auto begin(int i, int j) {return row(i, j).begin();}
 
             /**
              * @brief Get an iterator to the end of the vector at index i, j.
              */
-            typename std::vector<T>::iterator end(int i, int j) {
-                assert([&]() -> bool {
-                    if (0 <= i && i < N && 0 <= j && j < M) {return true;}
-                    std::cout << "Container3D::end: Index out of bounds (" << N << ", " << M << ") <= (" << i << ", " << j << ")" << std::endl;
-                    return false;
-                }() && "Container3D::end: Index out of bounds.");
-                return data.begin() + L*(j + M*i) + L;
-            }
-
-            /**
-             * @brief Get the vector at index i, j.
-             */
-            std::span<T> row(int i, int j) {return {begin(i, j), static_cast<std::size_t>(L)};}
-
-            /**
-             * @brief Get the vector at index i, j.
-             */
-            std::span<const T> row(int i, int j) const {return {begin(i, j), static_cast<std::size_t>(L)};}
+            auto end(int i, int j) {return row(i, j).end();}
 
             /**
              * @brief Get an iterator to the beginning of the entire container. 
@@ -141,10 +104,9 @@ namespace ausaxs::container {
              */
             void resize(int size) {
                 Container3D tmp(N, M, size);
-                for (int i = 0; i < N; i++) {
-                    for (int j = 0; j < M; j++) {
-                        std::move(begin(i, j), begin(i, j)+std::min<int>(size, L), tmp.begin(i, j));
-                    }
+                auto to = tmp.rows().begin();
+                for (auto from : rows()) {
+                    std::move(from.begin(), from.begin() + std::min(size, L), (*to++).begin());
                 }
                 L = size;
                 data = std::move(tmp.data);
@@ -156,6 +118,7 @@ namespace ausaxs::container {
             bool empty() const {return data.empty();}
 
         protected:
+            using Indexer::pair_count;
             int N, M, L;
             std::vector<T> data;
     };

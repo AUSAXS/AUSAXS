@@ -26,7 +26,7 @@ namespace ausaxs::hist::distance_calculator {
      * follows from the coordinate sets it is calculated from, where a set is either flat or partitioned into classes():
      *   - allocate_1d(): a single histogram, for a flat set with itself or with another flat set.
      *   - allocate_2d(): one histogram per class, for a partitioned set with a flat set.
-     *   - allocate_3d(): one histogram per class pair, for a partitioned set with itself or with another partitioned set.
+     *   - allocate_3d(): one histogram per unordered class pair (Shape::Triangular), for a partitioned set with itself or with another partitioned set.
      *
      * The store owns the results. They are only written when the calculator runs, so until then they hold what the
      * previous run left, and they are zero before the first. Read them with get_*() or move them out with export_*().
@@ -36,7 +36,7 @@ namespace ausaxs::hist::distance_calculator {
         public:
             using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
             using GenericDistribution2D_t = typename hist::GenericDistribution2D<weighted_bins>::type;
-            using GenericDistribution3D_t = typename hist::GenericDistribution3D<weighted_bins>::type;
+            using GenericDistribution3D_t = typename hist::GenericDistribution3D<weighted_bins, hist::Shape::Triangular>::type;
             using entry_type = typename GenericDistribution1D_t::value_type;
 
             /**

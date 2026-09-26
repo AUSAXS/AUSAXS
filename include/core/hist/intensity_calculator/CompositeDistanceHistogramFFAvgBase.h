@@ -53,7 +53,7 @@ namespace ausaxs::hist {
              * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
              */
             CompositeDistanceHistogramFFAvgBase(
-                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww,
                 hist::Distribution1D&& p_tot
@@ -68,7 +68,7 @@ namespace ausaxs::hist {
              * @param p_tot The total distance histogram. This is only used to extract the bin centers. 
              */
             CompositeDistanceHistogramFFAvgBase(
-                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
                 hist::WeightedDistribution1D&& p_tot
@@ -106,8 +106,8 @@ namespace ausaxs::hist {
              * @brief Get the raw (unweighted) partial distance histogram for atom-atom interactions, indexed by form factor type.
              *        These are the absolute distance counts before any form factor weighting.
              */
-            const Distribution3D& get_raw_aa_counts_by_ff() const override;
-            Distribution3D& get_raw_aa_counts_by_ff() override;
+            const Distribution3D<hist::Shape::Triangular>& get_raw_aa_counts_by_ff() const override;
+            Distribution3D<hist::Shape::Triangular>& get_raw_aa_counts_by_ff() override;
 
             /**
              * @brief Get the raw (unweighted) partial distance histogram for atom-water interactions, indexed by form factor type.
@@ -128,8 +128,8 @@ namespace ausaxs::hist {
              *        These counts are scaled by form factor products f(q=0)*f(q=0) for each ff combination.
              * @deprecated Use get_aa_counts_ff() instead for raw counts. This method exists for backwards compatibility.
              */
-            const Distribution3D& get_aa_counts_by_ff() const;
-            Distribution3D& get_aa_counts_by_ff(); // @copydoc get_aa_counts_ff() const
+            const Distribution3D<hist::Shape::Triangular>& get_aa_counts_by_ff() const;
+            Distribution3D<hist::Shape::Triangular>& get_aa_counts_by_ff(); // @copydoc get_aa_counts_ff() const
 
             /**
              * @brief Get the weighted partial distance histogram for atom-water interactions.
@@ -173,7 +173,7 @@ namespace ausaxs::hist {
                 double DW_sigma_atomic = 0;  // atomic form factor debye-waller factor, zero for disabled
                 double DW_sigma_exv = 0;     // excluded volume form factor debye-waller factor, zero for disabled
             } free_params;
-            struct {Distribution3D aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
+            struct {Distribution3D<hist::Shape::Triangular> aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
 
             /**
              * @brief Get the q-dependent multiplicative factor for the excluded volume form factor.
@@ -222,7 +222,7 @@ namespace ausaxs::hist {
                 // these for the excluded volume as well, whereas models where the excluded volume is a separate set
                 // of scatterers own the additional distributions themselves
                 mutable struct {
-                    container::Container3D<double> aa;
+                    container::Container3D<double, container::Shape::Triangular> aa; // unordered pairs, like the distribution it is built from
                     container::Container2D<double> aw;
                     container::Container1D<double> ww;
                     bool valid = false;

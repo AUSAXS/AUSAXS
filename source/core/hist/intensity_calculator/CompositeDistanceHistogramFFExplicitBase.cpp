@@ -29,7 +29,7 @@ CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::~Compos
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase(
-    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot
@@ -37,7 +37,7 @@ CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::Composi
 
 template<typename AA, typename AXFormFactorTableType, typename XX>
 CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::CompositeDistanceHistogramFFExplicitBase(
-    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot
@@ -71,7 +71,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         // ax
         pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_ax_table] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+                for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
                     for (int q = start; q < end; ++q) {
                         this->cache.intensity_profiles.ax[q-q0] += 
                             this->free_params.crho*cx[q-q0]*this->cache.sinqd.aa.index(ff1, ff2, q-q0)
@@ -85,7 +85,7 @@ void CompositeDistanceHistogramFFExplicitBase<AA, AXFormFactorTableType, XX>::ca
         // xx
         pool->detach_blocks(q0, q0+bins, [this, &cx, q0, ff_xx_table] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+                for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
                     for (int q = start; q < end; ++q) {
                         this->cache.intensity_profiles.xx[q-q0] += 
                             std::pow(cx[q-q0]*this->free_params.crho, 2)*this->cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_xx_table->index(ff1, ff2).evaluate(q)

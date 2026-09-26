@@ -5,24 +5,29 @@
 
 #include <constants/ConstantsAxes.h>
 #include <container/Container3D.h>
+#include <hist/distribution/DistributionFwd.h>
 #include <hist/distribution/detail/WeightedEntry.h>
 #include <settings/InternalState.h>
 #include <utility/TypeTraits.h>
 
-#include <cmath>
-
 namespace ausaxs::hist {
-    class Distribution3D;
-
     /**
      * @brief This is a small wrapper around the Container3D class. Anything added to this
      *        distribution will be tracked by the WeightedDistribution class, which may add
      *        a significant overhead compared to a pure Distribution3D class.
+     *
+     * @tparam S Shape::Triangular stores one histogram per unordered pair (x, y) only; see Distribution3D.
      */
-    class WeightedDistribution3D : public container::Container3D<detail::WeightedEntry> {
+    template<Shape S>
+    class WeightedDistribution3D : public container::Container3D<detail::WeightedEntry, S> {
         public:
-            using Container3D::Container3D;
-            WeightedDistribution3D(const Distribution3D& other);
+            WeightedDistribution3D() = default;
+            WeightedDistribution3D(int width, int height, int depth) : container::Container3D<detail::WeightedEntry, S>(width, height, depth) {}
+            WeightedDistribution3D(int width, int height, int depth, const detail::WeightedEntry& value) : container::Container3D<detail::WeightedEntry, S>(width, height, depth, value) {}
+            WeightedDistribution3D(const Distribution3D<S>& other);
+
+            using container::Container3D<detail::WeightedEntry, S>::index;
+            using container::Container3D<detail::WeightedEntry, S>::linear_index;
 
             /**
              * @brief Add a value for a given index.
@@ -41,7 +46,7 @@ namespace ausaxs::hist {
 
             template<int N = 1>
             void add_index(int x, int y, int32_t i, float distance, float weight) {
-                index(x, y, i).add<N>(distance, weight);
+                index(x, y, i).template add<N>(distance, weight);
             }
 
             /**
@@ -54,7 +59,7 @@ namespace ausaxs::hist {
              */
             template<int N = 1>
             void increment_index(int x, int y, int32_t i, float distance) {
-                index(x, y, i).increment<N>(distance);
+                index(x, y, i).template increment<N>(distance);
             }
 
             /**
@@ -66,7 +71,7 @@ namespace ausaxs::hist {
              */
             template<int N = 1>
             void increment_linear_index(int32_t xy, int32_t i, float distance) {
-                linear_index(xy, i).increment<N>(distance);
+                linear_index(xy, i).template increment<N>(distance);
             }
             
             /**
@@ -74,5 +79,6 @@ namespace ausaxs::hist {
              */
             std::vector<double> get_weights() const;
     };
-    static_assert(supports_nothrow_move_v<WeightedDistribution3D>, "WeightedDistribution3D should support nothrow move semantics.");
+    static_assert(supports_nothrow_move_v<WeightedDistribution3D<Shape::Square>>, "WeightedDistribution3D should support nothrow move semantics.");
+    static_assert(supports_nothrow_move_v<WeightedDistribution3D<Shape::Triangular>>, "WeightedDistribution3D should support nothrow move semantics.");
 }

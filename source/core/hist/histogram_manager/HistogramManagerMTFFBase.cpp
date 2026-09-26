@@ -56,7 +56,7 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     GenericDistribution1D_t p_tot(bin_count);
     {   // sum all elements to the total
         for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_ff; ++ff1) {
-            for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < n_ff; ++ff2) {
+            for (int ff2 = ff1; ff2 < n_ff; ++ff2) {
                 std::transform(p_tot.begin(), p_tot.end(), p_aa.begin(ff1, ff2), p_tot.begin(), std::plus<>());
             }
         }

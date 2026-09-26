@@ -6,35 +6,37 @@
 #include <hist/distribution/Distribution3D.h>
 #include <settings/HistogramSettings.h>
 
+#include <algorithm>
 #include <cstdint>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-WeightedDistribution3D::WeightedDistribution3D(const Distribution3D& other) : Container3D(other.size_x(), other.size_y(), other.size_z()) {
-    // std::transform(other.begin(), other.end(), begin(), begin(), [] (const auto& val1, auto& val2) {return val2.count = val2;});
-    for (int x = 0; x < other.size_x(); x++) {
-        for (int y = 0; y < other.size_y(); y++) {
-            for (int z = 0; z < other.size_z(); z++) {
-                index(x, y, z).value = other.index(x, y, z);
-            }
-        }
-    }
+template<Shape S>
+WeightedDistribution3D<S>::WeightedDistribution3D(const Distribution3D<S>& other) : container::Container3D<detail::WeightedEntry, S>(other.size_x(), other.size_y(), other.size_z()) {
+    // both share the same layout, so the entries can be copied in storage order
+    std::ranges::transform(other, *this, this->begin(), [] (double v, detail::WeightedEntry e) {e.value = v; return e;});
 }
 
-std::vector<double> WeightedDistribution3D::get_weights() const {
-    auto d_vals = Axis(0, size_z()*settings::axes::bin_width, size_z()).as_vector();
-    std::vector<double> weights(size_z());
-    for (int z = 0; z < size_z(); z++) {
-        std::int64_t count = 0;
-        for (int x = 0; x < size_x(); x++) {
-            for (int y = 0; y < size_y(); y++) {
-                weights[z] += index(x, y, z).bin_center;
-                count += index(x, y, z).count;
-            }
+template<Shape S>
+std::vector<double> WeightedDistribution3D<S>::get_weights() const {
+    auto d_vals = Axis(0, this->size_z()*settings::axes::bin_width, this->size_z()).as_vector();
+    std::vector<double> weights(this->size_z());
+    std::vector<std::int64_t> counts(this->size_z());
+    // every stored row once; for a triangular distribution that is each unordered pair once
+    for (auto row : this->rows()) {
+        for (int z = 0; z < this->size_z(); z++) {
+            weights[z] += row[z].bin_center;
+            counts[z] += row[z].count;
         }
+    }
+
+    for (int z = 0; z < this->size_z(); z++) {
         // NOLINTNEXTLINE - this is a small optimization to both avoid dividing by zero and correctly handle the case where count is zero
-        weights[z] = !weights[z]*d_vals[z] + weights[z]/(!count + count);
+        weights[z] = !weights[z]*d_vals[z] + weights[z]/(!counts[z] + counts[z]);
     }
     return weights;
 }
+
+template class hist::WeightedDistribution3D<Shape::Square>;
+template class hist::WeightedDistribution3D<Shape::Triangular>;

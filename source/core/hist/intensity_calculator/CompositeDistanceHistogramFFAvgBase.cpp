@@ -32,7 +32,7 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>& CompositeDistanceHisto
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
-    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
     hist::Distribution1D&& p_tot
@@ -40,7 +40,7 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHisto
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
-    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot
@@ -84,7 +84,7 @@ const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableTy
     
     // aa contribution: sum over all form factor pairs, weighted by ff_product(q=0)
     for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-        for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+        for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
             double weight = ff_table.index(ff1, ff2).evaluate(0);
             for (int i = 0; i < p.size(); ++i) {
                 p[i] += distance_profiles.aa.index(ff1, ff2, i) * weight;
@@ -156,12 +156,12 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww
 }
 
 template<typename FormFactorTableType>
-const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aa_counts_by_ff() const {
+const Distribution3D<hist::Shape::Triangular>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aa_counts_by_ff() const {
     return distance_profiles.aa;
 }
 
 template<typename FormFactorTableType>
-Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aa_counts_by_ff() {
+Distribution3D<hist::Shape::Triangular>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_aa_counts_by_ff() {
     return distance_profiles.aa;
 }
 
@@ -186,11 +186,11 @@ Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ra
 }
 
 template<typename FormFactorTableType>
-const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() const {
-    static Distribution3D ret;
+const Distribution3D<hist::Shape::Triangular>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() const {
+    static Distribution3D<hist::Shape::Triangular> ret;
     ret = distance_profiles.aa;
     for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-        for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+        for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
             double weight = get_ff_table().index(ff1, ff2).evaluate(0);
             std::transform(ret.begin(ff1, ff2), ret.end(ff1, ff2), ret.begin(ff1, ff2), [weight](auto val) { return val*weight; });
         }
@@ -199,8 +199,8 @@ const Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::
 }
 
 template<typename FormFactorTableType>
-Distribution3D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() {
-    return const_cast<Distribution3D&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_aa_counts_by_ff());
+Distribution3D<hist::Shape::Triangular>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_counts_by_ff() {
+    return const_cast<Distribution3D<hist::Shape::Triangular>&>(const_cast<const CompositeDistanceHistogramFFAvgBase*>(this)->get_aa_counts_by_ff());
 }
 
 template<typename FormFactorTableType>
@@ -407,7 +407,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_dis
     
     pool->detach_task([this] () {
         for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-            for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+            for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
                 std::transform(cache.distance_profiles.p_aa.begin(), cache.distance_profiles.p_aa.end(), distance_profiles.aa.begin(ff1, ff2), cache.distance_profiles.p_aa.begin(), std::plus<>());
             }
         }
@@ -442,14 +442,14 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     if (cache.sinqd.aa.empty()) {
-        cache.sinqd.aa = container::Container3D<double>(form_factor::get_active_count(), form_factor::get_active_count(), debye_axis.bins);
+        cache.sinqd.aa = container::Container3D<double, container::Shape::Triangular>(form_factor::get_active_count(), form_factor::get_active_count(), debye_axis.bins);
         cache.sinqd.aw = container::Container2D<double>(form_factor::get_active_count(), debye_axis.bins);
         cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
     }
 
     // note the excluded volume row and column are deliberately skipped; nothing reads them
     for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-        for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+        for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
             pool->detach_task([this, q0, bins=debye_axis.bins, ff1, ff2, sinqd_table] () {
                 for (int q = q0; q < q0+bins; ++q) {
                     cache.sinqd.aa.index(ff1, ff2, q-q0) = std::transform_reduce(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2), sinqd_table->begin(q), 0.0);
@@ -500,7 +500,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
         // aa
         pool->detach_blocks(q0, q0+debye_axis.bins, [&] (int start, int end) {
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                for (int ff2 = form_factor::start_index_for_explicit_exv(); ff2 < form_factor::get_active_count(); ++ff2) {
+                for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
                     for (int q = start; q < end; ++q) {
                         cache.intensity_profiles.aa[q-q0] += cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_table.index(ff1, ff2).evaluate(q);
                     }

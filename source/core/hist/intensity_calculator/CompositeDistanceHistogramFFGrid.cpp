@@ -18,7 +18,7 @@ CompositeDistanceHistogramFFGrid& CompositeDistanceHistogramFFGrid::operator=(Co
 CompositeDistanceHistogramFFGrid::~CompositeDistanceHistogramFFGrid() = default;
 
 CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
-    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot_aa,

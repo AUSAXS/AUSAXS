@@ -28,7 +28,7 @@ namespace ausaxs::hist {
              * @param molecule The molecule the histograms were calculated from. Its average displaced volume per atom determines G(q).
              */
             CompositeDistanceHistogramCrysol(
-                hist::Distribution3D&& p_aa,
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
                 hist::Distribution2D&& p_aw,
                 hist::Distribution1D&& p_ww,
                 hist::Distribution1D&& p_tot,
@@ -47,7 +47,7 @@ namespace ausaxs::hist {
              * @param molecule The molecule the histograms were calculated from. Its average displaced volume per atom determines G(q).
              */
             CompositeDistanceHistogramCrysol(
-                hist::Distribution3D&& p_aa,
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
                 hist::Distribution2D&& p_aw,
                 hist::Distribution1D&& p_ww,
                 hist::WeightedDistribution1D&& p_tot,

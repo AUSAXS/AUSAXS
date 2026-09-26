@@ -51,7 +51,7 @@ namespace ausaxs::hist {
              * @param p_tot_xx The total distance histogram for the grid only. Calculations involving this grid must use unique bin centers due to the highly ordered grid structure. 
              */
             CompositeDistanceHistogramFFGridSurface(
-                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
                 XXContainer&& xx,

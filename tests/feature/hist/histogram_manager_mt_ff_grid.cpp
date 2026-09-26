@@ -48,7 +48,7 @@ static auto test_normalized = [] (Molecule& protein, const std::function<std::un
         auto aa = h_cast->get_raw_aa_counts_by_ff();
         hist::Distribution1D temp_aa(aa.size_z()), temp_ax(aa.size_z()), temp_xx(aa.size_z());
         for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
-            for (int j = form_factor::start_index_for_explicit_exv(); j < form_factor::total_ff_count; ++j) {
+            for (int j = i; j < form_factor::total_ff_count; ++j) {
                 std::transform(aa.begin(i, j), aa.end(i, j), temp_aa.begin(), temp_aa.begin(), std::plus<>());
             }
             // atom-exv cross term (multiplied by 2 for symmetry)
@@ -98,7 +98,7 @@ static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::u
     // Sum all form factor contributions
     hist::Distribution1D aa1(aa_by_ff.size_z());
     for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
-        for (int j = form_factor::start_index_for_explicit_exv(); j < form_factor::total_ff_count; ++j) {
+        for (int j = i; j < form_factor::total_ff_count; ++j) {
             std::transform(aa_by_ff.begin(i, j), aa_by_ff.end(i, j), aa1.begin(), aa1.begin(), std::plus<>());
         }
     }
