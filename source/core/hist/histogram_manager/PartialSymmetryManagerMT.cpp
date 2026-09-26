@@ -311,13 +311,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMT<weighted_b
         const auto& partial = store->get_1d(id);
         std::transform(total.begin(), total.end(), partial.begin(), total.begin(), std::plus<>());
     };
-    for (const auto& body_pairs : aa) {
-        for (const auto& symmetry_pairs : body_pairs) {
-            for (const auto& ids : symmetry_pairs) {
-                for (int id : ids) {add(p_aa, id);}
-            }
-        }
-    }
+    aa.for_each_id([&] (int id) {add(p_aa, id);});
     for (const auto& ids : aw) {
         for (int id : ids) {add(p_aw, id);}
     }
@@ -358,20 +352,15 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::initialize(int
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
 
-    // one result for every pair of symmetries of every body pair, and one for every symmetry of every body
-    auto sym_count = [this] (int ibody) {return 1 + static_cast<int>(this->protein->get_body(ibody).size_symmetry());};
+    // one result for every calculated pair of symmetries of every body pair, and one for every symmetry of every body
+    std::vector<int> sym_counts(this->body_size);
+    for (int ibody = 0; ibody < this->body_size; ++ibody) {sym_counts[ibody] = 1 + this->protein->get_body(ibody).size_symmetry();}
     store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(axis.bins);
-    aa.assign(this->body_size, std::vector<std::vector<std::vector<int>>>(this->body_size));
+    aa = SymmetryPairIds(sym_counts, [this] () {return store->allocate_1d();});
     aw.assign(this->body_size, {});
-    for (int ibody1 = 0; ibody1 < this->body_size; ++ibody1) {
-        for (int ibody2 = 0; ibody2 < this->body_size; ++ibody2) {
-            aa[ibody1][ibody2].assign(sym_count(ibody1), std::vector<int>(sym_count(ibody2)));
-            for (auto& ids : aa[ibody1][ibody2]) {
-                for (int& id : ids) {id = store->allocate_1d();}
-            }
-        }
-        aw[ibody1].resize(sym_count(ibody1));
-        for (int& id : aw[ibody1]) {id = store->allocate_1d();}
+    for (int ibody = 0; ibody < this->body_size; ++ibody) {
+        aw[ibody].resize(sym_counts[ibody]);
+        for (int& id : aw[ibody]) {id = store->allocate_1d();}
     }
     ww = store->allocate_1d();
 
@@ -420,7 +409,7 @@ template<bool weighted_bins, bool variable_bin_width>
 void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa_self(calculator_t calculator, int ibody) {
     const auto& body = protein->get_body(ibody);
     // calculate the self correlation within each body and symmetry, equal to (N_sym+1) * (main body self corr)
-    int id = aa[ibody][ibody][0][0];
+    int id = aa.id(ibody, 0, ibody, 0);
     recalculate(id);
     calculator->enqueue_calculate_self(coords[ibody].atomic[0][0], id, 1+body.size_symmetry_total());
 }
@@ -436,9 +425,7 @@ void PartialSymmetryManagerMT<weighted_bins, variable_bin_width>::calc_aa(calcul
     // every job below accumulates into the same result, so each loop is held and dispatched as a single group.
     const auto& body1 = protein->get_body(ibody1);
     const auto& body2 = protein->get_body(ibody2);
-    assert(ibody2 <= ibody1 && "PartialSymmetryManagerMT::calc_aa: expected a body pair in the lower triangle");
-    assert(isym1 < static_cast<int>(aa[ibody1][ibody2].size()) && isym2 < static_cast<int>(aa[ibody1][ibody2][isym1].size()) && "PartialSymmetryManagerMT::calc_aa: symmetry index out of range; symmetries may not be added after the first calculation");
-    int id = aa[ibody1][ibody2][isym1][isym2];
+    int id = aa.id(ibody1, isym1, ibody2, isym2);
     recalculate(id);
 
     // internal correlations within the same body

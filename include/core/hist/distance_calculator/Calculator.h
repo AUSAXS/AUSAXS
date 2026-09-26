@@ -23,21 +23,6 @@ namespace ausaxs::hist::distance_calculator {
     /**
      * @brief Queues pairwise distance histogram calculations on the CPU or GPU kernel, into the results of a HistogramStore.
      *        The backend is picked once, on construction, from settings::general::gpu.
-     *
-     * A coordinate set is either flat, or partitioned into the store's classes() as one set per class. Each calculation
-     * writes into a result of the store of the shape its sets call for, see HistogramStore. Several calculations may
-     * write into the same result, in which case they are summed.
-     *
-     * Counting convention: a cross-correlation counts every pair of points pair_factor times. A self-correlation counts
-     * every pair 2*scaling times, and every point with itself scaling times. The self-correlation of a partitioned set
-     * puts each pair of unlike classes in the (k1, k2) histogram with k1 < k2 only, while the cross-correlation of two
-     * partitioned sets fills both orderings, so a result mixing the two must be read symmetrically in the class pair.
-     *
-     * Each pair contributes the product of the weights of its two points, unless @a unit_weights is set: then every point
-     * weighs 1, the stored weights are never read, and the histograms are plain pair counts. This is for calculations whose
-     * weighting is applied later, by class, such as the form factors applied by the intensity calculator.
-     *
-     * All data references must be valid until run() is called.
      */
     template<bool weighted_bins, bool variable_bin_width, bool unit_weights>
     class Calculator {
