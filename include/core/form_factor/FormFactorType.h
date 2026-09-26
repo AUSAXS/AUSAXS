@@ -201,7 +201,7 @@ namespace ausaxs::constants::mass {
 namespace ausaxs::constants::radius {
     inline double get_vdw_radius(ausaxs::form_factor::form_factor_t type) {
         using ausaxs::form_factor::form_factor_t;
-        if (type == form_factor_t::UNKNOWN) {return 0;}
+        if (type == form_factor_t::UNKNOWN) {return get_vdw_radius(constants::atom_t::C);} // ensure unknown atoms still occupy space in the grid
         if (!ausaxs::form_factor::detail::is_tabulated(type) || type == form_factor_t::EXCLUDED_VOLUME) {
             throw ausaxs::except::runtime_error("constants::radius::get_vdw_radius: Unknown form factor type \"" + ausaxs::form_factor::to_string(type) + "\"");
         }
