@@ -44,7 +44,7 @@ namespace ausaxs::hist::distance_calculator::detail {
 
                 jobs.emplace_back(Job{&a, nullptr, row, scaling});
                 int slot = resolve(row);
-                diagonal[slot] += self_weight(a, scaling);
+                diagonal[slot] += scaling*self_weight<unit_weights>(a);
                 submit(gpu::abi::Job{
                     coordinates(a), nullptr, static_cast<std::uint32_t>(a.size()), 0,
                     static_cast<std::uint32_t>(2*scaling), static_cast<std::uint32_t>(slot)
@@ -230,19 +230,6 @@ namespace ausaxs::hist::distance_calculator::detail {
                     packed[4*i + 3] = unit_weights ? 1 : a.get_weight(i);
                 }
                 return packed.data();
-            }
-
-            /**
-             * @brief The contribution of the zero distance of every atom with itself.
-             */
-            static double self_weight(const CompactCoordinates_t& a, int scaling) {
-                if constexpr (unit_weights) {return static_cast<double>(scaling)*a.size();}
-                double total_weight = 0;
-                for (int i = 0; i < a.size(); ++i) {
-                    double weight = a.get_weight(i);
-                    total_weight += weight*weight;
-                }
-                return scaling*total_weight;
             }
 
             /**

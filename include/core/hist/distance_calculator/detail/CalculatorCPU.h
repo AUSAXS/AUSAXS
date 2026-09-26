@@ -34,12 +34,7 @@ namespace ausaxs::hist::distance_calculator::detail {
              */
             void enqueue_calculate_self(const CompactCoordinates_t& a, Row row, int scaling) {
                 if (a.empty()) {store->reset(row); return;}
-                dispatch_scaling(2*scaling, [&a, target = store->target(row)] (auto pair) {
-                    constexpr int pair_factor = decltype(pair)::value;
-                    if constexpr (pair_factor % 2 == 0) { // always the case, since the factor is twice the scaling
-                        enqueue_self<pair_factor, pair_factor/2, unit_weights>(a, target);
-                    }
-                });
+                enqueue_self<unit_weights>(a, store->target(row, scaling));
             }
 
             /**
@@ -48,9 +43,7 @@ namespace ausaxs::hist::distance_calculator::detail {
              */
             void enqueue_calculate_cross(const CompactCoordinates_t& a1, const CompactCoordinates_t& a2, Row row, int pair_factor) {
                 if (a1.empty() || a2.empty()) {store->reset(row); return;}
-                dispatch_scaling(pair_factor, [&a1, &a2, target = store->target(row)] (auto pair) {
-                    enqueue_balanced_cross<decltype(pair)::value, unit_weights>(a1, a2, target);
-                });
+                enqueue_balanced_cross<unit_weights>(a1, a2, store->target(row, pair_factor));
             }
 
             /**
