@@ -3,21 +3,19 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 
-#include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>  // IWYU pragma: keep
 #include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/GridExvFFT.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
-#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
+#include <hist/distance_calculator/Calculator.h>
+#include <hist/distance_calculator/HistogramStore.h>
+#include <hist/histogram_manager/detail/GridExvHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
-#include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
-#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -41,282 +39,67 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface<var
     using XXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::XXContainer;
     using AXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::AXContainer;
     using WXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::WXContainer;
-    auto* pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
-    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x_i, data_x_s;
     auto exv = get_exv();
-    {   // generate the excluded volume representation
-        std::vector<data::AtomFF> interior(exv.interior.size()), surface(exv.surface.size());
-        std::transform(
-            exv.interior.begin(), exv.interior.end(), interior.begin(),
-            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
-        );
-        std::transform(
-            exv.surface.begin(), exv.surface.end(), surface.begin(),
-            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
-        );
-        data_x_i = hist::detail::factory::construct_ff<variable_bin_width>(interior);
-        data_x_s = hist::detail::factory::construct_ff<variable_bin_width>(surface);
-    }
-
-    auto& data_a = *this->data_a_ptr;
-    auto& data_w = *this->data_w_ptr;
-    int data_a_size = data_a.size();
-    int data_w_size = data_w.size();
-    int data_x_i_size = data_x_i.size();
-    int data_x_s_size = data_x_s.size();
+    auto data_x_i = hist::detail::factory::construct<variable_bin_width>(exv.interior);
+    auto data_x_s = hist::detail::factory::construct<variable_bin_width>(exv.surface);
+    const auto& data_a = *this->data_a_ptr;
+    const auto& data_w = *this->data_w_ptr;
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, data_x_i, data_x_s);
-
-    //########################//
-    // PREPARE MULTITHREADING //
-    //########################//
-#if !defined(POCKETFFT_AVAILABLE)
-    container::ThreadLocalWrapper<XXContainer> p_xx_all(bin_count);
-    auto calc_xx_ii = [&data_x_i, &p_xx_all, data_x_i_size] (int imin, int imax) {
-        auto& p_xx = p_xx_all.get();
-        for (int i = imin; i < imax; ++i) { // exv interior
-            int j = i+1;                    // exv interior
-            for (; j+15 < data_x_i_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
-            }
-
-            for (; j+7 < data_x_i_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
-            }
-
-            for (; j+3 < data_x_i_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
-            }
-
-            for (; j < data_x_i_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_xx.interior, data_x_i, data_x_i, i, j);
-            }
-        }
-        return p_xx;
-    };
-
-    auto calc_xx_ss = [&data_x_s, &p_xx_all, data_x_s_size] (int imin, int imax) {
-        auto& p_xx = p_xx_all.get();
-        for (int i = imin; i < imax; ++i) { // exv surface
-            int j = i+1;                    // exv surface
-            for (; j+15 < data_x_s_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
-            }
-
-            for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
-            }
-
-            for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
-            }
-
-            for (; j < data_x_s_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_xx.surface, data_x_s, data_x_s, i, j);
-            }
-        }
-        return p_xx;
-    };
-
-    auto calc_xx_si = [&data_x_i, &data_x_s, &p_xx_all, data_x_s_size] (int imin, int imax) {
-        auto& p_xx = p_xx_all.get();
-        for (int i = imin; i < imax; ++i) { // exv interior
-            int j = 0;                      // exv surface
-            for (; j+15 < data_x_s_size; j+=16) {
-                evaluate16<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
-            }
-
-            for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
-            }
-
-            for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
-            }
-
-            for (; j < data_x_s_size; ++j) {
-                evaluate1<variable_bin_width, 2>(p_xx.cross, data_x_i, data_x_s, i, j);
-            }
-        }
-        return p_xx;
-    };
-#endif
-
-    container::ThreadLocalWrapper<AXContainer> p_ax_all(form_factor::get_active_count(), bin_count);
-    auto calc_ax = [&data_a, &data_x_i, &data_x_s, &p_ax_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
-        auto& p_ax = p_ax_all.get();
-        for (int i = imin; i < imax; ++i) { // atoms
-            int j = 0;                      // exv interior
-            for (; j+15 < data_x_i_size; j+=16) {
-                detail::grid::evaluate16<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
-            }
-
-            for (; j+7 < data_x_i_size; j+=8) {
-                detail::grid::evaluate8<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
-            }
-
-            for (; j+3 < data_x_i_size; j+=4) {
-                detail::grid::evaluate4<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
-            }
-
-            for (; j < data_x_i_size; ++j) {
-                detail::grid::evaluate1<variable_bin_width, 1>(p_ax.interior, data_a, data_x_i, i, j);
-            }
-
-            j = 0;                          // exv surface
-            for (; j+15 < data_x_s_size; j+=16) {
-                detail::grid::evaluate16<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
-            }
-
-            for (; j+7 < data_x_s_size; j+=8) {
-                detail::grid::evaluate8<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
-            }
-
-            for (; j+3 < data_x_s_size; j+=4) {
-                detail::grid::evaluate4<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
-            }
-
-            for (; j < data_x_s_size; ++j) {
-                detail::grid::evaluate1<variable_bin_width, 1>(p_ax.surface, data_a, data_x_s, i, j);
-            }
-        }
-        return p_ax;
-    };
-
-    container::ThreadLocalWrapper<WXContainer> p_wx_all(bin_count);
-    auto calc_wx = [&data_w, &data_x_i, &data_x_s, &p_wx_all, data_x_i_size, data_x_s_size] (int imin, int imax) {
-        auto& p_wx = p_wx_all.get();
-        for (int i = imin; i < imax; ++i) { // waters
-            int j = 0;                      // exv interior
-            for (; j+15 < data_x_i_size; j+=16) {
-                evaluate16<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
-            }
-
-            for (; j+7 < data_x_i_size; j+=8) {
-                evaluate8<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
-            }
-
-            for (; j+3 < data_x_i_size; j+=4) {
-                evaluate4<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
-            }
-
-            for (; j < data_x_i_size; ++j) {
-                evaluate1<variable_bin_width, 1>(p_wx.interior, data_w, data_x_i, i, j);
-            }
-
-            j = 0;                          // exv surface
-            for (; j+15 < data_x_s_size; j+=16) {
-                evaluate16<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
-            }
-
-            for (; j+7 < data_x_s_size; j+=8) {
-                evaluate8<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
-            }
-
-            for (; j+3 < data_x_s_size; j+=4) {
-                evaluate4<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
-            }
-
-            for (; j < data_x_s_size; ++j) {
-                evaluate1<variable_bin_width, 1>(p_wx.surface, data_w, data_x_s, i, j);
-            }
-        }
-        return p_wx;
-    };
 
     //##############//
     // SUBMIT TASKS //
     //##############//
-    int job_size_a = settings::general::detail::get_job_size(data_a_size);
-    int job_size_w = settings::general::detail::get_job_size(data_w_size);
-    for (int i = 0; i < data_a_size; i+=job_size_a) {
-        pool->detach_task(
-            [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
-        );
-    }
+    // the atoms are partitioned by form factor, the waters and excluded volume cells are not
+    distance_calculator::HistogramStore<true> store(bin_count, static_cast<int>(data_a.size()));
+    int ax_i = store.allocate_2d(), ax_s = store.allocate_2d();
+    int wx_i = store.allocate_1d(), wx_s = store.allocate_1d();
+#if !defined(POCKETFFT_AVAILABLE)
+    int xx_i = store.allocate_1d(), xx_s = store.allocate_1d(), xx_is = store.allocate_1d();
+#endif
+    distance_calculator::Calculator<true, variable_bin_width, UNIT_WEIGHTS> calculator(store);
+    calculator.hold();
+    calculator.enqueue_calculate_cross(data_a, data_x_i, ax_i, 1);
+    calculator.enqueue_calculate_cross(data_a, data_x_s, ax_s, 1);
+    calculator.enqueue_calculate_cross(data_w, data_x_i, wx_i, 1);
+    calculator.enqueue_calculate_cross(data_w, data_x_s, wx_s, 1);
+    calculator.release_hold();
 
-    for (int i = 0; i < data_w_size; i+=job_size_w) {
-        pool->detach_task(
-            [&calc_wx, i, job_size_w, data_w_size] () {return calc_wx(i, std::min(i+job_size_w, data_w_size));}
-        );
-    }
-
+    XXContainer p_xx(0);
 #if defined(POCKETFFT_AVAILABLE)
     // use the more efficient lattice transform for the self-correlation. it runs on the calling thread, overlapping with the jobs above.
     auto p_xx_lattice = detail::lattice::correlations(
         exv, hist::detail::WidthController<variable_bin_width>::get_inv_width(), bin_count
     );
-    XXContainer p_xx(0);
     p_xx.interior = std::move(p_xx_lattice.first);
     p_xx.surface  = std::move(p_xx_lattice.second);
     p_xx.cross    = std::move(p_xx_lattice.cross);
-    pool->wait();
+    p_xx.interior.add_index(0, detail::WeightedEntry(data_x_i.size(), data_x_i.size(), 0)); // self-correlations
+    p_xx.surface.add_index(0, detail::WeightedEntry(data_x_s.size(), data_x_s.size(), 0));  // self-correlations
+    calculator.run();
 #else
-    int job_size_xi = settings::general::detail::get_job_size(data_x_i_size);
-    int job_size_xs = settings::general::detail::get_job_size(data_x_s_size);
-    for (int i = 0; i < data_x_i_size; i+=job_size_xi) {
-        pool->detach_task(
-            [&calc_xx_ii, i, job_size_xi, data_x_i_size] () {return calc_xx_ii(i, std::min(i+job_size_xi, data_x_i_size));}
-        );
-    }
-
-    for (int i = 0; i < data_x_s_size; i+=job_size_xs) {
-        pool->detach_task(
-            [&calc_xx_ss, i, job_size_xs, data_x_s_size] () {return calc_xx_ss(i, std::min(i+job_size_xs, data_x_s_size));}
-        );
-    }
-
-    for (int i = 0; i < data_x_i_size; i+=job_size_xi) {
-        pool->detach_task(
-            [&calc_xx_si, i, job_size_xi, data_x_i_size] () {return calc_xx_si(i, std::min(i+job_size_xi, data_x_i_size));}
-        );
-    }
-    pool->wait();
-    XXContainer p_xx = p_xx_all.merge();
+    calculator.enqueue_calculate_self(data_x_i, xx_i);
+    calculator.enqueue_calculate_self(data_x_s, xx_s);
+    calculator.enqueue_calculate_cross(data_x_i, data_x_s, xx_is, 2);
+    calculator.run();
+    p_xx.interior = store.export_1d(xx_i);
+    p_xx.surface  = store.export_1d(xx_s);
+    p_xx.cross    = store.export_1d(xx_is);
 #endif
-    AXContainer p_ax = p_ax_all.merge();
-    WXContainer p_wx = p_wx_all.merge();
+    AXContainer p_ax(0, 0);
+    p_ax.interior = store.export_2d(ax_i);
+    p_ax.surface  = store.export_2d(ax_s);
+    WXContainer p_wx(0);
+    p_wx.interior = store.export_1d(wx_i);
+    p_wx.surface  = store.export_1d(wx_s);
 
-    //###################//
-    // SELF-CORRELATIONS //
-    //###################//
-    p_xx.interior.add_index(0, detail::WeightedEntry(data_x_i_size, data_x_i_size, 0));
-    p_xx.surface.add_index(0, detail::WeightedEntry(data_x_s_size, data_x_s_size, 0));
-
-    // downsize our axes to only the relevant area
-    int max_bin = 10; // minimum size is 10
-    for (int i = p_xx.surface.size()-1; i >= 10; i--) {
-        if (p_xx.surface.index(i) != 0 || p_xx.interior.index(i) != 0 || p_wx.surface.index(i) != 0 || p_wx.interior.index(i) != 0) {
-            max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
-            break;
-        }
-    }
-
-    // ensure that our new vectors are compatible with those from the base class
-    // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
-    auto* cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    WeightedDistribution1D p_tot = cast_res->get_weighted_counts();
-    p_tot.set_bin_centers(cast_res->get_d_axis());
-
-    Distribution3D p_aa = std::move(cast_res->get_raw_aa_counts_by_ff());
-    Distribution2D p_aw = std::move(cast_res->get_raw_aw_counts_by_ff());
-    Distribution1D p_ww = std::move(cast_res->get_raw_ww_counts_by_ff());
-
-    // either xx or ww are largest of all components
-    max_bin = std::max<int>(max_bin, p_tot.size());
-
-    // downsize the axes to only the relevant area
-    if (static_cast<int>(base_res->get_d_axis().size()) < max_bin) {
-        p_aa.resize(max_bin);
-        p_aw.resize(max_bin);
-        p_ww.resize(max_bin);
-    } else {
-        max_bin = base_res->get_d_axis().size(); // make sure we overwrite anything which may already be stored
-    }
+    // the excluded volume may reach further than the atoms, in which case the atomic distributions are grown to match
+    auto atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<CompositeDistanceHistogramFFAvg&>(*base_res));
+    int max_bin = atomic.grow(hist::detail::trimmed_bin_count(p_xx.surface, p_xx.interior, p_wx.surface, p_wx.interior));
+    auto& [p_aa, p_aw, p_ww, p_tot] = atomic;
 
     // calculate weighted distance bins
-    p_tot.resize(max_bin);
     WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx.surface.size());
     for (int i = 0; i < max_bin; ++i) {
         p_tot_ax.add_index(i, p_wx.interior.index(i));

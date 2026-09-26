@@ -20,7 +20,7 @@ namespace ausaxs::gpu::abi {
         /**
          * @brief The version of this interface.
          */
-        constexpr std::int32_t version = 1;
+        constexpr std::int32_t version = 2;
 
         /**
          * @brief Status returned by the run functions.
@@ -43,7 +43,7 @@ namespace ausaxs::gpu::abi {
             const float* a1;        // first coordinate set
             const float* a2;        // second coordinate set, or nullptr for a self-correlation
             std::uint32_t n1, n2;   // number of atoms in each set; n2 is ignored for self-correlations
-            std::uint32_t scaling;  // multiplicative factor applied to every contribution
+            std::uint32_t scaling;  // factor applied as-is to every visited pair; 2 counts each unordered pair once in either order
             std::uint32_t slot;     // index of the output histogram this job accumulates into
         };
         static_assert(std::is_trivial_v<Job>, "Job must be trivial for ABI compatibility.");

@@ -6,6 +6,7 @@
 #include <math/indexers/Indexer2D.h>
 
 #include <cassert>
+#include <span>
 #include <vector>
 
 #ifndef NDEBUG
@@ -22,6 +23,8 @@ namespace ausaxs::container {
     class Container2D : utility::indexer::Indexer2D<Container2D<T>> {
         friend class utility::indexer::Indexer2D<Container2D<T>>;
         public:
+            using value_type = T;
+
             Container2D() : N(0), M(0), data(0) {}
             Container2D(int width, int height) : N(width), M(height), data(width*height) {}
             Container2D(int width, int height, const T& value) : N(width), M(height), data(width*height, value) {}
@@ -78,6 +81,16 @@ namespace ausaxs::container {
                 }() && "Container2D::end: Index out of bounds.");
                 return data.begin() + i*M + M;
             }
+
+            /**
+             * @brief Get the vector at index i.
+             */
+            std::span<T> row(int i) {return {begin(i), static_cast<std::size_t>(M)};}
+
+            /**
+             * @brief Get the vector at index i.
+             */
+            std::span<const T> row(int i) const {return {begin(i), static_cast<std::size_t>(M)};}
 
             /**
              * @brief Get an iterator to the beginning of the entire container.

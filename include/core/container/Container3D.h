@@ -6,6 +6,7 @@
 #include <math/indexers/Indexer3D.h>
 
 #include <cassert>
+#include <span>
 #include <vector>
 
 #ifndef NDEBUG
@@ -22,6 +23,8 @@ namespace ausaxs::container {
     class Container3D : utility::indexer::Indexer3D<Container3D<T>> {
         friend class utility::indexer::Indexer3D<Container3D<T>>;
         public:
+            using value_type = T;
+
             Container3D() : N(0), M(0), L(0), data(0) {}
             Container3D(int width, int height, int depth) : N(width), M(height), L(depth), data(width * height * depth) {}
             Container3D(int width, int height, int depth, const T& value) : N(width), M(height), L(depth), data(width * height * depth, value) {}
@@ -87,6 +90,16 @@ namespace ausaxs::container {
                 }() && "Container3D::end: Index out of bounds.");
                 return data.begin() + L*(j + M*i) + L;
             }
+
+            /**
+             * @brief Get the vector at index i, j.
+             */
+            std::span<T> row(int i, int j) {return {begin(i, j), static_cast<std::size_t>(L)};}
+
+            /**
+             * @brief Get the vector at index i, j.
+             */
+            std::span<const T> row(int i, int j) const {return {begin(i, j), static_cast<std::size_t>(L)};}
 
             /**
              * @brief Get an iterator to the beginning of the entire container. 

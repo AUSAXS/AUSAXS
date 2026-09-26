@@ -5,7 +5,7 @@
 
 #include <data/DataFwd.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/detail/CompactCoordinatesFF.h>
+#include <math/Vector3.h>
 #include <utility/observer_ptr.h>
 
 #include <vector>
@@ -45,35 +45,16 @@ namespace ausaxs::hist::detail::factory {
     }
 
     /**
-     * @brief Construct a form-factor-based representation of @a atoms.
+     * @brief Construct a representation of @a points. A bare point has no weight of its own, so each weighs 1.
      */
     template<bool variable_bin_width>
-    CompactCoordinatesFF<variable_bin_width> construct_ff(const std::vector<data::AtomFF>& atoms) {
-        CompactCoordinatesFF<variable_bin_width> c;
-        c.fill(atoms);
-        c.setup();
-        return c;
-    }
-
-    /**
-     * @brief Construct a form-factor-based representation of every atom in @a molecule.
-     */
-    template<bool variable_bin_width>
-    CompactCoordinatesFF<variable_bin_width> construct_ff_from_atoms(observer_ptr<const data::Molecule> molecule) {
-        CompactCoordinatesFF<variable_bin_width> c;
-        c.fill_from_atoms(molecule);
-        c.setup();
-        return c;
-    }
-
-    /**
-     * @brief Construct a form-factor-based representation of every water in @a molecule.
-     */
-    template<bool variable_bin_width>
-    CompactCoordinatesFF<variable_bin_width> construct_ff_from_waters(observer_ptr<const data::Molecule> molecule) {
-        CompactCoordinatesFF<variable_bin_width> c;
-        c.fill_from_waters(molecule);
-        c.setup();
+    CompactCoordinates<variable_bin_width> construct(const std::vector<Vector3<double>>& points) {
+        CompactCoordinates<variable_bin_width> c;
+        c.resize(static_cast<int>(points.size()));
+        for (int i = 0; i < c.size(); ++i) {
+            c.set_position(i, points[i]);
+            c.get_weight(i) = 1;
+        }
         return c;
     }
 }

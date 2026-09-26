@@ -7,13 +7,13 @@
 #include <data/Molecule.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <hist/distance_calculator/SimpleCalculator.h>
+#include <hist/distance_calculator/Calculator.h>
+#include <hist/distance_calculator/HistogramStore.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Logging.h>
 
-#include <cassert>
 #include <ranges>
 #include <utility>
 
@@ -51,11 +51,12 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     auto atomic = data | std::views::transform([] (const auto& body) -> const auto& {return body.atomic;});
     int bin_count = hist::detail::required_bin_count<variable_bin_width>(atomic, data_w);
 
-    hist::distance_calculator::SimpleCalculator<weighted_bins, variable_bin_width> calculator(bin_count);
+    // every self and cross contribution of a kind sums into the same row
+    hist::distance_calculator::HistogramStore<weighted_bins> store(bin_count);
+    int aa = store.allocate_1d(), aw = store.allocate_1d(), ww = store.allocate_1d();
+    hist::distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(store);
 
     const auto& waters = data_w;
-    int self_merge_id_aa = 0, self_merge_id_ww = 1;
-    int cross_merge_id_aa = 0, cross_merge_id_aw = 1, cross_merge_id_ww = 2;
 
     // resolve a (body, symmetry, repetition) triple to its transformed coordinates;
     // repetition 0 is the original body, 1..N are the generated copies
@@ -67,9 +68,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
         const auto& body = protein->get_body(i_body1);
         const auto& body1_atomic = data[i_body1].atomic[0][0];
         // every copy has identical internal distances, so evaluate once and scale
-        calculator.enqueue_calculate_self(body1_atomic, 1 + body.size_symmetry_total(), self_merge_id_aa);
+        calculator.enqueue_calculate_self(body1_atomic, aa, 1 + body.size_symmetry_total());
         if constexpr (contains_waters) {
-            calculator.enqueue_calculate_cross(waters, body1_atomic, 1, cross_merge_id_aw);
+            calculator.enqueue_calculate_cross(waters, body1_atomic, aw, 2);
         }
 
         for (int i_sym1 = 0; i_sym1 < body.size_symmetry(); ++i_sym1) {
@@ -82,7 +83,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                 calculator.enqueue_calculate_cross(
                     atomic_at(i_body1, i_sym1, pair.repA),
                     atomic_at(i_body1, i_sym1, pair.repB),
-                    pair.scale, cross_merge_id_aa
+                    aa, 2*pair.scale
                 );
             }
             calculator.release_hold();
@@ -93,21 +94,21 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                 // this copy against everything it can pair with, as one group
                 calculator.hold();
                 if constexpr (contains_waters) {
-                    calculator.enqueue_calculate_cross(waters, body1_sym_atomic, 1, cross_merge_id_aw);
+                    calculator.enqueue_calculate_cross(waters, body1_sym_atomic, aw, 2);
                 }
 
                 // external histograms with other bodies
                 for (int j_body1 = i_body1+1; j_body1 < protein->size_body(); ++j_body1) {
                     const auto& body2 = protein->get_body(j_body1);
                     const auto& body2_atomic = data[j_body1].atomic[0][0];
-                    calculator.enqueue_calculate_cross(body2_atomic, body1_sym_atomic, 1, cross_merge_id_aa);
+                    calculator.enqueue_calculate_cross(body2_atomic, body1_sym_atomic, aa, 2);
 
                     // external histograms with other symmetries in same body
                     for (int j_sym1 = 0; j_sym1 < body2.size_symmetry(); ++j_sym1) {
                         const auto& sym2 = body2.symmetry().get(j_sym1);
                         for (int j_repeat1 = 0; j_repeat1 < sym2->repetitions(); ++j_repeat1) {
                             const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
-                            calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
+                            calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, aa, 2);
                         }
                     }
                 }
@@ -117,7 +118,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
                     const auto& sym2 = body.symmetry().get(i_sym2);
                     for (int i_repeat2 = 0; i_repeat2 < sym2->repetitions(); ++i_repeat2) {
                         const auto& body2_sym_atomic = data[i_body1].atomic[1+i_sym2][i_repeat2];
-                        calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
+                        calculator.enqueue_calculate_cross(body1_sym_atomic, body2_sym_atomic, aa, 2);
                     }
                 }
                 calculator.release_hold();
@@ -131,61 +132,35 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
 
             // the host body against all of body2, as one group
             calculator.hold();
-            calculator.enqueue_calculate_cross(body1_atomic, body2_atomic, 1, cross_merge_id_aa);
+            calculator.enqueue_calculate_cross(body1_atomic, body2_atomic, aa, 2);
 
             // external histograms with other symmetries in same body
             for (int j_sym1 = 0; j_sym1 < body2.size_symmetry(); ++j_sym1) {
                 const auto& sym2 = body2.symmetry().get(j_sym1);
                 for (int j_repeat1 = 0; j_repeat1 < sym2->repetitions(); ++j_repeat1) {
                     const auto& body2_sym_atomic = data[j_body1].atomic[1+j_sym1][j_repeat1];
-                    calculator.enqueue_calculate_cross(body1_atomic, body2_sym_atomic, 1, cross_merge_id_aa);
+                    calculator.enqueue_calculate_cross(body1_atomic, body2_sym_atomic, aa, 2);
                 }
             }
             calculator.release_hold();
         }
     }
     if constexpr (contains_waters) {
-        calculator.enqueue_calculate_self(waters, 1, self_merge_id_ww);
+        calculator.enqueue_calculate_self(waters, ww);
     }
+    calculator.run();
 
-    auto res = calculator.run();
-    assert((contains_waters ? 2 : 1) == res.self.size() && "SymmetryManager::calculate: self size mismatch");
-
-    GenericDistribution1D_t p_aa = std::move(res.self[self_merge_id_aa]);
-    GenericDistribution1D_t p_ww, p_aw;
-
-    // merge results
-    if (res.cross.contains(cross_merge_id_aa)) {
-        p_aa += res.cross[ cross_merge_id_aa];
-    }
-
-    if constexpr (contains_waters) {
-        if (res.cross.contains(        cross_merge_id_aw)) {
-            p_aw = std::move(res.cross[cross_merge_id_aw]);
-        }
-        if (res.self.contains(        self_merge_id_ww)) {
-            p_ww = std::move(res.self[self_merge_id_ww]);
-        }
-        if (res.cross.contains(cross_merge_id_ww)) {
-            p_ww += res.cross[ cross_merge_id_ww];
-        }
-    } else {
-        p_ww = GenericDistribution1D_t(p_aa.size());
-        p_aw = GenericDistribution1D_t(p_aa.size());
-    }
+    // without waters, aw and ww were never named, and are still zero
+    GenericDistribution1D_t p_aa = store.export_1d(aa);
+    GenericDistribution1D_t p_aw = store.export_1d(aw);
+    GenericDistribution1D_t p_ww = store.export_1d(ww);
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(bin_count);
     for (int i = 0; i < static_cast<int>(p_tot.size()); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + p_aw.index(i);}
 
     // downsize our axes to only the relevant area
-    int max_bin = 10; // minimum size is 10
-    for (int i = p_tot.size()-1; i >= 10; i--) {
-        if (p_tot.index(i) != 0) {
-            max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
-            break;
-        }
-    }
+    int max_bin = hist::detail::trimmed_bin_count(p_tot);
     p_aa.resize(max_bin);
     p_ww.resize(max_bin);
     p_aw.resize(max_bin);

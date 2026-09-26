@@ -3,20 +3,17 @@
 
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 
-#include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>  // IWYU pragma: keep
-#include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/distance_calculator/detail/TemplateHelperAvg.h>  // IWYU pragma: keep
-#include <hist/distance_calculator/detail/TemplateHelperGrid.h>
+#include <hist/distance_calculator/Calculator.h>
+#include <hist/distance_calculator/HistogramStore.h>
+#include <hist/histogram_manager/detail/GridExvHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
-#include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
-#include <utility/MultiThreading.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -37,207 +34,40 @@ grid::exv::GridExcludedVolume HistogramManagerMTFFGridScalableExv<variable_bin_w
 template<bool variable_bin_width>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv<variable_bin_width>::calculate_all() {
     logging::log("HistogramManagerMTFFGridScalableExv::calculate: starting calculation");
-    auto* pool = utility::multi_threading::get_global_pool();
     auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
-
-    // ensure that our new vectors are compatible with those from the base class
-    // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
-    auto* cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    WeightedDistribution1D p_tot = cast_res->get_weighted_counts();
-    p_tot.set_bin_centers(cast_res->get_d_axis());
-
-    hist::detail::CompactCoordinatesFF<variable_bin_width> data_x;
-    {   // generate the excluded volume representation
-        auto exv = get_exv().interior;
-        std::vector<data::AtomFF> interior(exv.size());
-        std::transform(
-            exv.begin(), exv.end(), interior.begin(),
-            [] (const Vector3<double>& atom) {return data::AtomFF{atom, form_factor::form_factor_t::EXCLUDED_VOLUME};}
-        );
-        data_x = hist::detail::factory::construct_ff<variable_bin_width>(interior);
-    }
 
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
     auto eval_scaled_exv = [
-        p_tot = std::move(p_tot),
-        p_aa = std::move(cast_res->get_raw_aa_counts_by_ff()),
-        p_aw = std::move(cast_res->get_raw_aw_counts_by_ff()),
-        p_ww = std::move(cast_res->get_raw_ww_counts_by_ff()),
-        data_a = *this->data_a_ptr, 
-        data_w = *this->data_w_ptr, 
-        data_x = std::move(data_x),
-        pool] 
+        atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<CompositeDistanceHistogramFFAvg&>(*base_res)),
+        data_a = *this->data_a_ptr,
+        data_w = *this->data_w_ptr,
+        data_x = hist::detail::factory::construct<variable_bin_width>(get_exv().interior)] 
         (double scale) 
     {
-        int data_a_size = data_a.size();
-        int data_w_size = data_w.size();
-        int data_x_size = data_x.size();
-
         // stretch the excluded volume cells by the given scale factor
-        auto scaled_data_x = data_x;
-        scaled_data_x.scale_coordinates(scale);
-        int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_data_x);
-
-        //########################//
-        // PREPARE MULTITHREADING //
-        //########################//
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_xx_all(bin_count);
-        auto calc_xx = [&scaled_data_x, &p_xx_all, data_x_size] (int imin, int imax) {
-            auto& p_xx = p_xx_all.get();
-            for (int i = imin; i < imax; ++i) { // exv
-                int j = i+1;                    // exv
-                for (; j+15 < data_x_size; j+=16) {
-                    evaluate16<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
-                }
-
-                for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
-                }
-
-                for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
-                }
-
-                for (; j < data_x_size; ++j) {
-                    evaluate1<variable_bin_width, 2>(p_xx, scaled_data_x, scaled_data_x, i, j);
-                }
-            }
-            return p_xx;
-        };
-
-        container::ThreadLocalWrapper<WeightedDistribution2D> p_ax_all(form_factor::get_active_count(), bin_count);
-        auto calc_ax = [&data_a, &scaled_data_x, &p_ax_all, data_x_size] (int imin, int imax) {
-            auto& p_ax = p_ax_all.get();
-            for (int i = imin; i < imax; ++i) { // atoms
-                int j = 0;                      // exv
-                for (; j+15 < data_x_size; j+=16) {
-                    detail::grid::evaluate16<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
-                }
-
-                for (; j+7 < data_x_size; j+=8) {
-                    detail::grid::evaluate8<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
-                }
-
-                for (; j+3 < data_x_size; j+=4) {
-                    detail::grid::evaluate4<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
-                }
-
-                for (; j < data_x_size; ++j) {
-                    detail::grid::evaluate1<variable_bin_width, 1>(p_ax, data_a, scaled_data_x, i, j);
-                }
-            }
-            return p_ax;
-        };
-
-        container::ThreadLocalWrapper<WeightedDistribution1D> p_wx_all(bin_count);
-        auto calc_wx = [&data_w, &scaled_data_x, &p_wx_all, data_x_size] (int imin, int imax) {
-            auto& p_wx = p_wx_all.get();
-            for (int i = imin; i < imax; ++i) { // waters
-                int j = 0;                      // exv
-                for (; j+15 < data_x_size; j+=16) {
-                    evaluate16<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
-                }
-
-                for (; j+7 < data_x_size; j+=8) {
-                    evaluate8<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
-                }
-
-                for (; j+3 < data_x_size; j+=4) {
-                    evaluate4<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
-                }
-
-                for (; j < data_x_size; ++j) {
-                    evaluate1<variable_bin_width, 1>(p_wx, data_w, scaled_data_x, i, j);
-                }
-            }
-            return p_wx;
-        };
+        auto scaled_x = data_x;
+        scaled_x.scale_coordinates(scale);
+        int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_x);
 
         //##############//
         // SUBMIT TASKS //
         //##############//
-        int job_size_x = settings::general::detail::get_job_size(data_x_size);
-        int job_size_a = settings::general::detail::get_job_size(data_a_size);
-        int job_size_w = settings::general::detail::get_job_size(data_w_size);
-        for (int i = 0; i < data_x_size; i+=job_size_x) {
-            pool->detach_task(
-                [&calc_xx, i, job_size_x, data_x_size] () {return calc_xx(i, std::min(i+job_size_x, data_x_size));}
-            );
-        }
-        for (int i = 0; i < data_a_size; i+=job_size_a) {
-            pool->detach_task(
-                [&calc_ax, i, job_size_a, data_a_size] () {return calc_ax(i, std::min(i+job_size_a, data_a_size));}
-            );
-        }
-        for (int i = 0; i < data_w_size; i+=job_size_w) {
-            pool->detach_task(
-                [&calc_wx, i, job_size_w, data_w_size] () {return calc_wx(i, std::min(i+job_size_w, data_w_size));}
-            );
-        }
+        distance_calculator::HistogramStore<true> store(bin_count, static_cast<int>(data_a.size()));
+        int ax = store.allocate_2d(), wx = store.allocate_1d(), xx = store.allocate_1d();
+        distance_calculator::Calculator<true, variable_bin_width, UNIT_WEIGHTS> calculator(store);
+        calculator.enqueue_calculate_self(scaled_x, xx);
+        calculator.enqueue_calculate_cross(data_a, scaled_x, ax, 1);
+        calculator.enqueue_calculate_cross(data_w, scaled_x, wx, 1);
 
-        pool->wait();
-        WeightedDistribution1D p_xx_generic = p_xx_all.merge();
-        WeightedDistribution2D p_ax_generic = p_ax_all.merge();
-        WeightedDistribution1D p_wx_generic = p_wx_all.merge();
+        calculator.run();
+        WeightedDistribution1D p_xx_generic = store.export_1d(xx);
+        WeightedDistribution2D p_ax_generic = store.export_2d(ax);
+        WeightedDistribution1D p_wx_generic = store.export_1d(wx);
 
-        p_xx_generic.add_index(0, detail::WeightedEntry(data_x_size, data_x_size, 0)); // self-correlations
-
-        // downsize our axes to only the relevant area
-        int max_bin = 10; // minimum size is 10
-        for (int i = p_xx_generic.size()-1; i >= 10; --i) {
-            if (p_xx_generic.index(i) != 0 || p_wx_generic.index(i) != 0) {
-                max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
-                break;
-            }
-        }
-
-        // downsize the axes to only the relevant area
-        auto new_p_aa = p_aa;
-        auto new_p_aw = p_aw;
-        auto new_p_ww = p_ww;
-        if (p_tot.size() < max_bin) {
-            new_p_aa.resize(max_bin);
-            new_p_aw.resize(max_bin);
-            new_p_ww.resize(max_bin);
-        } else {
-            max_bin = p_tot.size(); // make sure we overwrite anything which may already be stored
-        }
-
-        // calculate weighted distance bins
-        auto new_p_tot = p_tot;
-        new_p_tot.resize(max_bin);
-        WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx_generic.size());
-        for (int i = 0; i < max_bin; ++i) {
-            p_tot_ax.add_index(i, p_wx_generic.index(i));
-        }
-
-        for (int i = 0; i < p_ax_generic.size_x(); ++i) {
-            for (int j = 0; j < max_bin; ++j) {
-                p_tot_ax.add_index(j, p_ax_generic.index(i, j));
-            }
-        }
-
-        // overwrite the excluded volume calculations from the HistogramManagerMTFFAvg calculations with our new grid-based ones
-        // first cast the weighted distributions to make iteration simpler
-        Distribution2D p_ax = Distribution2D(p_ax_generic);
-        Distribution1D p_wx = Distribution1D(p_wx_generic);
-        Distribution1D p_xx = Distribution1D(p_xx_generic);
-
-        // replace the calculations
-        for (int i = 0; i < p_aa.size_x(); ++i) {
-            std::move(p_ax.begin(i), p_ax.begin(i)+max_bin, new_p_aa.begin(i, form_factor::exv_bin));
-        }
-        std::move(p_wx.begin(), p_wx.begin()+max_bin, new_p_aw.begin(form_factor::exv_bin));
-        std::move(p_xx.begin(), p_xx.begin()+max_bin, new_p_aa.begin(form_factor::exv_bin, form_factor::exv_bin));
-
-        return std::make_unique<CompositeDistanceHistogramFFGrid>(
-            std::move(new_p_aa), 
-            std::move(new_p_aw), 
-            std::move(new_p_ww), 
-            std::move(new_p_tot),
-            std::move(p_tot_ax),
-            std::move(p_xx_generic)
-        );
+        // the excluded volume may reach further than the atoms, in which case the atomic distributions are grown to match
+        auto scaled = atomic;
+        scaled.grow(hist::detail::trimmed_bin_count(p_xx_generic, p_wx_generic));
+        return hist::detail::grid_exv::splice(std::move(scaled), p_ax_generic, p_wx_generic, std::move(p_xx_generic));
     };
 
     return std::make_unique<CompositeDistanceHistogramFFGridScalableExv>(std::move(*eval_scaled_exv(1)), std::move(eval_scaled_exv));

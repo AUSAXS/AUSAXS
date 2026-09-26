@@ -19,6 +19,8 @@ namespace ausaxs::container {
     class Container1D : public utility::indexer::Indexer1D<Container1D<T>> {
         friend class utility::indexer::Indexer1D<Container1D<T>>;
         public:
+            using value_type = T;
+
             Container1D() : N(0), data(0) {}
             Container1D(int size) : N(size), data(size) {}
             Container1D(int size, const T& value) : N(size), data(size, value) {}
