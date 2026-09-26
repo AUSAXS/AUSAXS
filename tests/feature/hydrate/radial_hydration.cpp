@@ -1,10 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/atoms/Atom.h>
 #include <hydrate/generation/RadialHydration.h>
 #include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
+
+#include <algorithm>
+#include <cmath>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
@@ -48,4 +53,27 @@ TEST_CASE("RadialHydration: consistency") {
             }
         }
     }
+}
+TEST_CASE("RadialHydration: atoms without a form factor still exclude water") {
+    // molecule_from_arrays and the C++ Body(std::vector<Atom>) constructor give every atom the UNKNOWN form factor;
+    // the grid must still give those atoms a volume, or the shell is placed inside the molecule
+    settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::RadialStrategy;
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
+
+    Molecule file("tests/files/2epe.pdb");
+    file.clear_hydration();
+    std::vector<Atom> bare;
+    for (const auto& a : file.iterate_atoms()) {bare.emplace_back(a.coordinates(), a.weight());}
+    Molecule arrays({Body{bare}});
+
+    file.generate_new_hydration();
+    arrays.generate_new_hydration();
+    REQUIRE(arrays.size_water() != 0);
+    CHECK(std::abs(arrays.size_water() - file.size_water()) < 0.25*file.size_water());
+
+    double closest = 1e9;
+    for (const auto& w : arrays.get_waters()) {
+        for (const auto& a : arrays.iterate_atoms()) {closest = std::min(closest, a.coordinates().distance(w.coordinates()));}
+    }
+    CHECK(closest > 2);
 }

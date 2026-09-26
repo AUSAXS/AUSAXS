@@ -158,7 +158,7 @@ TEST_CASE("constants::radius::get_vdw_radius") {
 
     SECTION("special types") {
         CHECK(constants::radius::get_vdw_radius(form_factor_t::OTHER) > 0);
-        CHECK(constants::radius::get_vdw_radius(form_factor_t::UNKNOWN) == 0);
+        CHECK(constants::radius::get_vdw_radius(form_factor_t::UNKNOWN) == constants::radius::get_vdw_radius(form_factor_t::C));
     }
 }
 
