@@ -22,7 +22,6 @@ namespace ausaxs::hist::detail {
      * @brief A compact representation of the coordinates and weight of all atoms in a body.
      *        This is only designed as a temporary representation for the duration of the histogram calculation.
      */
-    template<bool variable_bin_width>
     class CompactCoordinates {
         public:
             CompactCoordinates() = default;
@@ -103,8 +102,7 @@ namespace ausaxs::hist::detail {
             void assign(int i, const T& a);
     };
 
-    static_assert(supports_nothrow_move_v<CompactCoordinates<true>>,    "CompactCoordinates should support nothrow move semantics.");
-    static_assert(supports_nothrow_move_v<CompactCoordinates<false>>,   "CompactCoordinates should support nothrow move semantics.");
+    static_assert(supports_nothrow_move_v<CompactCoordinates>, "CompactCoordinates should support nothrow move semantics.");
 }
 
 //#########################################//
@@ -113,16 +111,15 @@ namespace ausaxs::hist::detail {
 
 // implementation defined in header to support efficient inlining
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::resize(int n) {
+inline void ausaxs::hist::detail::CompactCoordinates::resize(int n) {
     _x.resize(n);
     _y.resize(n);
     _z.resize(n);
     _w.resize(n);
 }
 
-template<bool vbw> template<typename T>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::assign(int i, const T& a) {
+template<typename T>
+inline void ausaxs::hist::detail::CompactCoordinates::assign(int i, const T& a) {
     const auto& p = a.coordinates();
     _x[i] = static_cast<float>(p.x());
     _y[i] = static_cast<float>(p.y());
@@ -130,44 +127,38 @@ inline void ausaxs::hist::detail::CompactCoordinates<vbw>::assign(int i, const T
     _w[i] = static_cast<float>(a.weight());
 }
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::fill(const std::vector<data::AtomFF>& atoms) {
+inline void ausaxs::hist::detail::CompactCoordinates::fill(const std::vector<data::AtomFF>& atoms) {
     resize(static_cast<int>(atoms.size()));
     int i = 0;
     for (const auto& a : atoms) {assign(i++, a);}
 }
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::fill_from_atoms(observer_ptr<const data::Molecule> molecule) {
+inline void ausaxs::hist::detail::CompactCoordinates::fill_from_atoms(observer_ptr<const data::Molecule> molecule) {
     resize(molecule->size_atom());
     int i = 0;
     for (const auto& a : molecule->iterate_atoms()) {assign(i++, a);}
 }
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::fill_from_waters(observer_ptr<const data::Molecule> molecule) {
+inline void ausaxs::hist::detail::CompactCoordinates::fill_from_waters(observer_ptr<const data::Molecule> molecule) {
     resize(molecule->size_water());
     int i = 0;
     for (const auto& w : molecule->iterate_waters()) {assign(i++, w);}
 }
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::append(const CompactCoordinates& other) {
+inline void ausaxs::hist::detail::CompactCoordinates::append(const CompactCoordinates& other) {
     _x.insert(_x.end(), other._x.begin(), other._x.end());
     _y.insert(_y.end(), other._y.begin(), other._y.end());
     _z.insert(_z.end(), other._z.begin(), other._z.end());
     _w.insert(_w.end(), other._w.begin(), other._w.end());
 }
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::implicit_excluded_volume(double volume_per_atom) {
+inline void ausaxs::hist::detail::CompactCoordinates::implicit_excluded_volume(double volume_per_atom) {
     double displaced_charge = constants::charge::density::water*volume_per_atom;
     auto charge_per_atom = static_cast<float>(-displaced_charge);
-    std::for_each(_w.begin(), _w.end(), [charge_per_atom] (float& w) {w += charge_per_atom;});
+    std::ranges::for_each(_w, [charge_per_atom] (float& w) {w += charge_per_atom;});
 }
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::shuffle_order() {
+inline void ausaxs::hist::detail::CompactCoordinates::shuffle_order() {
     // one permutation applied to every component, so an atom stays intact
     int n = size();
     std::vector<int> perm(n);
@@ -185,8 +176,7 @@ inline void ausaxs::hist::detail::CompactCoordinates<vbw>::shuffle_order() {
     permute(_w);
 }
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::transform_coordinates(const ausaxs::transform::Affine& t) {
+inline void ausaxs::hist::detail::CompactCoordinates::transform_coordinates(const ausaxs::transform::Affine& t) {
     for (int i = 0; i < size(); ++i) {
         Vector3<float> v = t({static_cast<double>(_x[i]), static_cast<double>(_y[i]), static_cast<double>(_z[i])});
         _x[i] = v.x();
@@ -195,8 +185,7 @@ inline void ausaxs::hist::detail::CompactCoordinates<vbw>::transform_coordinates
     }
 }
 
-template<bool vbw>
-inline void ausaxs::hist::detail::CompactCoordinates<vbw>::scale_coordinates(double scale) {
+inline void ausaxs::hist::detail::CompactCoordinates::scale_coordinates(double scale) {
     auto f = static_cast<float>(scale);
     for (int i = 0; i < size(); ++i) {_x[i] *= f; _y[i] *= f; _z[i] *= f;}
 }

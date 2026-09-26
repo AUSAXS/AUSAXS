@@ -17,13 +17,13 @@ using namespace ausaxs;
 using namespace hist::detail;
 using namespace hist::detail::xyzw;
 
-TEST_CASE("CompactCoordinates<vbw>: component storage") {
+TEST_CASE("CompactCoordinates: component storage") {
     SECTION("positions and weights round-trip") {
         std::vector<data::AtomFF> atoms = {
             data::AtomFF({1, 2, 3}, form_factor::form_factor_t::C),
             data::AtomFF({4, 5, 6}, form_factor::form_factor_t::O)
         };
-        auto data = hist::detail::factory::construct<false>(atoms);
+        auto data = hist::detail::factory::construct(atoms);
         REQUIRE(data.size() == 2);
         CHECK(data.x(0) == 1);
         CHECK(data.y(0) == 2);
@@ -51,7 +51,7 @@ TEST_CASE("CompactCoordinates<vbw>: component storage") {
         for (int i = 0; i < 64; ++i) {
             atoms.emplace_back(Vector3<double>{double(i), 2.0*i, 3.0*i}, form_factor::form_factor_t::C);
         }
-        auto data = hist::detail::factory::construct<false>(atoms);
+        auto data = hist::detail::factory::construct(atoms);
         data.shuffle_order();
         REQUIRE(data.size() == 64);
         // every atom must still satisfy y == 2x and z == 3x, i.e. the components were
@@ -123,6 +123,8 @@ static void check_unordered_rounded(
 }
 
 namespace {
+    // the width the expected bins are computed with; the kernels take it directly, so the setting is not involved
+    constexpr float inv_width = 1./constants::axes::d_axis.width();
     const Atom self{.x=1, .y=1, .z=1, .w=2};
 
     // shared test geometry: atom n sits at (n+1, n+1, n+1) apart from the first
@@ -165,32 +167,30 @@ namespace {
     }
 }
 
-template<bool vbw>
 static void single_tests() {
     SECTION("single distance") {
         auto o = first_n<1>();
-        auto result = evaluate<vbw>(self, o.block());
+        auto result = evaluate(self, o.block(), inv_width);
         CHECK(result.distance == 1);
         CHECK(result.weight == 8);
 
         auto o2 = make_others<1>({{{{2, 2, 2}, 8}}});
-        result = evaluate<vbw>(self, o2.block());
+        result = evaluate(self, o2.block(), inv_width);
         CHECK_THAT(result.distance, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
         CHECK(result.weight == 16);
     }
 }
 
-template<bool vbw>
 static void single_tests_rounded() {
     SECTION("single distance") {
         const double width = constants::axes::d_axis.width();
         auto o = first_n<1>();
-        auto result = evaluate_rounded<vbw>(self, o.block());
+        auto result = evaluate_rounded(self, o.block(), inv_width);
         CHECK(result.distance_bin == std::round(1./width));
         CHECK(result.weight == 8);
 
         auto o2 = make_others<1>({{{{2, 2, 2}, 8}}});
-        result = evaluate_rounded<vbw>(self, o2.block());
+        result = evaluate_rounded(self, o2.block(), inv_width);
         CHECK(result.distance_bin == std::round(std::sqrt(3)/width));
         CHECK(result.weight == 16);
     }
@@ -210,29 +210,28 @@ static void block_tests_rounded(F&& evaluate_block) {
     check_unordered_rounded<N>(result.distance_bins, result.weights, expected_n_rounded<N>());
 }
 
-template<bool vbw>
 static void run_tests() {
     SECTION("scalar") {
-        single_tests<vbw>();
-        single_tests_rounded<vbw>();
-        block_tests<4>([](Atom s, Block b) {QuadEvaluatedResult r; evaluate_N_scalar<vbw, 4, 4>(s, b, r.distance_bins.data(), r.weights.data()); return r;}, 1e-6);
-        block_tests<8>([](Atom s, Block b) {OctoEvaluatedResult r; evaluate_N_scalar<vbw, 8, 8>(s, b, r.distance_bins.data(), r.weights.data()); return r;}, 1e-5);
-        block_tests<16>([](Atom s, Block b) {HexaEvaluatedResult r; evaluate_N_scalar<vbw, 16, 16>(s, b, r.distance_bins.data(), r.weights.data()); return r;}, 1e-3);
-        block_tests_rounded<4>([](Atom s, Block b) {QuadEvaluatedResultRounded r; evaluate_N_scalar<vbw, 4>(s, b, r.distance_bins.data(), r.weights.data()); return r;});
-        block_tests_rounded<8>([](Atom s, Block b) {OctoEvaluatedResultRounded r; evaluate_N_scalar<vbw, 8>(s, b, r.distance_bins.data(), r.weights.data()); return r;});
-        block_tests_rounded<16>([](Atom s, Block b) {HexaEvaluatedResultRounded r; evaluate_N_scalar<vbw, 16>(s, b, r.distance_bins.data(), r.weights.data()); return r;});
+        single_tests();
+        single_tests_rounded();
+        block_tests<4>([](Atom s, Block b) {QuadEvaluatedResult r; evaluate_N_scalar<4, 4>(s, b, r.distance_bins.data(), r.weights.data(), inv_width); return r;}, 1e-6);
+        block_tests<8>([](Atom s, Block b) {OctoEvaluatedResult r; evaluate_N_scalar<8, 8>(s, b, r.distance_bins.data(), r.weights.data(), inv_width); return r;}, 1e-5);
+        block_tests<16>([](Atom s, Block b) {HexaEvaluatedResult r; evaluate_N_scalar<16, 16>(s, b, r.distance_bins.data(), r.weights.data(), inv_width); return r;}, 1e-3);
+        block_tests_rounded<4>([](Atom s, Block b) {QuadEvaluatedResultRounded r; evaluate_N_scalar<4>(s, b, r.distance_bins.data(), r.weights.data(), inv_width); return r;});
+        block_tests_rounded<8>([](Atom s, Block b) {OctoEvaluatedResultRounded r; evaluate_N_scalar<8>(s, b, r.distance_bins.data(), r.weights.data(), inv_width); return r;});
+        block_tests_rounded<16>([](Atom s, Block b) {HexaEvaluatedResultRounded r; evaluate_N_scalar<16>(s, b, r.distance_bins.data(), r.weights.data(), inv_width); return r;});
     }
 
     #if defined AUSAXS_USE_SSE2
         SECTION("sse") {
             block_tests<4>([](Atom s, Block b) {
                 QuadEvaluatedResult r;
-                evaluate_4_sse_into<vbw, 4>(s, b, r.distance_bins.data(), r.weights.data());
+                evaluate_4_sse_into<4>(s, b, r.distance_bins.data(), r.weights.data(), inv_width);
                 return r;
             }, 1e-6);
             block_tests_rounded<4>([](Atom s, Block b) {
                 QuadEvaluatedResultRounded r;
-                evaluate_4_sse_into<vbw>(s, b, r.distance_bins.data(), r.weights.data());
+                evaluate_4_sse_into(s, b, r.distance_bins.data(), r.weights.data(), inv_width);
                 return r;
             });
         }
@@ -242,12 +241,12 @@ static void run_tests() {
         SECTION("avx") {
             block_tests<8>([](Atom s, Block b) {
                 OctoEvaluatedResult r;
-                evaluate_8_avx_into<vbw, 8>(s, b, r.distance_bins.data(), r.weights.data());
+                evaluate_8_avx_into<8>(s, b, r.distance_bins.data(), r.weights.data(), inv_width);
                 return r;
             }, 1e-5);
             block_tests_rounded<8>([](Atom s, Block b) {
                 OctoEvaluatedResultRounded r;
-                evaluate_8_avx_into<vbw>(s, b, r.distance_bins.data(), r.weights.data());
+                evaluate_8_avx_into(s, b, r.distance_bins.data(), r.weights.data(), inv_width);
                 return r;
             });
         }
@@ -257,32 +256,27 @@ static void run_tests() {
         SECTION("avx512") {
             block_tests<16>([](Atom s, Block b) {
                 HexaEvaluatedResult r;
-                evaluate_16_avx512_into<vbw, 16>(s, b, r.distance_bins.data(), r.weights.data());
+                evaluate_16_avx512_into<16>(s, b, r.distance_bins.data(), r.weights.data(), inv_width);
                 return r;
             }, 1e-3);
             block_tests_rounded<16>([](Atom s, Block b) {
                 HexaEvaluatedResultRounded r;
-                evaluate_16_avx512_into<vbw>(s, b, r.distance_bins.data(), r.weights.data());
+                evaluate_16_avx512_into(s, b, r.distance_bins.data(), r.weights.data(), inv_width);
                 return r;
             });
         }
     #endif
 
     SECTION("dispatch") {
-        block_tests<4>([](Atom s, Block b) {return evaluate_4<vbw>(s, b);}, 1e-6);
-        block_tests<8>([](Atom s, Block b) {return evaluate_8<vbw>(s, b);}, 1e-5);
-        block_tests<16>([](Atom s, Block b) {return evaluate_16<vbw>(s, b);}, 1e-3);
-        block_tests_rounded<4>([](Atom s, Block b) {return evaluate_rounded_4<vbw>(s, b);});
-        block_tests_rounded<8>([](Atom s, Block b) {return evaluate_rounded_8<vbw>(s, b);});
-        block_tests_rounded<16>([](Atom s, Block b) {return evaluate_rounded_16<vbw>(s, b);});
+        block_tests<4>([](Atom s, Block b) {return evaluate_4(s, b, inv_width);}, 1e-6);
+        block_tests<8>([](Atom s, Block b) {return evaluate_8(s, b, inv_width);}, 1e-5);
+        block_tests<16>([](Atom s, Block b) {return evaluate_16(s, b, inv_width);}, 1e-3);
+        block_tests_rounded<4>([](Atom s, Block b) {return evaluate_rounded_4(s, b, inv_width);});
+        block_tests_rounded<8>([](Atom s, Block b) {return evaluate_rounded_8(s, b, inv_width);});
+        block_tests_rounded<16>([](Atom s, Block b) {return evaluate_rounded_16(s, b, inv_width);});
     }
 }
 
-TEST_CASE("CompactCoordinatesXYZW<vbw>::evaluate") {
-    SECTION("variable bin width") {
-        run_tests<true>();
-    }
-    SECTION("fixed bin width") {
-        run_tests<false>();
-    }
+TEST_CASE("CompactCoordinatesXYZW::evaluate") {
+    run_tests();
 }

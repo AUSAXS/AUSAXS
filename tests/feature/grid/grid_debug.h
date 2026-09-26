@@ -66,10 +66,9 @@ class GridDebug : public grid::Grid {
 /**
  * @brief Debug version of the HistogramManagerMTFFGrid class, which uses a predictable excluded volume.
  */
- template<bool vbw>
- class DebugHistogramManagerMTFFGrid : public hist::HistogramManagerMTFFGrid<vbw> {
+class DebugHistogramManagerMTFFGrid : public hist::HistogramManagerMTFFGrid {
     public:
-        using hist::HistogramManagerMTFFGrid<vbw>::HistogramManagerMTFFGrid;
+        using hist::HistogramManagerMTFFGrid::HistogramManagerMTFFGrid;
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return GridDebug::make_exv(GridDebug::exv, {});
@@ -79,10 +78,9 @@ class GridDebug : public grid::Grid {
 /**
  * @brief Debug version of the HistogramManagerMTFFGridScalableExv class, which uses a predictable excluded volume.
  */
-template<bool vbw>
-class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMTFFGridScalableExv<vbw> {
+class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMTFFGridScalableExv {
     public:
-        using hist::HistogramManagerMTFFGridScalableExv<vbw>::HistogramManagerMTFFGridScalableExv;
+        using hist::HistogramManagerMTFFGridScalableExv::HistogramManagerMTFFGridScalableExv;
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return GridDebug::make_exv(GridDebug::exv, {});
@@ -92,10 +90,9 @@ class DebugHistogramManagerMTFFGridScalableExv : public hist::HistogramManagerMT
 /**
  * @brief Debug version of the HistogramManagerMTFFGridSurface class, which uses a predictable excluded volume.
  */
-template<bool vbw>
-class DebugHistogramManagerMTFFGridSurface : public hist::HistogramManagerMTFFGridSurface<vbw> {
+class DebugHistogramManagerMTFFGridSurface : public hist::HistogramManagerMTFFGridSurface {
     public:
-        using hist::HistogramManagerMTFFGridSurface<vbw>::HistogramManagerMTFFGridSurface;
+        using hist::HistogramManagerMTFFGridSurface::HistogramManagerMTFFGridSurface;
 
         grid::exv::GridExcludedVolume get_exv() const override {
             return GridDebug::make_exv({GridDebug::exv[0]}, std::vector<Vector3<double>>(GridDebug::exv.begin()+1, GridDebug::exv.end()));

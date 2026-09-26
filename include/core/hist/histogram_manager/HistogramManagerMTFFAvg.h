@@ -12,11 +12,11 @@ namespace ausaxs::hist {
 	 * This is equivalent to the CRYSOL implementation, but with a single average excluded volume for all atoms.
 	 * To use unique excluded volumes for each atom, see HistogramManagerMTFFExplicit. 
 	 */
-	template<bool weighted_bins, bool variable_bin_width>
+	template<bool weighted_bins>
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class HistogramManagerMTFFAvg : public HistogramManagerMTFFBase<weighted_bins, variable_bin_width> {
+	class HistogramManagerMTFFAvg : public HistogramManagerMTFFBase<weighted_bins> {
 		public:
-			using HistogramManagerMTFFBase<weighted_bins, variable_bin_width>::HistogramManagerMTFFBase;
+			using HistogramManagerMTFFBase<weighted_bins>::HistogramManagerMTFFBase;
 
 			~HistogramManagerMTFFAvg() override;
 

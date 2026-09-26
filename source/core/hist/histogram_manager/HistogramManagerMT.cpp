@@ -16,28 +16,28 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-template<bool wb, bool vbw>
-HistogramManagerMT<wb, vbw>::~HistogramManagerMT() = default;
+template<bool wb>
+HistogramManagerMT<wb>::~HistogramManagerMT() = default;
 
-template<bool wb, bool vbw>
-std::unique_ptr<DistanceHistogram> HistogramManagerMT<wb, vbw>::calculate() {return calculate_all();}
+template<bool wb>
+std::unique_ptr<DistanceHistogram> HistogramManagerMT<wb>::calculate() {return calculate_all();}
 
-template<bool wb, bool vbw>
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calculate_all() {
+template<bool wb>
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb>::calculate_all() {
     logging::log("HistogramManagerMT::calculate: starting calculation");
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<wb>::type;
 
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
-    auto data_a = hist::detail::factory::construct_from_atoms<vbw>(this->protein);
-    auto data_w = hist::detail::factory::construct_from_waters<vbw>(this->protein);
+    auto data_a = hist::detail::factory::construct_from_atoms(this->protein);
+    auto data_w = hist::detail::factory::construct_from_waters(this->protein);
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, this->protein);
-    int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
+    int bin_count = hist::detail::required_bin_count(data_a, data_w);
     hist::detail::decorrelate_order<wb>(bin_count, data_a, data_w);
 
     hist::distance_calculator::HistogramStore<wb> store(bin_count);
     int aa = store.allocate_1d(), ww = store.allocate_1d(), aw = store.allocate_1d();
-    hist::distance_calculator::Calculator<wb, vbw> calculator(store);
+    hist::distance_calculator::Calculator<wb> calculator(store);
     // all three are known up front, so they are held and dispatched as one unit
     calculator.hold();
     calculator.enqueue_calculate_self(data_a, aa);
@@ -78,7 +78,5 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb, vbw>::calcul
     }
 }
 
-template class hist::HistogramManagerMT<false, false>;
-template class hist::HistogramManagerMT<false, true>;
-template class hist::HistogramManagerMT<true, false>;
-template class hist::HistogramManagerMT<true, true>;
+template class hist::HistogramManagerMT<false>;
+template class hist::HistogramManagerMT<true>;

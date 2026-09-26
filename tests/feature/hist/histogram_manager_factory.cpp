@@ -23,8 +23,8 @@
 using namespace ausaxs;
 using namespace ausaxs::data;
 
+template<typename MANAGER> constexpr settings::hist::HistogramManagerChoice choice_for();
 template<template<bool> class MANAGER> constexpr settings::hist::HistogramManagerChoice choice_for();
-template<template<bool, bool> class MANAGER> constexpr settings::hist::HistogramManagerChoice choice_for();
 
 template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManager>() {return settings::hist::HistogramManagerChoice::HistogramManager;}
 template<> constexpr settings::hist::HistogramManagerChoice choice_for<hist::HistogramManagerMT>() {return settings::hist::HistogramManagerChoice::HistogramManagerMT;}
@@ -45,7 +45,6 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
     settings::general::threads = 4;
     settings::hist::weighted_bins = true;
-    settings::internal_state::custom_bin_width = false;
 
     Molecule plain({Body{SimpleCube::get_atoms()}});
 
@@ -57,20 +56,20 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
         settings::internal_state::prefer_partial_manager = false;
 
         // symmetry-awareness is derived from the molecule, never from a setting
-        CHECK(dynamic_cast<hist::HistogramManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
-        CHECK(dynamic_cast<hist::SymmetryManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+        CHECK(dynamic_cast<hist::HistogramManagerMT<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::SymmetryManagerMT<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
     }
 
     SECTION("with a partial preference") {
         settings::internal_state::prefer_partial_manager = true;
 
-        CHECK(dynamic_cast<hist::PartialHistogramManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
-        CHECK(dynamic_cast<hist::PartialSymmetryManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMT<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialSymmetryManagerMT<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
 
         // the single-threaded partial manager has no symmetry-aware counterpart, so it upgrades to the MT one
         settings::general::threads = 1;
-        CHECK(dynamic_cast<hist::PartialHistogramManager<true, false>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
-        CHECK(dynamic_cast<hist::PartialSymmetryManagerMT<true, false>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialHistogramManager<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialSymmetryManagerMT<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
     }
 
     SECTION("preference is dropped when the excluded volume method has no partial implementation") {
@@ -78,7 +77,7 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
         settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
 
         // the excluded volume model wins: it changes the result, whereas dropping the partial preference only costs time
-        CHECK(dynamic_cast<hist::HistogramManagerMTFFExplicit<true, false>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::HistogramManagerMTFFExplicit<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
     }
 
     settings::exv::exv_method = exv;
@@ -90,33 +89,18 @@ TEST_CASE("HistogramManagerFactory: creates expected manager") {
     Molecule protein({Body{SimpleCube::get_atoms()}});
 
     invoke_for_all_histogram_manager_variants(
-        []<template<bool> class MANAGER>(const Molecule& protein) {
-            settings::internal_state::custom_bin_width = false;
-            auto hm_w = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
-            REQUIRE(dynamic_cast<MANAGER<false>*>(hm_w.get()) != nullptr);
-
-            settings::internal_state::custom_bin_width = true;
+        []<typename MANAGER>(const Molecule& protein) {
             auto hm = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
-            REQUIRE(dynamic_cast<MANAGER<true>*>(hm.get()) != nullptr);
+            REQUIRE(dynamic_cast<MANAGER*>(hm.get()) != nullptr);
         },
-        []<template<bool, bool> class MANAGER>(const Molecule& protein) {
-            settings::internal_state::custom_bin_width = false;
+        []<template<bool> class MANAGER>(const Molecule& protein) {
             settings::hist::weighted_bins = false;
             auto hm = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
-            REQUIRE(dynamic_cast<MANAGER<false, false>*>(hm.get()) != nullptr);
+            REQUIRE(dynamic_cast<MANAGER<false>*>(hm.get()) != nullptr);
 
             settings::hist::weighted_bins = true;
             auto hm_w = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
-            REQUIRE(dynamic_cast<MANAGER<true, false>*>(hm_w.get()) != nullptr);
-
-            settings::internal_state::custom_bin_width = true;
-            settings::hist::weighted_bins = false;
-            auto hm_vbw = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
-            REQUIRE(dynamic_cast<MANAGER<false, true>*>(hm_vbw.get()) != nullptr);
-
-            settings::hist::weighted_bins = true;
-            auto hm_w_vbw = hist::factory::construct_histogram_manager(&protein, choice_for<MANAGER>());
-            REQUIRE(dynamic_cast<MANAGER<true, true>*>(hm_w_vbw.get()) != nullptr);
+            REQUIRE(dynamic_cast<MANAGER<true>*>(hm_w.get()) != nullptr);
         },
         protein
     );

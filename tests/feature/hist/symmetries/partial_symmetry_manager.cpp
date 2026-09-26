@@ -37,7 +37,7 @@ static auto test = [] (data::Molecule& protein) {
     };
 
     // no changes
-    auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = protein.get_histogram()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
@@ -50,7 +50,7 @@ static auto test = [] (data::Molecule& protein) {
     // modify symmetry
     cast(0, 0)->_repeat_relation.translation = {0, 1, 0};
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & hydration simultanously
@@ -58,14 +58,14 @@ static auto test = [] (data::Molecule& protein) {
     protein.get_waters().clear();
     protein.signal_modified_hydration_layer();
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & external simultanously
     cast(0, 0)->_repeat_relation.translation = {0, 1, 0};
     protein.get_body(0).translate({2, 0, 0});
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify symmetry & internal simultanously
@@ -73,12 +73,12 @@ static auto test = [] (data::Molecule& protein) {
     protein.get_body(0).get_atom(0).weight() = 2;
     protein.get_body(0).get_signaller()->modified_internal();
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 };
 
 static auto test_random = [] (data::Molecule& protein) {
-    auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = protein.get_histogram()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
@@ -121,7 +121,7 @@ static auto test_random = [] (data::Molecule& protein) {
             protein.generate_new_hydration();
         }
 
-        auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+        auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
         auto phm_res = protein.get_histogram()->get_weighted_counts();
         REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
     }
@@ -214,14 +214,14 @@ static auto test_point = [] (data::Molecule& protein) {
     };
 
     // no changes
-    auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = protein.get_histogram()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify translation
     cast(0, 0)->translation = {0, 1, 0};
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify translation & hydration simultaneously
@@ -229,14 +229,14 @@ static auto test_point = [] (data::Molecule& protein) {
     protein.get_waters().clear();
     protein.signal_modified_hydration_layer();
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify translation & external simultaneously
     cast(0, 0)->translation = {0, 1, 0};
     protein.get_body(0).translate({2, 0, 0});
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify translation & internal simultaneously
@@ -244,12 +244,12 @@ static auto test_point = [] (data::Molecule& protein) {
     protein.get_body(0).get_atom(0).weight() = 2;
     protein.get_body(0).get_signaller()->modified_internal();
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 };
 
 static auto test_point_random = [] (data::Molecule& protein) {
-    auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = protein.get_histogram()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
@@ -292,7 +292,7 @@ static auto test_point_random = [] (data::Molecule& protein) {
             protein.generate_new_hydration();
         }
 
-        auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+        auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
         auto phm_res = protein.get_histogram()->get_weighted_counts();
         REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
     }
@@ -352,7 +352,7 @@ TEST_CASE("PartialSymmetryManagerMT: PointSymmetry subsequent calculations") {
         protein.get_body(1).symmetry().add(make_unique_point_sym({ 0, 1, 0}, {0, 1, 0}));
 
         // test_point only works for single PointSymmetry on body 0; do the full random check instead
-        auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+        auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
         auto phm_res = protein.get_histogram()->get_weighted_counts();
         REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
@@ -367,7 +367,7 @@ static auto test_reference = [] (data::Molecule& protein) {
     auto cyclic_base = [&] {return static_cast<symmetry::CyclicSymmetry*>(ref()->base.get());};
 
     // no changes
-    auto p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    auto p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     auto phm_res = protein.get_histogram()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
@@ -375,7 +375,7 @@ static auto test_reference = [] (data::Molecule& protein) {
     // view bodies that delegate to it
     cyclic_base()->_initial_relation.translation = {8, 0, 0};
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify the shared symmetry & hydration simultaneously
@@ -383,7 +383,7 @@ static auto test_reference = [] (data::Molecule& protein) {
     protein.get_waters().clear();
     protein.signal_modified_hydration_layer();
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify the shared symmetry & move a participating body: the shared rotation centre (combined
@@ -391,7 +391,7 @@ static auto test_reference = [] (data::Molecule& protein) {
     cyclic_base()->_initial_relation.translation = {6, 0, 0};
     protein.get_body(1).translate({2, 0, 0});
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 
     // modify the shared symmetry & a participating body's internal weights simultaneously
@@ -399,7 +399,7 @@ static auto test_reference = [] (data::Molecule& protein) {
     protein.get_body(0).get_atom(0).weight() = 2;
     protein.get_body(0).get_signaller()->modified_internal();
     phm_res = protein.get_histogram()->get_weighted_counts();
-    p_exp = hist::SymmetryManagerMT<true, false>(&protein).calculate_all()->get_weighted_counts();
+    p_exp = hist::SymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
     REQUIRE(compare_hist_approx(p_exp, phm_res, 0, 1e-2));
 };
 

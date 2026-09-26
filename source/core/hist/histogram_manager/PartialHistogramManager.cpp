@@ -7,6 +7,7 @@
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
+#include <hist/detail/data/BinWidth.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
@@ -21,8 +22,8 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
-template<bool weighted_bins, bool variable_bin_width> 
-PartialHistogramManager<weighted_bins, variable_bin_width>::PartialHistogramManager(observer_ptr<const data::Molecule> protein) 
+template<bool weighted_bins> 
+PartialHistogramManager<weighted_bins>::PartialHistogramManager(observer_ptr<const data::Molecule> protein) 
     : IPartialHistogramManager(protein), 
       protein(protein),
       coords_a(this->body_size), 
@@ -30,12 +31,12 @@ PartialHistogramManager<weighted_bins, variable_bin_width>::PartialHistogramMana
       partials_aw(this->body_size) 
 {}
 
-template<bool weighted_bins, bool variable_bin_width> 
-PartialHistogramManager<weighted_bins, variable_bin_width>::~PartialHistogramManager() = default;
+template<bool weighted_bins> 
+PartialHistogramManager<weighted_bins>::~PartialHistogramManager() = default;
 
-template<bool weighted_bins, bool variable_bin_width>
-int PartialHistogramManager<weighted_bins, variable_bin_width>::prepare_axis() {
-    int required = hist::detail::required_partial_bin_count<variable_bin_width>(*this->protein);
+template<bool weighted_bins>
+int PartialHistogramManager<weighted_bins>::prepare_axis() {
+    int required = hist::detail::required_partial_bin_count(*this->protein);
     if (this->master.size() != 0) {
         if (required <= this->master.axis.bins) {return this->master.axis.bins;}
 
@@ -46,8 +47,8 @@ int PartialHistogramManager<weighted_bins, variable_bin_width>::prepare_axis() {
     return hist::detail::grown_partial_bin_count(required);
 }
 
-template<bool weighted_bins, bool variable_bin_width> 
-std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variable_bin_width>::calculate() {
+template<bool weighted_bins> 
+std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins>::calculate() {
     if (!this->statemanager->is_modified() && !cache.p_tot.empty()) {
         logging::log("PartialHistogramManager::calculate_all: returning cached value");
         auto p_tot = cache.p_tot; // if the state was not modified, we can return the cached value
@@ -72,7 +73,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variab
                 calc_self_correlation(i);
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
-                this->coords_a[i] = hist::detail::factory::construct<variable_bin_width>(this->protein->get_body(i).get_atoms());
+                this->coords_a[i] = hist::detail::factory::construct(this->protein->get_body(i).get_atoms());
                 hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], protein);
             }
         }
@@ -80,7 +81,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variab
 
     // check if the hydration layer was modified
     if (this->statemanager->is_modified_hydration()) {
-        this->coords_w = hist::detail::factory::construct_from_waters<variable_bin_width>(this->protein); // if so, first update the compact coordinate representation
+        this->coords_w = hist::detail::factory::construct_from_waters(this->protein); // if so, first update the compact coordinate representation
         calc_ww(); // then update the partial histogram
 
         // iterate through the lower triangle
@@ -126,8 +127,8 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins, variab
     return std::make_unique<DistanceHistogram>(std::move(p_tot));
 }
 
-template<bool weighted_bins, bool variable_bin_width> 
-std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bins, variable_bin_width>::calculate_all() {
+template<bool weighted_bins> 
+std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bins>::calculate_all() {
     logging::log("PartialHistogramManager::calculate_all: starting calculation");
     if (
         !this->statemanager->is_modified() 
@@ -200,30 +201,31 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bi
     );
 }
 
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_correlation(int index) {
-    auto current = hist::detail::factory::construct<variable_bin_width>(this->protein->get_body(index).get_atoms());
+template<bool weighted_bins> 
+void PartialHistogramManager<weighted_bins>::calc_self_correlation(int index) {
+    auto current = hist::detail::factory::construct(this->protein->get_body(index).get_atoms());
     hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
 
     // calculate internal distances between atoms
     GenericDistribution1D_t p_aa(this->master.axis.bins);
     auto b_aa = hist::detail::bins(p_aa);
+    float inv_width = hist::detail::inv_bin_width();
     for (int i = 0; i < current.size(); i++) {
         int j = i+1;
         for (; j+15 < current.size(); j+=16) {
-            evaluate16<variable_bin_width, 2>(b_aa, current, current, i, j);
+            evaluate16<2>(b_aa, current, current, i, j, inv_width);
         }
 
         for (; j+7 < current.size(); j+=8) {
-            evaluate8<variable_bin_width, 2>(b_aa, current, current, i, j);
+            evaluate8<2>(b_aa, current, current, i, j, inv_width);
         }
 
         for (; j+3 < current.size(); j+=4) {
-            evaluate4<variable_bin_width, 2>(b_aa, current, current, i, j);
+            evaluate4<2>(b_aa, current, current, i, j, inv_width);
         }
 
         for (; j < current.size(); ++j) {
-            evaluate1<variable_bin_width, 2>(b_aa, current, current, i, j);
+            evaluate1<2>(b_aa, current, current, i, j, inv_width);
         }
     }
 
@@ -249,29 +251,30 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_self_corre
     this->master.base += partials_aa.index(index, index);
 }
 
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aa(int n, int m) {
+template<bool weighted_bins> 
+void PartialHistogramManager<weighted_bins>::calc_aa(int n, int m) {
     auto& coords_n = this->coords_a[n];
     auto& coords_m = this->coords_a[m];
 
     GenericDistribution1D_t p_aa(this->master.axis.bins);
     auto b_aa = hist::detail::bins(p_aa);
+    float inv_width = hist::detail::inv_bin_width();
     for (int i = 0; i < coords_n.size(); i++) {
         int j = 0;
         for (; j+15 < coords_m.size(); j+=16) {
-            evaluate16<variable_bin_width, 2>(b_aa, coords_n, coords_m, i, j);
+            evaluate16<2>(b_aa, coords_n, coords_m, i, j, inv_width);
         }
 
         for (; j+7 < coords_m.size(); j+=8) {
-            evaluate8<variable_bin_width, 2>(b_aa, coords_n, coords_m, i, j);
+            evaluate8<2>(b_aa, coords_n, coords_m, i, j, inv_width);
         }
 
         for (; j+3 < coords_m.size(); j+=4) {
-            evaluate4<variable_bin_width, 2>(b_aa, coords_n, coords_m, i, j);
+            evaluate4<2>(b_aa, coords_n, coords_m, i, j, inv_width);
         }
 
         for (; j < coords_m.size(); ++j) {
-            evaluate1<variable_bin_width, 2>(b_aa, coords_n, coords_m, i, j);
+            evaluate1<2>(b_aa, coords_n, coords_m, i, j, inv_width);
         }
     }
 
@@ -280,8 +283,8 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aa(int n, 
     this->master += partials_aa.index(n, m);
 }
 
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManager<weighted_bins, variable_bin_width>::initialize(int bin_count) {
+template<bool weighted_bins> 
+void PartialHistogramManager<weighted_bins>::initialize(int bin_count) {
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
@@ -298,28 +301,29 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::initialize(int 
     }
 }
 
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aw(int index) {
+template<bool weighted_bins> 
+void PartialHistogramManager<weighted_bins>::calc_aw(int index) {
     auto& coords = this->coords_a[index];
 
     GenericDistribution1D_t p_aw(this->master.axis.bins);
     auto b_aw = hist::detail::bins(p_aw);
-    for (int i = 0; i < static_cast<int>(coords.size()); i++) {
+    float inv_width = hist::detail::inv_bin_width();
+    for (int i = 0; i < coords.size(); i++) {
         int j = 0;
         for (; j+15 < this->coords_w.size(); j+=16) {
-            evaluate16<variable_bin_width, 2>(b_aw, coords, this->coords_w, i, j);
+            evaluate16<2>(b_aw, coords, this->coords_w, i, j, inv_width);
         }
 
         for (; j+7 < this->coords_w.size(); j+=8) {
-            evaluate8<variable_bin_width, 2>(b_aw, coords, this->coords_w, i, j);
+            evaluate8<2>(b_aw, coords, this->coords_w, i, j, inv_width);
         }
 
         for (; j+3 < this->coords_w.size(); j+=4) {
-            evaluate4<variable_bin_width, 2>(b_aw, coords, this->coords_w, i, j);
+            evaluate4<2>(b_aw, coords, this->coords_w, i, j, inv_width);
         }
 
         for (; j < this->coords_w.size(); ++j) {
-            evaluate1<variable_bin_width, 2>(b_aw, coords, this->coords_w, i, j);
+            evaluate1<2>(b_aw, coords, this->coords_w, i, j, inv_width);
         }
     }
 
@@ -328,28 +332,29 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_aw(int ind
     this->master += partials_aw.index(index); // add the new hydration histogram
 }
 
-template<bool weighted_bins, bool variable_bin_width> 
-void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
+template<bool weighted_bins> 
+void PartialHistogramManager<weighted_bins>::calc_ww() {
     GenericDistribution1D_t p_ww(this->master.axis.bins);
     auto b_ww = hist::detail::bins(p_ww);
+    float inv_width = hist::detail::inv_bin_width();
 
     // calculate internal distances for the hydration layer
     for (int i = 0; i < this->coords_w.size(); i++) {
         int j = i+1;
         for (; j+15 < this->coords_w.size(); j+=16) {
-            evaluate16<variable_bin_width, 2>(b_ww, this->coords_w, this->coords_w, i, j);
+            evaluate16<2>(b_ww, this->coords_w, this->coords_w, i, j, inv_width);
         }
 
         for (; j+7 < this->coords_w.size(); j+=8) {
-            evaluate8<variable_bin_width, 2>(b_ww, this->coords_w, this->coords_w, i, j);
+            evaluate8<2>(b_ww, this->coords_w, this->coords_w, i, j, inv_width);
         }
 
         for (; j+3 < this->coords_w.size(); j+=4) {
-            evaluate4<variable_bin_width, 2>(b_ww, this->coords_w, this->coords_w, i, j);
+            evaluate4<2>(b_ww, this->coords_w, this->coords_w, i, j, inv_width);
         }
 
         for (; j < this->coords_w.size(); ++j) {
-            evaluate1<variable_bin_width, 2>(b_ww, this->coords_w, this->coords_w, i, j);
+            evaluate1<2>(b_ww, this->coords_w, this->coords_w, i, j, inv_width);
         }
     }
 
@@ -371,7 +376,5 @@ void PartialHistogramManager<weighted_bins, variable_bin_width>::calc_ww() {
     this->master += partials_ww; // add the new hydration histogram
 }
 
-template class hist::PartialHistogramManager<false, false>;
-template class hist::PartialHistogramManager<false, true>;
-template class hist::PartialHistogramManager<true, false>;
-template class hist::PartialHistogramManager<true, true>;
+template class hist::PartialHistogramManager<false>;
+template class hist::PartialHistogramManager<true>;

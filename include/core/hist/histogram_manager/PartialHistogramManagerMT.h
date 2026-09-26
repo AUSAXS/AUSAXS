@@ -16,9 +16,9 @@ namespace ausaxs::hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator which efficiently calculates the simple distance histogram. 
 	 */
-    template<bool weighted_bins, bool variable_bin_width> 
+    template<bool weighted_bins> 
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class PartialHistogramManagerMT : public PartialHistogramManager<weighted_bins, variable_bin_width> {
+	class PartialHistogramManagerMT : public PartialHistogramManager<weighted_bins> {
 		public:
 			PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein);
 			~PartialHistogramManagerMT() override;
@@ -35,7 +35,7 @@ namespace ausaxs::hist {
 
 		private:
 		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins, variable_bin_width>>;
+			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins>>;
 			GenericDistribution1D_t cached_p_tot; // the total histogram of the last calculation, returned as is while nothing is modified
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
 			std::vector<std::vector<int>> aa; // the result ids in the store per body pair [n][m], only calculated for m <= n

@@ -18,7 +18,7 @@ namespace ausaxs::hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator which efficiently calculates the simple distance histogram. 
 	 */
-    template<bool weighted_bins, bool variable_bin_width> 
+    template<bool weighted_bins> 
 	class PartialSymmetryManagerMT : public IPartialHistogramManager {
 		public:
 			PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein);
@@ -36,14 +36,14 @@ namespace ausaxs::hist {
 
 		private:
 			using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins, variable_bin_width>>;
+			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins>>;
 
 			GenericDistribution1D_t cached_p_tot; // the total histogram of the last calculation, returned as is while nothing is modified
 
 			observer_ptr<const data::Molecule> protein;									// the molecule we are calculating the histogram for
             detail::MasterHistogram<weighted_bins> master;								// the current total histogram
-			std::vector<symmetry::detail::BodySymmetryData<variable_bin_width>> coords;	// a compact representation of the relevant data from the managed bodies
-			hist::detail::CompactCoordinates<variable_bin_width> coords_w;				// a compact representation of the relevant data from the hydration layer
+			std::vector<symmetry::detail::BodySymmetryData> coords;	// a compact representation of the relevant data from the managed bodies
+			hist::detail::CompactCoordinates coords_w;				// a compact representation of the relevant data from the hydration layer
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
 			std::vector<int> recalculated; // the results queued for recalculation in the current run, see recalculate()
 

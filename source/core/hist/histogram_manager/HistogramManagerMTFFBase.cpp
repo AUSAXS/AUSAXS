@@ -17,28 +17,28 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
-template<bool wb, bool vbw>
-HistogramManagerMTFFBase<wb, vbw>::~HistogramManagerMTFFBase() = default;
+template<bool wb>
+HistogramManagerMTFFBase<wb>::~HistogramManagerMTFFBase() = default;
 
-template<bool wb, bool vbw>
-typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTFFBase<wb, vbw>::compute_raw_distributions() {
+template<bool wb>
+typename HistogramManagerMTFFBase<wb>::RawDistributions HistogramManagerMTFFBase<wb>::compute_raw_distributions() {
     assert(this->protein != nullptr && "HistogramManagerMTFFBase::compute_raw_distributions: Molecule is not set.");
 
     using GenericDistribution1D_t = typename GenericDistribution1D<wb>::type;
     auto* pool = utility::multi_threading::get_global_pool();
 
-    data_a_ptr = std::make_unique<std::vector<CompactCoordinates<vbw>>>(hist::detail::factory::construct_by_ff_from_atoms<vbw>(this->protein));
-    data_w_ptr = std::make_unique<CompactCoordinates<vbw>>(hist::detail::factory::construct_from_waters<vbw>(this->protein));
+    data_a_ptr = std::make_unique<std::vector<CompactCoordinates>>(hist::detail::factory::construct_by_ff_from_atoms(this->protein));
+    data_w_ptr = std::make_unique<CompactCoordinates>(hist::detail::factory::construct_from_waters(this->protein));
     auto& data_a = *data_a_ptr;
     auto& data_w = *data_w_ptr;
-    int bin_count = hist::detail::required_bin_count<vbw>(data_a, data_w);
+    int bin_count = hist::detail::required_bin_count(data_a, data_w);
 
     // the atoms are partitioned by form factor, the waters are not
     int n_ff = form_factor::get_active_count();
     hist::distance_calculator::HistogramStore<wb> store(bin_count, static_cast<int>(data_a.size()));
     int aa = store.allocate_3d(), aw = store.allocate_2d(), ww = store.allocate_1d();
     // the form factors are applied later by the intensity calculator, so the pairs are only counted here
-    hist::distance_calculator::Calculator<wb, vbw, UNIT_WEIGHTS> calculator(store);
+    hist::distance_calculator::Calculator<wb, UNIT_WEIGHTS> calculator(store);
 
     // the self-correlations are part of what the kernel evaluates, so they do not have to be added separately here.
     // all of them are known up front, so they are held and dispatched as one unit
@@ -84,7 +84,5 @@ typename HistogramManagerMTFFBase<wb, vbw>::RawDistributions HistogramManagerMTF
     };
 }
 
-template class hist::HistogramManagerMTFFBase<false, false>;
-template class hist::HistogramManagerMTFFBase<false, true>;
-template class hist::HistogramManagerMTFFBase<true, false>;
-template class hist::HistogramManagerMTFFBase<true, true>;
+template class hist::HistogramManagerMTFFBase<false>;
+template class hist::HistogramManagerMTFFBase<true>;

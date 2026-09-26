@@ -11,11 +11,11 @@ namespace ausaxs::hist {
 	 * @brief A histogram manager using explicit excluded volume form factors for each atomic type.
 	 *		  This is equivalent to the CRYSOL implementation. 
 	 */
-	template<bool weighted_bins, bool variable_bin_width>
+	template<bool weighted_bins>
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class HistogramManagerMTFFExplicit : public HistogramManagerMTFFBase<weighted_bins, variable_bin_width> {
+	class HistogramManagerMTFFExplicit : public HistogramManagerMTFFBase<weighted_bins> {
 		public:
-			using HistogramManagerMTFFBase<weighted_bins, variable_bin_width>::HistogramManagerMTFFBase;
+			using HistogramManagerMTFFBase<weighted_bins>::HistogramManagerMTFFBase;
 
 			~HistogramManagerMTFFExplicit() override;
 

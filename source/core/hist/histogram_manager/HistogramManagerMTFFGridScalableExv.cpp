@@ -18,43 +18,39 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-template<bool variable_bin_width>
-HistogramManagerMTFFGridScalableExv<variable_bin_width>::~HistogramManagerMTFFGridScalableExv() = default;
+HistogramManagerMTFFGridScalableExv::~HistogramManagerMTFFGridScalableExv() = default;
 
-template<bool variable_bin_width>
-std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridScalableExv<variable_bin_width>::calculate() {
+std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGridScalableExv::calculate() {
     return calculate_all();
 }
 
-template<bool variable_bin_width>
-grid::exv::GridExcludedVolume HistogramManagerMTFFGridScalableExv<variable_bin_width>::get_exv() const {
+grid::exv::GridExcludedVolume HistogramManagerMTFFGridScalableExv::get_exv() const {
     return grid::exv::RawGridExv::create(this->protein->get_grid());
 }
 
-template<bool variable_bin_width>
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv<variable_bin_width>::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv::calculate_all() {
     logging::log("HistogramManagerMTFFGridScalableExv::calculate: starting calculation");
-    auto base_res = HistogramManagerMTFFAvg<true, variable_bin_width>::calculate_all(); // make sure everything is initialized
+    auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
 
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
     auto eval_scaled_exv = [
         atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<CompositeDistanceHistogramFFAvg&>(*base_res)),
         data_a = *this->data_a_ptr,
         data_w = *this->data_w_ptr,
-        data_x = hist::detail::factory::construct<variable_bin_width>(get_exv().interior)] 
+        data_x = hist::detail::factory::construct(get_exv().interior)] 
         (double scale) 
     {
         // stretch the excluded volume cells by the given scale factor
         auto scaled_x = data_x;
         scaled_x.scale_coordinates(scale);
-        int bin_count = hist::detail::required_bin_count<variable_bin_width>(data_a, data_w, scaled_x);
+        int bin_count = hist::detail::required_bin_count(data_a, data_w, scaled_x);
 
         //##############//
         // SUBMIT TASKS //
         //##############//
         distance_calculator::HistogramStore<true> store(bin_count, static_cast<int>(data_a.size()));
         int ax = store.allocate_2d(), wx = store.allocate_1d(), xx = store.allocate_1d();
-        distance_calculator::Calculator<true, variable_bin_width, UNIT_WEIGHTS> calculator(store);
+        distance_calculator::Calculator<true, UNIT_WEIGHTS> calculator(store);
         calculator.enqueue_calculate_self(scaled_x, xx);
         calculator.enqueue_calculate_cross(data_a, scaled_x, ax, 1);
         calculator.enqueue_calculate_cross(data_w, scaled_x, wx, 1);
@@ -72,6 +68,3 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridScalableExv
 
     return std::make_unique<CompositeDistanceHistogramFFGridScalableExv>(std::move(*eval_scaled_exv(1)), std::move(eval_scaled_exv));
 }
-
-template class ausaxs::hist::HistogramManagerMTFFGridScalableExv<true>;
-template class ausaxs::hist::HistogramManagerMTFFGridScalableExv<false>;

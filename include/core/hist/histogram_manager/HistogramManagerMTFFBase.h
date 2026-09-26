@@ -16,11 +16,11 @@ namespace ausaxs::hist {
 	/**
 	 * @brief Common machinery for the form factor-aware multithreaded histogram managers.
 	 */
-	template<bool weighted_bins, bool variable_bin_width>
+	template<bool weighted_bins>
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class HistogramManagerMTFFBase : public HistogramManager<weighted_bins, variable_bin_width> {
+	class HistogramManagerMTFFBase : public HistogramManager<weighted_bins> {
 		public:
-			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
+			using HistogramManager<weighted_bins>::HistogramManager;
 
 			~HistogramManagerMTFFBase() override;
 
@@ -43,7 +43,7 @@ namespace ausaxs::hist {
 
 			// data stored for inheritance: the atoms split by form factor, one set per active type, and the waters whole.
 			// their pairs are only counted, so any calculation on them must use a unit_weights Calculator
-			std::unique_ptr<std::vector<hist::detail::CompactCoordinates<variable_bin_width>>> data_a_ptr;
-			std::unique_ptr<hist::detail::CompactCoordinates<variable_bin_width>> data_w_ptr;
+			std::unique_ptr<std::vector<hist::detail::CompactCoordinates>> data_a_ptr;
+			std::unique_ptr<hist::detail::CompactCoordinates> data_w_ptr;
 	};
 }

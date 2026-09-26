@@ -13,11 +13,11 @@ namespace ausaxs::hist {
 	 * This class does not account for the excluded volume in any way. 
 	 * To implicitly include it, subtract the average excluded volume charge from each atom. 
 	 */
-	template<bool weighted_bins, bool variable_bin_width>
+	template<bool weighted_bins>
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class HistogramManagerMT : public HistogramManager<weighted_bins, variable_bin_width> {
+	class HistogramManagerMT : public HistogramManager<weighted_bins> {
 		public:
-			using HistogramManager<weighted_bins, variable_bin_width>::HistogramManager;
+			using HistogramManager<weighted_bins>::HistogramManager;
 			~HistogramManagerMT() override;
 
 			/**

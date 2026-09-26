@@ -21,46 +21,46 @@ using namespace ausaxs;
 using namespace ausaxs::hist::detail;
 using namespace ausaxs::symmetry::detail;
 
-template<bool weighted_bins, bool variable_bin_width>
-hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::SymmetryManagerMT(observer_ptr<const data::Molecule> protein) : protein(protein) {}
+template<bool weighted_bins>
+hist::SymmetryManagerMT<weighted_bins>::SymmetryManagerMT(observer_ptr<const data::Molecule> protein) : protein(protein) {}
 
-template<bool weighted_bins, bool variable_bin_width>
-std::unique_ptr<hist::DistanceHistogram> hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::calculate() {
+template<bool weighted_bins>
+std::unique_ptr<hist::DistanceHistogram> hist::SymmetryManagerMT<weighted_bins>::calculate() {
     return calculate_all();
 }
 
-template<bool weighted_bins, bool variable_bin_width>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::calculate_all() {
+template<bool weighted_bins>
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins>::calculate_all() {
     if (protein->size_water() == 0) {
         return calculate<false>();
     }
     return calculate<true>();
 }
 
-template<bool weighted_bins, bool variable_bin_width> template <bool contains_waters>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins, variable_bin_width>::calculate() {
+template<bool weighted_bins> template <bool contains_waters>
+std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weighted_bins>::calculate() {
     logging::log("SymmetryManagerMT::calculate: starting calculation");
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 
     // start by generating the transformed data
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
-    auto[data, data_w] = generate_transformed_data<variable_bin_width>(*protein);
+    auto[data, data_w] = generate_transformed_data(*protein);
 
     // the per-body data is a struct rather than a range, so project out the coordinate sets for the estimator
     auto atomic = data | std::views::transform([] (const auto& body) -> const auto& {return body.atomic;});
-    int bin_count = hist::detail::required_bin_count<variable_bin_width>(atomic, data_w);
+    int bin_count = hist::detail::required_bin_count(atomic, data_w);
 
     // every self and cross contribution of a kind sums into the same row
     hist::distance_calculator::HistogramStore<weighted_bins> store(bin_count);
     int aa = store.allocate_1d(), aw = store.allocate_1d(), ww = store.allocate_1d();
-    hist::distance_calculator::Calculator<weighted_bins, variable_bin_width> calculator(store);
+    hist::distance_calculator::Calculator<weighted_bins> calculator(store);
 
     const auto& waters = data_w;
 
     // resolve a (body, symmetry, repetition) triple to its transformed coordinates;
     // repetition 0 is the original body, 1..N are the generated copies
-    auto atomic_at = [&data](int i_body, int i_sym, int rep) -> const CompactCoordinates<variable_bin_width>& {
+    auto atomic_at = [&data](int i_body, int i_sym, int rep) -> const CompactCoordinates& {
         return rep == 0 ? data[i_body].atomic[0][0] : data[i_body].atomic[1+i_sym][rep-1];
     };
 
@@ -183,7 +183,5 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMT<weigh
     }
 }
 
-template class hist::SymmetryManagerMT<false, false>;
-template class hist::SymmetryManagerMT<false, true>;
-template class hist::SymmetryManagerMT<true, false>;
-template class hist::SymmetryManagerMT<true, true>;
+template class hist::SymmetryManagerMT<false>;
+template class hist::SymmetryManagerMT<true>;

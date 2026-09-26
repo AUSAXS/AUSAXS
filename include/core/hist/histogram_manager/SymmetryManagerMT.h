@@ -10,7 +10,7 @@
 #include <memory>
 
 namespace ausaxs::hist {
-    template<bool weighted_bins, bool variable_bin_width>
+    template<bool weighted_bins>
     class SymmetryManagerMT : public IHistogramManager {
         public:
             SymmetryManagerMT(observer_ptr<const data::Molecule> protein);

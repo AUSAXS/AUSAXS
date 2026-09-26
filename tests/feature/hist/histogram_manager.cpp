@@ -37,28 +37,19 @@ struct analytical_histogram {
     std::vector<double> p_exp = calc_exp();
 };
 
+template<typename MANAGER>
+static void run_test1(const Molecule& protein, const auto& target) {
+    auto h = MANAGER(&protein).calculate_all();
+    REQUIRE(compare_hist(get_raw_counts(h.get()), target));
+}
+
 template<template<bool> class MANAGER>
 static void run_test1(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h1.get()), target));
-    
+
     auto h2 = MANAGER<true>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
-}
-
-template<template<bool, bool> class MANAGER>
-static void run_test1(const Molecule& protein, const auto& target) {
-    auto h1 = MANAGER<false, false>(&protein).calculate_all();
-    REQUIRE(compare_hist(get_raw_counts(h1.get()), target));
-
-    auto h2 = MANAGER<false, true>(&protein).calculate_all();
-    REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
-
-    auto h3 = MANAGER<true, false>(&protein).calculate_all();
-    REQUIRE(compare_hist(get_raw_counts(h3.get()), target));
-
-    auto h4 = MANAGER<true, true>(&protein).calculate_all();
-    REQUIRE(compare_hist(get_raw_counts(h4.get()), target));
 }
 
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
@@ -78,10 +69,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             invoke_for_all_histogram_manager_variants(
-                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                []<typename MANAGER>(const Molecule& protein, const auto& target) {
                     run_test1<MANAGER>(protein, target);
                 },
-                []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
                     run_test1<MANAGER>(protein, target);
                 },
                 protein, p_exp
@@ -101,7 +92,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             invoke_for_all_nongrid_histogram_manager_variants(
-                []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
                     run_test1<MANAGER>(protein, target);
                 },
                 protein, p_exp
@@ -123,10 +114,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             invoke_for_all_histogram_manager_variants(
-                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                []<typename MANAGER>(const Molecule& protein, const auto& target) {
                     run_test1<MANAGER>(protein, target);
                 },
-                []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+                []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
                     run_test1<MANAGER>(protein, target);
                 },
                 protein, p_exp                
@@ -135,28 +126,26 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     }
 }
 
+template<typename MANAGER>
+static void run_test2(const Molecule& protein, const auto& target) {
+    auto h = MANAGER(&protein).calculate_all();
+    REQUIRE(compare_hist_approx(h->get_weighted_counts(), target));
+}
+
 template<template<bool> class MANAGER>
 static void run_test2(const Molecule& protein, const auto& target) {
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(compare_hist_approx(h1->get_weighted_counts(), target));
-    
+
     auto h2 = MANAGER<true>(&protein).calculate_all();
     REQUIRE(compare_hist_approx(h2->get_weighted_counts(), target));
 }
 
-template<template<bool, bool> class MANAGER>
-static void run_test2(const Molecule& protein, const auto& target) {
-    auto h1 = MANAGER<false, false>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h1->get_weighted_counts(), target));
-
-    auto h2 = MANAGER<false, true>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h2->get_weighted_counts(), target));
-
-    auto h3 = MANAGER<true, false>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h3->get_weighted_counts(), target));
-
-    auto h4 = MANAGER<true, true>(&protein).calculate_all();
-    REQUIRE(compare_hist_approx(h4->get_weighted_counts(), target));
+template<typename MANAGER>
+static void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
+    auto h1 = MANAGER(&original).calculate_all();
+    auto h2 = MANAGER(&permuted).calculate_all();
+    REQUIRE(compare_hist(h1->debye_transform(), h2->debye_transform()));
 }
 
 template<template<bool> class MANAGER>
@@ -170,25 +159,6 @@ static void run_test_atom_order_invariance(const Molecule& original, const Molec
     REQUIRE(compare_hist(h3->debye_transform(), h4->debye_transform()));
 }
 
-template<template<bool, bool> class MANAGER>
-static void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
-    auto h1 = MANAGER<false, false>(&original).calculate_all();
-    auto h2 = MANAGER<false, false>(&permuted).calculate_all();
-    REQUIRE(compare_hist(h1->debye_transform(), h2->debye_transform()));
-
-    auto h3 = MANAGER<false, true>(&original).calculate_all();
-    auto h4 = MANAGER<false, true>(&permuted).calculate_all();
-    REQUIRE(compare_hist(h3->debye_transform(), h4->debye_transform()));
-
-    auto h5 = MANAGER<true, false>(&original).calculate_all();
-    auto h6 = MANAGER<true, false>(&permuted).calculate_all();
-    REQUIRE(compare_hist(h5->debye_transform(), h6->debye_transform()));
-
-    auto h7 = MANAGER<true, true>(&original).calculate_all();
-    auto h8 = MANAGER<true, true>(&permuted).calculate_all();
-    REQUIRE(compare_hist(h7->debye_transform(), h8->debye_transform()));
-}
-
 TEST_CASE("HistogramManager::calculate_all real data") {
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
@@ -198,10 +168,10 @@ TEST_CASE("HistogramManager::calculate_all real data") {
     auto p_exp = protein.get_histogram();
 
     invoke_for_all_histogram_manager_variants(
-        []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
+        []<typename MANAGER>(const Molecule& protein, const auto& target) {
             run_test2<MANAGER>(protein, target);
         },
-        []<template<bool, bool> class MANAGER>(const Molecule& protein, const auto& target) {
+        []<template<bool> class MANAGER>(const Molecule& protein, const auto& target) {
             run_test2<MANAGER>(protein, target);
         },
         protein, p_exp->get_weighted_counts()
@@ -221,10 +191,10 @@ TEST_CASE("HistogramManager::calculate_all is invariant to atom ordering") {
             }
 
             invoke_for_all_histogram_manager_variants(
-                []<template<bool> class MANAGER>(const Molecule& original, const Molecule& permuted) {
+                []<typename MANAGER>(const Molecule& original, const Molecule& permuted) {
                     run_test_atom_order_invariance<MANAGER>(original, permuted);
                 },
-                []<template<bool, bool> class MANAGER>(const Molecule& original, const Molecule& permuted) {
+                []<template<bool> class MANAGER>(const Molecule& original, const Molecule& permuted) {
                     run_test_atom_order_invariance<MANAGER>(original, permuted);
                 },
                 original, permuted
@@ -236,7 +206,7 @@ TEST_CASE("HistogramManager::calculate_all is invariant to atom ordering") {
 TEST_CASE("PartialHistogramManager::get_probe") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    auto phm = hist::PartialHistogramManager<false, false>(&protein);
+    auto phm = hist::PartialHistogramManager<false>(&protein);
     auto* sm = phm.get_state_manager();
 
     // check the signalling object is correct
@@ -251,7 +221,7 @@ TEST_CASE("PartialHistogramManager::get_probe") {
 TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
-    auto phm = hist::PartialHistogramManager<false, false>(&protein);
+    auto phm = hist::PartialHistogramManager<false>(&protein);
     auto* sm = phm.get_state_manager();
     sm->reset_to_false();
     phm.signal_modified_hydration_layer();

@@ -85,9 +85,9 @@ namespace ausaxs::hist::distance_calculator {
             GenericDistribution3D_t export_3d(int id) {return take<GenericDistribution3D_t>(id);} //< @copydoc export_1d
 
         private:
-            template<bool, bool, bool> friend class Calculator;
-            template<bool, bool, bool> friend class detail::CalculatorCPU;
-            template<bool, bool, bool> friend class detail::GPUKernel;
+            template<bool, bool> friend class Calculator;
+            template<bool, bool> friend class detail::CalculatorCPU;
+            template<bool, bool> friend class detail::GPUKernel;
             using Scratch = container::ThreadLocalWrapper<std::vector<entry_type>>;
 
             /**

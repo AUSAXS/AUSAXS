@@ -18,9 +18,9 @@ namespace ausaxs::hist::distance_calculator::detail {
      *
      * @tparam unit_weights Whether every point weighs 1, in which case the stored weights are never read. See Calculator.
      */
-    template<bool weighted_bins, bool variable_bin_width, bool unit_weights>
+    template<bool weighted_bins, bool unit_weights>
     class CalculatorCPU {
-        using CompactCoordinates_t = hist::detail::CompactCoordinates<variable_bin_width>;
+        using CompactCoordinates_t = hist::detail::CompactCoordinates;
         using Row = std::span<typename HistogramStore<weighted_bins>::entry_type>;
         public:
             /**
