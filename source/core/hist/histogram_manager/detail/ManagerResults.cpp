@@ -53,7 +53,7 @@ ManagerDistributions<wb, ff> hist::detail::export_distributions(distance_calcula
 
 template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram(
-    ManagerDistributions<wb, true>&& d, settings::exv::ExvMethod method, observer_ptr<const data::Molecule> protein
+    ManagerDistributions<wb, true>&& d, settings::exv::ExvMethod method, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     switch (method) {
         case settings::exv::ExvMethod::FoXS:
@@ -91,7 +91,7 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
 
 template<bool wb, bool ff>
 std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram(
-    ManagerDistributions<wb, ff>&& d, settings::exv::ExvMethod method, observer_ptr<const data::Molecule> protein
+    ManagerDistributions<wb, ff>&& d, settings::exv::ExvMethod method, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     if constexpr (!ff) {
         return std::make_unique<CompositeDistanceHistogram>(
