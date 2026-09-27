@@ -6,6 +6,7 @@
 #include <grid/detail/GridInternalFwd.h>
 #include <hydrate/generation/GridBasedHydration.h>
 #include <math/MathFwd.h>
+#include <math/Vector3.h>
 
 #include <functional>
 #include <vector>
@@ -32,7 +33,7 @@ namespace ausaxs::hydrate {
             bool global() const override {return false;}
 
         private:
-            std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
+            std::vector<std::pair<bool, Vector3<int>>> rot_bins_1rh;  // optionally enabled rotation bins at 1rh radius
             std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius
             std::vector<Vector3<int>> rot_bins_5rh; // rotation bins at 5rh radius
             std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius

@@ -10,6 +10,7 @@
 #include <settings/MoleculeSettings.h>
 #include <utility/Random.h>
 
+#include <algorithm>
 #include <cassert>
 #include <numbers>
 
@@ -74,7 +75,7 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     auto* grid = protein->get_grid();
     double width = grid::Grid::get_width();
 
-    std::vector<Vector3<int>> bins_1rh;
+    std::vector<std::pair<bool, Vector3<int>>> bins_1rh;
     std::vector<Vector3<int>> bins_3rh;
     std::vector<Vector3<int>> bins_5rh;
     std::vector<Vector3<int>> bins_7rh;
@@ -114,7 +115,7 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
             }
         }
         if (!present) { // if the element was not already present
-            rots.push_back(p); // add it
+            rots.emplace_back(p); // add it
         }
     }
 
@@ -130,12 +131,26 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
         );
     };
 
+    // the innermost probe shell has to stay resolvable. Once the bins are wider than rh itself, round() collapses
+    // most of the direction vectors onto the zero offset, which samples the candidate's own bin - already known to
+    // be empty when collision_check is called - so the shell stops rejecting anything. Push it out to one bin instead.
+    double r1 = std::max(rh, width);
+
     for (const auto& rot : rots) {
-        bins_1rh.push_back(to_bin_offset(rot,   rh));
-        bins_3rh.push_back(to_bin_offset(rot, 3*rh));
-        bins_5rh.push_back(to_bin_offset(rot, 5*rh));
-        bins_7rh.push_back(to_bin_offset(rot, 7*rh));
-        locs.push_back(rot);
+        bins_1rh.emplace_back(true, to_bin_offset(rot, r1));
+        bins_3rh.emplace_back(to_bin_offset(rot, 3*rh));
+        bins_5rh.emplace_back(to_bin_offset(rot, 5*rh));
+        bins_7rh.emplace_back(to_bin_offset(rot, 7*rh));
+        locs.emplace_back(rot);
+    }
+
+    // even at r1, two directions can round onto the same 1rh bin. Both probe the same grid cell, so counting both
+    // toward the rejection quota would let a single occupied cell veto a candidate twice - a width-dependent bias,
+    // since there are no such collisions at the default width. Mark the later one of each pair.
+    for (int i = 0; i < static_cast<int>(bins_1rh.size()); ++i) {
+        for (int j = 0; j < i; ++j) {
+            if (bins_1rh[i].second == bins_1rh[j].second) {bins_1rh[i].first = false; break;}
+        }
     }
 
     // set the member vectors
@@ -163,16 +178,16 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
     int inside_1rh = 0;
     for (int i = 0; i < static_cast<int>(rot_locs.size()); i++) {
         {   // check for collisions at 1rh
-            int xr = loc.x() + rot_bins_1rh[i].x();
-            int yr = loc.y() + rot_bins_1rh[i].y();
-            int zr = loc.z() + rot_bins_1rh[i].z();
+            int xr = loc.x() + rot_bins_1rh[i].second.x();
+            int yr = loc.y() + rot_bins_1rh[i].second.y();
+            int zr = loc.z() + rot_bins_1rh[i].second.z();
 
             xr = std::clamp(xr, 0, bins.x()-1);
             yr = std::clamp(yr, 0, bins.y()-1);
             zr = std::clamp(zr, 0, bins.z()-1);
 
             if (!gref.is_only_empty_or_volume(xr, yr, zr)) {
-                if (2 < ++inside_1rh) {
+                if (rot_bins_1rh[i].first && 2 < ++inside_1rh) {
                     return false;
                 }
                 continue;

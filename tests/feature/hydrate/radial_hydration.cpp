@@ -77,3 +77,24 @@ TEST_CASE("RadialHydration: atoms without a form factor still exclude water") {
     }
     CHECK(closest > 2);
 }
+
+TEST_CASE("RadialHydration: hydration density is independent of the bin width") {
+    settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::RadialStrategy;
+    hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
+    auto width = settings::grid::cell_width;
+
+    settings::grid::cell_width = 1;
+    Molecule reference("tests/files/2epe.pdb");
+    reference.generate_new_hydration();
+    auto n_ref = static_cast<double>(reference.size_water());
+    REQUIRE(n_ref != 0);
+
+    for (double w : {1.25, 1.5, 1.75, 2.0}) {
+        settings::grid::cell_width = w;
+        Molecule protein("tests/files/2epe.pdb");
+        protein.generate_new_hydration();
+        INFO("bin width " << w << " placed " << protein.size_water() << " waters against " << n_ref << " at 1Å");
+        REQUIRE(std::abs(protein.size_water()/n_ref - 1) < 0.2);
+    }
+    settings::grid::cell_width = width;
+}
