@@ -61,14 +61,20 @@ void RadialLineGenerator::generate(double width, std::array<double, 4> r, int di
         }
     }
 
-    double inv_width = 1./width;
+    auto to_bin_offset = [width] (const Vector3<double>& rot, double r) {
+        return Vector3<int>(
+            static_cast<int>(std::round(r*rot.x()/width)),
+            static_cast<int>(std::round(r*rot.y()/width)),
+            static_cast<int>(std::round(r*rot.z()/width))
+        );
+    };
+
     for (const auto& rot : rots) {
-        double xr = rot.x(), yr = rot.y(), zr = rot.z();
-        bins_1.emplace_back(std::round(r[0]*xr)*inv_width, std::round(r[0]*yr)*inv_width, std::round(r[0]*zr)*inv_width);
-        bins_2.emplace_back(std::round(r[1]*xr)*inv_width, std::round(r[1]*yr)*inv_width, std::round(r[1]*zr)*inv_width);
-        bins_3.emplace_back(std::round(r[2]*xr)*inv_width, std::round(r[2]*yr)*inv_width, std::round(r[2]*zr)*inv_width);
-        bins_4.emplace_back(std::round(r[3]*xr)*inv_width, std::round(r[3]*yr)*inv_width, std::round(r[3]*zr)*inv_width);
-        locs.emplace_back(xr, yr, zr);
+        bins_1.emplace_back(to_bin_offset(rot, r[0]));
+        bins_2.emplace_back(to_bin_offset(rot, r[1]));
+        bins_3.emplace_back(to_bin_offset(rot, r[2]));
+        bins_4.emplace_back(to_bin_offset(rot, r[3]));
+        locs.emplace_back(rot);
     }
 
     // set the member vectors
