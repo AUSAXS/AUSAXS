@@ -78,7 +78,6 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     std::vector<std::pair<bool, Vector3<int>>> bins_1rh;
     std::vector<Vector3<int>> bins_3rh;
     std::vector<Vector3<int>> bins_5rh;
-    std::vector<Vector3<int>> bins_7rh;
     std::vector<Vector3<double>> locs;
     double ang = 2*std::numbers::pi/divisions;
 
@@ -140,7 +139,6 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
         bins_1rh.emplace_back(true, to_bin_offset(rot, r1));
         bins_3rh.emplace_back(to_bin_offset(rot, 3*rh));
         bins_5rh.emplace_back(to_bin_offset(rot, 5*rh));
-        bins_7rh.emplace_back(to_bin_offset(rot, 7*rh));
         locs.emplace_back(rot);
     }
 
@@ -157,7 +155,6 @@ void hydrate::RadialHydration::prepare_rotations(int divisions) {
     rot_bins_1rh = std::move(bins_1rh);
     rot_bins_3rh = std::move(bins_3rh);
     rot_bins_5rh = std::move(bins_5rh);
-    rot_bins_7rh = std::move(bins_7rh);
     rot_locs = std::move(locs);
 }
 
@@ -198,7 +195,7 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
             int yr = loc.y() + rot_bins_3rh[i].y();
             int zr = loc.z() + rot_bins_3rh[i].z();
             if (is_out_of_bounds({xr, yr, zr})) {
-                score += 2;
+                score += 3; // the 5rh bin lies further out along the same line, so it is out-of-bounds as well
                 continue;
             }
 
@@ -221,6 +218,7 @@ bool hydrate::RadialHydration::collision_check(const Vector3<int>& loc) const {
                 score -= 1;
                 continue;
             }
+            score += 1;
         }
     }
 

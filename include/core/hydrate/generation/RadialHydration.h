@@ -36,7 +36,6 @@ namespace ausaxs::hydrate {
             std::vector<std::pair<bool, Vector3<int>>> rot_bins_1rh;  // optionally enabled rotation bins at 1rh radius
             std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius
             std::vector<Vector3<int>> rot_bins_5rh; // rotation bins at 5rh radius
-            std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius
             std::vector<Vector3<double>> rot_locs;  // absolute locations of the rotation bins
             static std::function<Vector3<double>()> noise_generator;
 
