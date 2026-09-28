@@ -375,8 +375,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DAdaptiveCpp_ROOT="$ACPP_PREFIX" \
             -DBUILD_TESTS=OFF \
-            -DBUILD_EXECUTABLES=OFF \
-            -DDLIB=OFF
+            -DBUILD_EXECUTABLES=OFF
 
       - name: Build backend
         run: cmake --build build --target ausaxs_gpu_sycl -j$(nproc)

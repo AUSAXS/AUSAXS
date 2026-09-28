@@ -114,39 +114,6 @@ TEST_CASE("Minimizer: scan") {
     SECTION("euler rough") {ScanTest1DRough(euler);}
 }
 
-#ifdef DLIB_AVAILABLE
-TEST_CASE("Minimizer: dlib") {
-    auto dlibTest = [] (const TestFunction& test, mini::algorithm type) {
-        std::unique_ptr<mini::Minimizer> mini;
-        if (type == mini::algorithm::BFGS) {
-            mini = std::make_unique<mini::dlibMinimizer<mini::algorithm::BFGS>>(test.function, test.get_parameters());
-        } else {
-            mini = std::make_unique<mini::dlibMinimizer<mini::algorithm::DLIB_GLOBAL>>(test.function, test.get_parameters());
-        }
-        auto res = mini->minimize();
-        for (int i = 0; i < static_cast<int>(test.min.size()); ++i) {
-            CHECK_THAT(res.get_parameter(i).value, Catch::Matchers::WithinAbs(test.min[i], mini->tol));
-        }
-    };
-
-    SECTION("bfgs") {
-        SECTION("decay") {dlibTest(decay1d, mini::algorithm::BFGS);}
-        SECTION("sqrt2") {dlibTest(sqrt2, mini::algorithm::BFGS);}
-        SECTION("euler") {dlibTest(euler, mini::algorithm::BFGS);}
-
-        SECTION("Rosenbrock") {dlibTest(Rosenbrock, mini::algorithm::BFGS);}
-        SECTION("Beale")      {dlibTest(Beale, mini::algorithm::BFGS);}
-        SECTION("decay2d")    {dlibTest(decay2d, mini::algorithm::BFGS);}
-    }
-
-    SECTION("dlib_global") {
-        SECTION("decay") {dlibTest(decay1d, mini::algorithm::DLIB_GLOBAL);}
-        SECTION("sqrt2") {dlibTest(sqrt2, mini::algorithm::DLIB_GLOBAL);}
-        SECTION("euler") {dlibTest(euler, mini::algorithm::DLIB_GLOBAL);}
-    }
-}
-#endif
-
 TEST_CASE("Minimizer: levenberg_marquardt") {
     auto LMTest = [] (const TestFunction& test) {
         mini::LevenbergMarquardt mini(test.function, test.get_parameters());
@@ -202,9 +169,6 @@ TEST_CASE("Minimizer: levenberg_marquardt") {
 
 TEST_CASE("Minimizer: create_minimizer") {
     std::vector<mini::algorithm> algorithms = {mini::algorithm::GOLDEN, mini::algorithm::LEVENBERG_MARQUARDT};
-    #ifdef DLIB_AVAILABLE
-        algorithms.push_back(mini::algorithm::BFGS);
-    #endif
 
     for (auto t : algorithms) {
         auto mini = mini::create_minimizer(t, euler.function, {"a", euler.min[0] - 1, euler.bounds[0]});
