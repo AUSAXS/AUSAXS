@@ -14,6 +14,7 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/elements/All.h>
+#include <rigidbody/transform/TransformFactory.h>
 #include <settings/All.h>
 
 #include <hist/hist_test_helper.h>
@@ -159,7 +160,7 @@ TEST_CASE("SplitElement: constrained optimization steps of split symmetric fragm
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
     settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::NoStrategy;
-    settings::rigidbody::transform_strategy = GENERATE(
+    auto strategy = GENERATE(
         settings::rigidbody::TransformationStrategyChoice::RigidTransform,
         settings::rigidbody::TransformationStrategyChoice::SingleTransform
     );
@@ -171,6 +172,7 @@ TEST_CASE("SplitElement: constrained optimization steps of split symmetric fragm
     auto* rb = seq->_get_rigidbody();
     REQUIRE(rb != nullptr);
     REQUIRE(rb->molecule.size_body() == 4);
+    rb->transformer = factory::create_transform_strategy(rb, strategy);
 
     // the fragments do not all carry the same kind of symmetry - the primary owns a ReferenceSymmetry while the others hold ReferenceSymmetryViews - so a delta
     // generated for one of them can only be applied to that very body, and never to whichever body the transformed branch happens to begin with

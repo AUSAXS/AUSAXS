@@ -8,6 +8,8 @@
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <settings/RigidBodySettings.h>
 
+#include <memory>
+
 namespace ausaxs::rigidbody::sequencer {
     /**
         * @brief A callback class for the LoopElement class.

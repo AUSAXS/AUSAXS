@@ -23,6 +23,11 @@
 
 using namespace ausaxs::rigidbody;
 
+namespace {
+    // the decay length of the default parameter generator, used until a script's parameter element replaces it
+    constexpr int default_iterations = 1000;
+}
+
 Rigidbody::~Rigidbody() = default;
 
 Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)) {
@@ -47,11 +52,15 @@ Rigidbody::Rigidbody(data::Molecule&& _molecule) : molecule(std::move(_molecule)
     constraints = std::make_unique<constraints::ConstraintManager>(this);
     conformation = std::make_unique<rigidbody::detail::SystemSpecification>(this);
     symmetry_targets = std::make_unique<selection::SymmetryTargets>(&molecule);
-    controller = factory::create_controller(this);
-    body_selector = factory::create_selection_strategy(this);
-    transformer = factory::create_transform_strategy(this);
+    // the defaults a freshly constructed Rigidbody starts from. A script element, or the caller assigning one of the
+    // members below, replaces any of them.
+    controller = factory::create_controller(this, settings::rigidbody::ControllerChoice::Classic);
+    body_selector = factory::create_selection_strategy(
+        this, settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect, settings::rigidbody::ParameterMaskStrategyChoice::All
+    );
+    transformer = factory::create_transform_strategy(this, settings::rigidbody::TransformationStrategyChoice::RigidTransform);
     parameter_generator = factory::create_parameter_strategy(
-        this, settings::rigidbody::iterations, settings::rigidbody::parameter_generation_strategy
+        this, default_iterations, settings::rigidbody::ParameterGenerationStrategyChoice::Simple
     );
 }
 

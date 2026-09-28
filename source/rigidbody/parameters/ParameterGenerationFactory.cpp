@@ -29,7 +29,7 @@ ParameterAmplitudes rigidbody::factory::restrict_to(ParameterAmplitudes amplitud
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
     observer_ptr<const Rigidbody> molecule, int iterations, const ParameterAmplitudes& amplitudes
 ) {
-    return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), amplitudes);
+    return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations, settings::rigidbody::DecayStrategyChoice::Linear), amplitudes);
 }
 
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
@@ -41,5 +41,5 @@ std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_paramete
 std::unique_ptr<ParameterGenerationStrategy> rigidbody::factory::create_parameter_strategy(
     observer_ptr<const Rigidbody> molecule, int iterations, settings::rigidbody::ParameterGenerationStrategyChoice choice
 ) {
-    return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations), restrict_to(default_amplitudes(molecule), choice));
+    return create_parameter_strategy(molecule, rigidbody::factory::create_decay_strategy(iterations, settings::rigidbody::DecayStrategyChoice::Linear), restrict_to(default_amplitudes(molecule), choice));
 }

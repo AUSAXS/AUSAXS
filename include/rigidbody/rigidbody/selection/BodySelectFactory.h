@@ -9,8 +9,6 @@
 #include <memory>
 
 namespace ausaxs::rigidbody::factory {
-    std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(observer_ptr<const Rigidbody> rigidbody);
-
     std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(
         observer_ptr<const Rigidbody> rigidbody, settings::rigidbody::BodySelectStrategyChoice choice
     );

@@ -9,10 +9,6 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 
-std::unique_ptr<controller::IController> factory::create_controller(observer_ptr<Rigidbody> molecule) {
-    return create_controller(molecule, settings::rigidbody::controller_choice);
-}
-
 std::unique_ptr<controller::IController> factory::create_controller(observer_ptr<Rigidbody> molecule, settings::rigidbody::ControllerChoice choice) {
     switch (choice) {
         case settings::rigidbody::ControllerChoice::Classic:

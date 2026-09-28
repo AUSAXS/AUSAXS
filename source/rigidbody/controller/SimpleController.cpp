@@ -4,7 +4,6 @@
 #include <rigidbody/controller/SimpleController.h>
 
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
@@ -24,21 +23,11 @@ using namespace ausaxs::rigidbody::controller;
 SimpleController::~SimpleController() = default;
 
 void SimpleController::setup(const io::ExistingFile& measurement_path) {
-    if (!calibration) {
-        this->fitter = std::make_unique<fitter::ConstrainedFitter>(
-            rigidbody->constraints.get(), 
-            measurement_path, 
-            rigidbody->molecule.get_histogram()
-        );
-    } else {
-        auto histogram = rigidbody->molecule.get_histogram();
-        histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        this->fitter = std::make_unique<fitter::ConstrainedFitter>(
-            rigidbody->constraints.get(), 
-            measurement_path, 
-            std::move(histogram)
-        );
-    }
+    this->fitter = std::make_unique<fitter::ConstrainedFitter>(
+        rigidbody->constraints.get(), 
+        measurement_path, 
+        rigidbody->molecule.get_histogram()
+    );
 
     // initialize the best configuration with the current conformation
     rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
@@ -47,13 +36,7 @@ void SimpleController::setup(const io::ExistingFile& measurement_path) {
 
 void SimpleController::update_fitter() {
     assert(fitter.get() != nullptr && "RigidBody::update_fitter: Fitter not initialized.");
-    if (!calibration) {
-        fitter->set_model(rigidbody->molecule.get_histogram());
-    } else {
-        auto histogram = rigidbody->molecule.get_histogram();
-        histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        fitter->set_model(std::move(histogram));
-    }
+    fitter->set_model(rigidbody->molecule.get_histogram());
 }
 
 bool SimpleController::prepare_step() {
@@ -91,6 +74,7 @@ void SimpleController::finish_step() {
     } else {
         // undo the body transforms (restores rigidbody->conformation->absolute_parameters from backup)
         rigidbody->transformer->undo();
+        rigidbody->conformation->absolute_parameters.chi2 = current_best_config->chi2; // also restore chi2
 
         // regenerate grid & hydration layer
         //? potential inconsistency: the new grid may not be exactly identical to the old one,

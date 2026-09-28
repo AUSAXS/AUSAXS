@@ -5,6 +5,7 @@
 
 #include <fitter/Fitter.h>
 #include <fitter/SmartFitter.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <utility/observer_ptr.h>
 

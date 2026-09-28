@@ -7,8 +7,13 @@
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/elements/LoopElementCallback.h>
+#include <utility/observer_ptr.h>
 
+#include <functional>
+#include <memory>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
     class MessageElement : public LoopElementCallback, public GenericElement {

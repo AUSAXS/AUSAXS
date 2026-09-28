@@ -10,6 +10,10 @@
 #include <settings/RigidBodySettings.h>
 #include <utility/observer_ptr.h>
 
+#include <memory>
+#include <string>
+#include <vector>
+
 namespace ausaxs::rigidbody::sequencer {
     class AutoConstraintsElement : public GenericElement {
         public:

@@ -28,7 +28,6 @@ TEST_CASE("RigidTransform: Secondary body parameter updates", "[broken]") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
     Rigidbody rigidbody(std::move(bodies));
@@ -95,7 +94,6 @@ TEST_CASE("RigidTransform: Internal constraints within group preserved") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
     Rigidbody rigidbody(std::move(bodies));
@@ -196,7 +194,6 @@ TEST_CASE("RigidTransform: Multi-step transformation consistency", "[broken]") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
 
     auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
     Rigidbody rigidbody(std::move(bodies));

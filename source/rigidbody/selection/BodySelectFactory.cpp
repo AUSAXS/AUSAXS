@@ -42,12 +42,8 @@ namespace {
     }
 }
 
-std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const Rigidbody> rigidbody) {
-    return create_selection_strategy(rigidbody, settings::rigidbody::body_select_strategy, settings::rigidbody::parameter_mask_strategy);
-}
-
 std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(observer_ptr<const Rigidbody> rigidbody, settings::rigidbody::BodySelectStrategyChoice choice) {
-    return create_selection_strategy(rigidbody, choice, settings::rigidbody::parameter_mask_strategy);
+    return create_selection_strategy(rigidbody, choice, settings::rigidbody::ParameterMaskStrategyChoice::All);
 }
 
 std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strategy(
@@ -75,7 +71,7 @@ std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_selection_strateg
 }
 
 std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_strategy(observer_ptr<const Rigidbody> rigidbody, int ibody) {
-    return create_manual_selection_strategy(rigidbody, ibody, settings::rigidbody::parameter_mask_strategy);
+    return create_manual_selection_strategy(rigidbody, ibody, settings::rigidbody::ParameterMaskStrategyChoice::All);
 }
 
 std::unique_ptr<BodySelectStrategy> rigidbody::factory::create_manual_selection_strategy(

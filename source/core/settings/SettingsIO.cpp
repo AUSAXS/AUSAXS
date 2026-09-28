@@ -17,6 +17,11 @@ namespace {
     const std::unordered_map<std::string, std::string> deprecated_options = {
         {"bin_count", "the number of distance-histogram bins is now deduced from the structure being calculated"},
         {"center", "structures are no longer automatically centered on the origin"},
+        // the former [RigidBody] section: rigid-body optimization is configured from its script, not from a settings file
+        {"iterations", "the iteration count is set by the script's parameter and loop elements"},
+        {"bond_distance", "backbone adjacency is decided from the residue sequence, not from a distance threshold"},
+        {"constraints", "rigid body constraints are now defined in the configuration script"},
+        {"calibration_file", "rigid body calibration has been removed"},
     };
 }
 

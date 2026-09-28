@@ -4,28 +4,17 @@
 #pragma once
 
 #include <settings/ExportMacro.h>
-#include <settings/SettingRef.h>
-#include <settings/SettingsIORegistry.h>
-
-#include <string>
-#include <vector>
 
 namespace ausaxs::settings {
+    // Rigid-body optimization is configured entirely by its script (or through the C++ API), so there are no global
+    // settings here: each choice is an argument to the matching factory. Only the vocabulary remains, which the
+    // factories and the script parsers share.
     struct EXPORT rigidbody {
-        static int iterations;   // The number of iterations to run the rigid body optimization for.
-        static double bond_distance;      // The maximum distance in Ångström between two atoms that allows for a constraint.
-
-        struct detail {
-            static std::vector<int> constraints; // The residue ids to place a constraint at.
-            static std::string calibration_file; // The file to read constraints from.
-        };
-
         enum class TransformationStrategyChoice {
             RigidTransform,     // Transform all bodies connected to one side of the constraint. 
             SingleTransform,    // Transform only the body directly connected to one side of the constraint.
             ForceTransform      // Rotations and translations are applied as forces, resulting in more natural conformations. 
         };
-        static TransformationStrategyChoice transform_strategy;
 
         enum class BodySelectStrategyChoice {
             RandomBodySelect,           // Select a random body, then a random constraint within that body. 
@@ -34,7 +23,6 @@ namespace ausaxs::settings {
             SequentialConstraintSelect, // Select the first body, then the second, etc.
             ManualSelect                // Select a body and a constraint manually.
         };
-        static BodySelectStrategyChoice body_select_strategy;
 
         enum class ParameterGenerationStrategyChoice {
             Simple,             // Generate translation and rotation parameters.
@@ -42,7 +30,6 @@ namespace ausaxs::settings {
             TranslationsOnly,   // Only generate translation parameters.
             SymmetryOnly        // Only generate symmetry parameters.
         };
-        static ParameterGenerationStrategyChoice parameter_generation_strategy;
 
         enum class ParameterMaskStrategyChoice {
             All,                // All parameter components are active every step (default).
@@ -55,14 +42,12 @@ namespace ausaxs::settings {
             SequentialReal,     // Alternates between all-real and real-only steps, isolating the effect of the real body transform parameters.
             Random              // Randomly picks real-only or symmetry-only each step.
         };
-        static ParameterMaskStrategyChoice parameter_mask_strategy;
 
         enum class DecayStrategyChoice {
             None,
             Linear,
             Exponential
         };
-        static DecayStrategyChoice decay_strategy;
 
         enum class ConstraintGenerationStrategyChoice {
             None,       // Do not generate constraints. Only those supplied by the user will be used.
@@ -73,6 +58,5 @@ namespace ausaxs::settings {
             Classic,    // Classic controller essentially equivalent to a gradient descent. 
             Metropolis, // Metropolis controller relying on Bayesian statistics to find probable conformations.
         };
-        static ControllerChoice controller_choice;
     };
 }

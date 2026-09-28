@@ -9,6 +9,5 @@
 #include <memory>
 
 namespace ausaxs::rigidbody::factory {
-    std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> create_decay_strategy(int iterations);
     std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> create_decay_strategy(int iterations, settings::rigidbody::DecayStrategyChoice choice);
 }

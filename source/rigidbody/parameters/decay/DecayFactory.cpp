@@ -11,10 +11,6 @@
 
 using namespace ausaxs;
 
-std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(int iterations) {
-    return create_decay_strategy(iterations, settings::rigidbody::decay_strategy);
-}
-
 std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::create_decay_strategy(int iterations, settings::rigidbody::DecayStrategyChoice choice) {
     switch (choice) {
         case settings::rigidbody::DecayStrategyChoice::Linear:
