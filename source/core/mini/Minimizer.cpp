@@ -124,3 +124,7 @@ mini::Landscape Minimizer::landscape(int bins) {
 void Minimizer::set_max_evals(int max_evals) {
     this->max_evals = max_evals;
 }
+
+int Minimizer::get_max_evals() const {
+    return max_evals < 0 ? 100 : max_evals;
+}

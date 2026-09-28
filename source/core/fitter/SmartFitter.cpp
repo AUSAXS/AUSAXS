@@ -184,6 +184,9 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
     if (enabled_fit_parameters.get_enabled_pars_count() != 0) {
         auto mini = mini::create_minimizer(algorithm, [this] (const std::vector<double>& params) {return get_residuals(params);}, guess);
         res = mini->minimize();
+        if (res.status != 0) {
+            console::print_warning("Warning: the fit did not converge within " + std::to_string(res.fevals) + " evaluations; the fitted parameters may not be optimal.");
+        }
         warn_if_parameter_on_bound(guess, res);
         evaluated_points = mini->get_evaluated_points();
     }

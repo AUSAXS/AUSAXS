@@ -70,7 +70,7 @@
                     fwrapper, 
                     min, 
                     max,
-                    dlib::max_function_calls(max_evals)
+                    dlib::max_function_calls(get_max_evals())
                 );
                 x = eval.x;
                 fmin = eval.y;
