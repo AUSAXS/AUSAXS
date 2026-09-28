@@ -4,6 +4,7 @@
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 
 #include <data/Molecule.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
@@ -141,9 +142,12 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
     observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins
 ) {
     auto exv_method = settings::exv::exv_method.value;
+    bool ff = uses_form_factors(exv_method);
+
+    // only the form factor managers read the active tables, so only these have an opinion on which set should be active
+    if (ff) {form_factor::manager::use_form_factors(*protein);}
     if (uses_grid_exv()) {return create_grid_manager(protein, choice);}
 
-    bool ff = uses_form_factors(exv_method);
     switch (choice) {
         case Choice::HistogramManager:
             if (!ff) {return create_manager<HistogramManager>(weighted_bins, protein);}

@@ -6,6 +6,7 @@
 #include <settings/All.h>
 
 #include <hist/hist_test_helper.h>
+#include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 
@@ -210,5 +211,38 @@ TEST_CASE("form_factor_manager: use_form_factors(Molecule) reproduces identity s
     auto I2 = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
 
     REQUIRE(compare_hist(I, I2));
+    manager::detail::use_form_factors(identity());
+}
+
+// Everything reaching a histogram through a Molecule - the API, pyAUSAXS, the rigidbody optimizer, the EM fitter and the CLI alike - builds its
+// manager through the factory, so that is where the form factor set is selected. A manager constructed by hand leaves the caller's selection alone.
+TEST_CASE("form_factor_manager: the factory selects the molecule's form factor set") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Average;
+    manager::detail::use_form_factors(identity());
+
+    data::Molecule protein("tests/files/2epe.pdb");
+    protein.generate_new_hydration();
+
+    SECTION("a hand-built manager keeps the caller's set") {
+        auto I = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
+        REQUIRE(get_active_count() == total_ff_count);
+        CHECK(I.size() != 0);
+    }
+
+    SECTION("a manager from the factory truncates to the molecule") {
+        auto I = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
+        REQUIRE(get_active_count() == total_ff_count);
+
+        auto manager = hist::factory::construct_histogram_manager(&protein, settings::hist::HistogramManagerChoice::HistogramManagerMT, false);
+        REQUIRE(get_active_count() < total_ff_count);
+
+        // the dropped slots are empty, so the profile must be the one the full set produced
+        REQUIRE(compare_hist(I, manager->calculate_all()->debye_transform()));
+    }
+
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+    settings::molecule::implicit_hydrogens = true;
     manager::detail::use_form_factors(identity());
 }

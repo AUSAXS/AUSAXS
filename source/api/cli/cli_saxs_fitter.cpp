@@ -212,7 +212,6 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();
         }
-        form_factor::manager::use_form_factors(protein);
         std::string msg_exv_vol, msg_solv_dens;
 
         // simulation mode

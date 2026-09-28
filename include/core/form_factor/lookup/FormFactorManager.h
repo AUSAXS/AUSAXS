@@ -46,8 +46,9 @@ namespace ausaxs::form_factor::manager {
 
     /**
      * @brief Determine the most appropriate form factor set for the given molecule and activate it. 
+     *        Requesting the set that is already active is a no-op, so this may be called before every calculation.
      */
-    void use_form_factors(data::Molecule& molecule);
+    void use_form_factors(const data::Molecule& molecule);
 
     /**
      * @brief Rebuild the active product tables in-place, preserving the current form factor selection.

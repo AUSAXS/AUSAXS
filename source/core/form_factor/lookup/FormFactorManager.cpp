@@ -215,9 +215,9 @@ void manager::detail::use_form_factors(std::vector<int> ff_indices) {
     build_tables(requested_indices);
 }
 
-void manager::use_form_factors(data::Molecule& molecule) {
+void manager::use_form_factors(const data::Molecule& molecule) {
     std::vector<int> ff_counts(form_factor::total_ff_count, 0);
-    for (auto& a : molecule.iterate_atoms()) {
+    for (const auto& a : molecule.iterate_atoms()) {
         ++ff_counts[static_cast<int>(a.form_factor_type())];
     }
     // ensure excluded volume and water are always at the front of the list, and OTHER is always at the end, regardless of abundance
@@ -238,6 +238,10 @@ void manager::use_form_factors(data::Molecule& molecule) {
     }
     ff_indices.resize(std::min<int>(2 + n_present + 1, form_factor::total_ff_count));
     ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // OTHER will never be selected, so it is safe to assign it here
+
+    // the histogram factory calls this for every manager it builds, so an unchanged request must not rebuild the tables.
+    // they are kept current with the exv settings by rebuild(), and if they are not built yet, the lazy init will build this same selection
+    if (ff_indices == requested_indices) {return;}
 
     if (logging::logging_enabled()) {
         std::string log_msg = "Setting form factors based on detected molecular composition:";
