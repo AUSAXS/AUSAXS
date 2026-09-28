@@ -131,20 +131,20 @@ void Grid::setup(const Axis3D& new_axes) {
 
     // check if the grid should be cubic
     if (settings::grid::cubic) {
-        double x_side = axes.x.max - axes.x.min;
-        double y_side = axes.y.max - axes.y.min;
-        double z_side = axes.z.max - axes.z.min;
-        
-        if (x_side > y_side && x_side > z_side) {
-            axes.y = axes.x;
-            axes.z = axes.x;
-        } else if (y_side > x_side && y_side > z_side) {
-            axes.x = axes.y;
-            axes.z = axes.y;
-        } else if (z_side > x_side && z_side > y_side) {
-            axes.x = axes.z;
-            axes.y = axes.z;
-        }
+        const Axis* longest = &axes.x;
+        if (longest->span() < axes.y.span()) {longest = &axes.y;}
+        if (longest->span() < axes.z.span()) {longest = &axes.z;}
+        Axis target = *longest;
+
+        auto make_cubic = [&target] (Axis& axis) {
+            double pad = std::floor(0.5*(target.span() - axis.span())); // integer padding keeps integer bin edges integer
+            axis.min -= pad;
+            axis.max = axis.min + target.span();
+            axis.bins = target.bins;
+        };
+        make_cubic(axes.x);
+        make_cubic(axes.y);
+        make_cubic(axes.z);
     }
 
     // enforce minimum number of bins if set
