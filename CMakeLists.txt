@@ -3,13 +3,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_minimum_required(VERSION 3.15)
 project(AUSAXS VERSION 1.3.0)
-option(DLIB "Use the dlib minimizers" ON)
 option(POCKETFFT "Use pocketfft for the lattice transform of the grid excluded volume" ON)
 option(BUILD_TESTS "Build the test suite" ON)
 option(BUILD_EXECUTABLES "Build the command-line executables" ON)
 option(STATIC_CURL "Link against a static CURL library on Windows" ON)
 set(ARCH "auto" CACHE STRING "Target architecture (auto, native, or a specific -march value)")
-option(USE_SYSTEM_DLIB "Use system provided dlib" OFF)
 option(USE_SYSTEM_GCEM "Use system provided GCEM" OFF)
 option(USE_SYSTEM_BACKWARD "Use system provided backward" OFF)
 option(USE_SYSTEM_CLI11 "Use system provided CLI11" OFF)
@@ -29,14 +27,6 @@ include(cmake/setup_compile_commands.cmake)
 setup_compile_commands()
 
 ############################################
-##      Temporary External Library Fixes ##
-############################################
-# TODO: Remove once dlib fixes the missing template argument issue
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "17.0")
-    add_compile_options(-Wno-error=missing-template-arg-list-after-template-kw)
-endif()
-
-############################################
 ##            Dependencies                ##
 ############################################
 include(FetchContent)
@@ -52,38 +42,6 @@ set_property(
     APPEND
     PROPERTY COMPILE_OPTIONS -w
 )
-
-if (DLIB)
-	if(USE_SYSTEM_DLIB)
-		find_package(dlib REQUIRED)
-	else()
-		FetchContent_Declare(
-			dlib
-			GIT_REPOSITORY https://github.com/davisking/dlib
-			GIT_TAG v19.24.4
-			GIT_PROGRESS TRUE
-		)
-
-		# tell dlib not to link with various unnecessary libraries
-		set(DLIB_NO_GUI_SUPPORT TRUE)
-		set(DLIB_JPEG_SUPPORT OFF)
-		set(DLIB_LINK_WITH_SQLITE3 OFF)
-		set(DLIB_USE_BLAS OFF)
-		set(DLIB_USE_LAPACK OFF)
-		set(DLIB_USE_CUDA OFF)
-		set(DLIB_PNG_SUPPORT OFF)
-		set(DLIB_GIF_SUPPORT OFF)
-		set(DLIB_WEBP_SUPPORT OFF)
-		set(DLIB_JXL_SUPPORT OFF)
-		set(DLIB_USE_FFTW OFF)
-		set(DLIB_USE_MKL_FFT OFF)
-		set(DLIB_USE_FFMPEG OFF)
-		set(CMAKE_CXX_STANDARD 17) # dlib must be compiled with C++17
-		FetchContent_MakeAvailable(dlib)
-		set(CMAKE_CXX_STANDARD 20) # continue with C++20
-	endif()
-	add_compile_definitions("DLIB_AVAILABLE")
-endif()
 
 if(USE_SYSTEM_THREADPOOL)
 	find_path(BS_THREAD_POOL_INCLUDE_DIR BS_thread_pool.hpp)

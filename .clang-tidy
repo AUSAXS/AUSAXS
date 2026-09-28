@@ -278,11 +278,11 @@ CheckOptions:
   misc-include-cleaner.MissingIncludes: 'false'
 
   # An umbrella header is the documented entry point to its library (CLI/CLI.hpp,
-  # dlib/optimization.h, sycl/sycl.hpp), but include-cleaner attributes each symbol to the
+  # sycl/sycl.hpp), but include-cleaner attributes each symbol to the
   # individual header behind the umbrella, so it reports the umbrella as unused and wants the
   # headers it wraps included directly. Exempt the dependencies we do not control.
   #
-  # sycl/sycl.hpp is the strictest case of the three: the SYCL specification defines it as the
+  # sycl/sycl.hpp is the stricter case of the two: the SYCL specification defines it as the
   # single header an implementation must provide, and names no other, so the headers behind it
   # are an implementation detail that differs between toolchains. Taking the fixit in
   # source/gpu/SYCL/SYCLBackend.cpp would pin that file to whichever implementation was
@@ -300,7 +300,7 @@ CheckOptions:
   # symbols it uses them through are the factory and the base-class pointers, which belong to
   # other headers. include-cleaner therefore reports the umbrella as unused in
   # SequenceParser.cpp even though dropping it would break the next element added to it.
-  misc-include-cleaner.IgnoreHeaders: 'catch2/.*;CLI/.*;dlib/.*;curl/.*;sycl/.*;backward\.hpp;BS_thread_pool\.hpp;gcem\.hpp;settings/All\.h;plots/All\.h;mini/All\.h;api/api_pyausaxs\.h;rigidbody/sequencer/elements/All\.h'
+  misc-include-cleaner.IgnoreHeaders: 'catch2/.*;CLI/.*;curl/.*;sycl/.*;backward\.hpp;BS_thread_pool\.hpp;gcem\.hpp;settings/All\.h;plots/All\.h;mini/All\.h;api/api_pyausaxs\.h;rigidbody/sequencer/elements/All\.h'
 
   # The conventions below were inferred from the codebase. They are inert while
   # readability-identifier-naming is disabled above; drop the `-` from that entry

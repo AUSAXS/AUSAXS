@@ -73,12 +73,10 @@ summary = next((a.split("=", 1)[1] for a in argv[1:] if a.startswith("--summary=
 # flags GCC accepts but clang does not, or that only slow the parse down
 unsupported = re.compile(r"^(-fconstexpr-ops-limit=.*|-fno-finite-math-only|-flto.*|-pipe|-w)$")
 
-# clang-tidy always parses with clang, so clang-specific workarounds are needed even
-# though the build directory was configured with GCC: dlib trips the first on
-# clang >= 17 (CMakeLists.txt applies the same workaround), and the compile database
-# may name warnings the running clang does not know
+# clang-tidy always parses with clang, even though the build directory may have been
+# configured with GCC, so the compile database may name warnings the running clang does
+# not know
 extra_args = [
-    "--extra-arg=-Wno-missing-template-arg-list-after-template-kw",
     "--extra-arg=-Wno-unknown-warning-option",
 ]
 

@@ -8,7 +8,6 @@
 #include <mini/LimitedScan.h>
 #include <mini/MinimumExplorer.h>
 #include <mini/Scan.h>
-#include <mini/dlibMinimizer.h>
 
 #include <algorithm>
 #include <functional>
@@ -18,12 +17,6 @@ namespace ausaxs::mini {
     namespace detail {
         inline std::unique_ptr<Minimizer> create_minimizer(algorithm t) {
             switch (t) {
-                #if defined(DLIB_AVAILABLE)
-                    case algorithm::DLIB_GLOBAL:
-                        return std::make_unique<dlibMinimizer<algorithm::DLIB_GLOBAL>>();
-                    case algorithm::BFGS:
-                        return std::make_unique<dlibMinimizer<algorithm::BFGS>>();
-                #endif
                 case algorithm::GOLDEN:
                     return std::make_unique<Golden>();
                 case algorithm::MINIMUM_EXPLORER:

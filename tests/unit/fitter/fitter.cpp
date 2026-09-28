@@ -114,5 +114,5 @@ TEST_CASE("Fitter::set_algorithm") {
     std::vector<double> model = {2.0, 4.0, 6.0};
     TestFitter fitter(data, model);
     
-    fitter.set_algorithm(mini::algorithm::BFGS);
+    fitter.set_algorithm(mini::algorithm::GOLDEN);
 }

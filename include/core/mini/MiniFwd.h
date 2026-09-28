@@ -14,10 +14,6 @@ namespace ausaxs::mini {
         SCAN,
         LIMITED_SCAN,
         LEVENBERG_MARQUARDT,
-        #if defined(DLIB_AVAILABLE)
-            DLIB_GLOBAL,
-            BFGS,
-        #endif
         DEFAULT=LEVENBERG_MARQUARDT
     };
 }
