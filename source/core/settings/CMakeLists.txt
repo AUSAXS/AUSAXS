@@ -9,7 +9,6 @@ target_sources(ausaxs_core PRIVATE
 	"InternalState.cpp"
 	"MoleculeSettings.cpp"
 	"PlotSettings.cpp"
-	"RigidBodySettings.cpp"
 	"SettingRef.cpp"
 	"SettingsIO.cpp"
 	"SettingsIORegistry.cpp"

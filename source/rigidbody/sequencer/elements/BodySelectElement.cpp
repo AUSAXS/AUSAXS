@@ -122,8 +122,9 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
         throw except::parse_error("select", "Unknown mask strategy \"" + std::string(line) + "\"");
     };
 
-    settings::rigidbody::BodySelectStrategyChoice body_strategy = strategy.found ? get_body_select_strategy(strategy.value) : settings::rigidbody::body_select_strategy;
-    settings::rigidbody::ParameterMaskStrategyChoice mask_strategy = mask_arg.found ? get_parameter_mask_strategy(mask_arg.value) : settings::rigidbody::parameter_mask_strategy;
+    // an omitted argument means the Rigidbody's own default, which is the same pair its constructor names
+    auto body_strategy = strategy.found ? get_body_select_strategy(strategy.value) : settings::rigidbody::BodySelectStrategyChoice::RandomBodySelect;
+    auto mask_strategy = mask_arg.found ? get_parameter_mask_strategy(mask_arg.value) : settings::rigidbody::ParameterMaskStrategyChoice::All;
     return std::make_unique<BodySelectElement>(
         owner,
         rigidbody::factory::create_selection_strategy(

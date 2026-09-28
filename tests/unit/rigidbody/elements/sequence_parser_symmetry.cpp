@@ -230,7 +230,7 @@ TEST_CASE_METHOD(SequenceParserSymmetryFixture, "SequenceParser: reference symme
     REQUIRE(view != nullptr);
 
     rigidbody::parameter::UniformParameterGenerator gen(
-        rb, settings::rigidbody::iterations, {.symmetry_translation = 5, .symmetry_rotation = 0.5}
+        rb, 1000, {.symmetry_translation = 5, .symmetry_rotation = 0.5}
     );
     auto nonzero = [](std::span<double> s) {return std::ranges::any_of(s, [](double v) {return v != 0;});};
 

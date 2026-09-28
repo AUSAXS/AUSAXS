@@ -12,6 +12,7 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>  // IWYU pragma: keep
+#include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
@@ -105,10 +106,9 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("SingleTransform updates single body") {
-        settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
-
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
         Rigidbody rigidbody(std::move(bodies));
+        rigidbody.transformer = factory::create_transform_strategy(&rigidbody, settings::rigidbody::TransformationStrategyChoice::SingleTransform);
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         rigidbody.molecule.generate_new_hydration();
 
@@ -156,8 +156,6 @@ TEST_CASE("Backup: Constraint-based transforms update all affected body paramete
     }
 
     SECTION("RigidTransform updates all connected bodies") {
-        settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
-
         auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99, 199});
         Rigidbody rigidbody(std::move(bodies));
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);

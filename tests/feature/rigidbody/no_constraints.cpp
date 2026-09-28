@@ -16,7 +16,7 @@ TEST_CASE("NoConstraints::generate") {
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("simple") {
-        double distance = settings::rigidbody::bond_distance;
+        double distance = 3;
         AtomFF a1({0, 0, 0*distance}, form_factor::form_factor_t::C);
         AtomFF a2({0, 0, 1*distance}, form_factor::form_factor_t::C);
         AtomFF a3({0, 0, 2*distance}, form_factor::form_factor_t::C);

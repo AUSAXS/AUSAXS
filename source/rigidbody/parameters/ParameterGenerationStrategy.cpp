@@ -18,7 +18,7 @@ using namespace ausaxs::rigidbody::parameter;
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(
     observer_ptr<const Rigidbody> rigidbody, int iterations, const ParameterAmplitudes& amplitudes) 
-    : rigidbody(rigidbody), amplitudes(amplitudes), decay_strategy(rigidbody::factory::create_decay_strategy(iterations)
+    : rigidbody(rigidbody), amplitudes(amplitudes), decay_strategy(rigidbody::factory::create_decay_strategy(iterations, settings::rigidbody::DecayStrategyChoice::Linear)
 ) {}
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(

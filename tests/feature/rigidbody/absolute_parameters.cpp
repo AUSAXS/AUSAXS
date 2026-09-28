@@ -11,7 +11,9 @@
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/parameters/BodyTransformParametersAbsolute.h>
+#include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>  // IWYU pragma: keep
+#include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
@@ -101,9 +103,10 @@ TEST_CASE("AbsoluteParameters: Initial configuration consistency") {
 TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
-    settings::rigidbody::iterations = 10;
     settings::grid::min_bins = 250;
+    auto set_iterations = [] (Rigidbody& rigidbody) {
+        rigidbody.parameter_generator = factory::create_parameter_strategy(&rigidbody, 10, settings::rigidbody::ParameterGenerationStrategyChoice::Simple);
+    };
 
     SECTION("Free transform") {
 
@@ -117,6 +120,7 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
         Body b3 = Body(std::vector<AtomFF>{a3});
 
         Rigidbody rigidbody(Molecule{std::vector<Body>{b1, b2, b3}});
+        set_iterations(rigidbody);
 
         // apply some transformations using the base class apply(param, ibody)
         auto& transformer = rigidbody.transformer;
@@ -133,9 +137,9 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
     }
 
     SECTION("SingleTransform strategy") {
-        settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
-
         Rigidbody rigidbody = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        rigidbody.transformer = factory::create_transform_strategy(&rigidbody, settings::rigidbody::TransformationStrategyChoice::SingleTransform);
+        set_iterations(rigidbody);
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         verify_configuration_consistency(rigidbody);
 
@@ -157,9 +161,8 @@ TEST_CASE("AbsoluteParameters: Transformations preserve consistency") {
     }
 
     SECTION("RigidTransform strategy") {
-        settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
-        
         Rigidbody rigidbody = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        set_iterations(rigidbody);
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         verify_configuration_consistency(rigidbody);
 
@@ -185,12 +188,14 @@ TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
     settings::general::verbose = false;
     settings::grid::min_bins = 250;
     settings::molecule::implicit_hydrogens = false;
-    settings::rigidbody::iterations = 20;
+    auto set_iterations = [] (Rigidbody& rigidbody) {
+        rigidbody.parameter_generator = factory::create_parameter_strategy(&rigidbody, 20, settings::rigidbody::ParameterGenerationStrategyChoice::Simple);
+    };
 
     SECTION("with SingleTransform") {
-        settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::SingleTransform;
-        
         Rigidbody rigidbody = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        rigidbody.transformer = factory::create_transform_strategy(&rigidbody, settings::rigidbody::TransformationStrategyChoice::SingleTransform);
+        set_iterations(rigidbody);
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         auto* controller = rigidbody.controller.get();
         controller->setup(io::ExistingFile("tests/files/LAR1-2.dat"));
@@ -206,9 +211,8 @@ TEST_CASE("AbsoluteParameters: Full optimization run preserves consistency") {
     }
 
     SECTION("with RigidTransform") {
-        settings::rigidbody::transform_strategy = settings::rigidbody::TransformationStrategyChoice::RigidTransform;
-        
         Rigidbody rigidbody = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
+        set_iterations(rigidbody);
         rigidbody.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
         auto* controller = rigidbody.controller.get();
         controller->setup(io::ExistingFile("tests/files/LAR1-2.dat"));
