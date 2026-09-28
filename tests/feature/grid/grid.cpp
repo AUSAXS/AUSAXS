@@ -1149,6 +1149,23 @@ TEST_CASE("Grid: cubic_grid") {
         CHECK(gaxes.z == gaxes.z);
     }
 
+    // real structures are rarely centred on the origin; each axis must stay over its own range
+    SECTION("off-centre and tied axes") {
+        Limit3D axes = GENERATE(
+            Limit3D(-20, 20, 40, 75, -15, 15), // 2epe-like: y lies outside the x range
+            Limit3D(100, 140, 100, 140, -5, 5) // x and y tie for the longest side
+        );
+
+        test::ExactGrid grid(axes);
+        auto gaxes = grid.get_axes();
+        for (auto [ax, lim] : {std::pair{gaxes.x, axes.x}, std::pair{gaxes.y, axes.y}, std::pair{gaxes.z, axes.z}}) {
+            CHECK(ax.min <= lim.min);
+            CHECK(lim.max <= ax.max);
+            CHECK(ax.span() == 40);
+            CHECK(ax.bins == gaxes.x.bins);
+        }
+    }
+
     settings::grid::cubic = false;
 }
 
