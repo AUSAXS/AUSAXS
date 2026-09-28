@@ -144,7 +144,7 @@ void PDBStructure::add_implicit_hydrogens() {
     console::print_text("\tAdding implicit hydrogens to the molecule.");
     for (auto& a : atoms) {
         // verify that the residue is valid, otherwise add_implicit_hydrogens will throw
-        if (!constants::hydrogen_atoms::residues.contains(a.resName)) {++unknown_res_count; continue;}
+        if (!constants::hydrogen_atoms::residues.load(a.resName)) {++unknown_res_count; continue;}
         a.add_implicit_hydrogens();
     }
 

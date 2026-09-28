@@ -110,7 +110,10 @@ void PDBAtom::parse_pdb(const std::string& str) {
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {
             // if the element is not set, we can try to infer it from the name
-            if (auto s = this->name.substr(0, 1); !utility::isdigit(s[0])) [[likely]] {
+            if (this->name == this->resName) {
+                // single-atom residues are usually ions (ZN, NA, CL, ...) whose name is the full element symbol
+                set_element(this->name);
+            } else if (auto s = this->name.substr(0, 1); !utility::isdigit(s[0])) [[likely]] {
                 set_element(s);
             } else {
                 set_element(this->name.substr(1, 1)); // sometimes the first character is a number

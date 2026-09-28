@@ -29,6 +29,13 @@ namespace ausaxs::residue {
             bool contains(const std::string& name);
 
             /**
+             * @brief Make a residue available in the storage, downloading it if necessary. 
+             * 
+             * @return True if the residue is now present, false if it could not be obtained.
+             */
+            bool load(const std::string& name);
+
+            /**
              * @brief Get the atomic group based on the residue name and atom type.
              * 
              * @param residue_name The name of the residue, e.g. GLY or ALA.

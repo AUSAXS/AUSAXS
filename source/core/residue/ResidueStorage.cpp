@@ -35,27 +35,33 @@ bool ResidueStorage::contains(const std::string& name) {
     return data.contains(name);
 }
 
-ResidueMap& ResidueStorage::get(const std::string& name) {
+bool ResidueStorage::load(const std::string& name) {
     if (!initialized) {initialize();}
-    if (!data.contains(name)) {
-        bool downloaded = false;
+    if (data.contains(name)) {return true;}
 
-        // small cache to avoid spamming the console with the same download
-        static std::unordered_map<std::string, bool> seen_before;
-        if (!seen_before.contains(name)) {
-            console::indent(2);
-            console::print_text("Unknown residue: \"" + name + "\". Attempting to download specification.");
-            console::indent();
-            seen_before[name] = true;
-            downloaded = update_or_download_residue(name);
-            console::unindent(3);
-        }
+    // small cache to avoid spamming the console with the same download
+    static std::unordered_map<std::string, bool> seen_before;
+    if (seen_before.contains(name)) {return false;}
+    seen_before[name] = true;
 
-        if (!downloaded) {
-            // singleton for all unknown residues which will return 0 hydrogens for all atoms
-            static InvalidResidueMap invalid_residue;
-            return invalid_residue;
-        }
+    console::indent(2);
+    console::print_text("Unknown residue: \"" + name + "\". Attempting to download specification.");
+    console::indent();
+    bool downloaded = false;
+    try {
+        downloaded = update_or_download_residue(name);
+    } catch (const except::io_error& e) {
+        console::print_warning(e.what());
+    }
+    console::unindent(3);
+    return downloaded;
+}
+
+ResidueMap& ResidueStorage::get(const std::string& name) {
+    if (!load(name)) {
+        // singleton for all unknown residues which will return 0 hydrogens for all atoms
+        static InvalidResidueMap invalid_residue;
+        return invalid_residue;
     }
     return data.at(name);
 }
