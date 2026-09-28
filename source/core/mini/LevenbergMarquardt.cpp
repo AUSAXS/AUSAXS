@@ -63,6 +63,7 @@ LevenbergMarquardt::LevenbergMarquardt(residual_function func, const std::vector
 
 Result LevenbergMarquardt::minimize_override() {
     const int n = static_cast<int>(parameters.size());
+    const int budget = max_evals < 0 ? 200*(n+1) : max_evals;
 
     // starting point, bounds, and the scale below which a parameter's magnitude is not used for its step sizes
     constexpr double inf = std::numeric_limits<double>::infinity();
@@ -89,7 +90,7 @@ Result LevenbergMarquardt::minimize_override() {
     std::vector<double> A(n*n, 0), g(n, 0);
     double lambda = 1e-3, nu = 2;
     bool converged = false;
-    while (!converged && fevals < max_evals) {
+    while (!converged && fevals < budget) {
         // forward-difference Jacobian, stepping inwards from an upper bound
         for (int j = 0; j < n; ++j) {
             double h = sqrt_eps*std::max(std::abs(x[j]), typ[j]);
@@ -123,7 +124,7 @@ Result LevenbergMarquardt::minimize_override() {
         const int k = static_cast<int>(free.size());
         const double dmin = 1e-12*dmax;
         bool accepted = false;
-        while (!accepted && !converged && fevals < max_evals) {
+        while (!accepted && !converged && fevals < budget) {
             // Marquardt's damping: (A + lambda diag(A)) d = -g
             std::vector<double> M(k*k), d(k);
             for (int a = 0; a < k; ++a) {

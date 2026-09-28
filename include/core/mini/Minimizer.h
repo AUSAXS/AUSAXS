@@ -67,7 +67,7 @@ namespace ausaxs::mini {
             void record_evaluations(bool setting);
 
             /**
-             * @brief Set the maximum number of evaluations.
+             * @brief Set the maximum number of evaluations, overriding the minimizer's default for the problem size.
              *        Note that this is not supported by all minimizers, in which case it will be ignored.
              */
             virtual void set_max_evals(int evals);
@@ -77,7 +77,12 @@ namespace ausaxs::mini {
             std::vector<Parameter> parameters;
             mini::Landscape evaluations;
             int fevals = 0;
-            int max_evals = 100;
+            int max_evals = -1; // -1 until set_max_evals is called, so a minimizer can choose its own default for the problem size
+
+            /**
+             * @brief Get the maximum number of evaluations: the value given to set_max_evals, or otherwise 100.
+             */
+            [[nodiscard]] int get_max_evals() const;
 
             /**
              * @brief Evaluate the residuals at the given point.

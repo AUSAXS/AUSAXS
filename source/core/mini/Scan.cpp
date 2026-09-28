@@ -49,7 +49,7 @@ void Scan::add_parameter(const Parameter& param) {
 }
 
 Result Scan::minimize_override() {
-    SimpleDataset data = landscape(max_evals).as_dataset();
+    SimpleDataset data = landscape(get_max_evals()).as_dataset();
     auto min = data.find_minimum();
 
     // find local minimum
