@@ -4,7 +4,6 @@
 #include <rigidbody/controller/SimpleController.h>
 
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>

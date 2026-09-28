@@ -6,7 +6,6 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
-#include <settings/RigidBodySettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

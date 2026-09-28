@@ -9,11 +9,9 @@
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/controller/ControllerFactory.h>
-#include <rigidbody/controller/MetropolisController.h>
 #include <rigidbody/controller/SimpleController.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
