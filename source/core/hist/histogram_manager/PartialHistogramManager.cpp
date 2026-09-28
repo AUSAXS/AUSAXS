@@ -56,6 +56,12 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins>::calcu
     }
 
     logging::log("PartialHistogramManager::calculate_all: starting calculation");
+
+    // ensure the cache is cleared so `calculate_all` does not accidentally return old data
+    cache.p_aa = Distribution1D();
+    cache.p_aw = Distribution1D();
+    cache.p_ww = Distribution1D();
+
     int bin_count = prepare_axis();
     const std::vector<bool> externally_modified = this->statemanager->get_externally_modified_bodies();
     const std::vector<bool> internally_modified = this->statemanager->get_internally_modified_bodies();
