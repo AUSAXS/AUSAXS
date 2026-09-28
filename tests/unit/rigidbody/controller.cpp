@@ -1,15 +1,19 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <io/ExistingFile.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
+#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/controller/ControllerFactory.h>
 #include <rigidbody/controller/MetropolisController.h>
 #include <rigidbody/controller/SimpleController.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/detail/SystemSpecification.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -77,6 +81,26 @@ TEST_CASE_METHOD(ControllerFixture, "Controllers::SimpleController basic functio
         
         // With 100 steps, at least one should be accepted
         CHECK(improvement_found);
+    }
+
+    SECTION("A rejected step leaves the controller describing the restored conformation") {
+        ctrl.setup(io::ExistingFile("tests/files/SASDJG5.dat"));
+
+        // run until a step is rejected
+        bool rejected = false;
+        for (int i = 0; i < 100 && !rejected; ++i) {
+            rejected = !ctrl.prepare_step();
+            ctrl.finish_step();
+        }
+        REQUIRE(rejected);
+
+        // the poses were restored to the best configuration, and so must its chi2 be
+        CHECK(rb->conformation->absolute_parameters.chi2 == ctrl.get_current_best_config()->chi2);
+
+        // and after an update, the fitter must evaluate the restored molecule rather than the rejected candidate
+        ctrl.update_fitter();
+        fitter::ConstrainedFitter reference(rb->constraints.get(), io::ExistingFile("tests/files/SASDJG5.dat"), rb->molecule.get_histogram());
+        CHECK_THAT(ctrl.get_fitter()->fit_chi2_only(), Catch::Matchers::WithinRel(reference.fit_chi2_only(), 1e-12));
     }
 }
 

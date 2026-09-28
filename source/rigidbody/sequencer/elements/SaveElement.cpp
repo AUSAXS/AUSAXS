@@ -3,10 +3,12 @@
 
 #include <rigidbody/sequencer/elements/SaveElement.h>
 
+#include <fitter/FitResult.h>
 #include <io/detail/trajectory/XYZWriter.h>
 #include <plots/PlotDataset.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/controller/IController.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <settings/GeneralSettings.h>
 
@@ -46,6 +48,13 @@ void SaveElement::run() {
         return file;
     };
 
+    // after a rejected step the fitter still holds the rejected candidate, so it is brought up to the molecule first.
+    auto fit_current_state = [this] () {
+        auto* controller = owner->_get_rigidbody()->controller.get();
+        controller->update_fitter();
+        return controller->get_fitter()->unconstrained_fit();
+    };
+
     // PDB
     if (const auto& ext = path.extension(); ext == ".pdb") {
         owner->_get_molecule()->save(insert_counter(path, pdb_counter));
@@ -53,16 +62,16 @@ void SaveElement::run() {
 
     // FIT
     else if (ext == ".fit") {
-        auto result = owner->_get_rigidbody()->controller->get_fitter()->fit();
+        auto result = fit_current_state();
         result->curves.select_columns({0, 1, 2, 3}).save(
-            insert_counter(path, ++fit_counter),
+            insert_counter(path, fit_counter),
             "chi2=" + std::to_string(result->fval/result->dof) + ", dof=" + std::to_string(result->dof)
         );
     }
 
     // PNG
     else if (ext == ".png") {
-        auto result = owner->_get_rigidbody()->controller->get_fitter()->fit();
+        auto result = fit_current_state();
         plots::PlotDataset plot;
         plot.plot_residuals(
             result->curves.select_columns({0, 1, 2, 3}),

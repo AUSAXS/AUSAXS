@@ -17,6 +17,7 @@ namespace {
     const std::unordered_map<std::string, std::string> deprecated_options = {
         {"bin_count", "the number of distance-histogram bins is now deduced from the structure being calculated"},
         {"center", "structures are no longer automatically centered on the origin"},
+        {"calibration_file", "rigid body calibration has been removed"},
     };
 }
 

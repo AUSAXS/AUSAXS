@@ -14,11 +14,6 @@ namespace ausaxs::rigidbody::controller {
             void setup(const io::ExistingFile& measurement_path) override;
             bool prepare_step() override;
             void finish_step() override;
-
-        private:
-            /**
-             * @brief Update the fitter with the current histogram. 
-             */
-            void update_fitter(); 
+            void update_fitter() override;
     };
 }

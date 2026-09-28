@@ -7,7 +7,6 @@
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
 
-#include <string>
 #include <vector>
 
 namespace ausaxs::settings {
@@ -17,7 +16,6 @@ namespace ausaxs::settings {
 
         struct detail {
             static std::vector<int> constraints; // The residue ids to place a constraint at.
-            static std::string calibration_file; // The file to read constraints from.
         };
 
         enum class TransformationStrategyChoice {

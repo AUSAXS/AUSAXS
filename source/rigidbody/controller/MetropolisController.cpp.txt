@@ -22,21 +22,11 @@ using namespace ausaxs::rigidbody::controller;
 MetropolisController::~MetropolisController() = default;
 
 void MetropolisController::setup(const io::ExistingFile& measurement_path) {
-    if (!calibration) {
-        this->fitter = std::make_unique<fitter::ConstrainedFitter>(
-            rigidbody->constraints.get(), 
-            measurement_path, 
-            rigidbody->molecule.get_histogram()
-        );
-    } else {
-        auto histogram = rigidbody->molecule.get_histogram();
-        histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        this->fitter = std::make_unique<fitter::ConstrainedFitter>(
-            rigidbody->constraints.get(), 
-            measurement_path, 
-            std::move(histogram)
-        );
-    }
+    this->fitter = std::make_unique<fitter::ConstrainedFitter>(
+        rigidbody->constraints.get(), 
+        measurement_path, 
+        rigidbody->molecule.get_histogram()
+    );
 
     auto eval_chi2 = [this] () {
         auto [ibody, iconstraint] = rigidbody->body_selector->next();
@@ -62,13 +52,7 @@ void MetropolisController::setup(const io::ExistingFile& measurement_path) {
 
 void MetropolisController::update_fitter() {
     assert(fitter.get() != nullptr && "RigidBody::update_fitter: Fitter not initialized.");
-    if (!calibration) {
-        fitter->set_model(rigidbody->molecule.get_histogram());
-    } else {
-        auto histogram = rigidbody->molecule.get_histogram();
-        histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
-        fitter->set_model(std::move(histogram));
-    }
+    fitter->set_model(rigidbody->molecule.get_histogram());
 }
 
 bool MetropolisController::prepare_step() {

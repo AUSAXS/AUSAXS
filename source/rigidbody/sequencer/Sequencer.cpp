@@ -103,7 +103,7 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
 
     // update the fitter with the restored hydration shell and symmetry state. This is unconditional because the last
     // step may have been rejected, in which case finish_step() left the fitter holding the rejected candidate's model.
-    _get_controller()->get_fitter()->set_model(rigidbody->molecule.get_histogram());
+    _get_controller()->update_fitter();
 
     return _get_controller()->get_fitter()->unconstrained_fit();
 }
