@@ -175,3 +175,29 @@ TEST_CASE("PartialHistogramManager: grows its axis when the structure outgrows i
     REQUIRE_THAT(std::reduce(after.begin(), after.end(), 0.0), Catch::Matchers::WithinRel(std::reduce(before.begin(), before.end(), 0.0), 1e-9));
     REQUIRE(after.size() > before.size());
 }
+
+TEST_CASE("PartialHistogramManager: a total-only calculation does not leave stale partials behind") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    auto choice = GENERATE(
+        settings::hist::HistogramManagerChoice::PartialHistogramManager,
+        settings::hist::HistogramManagerChoice::PartialHistogramManagerMT
+    );
+
+    data::Molecule protein({Body("tests/files/2epe.pdb"), Body("tests/files/6lyz.pdb")});
+    protein.generate_new_hydration();
+    protein.set_histogram_manager(choice);
+    (void) protein.get_histogram();
+
+    // a total-only calculation of a modified state, as OverlapConstraint::evaluate() does, followed by a full one
+    protein.get_body(1).translate({20, 0, 0});
+    protein.generate_new_hydration();
+    (void) protein.get_total_histogram();
+    auto h = protein.get_histogram();
+
+    auto ref = hist::HistogramManagerMT<true>(&protein).calculate_all();
+    REQUIRE(h->get_aa_counts().size() == h->get_weighted_counts().size());
+    CHECK(compare_hist_approx(h->get_aa_counts(), ref->get_aa_counts()));
+    CHECK(compare_hist_approx(h->get_aw_counts(), ref->get_aw_counts()));
+    CHECK(compare_hist_approx(h->get_ww_counts(), ref->get_ww_counts()));
+}
