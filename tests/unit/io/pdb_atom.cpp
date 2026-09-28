@@ -102,6 +102,16 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a.charge == "  ");
         CHECK(a.get_recName() == "ATOM  ");
     }
+
+    SECTION("inferred element") {
+        auto element = [] (const std::string& line) {PDBAtom a; a.parse_pdb(line); return a.element;};
+        CHECK(element("ATOM  66661  ZN   ZN   354     121.330  83.600  67.660  1.00  0.00") == constants::atom_t::Zn);
+        CHECK(element("ATOM   5837  NA   NA  6762      89.650  30.700 102.880  1.00  0.00") == constants::atom_t::Na);
+        CHECK(element("ATOM   6546  CL   CL  7471     146.570 135.820 117.410  1.00  0.00") == constants::atom_t::Cl);
+        CHECK(element("ATOM   6600  CA   CA  7500      10.000  20.000  30.000  1.00  0.00") == constants::atom_t::Ca);
+        CHECK(element("ATOM      5  CA  MET     1     134.950 108.540  66.370  1.00  0.00") == constants::atom_t::C);
+        CHECK(element("ATOM      2  H1  MET     1     133.190 108.790  65.250  1.00  0.00") == constants::atom_t::H);
+    }
 }
 
 TEST_CASE("PDBAtom::as_pdb") {
