@@ -8,9 +8,9 @@
 #include <mini/LimitedScan.h>
 #include <mini/MinimumExplorer.h>
 #include <mini/Scan.h>
+#include <mini/detail/Parameter.h>
 
 #include <algorithm>
-#include <functional>
 #include <memory>
 
 namespace ausaxs::mini {
