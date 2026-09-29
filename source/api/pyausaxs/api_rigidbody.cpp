@@ -328,7 +328,7 @@ void rigidbody_get_body_names(
     // already reflects the final body set, ordered identically to rigidbody_get_preview_structure's bodies
     static std::vector<std::string> body_names;
     static std::vector<const char*> body_names_cstr;
-    body_names = sequencer.setup()._body_name_registry().base_body_names();
+    body_names = sequencer._body_name_registry().base_body_names();
     body_names_cstr.clear();
     body_names_cstr.reserve(body_names.size());
     for (const auto& name : body_names) {body_names_cstr.push_back(name.c_str());}
@@ -356,7 +356,7 @@ int rigidbody_get_symmetry_layout(
 
     auto& sequencer = get_cached_sequencer(*script_obj);
     auto* molecule = sequencer._get_molecule();
-    const auto& name_registry = sequencer.setup()._body_name_registry();
+    const auto& name_registry = sequencer._body_name_registry();
 
     _rigidbody_symmetry_layout_obj data;
     int bidx = 0;

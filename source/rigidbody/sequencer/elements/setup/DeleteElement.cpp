@@ -20,7 +20,7 @@ DeleteElement::DeleteElement(observer_ptr<Sequencer> owner, const std::vector<st
     std::vector<int> indices;
     indices.reserve(names.size());
     for (const auto& name : names) {
-        indices.push_back(owner->setup()._get_body(name));
+        indices.push_back(owner->_get_body(name));
     }
     detail::erase_bodies(owner, std::move(indices));
 
@@ -44,7 +44,7 @@ InlineSignature DeleteElement::_valid_inline_arguments() {
 
 // delete [body names...] - at least one body must remain
 std::unique_ptr<GenericElement> DeleteElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
-    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
+    const auto& body_names = owner->_get_sequencer()->_body_name_registry();
     std::vector<std::string> names;
     names.reserve(args.inlined.size());
     for (int i = 0; i < static_cast<int>(args.inlined.size()); ++i) {

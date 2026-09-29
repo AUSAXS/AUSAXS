@@ -6,7 +6,6 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/elements/setup/SetupElement.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Logging.h>
 
@@ -21,7 +20,7 @@ OutputFolderElement::OutputFolderElement(observer_ptr<Sequencer> owner, const io
         case Mode::RELATIVE_TERMINAL:
             break;
         case Mode::RELATIVE_CONFIG:
-            prefix = owner->setup()._get_config_folder() + "/";
+            prefix = owner->_get_config_folder() + "/";
             break;
         case Mode::ABSOLUTE: {
             // anchor the folder so that it no longer depends on the working directory. A path that is already absolute

@@ -119,7 +119,7 @@ std::vector<std::vector<Vector3<double>>> ConvertToSymmetryElement::_split_into_
 std::vector<std::vector<Vector3<double>>> ConvertToSymmetryElement::_gather_copies(const std::vector<int>& bodies) {
     auto *molecule = owner->_get_molecule();
     int primary = bodies.front();
-    auto body_name = [this](int b) {return owner->setup()._body_name_registry().base_body_names().at(b);};
+    auto body_name = [this](int b) {return owner->_body_name_registry().base_body_names().at(b);};
 
     // Copies of the same molecule are not necessarily modelled to the same extent: a disordered terminus or loop is routinely resolved in some chains and not
     // in others, leaving their atom vectors differing in both length and content. Since the fit needs a correspondence rather than every atom, it runs on the
@@ -192,7 +192,6 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
 
     auto* molecule = owner->_get_molecule();
     auto* rigidbody = owner->_get_rigidbody();
-    auto& setup = owner->setup();
 
     // resolve and validate the requested symmetry type
     auto base_sym = symmetry::create(symmetry_name);
@@ -265,7 +264,7 @@ void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const st
     if (!to_remove.empty()) {detail::erase_bodies(owner, std::move(to_remove));}
 
     // register names for the primary body's newly-added symmetry copies
-    for (int j = 0; j < reps; ++j) {setup._body_name_registry().add_replica(new_primary, isymmetry, j + 1);}
+    for (int j = 0; j < reps; ++j) {owner->_body_name_registry().add_replica(new_primary, isymmetry, j + 1);}
 
     // rebuild the (now symmetry-aware) histogram manager for the reduced body set; this also rebinds the body signallers. The grid must be rebuilt 
     // since the atom count changed.
@@ -313,7 +312,7 @@ std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<Lo
     std::string symmetry_name = type_it->second[0];
     std::vector<int> bodies;
     for (int i = 0; i < static_cast<int>(bodies_it->second.size()); ++i) {
-        auto index = sequencer->setup()._get_body_index(std::string{bodies_it->second[i].str});
+        auto index = sequencer->_get_body_index(std::string{bodies_it->second[i].str});
         if (index.symmetry != -1 || index.replica != 0) {
             throw except::parse_error("convert_to_symmetry", "Body names must refer to base bodies.");
         }

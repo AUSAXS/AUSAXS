@@ -33,9 +33,8 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
 
     auto* molecule = owner->_get_molecule();
     auto* rigidbody = owner->_get_rigidbody();
-    auto& setup = owner->setup();
 
-    auto index = setup._get_body_index(body_name);
+    auto index = owner->_get_body_index(body_name);
     if (index.symmetry != -1 || index.replica != 0) {
         throw except::parse_error("split", "Body \"" + body_name + "\" is a symmetry replica, not a base body.");
     }
@@ -86,7 +85,7 @@ void SplitElement::_split(const std::string& body_name, const std::vector<int>& 
     }
     // the leading fragment continues the original body's identity, so it inherits both of the original's names: a script that split "core" can still address
     // the fragment holding the first residues as "core", and as the original's default name. Copied before the erase releases them.
-    auto& name_map = setup._body_name_registry();
+    auto& name_map = owner->_body_name_registry();
     detail::BodyNameRegistry::Entry inherited = name_map.entry(detail::to_index(ib)); // a copy: the erase below destroys the original entry
 
     detail::erase_bodies(owner, {ib});

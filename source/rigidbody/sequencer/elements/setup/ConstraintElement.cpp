@@ -82,8 +82,8 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
             }
             constraint = factory::create_constraint_bond(
                 owner->_get_molecule(),
-                owner->_get_sequencer()->setup()._get_body_index(body1.value),
-                owner->_get_sequencer()->setup()._get_body_index(body2.value)
+                owner->_get_sequencer()->_get_body_index(body1.value),
+                owner->_get_sequencer()->_get_body_index(body2.value)
             );
             break;
 
@@ -93,8 +93,8 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
             }
             constraint = factory::create_constraint_cm(
                 owner->_get_molecule(),
-                owner->_get_sequencer()->setup()._get_body_index(body1.value),
-                owner->_get_sequencer()->setup()._get_body_index(body2.value)
+                owner->_get_sequencer()->_get_body_index(body1.value),
+                owner->_get_sequencer()->_get_body_index(body2.value)
             );
             break;
 
@@ -105,8 +105,8 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
             if (!distance.found) {throw except::parse_error("constraint", R"(Constraint of type "attract" requires argument "distance".)");}
             constraint = factory::create_constraint_attractor(
                 owner->_get_molecule(),
-                owner->_get_sequencer()->setup()._get_body_index(body1.value),
-                owner->_get_sequencer()->setup()._get_body_index(body2.value),
+                owner->_get_sequencer()->_get_body_index(body1.value),
+                owner->_get_sequencer()->_get_body_index(body2.value),
                 distance.value
             );
             break;
@@ -118,8 +118,8 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
             if (!distance.found) {throw except::parse_error("constraint", R"(Constraint of type "repel" requires argument "distance".)");}
             constraint = factory::create_constraint_repeller(
                 owner->_get_molecule(),
-                owner->_get_sequencer()->setup()._get_body_index(body1.value),
-                owner->_get_sequencer()->setup()._get_body_index(body2.value),
+                owner->_get_sequencer()->_get_body_index(body1.value),
+                owner->_get_sequencer()->_get_body_index(body2.value),
                 distance.value
             );
             break;
@@ -129,8 +129,8 @@ void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& arg
             if (!(iatom1.found && iatom2.found)) {throw except::parse_error("constraint", R"(Constraint of type "specific_atoms" requires arguments "iatom1" and "iatom2".)");}
             constraint = factory::create_constraint(
                 owner->_get_molecule(),
-                owner->_get_sequencer()->setup()._get_body_index(body1.value),
-                owner->_get_sequencer()->setup()._get_body_index(body2.value),
+                owner->_get_sequencer()->_get_body_index(body1.value),
+                owner->_get_sequencer()->_get_body_index(body2.value),
                 iatom1.value,
                 iatom2.value
             );

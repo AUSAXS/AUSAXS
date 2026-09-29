@@ -11,7 +11,7 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
 RenameElement::RenameElement(observer_ptr<Sequencer> owner, std::string_view old_name, std::string_view new_name) {
-    owner->setup()._body_name_registry().rename(old_name, new_name);
+    owner->_body_name_registry().rename(old_name, new_name);
 }
 
 RenameElement::~RenameElement() = default;
@@ -28,7 +28,7 @@ InlineSignature RenameElement::_valid_inline_arguments() {
 
 // rename [old name] [new name]
 std::unique_ptr<GenericElement> RenameElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
-    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
+    const auto& body_names = owner->_get_sequencer()->_body_name_registry();
     std::string old_name = args.inlined[0];
     std::string new_name = args.inlined[1];
     if (!body_names.contains(old_name)) {throw except::parse_error("rename", "Body name \"" + old_name + "\" not found.");}

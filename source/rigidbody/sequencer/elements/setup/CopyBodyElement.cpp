@@ -31,14 +31,14 @@ namespace {
         owner->_get_rigidbody()->conformation->absolute_parameters.parameters.emplace_back(body_pars);
 
         int new_index = owner->_get_molecule()->size_body()-1;
-        owner->setup()._body_name_registry().add_body(new_index, std::string{body_name});
+        owner->_body_name_registry().add_body(new_index, std::string{body_name});
         owner->_get_rigidbody()->symmetry_targets->invalidate(); // the copy brings its source's symmetries with it
         owner->_get_rigidbody()->constraints->invalidate();      // the new body needs an entry of its own in the per-body constraint map
     }
 }
 
 CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, std::string_view source_body_name) {
-    clone(owner, body_name, owner->setup()._get_body(source_body_name));
+    clone(owner, body_name, owner->_get_body(source_body_name));
 }
 
 CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, int source_body_index) {
@@ -59,7 +59,7 @@ InlineSignature CopyBodyElement::_valid_inline_arguments() {
 
 // copy [target name] [new name] - the two are swapped if the first does not name an existing body
 std::unique_ptr<GenericElement> CopyBodyElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
-    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
+    const auto& body_names = owner->_get_sequencer()->_body_name_registry();
     std::string source = args.inlined[0];
     std::string name = args.inlined[1];
     if (!body_names.contains(source)) {

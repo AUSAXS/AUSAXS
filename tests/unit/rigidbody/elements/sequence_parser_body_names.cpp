@@ -73,7 +73,7 @@ struct SequenceParserBodyNamesFixture {
 
     // Lowest residue sequence id carried by the body `name` refers to, used to tell the fragments of a split apart by the residues they hold.
     static int first_residue(Sequencer& seq, const std::string& name) {
-        const auto& body = seq._get_rigidbody()->molecule.get_body(seq.setup()._get_body(name));
+        const auto& body = seq._get_rigidbody()->molecule.get_body(seq._get_body(name));
         const auto& metadata = body.get_metadata();
         REQUIRE(metadata.has_value());
         REQUIRE(metadata->residue_seq.has_value());
@@ -86,7 +86,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default name
         auto seq = build();
         REQUIRE(seq != nullptr);
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 3);
-        CHECK(seq->setup()._body_name_registry().base_body_names() == std::vector<std::string>{"b1", "b2", "b3"});
+        CHECK(seq->_body_name_registry().base_body_names() == std::vector<std::string>{"b1", "b2", "b3"});
     }
 
     SECTION("splitting a body mid-script does not reuse a surviving body's name") {
@@ -94,7 +94,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default name
         // reindexing, leaving the fragment at residues 40-59 unaddressable
         auto seq = build("split b2 60\n");
         REQUIRE(seq != nullptr);
-        auto& registry = seq->setup()._body_name_registry();
+        auto& registry = seq->_body_name_registry();
 
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
         auto names = registry.base_body_names();
@@ -112,7 +112,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default name
     SECTION("a split body's alias follows its leading fragment") {
         auto seq = build("rename b2 core\nsplit core 60\n");
         REQUIRE(seq != nullptr);
-        auto& registry = seq->setup()._body_name_registry();
+        auto& registry = seq->_body_name_registry();
 
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
         expect_unique_names(registry);
@@ -128,7 +128,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default name
     SECTION("a body created after a delete collides with nothing, and the survivors keep their names") {
         auto seq = build("delete b1\nsplit b3 100\n");
         REQUIRE(seq != nullptr);
-        auto& registry = seq->setup()._body_name_registry();
+        auto& registry = seq->_body_name_registry();
 
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 3);
         auto names = registry.base_body_names();
@@ -147,7 +147,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default name
         // a script referring to "b2" after a delete-then-create must fail loudly rather than silently retarget the new body
         auto seq = build("delete b2\ncopy b1 c1\ncopy b3 c2\n");
         REQUIRE(seq != nullptr);
-        auto& registry = seq->setup()._body_name_registry();
+        auto& registry = seq->_body_name_registry();
 
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
         expect_unique_names(registry);
@@ -159,7 +159,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default name
         // the trailing fragment draws from the counter, which must still skip past the retired b2 rather than reissuing it
         auto seq = build("delete b2\nsplit b1 20\n");
         REQUIRE(seq != nullptr);
-        auto& registry = seq->setup()._body_name_registry();
+        auto& registry = seq->_body_name_registry();
 
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 3);
         expect_unique_names(registry);
@@ -170,7 +170,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default name
     SECTION("a copied body continues the default-name sequence") {
         auto seq = build("copy b1 clone\n");
         REQUIRE(seq != nullptr);
-        auto& registry = seq->setup()._body_name_registry();
+        auto& registry = seq->_body_name_registry();
 
         REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
         expect_unique_names(registry);
@@ -186,7 +186,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: replica tags
     // (post-split) default names rather than from their indices, which no longer identify them
     auto seq = build("symmetry b2 c2\nsplit b2 60\n");
     REQUIRE(seq != nullptr);
-    auto& registry = seq->setup()._body_name_registry();
+    auto& registry = seq->_body_name_registry();
     REQUIRE(seq->_get_rigidbody()->molecule.size_body() == 4);
 
     expect_unique_names(registry);

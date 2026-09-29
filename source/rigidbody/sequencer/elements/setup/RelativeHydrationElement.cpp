@@ -42,7 +42,7 @@ namespace {
 }
 
 RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::string& name, double ratio) : owner(owner) {
-    const auto& body_names = owner->setup()._body_name_registry();
+    const auto& body_names = owner->_body_name_registry();
     if (!body_names.contains(name)) {
         throw ausaxs::except::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + name + "\" is not known.");
     }
@@ -56,7 +56,7 @@ RelativeHydrationElement::~RelativeHydrationElement() {
 }
 
 std::vector<double> RelativeHydrationElement::_get_ratios() const {
-    const auto& body_names = owner->setup()._body_name_registry();
+    const auto& body_names = owner->_body_name_registry();
     std::vector<double> ratios(owner->_get_molecule()->size_body(), to_value(Options::Normal));
 
     for (const auto& [name, ratio] : custom_levels) {
@@ -110,7 +110,7 @@ std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<Lo
 
     // to set a level on several bodies, repeat the element - the declarations accumulate into one culling strategy, so
     // nothing is lost and the hydration layer is still generated only once
-    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
+    const auto& body_names = owner->_get_sequencer()->_body_name_registry();
     if (!body_names.contains(args.inlined[0])) {throw except::parse_error("relative_hydration", "Unknown body name \"" + args.inlined[0] + "\".");}
     if (!options.contains(args.inlined[1])) {throw except::parse_error("relative_hydration", "Unknown hydration level \"" + args.inlined[1] + "\".");}
     return std::make_unique<RelativeHydrationElement>(
