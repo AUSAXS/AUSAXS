@@ -79,8 +79,10 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins>::calcu
                 calc_self_correlation(i);
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
-                this->coords_a[i] = hist::detail::factory::construct(this->protein->get_body(i).get_atoms());
-                hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], protein);
+                this->coords_a[i] = hist::detail::factory::construct<false>(this->protein->get_body(i).get_atoms());
+                if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+                    hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], protein);
+                }
             }
         }
     }
@@ -209,8 +211,10 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bi
 
 template<bool weighted_bins> 
 void PartialHistogramManager<weighted_bins>::calc_self_correlation(int index) {
-    auto current = hist::detail::factory::construct(this->protein->get_body(index).get_atoms());
-    hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
+    auto current = hist::detail::factory::construct<false>(this->protein->get_body(index).get_atoms());
+    if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+        hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
+    }
 
     // calculate internal distances between atoms
     GenericDistribution1D_t p_aa(this->master.axis.bins);

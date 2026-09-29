@@ -3,30 +3,29 @@
 
 #pragma once
 
-#include <hist/detail/CompactCoordinates.h>
-#include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManagerMTBase.h>
 
 namespace ausaxs::hist {
 	/**
-	 * @brief A multi-threaded simple distance calculator. 
+	 * @brief A multi-threaded simple distance calculator.
 	 *
-	 * This class does not account for the excluded volume in any way. 
-	 * To implicitly include it, subtract the average excluded volume charge from each atom. 
+	 * This class does not account for the excluded volume in any way.
+	 * To implicitly include it, subtract the average excluded volume charge from each atom.
 	 */
 	template<bool weighted_bins>
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class HistogramManagerMT : public HistogramManager<weighted_bins> {
+	class HistogramManagerMT : public HistogramManagerMTBase<weighted_bins, false> {
 		public:
-			using HistogramManager<weighted_bins>::HistogramManager;
+			using HistogramManagerMTBase<weighted_bins, false>::HistogramManagerMTBase;
 			~HistogramManagerMT() override;
 
 			/**
-			 * @brief Calculate only the total scattering histogram. 
+			 * @brief Calculate only the total scattering histogram.
 			 */
 			std::unique_ptr<DistanceHistogram> calculate() override;
 
 			/**
-			 * @brief Calculate all contributions to the scattering histogram. 
+			 * @brief Calculate all contributions to the scattering histogram.
 			 */
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 	};

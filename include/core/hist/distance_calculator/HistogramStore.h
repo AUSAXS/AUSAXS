@@ -78,6 +78,18 @@ namespace ausaxs::hist::distance_calculator {
             const GenericDistribution3D_t& get_3d(int id) const {return std::get<GenericDistribution3D_t>(results[check_valid_id(id)]);} //< @copydoc get_1d
 
             /**
+             * @brief The result @a id of type @a T, i.e. one of GenericDistribution1D_t, GenericDistribution2D_t and GenericDistribution3D_t.
+             */
+            template<typename T>
+            const T& get(int id) const {return std::get<T>(results[check_valid_id(id)]);}
+
+            /**
+             * @brief Call @a f with the result @a id, whichever shape it was allocated with.
+             */
+            template<typename F>
+            decltype(auto) visit(int id, F&& f) const {return std::visit(std::forward<F>(f), results[check_valid_id(id)]);}
+
+            /**
              * @brief Move the result @a id out of the store. It must not be used again afterwards.
              */
             GenericDistribution1D_t export_1d(int id) {return take<GenericDistribution1D_t>(id);}

@@ -16,13 +16,16 @@
 
 namespace ausaxs::hist {
 	/**
-	 * @brief A multi-threaded smart distance calculator which efficiently calculates the simple distance histogram. 
+	 * @brief The multithreaded partial histogram manager for molecules with symmetries, which only
+	 *        recalculates the parts of the histogram changed between each call.
+	 *
+	 * @tparam form_factors Whether the atoms are resolved by form factor, see HistogramManagerMTBase.
 	 */
-    template<bool weighted_bins> 
-	class PartialSymmetryManagerMT : public IPartialHistogramManager {
+    template<bool weighted_bins, bool form_factors> 
+	class PartialSymmetryManagerMTBase : public IPartialHistogramManager {
 		public:
-			PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein);
-			~PartialSymmetryManagerMT() override;
+			explicit PartialSymmetryManagerMTBase(observer_ptr<const data::Molecule> protein);
+			~PartialSymmetryManagerMTBase() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 
@@ -36,13 +39,13 @@ namespace ausaxs::hist {
 
 		private:
 			using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
-			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins>>;
+			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins, form_factors>>;
 
 			GenericDistribution1D_t cached_p_tot; // the total histogram of the last calculation, returned as is while nothing is modified
 
 			observer_ptr<const data::Molecule> protein;									// the molecule we are calculating the histogram for
             detail::MasterHistogram<weighted_bins> master;								// the current total histogram
-			std::vector<symmetry::detail::BodySymmetryData> coords;	// a compact representation of the relevant data from the managed bodies
+			std::vector<symmetry::detail::BodySymmetryData<form_factors>> coords;	// a compact representation of the relevant data from the managed bodies
 			hist::detail::CompactCoordinates coords_w;				// a compact representation of the relevant data from the hydration layer
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
 			std::vector<int> recalculated; // the results queued for recalculation in the current run, see recalculate()
@@ -71,6 +74,7 @@ namespace ausaxs::hist {
 
 			/**
 			 * @brief Take the partial histogram @a id out of the master histogram before it is recalculated.
+			 *        With form factors, that is every histogram of its classes.
 			 */
 			void recalculate(int id);
 
@@ -136,4 +140,16 @@ namespace ausaxs::hist {
 			 */
 			void update_compact_representation_water();
 	};
+
+	/**
+	 * @brief The partial symmetry manager for the simple excluded volume model, where every atom carries its own weight.
+	 */
+	template<bool weighted_bins>
+	using PartialSymmetryManagerMT = PartialSymmetryManagerMTBase<weighted_bins, false>;
+
+	/**
+	 * @brief The partial symmetry manager for the form factor-resolved excluded volume models.
+	 */
+	template<bool weighted_bins>
+	using PartialSymmetryManagerMTFF = PartialSymmetryManagerMTBase<weighted_bins, true>;
 }

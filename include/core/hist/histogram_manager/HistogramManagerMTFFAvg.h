@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <hist/histogram_manager/HistogramManagerMTFFBase.h>
+#include <hist/histogram_manager/HistogramManagerMTBase.h>
 
 namespace ausaxs::hist {
 	/**
@@ -14,9 +14,9 @@ namespace ausaxs::hist {
 	 */
 	template<bool weighted_bins>
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class HistogramManagerMTFFAvg : public HistogramManagerMTFFBase<weighted_bins> {
+	class HistogramManagerMTFFAvg : public HistogramManagerMTBase<weighted_bins, true> {
 		public:
-			using HistogramManagerMTFFBase<weighted_bins>::HistogramManagerMTFFBase;
+			using HistogramManagerMTBase<weighted_bins, true>::HistogramManagerMTBase;
 
 			~HistogramManagerMTFFAvg() override;
 

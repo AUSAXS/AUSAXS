@@ -259,6 +259,7 @@ namespace ausaxs::data {
 
 			/**
 			 * @brief Set the histogram manager of this molecule.
+			 *        A kind @a choice is constructed in the variant of the excluded volume model settings::exv::exv_method.
 			 */
 			void set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager);
 			void set_histogram_manager(settings::hist::HistogramManagerChoice choice);

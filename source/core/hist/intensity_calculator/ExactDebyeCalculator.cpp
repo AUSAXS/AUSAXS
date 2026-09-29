@@ -15,7 +15,7 @@ using namespace ausaxs;
 
 std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, const std::vector<double>& q_vals) {
     // atoms and waters are summed as one set of scatterers
-    auto data = hist::detail::factory::construct_from_atoms(&molecule);
+    auto data = hist::detail::factory::construct_from_atoms<false>(&molecule);
     data.append(hist::detail::factory::construct_from_waters(&molecule));
     const int data_size = data.size();
     const float inv_width = hist::detail::inv_bin_width(); // only the exact distances are used, but the kernels also bin them

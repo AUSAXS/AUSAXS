@@ -222,7 +222,7 @@ namespace ausaxs::hist {
                 // these for the excluded volume as well, whereas models where the excluded volume is a separate set
                 // of scatterers own the additional distributions themselves
                 mutable struct {
-                    container::Container3D<double, container::Shape::Triangular> aa; // unordered pairs, like the distribution it is built from
+                    container::TriangularContainer3D<double> aa; // unordered pairs, like the distribution it is built from
                     container::Container2D<double> aw;
                     container::Container1D<double> ww;
                     bool valid = false;

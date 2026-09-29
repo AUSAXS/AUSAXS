@@ -8,6 +8,8 @@
 #include <mini/detail/FittedParameter.h>
 #include <settings/All.h>
 
+#include <array>
+
 using namespace ausaxs;
 using namespace data;
 
@@ -65,8 +67,9 @@ class SmartFitterDebug : public fitter::SmartFitter {
 
 TEST_CASE("SmartFitter::fit") {
     settings::molecule::implicit_hydrogens = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
     Molecule protein("tests/files/2epe.pdb");
-    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
 
     SmartFitterDebug fitter({{}}, protein.get_histogram());
     auto* h = static_cast<hist::ICompositeDistanceHistogramExv*>(fitter.get_model());
@@ -147,8 +150,9 @@ TEST_CASE("SmartFitter::fit") {
 
 TEST_CASE("fitter: correct dof", "[files]") {
     settings::general::verbose = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
     Molecule protein("tests/files/2epe.pdb");
-    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit);
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
     SimpleDataset data("tests/files/2epe.dat");
     int size = data.size();
 
@@ -267,15 +271,23 @@ TEST_CASE("SmartFitter: consistent fits using different q-ranges") {
     settings::fit::fit_atomic_debye_waller = false;
     settings::fit::fit_exv_debye_waller = false;
 
-    for (int hm = 0; hm < static_cast<int>(settings::hist::HistogramManagerChoice::Count); ++hm) {
-        switch (hm) {
-            case static_cast<int>(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv):
-            case static_cast<int>(settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface):
-                continue; // these histogram managers currently pass, take too long to run, are somewhat unstable, and are not used that often anyway
-            default: break;
-        }
-        SECTION("Histogram manager: " + std::to_string(hm)) {
-            protein.set_histogram_manager(static_cast<settings::hist::HistogramManagerChoice>(hm));
+    // every kind of manager for the simple model, and the managers recalculating everything for the others.
+    // GridScalable and GridSurface are left out: they currently pass, take too long to run, are somewhat unstable, and are not used that often anyway
+    constexpr std::array other_exv = {settings::exv::ExvMethod::Average, settings::exv::ExvMethod::Fraser, settings::exv::ExvMethod::Grid, settings::exv::ExvMethod::FoXS, settings::exv::ExvMethod::Pepsi, settings::exv::ExvMethod::CRYSOL};
+    constexpr int kind_count = static_cast<int>(settings::hist::HistogramManagerChoice::Count);
+    std::vector<std::pair<settings::hist::HistogramManagerChoice, settings::exv::ExvMethod>> managers;
+    managers.reserve(kind_count + other_exv.size());
+    for (int kind = 0; kind < kind_count; ++kind) {
+        managers.emplace_back(static_cast<settings::hist::HistogramManagerChoice>(kind), settings::exv::ExvMethod::Simple);
+    }
+    for (auto exv : other_exv) {
+        managers.emplace_back(settings::hist::HistogramManagerChoice::HistogramManagerMT, exv);
+    }
+
+    for (auto [kind, exv] : managers) {
+        SECTION("Histogram manager: " + std::to_string(static_cast<int>(kind)) + ", excluded volume model: " + std::to_string(static_cast<int>(exv))) {
+            settings::exv::exv_method = exv;
+            protein.set_histogram_manager(kind);
             std::vector<double> qmin = {0.01, 0.1};
             std::vector<double> qmax = {0.5, 0.35};
             for (auto v1 : qmin) {

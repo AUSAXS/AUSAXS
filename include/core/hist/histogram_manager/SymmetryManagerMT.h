@@ -10,10 +10,16 @@
 #include <memory>
 
 namespace ausaxs::hist {
-    template<bool weighted_bins>
-    class SymmetryManagerMT : public IHistogramManager {
+    /**
+     * @brief The multithreaded histogram manager for molecules with symmetries, which calculates the whole
+     *        histogram in one go. Each symmetric copy is only evaluated once, and the histogram scaled by how often it occurs.
+     *
+     * @tparam form_factors Whether the atoms are resolved by form factor, see HistogramManagerMTBase.
+     */
+    template<bool weighted_bins, bool form_factors>
+    class SymmetryManagerMTBase : public IHistogramManager {
         public:
-            SymmetryManagerMT(observer_ptr<const data::Molecule> protein);
+            explicit SymmetryManagerMTBase(observer_ptr<const data::Molecule> protein);
 
             std::unique_ptr<hist::DistanceHistogram> calculate() override;
 
@@ -25,4 +31,16 @@ namespace ausaxs::hist {
             template<bool contains_waters>
             std::unique_ptr<hist::ICompositeDistanceHistogram> calculate();
     };
+
+    /**
+     * @brief The symmetry manager for the simple excluded volume model, where every atom carries its own weight.
+     */
+    template<bool weighted_bins>
+    using SymmetryManagerMT = SymmetryManagerMTBase<weighted_bins, false>;
+
+    /**
+     * @brief The symmetry manager for the form factor-resolved excluded volume models.
+     */
+    template<bool weighted_bins>
+    using SymmetryManagerMTFF = SymmetryManagerMTBase<weighted_bins, true>;
 }

@@ -3,6 +3,7 @@ target_sources(ausaxs_core PRIVATE
 	"Histogram2D.cpp"
 
 	"detail/BodyTracker.cpp"
+	"detail/CompactCoordinatesFactory.cpp"
 	"detail/GridExvFFT.cpp"
 	"detail/MasterHistogram.cpp"
 	"detail/SimpleExvModel.cpp"
@@ -10,7 +11,7 @@ target_sources(ausaxs_core PRIVATE
 	"histogram_manager/HistogramManager.cpp"
 	"histogram_manager/HistogramManagerFactory.cpp"
 	"histogram_manager/HistogramManagerMT.cpp"
-	"histogram_manager/HistogramManagerMTFFBase.cpp"
+	"histogram_manager/HistogramManagerMTBase.cpp"
 	"histogram_manager/HistogramManagerMTFFAvg.cpp"
 	"histogram_manager/HistogramManagerMTFFExplicit.cpp"
 	"histogram_manager/HistogramManagerMTFFGrid.cpp"
@@ -23,6 +24,7 @@ target_sources(ausaxs_core PRIVATE
 	"histogram_manager/detail/SymmetryHelpers.cpp"
 	"histogram_manager/detail/PartialBinEstimate.cpp"
 	"histogram_manager/detail/GridExvHelpers.cpp"
+	"histogram_manager/detail/ManagerResults.cpp"
 
 	"distribution/Distribution1D.cpp"
 	"distribution/Distribution2D.cpp"

@@ -13,6 +13,7 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
+#include <settings/ExvSettings.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
@@ -36,11 +37,13 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins>::ca
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 
-    auto data_a = hist::detail::factory::construct_from_atoms(protein);
+    auto data_a = hist::detail::factory::construct_from_atoms<false>(protein);
     auto data_w = hist::detail::factory::construct_from_waters(protein);
     int data_a_size = data_a.size();
     int data_w_size = data_w.size();
-    hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);
+    if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+        hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, protein);
+    }
     int bin_count = hist::detail::required_bin_count(data_a, data_w);
     hist::detail::decorrelate_order<weighted_bins>(bin_count, data_a, data_w);
 

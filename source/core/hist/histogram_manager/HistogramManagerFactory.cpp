@@ -15,101 +15,157 @@
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/histogram_manager/SymmetryManagerMT.h>
+#include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
-#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist::factory;
 
+namespace {
+    using Choice = settings::hist::HistogramManagerChoice;
+    using ExvMethod = settings::exv::ExvMethod;
+
+    template<template<bool> class MANAGER>
+    std::unique_ptr<hist::IHistogramManager> create_manager(bool weighted_bins, observer_ptr<const data::Molecule> protein) {
+        if (weighted_bins) {
+            return std::make_unique<MANAGER<true>>(protein);
+        }
+        return std::make_unique<MANAGER<false>>(protein);
+    }
+
+    template<template<bool, bool> class MANAGER>
+    std::unique_ptr<hist::IHistogramManager> create_manager(bool weighted_bins, bool form_factors, observer_ptr<const data::Molecule> protein) {
+        if (form_factors) {
+            if (weighted_bins) {return std::make_unique<MANAGER<true, true>>(protein);}
+            return std::make_unique<MANAGER<false, true>>(protein);
+        }
+        if (weighted_bins) {return std::make_unique<MANAGER<true, false>>(protein);}
+        return std::make_unique<MANAGER<false, false>>(protein);
+    }
+
+    /**
+     * @brief Whether @a exv_method resolves the atoms by form factor type, rather than weighting each of them.
+     */
+    bool uses_form_factors(ExvMethod exv_method) {
+        switch (exv_method) {
+            case ExvMethod::Simple:
+            case ExvMethod::None:
+                return false;
+
+            // we explicitly write each case to ensure we will get a compiler warning for new models in the future
+            case ExvMethod::Average:
+            case ExvMethod::Fraser:
+            case ExvMethod::Grid:
+            case ExvMethod::GridSurface:
+            case ExvMethod::GridScalable:
+            case ExvMethod::CRYSOL:
+            case ExvMethod::FoXS:
+            case ExvMethod::Pepsi:
+            case ExvMethod::WAXSiS:
+                return true;
+        }
+        throw except::unexpected("hist::factory::uses_form_factors: Unknown ExvMethod. Did you forget to add it to the switch statement?");
+    }
+
+    /**
+     * @brief The manager of the grid model settings::exv::exv_method. These are only implemented for recalculating everything, so the kind
+     *        @a choice only decides what to warn about.
+     */
+    std::unique_ptr<hist::IHistogramManager> create_grid_manager(observer_ptr<const data::Molecule> protein, Choice choice) {
+        bool partial = choice == Choice::PartialHistogramManager || choice == Choice::PartialHistogramManagerMT || choice == Choice::PartialHistogramSymmetryManagerMT;
+        if (partial) {
+            console::print_warning(
+                "construct_histogram_manager: A partial histogram manager was requested, but the grid excluded volume models have no partial implementation. "
+                "Every update will recalculate the full histogram."
+            );
+        }
+        if (protein->symmetry().has_symmetries()) {
+            console::print_warning(
+                "construct_histogram_manager: Molecule contains symmetries, but the grid excluded volume models do not support them. "
+                "Symmetries will be ignored. "
+            );
+        }
+
+        // without exv fitting, the plain grid manager gives the same result faster
+        switch (settings::exv::exv_method) {
+            case ExvMethod::GridScalable:
+                if (settings::fit::fit_excluded_volume) {return std::make_unique<hist::HistogramManagerMTFFGridScalableExv>(protein);}
+                break;
+            case ExvMethod::GridSurface:
+                if (settings::fit::fit_excluded_volume) {return std::make_unique<hist::HistogramManagerMTFFGridSurface>(protein);}
+                break;
+            default:
+                break;
+        }
+        return std::make_unique<hist::HistogramManagerMTFFGrid>(protein);
+    }
+}
+
+bool hist::factory::uses_grid_exv() {
+    switch (settings::exv::exv_method) {
+        case ExvMethod::Grid:
+        case ExvMethod::GridSurface:
+        case ExvMethod::GridScalable:
+        case ExvMethod::WAXSiS:
+            return true;
+        default:
+            return false;
+    }
+}
+
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, bool weighted_bins
 ) {
+    // symmetry-awareness is derived from the molecule, never from a setting
     auto choice = settings::hist::get_histogram_manager();
-    if (settings::internal_state::prefer_partial_manager && !settings::hist::supports_partial_calculation(choice)) {
-        console::print_warning(
-            "construct_histogram_manager: A partial histogram manager was requested, but the chosen excluded volume method has no partial implementation. "
-            "Every update will recalculate the full histogram."
-        );
-    }
-
     if (protein->symmetry().has_symmetries()) {
         switch (choice) {
-            case settings::hist::HistogramManagerChoice::HistogramManager:
-            case settings::hist::HistogramManagerChoice::HistogramManagerMT:
-                choice = settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;
+            case Choice::HistogramManager:
+            case Choice::HistogramManagerMT:
+                choice = Choice::HistogramSymmetryManagerMT;
                 break;
-            case settings::hist::HistogramManagerChoice::PartialHistogramManager:
-            case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-                choice = settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;
+            case Choice::PartialHistogramManager:
+            case Choice::PartialHistogramManagerMT:
+                choice = Choice::PartialHistogramSymmetryManagerMT;
                 break;
             default:
-                console::print_warning(
-                    "construct_histogram_manager: Molecule contains symmetries, but the chosen excluded volume method does not support them. "
-                    "Symmetries will be ignored. "
-                );
                 break;
         }
     }
     return construct_histogram_manager(protein, choice, weighted_bins);
 }
 
-namespace {
-    template<template<bool> class MANAGER>
-    std::unique_ptr<hist::IHistogramManager> create_manager(observer_ptr<const data::Molecule> protein, bool weighted_bins) {
-        if (weighted_bins) {
-            return std::make_unique<MANAGER<true>>(protein);
-        }
-        return std::make_unique<MANAGER<false>>(protein);
-    }
-}
-
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins
 ) {
+    auto exv_method = settings::exv::exv_method.value;
+    if (uses_grid_exv()) {return create_grid_manager(protein, choice);}
+
+    bool ff = uses_form_factors(exv_method);
     switch (choice) {
-        case settings::hist::HistogramManagerChoice::HistogramManager:
-            return create_manager<HistogramManager>(protein, weighted_bins);
+        case Choice::HistogramManager:
+            if (!ff) {return create_manager<HistogramManager>(weighted_bins, protein);}
+            [[fallthrough]]; // the single-threaded reference implementations are weighted only
 
-        case settings::hist::HistogramManagerChoice::HistogramManagerMT:
-            return create_manager<HistogramManagerMT>(protein, weighted_bins);
+        case Choice::HistogramManagerMT:
+            if (!ff) {return create_manager<HistogramManagerMT>(weighted_bins, protein);}
+            if (exv_method == ExvMethod::Average) {return create_manager<HistogramManagerMTFFAvg>(weighted_bins, protein);}
+            return create_manager<HistogramManagerMTFFExplicit>(weighted_bins, protein);
 
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-            return create_manager<HistogramManagerMTFFAvg>(protein, weighted_bins);
+        case Choice::HistogramSymmetryManagerMT:
+            return create_manager<SymmetryManagerMTBase>(weighted_bins, ff, protein);
 
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
-            return create_manager<HistogramManagerMTFFExplicit>(protein, weighted_bins);
+        case Choice::PartialHistogramManager:
+            if (!ff) {return create_manager<PartialHistogramManager>(weighted_bins, protein);}
+            [[fallthrough]]; // the single-threaded reference implementations are weighted only
 
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: 
-            return std::make_unique<HistogramManagerMTFFGrid>(protein);
+        case Choice::PartialHistogramManagerMT:
+            return create_manager<PartialHistogramManagerMTBase>(weighted_bins, ff, protein);
 
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridSurface: 
-            return std::make_unique<HistogramManagerMTFFGridSurface>(protein);
-
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGridScalableExv: 
-            return std::make_unique<HistogramManagerMTFFGridScalableExv>(protein);
-
-        case settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT:
-            return create_manager<SymmetryManagerMT>(protein, weighted_bins);
-
-        case settings::hist::HistogramManagerChoice::PartialHistogramManager:
-            return create_manager<PartialHistogramManager>(protein, weighted_bins);
-
-        case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
-            return create_manager<PartialHistogramManagerMT>(protein, weighted_bins);
-
-        case settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT:
-            return create_manager<PartialSymmetryManagerMT>(protein, weighted_bins);
-
-        // case settings::hist::HistogramManagerChoice::DebugManager:
-        //     return std::make_unique<DebugManager<true>>(protein);
-
-        case settings::hist::HistogramManagerChoice::FoXSManager:
-        case settings::hist::HistogramManagerChoice::PepsiManager:
-        case settings::hist::HistogramManagerChoice::CrysolManager:
-            // FoXSManager, PepsiManager, and CrysolManager are all extensions of the HistogramManagerMTFFExplicit method
-            return create_manager<HistogramManagerMTFFExplicit>(protein, weighted_bins);
+        case Choice::PartialHistogramSymmetryManagerMT:
+            return create_manager<PartialSymmetryManagerMTBase>(weighted_bins, ff, protein);
 
         default:
             throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");
