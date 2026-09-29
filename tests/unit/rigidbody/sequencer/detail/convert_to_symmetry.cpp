@@ -10,7 +10,6 @@
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <io/ExistingFile.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/sequencer/Sequencer.h>
