@@ -36,6 +36,16 @@ namespace {
         return std::make_unique<MANAGER<false>>(protein);
     }
 
+    template<template<bool, bool> class MANAGER>
+    std::unique_ptr<hist::IHistogramManager> create_manager(bool weighted_bins, bool form_factors, observer_ptr<const data::Molecule> protein) {
+        if (form_factors) {
+            if (weighted_bins) {return std::make_unique<MANAGER<true, true>>(protein);}
+            return std::make_unique<MANAGER<false, true>>(protein);
+        }
+        if (weighted_bins) {return std::make_unique<MANAGER<true, false>>(protein);}
+        return std::make_unique<MANAGER<false, false>>(protein);
+    }
+
     /**
      * @brief Whether @a exv_method resolves the atoms by form factor type, rather than weighting each of them.
      */
@@ -146,20 +156,17 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
             return create_manager<HistogramManagerMTFFExplicit>(weighted_bins, protein);
 
         case Choice::HistogramSymmetryManagerMT:
-            if (!ff) {return create_manager<SymmetryManagerMT>(weighted_bins, protein);}
-            return create_manager<SymmetryManagerMTFF>(weighted_bins, protein);
+            return create_manager<SymmetryManagerMTBase>(weighted_bins, ff, protein);
 
         case Choice::PartialHistogramManager:
             if (!ff) {return create_manager<PartialHistogramManager>(weighted_bins, protein);}
             [[fallthrough]]; // the single-threaded reference implementations are weighted only
 
         case Choice::PartialHistogramManagerMT:
-            if (!ff) {return create_manager<PartialHistogramManagerMT>(weighted_bins, protein);}
-            return create_manager<PartialHistogramManagerMTFF>(weighted_bins, protein);
+            return create_manager<PartialHistogramManagerMTBase>(weighted_bins, ff, protein);
 
         case Choice::PartialHistogramSymmetryManagerMT:
-            if (!ff) {return create_manager<PartialSymmetryManagerMT>(weighted_bins, protein);}
-            return create_manager<PartialSymmetryManagerMTFF>(weighted_bins, protein);
+            return create_manager<PartialSymmetryManagerMTBase>(weighted_bins, ff, protein);
 
         default:
             throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");

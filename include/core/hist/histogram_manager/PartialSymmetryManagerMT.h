@@ -16,8 +16,8 @@
 
 namespace ausaxs::hist {
 	/**
-	 * @brief Common machinery of the multithreaded partial histogram managers for molecules with symmetries, which only
-	 *        recalculate the parts of the histogram changed between each call.
+	 * @brief The multithreaded partial histogram manager for molecules with symmetries, which only
+	 *        recalculates the parts of the histogram changed between each call.
 	 *
 	 * @tparam form_factors Whether the atoms are resolved by form factor, see HistogramManagerMTBase.
 	 */
@@ -145,19 +145,11 @@ namespace ausaxs::hist {
 	 * @brief The partial symmetry manager for the simple excluded volume model, where every atom carries its own weight.
 	 */
 	template<bool weighted_bins>
-	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class PartialSymmetryManagerMT : public PartialSymmetryManagerMTBase<weighted_bins, false> {
-		public:
-			using PartialSymmetryManagerMTBase<weighted_bins, false>::PartialSymmetryManagerMTBase;
-	};
+	using PartialSymmetryManagerMT = PartialSymmetryManagerMTBase<weighted_bins, false>;
 
 	/**
 	 * @brief The partial symmetry manager for the form factor-resolved excluded volume models.
 	 */
 	template<bool weighted_bins>
-	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class PartialSymmetryManagerMTFF : public PartialSymmetryManagerMTBase<weighted_bins, true> {
-		public:
-			using PartialSymmetryManagerMTBase<weighted_bins, true>::PartialSymmetryManagerMTBase;
-	};
+	using PartialSymmetryManagerMTFF = PartialSymmetryManagerMTBase<weighted_bins, true>;
 }

@@ -11,7 +11,7 @@
 
 namespace ausaxs::hist {
     /**
-     * @brief Common machinery of the multithreaded histogram managers for molecules with symmetries, which calculate the whole
+     * @brief The multithreaded histogram manager for molecules with symmetries, which calculates the whole
      *        histogram in one go. Each symmetric copy is only evaluated once, and the histogram scaled by how often it occurs.
      *
      * @tparam form_factors Whether the atoms are resolved by form factor, see HistogramManagerMTBase.
@@ -36,19 +36,11 @@ namespace ausaxs::hist {
      * @brief The symmetry manager for the simple excluded volume model, where every atom carries its own weight.
      */
     template<bool weighted_bins>
-    // NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-    class SymmetryManagerMT : public SymmetryManagerMTBase<weighted_bins, false> {
-        public:
-            using SymmetryManagerMTBase<weighted_bins, false>::SymmetryManagerMTBase;
-    };
+    using SymmetryManagerMT = SymmetryManagerMTBase<weighted_bins, false>;
 
     /**
      * @brief The symmetry manager for the form factor-resolved excluded volume models.
      */
     template<bool weighted_bins>
-    // NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-    class SymmetryManagerMTFF : public SymmetryManagerMTBase<weighted_bins, true> {
-        public:
-            using SymmetryManagerMTBase<weighted_bins, true>::SymmetryManagerMTBase;
-    };
+    using SymmetryManagerMTFF = SymmetryManagerMTBase<weighted_bins, true>;
 }

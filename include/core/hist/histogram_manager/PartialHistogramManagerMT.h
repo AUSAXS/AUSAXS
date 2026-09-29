@@ -16,7 +16,7 @@
 
 namespace ausaxs::hist {
 	/**
-	 * @brief Common machinery of the multithreaded partial histogram managers, which only recalculate the parts of the histogram
+	 * @brief The multithreaded partial histogram manager, which only recalculates the parts of the histogram
 	 *        changed between each call.
 	 *
 	 * This is independent of the single-threaded PartialHistogramManager, which is kept simple as a reference implementation.
@@ -112,19 +112,11 @@ namespace ausaxs::hist {
 	 * @brief The partial histogram manager for the simple excluded volume model, where every atom carries its own weight.
 	 */
 	template<bool weighted_bins>
-	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class PartialHistogramManagerMT : public PartialHistogramManagerMTBase<weighted_bins, false> {
-		public:
-			using PartialHistogramManagerMTBase<weighted_bins, false>::PartialHistogramManagerMTBase;
-	};
+	using PartialHistogramManagerMT = PartialHistogramManagerMTBase<weighted_bins, false>;
 
 	/**
 	 * @brief The partial histogram manager for the form factor-resolved excluded volume models.
 	 */
 	template<bool weighted_bins>
-	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-	class PartialHistogramManagerMTFF : public PartialHistogramManagerMTBase<weighted_bins, true> {
-		public:
-			using PartialHistogramManagerMTBase<weighted_bins, true>::PartialHistogramManagerMTBase;
-	};
+	using PartialHistogramManagerMTFF = PartialHistogramManagerMTBase<weighted_bins, true>;
 }
