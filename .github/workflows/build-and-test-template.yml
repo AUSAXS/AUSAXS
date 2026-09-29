@@ -215,9 +215,6 @@ jobs:
           if [ "${{ matrix.c_compiler }}" == "gcc-10" ]; then
             sudo apt-get install gcc-10 g++-10
           fi
-          if [ $BUILD_TYPE == 'Debug' ]; then
-            sudo apt-get install libdwarf-dev
-          fi
 
       - name: Build the library (full build)
         if: matrix.full_build == true

@@ -44,7 +44,7 @@ jobs:
           ASAN_OPTIONS: detect_leaks=0
         run: |
           find build-asan-coverage -name '*.gcda' -delete
-          python3 scripts/run_instrumented_unit_tests.py \
+          python3 .github/run_instrumented_unit_tests.py \
             build-asan-coverage/tests/unit/bin \
             --timeout 5 \
             --output-directory asan-coverage-unit-results
