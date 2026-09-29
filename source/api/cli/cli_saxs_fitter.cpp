@@ -9,7 +9,6 @@
 #include <data/Molecule.h>
 #include <fitter/FitReporter.h>
 #include <fitter/SmartFitter.h>
-#include <form_factor/lookup/FormFactorManager.h>
 #include <grid/Grid.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
