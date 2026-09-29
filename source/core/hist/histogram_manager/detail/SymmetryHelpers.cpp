@@ -14,11 +14,6 @@ using namespace ausaxs::symmetry::detail;
 using namespace ausaxs::hist::detail;
 
 namespace {
-    template<bool form_factors>
-    AtomicCoordinates<form_factors> construct(const data::Body& body) {
-        return factory::construct<form_factors>(body.get_atoms());
-    }
-
     void transform_all(CompactCoordinates& atoms, const transform::Affine& t) {atoms.transform_coordinates(t);}
     void transform_all(std::vector<CompactCoordinates>& atoms, const transform::Affine& t) {
         for (auto& set : atoms) {set.transform_coordinates(t);}
@@ -36,7 +31,7 @@ std::pair<std::vector<BodySymmetryData<form_factors>>, hist::detail::CompactCoor
 
 template<bool form_factors>
 BodySymmetryData<form_factors> ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body) {
-    auto data_a = construct<form_factors>(body);
+    auto data_a = factory::construct<form_factors>(body.get_atoms());
     auto cm = body.get_cm();
 
     // loop over its symmetries
@@ -60,7 +55,7 @@ BodySymmetryData<form_factors> ausaxs::symmetry::detail::generate_transformed_da
 
 template<bool form_factors>
 SymmetryData<form_factors> ausaxs::symmetry::detail::generate_transformed_data(const data::Body& body, int isym) {
-    auto data_a = construct<form_factors>(body);
+    auto data_a = factory::construct<form_factors>(body.get_atoms());
     auto cm = body.get_cm();
     const auto* symmetry = body.symmetry().get(isym);
 

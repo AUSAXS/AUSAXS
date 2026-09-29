@@ -23,7 +23,7 @@ namespace ausaxs::hist::detail {
 			template<typename Allocate>
 			SymmetryPairIds(const std::vector<int>& sym_counts, Allocate&& allocate) {
 				int n = static_cast<int>(sym_counts.size());
-				blocks = container::Container2D<container::Container2D<int>>(n, n);
+				blocks = container::Container2D<container::Container2D<int>, container::Shape::Triangular>(n, n);
 				for (int ibody1 = 0; ibody1 < n; ++ibody1) {
 					for (int ibody2 = 0; ibody2 <= ibody1; ++ibody2) {
 						auto& block = blocks(ibody1, ibody2);
@@ -61,6 +61,6 @@ namespace ausaxs::hist::detail {
 				return ibody1 != ibody2 || isym2 < isym1 || (isym1 == 0 && isym2 == 0);
 			}
 
-			container::Container2D<container::Container2D<int>> blocks; // [ibody1][ibody2][isym1][isym2]; -1 for a pair that is not calculated, and no block above the diagonal
+			container::Container2D<container::Container2D<int>, container::Shape::Triangular> blocks; // [ibody1][ibody2][isym1][isym2] with ibody2 <= ibody1; -1 for a pair that is not calculated
 	};
 }

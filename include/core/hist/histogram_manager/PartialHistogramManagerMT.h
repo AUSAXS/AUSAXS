@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <container/Container2D.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/distance_calculator/DistanceCalculatorFwd.h>
@@ -50,9 +51,11 @@ namespace ausaxs::hist {
 			hist::detail::CompactCoordinates coords_w;		// a compact representation of the hydration layer
 			GenericDistribution1D_t cached_p_tot; // the total histogram of the last calculation, returned as is while nothing is modified
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
-			std::vector<std::vector<int>> aa; // the result ids in the store per body pair [n][m], only calculated for m <= n
-			std::vector<int> aw;              // the result ids in the store per body
-			int ww = -1;                      // the result id in the store of the hydration layer
+			struct {
+				container::Container2D<int, container::Shape::Triangular> aa; // the result ids in the store per unordered body pair
+				std::vector<int> aw;              // the result ids in the store per body
+				int ww = -1;                      // the result id in the store of the hydration layer
+			} id;
 			std::vector<int> recalculated;    // the results queued for recalculation in the current run, see recalculate()
 
 			/**

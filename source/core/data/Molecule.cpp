@@ -79,7 +79,6 @@ void Molecule::lazy_histogram_manager_init() const {
     bind_body_signallers();
     const auto histogram = phm->calculate_all();
     const bool ordered = hist::DistanceHistogram::is_highly_ordered(histogram->get_aa_counts().get_content());
-
     const bool grid = hist::factory::uses_grid_exv();
     settings::hist::weighted_bins = ordered || grid;
 

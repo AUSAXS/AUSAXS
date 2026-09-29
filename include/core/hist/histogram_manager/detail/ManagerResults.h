@@ -15,8 +15,8 @@
 #include <cassert>
 #include <functional>
 #include <memory>
+#include <ranges>
 #include <type_traits>
-#include <vector>
 
 /**
  * @brief What the histogram managers build from their distance calculations, shared between the weighted and the form
@@ -67,11 +67,12 @@ namespace ausaxs::hist::detail {
 	/**
 	 * @brief The sum of the results @a ids of @a store, which are all of type @a T.
 	 */
-	template<typename T, typename Store>
-	T sum_results(const Store& store, const std::vector<int>& ids) {
-		assert(!ids.empty() && "sum_results: expected at least one result.");
-		T total = store.template get<T>(ids.front());
-		for (std::size_t i = 1; i < ids.size(); ++i) {add_to(total, store.template get<T>(ids[i]));}
+	template<typename T, typename Store, std::ranges::input_range Ids>
+	T sum_results(const Store& store, const Ids& ids) {
+		auto it = std::ranges::begin(ids);
+		assert(it != std::ranges::end(ids) && "sum_results: expected at least one result.");
+		T total = store.template get<T>(*it);
+		for (++it; it != std::ranges::end(ids); ++it) {add_to(total, store.template get<T>(*it));}
 		return total;
 	}
 

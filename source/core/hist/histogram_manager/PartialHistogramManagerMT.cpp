@@ -141,17 +141,12 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMTBase<weigh
     int bins = total->get_weighted_counts().size();
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions.
-    // only the lower triangle of the body pairs is ever calculated
     using Distributions = hist::detail::ManagerDistributions<weighted_bins, form_factors>;
-    std::vector<int> aa_ids;
-    for (int i = 0; i < this->body_size; ++i) {
-        for (int j = 0; j <= i; ++j) {aa_ids.push_back(aa[i][j]);}
-    }
 
     Distributions d;
-    d.p_aa = hist::detail::sum_results<typename Distributions::aa_t>(*store, aa_ids);
-    d.p_aw = hist::detail::sum_results<typename Distributions::aw_t>(*store, aw);
-    d.p_ww = store->get_1d(ww);
+    d.p_aa = hist::detail::sum_results<typename Distributions::aa_t>(*store, id.aa);
+    d.p_aw = hist::detail::sum_results<typename Distributions::aw_t>(*store, id.aw);
+    d.p_ww = store->get_1d(id.ww);
     d.p_tot = this->master; // NOLINT - intentional slicing
     d.resize(bins);
     return hist::detail::make_histogram(std::move(d), protein);
@@ -176,13 +171,11 @@ void PartialHistogramManagerMTBase<weighted_bins, form_factors>::initialize(int 
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
     store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(axis.bins, form_factors ? form_factor::get_active_count() : 1);
-    aa.assign(this->body_size, std::vector<int>(this->body_size));
-    aw.resize(this->body_size);
-    for (int n = 0; n < this->body_size; ++n) {
-        for (int m = 0; m < this->body_size; ++m) {aa[n][m] = form_factors ? store->allocate_3d() : store->allocate_1d();}
-        aw[n] = form_factors ? store->allocate_2d() : store->allocate_1d();
-    }
-    ww = store->allocate_1d();
+    id.aa = container::Container2D<int, container::Shape::Triangular>(this->body_size, this->body_size);
+    for (int& slot : id.aa) {slot = form_factors ? store->allocate_3d() : store->allocate_1d();}
+    id.aw.resize(this->body_size);
+    for (int& slot : id.aw) {slot = form_factors ? store->allocate_2d() : store->allocate_1d();}
+    id.ww = store->allocate_1d();
 }
 
 template<bool weighted_bins, bool form_factors>
@@ -195,26 +188,26 @@ void PartialHistogramManagerMTBase<weighted_bins, form_factors>::recalculate(int
 template<bool weighted_bins, bool form_factors>
 void PartialHistogramManagerMTBase<weighted_bins, form_factors>::calc_self_correlation(calculator_t calculator, int index) {
     update_compact_representation_body(index);
-    recalculate(aa[index][index]);
-    calculator->enqueue_calculate_self(this->coords_a[index], aa[index][index]);
+    recalculate(id.aa(index, index));
+    calculator->enqueue_calculate_self(this->coords_a[index], id.aa(index, index));
 }
 
 template<bool weighted_bins, bool form_factors>
 void PartialHistogramManagerMTBase<weighted_bins, form_factors>::calc_aa(calculator_t calculator, int n, int m) {
-    recalculate(aa[n][m]);
-    calculator->enqueue_calculate_cross(this->coords_a[n], this->coords_a[m], aa[n][m], 2);
+    recalculate(id.aa(n, m));
+    calculator->enqueue_calculate_cross(this->coords_a[n], this->coords_a[m], id.aa(n, m), 2);
 }
 
 template<bool weighted_bins, bool form_factors>
 void PartialHistogramManagerMTBase<weighted_bins, form_factors>::calc_aw(calculator_t calculator, int index) {
-    recalculate(aw[index]);
-    calculator->enqueue_calculate_cross(this->coords_a[index], this->coords_w, aw[index], form_factors ? 1 : 2); // see HistogramManagerMTBase
+    recalculate(id.aw[index]);
+    calculator->enqueue_calculate_cross(this->coords_a[index], this->coords_w, id.aw[index], form_factors ? 1 : 2); // see HistogramManagerMTBase
 }
 
 template<bool weighted_bins, bool form_factors>
 void PartialHistogramManagerMTBase<weighted_bins, form_factors>::calc_ww(calculator_t calculator) {
-    recalculate(ww);
-    calculator->enqueue_calculate_self(this->coords_w, ww);
+    recalculate(id.ww);
+    calculator->enqueue_calculate_self(this->coords_w, id.ww);
 }
 
 template class hist::PartialHistogramManagerMTBase<false, false>;
