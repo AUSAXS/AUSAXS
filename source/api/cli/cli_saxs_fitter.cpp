@@ -9,7 +9,6 @@
 #include <data/Molecule.h>
 #include <fitter/FitReporter.h>
 #include <fitter/SmartFitter.h>
-#include <form_factor/lookup/FormFactorManager.h>
 #include <grid/Grid.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
@@ -212,7 +211,6 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
             if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             protein.generate_new_hydration();
         }
-        form_factor::manager::use_form_factors(protein);
         std::string msg_exv_vol, msg_solv_dens;
 
         // simulation mode
