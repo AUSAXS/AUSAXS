@@ -15,6 +15,7 @@
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <settings/ExvSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
@@ -24,10 +25,9 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 
 template<bool weighted_bins, bool form_factors>
-PartialHistogramManagerMTBase<weighted_bins, form_factors>::PartialHistogramManagerMTBase(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method) 
+PartialHistogramManagerMTBase<weighted_bins, form_factors>::PartialHistogramManagerMTBase(observer_ptr<const data::Molecule> protein) 
     : IPartialHistogramManager(protein), 
       protein(protein),
-      exv_method(exv_method),
       coords_a(this->body_size)
 {logging::log("initializing PartialHistogramManagerMT");}
 
@@ -154,7 +154,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMTBase<weigh
     d.p_ww = store->get_1d(ww);
     d.p_tot = this->master; // NOLINT - intentional slicing
     d.resize(bins);
-    return hist::detail::make_histogram(std::move(d), exv_method, protein);
+    return hist::detail::make_histogram(std::move(d), protein);
 }
 
 template<bool weighted_bins, bool form_factors>

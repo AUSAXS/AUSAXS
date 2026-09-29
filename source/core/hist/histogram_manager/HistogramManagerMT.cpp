@@ -18,8 +18,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMT<wb>::calculate() {return c
 template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb>::calculate_all() {
     logging::log("HistogramManagerMT::calculate: starting calculation");
-    // the simple model has no excluded volume method to choose
-    return hist::detail::make_histogram(this->compute_distributions(), settings::exv::ExvMethod::Simple, this->protein);
+    return hist::detail::make_histogram(this->compute_distributions(), this->protein);
 }
 
 template class hist::HistogramManagerMT<false>;

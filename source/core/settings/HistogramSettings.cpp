@@ -83,8 +83,8 @@ settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
     return st ? Choice::HistogramManager : Choice::HistogramManagerMT;
 }
 
-bool settings::hist::supports_partial_calculation(settings::hist::HistogramManagerChoice choice, settings::exv::ExvMethod exv_method) {
-    switch (exv_method) {
+bool settings::hist::supports_partial_calculation(settings::hist::HistogramManagerChoice choice) {
+    switch (settings::exv::exv_method) {
         // the grid models are only implemented for the managers recalculating everything
         case settings::exv::ExvMethod::Grid:
         case settings::exv::ExvMethod::GridScalable:

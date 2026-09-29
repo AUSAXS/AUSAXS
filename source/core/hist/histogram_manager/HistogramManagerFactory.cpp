@@ -28,12 +28,12 @@ namespace {
     using Choice = settings::hist::HistogramManagerChoice;
     using ExvMethod = settings::exv::ExvMethod;
 
-    template<template<bool> class MANAGER, typename... Args>
-    std::unique_ptr<hist::IHistogramManager> create_manager(bool weighted_bins, observer_ptr<const data::Molecule> protein, Args... args) {
+    template<template<bool> class MANAGER>
+    std::unique_ptr<hist::IHistogramManager> create_manager(bool weighted_bins, observer_ptr<const data::Molecule> protein) {
         if (weighted_bins) {
-            return std::make_unique<MANAGER<true>>(protein, args...);
+            return std::make_unique<MANAGER<true>>(protein);
         }
-        return std::make_unique<MANAGER<false>>(protein, args...);
+        return std::make_unique<MANAGER<false>>(protein);
     }
 
     /**
@@ -61,10 +61,10 @@ namespace {
     }
 
     /**
-     * @brief The manager of the grid model @a exv_method. These are only implemented for recalculating everything, so the kind
+     * @brief The manager of the grid model settings::exv::exv_method. These are only implemented for recalculating everything, so the kind
      *        @a choice only decides what to warn about.
      */
-    std::unique_ptr<hist::IHistogramManager> create_grid_manager(observer_ptr<const data::Molecule> protein, Choice choice, ExvMethod exv_method) {
+    std::unique_ptr<hist::IHistogramManager> create_grid_manager(observer_ptr<const data::Molecule> protein, Choice choice) {
         bool partial = choice == Choice::PartialHistogramManager || choice == Choice::PartialHistogramManagerMT || choice == Choice::PartialHistogramSymmetryManagerMT;
         if (partial) {
             console::print_warning(
@@ -80,7 +80,7 @@ namespace {
         }
 
         // without exv fitting, the plain grid manager gives the same result faster
-        switch (exv_method) {
+        switch (settings::exv::exv_method) {
             case ExvMethod::GridScalable:
                 if (settings::fit::fit_excluded_volume) {return std::make_unique<hist::HistogramManagerMTFFGridScalableExv>(protein);}
                 break;
@@ -94,8 +94,8 @@ namespace {
     }
 }
 
-bool hist::factory::uses_grid_exv(settings::exv::ExvMethod exv_method) {
-    switch (exv_method) {
+bool hist::factory::uses_grid_exv() {
+    switch (settings::exv::exv_method) {
         case ExvMethod::Grid:
         case ExvMethod::GridSurface:
         case ExvMethod::GridScalable:
@@ -107,7 +107,7 @@ bool hist::factory::uses_grid_exv(settings::exv::ExvMethod exv_method) {
 }
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
-    observer_ptr<const data::Molecule> protein, bool weighted_bins, settings::exv::ExvMethod exv_method
+    observer_ptr<const data::Molecule> protein, bool weighted_bins
 ) {
     // symmetry-awareness is derived from the molecule, never from a setting
     auto choice = settings::hist::get_histogram_manager();
@@ -125,13 +125,14 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 break;
         }
     }
-    return construct_histogram_manager(protein, choice, weighted_bins, exv_method);
+    return construct_histogram_manager(protein, choice, weighted_bins);
 }
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
-    observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins, settings::exv::ExvMethod exv_method
+    observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins
 ) {
-    if (uses_grid_exv(exv_method)) {return create_grid_manager(protein, choice, exv_method);}
+    auto exv_method = settings::exv::exv_method.value;
+    if (uses_grid_exv()) {return create_grid_manager(protein, choice);}
 
     bool ff = uses_form_factors(exv_method);
     switch (choice) {
@@ -142,11 +143,11 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
         case Choice::HistogramManagerMT:
             if (!ff) {return create_manager<HistogramManagerMT>(weighted_bins, protein);}
             if (exv_method == ExvMethod::Average) {return create_manager<HistogramManagerMTFFAvg>(weighted_bins, protein);}
-            return create_manager<HistogramManagerMTFFExplicit>(weighted_bins, protein, exv_method);
+            return create_manager<HistogramManagerMTFFExplicit>(weighted_bins, protein);
 
         case Choice::HistogramSymmetryManagerMT:
             if (!ff) {return create_manager<SymmetryManagerMT>(weighted_bins, protein);}
-            return create_manager<SymmetryManagerMTFF>(weighted_bins, protein, exv_method);
+            return create_manager<SymmetryManagerMTFF>(weighted_bins, protein);
 
         case Choice::PartialHistogramManager:
             if (!ff) {return create_manager<PartialHistogramManager>(weighted_bins, protein);}
@@ -154,11 +155,11 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
 
         case Choice::PartialHistogramManagerMT:
             if (!ff) {return create_manager<PartialHistogramManagerMT>(weighted_bins, protein);}
-            return create_manager<PartialHistogramManagerMTFF>(weighted_bins, protein, exv_method);
+            return create_manager<PartialHistogramManagerMTFF>(weighted_bins, protein);
 
         case Choice::PartialHistogramSymmetryManagerMT:
             if (!ff) {return create_manager<PartialSymmetryManagerMT>(weighted_bins, protein);}
-            return create_manager<PartialSymmetryManagerMTFF>(weighted_bins, protein, exv_method);
+            return create_manager<PartialSymmetryManagerMTFF>(weighted_bins, protein);
 
         default:
             throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");

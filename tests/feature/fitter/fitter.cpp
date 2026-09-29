@@ -65,8 +65,9 @@ class SmartFitterDebug : public fitter::SmartFitter {
 
 TEST_CASE("SmartFitter::fit") {
     settings::molecule::implicit_hydrogens = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
     Molecule protein("tests/files/2epe.pdb");
-    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Fraser);
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
 
     SmartFitterDebug fitter({{}}, protein.get_histogram());
     auto* h = static_cast<hist::ICompositeDistanceHistogramExv*>(fitter.get_model());
@@ -147,8 +148,9 @@ TEST_CASE("SmartFitter::fit") {
 
 TEST_CASE("fitter: correct dof", "[files]") {
     settings::general::verbose = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
     Molecule protein("tests/files/2epe.pdb");
-    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT, settings::exv::ExvMethod::Fraser);
+    protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
     SimpleDataset data("tests/files/2epe.dat");
     int size = data.size();
 
@@ -279,7 +281,8 @@ TEST_CASE("SmartFitter: consistent fits using different q-ranges") {
 
     for (auto [kind, exv] : managers) {
         SECTION("Histogram manager: " + std::to_string(static_cast<int>(kind)) + ", excluded volume model: " + std::to_string(static_cast<int>(exv))) {
-            protein.set_histogram_manager(kind, exv);
+            settings::exv::exv_method = exv;
+            protein.set_histogram_manager(kind);
             std::vector<double> qmin = {0.01, 0.1};
             std::vector<double> qmax = {0.5, 0.35};
             for (auto v1 : qmin) {

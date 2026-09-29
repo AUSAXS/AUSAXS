@@ -17,6 +17,7 @@
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 #include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
+#include <settings/ExvSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -53,9 +54,9 @@ ManagerDistributions<wb, ff> hist::detail::export_distributions(distance_calcula
 
 template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram(
-    ManagerDistributions<wb, true>&& d, settings::exv::ExvMethod method, observer_ptr<const data::Molecule> protein // NOLINT
+    ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
-    switch (method) {
+    switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::FoXS:
             return std::make_unique<CompositeDistanceHistogramFoXS>(
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
@@ -89,9 +90,23 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
     }
 }
 
+template<bool wb>
+std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram(
+    ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
+) {
+    double Z_exv_avg = protein->size_atom() == 0 ? 0 : protein->get_volume_grid()*constants::charge::density::water/protein->size_atom();
+    return std::make_unique<CompositeDistanceHistogramFFAvg>(
+        Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
+        Distribution2D(std::move(d.p_aw)),
+        Distribution1D(std::move(d.p_ww)),
+        std::move(d.p_tot),
+        Z_exv_avg
+    );
+}
+
 template<bool wb, bool ff>
 std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram(
-    ManagerDistributions<wb, ff>&& d, settings::exv::ExvMethod method, observer_ptr<const data::Molecule> protein // NOLINT
+    ManagerDistributions<wb, ff>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     if constexpr (!ff) {
         return std::make_unique<CompositeDistanceHistogram>(
@@ -101,15 +116,8 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram(
             std::move(d.p_tot)
         );
     } else {
-        if (method != settings::exv::ExvMethod::Average) {return make_explicit_histogram<wb>(std::move(d), method, protein);}
-        double Z_exv_avg = protein->size_atom() == 0 ? 0 : protein->get_volume_grid()*constants::charge::density::water/protein->size_atom();
-        return std::make_unique<CompositeDistanceHistogramFFAvg>(
-            Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
-            Distribution2D(std::move(d.p_aw)),
-            Distribution1D(std::move(d.p_ww)),
-            std::move(d.p_tot),
-            Z_exv_avg
-        );
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Average) {return make_average_histogram<wb>(std::move(d), protein);}
+        return make_explicit_histogram<wb>(std::move(d), protein);
     }
 }
 
@@ -117,9 +125,11 @@ template ManagerDistributions<false, false> hist::detail::export_distributions<f
 template ManagerDistributions<false, true> hist::detail::export_distributions<false, true>(distance_calculator::HistogramStore<false>&, int, int, int);
 template ManagerDistributions<true, false> hist::detail::export_distributions<true, false>(distance_calculator::HistogramStore<true>&, int, int, int);
 template ManagerDistributions<true, true> hist::detail::export_distributions<true, true>(distance_calculator::HistogramStore<true>&, int, int, int);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<false, false>(ManagerDistributions<false, false>&&, settings::exv::ExvMethod, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<false, true>(ManagerDistributions<false, true>&&, settings::exv::ExvMethod, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<true, false>(ManagerDistributions<true, false>&&, settings::exv::ExvMethod, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<true, true>(ManagerDistributions<true, true>&&, settings::exv::ExvMethod, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram<false>(ManagerDistributions<false, true>&&, settings::exv::ExvMethod, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram<true>(ManagerDistributions<true, true>&&, settings::exv::ExvMethod, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<false, false>(ManagerDistributions<false, false>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<false, true>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<true, false>(ManagerDistributions<true, false>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<true, true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);

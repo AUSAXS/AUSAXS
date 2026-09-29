@@ -18,7 +18,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg<wb>::calculate() {ret
 template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<wb>::calculate_all() {
     logging::log("HistogramManagerMTFFAvg::calculate: starting calculation");
-    return hist::detail::make_histogram(this->compute_distributions(), settings::exv::ExvMethod::Average, this->protein);
+    return hist::detail::make_average_histogram(this->compute_distributions(), this->protein);
 }
 
 template class hist::HistogramManagerMTFFAvg<false>;

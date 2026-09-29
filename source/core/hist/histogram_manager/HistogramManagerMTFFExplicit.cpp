@@ -18,7 +18,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit<wb>::calculate()
 template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<wb>::calculate_all() {
     logging::log("HistogramManagerMTFFExplicit::calculate: starting calculation");
-    return hist::detail::make_explicit_histogram(this->compute_distributions(), exv_method, this->protein);
+    return hist::detail::make_explicit_histogram(this->compute_distributions(), this->protein);
 }
 
 template class hist::HistogramManagerMTFFExplicit<false>;

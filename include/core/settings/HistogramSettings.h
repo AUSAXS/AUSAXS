@@ -67,9 +67,8 @@ namespace ausaxs::settings {
          * @brief Check if a manager supports partial calculations, where only the contributions of a changed body are recalculated.
          *        These are the only managers suitable for iterative optimization, where a single body is moved between each evaluation.
          *
-         * @param choice The kind of manager.
-         * @param exv_method The excluded volume model, which decides the variant of the kind. The grid models have no partial variant.
+         * @param choice The kind of manager. Its variant follows from settings::exv::exv_method, and the grid models have no partial variant.
          */
-        static bool supports_partial_calculation(HistogramManagerChoice choice, exv::ExvMethod exv_method = exv::exv_method);
+        static bool supports_partial_calculation(HistogramManagerChoice choice);
     };
 }

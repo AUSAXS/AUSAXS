@@ -376,8 +376,8 @@ void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> ma
     bind_body_signallers();
 }
 
-void Molecule::set_histogram_manager(settings::hist::HistogramManagerChoice choice, settings::exv::ExvMethod exv_method) {
-    phm = hist::factory::construct_histogram_manager(this, choice, settings::hist::weighted_bins.is_true(), exv_method);
+void Molecule::set_histogram_manager(settings::hist::HistogramManagerChoice choice) {
+    phm = hist::factory::construct_histogram_manager(this, choice);
     bind_body_signallers();
 }
 

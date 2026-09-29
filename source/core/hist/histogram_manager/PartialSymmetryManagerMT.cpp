@@ -18,6 +18,7 @@
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <settings/ExvSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
@@ -36,10 +37,9 @@ using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
 
 template<bool weighted_bins, bool form_factors>
-PartialSymmetryManagerMTBase<weighted_bins, form_factors>::PartialSymmetryManagerMTBase(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method) 
+PartialSymmetryManagerMTBase<weighted_bins, form_factors>::PartialSymmetryManagerMTBase(observer_ptr<const data::Molecule> protein) 
     : IPartialHistogramManager(protein), 
       protein(protein),
-      exv_method(exv_method),
       coords(this->body_size)
 {}
 
@@ -244,7 +244,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMTBase<weight
     d.p_ww = store->get_1d(ww);
     d.p_tot = this->master; // NOLINT - intentional slicing
     d.resize(bins);
-    return make_histogram(std::move(d), exv_method, protein);
+    return make_histogram(std::move(d), protein);
 }
 
 template<bool weighted_bins, bool form_factors>

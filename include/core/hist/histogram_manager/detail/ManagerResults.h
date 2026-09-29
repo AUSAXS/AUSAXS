@@ -9,7 +9,6 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
-#include <settings/ExvSettings.h>
 #include <utility/observer_ptr.h>
 
 #include <algorithm>
@@ -35,7 +34,7 @@ namespace ausaxs::hist::detail {
 			typename GenericDistribution1D<weighted_bins>::type
 		>;
 		using aw_t = std::conditional_t<form_factors,
-			typename GenericDistribution2D<weighted_bins>::type,                     // ff_type, distance
+			typename GenericDistribution2D<weighted_bins>::type, // ff_type, distance
 			typename GenericDistribution1D<weighted_bins>::type
 		>;
 		using ww_t = typename GenericDistribution1D<weighted_bins>::type;
@@ -99,21 +98,29 @@ namespace ausaxs::hist::detail {
 	ManagerDistributions<weighted_bins, form_factors> export_distributions(distance_calculator::HistogramStore<weighted_bins>& store, int aa, int aw, int ww);
 
 	/**
-	 * @brief The composite histogram of the explicit excluded volume models: @a method picks FoXS, Pepsi or CRYSOL, and any other
-	 *        method gets the Fraser model.
+	 * @brief The composite histogram of the explicit excluded volume models: settings::exv::exv_method picks FoXS, Pepsi or CRYSOL,
+	 *        and any other method gets the Fraser model.
 	 */
 	template<bool weighted_bins>
 	std::unique_ptr<ICompositeDistanceHistogram> make_explicit_histogram(
-		ManagerDistributions<weighted_bins, true>&& distributions, settings::exv::ExvMethod method, observer_ptr<const data::Molecule> protein
+		ManagerDistributions<weighted_bins, true>&& distributions, observer_ptr<const data::Molecule> protein
 	);
 
 	/**
-	 * @brief The composite histogram of @a distributions. Weighted ones get the simple model, which needs no @a method.
-	 *        Form factor-resolved ones get the average excluded volume model if @a method is ExvMethod::Average, and an explicit
-	 *        model otherwise, see make_explicit_histogram.
+	 * @brief The composite histogram of the average excluded volume model, where every atom displaces the same volume.
+	 */
+	template<bool weighted_bins>
+	std::unique_ptr<ICompositeDistanceHistogram> make_average_histogram(
+		ManagerDistributions<weighted_bins, true>&& distributions, observer_ptr<const data::Molecule> protein
+	);
+
+	/**
+	 * @brief The composite histogram of @a distributions. Weighted ones get the simple model.
+	 *        Form factor-resolved ones get the average excluded volume model if settings::exv::exv_method is ExvMethod::Average,
+	 *        and an explicit model otherwise, see make_explicit_histogram.
 	 */
 	template<bool weighted_bins, bool form_factors>
 	std::unique_ptr<ICompositeDistanceHistogram> make_histogram(
-		ManagerDistributions<weighted_bins, form_factors>&& distributions, settings::exv::ExvMethod method, observer_ptr<const data::Molecule> protein
+		ManagerDistributions<weighted_bins, form_factors>&& distributions, observer_ptr<const data::Molecule> protein
 	);
 }

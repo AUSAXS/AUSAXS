@@ -8,7 +8,6 @@
 #include <hist/distance_calculator/DistanceCalculatorFwd.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
-#include <settings/ExvSettings.h>
 
 #include <type_traits>
 
@@ -27,10 +26,7 @@ namespace ausaxs::hist {
     template<bool weighted_bins, bool form_factors> 
 	class PartialHistogramManagerMTBase : public IPartialHistogramManager {
 		public:
-			/**
-			 * @param exv_method The excluded volume model the form factor-resolved result is built for; see detail::make_histogram.
-			 */
-			PartialHistogramManagerMTBase(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method);
+			explicit PartialHistogramManagerMTBase(observer_ptr<const data::Molecule> protein);
 			~PartialHistogramManagerMTBase() override;
 
 			/**
@@ -49,7 +45,6 @@ namespace ausaxs::hist {
 			using AtomicCoordinates = std::conditional_t<form_factors, std::vector<hist::detail::CompactCoordinates>, hist::detail::CompactCoordinates>;
 
 			observer_ptr<const data::Molecule> protein;		// the molecule we are calculating the histogram for
-			settings::exv::ExvMethod exv_method;			// the excluded volume model of the form factor-resolved result
 			detail::MasterHistogram<weighted_bins> master;	// the current total histogram
 			std::vector<AtomicCoordinates> coords_a;		// a compact representation of the atoms of each body; with form factors split by type
 			hist::detail::CompactCoordinates coords_w;		// a compact representation of the hydration layer
@@ -120,8 +115,7 @@ namespace ausaxs::hist {
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class PartialHistogramManagerMT : public PartialHistogramManagerMTBase<weighted_bins, false> {
 		public:
-			explicit PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein) 
-				: PartialHistogramManagerMTBase<weighted_bins, false>(protein, settings::exv::ExvMethod::Simple) {}
+			using PartialHistogramManagerMTBase<weighted_bins, false>::PartialHistogramManagerMTBase;
 	};
 
 	/**
@@ -131,7 +125,6 @@ namespace ausaxs::hist {
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class PartialHistogramManagerMTFF : public PartialHistogramManagerMTBase<weighted_bins, true> {
 		public:
-			explicit PartialHistogramManagerMTFF(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method = settings::exv::exv_method) 
-				: PartialHistogramManagerMTBase<weighted_bins, true>(protein, exv_method) {}
+			using PartialHistogramManagerMTBase<weighted_bins, true>::PartialHistogramManagerMTBase;
 	};
 }

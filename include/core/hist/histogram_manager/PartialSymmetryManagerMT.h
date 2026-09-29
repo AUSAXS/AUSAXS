@@ -10,7 +10,6 @@
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/detail/SymmetryDetailFwd.h>
 #include <hist/histogram_manager/detail/SymmetryPairIds.h>
-#include <settings/ExvSettings.h>
 
 #include <memory>
 #include <vector>
@@ -25,10 +24,7 @@ namespace ausaxs::hist {
     template<bool weighted_bins, bool form_factors> 
 	class PartialSymmetryManagerMTBase : public IPartialHistogramManager {
 		public:
-			/**
-			 * @param exv_method The excluded volume model the form factor-resolved result is built for; see detail::make_histogram.
-			 */
-			PartialSymmetryManagerMTBase(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method);
+			explicit PartialSymmetryManagerMTBase(observer_ptr<const data::Molecule> protein);
 			~PartialSymmetryManagerMTBase() override;
 
 			/**
@@ -48,7 +44,6 @@ namespace ausaxs::hist {
 			GenericDistribution1D_t cached_p_tot; // the total histogram of the last calculation, returned as is while nothing is modified
 
 			observer_ptr<const data::Molecule> protein;									// the molecule we are calculating the histogram for
-			settings::exv::ExvMethod exv_method;										// the excluded volume model of the form factor-resolved result
             detail::MasterHistogram<weighted_bins> master;								// the current total histogram
 			std::vector<symmetry::detail::BodySymmetryData<form_factors>> coords;	// a compact representation of the relevant data from the managed bodies
 			hist::detail::CompactCoordinates coords_w;				// a compact representation of the relevant data from the hydration layer
@@ -153,8 +148,7 @@ namespace ausaxs::hist {
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class PartialSymmetryManagerMT : public PartialSymmetryManagerMTBase<weighted_bins, false> {
 		public:
-			explicit PartialSymmetryManagerMT(observer_ptr<const data::Molecule> protein) 
-				: PartialSymmetryManagerMTBase<weighted_bins, false>(protein, settings::exv::ExvMethod::Simple) {}
+			using PartialSymmetryManagerMTBase<weighted_bins, false>::PartialSymmetryManagerMTBase;
 	};
 
 	/**
@@ -164,7 +158,6 @@ namespace ausaxs::hist {
 	// NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
 	class PartialSymmetryManagerMTFF : public PartialSymmetryManagerMTBase<weighted_bins, true> {
 		public:
-			explicit PartialSymmetryManagerMTFF(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method = settings::exv::exv_method) 
-				: PartialSymmetryManagerMTBase<weighted_bins, true>(protein, exv_method) {}
+			using PartialSymmetryManagerMTBase<weighted_bins, true>::PartialSymmetryManagerMTBase;
 	};
 }

@@ -14,6 +14,7 @@
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <settings/ExvSettings.h>
 #include <utility/Logging.h>
 
 #include <ranges>
@@ -23,8 +24,8 @@ using namespace ausaxs::hist::detail;
 using namespace ausaxs::symmetry::detail;
 
 template<bool weighted_bins, bool form_factors>
-hist::SymmetryManagerMTBase<weighted_bins, form_factors>::SymmetryManagerMTBase(observer_ptr<const data::Molecule> protein, settings::exv::ExvMethod exv_method) 
-    : protein(protein), exv_method(exv_method) 
+hist::SymmetryManagerMTBase<weighted_bins, form_factors>::SymmetryManagerMTBase(observer_ptr<const data::Molecule> protein) 
+    : protein(protein) 
 {}
 
 template<bool weighted_bins, bool form_factors>
@@ -164,7 +165,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<w
     calculator.run();
 
     // without waters, aw and ww were never named, and are still zero
-    return hist::detail::make_histogram(hist::detail::export_distributions<weighted_bins, form_factors>(store, aa, aw, ww), exv_method, protein);
+    return hist::detail::make_histogram(hist::detail::export_distributions<weighted_bins, form_factors>(store, aa, aw, ww), protein);
 }
 
 template class hist::SymmetryManagerMTBase<false, false>;
