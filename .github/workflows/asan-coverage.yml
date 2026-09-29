@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   unit-tests:
@@ -23,12 +22,17 @@ jobs:
           python3 -m pip install --disable-pip-version-check gcovr==8.4
 
       - name: Configure
+        env:
+          INSTRUMENT_FLAGS: -g -fsanitize=address -fno-omit-frame-pointer --coverage -fprofile-update=atomic
+          INSTRUMENT_LINK_FLAGS: -fsanitize=address --coverage
         run: |
           cmake -B build-asan-coverage -S . \
             -DCMAKE_BUILD_TYPE=Debug \
             -DSAFE_CHECKS=ON \
-            -DENABLE_ADDRESS_SANITIZER=ON \
-            -DENABLE_COVERAGE=ON
+            -DCMAKE_C_FLAGS_DEBUG="$INSTRUMENT_FLAGS" \
+            -DCMAKE_CXX_FLAGS_DEBUG="$INSTRUMENT_FLAGS" \
+            -DCMAKE_EXE_LINKER_FLAGS="$INSTRUMENT_LINK_FLAGS" \
+            -DCMAKE_SHARED_LINKER_FLAGS="$INSTRUMENT_LINK_FLAGS"
 
       - name: Build unit tests
         env:
@@ -62,10 +66,8 @@ jobs:
             --cobertura-pretty \
             --output coverage.xml
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Upload coverage to Codacy
+        uses: codacy/codacy-coverage-reporter-action@v1
         with:
-          files: coverage.xml
-          flags: unit
-          fail_ci_if_error: true
-          use_oidc: true
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml

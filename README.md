@@ -3,7 +3,6 @@
 
 [![release](https://img.shields.io/github/v/release/AUSAXS/AUSAXS)](https://github.com/AUSAXS/AUSAXS/releases/latest)
 [![coverity](https://scan.coverity.com/projects/30350/badge.svg)](https://scan.coverity.com/projects/ausaxs-ausaxs)
-[![coverage](https://codecov.io/gh/AUSAXS/AUSAXS/graph/badge.svg)](https://codecov.io/gh/AUSAXS/AUSAXS)
 [![license](https://img.shields.io/github/license/AUSAXS/AUSAXS)](LICENSE)
 
 **AUSAXS** is a modern C++20 small-angle X-ray scattering (SAXS) calculator built on the Debye equation, written to be modular and easily extendable. It is highly efficient (see the [benchmark](https://github.com/AUSAXS/AUSAXS/blob/media/benchmark.png)) and available on Linux, macOS, and Windows.
