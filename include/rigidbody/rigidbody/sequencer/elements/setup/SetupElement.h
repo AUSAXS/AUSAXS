@@ -3,173 +3,28 @@
 
 #pragma once
 
-#include <data/symmetry/PredefinedSymmetries.h>
 #include <io/ExistingFile.h>
 #include <io/Folder.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/detail/BodyNameRegistry.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <rigidbody/sequencer/elements/setup/BodySymmetrySelector.h>
 #include <string_view>
 #include <utility/observer_ptr.h>
 
-#include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
     /**
-     * @brief Set up the optimization problem.
-     *        Once any method from the LoopElementCallback is called, the setup is considered complete.
+     * @brief Holds state shared by setup-phase sequence elements.
      */
-    class SetupElement : public LoopElementCallback {
+    class SetupElement {
         public:
-            SetupElement(observer_ptr<Sequencer> owner);
-            SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs);
-            ~SetupElement() override = default;
-
-            /**
-             * @brief End the setup phase and return to the main loop.
-             */
-            LoopElement& end() override;
-
-            /**
-             * @brief Set the overlap function for evaluating the overlap penalty. 
-             *        The function is multiplied onto the distance histogram, with the sum of the product being the chi2 penalty. 
-             *
-             * @param func The monotonically decreasing weight function. 
-             */
-            SetupElement& set_overlap_function(std::function<double(double)> func);
-
-            /**
-             * @brief Load multiple bodies from multiple files. One body is loaded from each file.
-             * 
-             * @param paths Paths to the files.
-             * @param body_names Optional names for the bodies contained in the files.
-             */
-            SetupElement& load(const std::vector<std::string>& paths, const std::vector<std::string>& body_names = {});
-
-            /**
-             * @brief Load multiple bodies from a single file, separated at the designated indices.
-             * 
-             * @param path Path to the file.
-             * @param split Indices where to split the structure.
-             * @param body_names Optional names for the bodies.
-             */
-            SetupElement& load(const std::string& path, const std::vector<int>& split, const std::vector<std::string>& body_names = {});
-
-            /**
-             * @brief Load multiple bodies from a single file, separated by chainID.
-             * 
-             * @param path Path to the file.
-             * @param body_names Optional names for the bodies.
-             */
-            SetupElement& load(const std::string& path, const std::vector<std::string>& body_names = {});
-
-            /**
-             * @brief Load an existing rigidbody. 
-             *        This is simply a deferred call to _set_active_body.
-             */
-            SetupElement& load_existing(observer_ptr<Rigidbody> rigidbody);
-
-            /**
-             * @brief Create a distance constraint between the two bodies at the specified atoms.
-             * 
-             * @param ibody1 Index of the first body.
-             * @param ibody2 Index of the second body.
-             * @param iatom1 Index of the first atom.
-             * @param iatom2 Index of the second atom. 
-             */
-            SetupElement& distance_constraint(int ibody1, int ibody2, int iatom1, int iatom2);
-
-            /**
-             * @brief Create a distance constraint between the two bodies at the specified atoms.
-             * 
-             * @param body1 Name of the first body.
-             * @param body2 Name of the second body.
-             * @param iatom1 Index of the first atom.
-             * @param iatom2 Index of the second atom. 
-             */
-            SetupElement& distance_constraint(const std::string& body1, const std::string& body2, int iatom1, int iatom2);
-
-            /**
-             * @brief Create a distance constraint between the two bodies at the closest atomic pair. 
-             * 
-             * @param body1 Index of the first body.
-             * @param body2 Index of the second body.
-             */
-            SetupElement& distance_constraint_closest(int ibody1, int ibody2);
-
-            /**
-             * @brief Create a distance constraint between the two bodies at the closest atomic pair. 
-             * 
-             * @param body1 Name of the first body.
-             * @param body2 Name of the second body.
-             */
-            SetupElement& distance_constraint_closest(const std::string& ibody1, const std::string& ibody2);
-
-            /**
-             * @brief Create a distance constraint between the two bodies at the center of masses. 
-             * 
-             * @param body1 Index of the first body.
-             * @param body2 Index of the second body.
-             */
-            SetupElement& distance_constraint_center_mass(int ibody1, int ibody2);
-
-            /**
-             * @brief Create a distance constraint between the two bodies at the center of masses. 
-             * 
-             * @param body1 Name of the first body.
-             * @param body2 Name of the second body.
-             */
-            SetupElement& distance_constraint_center_mass(const std::string& body1, const std::string& body2);
-
-            /**
-             * @brief Create a fixed constraint for the currently active body. 
-             */
-            static SetupElement& fixed_constraint();
-
-            /**
-             * @brief Automatically create a bond constraint between every pair of backbone-adjacent bodies.
-             */
-            SetupElement& generate_backbone_constraints();
-
-            /**
-             * @brief Add a custom constraint to the rigidbody.
-             * 
-             * @param constraint The constraint to add.
-             */
-            SetupElement& add_constraint(std::unique_ptr<rigidbody::constraints::Constraint> constraint);
-
-            /**
-             * @brief Define a symmetry for the given bodies.
-             * 
-             * @param names Names of the bodies to add symmetry to.
-             * @param symmetry The symmetry types to add.
-             */
-            SetupElement& symmetry(const std::vector<std::string>& names, const std::vector<symmetry::type>& symmetry);
-
-            /**
-             * @brief Define a symmetry for the given body.
-             * 
-             * @param name Name of the body to add symmetry to.
-             * @param symmetry The symmetry type to add.
-             */
-            SetupElement& symmetry(std::string_view name, symmetry::type symmetry);
-
-            /**
-             * @brief Set the relative hydration level of a single body.
-             */
-            SetupElement& relative_hydration(std::string_view name, double ratio);
-
-            /**
-             * @brief Set the output folder for saving results.
-             * 
-             * @param path The output folder path.
-             */
-            SetupElement& output_folder(const io::Folder& path);
+            SetupElement(observer_ptr<Sequencer> sequencer);
+            SetupElement(observer_ptr<Sequencer> sequencer, io::ExistingFile saxs);
 
             /**
              * @brief Get the name identifiers of all loaded bodies.
@@ -219,6 +74,7 @@ namespace ausaxs::rigidbody::sequencer {
             std::vector<std::unique_ptr<GenericElement>>& _get_elements();
 
         private:
+            observer_ptr<Sequencer> owner;
             detail::BodyNameRegistry body_names;
             observer_ptr<Rigidbody> active_body;
             io::Folder config_folder;

@@ -11,7 +11,7 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-TransformElement::TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
+TransformElement::TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) : owner(owner), strategy(std::move(strategy)) {}
 TransformElement::~TransformElement() = default;
 
 void TransformElement::run() {

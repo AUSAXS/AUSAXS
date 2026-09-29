@@ -7,16 +7,18 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <utility/observer_ptr.h>
 
+#include <memory>
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
+    class LoopElement;
+
     /**
      * @brief Publishes the current structure to a shared buffer during a run so the GUI can poll it and live-update its preview. 
      */
-    class UpdateElement : public LoopElementCallback, public GenericElement {
+    class UpdateElement : public GenericElement {
         public:
             UpdateElement(observer_ptr<LoopElement> owner);
             ~UpdateElement() override;
@@ -38,5 +40,8 @@ namespace ausaxs::rigidbody::sequencer {
 
             // set true by a consumer that polls the live structure. If false, this element is a no-op. 
             inline static bool live_consumer_connected = false;
+
+        private:
+            observer_ptr<LoopElement> owner;
     };
 }

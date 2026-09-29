@@ -8,13 +8,10 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/elements/BodySelectElement.h>
 #include <rigidbody/sequencer/elements/CopyLoopElement.h>
 #include <rigidbody/sequencer/elements/EveryNStepElement.h>
 #include <rigidbody/sequencer/elements/OptimizeStepElement.h>
 #include <rigidbody/sequencer/elements/ParameterElement.h>
-#include <rigidbody/sequencer/elements/SaveElement.h>
-#include <rigidbody/sequencer/elements/TransformElement.h>
 
 #include <cassert>
 
@@ -45,26 +42,6 @@ LoopElement::~LoopElement() {
 
 std::shared_ptr<fitter::FitResult> LoopElement::execute() {
     return owner->execute(); // propagate upwards to the main Sequencer
-}
-
-LoopElement& LoopElement::loop(int repeats) {
-    elements.push_back(std::make_unique<LoopElement>(this, repeats));
-    return *static_cast<LoopElement*>(elements.back().get());
-}
-
-ParameterElement& LoopElement::parameter_strategy(std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy) {
-    elements.push_back(std::make_unique<ParameterElement>(this, std::move(strategy)));
-    return *static_cast<ParameterElement*>(elements.back().get());
-}
-
-BodySelectElement& LoopElement::body_select_strategy(std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) {
-    elements.push_back(std::make_unique<BodySelectElement>(this, std::move(strategy)));
-    return *static_cast<BodySelectElement*>(elements.back().get());
-}
-
-TransformElement& LoopElement::transform_strategy(std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) {
-    elements.push_back(std::make_unique<TransformElement>(this, std::move(strategy)));
-    return *static_cast<TransformElement*>(elements.back().get());
 }
 
 void LoopElement::run() {
@@ -117,25 +94,6 @@ std::vector<std::unique_ptr<GenericElement>>& LoopElement::_get_elements() {
 
 int LoopElement::_get_loop_iterations() const {
     return iterations;
-}
-
-OptimizeStepElement& LoopElement::optimize() {
-    elements.push_back(std::make_unique<OptimizeStepElement>(this));
-    return *static_cast<OptimizeStepElement*>(elements.back().get());
-}
-
-LoopElement& LoopElement::end() {
-    return *owner;
-}
-
-LoopElement& LoopElement::save(const io::File& path) {
-    elements.push_back(std::make_unique<SaveElement>(this, path));
-    return *this;
-}
-
-EveryNStepElement& LoopElement::every(int n) {
-    elements.push_back(std::make_unique<EveryNStepElement>(this, n));
-    return *static_cast<EveryNStepElement*>(elements.back().get());
 }
 
 void LoopElement::_request_stop() {

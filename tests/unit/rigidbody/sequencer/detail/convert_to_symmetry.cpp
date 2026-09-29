@@ -22,6 +22,7 @@
 
 #include <array>
 #include <cstdio>
+#include <memory>
 #include <numbers>
 #include <set>
 #include <sstream>
@@ -92,6 +93,14 @@ namespace {
         for (const auto& f : files) {paths.push_back(f.str());}
         return paths;
     }
+
+    std::unique_ptr<Sequencer> parse_loaded_sequence(const std::string& saxs_path, const std::vector<std::string>& paths, bool split_chains = false) {
+        std::string script = "load {\npdb";
+        for (const auto& path : paths) {script += " " + path;}
+        if (split_chains) {script += "\nsplit chain";}
+        script += "\nsaxs " + saxs_path + "\n}\n";
+        return SequenceParser().parse_text(script);
+    }
 }
 
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a cyclic assembly") {
@@ -103,13 +112,12 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a cyclic assembly"
     files.reserve(chains.size());
     for (const auto & chain : chains) {files.push_back(write_pdb(chain));}
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(paths_of(files));
-    auto* molecule = seq._get_molecule();
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", paths_of(files));
+    auto* molecule = seq->_get_molecule();
     REQUIRE(molecule->size_body() == 3);
 
     // collapse the three bodies into body 0 + a fitted C3
-    ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3");
+    ConvertToSymmetryElement convert(seq.get(), {0, 1, 2}, "c3");
 
     // only the reference body remains, now carrying one symmetry generating two copies
     REQUIRE(molecule->size_body() == 1);
@@ -156,12 +164,11 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement collapses a composite p2-p2 
     files.reserve(4);
     for (int i = 0; i < 4; ++i) {files.push_back(write_pdb(chains[i]));}
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(paths_of(files));
-    auto* molecule = seq._get_molecule();
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", paths_of(files));
+    auto* molecule = seq->_get_molecule();
     REQUIRE(molecule->size_body() == 4);
 
-    ConvertToSymmetryElement convert(&seq, {0, 1, 2, 3}, "p2-p2");
+    ConvertToSymmetryElement convert(seq.get(), {0, 1, 2, 3}, "p2-p2");
 
     REQUIRE(molecule->size_body() == 1);
     REQUIRE(molecule->get_body(0).size_symmetry() == 1);
@@ -188,9 +195,8 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects an assembly that is 
     files.reserve(3);
     for (int i = 0; i < 3; ++i) {files.push_back(write_pdb(chains[i]));}
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(paths_of(files));
-    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3"); }());
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", paths_of(files));
+    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(seq.get(), {0, 1, 2}, "c3"); }());
 }
 
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement matches up copies modelled to differing extents") {
@@ -205,14 +211,13 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement matches up copies modelled t
         files.push_back(write_pdb(chains[i], {}, i == 0 ? std::set<std::size_t>{} : std::set<std::size_t>{2}));
     }
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(paths_of(files));
-    auto* molecule = seq._get_molecule();
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", paths_of(files));
+    auto* molecule = seq->_get_molecule();
     REQUIRE(molecule->size_body() == 3);
     REQUIRE(molecule->get_body(0).size_atom() == static_cast<int>(ref.size()));
     REQUIRE(molecule->get_body(1).size_atom() == static_cast<int>(ref.size()) - 1);
 
-    ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3");
+    ConvertToSymmetryElement convert(seq.get(), {0, 1, 2}, "c3");
 
     // the fit only saw the five shared residues, but the primary body is kept whole and is what the symmetry replicates
     REQUIRE(molecule->size_body() == 1);
@@ -243,12 +248,11 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement drops residues modelled to d
         files.push_back(write_pdb(chains[i], residues, i == 1 ? std::set<std::size_t>{3} : std::set<std::size_t>{}));
     }
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(paths_of(files));
-    auto* molecule = seq._get_molecule();
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", paths_of(files));
+    auto* molecule = seq->_get_molecule();
     REQUIRE(molecule->size_body() == 3);
 
-    ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3");
+    ConvertToSymmetryElement convert(seq.get(), {0, 1, 2}, "c3");
 
     REQUIRE(molecule->size_body() == 1);
     REQUIRE(molecule->get_body(0).size_atom() == static_cast<int>(ref.size()));
@@ -274,9 +278,8 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects copies that share no
         files.push_back(write_pdb(chains[i], residues));
     }
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(paths_of(files));
-    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0, 1, 2}, "c3"); }());
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", paths_of(files));
+    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(seq.get(), {0, 1, 2}, "c3"); }());
 }
 
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement is reachable through the script parser") {
@@ -311,12 +314,11 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement is reachable through the scr
 
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement on a real p2 dimer (SASDJG5)") {
     // SASDJG5 is a two-chain p2 homodimer
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load("tests/files/SASDJG5.pdb");
-    auto* molecule = seq._get_molecule();
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", {"tests/files/SASDJG5.pdb"}, true);
+    auto* molecule = seq->_get_molecule();
     REQUIRE(molecule->size_body() == 2);
 
-    REQUIRE_NOTHROW([&]{ ConvertToSymmetryElement convert(&seq, {0, 1}, "p2"); }());
+    REQUIRE_NOTHROW([&]{ ConvertToSymmetryElement convert(seq.get(), {0, 1}, "p2"); }());
     REQUIRE(molecule->size_body() == 1);
     REQUIRE(molecule->get_body(0).size_symmetry() == 1);
     CHECK(molecule->get_body(0).symmetry().get(0)->repetitions() == 1);
@@ -325,12 +327,11 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement on a real p2 dimer (SASDJG5)
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement on a real p2-p2 assembly (A2M_native)", "[slow]") {
     // A2M-native is a four-chain assembly with p2-p2 symmetry; chains may be in any order, so this
     // also exercises the ordering search on real data
-    Sequencer seq(io::ExistingFile("tests/files/A2M_native.dat"));
-    seq.setup().load("tests/files/A2M_native.pdb");
-    auto* molecule = seq._get_molecule();
+    auto seq = parse_loaded_sequence("tests/files/A2M_native.dat", {"tests/files/A2M_native.pdb"}, true);
+    auto* molecule = seq->_get_molecule();
     REQUIRE(molecule->size_body() == 4);
 
-    REQUIRE_NOTHROW([&]{ ConvertToSymmetryElement convert(&seq, {0, 1, 2, 3}, "p2-p2"); }());
+    REQUIRE_NOTHROW([&]{ ConvertToSymmetryElement convert(seq.get(), {0, 1, 2, 3}, "p2-p2"); }());
     REQUIRE(molecule->size_body() == 1);
     REQUIRE(molecule->get_body(0).size_symmetry() == 1);
     CHECK(molecule->get_body(0).symmetry().get(0)->repetitions() == 3);
@@ -357,13 +358,12 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled bo
 
     auto file = write_pdb(assembly);
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(std::vector<std::string>{file.str()});
-    auto* molecule = seq._get_molecule();
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", {file.str()});
+    auto* molecule = seq->_get_molecule();
     REQUIRE(molecule->size_body() == 1);
     REQUIRE(molecule->get_body(0).size_atom() == 3*static_cast<int>(ref.size()));
 
-    ConvertToSymmetryElement convert(&seq, {0}, "c3");
+    ConvertToSymmetryElement convert(seq.get(), {0}, "c3");
 
     // the body has been reduced to the first copy, and carries the symmetry generating the other two
     REQUIRE(molecule->size_body() == 1);
@@ -382,10 +382,10 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement splits a single assembled bo
     }
 
     // the stored initial conformation must stay parallel-indexed to the live body and origin-centred, with the translation restoring the live position
-    const auto& initial = seq._get_rigidbody()->conformation->initial_conformation[0];
+    const auto& initial = seq->_get_rigidbody()->conformation->initial_conformation[0];
     REQUIRE(initial.size_atom() == static_cast<int>(ref.size()));
     CHECK_THAT(initial.get_cm().magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
-    auto translation = seq._get_rigidbody()->conformation->absolute_parameters.parameters[0].translation;
+    auto translation = seq->_get_rigidbody()->conformation->absolute_parameters.parameters[0].translation;
     CHECK_THAT((translation - molecule->get_body(0).get_cm()).magnitude(), Catch::Matchers::WithinAbs(0, 1e-9));
 }
 
@@ -397,11 +397,10 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a single body that d
 
     auto file = write_pdb(atoms);
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(std::vector<std::string>{file.str()});
-    REQUIRE(seq._get_molecule()->size_body() == 1);
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", {file.str()});
+    REQUIRE(seq->_get_molecule()->size_body() == 1);
 
-    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0}, "c3"); }());
+    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(seq.get(), {0}, "c3"); }());
 }
 
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a single body that is not symmetric") {
@@ -414,9 +413,8 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a single body that i
 
     auto file = write_pdb(assembly);
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(std::vector<std::string>{file.str()});
-    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0}, "c3"); }());
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", {file.str()});
+    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(seq.get(), {0}, "c3"); }());
 }
 
 TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a wrong body count") {
@@ -425,9 +423,8 @@ TEST_CASE_METHOD(Fixture, "ConvertToSymmetryElement rejects a wrong body count")
     files.push_back(write_pdb(ref));
     files.push_back(write_pdb(ref));
 
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    seq.setup().load(paths_of(files));
+    auto seq = parse_loaded_sequence("tests/files/SASDJG5.dat", paths_of(files));
 
     // c3 needs three bodies, only two are available
-    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(&seq, {0, 1}, "c3"); }());
+    CHECK_THROWS([&]{ ConvertToSymmetryElement convert(seq.get(), {0, 1}, "c3"); }());
 }

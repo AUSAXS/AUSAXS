@@ -83,7 +83,7 @@ MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> o
 {}
 
 MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, std::string_view colour, bool log) 
-    : LoopElementCallback(owner)
+    : owner(owner)
 {
     message_func = [log, colour=std::string(colour), builder=parse_user_msg(message)] () -> void {
         if (log) {

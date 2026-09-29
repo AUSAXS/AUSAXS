@@ -1,205 +1,59 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
-
-#include <data/Molecule.h>
 #include <fitter/FitResult.h>  // IWYU pragma: keep
-#include <io/ExistingFile.h>
-#include <rigidbody/BodySplitter.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/All.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <settings/All.h>
 
+#include <memory>
+#include <string>
+
 using namespace ausaxs;
-using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
 
-TEST_CASE("Sequencer: programmatic API basic run", "[files]") {
-    settings::general::verbose = false;
-    settings::grid::min_bins = 250;
-    settings::molecule::implicit_hydrogens = false;
+namespace {
+    std::unique_ptr<sequencer::Sequencer> parse_sequence(const std::string& script) {
+        return sequencer::SequenceParser().parse_text(script + (script.find("\nloop ") != std::string::npos ? "end\n" : ""));
+    }
 
-    sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    auto result = seq
-        .setup()
-            .load("tests/files/SASDJG5.pdb")
-        .end()
-        .loop(5)
-            .optimize()
-        .end()
-    .execute();
+    void configure_settings() {
+        settings::general::verbose = false;
+        settings::grid::min_bins = 250;
+        settings::molecule::implicit_hydrogens = false;
+    }
+}
 
+TEST_CASE("Sequencer: parser basic run", "[files]") {
+    configure_settings();
+    auto seq = parse_sequence("load {\n    pdb tests/files/SASDJG5.pdb\n    saxs tests/files/SASDJG5.dat\n}\nloop 5\n    optimize_once\nend\n");
+    auto result = seq->execute();
     REQUIRE(result != nullptr);
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("Sequencer: load with split indices", "[files]") {
-    settings::general::verbose = false;
-    settings::molecule::implicit_hydrogens = false;
-
-    sequencer::Sequencer seq(io::ExistingFile("tests/files/LAR1-2.pdb"));
-
-    // Just verify it doesn't crash during setup with split indices
-    REQUIRE_NOTHROW(seq
-        .setup()
-            .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-        .end()
-    );
+TEST_CASE("Sequencer: parser split loading", "[files]") {
+    configure_settings();
+    REQUIRE_NOTHROW(parse_sequence("load {\n    pdb tests/files/LAR1-2.pdb\n    split 9 99\n    saxs tests/files/LAR1-2.pdb\n}\n"));
 }
 
-TEST_CASE("Sequencer: load_existing with pre-built Rigidbody", "[files]") {
-    settings::general::verbose = false;
-    settings::grid::min_bins = 250;
-    settings::molecule::implicit_hydrogens = false;
-
-    auto bodies = BodySplitter::split("tests/files/LAR1-2.pdb", {9, 99});
-    Rigidbody rb(std::move(bodies));
-    rb.constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
-
-    sequencer::Sequencer seq(io::ExistingFile("tests/files/2epe.dat"));
-    auto result = seq
-        .setup()
-            .load_existing(&rb)
-        .end()
-        .loop(3)
-            .optimize()
-        .end()
-    .execute();
-
+TEST_CASE("Sequencer: parser nested loops", "[files]") {
+    configure_settings();
+    auto seq = parse_sequence("load {\n    pdb tests/files/SASDJG5.pdb\n    saxs tests/files/SASDJG5.dat\n}\nloop 3\n    loop 2\n        optimize_once\n    end\nend\n");
+    auto result = seq->execute();
     REQUIRE(result != nullptr);
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("Sequencer: complex sequence with nested loops and conditionals", "[files]") {
-    settings::general::verbose = false;
-    settings::grid::min_bins = 250;
-    settings::molecule::implicit_hydrogens = false;
-
-    sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    auto result = seq
-        .setup()
-            .load("tests/files/SASDJG5.pdb")
-        .end()
-        .loop(3)
-            .loop(2)
-                .optimize()
-            .end()
-        .end()
-    .execute();
-
+TEST_CASE("Sequencer: parser strategy configuration", "[files]") {
+    configure_settings();
+    auto seq = parse_sequence("load {\n    pdb tests/files/SASDJG5.pdb\n    saxs tests/files/SASDJG5.dat\n}\nloop 5\n    select random_body\n    transform rigid\n    optimize_once\nend\n");
+    auto result = seq->execute();
     REQUIRE(result != nullptr);
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("Sequencer: with parameter configuration", "[files]") {
-    settings::general::verbose = false;
-    settings::grid::min_bins = 250;
-    settings::molecule::implicit_hydrogens = false;
-
-    sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    auto result = seq
-        .setup()
-            .load("tests/files/SASDJG5.pdb")
-        .end()
-        .loop(5)
-            .optimize()
-        .end()
-    .execute();
-
-    REQUIRE(result != nullptr);
-    CHECK(result->fval > 0);
-}
-
-TEST_CASE("Sequencer: with body selection strategies", "[files]") {
-    settings::general::verbose = false;
-    settings::grid::min_bins = 250;
-    settings::molecule::implicit_hydrogens = false;
-
-    SECTION("Random body selection") {
-        sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-        auto result = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(5)
-                .optimize()
-            .end()
-        .execute();
-
-        REQUIRE(result != nullptr);
-        CHECK(result->fval > 0);
-    }
-
-    SECTION("Sequential body selection") {
-        sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-        auto result = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(5)
-                .optimize()
-            .end()
-        .execute();
-
-        REQUIRE(result != nullptr);
-        CHECK(result->fval > 0);
-    }
-}
-
-TEST_CASE("Sequencer: with transform strategies", "[files]") {
-    settings::general::verbose = false;
-    settings::grid::min_bins = 250;
-    settings::molecule::implicit_hydrogens = false;
-
-    SECTION("Rigid transform") {
-        sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-        auto result = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(5)
-                .optimize()
-            .end()
-        .execute();
-
-        REQUIRE(result != nullptr);
-        CHECK(result->fval > 0);
-    }
-
-    SECTION("Single transform") {
-        sequencer::Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-        auto result = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(5)
-                .optimize()
-            .end()
-        .execute();
-
-        REQUIRE(result != nullptr);
-        CHECK(result->fval > 0);
-    }
-}
-
-TEST_CASE("Sequencer: with automatic constraints", "[files]") {
-    settings::general::verbose = false;
-    settings::grid::min_bins = 250;
-    settings::molecule::implicit_hydrogens = false;
-
-    sequencer::Sequencer seq("tests/files/LAR1-2.dat");
-    auto result = seq
-        .setup()
-            .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-            .generate_backbone_constraints()
-        .end()
-        .loop(5)
-            .optimize()
-        .end()
-    .execute();
-
+TEST_CASE("Sequencer: parser automatic constraints", "[files]") {
+    configure_settings();
+    auto seq = parse_sequence("load {\n    pdb tests/files/LAR1-2.pdb\n    split 9 99\n    saxs tests/files/LAR1-2.dat\n}\nautoconstrain backbone\nloop 5\n    optimize_once\nend\n");
+    auto result = seq->execute();
     REQUIRE(result != nullptr);
     CHECK(result->fval > 0);
 }

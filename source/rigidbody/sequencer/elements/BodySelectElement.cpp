@@ -14,7 +14,7 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-BodySelectElement::BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
+BodySelectElement::BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) : owner(owner), strategy(std::move(strategy)) {}
 BodySelectElement::~BodySelectElement() = default;
 
 void BodySelectElement::run() {

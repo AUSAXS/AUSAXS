@@ -5,7 +5,6 @@
 
 namespace ausaxs::rigidbody::sequencer {
     class Sequencer;
-    class ConstraintIteratorElement;
     class ParameterElement;
     class BodySelectElement;
     class TransformElement;

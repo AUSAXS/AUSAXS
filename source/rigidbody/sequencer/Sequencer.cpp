@@ -22,10 +22,6 @@ Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), se
 
 Sequencer::~Sequencer() = default;
 
-LoopElement& Sequencer::end() {
-    throw ausaxs::except::runtime_error("Sequencer::end: Too many end() calls detected.");
-}
-
 void Sequencer::run() {
     throw ausaxs::except::logic_error("Sequencer::run: Use execute() to run the sequencer. Calling run() directly skips rigidbody and controller initialization.");
 }

@@ -4,54 +4,12 @@
 #include <rigidbody/sequencer/elements/setup/SetupElement.h>
 
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/DistanceConstraintAtom.h>
-#include <rigidbody/constraints/DistanceConstraintBond.h>
-#include <rigidbody/constraints/DistanceConstraintCM.h>
-#include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
-#include <rigidbody/sequencer/elements/setup/AutoConstraintsElement.h>
-#include <rigidbody/sequencer/elements/setup/ConstraintElement.h>
-#include <rigidbody/sequencer/elements/setup/LoadElement.h>
-#include <rigidbody/sequencer/elements/setup/LoadExistingElement.h>
-#include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
-#include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
-#include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
-SetupElement::SetupElement(observer_ptr<Sequencer> owner) : LoopElementCallback(owner) {}
-SetupElement::SetupElement(observer_ptr<Sequencer> owner, io::ExistingFile saxs) : LoopElementCallback(owner), saxs_path(std::move(saxs)) {}
-
-LoopElement& SetupElement::end() {
-    return *owner;
-}
-
-SetupElement& SetupElement::set_overlap_function(std::function<double(double)> func) {
-    rigidbody::constraints::OverlapConstraint::set_overlap_function(std::move(func));
-    return *this;
-}
-
-SetupElement& SetupElement::load(const std::vector<std::string>& paths, const std::vector<std::string>& names) {
-    elements.push_back(std::make_unique<LoadElement>(owner->_get_sequencer(), paths, names));
-    return *this;
-}
-
-SetupElement& SetupElement::load(const std::string& path, const std::vector<int>& split, const std::vector<std::string>& names) {
-    elements.push_back(std::make_unique<LoadElement>(owner->_get_sequencer(), path, split, names));
-    return *this;
-}
-
-SetupElement& SetupElement::load(const std::string& path, const std::vector<std::string>& names) {
-    elements.push_back(std::make_unique<LoadElement>(owner->_get_sequencer(), path, names));
-    return *this;
-}
-
-SetupElement& SetupElement::load_existing(observer_ptr<Rigidbody> rigidbody) {
-    elements.push_back(std::make_unique<LoadExistingElement>(owner->_get_sequencer(), rigidbody));
-    return *this;
-}
+SetupElement::SetupElement(observer_ptr<Sequencer> sequencer) : owner(sequencer) {}
+SetupElement::SetupElement(observer_ptr<Sequencer> sequencer, io::ExistingFile saxs) : owner(sequencer), saxs_path(std::move(saxs)) {}
 
 detail::BodyNameRegistry& SetupElement::_body_name_registry() {
     return body_names;
@@ -70,63 +28,6 @@ void SetupElement::_set_active_body(observer_ptr<Rigidbody> body) {
     owner->_get_sequencer()->rigidbody = body;
 }
 
-SetupElement& SetupElement::distance_constraint(const std::string& body1, const std::string& body2, int iatom1, int iatom2) {
-    owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraintAtom>(
-            &active_body->molecule,
-            body_names.resolve_body(body1),
-            body_names.resolve_body(body2),
-            iatom1,
-            iatom2
-        )
-    );
-    return *this;
-}
-
-SetupElement& SetupElement::distance_constraint_closest(int ibody1, int ibody2) {
-    owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraintBond>(
-            &active_body->molecule,
-            ibody1, 
-            ibody2
-        )
-    );
-    return *this;
-}
-
-SetupElement& SetupElement::distance_constraint_closest(const std::string& ibody1, const std::string& ibody2) {
-    owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraintBond>(
-            &active_body->molecule,
-            body_names.resolve_body(ibody1), 
-            body_names.resolve_body(ibody2)
-        )
-    );
-    return *this;
-}
-
-SetupElement& SetupElement::distance_constraint_center_mass(int ibody1, int ibody2) {
-    owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraintCM>(
-            &active_body->molecule,
-            ibody1, 
-            ibody2
-        )
-    );
-    return *this;
-}
-
-SetupElement& SetupElement::distance_constraint_center_mass(const std::string& ibody1, const std::string& ibody2) {
-    owner->_get_rigidbody()->constraints->add_constraint(
-        std::make_unique<constraints::DistanceConstraintCM>(
-            &active_body->molecule,
-            body_names.resolve_body(ibody1), 
-            body_names.resolve_body(ibody2)
-        )
-    );
-    return *this;
-}
-
 std::string SetupElement::_get_config_folder() const {
     return config_folder;
 }
@@ -137,40 +38,6 @@ void SetupElement::_set_config_folder(const io::Folder& folder) {
 
 void SetupElement::_set_saxs_path(const io::ExistingFile& saxs) {
     saxs_path = saxs;
-}
-
-SetupElement& SetupElement::fixed_constraint() {
-    throw ausaxs::except::runtime_error("SetupElement::fixed_constraint: Not implemented.");
-}
-
-SetupElement& SetupElement::generate_backbone_constraints() {
-    elements.push_back(std::make_unique<AutoConstraintsElement>(static_cast<Sequencer*>(owner), settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone));
-    return *this;
-}
-
-SetupElement& SetupElement::add_constraint(std::unique_ptr<rigidbody::constraints::Constraint> constraint) {
-    elements.push_back(std::make_unique<ConstraintElement>(owner->_get_sequencer(), std::move(constraint)));
-    return *this;
-}
-
-SetupElement& SetupElement::symmetry(const std::vector<std::string>& names, const std::vector<symmetry::type>& symmetry) {
-    elements.push_back(std::make_unique<SymmetryElement>(owner->_get_sequencer(), names, symmetry));
-    return *this;
-}
-
-SetupElement& SetupElement::symmetry(std::string_view name, symmetry::type symmetry) {
-    this->symmetry(std::vector<std::string>{std::string{name}}, std::vector<symmetry::type>{symmetry});
-    return *this;
-}
-
-SetupElement& SetupElement::relative_hydration(std::string_view name, double ratio) {
-    elements.push_back(std::make_unique<RelativeHydrationElement>(owner->_get_sequencer(), std::string{name}, ratio));
-    return *this;
-}
-
-SetupElement& SetupElement::output_folder(const io::Folder& path) {
-    elements.push_back(std::make_unique<OutputFolderElement>(owner->_get_sequencer(), path));
-    return *this;
 }
 
 const ausaxs::io::ExistingFile& SetupElement::_get_saxs_path() const {
