@@ -6,7 +6,6 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <utility/observer_ptr.h>
 
 #include <functional>
@@ -16,7 +15,9 @@
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
-    class MessageElement : public LoopElementCallback, public GenericElement {
+    class LoopElement;
+
+    class MessageElement : public GenericElement {
         public:
             MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, std::string_view colour, bool log);
             MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, bool log);
@@ -29,6 +30,7 @@ namespace ausaxs::rigidbody::sequencer {
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
+            observer_ptr<LoopElement> owner;
             std::function<void()> message_func;
             std::function<std::string()> parse_user_msg(std::string_view msg) const;
     };

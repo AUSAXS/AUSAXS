@@ -9,18 +9,15 @@
 #include <rigidbody/sequencer/elements/setup/CopyBodyElement.h>
 #include <rigidbody/sequencer/elements/setup/DeleteElement.h>
 #include <rigidbody/sequencer/elements/setup/LoadElement.h>
-#include <rigidbody/sequencer/elements/setup/LoadExistingElement.h>
 #include <rigidbody/sequencer/elements/setup/MergeElement.h>
 #include <rigidbody/sequencer/elements/setup/OutputFolderElement.h>
 #include <rigidbody/sequencer/elements/setup/RelativeHydrationElement.h>
 #include <rigidbody/sequencer/elements/setup/RenameElement.h>
 #include <rigidbody/sequencer/elements/setup/SettingsElement.h>
-#include <rigidbody/sequencer/elements/setup/SetupElement.h>
 #include <rigidbody/sequencer/elements/setup/SplitElement.h>
 #include <rigidbody/sequencer/elements/setup/SymmetryElement.h>
 
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
-#include <rigidbody/sequencer/elements/ConstraintIteratorElement.h>
 #include <rigidbody/sequencer/elements/CopyLoopElement.h>
 #include <rigidbody/sequencer/elements/EveryNStepElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>

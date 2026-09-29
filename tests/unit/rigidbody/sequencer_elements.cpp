@@ -1,10 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <fitter/FitResult.h>  // IWYU pragma: keep
-#include <io/ExistingFile.h>
 #include <io/Folder.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/elements/All.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>
@@ -22,188 +23,220 @@ struct SequencerElementsFixture {
     }
 };
 
+namespace {
+    std::unique_ptr<Sequencer> parse_sequence(const std::string& script) {
+        SequenceParser parser;
+        return parser.parse_text(script + (script.find("\nloop ") != std::string::npos ? "end\n" : ""));
+    }
+}
+
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::SaveElement basic functionality") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
     SECTION("Save PDB file - verify no crash") {
         io::Folder out_dir("temp/ausaxs_test_output_" + test::detail::unique_tag());
         out_dir.create();
         std::string output_path = out_dir.path() + "/test_save.pdb";
-
-        REQUIRE_NOTHROW(
-            seq
-                .setup()
-                    .load("tests/files/SASDJG5.pdb")
-                .end()
-                .loop(2)
-                    .optimize()
-                    .save(output_path)
-                .end()
-            .execute()
+        auto seq = parse_sequence(
+            "load {\n"
+            "    pdb tests/files/SASDJG5.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "loop 2\n"
+            "    optimize_once\n"
+            "    save " + output_path + "\n"
+            "end\n"
         );
+
+        REQUIRE(seq != nullptr);
+        REQUIRE_NOTHROW(seq->execute());
     }
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::EveryNStepElement conditional execution") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
     SECTION("Execute every 2 steps - verify no crash") {
         io::Folder out_dir("temp/ausaxs_test_output_" + test::detail::unique_tag());
         out_dir.create();
         std::string output_path = out_dir.path() + "/every_n_%.pdb";
-
-        REQUIRE_NOTHROW(
-            seq
-                .setup()
-                    .load("tests/files/SASDJG5.pdb")
-                .end()
-                .loop(5)
-                    .optimize()
-                    .every(2)
-                        .save(output_path)
-                    .end()
-                .end()
-            .execute()
+        auto seq = parse_sequence(
+            "load {\n"
+            "    pdb tests/files/SASDJG5.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "loop 5\n"
+            "    optimize_once\n"
+            "    every 2\n"
+            "        save " + output_path + "\n"
+            "    end\n"
+            "end\n"
         );
+
+        REQUIRE(seq != nullptr);
+        REQUIRE_NOTHROW(seq->execute());
     }
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::OnImprovementElement conditional execution") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
     SECTION("Basic optimization steps") {
-        auto result = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(5)
-                .optimize()
-            .end()
-        .execute();
+        auto seq = parse_sequence(
+            "load {\n"
+            "    pdb tests/files/SASDJG5.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "loop 5\n"
+            "    optimize_once\n"
+            "end\n"
+        );
         
+        REQUIRE(seq != nullptr);
+        auto result = seq->execute();
         REQUIRE(result != nullptr);
         CHECK(result->fval > 0);
     }
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::AutoConstraintsElement") {
-    Sequencer seq(io::ExistingFile("tests/files/LAR1-2.pdb"));
-    
     SECTION("Generate backbone constraints") {
         REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-                .generate_backbone_constraints()
-            .end()
+            parse_sequence(
+                "load {\n"
+                "    pdb tests/files/LAR1-2.pdb\n"
+                "    saxs tests/files/LAR1-2.dat\n"
+                "    split 9 99\n"
+                "}\n"
+                "autoconstrain backbone\n"
+            )
         );
     }
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::ConstraintElement") {
-    Sequencer seq(io::ExistingFile("tests/files/LAR1-2.pdb"));
-    
     SECTION("Add distance constraint center mass") {
         REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-                .distance_constraint_center_mass(0, 1)
-            .end()
+            parse_sequence(
+                "load {\n"
+                "    pdb tests/files/LAR1-2.pdb\n"
+                "    saxs tests/files/LAR1-2.dat\n"
+                "    split 9 99\n"
+                "}\n"
+                "constrain {\n"
+                "    first b1\n"
+                "    second b2\n"
+                "    type cm\n"
+                "}\n"
+            )
         );
     }
-    
+
     SECTION("Add distance constraint closest") {
         REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/LAR1-2.pdb", std::vector<int>{9, 99})
-                .distance_constraint_closest(0, 1)
-            .end()
+            parse_sequence(
+                "load {\n"
+                "    pdb tests/files/LAR1-2.pdb\n"
+                "    saxs tests/files/LAR1-2.dat\n"
+                "    split 9 99\n"
+                "}\n"
+                "constrain {\n"
+                "    first b1\n"
+                "    second b2\n"
+                "    type bond\n"
+                "}\n"
+            )
         );
     }
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement nested loops") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
     SECTION("Two nested loops") {
-        auto result = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(2)  // outer loop
-                .loop(3)  // inner loop
-                    .optimize()
-                .end()
-            .end()
-        .execute();
-        
+        auto seq = parse_sequence(
+            "load {\n"
+            "    pdb tests/files/SASDJG5.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "loop 2\n"
+            "    loop 3\n"
+            "        optimize_once\n"
+            "    end\n"
+            "end\n"
+        );
+
+        REQUIRE(seq != nullptr);
+        auto result = seq->execute();
         REQUIRE(result != nullptr);
         CHECK(result->fval > 0);
     }
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::ParameterElement configuration") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
     SECTION("Configure parameter generation") {
         REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(5)
-                .optimize()
-            .end()
+            parse_sequence(
+                "load {\n"
+                "    pdb tests/files/SASDJG5.pdb\n"
+                "    saxs tests/files/SASDJG5.dat\n"
+                "}\n"
+                "loop 5\n"
+                "    optimize_once\n"
+                "end\n"
+            )
         );
     }
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::BodySelectElement strategies") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
     SECTION("Random body selection") {
         REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(3)
-                .optimize()
-            .end()
+            parse_sequence(
+                "load {\n"
+                "    pdb tests/files/SASDJG5.pdb\n"
+                "    saxs tests/files/SASDJG5.dat\n"
+                "}\n"
+                "loop 3\n"
+                "    optimize_once\n"
+                "end\n"
+            )
         );
     }
-    
+
     SECTION("Sequential body selection") {
         REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(3)
-                .optimize()
-            .end()
+            parse_sequence(
+                "load {\n"
+                "    pdb tests/files/SASDJG5.pdb\n"
+                "    saxs tests/files/SASDJG5.dat\n"
+                "}\n"
+                "loop 3\n"
+                "    optimize_once\n"
+                "end\n"
+            )
         );
     }
 }
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::TransformElement strategies") {
-    Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-    
     SECTION("Rigid transform") {
         REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(3)
-                .optimize()
-            .end()
+            parse_sequence(
+                "load {\n"
+                "    pdb tests/files/SASDJG5.pdb\n"
+                "    saxs tests/files/SASDJG5.dat\n"
+                "}\n"
+                "loop 3\n"
+                "    optimize_once\n"
+                "end\n"
+            )
         );
     }
-    
+
     SECTION("Single transform") {
         REQUIRE_NOTHROW(
-            seq.setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(3)
-                .optimize()
-            .end()
+            parse_sequence(
+                "load {\n"
+                "    pdb tests/files/SASDJG5.pdb\n"
+                "    saxs tests/files/SASDJG5.dat\n"
+                "}\n"
+                "loop 3\n"
+                "    optimize_once\n"
+                "end\n"
+            )
         );
     }
 }
@@ -217,16 +250,21 @@ namespace {
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement stop request") {
     SECTION("Stop request ends the loop after the current iteration") {
-        Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-        auto& loop = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(10);
-        loop.optimize();
-        loop._get_elements().push_back(std::make_unique<StopRequestElement>());
+        auto seq = parse_sequence(
+            "load {\n"
+            "    pdb tests/files/SASDJG5.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "loop 10\n"
+            "    optimize_once\n"
+            "end\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto* loop = dynamic_cast<LoopElement*>(seq->_get_elements().back().get());
+        REQUIRE(loop != nullptr);
+        loop->_get_elements().push_back(std::make_unique<StopRequestElement>());
 
-        auto result = loop.end().execute();
+        auto result = seq->execute();
 
         // the requesting iteration always finishes, so exactly one of the ten should have run
         CHECK(LoopElement::_get_current_iteration() == 1);
@@ -240,15 +278,17 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement stop 
     SECTION("A stop requested while nothing is running does not affect the next run") {
         LoopElement::_request_stop();
 
-        Sequencer seq(io::ExistingFile("tests/files/SASDJG5.dat"));
-        auto result = seq
-            .setup()
-                .load("tests/files/SASDJG5.pdb")
-            .end()
-            .loop(3)
-                .optimize()
-            .end()
-        .execute();
+        auto seq = parse_sequence(
+            "load {\n"
+            "    pdb tests/files/SASDJG5.pdb\n"
+            "    saxs tests/files/SASDJG5.dat\n"
+            "}\n"
+            "loop 3\n"
+            "    optimize_once\n"
+            "end\n"
+        );
+        REQUIRE(seq != nullptr);
+        auto result = seq->execute();
 
         CHECK(LoopElement::_get_current_iteration() == 3);
         CHECK_FALSE(LoopElement::_stop_requested());

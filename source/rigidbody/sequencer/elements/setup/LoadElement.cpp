@@ -34,9 +34,9 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
         throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (int i = 0; i < rigidbody->molecule.size_body(); ++i) {
-        owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
+        owner->_body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
-    owner->setup()._set_active_body(rigidbody.get());
+    owner->_set_rigidbody(rigidbody.get());
 
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from " << paths.size() << " files." << std::endl;
@@ -58,9 +58,9 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (int i = 0; i < rigidbody->molecule.size_body(); ++i) {
-        owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
+        owner->_body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
-    owner->setup()._set_active_body(rigidbody.get());
+    owner->_set_rigidbody(rigidbody.get());
 
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from \"" << path << "\"." << std::endl;
@@ -78,9 +78,9 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
         throw ausaxs::except::runtime_error("LoadElement::LoadElement: The number of body names does not match the number of bodies.");
     }
     for (int i = 0; i < rigidbody->molecule.size_body(); ++i) {
-        owner->setup()._body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
+        owner->_body_name_registry().add_body(i, body_names.empty() ? std::string{} : body_names[i]);
     }
-    owner->setup()._set_active_body(rigidbody.get());
+    owner->_set_rigidbody(rigidbody.get());
 
     if (settings::general::verbose) {
         std::cout << "\tLoaded " << rigidbody->molecule.size_body() << " bodies from \"" << path << "\"." << std::endl;
@@ -97,7 +97,7 @@ std::pair<std::string, bool> LoadElement::lookup_file(const std::string& path) {
 
     // fall back to the folder holding the configuration file so that a script can reference files relative to itself.
     // the whole relative path is appended, so files in subfolders next to the script resolve as well
-    auto config_folder = owner->setup()._get_config_folder();
+    auto config_folder = owner->_get_config_folder();
     if (!config_folder.empty() && !std::filesystem::path(path).is_absolute()) {
         io::File relative(config_folder + "/" + path);
         if (relative.exists()) {return {relative, true};}
@@ -187,7 +187,7 @@ std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> ow
     if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}
     if (!saxs.found) {throw except::parse_error("load", "Missing required argument \"saxs\".");}
 
-    owner->_get_sequencer()->setup()._set_saxs_path(io::ExistingFile(saxs.value));
+    owner->_get_sequencer()->_set_saxs_path(io::ExistingFile(saxs.value));
     if (split.found) {
         // pattern 1: split chain - a single file split at its chain boundaries
         if (split.value.size() == 1 && split.value[0] == "chain") {

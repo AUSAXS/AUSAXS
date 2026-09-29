@@ -65,7 +65,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
     // the top element of this stack is the current loop element which new elements will be added to
     // note that the sequencer itself is just a dummy loop element with an iteration count of 1
     loop_stack = {sequencer.get()};
-    sequencer->setup()._set_config_folder(config_folder);
+    sequencer->_set_config_folder(config_folder);
 
     std::string line;
     int line_no = 0;

@@ -25,7 +25,7 @@ namespace {
 }
 
 SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, io::File path) 
-    : LoopElementCallback(owner), path(std::move(path)) 
+    : owner(owner), path(std::move(path))
 {}
 
 SaveElement::~SaveElement() {

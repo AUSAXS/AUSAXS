@@ -61,10 +61,9 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
     assert(names.size() == symmetries.size() && "SymmetryElement::_add: The number of names and symmetries must be equal.");
     auto* molecule = owner->_get_molecule();
     auto* rigidbody = owner->_get_rigidbody();
-    auto& setup = owner->setup();
 
     for (int i = 0; i < static_cast<int>(names.size()); ++i) {
-        int ibody = setup._get_body(names[i]);
+        int ibody = owner->_get_body(names[i]);
 
         // install the symmetry on the live body and the stored initial conformation
         molecule->get_body(ibody).symmetry().add(symmetries[i]->clone());
@@ -72,7 +71,7 @@ void SymmetryElement::_add(const std::vector<std::string>& names, std::vector<st
 
         // add names for the symmetric bodies: each replica's permanent tag is always "<base>sYrZ", built from the base body's own permanent default name
         // rather than whatever name the caller used to refer to it, so it stays valid no matter how the base body gets renamed later
-        auto& name_map = setup._body_name_registry();
+        auto& name_map = owner->_body_name_registry();
         int isymmetry = molecule->get_body(ibody).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::_add: Inconsistent data structures.");
         int reps = molecule->get_body(ibody).symmetry().get(isymmetry)->repetitions();
@@ -98,13 +97,12 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
     assert(2 <= body_names.size() && "SymmetryElement::_add_reference: a reference symmetry needs at least two bodies.");
     auto* molecule = owner->_get_molecule();
     auto* rigidbody = owner->_get_rigidbody();
-    auto& setup = owner->setup();
 
     // resolve the participating body indices, preserving the declared order (first = primary)
     std::vector<int> bodies;
     bodies.reserve(body_names.size());
     for (const auto& name : body_names) {
-        bodies.push_back(setup._get_body(name));
+        bodies.push_back(owner->_get_body(name));
     }
 
     // the shared symmetry replicates the group as one rigid unit; any base the optimiser can drive on a single body works here too
@@ -145,7 +143,7 @@ void SymmetryElement::_add_reference(const std::vector<std::string>& body_names,
 
     // register names and per-body symmetry parameters for every participating body; as in _add, each replica's permanent tag is always "<base>sYrZ",
     // built from the base body's own permanent default name
-    auto& name_map = setup._body_name_registry();
+    auto& name_map = owner->_body_name_registry();
     for (int b : bodies) {
         int isymmetry = molecule->get_body(b).size_symmetry()-1;
         assert(0 <= isymmetry && "SymmetryElement::_add_reference: Inconsistent data structures.");

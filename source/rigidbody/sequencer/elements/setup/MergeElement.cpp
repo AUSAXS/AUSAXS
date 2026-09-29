@@ -31,12 +31,12 @@ namespace {
 
 MergeElement::MergeElement(observer_ptr<Sequencer> owner, std::string_view first_name, const std::vector<std::string>& other_names) {
     detail::require_mutable_structure(owner, "merge");
-    int i_first = owner->setup()._get_body(first_name);
+    int i_first = owner->_get_body(first_name);
 
     std::vector<int> other_indices;
     other_indices.reserve(other_names.size());
     for (const auto& name : other_names) {
-        other_indices.push_back(owner->setup()._get_body(name));
+        other_indices.push_back(owner->_get_body(name));
     }
 
     auto& molecule = *owner->_get_molecule();
@@ -81,7 +81,7 @@ InlineSignature MergeElement::_valid_inline_arguments() {
 
 // merge [first] [others...] - merges every [others] body into [first]
 std::unique_ptr<GenericElement> MergeElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
-    const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
+    const auto& body_names = owner->_get_sequencer()->_body_name_registry();
     std::string first = args.inlined[0];
     if (!body_names.contains(first)) {throw except::parse_error("merge", "Body name \"" + first + "\" not found.");}
 

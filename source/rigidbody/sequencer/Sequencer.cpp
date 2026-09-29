@@ -16,15 +16,11 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::sequencer;
 
-Sequencer::Sequencer() : LoopElement(nullptr, 1), setup_loop(this), rigidbody(nullptr) {}
+Sequencer::Sequencer() : LoopElement(nullptr, 1), rigidbody(nullptr) {}
 
-Sequencer::Sequencer(const io::ExistingFile& saxs) : LoopElement(nullptr, 1), setup_loop(this, saxs), rigidbody(nullptr) {}
+Sequencer::Sequencer(io::ExistingFile saxs) : LoopElement(nullptr, 1), rigidbody(nullptr), saxs_path(std::move(saxs)) {}
 
 Sequencer::~Sequencer() = default;
-
-LoopElement& Sequencer::end() {
-    throw ausaxs::except::runtime_error("Sequencer::end: Too many end() calls detected.");
-}
 
 void Sequencer::run() {
     throw ausaxs::except::logic_error("Sequencer::run: Use execute() to run the sequencer. Calling run() directly skips rigidbody and controller initialization.");
@@ -37,7 +33,7 @@ observer_ptr<rigidbody::Rigidbody> Sequencer::_get_rigidbody() const {
 
 void Sequencer::_set_rigidbody(observer_ptr<Rigidbody> rigidbody) {
     assert(rigidbody != nullptr && "Sequencer::_set_rigidbody: Rigidbody must not be null.");
-    setup_loop._set_active_body(rigidbody);
+    this->rigidbody = rigidbody;
 }
 
 observer_ptr<data::Molecule> Sequencer::_get_molecule() const {
@@ -65,20 +61,40 @@ observer_ptr<controller::IController> Sequencer::_get_controller() const {
     return rigidbody->controller.get();
 }
 
-SetupElement& Sequencer::setup() {return setup_loop;}
+sequencer::detail::BodyNameRegistry& Sequencer::_body_name_registry() {
+    return body_names;
+}
+
+sequencer::detail::BodySymmetrySelector Sequencer::_get_body_index(std::string_view name) const {
+    return body_names.resolve(name);
+}
+
+int Sequencer::_get_body(std::string_view name) const {
+    return body_names.resolve_body(name);
+}
+
+std::string Sequencer::_get_config_folder() const {
+    return config_folder;
+}
+
+void Sequencer::_set_config_folder(const io::Folder& folder) {
+    config_folder = folder;
+}
+
+void Sequencer::_set_saxs_path(const io::ExistingFile& saxs) {
+    saxs_path = saxs;
+}
+
+const io::ExistingFile& Sequencer::_get_saxs_path() const {
+    return saxs_path;
+}
 
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     _clear_stop_request(); // a stop requested while nothing was running must not immediately kill this run
     _reset_counters();     // a previous run must not leak into this one
     _recount_total_iterations(this);
-    auto saxs_path = setup()._get_saxs_path();
     if (!saxs_path.exists()) {throw ausaxs::except::runtime_error("Sequencer::execute: SAXS file \"" + saxs_path.str() + "\" does not exist.");}
     rigidbody->molecule.generate_new_hydration(); // some setup elements requires access to the hydration generators
-
-    // run the setup elements, defining all of the necessary parameters
-    for (auto& e : setup()._get_elements()) {
-        e->run();
-    }
 
     // prepare the fitter for the actual optimization
     _get_controller()->setup(saxs_path);

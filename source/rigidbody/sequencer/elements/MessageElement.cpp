@@ -23,7 +23,7 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
     auto chi2_penalty = [this] () { return utility::round_double(owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3); };
     auto chi2_no_penalty = [this] () { return utility::round_double(owner->_get_current_conf()->chi2 - owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3);};
     auto body_names = [this] () {
-        const auto& entries = owner->_get_sequencer()->setup()._body_name_registry().all();
+        const auto& entries = owner->_get_sequencer()->_body_name_registry().all();
 
         std::vector<std::string> parts;
         parts.reserve(entries.size());
@@ -83,7 +83,7 @@ MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> o
 {}
 
 MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, std::string_view colour, bool log) 
-    : LoopElementCallback(owner)
+    : owner(owner)
 {
     message_func = [log, colour=std::string(colour), builder=parse_user_msg(message)] () -> void {
         if (log) {

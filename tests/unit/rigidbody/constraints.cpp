@@ -9,7 +9,6 @@
 #include <rigidbody/constraints/DistanceConstraintAtom.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
 #include <rigidbody/constraints/DistanceConstraintCM.h>
-#include <rigidbody/constraints/FixedConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/RepellerConstraint.h>
 #include <settings/All.h>
@@ -93,11 +92,6 @@ TEST_CASE_METHOD(fixture, "Constraints::basic_evaluate") {
         CHECK(v1 >= 0);
         // values may change after translation
         CHECK(v1 != v0);
-    }
-
-    SECTION("FixedConstraint") {
-        FixedConstraint f(&mol, 0, 1);
-        CHECK(f.evaluate() == 0);
     }
 }
 

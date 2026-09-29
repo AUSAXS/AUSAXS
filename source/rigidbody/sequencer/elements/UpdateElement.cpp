@@ -17,7 +17,7 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-UpdateElement::UpdateElement(observer_ptr<LoopElement> owner) : LoopElementCallback(owner) {
+UpdateElement::UpdateElement(observer_ptr<LoopElement> owner) : owner(owner) {
     // reset on construction instead of destruction to ensure the data lives long enough for the consumer to finish polling after a run has finished
     reset_statics();
 

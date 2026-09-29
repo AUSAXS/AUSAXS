@@ -14,7 +14,7 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::sequencer;
 
-ParameterElement::ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<parameter::ParameterGenerationStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
+ParameterElement::ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<parameter::ParameterGenerationStrategy> strategy) : owner(owner), strategy(std::move(strategy)) {}
 
 ParameterElement::~ParameterElement() = default;
 
@@ -23,31 +23,6 @@ void ParameterElement::run() {
     // so that "iterations" always means the number of following optimisation steps this generator is valid for.
     strategy->get_decay_strategy()->reset();
     owner->_get_rigidbody()->parameter_generator = strategy;
-}
-
-ParameterElement& ParameterElement::decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> strategy) {
-    this->strategy->set_decay_strategy(std::move(strategy));
-    return *this;
-}
-
-ParameterElement& ParameterElement::max_rotation_angle(double radians) {
-    strategy->set_max_rotation_angle(radians);
-    return *this;
-}
-
-ParameterElement& ParameterElement::max_translation_distance(double distance) {
-    strategy->set_max_translation_distance(distance);
-    return *this;
-}
-
-ParameterElement& ParameterElement::max_symmetry_rotation_angle(double radians) {
-    strategy->set_max_symmetry_rotation_angle(radians);
-    return *this;
-}
-
-ParameterElement& ParameterElement::max_symmetry_translation_distance(double distance) {
-    strategy->set_max_symmetry_translation_distance(distance);
-    return *this;
 }
 
 observer_ptr<parameter::ParameterGenerationStrategy> ParameterElement::get_parameter_strategy() const {

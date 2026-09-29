@@ -8,11 +8,12 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
-#include <rigidbody/sequencer/elements/LoopElementCallback.h>
 #include <utility/observer_ptr.h>
 
+#include <memory>
+
 namespace ausaxs::rigidbody::sequencer {
-    class SaveElement : public LoopElementCallback, public GenericElement {
+    class SaveElement : public GenericElement {
         public:
             SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, io::File path);
             ~SaveElement() override;
@@ -26,6 +27,7 @@ namespace ausaxs::rigidbody::sequencer {
             static std::unique_ptr<GenericElement> _parse(observer_ptr<LoopElement> owner, ParsedArgs&& args);
 
         private:
+            observer_ptr<LoopElement> owner;
             io::File path;
     };
 }

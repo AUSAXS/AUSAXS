@@ -84,7 +84,7 @@ TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationEleme
     SECTION("a level declared through an alias survives a later rename") {
         auto seq = build("rename b2 core\n");
         RelativeHydrationElement element(seq.get(), "core", high);
-        seq->setup()._body_name_registry().rename("core", "other");
+        seq->_body_name_registry().rename("core", "other");
         CHECK(element._get_ratios() == std::vector<double>{normal, high, normal});
     }
 
@@ -103,7 +103,7 @@ TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationEleme
 
     SECTION("a symmetry replica is rejected: it has no hydration of its own to scale") {
         auto seq = build("symmetry b1 c2\n");
-        REQUIRE(seq->setup()._body_name_registry().contains("b1s1r1"));
+        REQUIRE(seq->_body_name_registry().contains("b1s1r1"));
         CHECK_THROWS(RelativeHydrationElement(seq.get(), "b1s1r1", high));
     }
 
@@ -168,10 +168,8 @@ TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationEleme
 
         // read the merged store back off one of the real elements the script produced
         RelativeHydrationElement* element = nullptr;
-        for (const auto* list : {&seq->setup()._get_elements(), &seq->_get_elements()}) {
-            for (const auto& e : *list) {
-                if (auto* rh = dynamic_cast<RelativeHydrationElement*>(e.get())) {element = rh;}
-            }
+        for (const auto& e : seq->_get_elements()) {
+            if (auto* rh = dynamic_cast<RelativeHydrationElement*>(e.get())) {element = rh;}
         }
         REQUIRE(element != nullptr);
         CHECK(element->_get_ratios() == std::vector<double>{maximum, normal, low});

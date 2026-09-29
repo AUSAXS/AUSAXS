@@ -42,7 +42,7 @@ TEST_CASE_METHOD(SequenceParserRenameFixture, "SequenceParser::RenameElement") {
             "rename b1 core\n"
         );
         REQUIRE(seq != nullptr);
-        const auto& names = seq->setup()._body_name_registry();
+        const auto& names = seq->_body_name_registry();
         CHECK(names.contains("b1")); // the default name is permanent and is never removed by a rename
         CHECK(names.contains("core"));
     }
@@ -57,7 +57,7 @@ TEST_CASE_METHOD(SequenceParserRenameFixture, "SequenceParser::RenameElement") {
             "rename core shell\n"
         );
         REQUIRE(seq != nullptr);
-        const auto& names = seq->setup()._body_name_registry();
+        const auto& names = seq->_body_name_registry();
         CHECK(names.contains("b1"));
         CHECK_FALSE(names.contains("core"));
         CHECK(names.contains("shell"));

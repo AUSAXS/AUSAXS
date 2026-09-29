@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/detail/AdditionalElements.h>
 
+#include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/MessageElement.h>
@@ -53,7 +54,7 @@ void detail::OverlapStrengthElement::_parse(observer_ptr<LoopElement> owner, Par
         if (!distance.found) {throw except::parse_error("overlap_strength", "Missing required argument \"distance\".");}
     }
 
-    owner->_get_sequencer()->setup().set_overlap_function([a=scaling.value, d=distance.value] (double x) {return x < d ? a*std::pow((d-x)/d, 2) : 0;});
+    rigidbody::constraints::OverlapConstraint::set_overlap_function([a=scaling.value, d=distance.value] (double x) {return x < d ? a*std::pow((d-x)/d, 2) : 0;});
 }
 
 std::vector<std::string> detail::SeedElement::_valid_arguments() { return {}; }

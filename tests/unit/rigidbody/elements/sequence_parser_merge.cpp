@@ -81,7 +81,7 @@ TEST_CASE_METHOD(SequenceParserMergeFixture, "SequenceParser::MergeElement") {
             "merge b1 b2\n"
         );
         REQUIRE(seq != nullptr);
-        const auto& names = seq->setup()._body_name_registry();
+        const auto& names = seq->_body_name_registry();
         CHECK(names.contains("b1"));
         CHECK_FALSE(names.contains("b2"));
     }

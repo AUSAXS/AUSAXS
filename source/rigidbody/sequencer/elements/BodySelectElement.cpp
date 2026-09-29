@@ -14,7 +14,7 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-BodySelectElement::BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) : LoopElementCallback(owner), strategy(std::move(strategy)) {}
+BodySelectElement::BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) : owner(owner), strategy(std::move(strategy)) {}
 BodySelectElement::~BodySelectElement() = default;
 
 void BodySelectElement::run() {
@@ -74,7 +74,7 @@ std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopEleme
             );
         }
 
-        const auto& body_names = owner->_get_sequencer()->setup()._body_name_registry();
+        const auto& body_names = owner->_get_sequencer()->_body_name_registry();
         if (!body_names.contains(token)) {
             throw except::parse_error("select", "Unknown body select strategy, body name/alias, or symmetry tag \"" + token + "\".");
         }
