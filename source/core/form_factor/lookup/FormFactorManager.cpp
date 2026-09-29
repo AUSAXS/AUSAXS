@@ -218,7 +218,9 @@ void manager::detail::use_form_factors(std::vector<int> ff_indices) {
 void manager::use_form_factors(const data::Molecule& molecule) {
     std::vector<int> ff_counts(form_factor::total_ff_count, 0);
     for (const auto& a : molecule.iterate_atoms()) {
-        ++ff_counts[static_cast<int>(a.form_factor_type())];
+        if (form_factor::detail::is_tabulated(a.form_factor_type())) {
+            ++ff_counts[static_cast<int>(a.form_factor_type())];
+        }
     }
     // ensure excluded volume and water are always at the front of the list, and OTHER is always at the end, regardless of abundance
     ff_counts[static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)] = std::numeric_limits<int>::max();
