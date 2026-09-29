@@ -442,7 +442,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     if (cache.sinqd.aa.empty()) {
-        cache.sinqd.aa = container::Container3D<double, container::Shape::Triangular>(form_factor::get_active_count(), form_factor::get_active_count(), debye_axis.bins);
+        cache.sinqd.aa = container::TriangularContainer3D<double>(form_factor::get_active_count(), form_factor::get_active_count(), debye_axis.bins);
         cache.sinqd.aw = container::Container2D<double>(form_factor::get_active_count(), debye_axis.bins);
         cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
     }

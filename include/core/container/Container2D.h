@@ -149,4 +149,6 @@ namespace ausaxs::container {
             int N, M;
             std::vector<T> data;
     };
+    template<typename T>
+    using TriangularContainer2D = Container2D<T, Shape::Triangular>;
 }

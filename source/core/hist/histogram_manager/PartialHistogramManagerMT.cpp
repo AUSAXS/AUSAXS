@@ -171,7 +171,7 @@ void PartialHistogramManagerMTBase<weighted_bins, form_factors>::initialize(int 
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
     store = std::make_unique<distance_calculator::HistogramStore<weighted_bins>>(axis.bins, form_factors ? form_factor::get_active_count() : 1);
-    id.aa = container::Container2D<int, container::Shape::Triangular>(this->body_size, this->body_size);
+    id.aa = container::TriangularContainer2D<int>(this->body_size, this->body_size);
     for (int& slot : id.aa) {slot = form_factors ? store->allocate_3d() : store->allocate_1d();}
     id.aw.resize(this->body_size);
     for (int& slot : id.aw) {slot = form_factors ? store->allocate_2d() : store->allocate_1d();}

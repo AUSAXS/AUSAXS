@@ -52,7 +52,7 @@ namespace ausaxs::hist {
 			GenericDistribution1D_t cached_p_tot; // the total histogram of the last calculation, returned as is while nothing is modified
 			std::unique_ptr<distance_calculator::HistogramStore<weighted_bins>> store;
 			struct {
-				container::Container2D<int, container::Shape::Triangular> aa; // the result ids in the store per unordered body pair
+				container::TriangularContainer2D<int> aa; // the result ids in the store per unordered body pair
 				std::vector<int> aw;              // the result ids in the store per body
 				int ww = -1;                      // the result id in the store of the hydration layer
 			} id;

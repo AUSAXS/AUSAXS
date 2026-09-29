@@ -53,9 +53,9 @@ namespace ausaxs::hist {
             detail::MasterHistogram<weighted_bins> master;									// the current total histogram
             std::vector<detail::CompactCoordinates> coords_a;			// a compact representation of the relevant data from the managed bodies
             detail::CompactCoordinates coords_w;                		// a compact representation of the hydration data
-			container::Container2D<detail::PartialHistogram<weighted_bins>> partials_aa; 	// the partial histograms
-			container::Container1D<detail::HydrationHistogram<weighted_bins>> partials_aw;	// the partial hydration-atom histograms
-			detail::HydrationHistogram<weighted_bins> partials_ww;               			// the partial histogram for the hydration layer
+			container::TriangularContainer2D<detail::PartialHistogram<weighted_bins>> partials_aa; 	// the partial histograms
+			container::Container1D<detail::HydrationHistogram<weighted_bins>> partials_aw;			// the partial hydration-atom histograms
+			detail::HydrationHistogram<weighted_bins> partials_ww;               					// the partial histogram for the hydration layer
 
 		private:
 		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
