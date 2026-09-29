@@ -197,9 +197,11 @@ template<bool weighted_bins, bool form_factors>
 void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_representation_body(int ibody) {
     coords[ibody] = symmetry::detail::generate_transformed_data<form_factors>(this->protein->get_body(ibody));
     if constexpr (!form_factors) {
-        for (auto& c : coords[ibody].atomic) {
-            for (auto& sym : c) {
-                hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+            for (auto& c : coords[ibody].atomic) {
+                for (auto& sym : c) {
+                    hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
+                }
             }
         }
     }
@@ -211,8 +213,10 @@ void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_r
     assert(isym > 0 && isym < static_cast<int>(coords[ibody].atomic.size()) && "update_compact_representation_symmetry: isym out of range");
     coords[ibody].atomic[isym] = symmetry::detail::generate_transformed_data<form_factors>(this->protein->get_body(ibody), isym-1).data;
     if constexpr (!form_factors) {
-        for (auto& sym : coords[ibody].atomic[isym]) {
-            hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+            for (auto& sym : coords[ibody].atomic[isym]) {
+                hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
+            }
         }
     }
 }

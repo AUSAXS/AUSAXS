@@ -8,29 +8,27 @@
 #include <math/Vector3.h>
 #include <utility/observer_ptr.h>
 
+#include <type_traits>
 #include <vector>
 
 /**
  * @brief The only construction path for the compact coordinate representations.
  */
 namespace ausaxs::hist::detail::factory {
-    /**
-     * @brief Construct a weight-based representation of @a atoms.
-     */
-    inline CompactCoordinates construct(const std::vector<data::AtomFF>& atoms) {
-        CompactCoordinates c;
-        c.fill(atoms);
-        return c;
-    }
+    template<bool form_factors>
+    using AtomicCoordinates = std::conditional_t<form_factors, std::vector<CompactCoordinates>, CompactCoordinates>;
 
     /**
-     * @brief Construct a weight-based representation of every atom in @a molecule.
+     * @brief Construct a representation of @a atoms, optionally split by active form factor type.
      */
-    inline CompactCoordinates construct_from_atoms(observer_ptr<const data::Molecule> molecule) {
-        CompactCoordinates c;
-        c.fill_from_atoms(molecule);
-        return c;
-    }
+    template<bool form_factors>
+    AtomicCoordinates<form_factors> construct(const std::vector<data::AtomFF>& atoms);
+
+    /**
+     * @brief Construct a representation of every atom in @a molecule, optionally split by active form factor type.
+     */
+    template<bool form_factors>
+    AtomicCoordinates<form_factors> construct_from_atoms(observer_ptr<const data::Molecule> molecule);
 
     /**
      * @brief Construct a weight-based representation of every water in @a molecule.

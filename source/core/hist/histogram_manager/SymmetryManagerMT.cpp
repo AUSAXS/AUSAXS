@@ -17,7 +17,6 @@
 #include <utility/Logging.h>
 
 #include <ranges>
-#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::hist::detail;
@@ -49,9 +48,11 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<w
     // note that we are responsible for guaranteeing their lifetime until all enqueue_calculate_* calls are done
     auto[data, data_w] = generate_transformed_data<form_factors>(*protein);
     if constexpr (!form_factors) {
-        for (auto& body : data) {
-            for (auto& copies : body.atomic) {
-                for (auto& copy : copies) {hist::detail::SimpleExvModel::apply_simple_excluded_volume(copy, protein);}
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+            for (auto& body : data) {
+                for (auto& copies : body.atomic) {
+                    for (auto& copy : copies) {hist::detail::SimpleExvModel::apply_simple_excluded_volume(copy, protein);}
+                }
             }
         }
     }

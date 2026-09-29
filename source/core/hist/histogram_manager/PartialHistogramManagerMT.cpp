@@ -8,7 +8,6 @@
 #include <form_factor/FormFactorType.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/detail/CompactCoordinatesFactoryFF.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
@@ -122,11 +121,11 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMTBase<weighted_bins, 
 template<bool weighted_bins, bool form_factors>
 void PartialHistogramManagerMTBase<weighted_bins, form_factors>::update_compact_representation_body(int index) {
     const auto& atoms = this->protein->get_body(index).get_atoms();
-    if constexpr (form_factors) {
-        this->coords_a[index] = hist::detail::factory::construct_by_ff(atoms);
-    } else {
-        this->coords_a[index] = hist::detail::factory::construct(atoms);
-        hist::detail::SimpleExvModel::apply_simple_excluded_volume(this->coords_a[index], this->protein);
+    this->coords_a[index] = hist::detail::factory::construct<form_factors>(atoms);
+    if constexpr (!form_factors) {
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+            hist::detail::SimpleExvModel::apply_simple_excluded_volume(this->coords_a[index], this->protein);
+        }
     }
 }
 

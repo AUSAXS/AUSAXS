@@ -6,7 +6,6 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/detail/CompactCoordinatesFactoryFF.h>
 
 #include <utility>
 
@@ -17,8 +16,7 @@ using namespace ausaxs::hist::detail;
 namespace {
     template<bool form_factors>
     AtomicCoordinates<form_factors> construct(const data::Body& body) {
-        if constexpr (form_factors) {return factory::construct_by_ff(body.get_atoms());}
-        else                        {return factory::construct(body.get_atoms());}
+        return factory::construct<form_factors>(body.get_atoms());
     }
 
     void transform_all(CompactCoordinates& atoms, const transform::Affine& t) {atoms.transform_coordinates(t);}

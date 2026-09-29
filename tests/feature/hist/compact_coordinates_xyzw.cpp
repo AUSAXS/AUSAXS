@@ -23,7 +23,7 @@ TEST_CASE("CompactCoordinates: component storage") {
             data::AtomFF({1, 2, 3}, form_factor::form_factor_t::C),
             data::AtomFF({4, 5, 6}, form_factor::form_factor_t::O)
         };
-        auto data = hist::detail::factory::construct(atoms);
+        auto data = hist::detail::factory::construct<false>(atoms);
         REQUIRE(data.size() == 2);
         CHECK(data.x(0) == 1);
         CHECK(data.y(0) == 2);
@@ -51,7 +51,7 @@ TEST_CASE("CompactCoordinates: component storage") {
         for (int i = 0; i < 64; ++i) {
             atoms.emplace_back(Vector3<double>{double(i), 2.0*i, 3.0*i}, form_factor::form_factor_t::C);
         }
-        auto data = hist::detail::factory::construct(atoms);
+        auto data = hist::detail::factory::construct<false>(atoms);
         data.shuffle_order();
         REQUIRE(data.size() == 64);
         // every atom must still satisfy y == 2x and z == 3x, i.e. the components were

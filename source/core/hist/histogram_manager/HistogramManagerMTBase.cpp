@@ -7,7 +7,6 @@
 #include <hist/detail/AtomOrdering.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/detail/CompactCoordinatesFactoryFF.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
@@ -28,11 +27,11 @@ typename HistogramManagerMTBase<wb, ff>::Distributions HistogramManagerMTBase<wb
     // the waters are a single set either way; with form factors their weights are simply never read
     data_w_ptr = std::make_unique<CompactCoordinates>(factory::construct_from_waters(this->protein));
     auto& data_w = *data_w_ptr;
-    if constexpr (ff) {
-        data_a_ptr = std::make_unique<std::vector<CompactCoordinates>>(factory::construct_by_ff_from_atoms(this->protein));
-    } else {
-        data_a_ptr = std::make_unique<CompactCoordinates>(factory::construct_from_atoms(this->protein));
-        SimpleExvModel::apply_simple_excluded_volume(*data_a_ptr, this->protein);
+    data_a_ptr = std::make_unique<decltype(factory::construct_from_atoms<ff>(this->protein))>(factory::construct_from_atoms<ff>(this->protein));
+    if constexpr (!ff) {
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+            SimpleExvModel::apply_simple_excluded_volume(*data_a_ptr, this->protein);
+        }
     }
     auto& data_a = *data_a_ptr;
     int bin_count = hist::detail::required_bin_count(data_a, data_w);
