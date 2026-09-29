@@ -11,7 +11,7 @@ using namespace ausaxs;
 
 void settings::validate_settings() {
     // check for exv fitting support: the simple models have no separate excluded volume to fit
-    switch (settings::exv::exv_method) {
+    switch (settings::exv::exv_method.value) {
         case settings::exv::ExvMethod::None:
             ausaxs::hist::detail::SimpleExvModel::disable(); // no excluded volume at all, so not even the effective charges of the simple model
             [[fallthrough]];

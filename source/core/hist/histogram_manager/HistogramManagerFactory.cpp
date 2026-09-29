@@ -17,7 +17,6 @@
 #include <hist/histogram_manager/SymmetryManagerMT.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
-#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 

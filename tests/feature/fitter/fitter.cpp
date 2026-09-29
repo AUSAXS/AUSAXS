@@ -8,6 +8,8 @@
 #include <mini/detail/FittedParameter.h>
 #include <settings/All.h>
 
+#include <array>
+
 using namespace ausaxs;
 using namespace data;
 
@@ -271,11 +273,14 @@ TEST_CASE("SmartFitter: consistent fits using different q-ranges") {
 
     // every kind of manager for the simple model, and the managers recalculating everything for the others.
     // GridScalable and GridSurface are left out: they currently pass, take too long to run, are somewhat unstable, and are not used that often anyway
+    constexpr std::array other_exv = {settings::exv::ExvMethod::Average, settings::exv::ExvMethod::Fraser, settings::exv::ExvMethod::Grid, settings::exv::ExvMethod::FoXS, settings::exv::ExvMethod::Pepsi, settings::exv::ExvMethod::CRYSOL};
+    constexpr int kind_count = static_cast<int>(settings::hist::HistogramManagerChoice::Count);
     std::vector<std::pair<settings::hist::HistogramManagerChoice, settings::exv::ExvMethod>> managers;
-    for (int kind = 0; kind < static_cast<int>(settings::hist::HistogramManagerChoice::Count); ++kind) {
+    managers.reserve(kind_count + other_exv.size());
+    for (int kind = 0; kind < kind_count; ++kind) {
         managers.emplace_back(static_cast<settings::hist::HistogramManagerChoice>(kind), settings::exv::ExvMethod::Simple);
     }
-    for (auto exv : {settings::exv::ExvMethod::Average, settings::exv::ExvMethod::Fraser, settings::exv::ExvMethod::Grid, settings::exv::ExvMethod::FoXS, settings::exv::ExvMethod::Pepsi, settings::exv::ExvMethod::CRYSOL}) {
+    for (auto exv : other_exv) {
         managers.emplace_back(settings::hist::HistogramManagerChoice::HistogramManagerMT, exv);
     }
 

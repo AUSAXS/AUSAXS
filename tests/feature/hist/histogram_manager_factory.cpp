@@ -33,17 +33,17 @@ template<template<bool> class MANAGER> constexpr Request request_for();
 
 using Choice = settings::hist::HistogramManagerChoice;
 using Exv = settings::exv::ExvMethod;
-template<> constexpr Request request_for<hist::HistogramManager>() {return {Choice::HistogramManager, Exv::Simple};}
-template<> constexpr Request request_for<hist::HistogramManagerMT>() {return {Choice::HistogramManagerMT, Exv::Simple};}
-template<> constexpr Request request_for<hist::HistogramManagerMTFFAvg>() {return {Choice::HistogramManagerMT, Exv::Average};}
-template<> constexpr Request request_for<hist::HistogramManagerMTFFExplicit>() {return {Choice::HistogramManagerMT, Exv::Fraser};}
-template<> constexpr Request request_for<hist::SymmetryManagerMT>() {return {Choice::HistogramSymmetryManagerMT, Exv::Simple};}
-template<> constexpr Request request_for<hist::PartialHistogramManager>() {return {Choice::PartialHistogramManager, Exv::Simple};}
-template<> constexpr Request request_for<hist::PartialHistogramManagerMT>() {return {Choice::PartialHistogramManagerMT, Exv::Simple};}
-template<> constexpr Request request_for<hist::PartialSymmetryManagerMT>() {return {Choice::PartialHistogramSymmetryManagerMT, Exv::Simple};}
-template<> constexpr Request request_for<hist::HistogramManagerMTFFGrid>() {return {Choice::HistogramManagerMT, Exv::Grid};}
-template<> constexpr Request request_for<hist::HistogramManagerMTFFGridSurface>() {return {Choice::HistogramManagerMT, Exv::GridSurface};}
-template<> constexpr Request request_for<hist::HistogramManagerMTFFGridScalableExv>() {return {Choice::HistogramManagerMT, Exv::GridScalable};}
+template<> constexpr Request request_for<hist::HistogramManager>() {return {.kind=Choice::HistogramManager, .exv=Exv::Simple};}
+template<> constexpr Request request_for<hist::HistogramManagerMT>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::Simple};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFAvg>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::Average};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFExplicit>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::Fraser};}
+template<> constexpr Request request_for<hist::SymmetryManagerMT>() {return {.kind=Choice::HistogramSymmetryManagerMT, .exv=Exv::Simple};}
+template<> constexpr Request request_for<hist::PartialHistogramManager>() {return {.kind=Choice::PartialHistogramManager, .exv=Exv::Simple};}
+template<> constexpr Request request_for<hist::PartialHistogramManagerMT>() {return {.kind=Choice::PartialHistogramManagerMT, .exv=Exv::Simple};}
+template<> constexpr Request request_for<hist::PartialSymmetryManagerMT>() {return {.kind=Choice::PartialHistogramSymmetryManagerMT, .exv=Exv::Simple};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFGrid>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::Grid};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFGridSurface>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::GridSurface};}
+template<> constexpr Request request_for<hist::HistogramManagerMTFFGridScalableExv>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::GridScalable};}
 
 TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") {
     auto exv = settings::exv::exv_method.value;
@@ -115,24 +115,28 @@ TEST_CASE("HistogramManagerFactory: creates expected manager") {
     Molecule protein({Body{SimpleCube::get_atoms()}});
 
     // the surface and scalable grid managers are only used when the excluded volume is fitted
+    auto exv = settings::exv::exv_method.value;
     auto fit_excluded_volume = settings::fit::fit_excluded_volume;
     settings::fit::fit_excluded_volume = true;
 
     invoke_for_all_histogram_manager_variants(
         []<typename MANAGER>(const Molecule& protein) {
             constexpr auto request = request_for<MANAGER>();
-            auto hm = hist::factory::construct_histogram_manager(&protein, request.kind, true, request.exv);
+            settings::exv::exv_method = request.exv;
+            auto hm = hist::factory::construct_histogram_manager(&protein, request.kind, true);
             REQUIRE(dynamic_cast<MANAGER*>(hm.get()) != nullptr);
         },
         []<template<bool> class MANAGER>(const Molecule& protein) {
             constexpr auto request = request_for<MANAGER>();
-            auto hm = hist::factory::construct_histogram_manager(&protein, request.kind, false, request.exv);
+            settings::exv::exv_method = request.exv;
+            auto hm = hist::factory::construct_histogram_manager(&protein, request.kind, false);
             REQUIRE(dynamic_cast<MANAGER<false>*>(hm.get()) != nullptr);
 
-            auto hm_w = hist::factory::construct_histogram_manager(&protein, request.kind, true, request.exv);
+            auto hm_w = hist::factory::construct_histogram_manager(&protein, request.kind, true);
             REQUIRE(dynamic_cast<MANAGER<true>*>(hm_w.get()) != nullptr);
         },
         protein
     );
+    settings::exv::exv_method = exv;
     settings::fit::fit_excluded_volume = fit_excluded_volume;
 }

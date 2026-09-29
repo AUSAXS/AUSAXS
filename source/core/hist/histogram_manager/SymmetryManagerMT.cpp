@@ -7,7 +7,6 @@
 #include <data/Molecule.h>
 #include <form_factor/FormFactorType.h>
 #include <hist/detail/BinEstimate.h>
-#include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
