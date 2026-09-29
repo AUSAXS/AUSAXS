@@ -14,11 +14,29 @@ option(USE_SYSTEM_CLI11 "Use system provided CLI11" OFF)
 option(USE_SYSTEM_THREADPOOL "Use system provided thread-pool" OFF)
 option(USE_SYSTEM_POCKETFFT "Use system provided pocketfft" OFF)
 option(USE_SYSTEM_CATCH "Use system provided Catch" OFF)
+option(ENABLE_ADDRESS_SANITIZER "Enable AddressSanitizer instrumentation" OFF)
+option(ENABLE_COVERAGE "Enable GCC coverage instrumentation" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+if (ENABLE_ADDRESS_SANITIZER)
+	if (NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+		message(FATAL_ERROR "AddressSanitizer is only supported with GCC or Clang.")
+	endif()
+	add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+	add_link_options(-fsanitize=address)
+endif()
+
+if (ENABLE_COVERAGE)
+	if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+		message(FATAL_ERROR "Coverage instrumentation is only supported with GCC.")
+	endif()
+	add_compile_options(--coverage -fprofile-update=atomic)
+	add_link_options(--coverage)
+endif()
 
 # A GPU backend is opened by name at run time rather than linked, so it is not on any target's link
 # line and nothing would otherwise teach the binaries in the build tree where to find it.
