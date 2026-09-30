@@ -2,14 +2,14 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Body.h>
-#include <data/detail/SimpleBody.h>
 #include <data/Molecule.h>
+#include <data/detail/SimpleBody.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <math/MatrixUtils.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/parameters/BodyTransformParametersRelative.h>
-#include <rigidbody/Rigidbody.h>
 #include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 

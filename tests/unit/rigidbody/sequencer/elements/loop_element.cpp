@@ -3,14 +3,13 @@
 
 #include <fitter/FitResult.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
-#include <io/Folder.h>
 #include <rigidbody/parameters/ParameterAmplitudes.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/sequencer/elements/ParameterElement.h>
-#include <rigidbody/sequencer/Sequencer.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>

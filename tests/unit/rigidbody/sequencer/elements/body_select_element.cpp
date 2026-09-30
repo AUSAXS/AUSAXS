@@ -4,17 +4,15 @@
 #include <data/Molecule.h>
 #include <data/symmetry/CompositeSymmetry.h>
 #include <data/symmetry/ISymmetry.h>
-#include <fitter/FitResult.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
-#include <io/Folder.h>
 #include <math/Vector3.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>  // IWYU pragma: keep
-#include <rigidbody/Rigidbody.h>
 #include <rigidbody/selection/ManualSelect.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 
@@ -351,7 +349,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
 }
 
 TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement symmetry mask split", "[files]") {
-    auto mask_of = [this] (const std::string& mask_name) {
+    auto mask_of = [] (const std::string& mask_name) {
         auto seq = parse(
             "load {\n"
             "    pdb tests/files/2epe.pdb\n"

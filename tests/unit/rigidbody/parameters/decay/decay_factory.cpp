@@ -1,16 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <data/Body.h>
-#include <data/Molecule.h>
 #include <rigidbody/parameters/decay/DecayFactory.h>
 #include <rigidbody/parameters/decay/ExponentialDecay.h>
 #include <rigidbody/parameters/decay/LinearDecay.h>
 #include <rigidbody/parameters/decay/NoDecay.h>
-#include <rigidbody/Rigidbody.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
-using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
 
 TEST_CASE("DecayFactory::create_decay_strategy") {

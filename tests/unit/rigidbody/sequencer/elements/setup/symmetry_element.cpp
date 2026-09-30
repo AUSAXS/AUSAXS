@@ -6,14 +6,11 @@
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <io/ExistingFile.h>
 #include <math/Vector3.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/detail/ValidElements.h>
+#include <rigidbody/parameters/UniformParameterGenerator.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
 

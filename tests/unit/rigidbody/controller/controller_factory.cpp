@@ -2,9 +2,9 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/controller/ControllerFactory.h>
 #include <rigidbody/controller/SimpleController.h>
-#include <rigidbody/Rigidbody.h>
 #include <settings/All.h>
 
 using namespace ausaxs;

@@ -5,7 +5,6 @@
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
-#include <form_factor/NormalizedFormFactor.h>
 #include <settings/ExvSettings.h>
 
 using namespace ausaxs;

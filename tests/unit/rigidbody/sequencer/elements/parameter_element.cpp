@@ -1,14 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <fitter/FitResult.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
-#include <io/Folder.h>
 #include <rigidbody/parameters/ParameterAmplitudes.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
-#include <rigidbody/sequencer/elements/ParameterElement.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/elements/ParameterElement.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>

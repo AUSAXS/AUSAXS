@@ -2,11 +2,10 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <form_factor/ExvFormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
-#include <form_factor/NormalizedFormFactor.h>
-#include <settings/ExvSettings.h>
 
 using namespace ausaxs;
 using namespace form_factor;

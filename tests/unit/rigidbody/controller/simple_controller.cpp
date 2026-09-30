@@ -1,17 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/Body.h>
 #include <data/Molecule.h>
 #include <io/ExistingFile.h>
 #include <rigidbody/BodySplitter.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/controller/ControllerFactory.h>
 #include <rigidbody/controller/SimpleController.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/detail/SystemSpecification.h>
-#include <rigidbody/Rigidbody.h>
 #include <settings/All.h>
 
 using namespace ausaxs;

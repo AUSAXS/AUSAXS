@@ -1,9 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <fitter/FitResult.h>  // IWYU pragma: keep
 #include <io/Folder.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>

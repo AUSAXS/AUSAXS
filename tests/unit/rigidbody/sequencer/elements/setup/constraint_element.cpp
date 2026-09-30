@@ -1,25 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <data/Body.h>
-#include <data/Molecule.h>
-#include <data/symmetry/CompositeSymmetry.h>
-#include <data/symmetry/ReferenceSymmetry.h>
-#include <fitter/FitResult.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
-#include <io/Folder.h>
-#include <math/Vector3.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
-#include <rigidbody/parameters/UniformParameterGenerator.h>
-#include <rigidbody/Rigidbody.h>
-#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
+#include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>
-
-#include <algorithm>
 
 using namespace ausaxs;
 using namespace ausaxs::data;
