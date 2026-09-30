@@ -10,15 +10,15 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
+
+#include <support/hist_test_helper.h>
 
 #include <algorithm>
 #include <numeric>
 #include <ranges>
-
-#include <support/hist_test_helper.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;

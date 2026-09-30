@@ -4,12 +4,10 @@
 #include <data/Molecule.h>
 #include <settings/All.h>
 
-#include <support/temp_file.h>
-
 using namespace ausaxs;
 
 TEST_CASE("MoleculeSettings::allow_unknown_residues") {
-	SECTION("true") {
+    SECTION("true") {
         settings::molecule::allow_unknown_residues = true;
         REQUIRE_NOTHROW(data::Molecule("tests/files/diamond.pdb"));
 	}

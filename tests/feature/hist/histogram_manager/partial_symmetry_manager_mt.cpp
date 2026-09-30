@@ -13,7 +13,6 @@
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>
-#include <settings/GridSettings.h>
 
 #include <numbers>
 #include <random>

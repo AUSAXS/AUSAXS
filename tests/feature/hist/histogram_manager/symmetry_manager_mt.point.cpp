@@ -9,7 +9,6 @@
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>
-#include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

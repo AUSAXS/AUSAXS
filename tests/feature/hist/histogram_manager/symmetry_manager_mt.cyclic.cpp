@@ -9,7 +9,6 @@
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>
-#include <settings/HistogramSettings.h>
 
 #include <numbers>
 #include <random>

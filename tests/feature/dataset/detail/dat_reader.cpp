@@ -3,7 +3,6 @@
 
 #include <dataset/Dataset.h>
 #include <dataset/detail/DATReader.h>
-#include <dataset/detail/XVGReader.h>
 #include <math/Vector.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>

@@ -8,7 +8,6 @@
 #include <em/detail/header/data/MRCData.h>
 #include <em/manager/ProteinManager.h>
 #include <hist/HistFwd.h>
-#include <hist/distribution/Distribution1D.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hydrate/generation/RadialHydration.h>
 #include <settings/All.h>

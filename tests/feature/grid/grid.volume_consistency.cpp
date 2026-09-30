@@ -4,15 +4,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <data/Molecule.h>
 #include <data/Body.h>
+#include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridObj.h>
 #include <hydrate/generation/RadialHydration.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/parameters/BodyTransformParametersRelative.h>
+#include <rigidbody/transform/TransformStrategy.h> // NOLINT
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -31,7 +31,7 @@ namespace {
             for (int j = 0; j < bins.y(); ++j) {
                 for (int k = 0; k < bins.z(); ++k) {
                     auto state = grid.index(i, j, k);
-                    n += (state & (grid::detail::A_CENTER | grid::detail::A_AREA | grid::detail::VOLUME)) != 0;
+                    n += static_cast<int>((state & (grid::detail::A_CENTER | grid::detail::A_AREA | grid::detail::VOLUME)) != 0);
                 }
             }
         }
@@ -68,12 +68,12 @@ TEST_CASE("Grid: volume counter is consistent across rigidbody moves") {
     // the regenerated shell clears those flags again before the next removal, so only the wider widths actually
     // caught the original bug here - the removal invariant below is what covers the default width.
     for (int step = 0; step < 5; ++step) {
-        unsigned int ibody = step % rigidbody.molecule.size_body();
+        int ibody = step % rigidbody.molecule.size_body();
         rigidbody.transformer->apply({{1.6, -1.1, 0.8}, {0.09, 0.04, -0.06}}, ibody);
         rigidbody.molecule.generate_new_hydration();
 
         // apply() may refresh the grid, which reallocates it, so the pointer has to be re-fetched every step
-        auto grid = rigidbody.molecule.get_grid();
+        auto* grid = rigidbody.molecule.get_grid();
         INFO("cell_width = " << cell_width << ", step " << step);
         CHECK(grid->get_volume_bins() == count_occupied_bins(*grid));
     }
@@ -89,7 +89,7 @@ TEST_CASE("Grid: volume counter returns to zero when every body is removed") {
     data::Molecule molecule("tests/files/2epe.pdb");
     REQUIRE(molecule.size_water() != 0);
 
-    auto grid = molecule.get_grid();
+    auto* grid = molecule.get_grid();
     grid->expand_volume();
     int initial = grid->get_volume_bins();
     REQUIRE(initial == count_occupied_bins(*grid));

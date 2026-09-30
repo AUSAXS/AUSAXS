@@ -11,7 +11,6 @@
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>
-#include <settings/GeneralSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

@@ -1,8 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/Body.h>
-#include <data/Molecule.h>
 #include <io/detail/structure/PDBReader.h>
 #include <io/detail/structure/PDBWriter.h>
 #include <io/pdb/PDBStructure.h>
@@ -10,7 +8,6 @@
 
 #include <support/temp_file.h>
 
-#include <iostream>
 #include <string>
 #include <vector>
 

@@ -3,9 +3,7 @@
 
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/NormalizedFormFactor.h>
-#include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/lookup/NormalizedFormFactorProduct.h>
 #include <settings/All.h>
 
 using namespace ausaxs;

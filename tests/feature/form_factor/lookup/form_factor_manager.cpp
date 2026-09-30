@@ -5,10 +5,10 @@
 #include <form_factor/lookup/FormFactorManager.h>
 #include <settings/All.h>
 
-#include <support/hist_test_helper.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <support/hist_test_helper.h>
 
 #include <algorithm>
 #include <numeric>

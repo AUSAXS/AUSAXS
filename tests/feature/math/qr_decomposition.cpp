@@ -3,9 +3,9 @@
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
 #include <math/Matrix.h>
+#include <math/MatrixUtils.h>
 #include <math/QRDecomposition.h>
 #include <math/Vector.h>
-#include <math/Vector3.h>
 
 using namespace ausaxs;
 

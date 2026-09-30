@@ -10,7 +10,6 @@
 
 #include <support/temp_file.h>
 
-#include <iostream>
 #include <string>
 #include <vector>
 

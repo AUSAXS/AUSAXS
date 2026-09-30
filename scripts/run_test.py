@@ -7,9 +7,12 @@ Script to build and run AUSAXS tests.
 Usage:
     python run_test.py                  # Run all unit tests
     python run_test.py <test_file>      # Run specific test (auto-detect unit/feature)
-    python run_test.py <test_folder>    # Run all tests in a folder (auto-detect unit/feature)
+    python run_test.py <test_folder>    # Run all tests in a folder, recursively (auto-detect unit/feature)
     python run_test.py <test_name>      # Run file containing given test (auto-detect host test file & unit/feature)
+    python run_test.py <path>           # Run a test file or folder by path, e.g. hist/histogram_manager/
 
+Bare names are resolved as a test file first, then a folder, then a test case name.
+Since folders often share their name with a file, use a path (anything containing a '/') to select a folder.
 All arguments can be prefixed with 'utest' or 'ftest' to specify test type explicitly.
 """
 
@@ -30,6 +33,39 @@ def find_project_root():
     raise RuntimeError("Could not find project root (CMakeLists.txt)")
 
 
+def test_base_dirs(test_type=None):
+    """Return the (type, base directory) pairs to search for the given test type."""
+    project_root = find_project_root()
+    search_dirs = []
+    if test_type == 'utest' or test_type is None:
+        search_dirs.append(('utest', project_root / "tests" / "unit"))
+    if test_type == 'ftest' or test_type is None:
+        search_dirs.append(('ftest', project_root / "tests" / "feature"))
+    return search_dirs
+
+
+def find_path(path_str, test_type=None):
+    """
+    Resolve an explicit path to a test file or folder.
+    The path may be relative to the working directory, the project root, or tests/unit|feature.
+    
+    Returns:
+        List of (found_type, found_path) tuples
+    """
+    project_root = find_project_root()
+    rel = Path(path_str)
+    found = []
+    for ttype, base_dir in test_base_dirs(test_type):
+        for candidate in [Path.cwd() / rel, project_root / rel, base_dir / rel]:
+            candidate = candidate.resolve()
+            if not candidate.exists() or not candidate.is_relative_to(base_dir):
+                continue
+            if candidate.is_dir() or candidate.suffix == ".cpp":
+                if (ttype, candidate) not in found:
+                    found.append((ttype, candidate))
+    return found
+
+
 def find_test_file(test_name, test_type=None):
     """
     Find a test file by name.
@@ -41,16 +77,8 @@ def find_test_file(test_name, test_type=None):
     Returns:
         Tuple of (found_type, found_path) or (None, None) if not found
     """
-    project_root = find_project_root()
-    
-    search_dirs = []
-    if test_type == 'utest' or test_type is None:
-        search_dirs.append(('utest', project_root / "tests" / "unit"))
-    if test_type == 'ftest' or test_type is None:
-        search_dirs.append(('ftest', project_root / "tests" / "feature"))
-    
     found = []
-    for ttype, base_dir in search_dirs:
+    for ttype, base_dir in test_base_dirs(test_type):
         # Search recursively for test files
         for cpp_file in base_dir.rglob("*.cpp"):
             if cpp_file.stem == test_name:
@@ -195,33 +223,19 @@ def find_folder(folder_name, test_type=None):
         test_type: Either 'utest', 'ftest', or None for auto-detection
     
     Returns:
-        Tuple of (found_type, found_path) or (None, None) if not found
+        List of (found_type, found_path) tuples
     """
-    project_root = find_project_root()
-    
-    search_dirs = []
-    if test_type == 'utest' or test_type is None:
-        search_dirs.append(('utest', project_root / "tests" / "unit"))
-    if test_type == 'ftest' or test_type is None:
-        search_dirs.append(('ftest', project_root / "tests" / "feature"))
-    
-    for ttype, base_dir in search_dirs:
-        # Check direct subfolder
-        folder_path = base_dir / folder_name
-        if folder_path.is_dir():
-            return (ttype, folder_path)
-        
-        # Check recursively
+    found = []
+    for ttype, base_dir in test_base_dirs(test_type):
         for subdir in base_dir.rglob("*"):
             if subdir.is_dir() and subdir.name == folder_name:
-                return (ttype, subdir)
-    
-    return (None, None)
+                found.append((ttype, subdir))
+    return found
 
 
 def run_tests_in_folder(folder_path, test_type, jobs=8):
     """
-    Run all tests in a given folder by building and running each test file.
+    Run all tests in a given folder (recursively) by building and running each test file.
 
     Args:
         folder_path: Path to the folder containing test .cpp files.
@@ -233,8 +247,8 @@ def run_tests_in_folder(folder_path, test_type, jobs=8):
     """
     project_root = find_project_root()
     
-    # Find all .cpp files in the folder
-    test_files = list(folder_path.glob("*.cpp"))
+    # Find all .cpp files in the folder and its subfolders
+    test_files = sorted(folder_path.rglob("*.cpp"))
     
     if not test_files:
         print(f"No test files found in {folder_path}")
@@ -284,18 +298,10 @@ def find_test_case(test_case_name, test_type=None):
     Returns:
         Tuple of (found_type, found_path) or (None, None) if not found
     """
-    project_root = find_project_root()
-    
     # Search pattern for TEST_CASE("name")
     test_pattern = re.compile(rf'TEST_CASE\s*\(\s*"({re.escape(test_case_name)})"')
     
-    search_dirs = []
-    if test_type == 'utest' or test_type is None:
-        search_dirs.append(('utest', project_root / "tests" / "unit"))
-    if test_type == 'ftest' or test_type is None:
-        search_dirs.append(('ftest', project_root / "tests" / "feature"))
-    
-    for ttype, base_dir in search_dirs:
+    for ttype, base_dir in test_base_dirs(test_type):
         for cpp_file in base_dir.rglob("*.cpp"):
             try:
                 with open(cpp_file, "r", encoding="utf-8") as file:
@@ -309,6 +315,29 @@ def find_test_case(test_case_name, test_type=None):
     return (None, None)
 
 
+def build_and_run_file(test_type, test_name, jobs=8):
+    """Build and run the test executable of a single test file."""
+    target_name = f"{test_type}_{test_name}"
+    if not build_test(target_name, jobs=jobs):
+        print(f"Failed to build test: {target_name}")
+        return 1
+    return run_test_executable(test_type, test_name)
+
+
+def report_ambiguous(message, found, test_name):
+    """Print the ambiguous matches and how to disambiguate them. Always returns 1."""
+    project_root = find_project_root()
+    print(f"Error: {message}:")
+    for ttype, path in found:
+        print(f"  - {ttype}: {path.relative_to(project_root)}")
+    print("\nPlease disambiguate with a test type (utest or ftest) and/or a path relative to tests/unit or tests/feature, e.g.:")
+    ttype, path = found[0]
+    base_dir = dict(test_base_dirs())[ttype]
+    rel = path.relative_to(base_dir).as_posix() + ("/" if path.is_dir() else "")
+    print(f"  python {sys.argv[0]} {ttype} {rel}")
+    return 1
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Build and run AUSAXS tests",
@@ -319,6 +348,7 @@ Examples:
   %(prog)s histogram_manager         # Run specific test (auto-detect)
   %(prog)s utest histogram_manager   # Run specific unit test
   %(prog)s ftest histogram_manager   # Run specific feature test
+  %(prog)s ftest hist/histogram_manager/  # Run all feature tests in a folder
   %(prog)s utest                     # Run all unit tests
   %(prog)s ftest                     # Run all feature tests
         """
@@ -327,7 +357,7 @@ Examples:
     parser.add_argument(
         "args",
         nargs="*",
-        help="Test type (utest/ftest) and/or test name"
+        help="Test type (utest/ftest) and/or test name, folder, path or test case name"
     )
     parser.add_argument(
         "-j", "--jobs",
@@ -371,64 +401,64 @@ Examples:
     if test_name is None:
         return run_all_tests(test_type, jobs=6, repeat=3)
     
-    # Case 2: Check if the provided name matches a folder
-    found_type, found_folder = find_folder(test_name, test_type)
-    if found_folder:
-        print(f"Found test folder: {found_folder.relative_to(find_project_root())}")
-        return run_tests_in_folder(found_folder, found_type, jobs=args.jobs)
-    
-    # Case 3: Check if it's a test file name
-    found_tests = find_test_file(test_name, test_type)
-    
-    if len(found_tests) == 0:
-        # Case 4: Search for test case name within files
-        found_type, found_file = find_test_case(test_name, test_type)
-        if found_file:
-            test_file_name = found_file.stem
-            print(f"Found test case '{test_name}' in file: {found_file.relative_to(find_project_root())}")
-            
-            # Build the test
-            target_name = f"{found_type}_{test_file_name}"
-            if not build_test(target_name, jobs=args.jobs):
-                print(f"Failed to build test: {target_name}")
-                return 1
-            
-            # Run only the specific test case using CTest filter
-            return run_test_executable(found_type, test_file_name, test_case_filter=test_name)
-        
-        # Nothing found
-        print(f"Error: Test '{test_name}' not found")
-        if test_type:
-            print(f"Searched in: tests/{('unit' if test_type == 'utest' else 'feature')}/")
-        else:
-            print("Searched in: tests/unit/ and tests/feature/")
-        print("Searched for: test files, folders, and test case names")
-        return 1
-    
-    if len(found_tests) > 1:
-        print(f"Error: Multiple tests found with name '{test_name}':")
-        for ttype, path in found_tests:
-            rel_path = path.relative_to(find_project_root())
-            print(f"  - {ttype}: {rel_path}")
-        print("\nPlease specify the test type (utest or ftest) to disambiguate:")
-        print(f"  python {sys.argv[0]} utest {test_name}")
-        print(f"  python {sys.argv[0]} ftest {test_name}")
-        return 1
-    
-    # Exactly one test found
-    found_type, found_path = found_tests[0]
-    rel_path = found_path.relative_to(find_project_root())
-    print(f"Found test: {rel_path}")
-    
-    # Build the test
-    target_name = f"{found_type}_{test_name}"
-    if not build_test(target_name, jobs=args.jobs):
-        print(f"Failed to build test: {target_name}")
-        return 1
-    
-    # Run the test
-    return run_test_executable(found_type, test_name)
+    project_root = find_project_root()
 
+    # Case 2: An explicit path (e.g. 'hist/histogram_manager' or 'tests/feature/grid/grid.cpp')
+    if "/" in test_name or test_name.endswith(".cpp"):
+        found = find_path(test_name, test_type)
+        if len(found) == 0:
+            print(f"Error: Path '{test_name}' not found under tests/unit/ or tests/feature/")
+            return 1
+        if len(found) > 1:
+            return report_ambiguous(f"Multiple paths match '{test_name}'", found, test_name)
+        found_type, found_path = found[0]
+        if found_path.is_dir():
+            print(f"Found test folder: {found_path.relative_to(project_root)}")
+            return run_tests_in_folder(found_path, found_type, jobs=args.jobs)
+        print(f"Found test: {found_path.relative_to(project_root)}")
+        return build_and_run_file(found_type, found_path.stem, jobs=args.jobs)
+
+    # Case 3: A test file name. Takes precedence over folders, since many folders share a name with a file.
+    found_tests = find_test_file(test_name, test_type)
+    if len(found_tests) > 1:
+        return report_ambiguous(f"Multiple tests found with name '{test_name}'", found_tests, test_name)
+    if len(found_tests) == 1:
+        found_type, found_path = found_tests[0]
+        print(f"Found test: {found_path.relative_to(project_root)}")
+        return build_and_run_file(found_type, test_name, jobs=args.jobs)
+
+    # Case 4: A folder name
+    found_folders = find_folder(test_name, test_type)
+    if len(found_folders) > 1:
+        return report_ambiguous(f"Multiple folders found with name '{test_name}'", found_folders, test_name)
+    if len(found_folders) == 1:
+        found_type, found_folder = found_folders[0]
+        print(f"Found test folder: {found_folder.relative_to(project_root)}")
+        return run_tests_in_folder(found_folder, found_type, jobs=args.jobs)
+
+    # Case 5: Search for test case name within files
+    found_type, found_file = find_test_case(test_name, test_type)
+    if found_file:
+        test_file_name = found_file.stem
+        print(f"Found test case '{test_name}' in file: {found_file.relative_to(project_root)}")
+        
+        # Build the test
+        target_name = f"{found_type}_{test_file_name}"
+        if not build_test(target_name, jobs=args.jobs):
+            print(f"Failed to build test: {target_name}")
+            return 1
+        
+        # Run only the specific test case using CTest filter
+        return run_test_executable(found_type, test_file_name, test_case_filter=test_name)
+    
+    # Nothing found
+    print(f"Error: Test '{test_name}' not found")
+    if test_type:
+        print(f"Searched in: tests/{('unit' if test_type == 'utest' else 'feature')}/")
+    else:
+        print("Searched in: tests/unit/ and tests/feature/")
+    print("Searched for: test files, folders, and test case names")
+    return 1
 
 if __name__ == "__main__":
     sys.exit(main())
