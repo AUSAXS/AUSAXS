@@ -1,0 +1,76 @@
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+#include <form_factor/ExvFormFactor.h>
+#include <form_factor/NormalizedFormFactor.h>
+#include <form_factor/lookup/ExvTableManager.h>
+#include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/NormalizedFormFactorProduct.h>
+#include <settings/All.h>
+
+using namespace ausaxs;
+using namespace form_factor;
+
+TEST_CASE("ExvFormFactor: switch volumes") {
+    auto test = [&] (const constants::exv::detail::ExvSet& vols) {
+        SECTION("exv") {
+            const auto& table = manager::get_active_product_tables()->raw_exv_table;
+            auto ffset = form_factor::detail::ExvFormFactorSet(vols);
+            for (int ff1 = 1; ff1 < total_ff_count; ++ff1) {
+                for (int ff2 = 1; ff2 < total_ff_count; ++ff2) {
+                    const ExvFormFactor& ff1_obj = ffset.get(static_cast<form_factor_t>(ff1));
+                    const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
+                    const FormFactorProduct& ff = table.index(ff1, ff2);
+                    for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                        REQUIRE_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(ff1_obj.evaluate(constants::axes::q_vals[i])*ff2_obj.evaluate(constants::axes::q_vals[i])));
+                    }
+                }
+            }
+        }
+
+        SECTION("cross") {
+            const auto& table = manager::get_active_product_tables()->normalized_cross_table;
+            auto ffset = form_factor::detail::ExvFormFactorSet(vols);
+            for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
+                for (int ff2 = 1; ff2 < total_ff_count; ++ff2) {
+                    const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
+                    const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
+                    const FormFactorProduct& ff = table.index(ff1, ff2);
+                    for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                        REQUIRE_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(ff1_obj.evaluate(constants::axes::q_vals[i])*ff2_obj.evaluate(constants::axes::q_vals[i])));
+                    }
+                }
+            }
+        }
+    };
+
+    SECTION("Traube") {
+        settings::exv::exv_set = settings::exv::ExvSet::Traube;
+        test(constants::exv::Traube);
+    }
+
+    SECTION("Voronoi_explicit_H") {
+        settings::exv::exv_set = settings::exv::ExvSet::Voronoi_explicit_H;
+        test(constants::exv::Voronoi_explicit_H);
+    }
+
+    SECTION("Voronoi_implicit_H") {
+        settings::exv::exv_set = settings::exv::ExvSet::Voronoi_implicit_H;
+        test(constants::exv::Voronoi_implicit_H);
+    }
+
+    SECTION("MinimumFluctutation_explicit_H") {
+        settings::exv::exv_set = settings::exv::ExvSet::MinimumFluctutation_explicit_H;
+        test(constants::exv::MinimumFluctuation_explicit_H);
+    }
+
+    SECTION("MinimumFluctutation_implicit_H") {
+        settings::exv::exv_set = settings::exv::ExvSet::MinimumFluctutation_implicit_H;
+        test(constants::exv::MinimumFluctuation_implicit_H);
+    }
+
+    SECTION("vdw") {
+        settings::exv::exv_set = settings::exv::ExvSet::vdw;
+        test(constants::exv::vdw);
+    }
+}

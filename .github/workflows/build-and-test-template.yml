@@ -29,8 +29,8 @@ jobs:
       - name: Check exceptions
         run: python .github/check_exceptions.py
 
-      - name: Check unit test layout
-        run: python .github/check_unit_tests.py
+      - name: Check test layout
+        run: python .github/check_test_layout.py
 
       # Finds the newest commit on this branch whose conventions check already passed, so the
       # step below can analyse what changed since then rather than the whole pull request again.
