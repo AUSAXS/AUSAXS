@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <constants/ConstantsAxes.h>
@@ -6,6 +7,7 @@
 #include <data/Molecule.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/NeutronFormFactor.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
@@ -270,8 +272,8 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
         }
     };
 
-    auto raw = [] (form_factor_t t, double q) {return lookup::atomic::raw::get(t).evaluate(q);};
-    auto normalized = [] (form_factor_t t, double q) {return lookup::atomic::normalized::get(t).evaluate(q);};
+    auto raw = [] (form_factor_t t, double q) {return xray::raw::get(t).evaluate(q);};
+    auto normalized = [] (form_factor_t t, double q) {return xray::normalized::get(t).evaluate(q);};
     auto exv = [] (form_factor_t t, double q) {
         return ExvTableManager::get_current_exv_form_factor_set().get(t).evaluate(q);
     };
@@ -300,6 +302,40 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
     }
 
     manager::detail::use_form_factors(identity());
+}
+
+TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
+    manager::detail::use_form_factors(identity());
+    const int CH2 = static_cast<int>(form_factor_t::CH2);
+    const int exv = static_cast<int>(form_factor_t::EXCLUDED_VOLUME);
+    auto q_index = GENERATE(0, 50, 199);
+    double q = constants::axes::q_vals[q_index];
+
+    SECTION("xray") {
+        const auto* tables = manager::get_active_product_tables();
+        CHECK_FALSE(tables->self_corrected);
+        CHECK_THAT(tables->atomic_profiles[CH2][q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::CH2).evaluate(q), 1e-12));
+        CHECK(tables->self_correction[CH2][q_index] == 0);
+    }
+
+    SECTION("neutron") {
+        settings::scattering::radiation = settings::scattering::Radiation::Neutron;
+        const auto* tables = manager::get_active_product_tables();
+        const auto& ff = neutron::protonated::get(form_factor_t::CH2);
+        double f = ff.evaluate(q);
+        CHECK(tables->self_corrected);
+        CHECK_THAT(tables->atomic_profiles[CH2][q_index], Catch::Matchers::WithinAbs(f, 1e-12));
+        CHECK_THAT(tables->raw_atomic_table.index(CH2, CH2).evaluate(q_index), Catch::Matchers::WithinAbs(f*f, 1e-12));
+        CHECK_THAT(tables->self_correction[CH2][q_index], Catch::Matchers::WithinAbs(ff.evaluate_self(q) - f*f, 1e-12));
+
+        // the excluded volume slot is a normalized shape shared by both probes
+        CHECK_THAT(tables->atomic_profiles[exv][q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::EXCLUDED_VOLUME).evaluate(q), 1e-12));
+        CHECK(tables->self_correction[exv][q_index] == 0);
+
+        CHECK_THAT(constants::charge::get_ff_charge(form_factor_t::CH2), Catch::Matchers::WithinAbs(ff.I0(), 1e-12));
+        settings::scattering::radiation = settings::scattering::Radiation::XRay;
+        CHECK_FALSE(manager::get_active_product_tables()->self_corrected);
+    }
 }
 
 TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded volume") {

@@ -5,6 +5,7 @@
 #include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <form_factor/NeutronFormFactor.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <settings/All.h>
@@ -18,9 +19,9 @@ using namespace data;
 // int qcheck = 0;
 TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
-    auto ff_carbon = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
-    auto ff_exv = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    auto ff_w = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::OH);
+    auto ff_carbon = form_factor::xray::raw::get(form_factor::form_factor_t::C);
+    auto ff_exv = form_factor::xray::raw::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
+    auto ff_w = form_factor::xray::raw::get(form_factor::form_factor_t::OH);
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
     auto d = SimpleCube::d;
@@ -321,4 +322,31 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: exv term normalization") {
         // in aw. The dummy atoms sit only on the real atoms, so there is no exv-water counterpart to this term.
         REQUIRE_THAT(wx[i], Catch::Matchers::WithinRel(aw[i]*ratio, 1e-6));
     }
+}
+
+// Every group scatters once with itself, which for neutrons is not the squared amplitude of the group.
+TEST_CASE("CompositeDistanceHistogramFFAvg: neutron self-term") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    struct RadiationGuard {
+        RadiationGuard() {settings::scattering::radiation = settings::scattering::Radiation::Neutron;}
+        ~RadiationGuard() {settings::scattering::radiation = settings::scattering::Radiation::XRay;}
+    } guard;
+
+    std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::CH2), AtomFF({-1, 1, -1}, form_factor::form_factor_t::CH2)};
+    std::vector<Body> a = {Body(b1)};
+    DebugMolecule protein(a);
+
+    auto h = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+    auto aa = static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get())->get_profile_aa();
+
+    const auto& ff = form_factor::neutron::protonated::get(form_factor::form_factor_t::CH2);
+    const auto& q_axis = constants::axes::q_vals;
+    auto d = SimpleCube::d[2];
+    std::vector<double> aa_exp(aa.size(), 0);
+    for (int q = 0; q < static_cast<int>(aa.size()); ++q) {
+        double f = ff.evaluate(q_axis[q]);
+        aa_exp[q] = 2*ff.evaluate_self(q_axis[q]) + 2*f*f*std::sin(q_axis[q]*d)/(q_axis[q]*d);
+    }
+    REQUIRE(compare_hist(aa_exp, aa));
 }

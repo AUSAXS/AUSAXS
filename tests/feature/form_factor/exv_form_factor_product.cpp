@@ -33,7 +33,7 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
         const auto& table = manager::get_active_product_tables()->raw_cross_table;
         for (int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
             for (int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
-                const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
+                const xray::FormFactor& ff1_obj = xray::raw::get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -69,7 +69,7 @@ TEST_CASE("ExvFormFactorProduct::cross_table_comprehensive") {
         const auto& table = manager::get_active_product_tables()->raw_cross_table;
         for (int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
             for (int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
-                const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
+                const xray::FormFactor& ff1_obj = xray::raw::get(static_cast<form_factor_t>(ff1));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {

@@ -12,8 +12,8 @@ TEST_CASE("FormFactorProduct::comprehensive_evaluation") {
     SECTION("all form factor products match direct calculation") {
         for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
             for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
-                const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
-                const FormFactor& ff2_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff2));
+                const xray::FormFactor& ff1_obj = xray::raw::get(static_cast<form_factor_t>(ff1));
+                const xray::FormFactor& ff2_obj = xray::raw::get(static_cast<form_factor_t>(ff2));
                 FormFactorProduct ff(ff1_obj, ff2_obj);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
@@ -29,8 +29,8 @@ TEST_CASE("FormFactorProduct::table_comprehensive") {
         const auto& table = manager::get_active_product_tables()->raw_atomic_table;
         for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
             for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
-                const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
-                const FormFactor& ff2_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff2));
+                const xray::FormFactor& ff1_obj = xray::raw::get(static_cast<form_factor_t>(ff1));
+                const xray::FormFactor& ff2_obj = xray::raw::get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
@@ -43,7 +43,7 @@ TEST_CASE("FormFactorProduct::table_comprehensive") {
 
 TEST_CASE("FormFactorProduct::specific_pairs") {
     SECTION("H-H product") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::H);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::H);
         FormFactorProduct ffp(ff, ff);
         
         CHECK(ffp.evaluate(0) > 0);
@@ -52,8 +52,8 @@ TEST_CASE("FormFactorProduct::specific_pairs") {
     }
 
     SECTION("C-N product") {
-        const FormFactor& ff_c = lookup::atomic::raw::get(form_factor_t::C);
-        const FormFactor& ff_n = lookup::atomic::raw::get(form_factor_t::N);
+        const xray::FormFactor& ff_c = xray::raw::get(form_factor_t::C);
+        const xray::FormFactor& ff_n = xray::raw::get(form_factor_t::N);
         FormFactorProduct ffp(ff_c, ff_n);
         
         CHECK(ffp.evaluate(0) > 0);
@@ -62,8 +62,8 @@ TEST_CASE("FormFactorProduct::specific_pairs") {
     }
 
     SECTION("O-S product") {
-        const FormFactor& ff_o = lookup::atomic::raw::get(form_factor_t::O);
-        const FormFactor& ff_s = lookup::atomic::raw::get(form_factor_t::S);
+        const xray::FormFactor& ff_o = xray::raw::get(form_factor_t::O);
+        const xray::FormFactor& ff_s = xray::raw::get(form_factor_t::S);
         FormFactorProduct ffp(ff_o, ff_s);
         
         CHECK(ffp.evaluate(0) > 0);

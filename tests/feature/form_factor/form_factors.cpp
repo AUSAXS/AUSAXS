@@ -14,7 +14,7 @@ using namespace form_factor;
 // Check that we have the correct conversion of the s-values. The form factors are not supposed to change a lot over the span of our q-values.
 TEST_CASE("NormalizedFormFactor::evaluate") {
     for (int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
-        const NormalizedFormFactor& ff_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff));
+        const xray::NormalizedFormFactor& ff_obj = xray::normalized::get(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0.0), Catch::Matchers::WithinAbs(1, 1e-6));
         if (ff_obj.evaluate(0.5) < 0.95) {
             std::cout << "Warning: Form factor " << ff << " has a value of " << ff_obj.evaluate(0.5) << " at q = 0.5" << std::endl;
@@ -27,14 +27,14 @@ TEST_CASE("NormalizedFormFactor::evaluate") {
 // Check that the form factors are normalized. 
 TEST_CASE("NormalizedFormFactor: normalized") {
     for (int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
-        const NormalizedFormFactor& ff_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff));
+        const xray::NormalizedFormFactor& ff_obj = xray::normalized::get(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0), Catch::Matchers::WithinAbs(1, 1e-6));
     }
 }
 
 // Compare our five-Gaussian form factors with the more typical four-Gaussian form factors.
 // These are all taken from the table at https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php (International Tables for Crystallography)
-using constants::form_factor::s_to_q;
+using form_factor::xray::coefficients::s_to_q;
 static const auto& q_vals = constants::axes::q_vals;
 TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
     SECTION("oxygen") {
@@ -42,8 +42,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({13.2771, 5.7011, 0.3239, 32.9089, 0});
         double c = 0.2508;
 
-        NormalizedFormFactor ff(a, b, c);
-        const NormalizedFormFactor& O = lookup::atomic::normalized::get(form_factor_t::O);
+        xray::NormalizedFormFactor ff(a, b, c);
+        const xray::NormalizedFormFactor& O = xray::normalized::get(form_factor_t::O);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(O.evaluate(q), 1e-3));
         }
@@ -54,8 +54,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({0.0057,  9.8933, 28.9975, 0.5826, 0});
         double c = -11.529;
 
-        NormalizedFormFactor ff(a, b, c);
-        const NormalizedFormFactor& N = lookup::atomic::normalized::get(form_factor_t::N);
+        xray::NormalizedFormFactor ff(a, b, c);
+        const xray::NormalizedFormFactor& N = xray::normalized::get(form_factor_t::N);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(N.evaluate(q), 1e-3));
         }
@@ -66,8 +66,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({20.8439, 10.2075, 0.5687, 51.6512, 0});
         double c = 0.2156;
 
-        NormalizedFormFactor ff(a, b, c);
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        xray::NormalizedFormFactor ff(a, b, c);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(C.evaluate(q), 1e-3));
         }
@@ -78,8 +78,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({0.9072, 14.8407, 43.8983, 33.3929, 0});
         double c = 1.4445;
 
-        NormalizedFormFactor ff(a, b, c);
-        const NormalizedFormFactor& other = lookup::atomic::normalized::get(form_factor_t::OTHER);
+        xray::NormalizedFormFactor ff(a, b, c);
+        const xray::NormalizedFormFactor& other = xray::normalized::get(form_factor_t::OTHER);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(other.evaluate(q), 1e-3));
         }
@@ -90,8 +90,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({1.4679, 22.2151, 0.2536, 56.172, 0});
         double c = 0.8669;
 
-        NormalizedFormFactor ff(a, b, c);
-        const NormalizedFormFactor& S = lookup::atomic::normalized::get(form_factor_t::S);
+        xray::NormalizedFormFactor ff(a, b, c);
+        const xray::NormalizedFormFactor& S = xray::normalized::get(form_factor_t::S);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(S.evaluate(q), 1e-3));
         }
@@ -104,7 +104,7 @@ TEST_CASE("NormalizedFormFactor: comparison with Waasmeier & Kirfel") {
     std::array<double, 5> b = {3.481823, 0.371224, 21.226641, 173.834271, 0.010719};
     double c = -5.183497;
 
-    NormalizedFormFactor Ba(a, s_to_q(b), c);
+    xray::NormalizedFormFactor Ba(a, s_to_q(b), c);
     SimpleDataset ff_q, ff_s;
     for (const double& q : q_vals) {
         ff_q.push_back(q/(4*std::numbers::pi), Ba.evaluate(q));

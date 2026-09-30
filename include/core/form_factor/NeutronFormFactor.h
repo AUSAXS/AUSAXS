@@ -9,7 +9,7 @@
 #include <cmath>
 #include <type_traits>
 
-namespace ausaxs::form_factor {
+namespace ausaxs::form_factor::neutron {
     /**
      * @brief The orientationally averaged neutron form factor of a heavy atom X with n equivalent bound hydrogens.
      *        Nuclei scatter as points, so both quantities below are exact for a rigid group and involve no parametrization.
@@ -21,9 +21,9 @@ namespace ausaxs::form_factor {
      *        The self-term replaces f(q)^2 for a group with itself, since it retains the X-H and H-H interference within the group:
      *            s(q) = b_X^2 + n*b_H^2 + 2n*b_X*b_H*sinc(q*d_XH) + n(n-1)*b_H^2*sinc(q*d_HH)
      */
-    class NeutronFormFactor {
+    class FormFactor {
         public:
-            constexpr NeutronFormFactor() = default;
+            constexpr FormFactor() = default;
 
             /**
              * @param b_heavy The coherent scattering length of the heavy atom.
@@ -32,7 +32,7 @@ namespace ausaxs::form_factor {
              * @param xh_distance The distance between the heavy atom and each hydrogen in Å.
              * @param hh_distance The distance between each pair of hydrogens in Å.
              */
-            constexpr NeutronFormFactor(double b_heavy, double b_hydrogen, int hydrogens, double xh_distance, double hh_distance)
+            constexpr FormFactor(double b_heavy, double b_hydrogen, int hydrogens, double xh_distance, double hh_distance)
                 : b_heavy(b_heavy), b_hydrogen(b_hydrogen), hydrogens(hydrogens), xh_distance(xh_distance), hh_distance(hh_distance) {}
 
             /**
@@ -72,23 +72,20 @@ namespace ausaxs::form_factor {
             }
     };
 
-    /**
-     * The neutron form factors of all form factor types, as described by form_factor::detail::ff_info_table.
-     * The excluded volume is not defined for neutrons, and requesting it throws.
-     */
-    namespace lookup::neutron {
-        /**
-         * @brief All hydrogens, implicit and explicit, are protium.
-         */
-        namespace protonated {
-            const NeutronFormFactor& get(form_factor_t type);
-        }
+    // The neutron form factors of all form factor types, as described by form_factor::detail::ff_info_table.
+    // The excluded volume is not defined for neutrons, and requesting it throws.
 
-        /**
-         * @brief All hydrogens, implicit and explicit, are deuterium.
-         */
-        namespace deuterated {
-            const NeutronFormFactor& get(form_factor_t type);
-        }
+    /**
+     * @brief All hydrogens, implicit and explicit, are protium.
+     */
+    namespace protonated {
+        const FormFactor& get(form_factor_t type);
+    }
+
+    /**
+     * @brief All hydrogens, implicit and explicit, are deuterium.
+     */
+    namespace deuterated {
+        const FormFactor& get(form_factor_t type);
     }
 }

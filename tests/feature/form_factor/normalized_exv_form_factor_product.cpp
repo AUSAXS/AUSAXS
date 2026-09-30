@@ -30,7 +30,7 @@ TEST_CASE("FormFactorProduct::evaluate") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
             for (int ff2 = 1; ff2 < total_ff_count; ++ff2) {
-                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
+                const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = exv_set.get(static_cast<form_factor_t>(ff2));
                 NormalizedFormFactorProduct ff(ff1_obj, ff2_obj);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -62,7 +62,7 @@ TEST_CASE("FormFactorProduct::table") {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
         for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
             for (int ff2 = 1; ff2 < total_ff_count; ++ff2) {
-                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
+                const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = exv_set.get(static_cast<form_factor_t>(ff2));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -95,7 +95,7 @@ TEST_CASE("ExvFormFactor: switch volumes") {
             auto ffset = form_factor::detail::ExvFormFactorSet(vols);
             for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
                 for (int ff2 = 1; ff2 < total_ff_count; ++ff2) {
-                    const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
+                    const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(ff1));
                     const ExvFormFactor& ff2_obj = ffset.get(static_cast<form_factor_t>(ff2));
                     const FormFactorProduct& ff = table.index(ff1, ff2);
                     for (int i = 0; i < constants::axes::q_axis.bins; ++i) {

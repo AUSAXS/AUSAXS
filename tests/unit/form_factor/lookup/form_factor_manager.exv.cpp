@@ -70,7 +70,7 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
         for (int i = 1; i < total_ff_count; ++i) {
             for (int j = 1; j < total_ff_count; ++j) {
                 const FormFactorProduct& product = table.index(i, j);
-                const FormFactor& ff_atomic = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
+                const xray::FormFactor& ff_atomic = xray::raw::get(static_cast<form_factor_t>(i));
                 ExvFormFactor exv = exv_set.get(static_cast<form_factor_t>(j));
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
@@ -87,7 +87,7 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
         for (int i = 1; i < total_ff_count; ++i) {
             for (int j = 1; j < total_ff_count; ++j) {
                 const FormFactorProduct& product = table.index(i, j);
-                const FormFactor& ff_atomic = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
+                const xray::FormFactor& ff_atomic = xray::raw::get(static_cast<form_factor_t>(i));
                 ExvFormFactor exv = exv_set.get(static_cast<form_factor_t>(j));
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {

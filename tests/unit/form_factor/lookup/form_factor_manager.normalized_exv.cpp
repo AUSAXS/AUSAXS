@@ -84,7 +84,7 @@ TEST_CASE("manager::normalized_cross_table") {
     }
 
     SECTION("matches manual calculation") {
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
         const ExvFormFactor& N_exv = exv_set.get(form_factor_t::N);
 
         const auto& ff = table.index(
@@ -104,7 +104,7 @@ TEST_CASE("manager::normalized_cross_table: completeness") {
         const auto& table = manager::get_active_product_tables()->normalized_cross_table;
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
         const ExvFormFactor& N_exv = exv_set.get(form_factor_t::N);
 
         const auto& ff = table.index(
@@ -124,7 +124,7 @@ TEST_CASE("manager::normalized_cross_table: completeness") {
 
         for (int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
             for (int ff2 = 1; ff2 < form_factor::total_ff_count; ++ff2) {
-                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
+                const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = exv_set.get(static_cast<form_factor_t>(ff2));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 

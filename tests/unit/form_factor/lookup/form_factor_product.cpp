@@ -10,8 +10,8 @@ using namespace form_factor;
 
 TEST_CASE("FormFactorProduct::constructor") {
     SECTION("construct from two FormFactors") {
-        const FormFactor& ff1 = lookup::atomic::raw::get(form_factor_t::H);
-        const FormFactor& ff2 = lookup::atomic::raw::get(form_factor_t::C);
+        const xray::FormFactor& ff1 = xray::raw::get(form_factor_t::H);
+        const xray::FormFactor& ff2 = xray::raw::get(form_factor_t::C);
         FormFactorProduct ffp(ff1, ff2);
 
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -21,7 +21,7 @@ TEST_CASE("FormFactorProduct::constructor") {
     }
 
     SECTION("construct from same FormFactor") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::C);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::C);
         FormFactorProduct ffp(ff, ff);
 
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -33,8 +33,8 @@ TEST_CASE("FormFactorProduct::constructor") {
 
 TEST_CASE("FormFactorProduct::evaluate") {
     SECTION("product decreases with q") {
-        const FormFactor& ff1 = lookup::atomic::raw::get(form_factor_t::C);
-        const FormFactor& ff2 = lookup::atomic::raw::get(form_factor_t::N);
+        const xray::FormFactor& ff1 = xray::raw::get(form_factor_t::C);
+        const xray::FormFactor& ff2 = xray::raw::get(form_factor_t::N);
         FormFactorProduct ffp(ff1, ff2);
 
         double val1 = ffp.evaluate(0);
@@ -46,8 +46,8 @@ TEST_CASE("FormFactorProduct::evaluate") {
     }
 
     SECTION("product is positive") {
-        const FormFactor& ff1 = lookup::atomic::raw::get(form_factor_t::O);
-        const FormFactor& ff2 = lookup::atomic::raw::get(form_factor_t::S);
+        const xray::FormFactor& ff1 = xray::raw::get(form_factor_t::O);
+        const xray::FormFactor& ff2 = xray::raw::get(form_factor_t::S);
         FormFactorProduct ffp(ff1, ff2);
 
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -58,8 +58,8 @@ TEST_CASE("FormFactorProduct::evaluate") {
 
 TEST_CASE("FormFactorProduct::symmetry") {
     SECTION("product is symmetric") {
-        const FormFactor& ff1 = lookup::atomic::raw::get(form_factor_t::H);
-        const FormFactor& ff2 = lookup::atomic::raw::get(form_factor_t::O);
+        const xray::FormFactor& ff1 = xray::raw::get(form_factor_t::H);
+        const xray::FormFactor& ff2 = xray::raw::get(form_factor_t::O);
         FormFactorProduct ffp1(ff1, ff2);
         FormFactorProduct ffp2(ff2, ff1);
 
@@ -74,8 +74,8 @@ TEST_CASE("FormFactorProduct::raw_atomic_table") {
         const auto& table = manager::get_active_product_tables()->raw_atomic_table;
         for (int i = 0; i < form_factor::total_ff_count; ++i) {
             for (int j = 0; j < form_factor::total_ff_count; ++j) {
-                const FormFactor& ff1 = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
-                const FormFactor& ff2 = lookup::atomic::raw::get(static_cast<form_factor_t>(j));
+                const xray::FormFactor& ff1 = xray::raw::get(static_cast<form_factor_t>(i));
+                const xray::FormFactor& ff2 = xray::raw::get(static_cast<form_factor_t>(j));
                 const FormFactorProduct& product = table.index(i, j);
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
@@ -90,8 +90,8 @@ TEST_CASE("FormFactorProduct::raw_atomic_table") {
         const auto& table = manager::get_active_product_tables()->raw_atomic_table;
         for (int i = 0; i < form_factor::total_ff_count; ++i) {
             for (int j = 0; j < form_factor::total_ff_count; ++j) {
-                const FormFactor& ff1 = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
-                const FormFactor& ff2 = lookup::atomic::raw::get(static_cast<form_factor_t>(j));
+                const xray::FormFactor& ff1 = xray::raw::get(static_cast<form_factor_t>(i));
+                const xray::FormFactor& ff2 = xray::raw::get(static_cast<form_factor_t>(j));
                 const FormFactorProduct& product = table.index(i, j);
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {

@@ -8,8 +8,8 @@
 #include <array>
 #include <numbers>
 
-// Five-Gaussian form factor table values. See each entry for its source.
-namespace ausaxs::constants::form_factor {
+// Five-Gaussian X-ray form factor table values. See each entry for its source.
+namespace ausaxs::form_factor::xray::coefficients {
     /**
      * @brief The coefficients of a five-Gaussian form factor approximation, f(q) = sum_i a_i exp(-b_i q^2) + c.
      *        The b coefficients are stored in q-units (Å^2).
@@ -80,7 +80,7 @@ namespace ausaxs::constants::form_factor {
 
     constexpr FiveGaussian excluded_volume {
         .a = {1, 0, 0, 0, 0},
-        .b = {radius::average_atomic_radius*radius::average_atomic_radius/2, 0, 0, 0, 0},
+        .b = {constants::radius::average_atomic_radius*constants::radius::average_atomic_radius/2, 0, 0, 0, 0},
         .c = 0
     };
 
