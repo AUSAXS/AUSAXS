@@ -22,7 +22,11 @@ namespace ausaxs::hist {
      * The adjoint collapses the q axis before the pair loop: each pair only needs the scalar
      *      H(r) = 2 \sum_q v(q) (cos(qr) - sinc(qr))/r^2,
      * which is tabulated once per call, so the pair loop costs the same as a single distance histogram.
-     * Hydrated molecules are not supported yet.
+     *
+     * Only the atoms are differentiated; a hydration shell is ignored. The shell is a property of the solvated structure
+     * rather than of individual atoms, so it is regenerated for a new structure instead of following its atoms. On a
+     * hydrated molecule this is therefore deliberately not the full derivative of the hydrated intensity: the shell
+     * only affects the gradient through the adjoint @a v.
      */
     std::vector<Vector3<double>> debye_raw_vjp(const data::Molecule& molecule, const std::vector<double>& q, const std::vector<double>& v);
 }

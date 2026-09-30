@@ -106,7 +106,6 @@ namespace {
 
 std::vector<Vector3<double>> hist::debye_raw_vjp(const data::Molecule& molecule, const std::vector<double>& q, const std::vector<double>& v) {
     if (q.size() != v.size()) {throw except::size_error("debye_raw_vjp: q and v must have the same length.");}
-    if (molecule.size_water() != 0) {throw except::invalid_argument("debye_raw_vjp: hydrated molecules are not supported yet.");}
 
     // the same representation the binned calculation reads, so the weights are guaranteed to agree with it
     auto data = hist::detail::factory::construct_from_atoms<false>(&molecule);

@@ -103,9 +103,15 @@ TEST_CASE("debye_raw_vjp: agrees with the direct analytic gradient") {
     REQUIRE(max_relative_deviation(g, direct) < 1e-5);
 }
 
-TEST_CASE("debye_raw_vjp: rejects hydrated molecules") {
+TEST_CASE("debye_raw_vjp: ignores the hydration shell") {
     settings::general::verbose = false;
     Molecule molecule("tests/files/2epe.pdb");
     molecule.generate_new_hydration();
-    REQUIRE_THROWS(hist::debye_raw_vjp(molecule, {0.1}, {1}));
+    REQUIRE(molecule.size_water() != 0);
+
+    std::vector<double> q = {0.05, 0.1, 0.2}, v = {1, -0.5, 0.25};
+    auto hydrated = hist::debye_raw_vjp(molecule, q, v);
+    molecule.clear_hydration();
+    auto dry = hist::debye_raw_vjp(molecule, q, v);
+    REQUIRE(max_relative_deviation(hydrated, dry) == 0);
 }
