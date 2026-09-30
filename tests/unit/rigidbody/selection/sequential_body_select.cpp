@@ -2,9 +2,9 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraintCM.h>
-#include <rigidbody/Rigidbody.h>
 #include <rigidbody/selection/SequentialBodySelect.h>
 #include <settings/All.h>
 
