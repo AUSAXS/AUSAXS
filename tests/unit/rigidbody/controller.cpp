@@ -26,7 +26,7 @@ struct ControllerFixture {
         settings::grid::min_bins = 250;
 
         // Create a rigidbody for testing
-        auto bodies = BodySplitter::split("tests/files/SASDJG5.pdb");
+        auto bodies = BodySplitter::split("tests/files/2epe.pdb", {40, 80});
         rb = std::make_unique<Rigidbody>(std::move(bodies));
         rb->constraints->generate_constraints(settings::rigidbody::ConstraintGenerationStrategyChoice::Backbone);
     }
@@ -38,13 +38,13 @@ TEST_CASE_METHOD(ControllerFixture, "Controllers::SimpleController basic functio
     SimpleController ctrl(rb.get());
     
     SECTION("Setup initializes controller") {
-        REQUIRE_NOTHROW(ctrl.setup(io::ExistingFile("tests/files/SASDJG5.dat")));
+        REQUIRE_NOTHROW(ctrl.setup(io::ExistingFile("tests/files/2epe.dat")));
         CHECK(ctrl.get_fitter() != nullptr);
         CHECK(ctrl.get_current_best_config() != nullptr);
     }
     
     SECTION("Prepare and finish step") {
-        ctrl.setup(io::ExistingFile("tests/files/SASDJG5.dat"));
+        ctrl.setup(io::ExistingFile("tests/files/2epe.dat"));
         
         // Run a few optimization steps
         for (int i = 0; i < 5; ++i) {
@@ -58,31 +58,22 @@ TEST_CASE_METHOD(ControllerFixture, "Controllers::SimpleController basic functio
     }
     
     SECTION("Best configuration is updated on improvement") {
-        ctrl.setup(io::ExistingFile("tests/files/SASDJG5.dat"));
+        ctrl.setup(io::ExistingFile("tests/files/2epe.dat"));
         
         double initial_chi2 = ctrl.get_current_best_config()->chi2;
         
-        // Run several steps
+        // run until a step is accepted
         bool improvement_found = false;
-        for (int i = 0; i < 100; ++i) {
-            bool accepted = ctrl.prepare_step();
+        for (int i = 0; i < 100 && !improvement_found; ++i) {
+            improvement_found = ctrl.prepare_step();
             ctrl.finish_step();
-            
-            if (accepted) {
-                improvement_found = true;
-                double new_chi2 = ctrl.get_current_best_config()->chi2;
-                CHECK(new_chi2 <= initial_chi2);
-                initial_chi2 = new_chi2;
-                continue;
-            }
         }
-        
-        // With 100 steps, at least one should be accepted
-        CHECK(improvement_found);
+        REQUIRE(improvement_found);
+        CHECK(ctrl.get_current_best_config()->chi2 <= initial_chi2);
     }
 
     SECTION("A rejected step leaves the controller describing the restored conformation") {
-        ctrl.setup(io::ExistingFile("tests/files/SASDJG5.dat"));
+        ctrl.setup(io::ExistingFile("tests/files/2epe.dat"));
 
         // run until a step is rejected
         bool rejected = false;
@@ -97,7 +88,7 @@ TEST_CASE_METHOD(ControllerFixture, "Controllers::SimpleController basic functio
 
         // and after an update, the fitter must evaluate the restored molecule rather than the rejected candidate
         ctrl.update_fitter();
-        fitter::ConstrainedFitter reference(rb->constraints.get(), io::ExistingFile("tests/files/SASDJG5.dat"), rb->molecule.get_histogram());
+        fitter::ConstrainedFitter reference(rb->constraints.get(), io::ExistingFile("tests/files/2epe.dat"), rb->molecule.get_histogram());
         CHECK_THAT(ctrl.get_fitter()->fit_chi2_only(), Catch::Matchers::WithinRel(reference.fit_chi2_only(), 1e-12));
     }
 }

@@ -40,6 +40,7 @@ jobs:
         run: cmake --build build-asan-coverage --target unit_tests -j12
 
       - name: Run unit tests
+        id: unit-tests
         env:
           ASAN_OPTIONS: detect_leaks=0
         run: |
@@ -58,6 +59,7 @@ jobs:
           retention-days: 14
 
       - name: Generate coverage report
+        if: ${{ !cancelled() && steps.unit-tests.outcome != 'skipped' }}
         run: |
           gcovr --root . \
             --object-directory build-asan-coverage \
@@ -67,6 +69,7 @@ jobs:
             --output coverage.xml
 
       - name: Upload coverage to Codecov
+        if: ${{ !cancelled() && steps.unit-tests.outcome != 'skipped' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
