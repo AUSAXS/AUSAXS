@@ -11,7 +11,7 @@ permissions:
 jobs:
   unit-tests:
     name: Unit tests with ASan and coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
 
@@ -19,7 +19,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libcurl4-openssl-dev
-          python3 -m pip install --disable-pip-version-check gcovr==8.4
+          python3 -m venv "$RUNNER_TEMP/gcovr"
+          "$RUNNER_TEMP/gcovr/bin/pip" install --disable-pip-version-check gcovr==8.4
+          echo "$RUNNER_TEMP/gcovr/bin" >> "$GITHUB_PATH"
 
       - name: Configure
         env:
@@ -63,10 +65,12 @@ jobs:
         run: |
           gcovr --root . \
             --object-directory build-asan-coverage \
+            --exclude-directories '.*/_deps$' \
             --filter 'source/' \
             --exclude '.*_deps/.*' \
             --cobertura-pretty \
-            --output coverage.xml
+            --output coverage.xml \
+            build-asan-coverage
 
       - name: Upload coverage to Codecov
         if: ${{ !cancelled() && steps.unit-tests.outcome != 'skipped' }}
@@ -74,4 +78,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
+          disable_search: true
+          plugins: noop
           fail_ci_if_error: true
