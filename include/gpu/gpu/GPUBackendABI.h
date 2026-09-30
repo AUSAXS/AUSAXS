@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <settings/ExportMacro.h>
+
 #include <cstdint>
 #include <type_traits>
 
@@ -117,14 +119,14 @@ namespace ausaxs::gpu::abi {
         /**
          * @brief The entry points a backend must export.
          */
-        std::int32_t ausaxs_gpu_abi_version();
-        bool ausaxs_gpu_available();
-        const char* ausaxs_gpu_device_name();
-        const char* ausaxs_gpu_last_error();
-        Status ausaxs_gpu_begin(std::int32_t bin_count, float inv_width, bool weighted);
-        Status ausaxs_gpu_submit(const Job* jobs, std::int32_t n_jobs);
-        Status ausaxs_gpu_finish_unweighted(std::int32_t n_slots, double* out);
-        Status ausaxs_gpu_finish_weighted(std::int32_t n_slots, WeightedBin* out);
+        EXPORT std::int32_t ausaxs_gpu_abi_version();
+        EXPORT bool ausaxs_gpu_available();
+        EXPORT const char* ausaxs_gpu_device_name();
+        EXPORT const char* ausaxs_gpu_last_error();
+        EXPORT Status ausaxs_gpu_begin(std::int32_t bin_count, float inv_width, bool weighted);
+        EXPORT Status ausaxs_gpu_submit(const Job* jobs, std::int32_t n_jobs);
+        EXPORT Status ausaxs_gpu_finish_unweighted(std::int32_t n_slots, double* out);
+        EXPORT Status ausaxs_gpu_finish_weighted(std::int32_t n_slots, WeightedBin* out);
 
         // The symbol names the loader resolves, kept beside the declarations they must match.
         constexpr const char* symbol_abi_version       = "ausaxs_gpu_abi_version";

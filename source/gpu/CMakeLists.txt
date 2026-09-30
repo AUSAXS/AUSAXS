@@ -1,3 +1,14 @@
+# The backend needs nothing from the library but the ABI header, so it can also be configured on its own with
+# `cmake -S source/gpu`. This spares a platform the library's own dependencies (e.g. CURL) when only the backend is wanted.
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+	cmake_minimum_required(VERSION 3.15)
+	project(ausaxs_gpu_backend CXX)
+	set(CMAKE_CXX_STANDARD 20)
+	set(CMAKE_CXX_STANDARD_REQUIRED ON)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+endif()
+
 include(GNUInstallDirs)
 
 if (NOT ACPP_TARGETS AND NOT DEFINED ENV{ACPP_TARGETS})
@@ -13,10 +24,14 @@ if (AdaptiveCpp_FOUND)
 		INCLUDE_DIRECTORIES ""
 		LINK_LIBRARIES ""
 	)
-	target_include_directories(ausaxs_gpu_sycl PRIVATE "${CMAKE_SOURCE_DIR}/include/gpu")
+	if (WIN32)
+		set_target_properties(ausaxs_gpu_sycl PROPERTIES PREFIX "") # GPULoader looks for ausaxs_gpu_sycl.dll, which a MinGW toolchain would prefix with "lib"
+	endif()
+	target_include_directories(ausaxs_gpu_sycl PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../include/gpu")
+	target_compile_definitions(ausaxs_gpu_sycl PRIVATE AUSAXS_GPU_BUILDING_BACKEND)
 	target_compile_options(ausaxs_gpu_sycl PRIVATE -O3) # the kernel is the point; never build it unoptimised
 	add_sycl_to_target(TARGET ausaxs_gpu_sycl SOURCES "SYCL/SYCLBackend.cpp")
-	install(TARGETS ausaxs_gpu_sycl LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} OPTIONAL)
+	install(TARGETS ausaxs_gpu_sycl LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} OPTIONAL)
 else()
 	set(_no_acpp "${CMAKE_CURRENT_BINARY_DIR}/no_adaptivecpp.cmake")
 	file(WRITE ${_no_acpp}
