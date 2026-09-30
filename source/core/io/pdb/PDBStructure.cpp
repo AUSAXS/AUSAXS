@@ -249,7 +249,7 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     md.element.emplace().reserve(atoms.size());
 
     for (auto& a : atoms) {
-        assert(0 <= a.effective_charge && "PDBStructure::reduced_representation: encountered an atom whose effective_charge was never set. "
+        assert(a.effective_charge != -1000 && "PDBStructure::reduced_representation: encountered an atom whose effective_charge was never set. "
             "Every reader must construct atoms through a path that derives it (set_element(), or a constructor/parse_pdb that takes an element).");
         res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);
 

@@ -13,13 +13,13 @@ TEST_CASE("NormalizedFormFactor::constructor") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        NormalizedFormFactor ff(a, b, c);
+        xray::NormalizedFormFactor ff(a, b, c);
         CHECK_THAT(ff.I0(), Catch::Matchers::WithinAbs(15.5, 1e-10));
     }
 
     SECTION("ExvFormFactor conversion") {
         ExvFormFactor exv(10.0);
-        NormalizedFormFactor ff(std::move(exv));
+        xray::NormalizedFormFactor ff(std::move(exv));
         CHECK(ff.I0() > 0);
     }
 }
@@ -30,7 +30,7 @@ TEST_CASE("NormalizedFormFactor::evaluate") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        NormalizedFormFactor ff(a, b, c);
+        xray::NormalizedFormFactor ff(a, b, c);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
@@ -39,7 +39,7 @@ TEST_CASE("NormalizedFormFactor::evaluate") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        NormalizedFormFactor ff(a, b, c);
+        xray::NormalizedFormFactor ff(a, b, c);
         double result = ff.evaluate(0.1);
         CHECK(result > 0);
         CHECK(result <= 1.0);
@@ -50,7 +50,7 @@ TEST_CASE("NormalizedFormFactor::evaluate") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        NormalizedFormFactor ff(a, b, c);
+        xray::NormalizedFormFactor ff(a, b, c);
         double val0 = ff.evaluate(0.0);
         double val1 = ff.evaluate(0.5);
         double val2 = ff.evaluate(1.0);
@@ -66,7 +66,7 @@ TEST_CASE("NormalizedFormFactor::I0") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        NormalizedFormFactor ff(a, b, c);
+        xray::NormalizedFormFactor ff(a, b, c);
         double expected = 1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 0.5;
         CHECK_THAT(ff.I0(), Catch::Matchers::WithinAbs(expected, 1e-10));
     }
@@ -76,7 +76,7 @@ TEST_CASE("NormalizedFormFactor::I0") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0;
         
-        NormalizedFormFactor ff(a, b, c);
+        xray::NormalizedFormFactor ff(a, b, c);
         CHECK(ff.I0() == 0);
     }
 }
@@ -87,7 +87,7 @@ TEST_CASE("NormalizedFormFactor::set_normalization") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        NormalizedFormFactor ff(a, b, c);
+        xray::NormalizedFormFactor ff(a, b, c);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-9));
         
         ff.set_normalization(2);
@@ -102,7 +102,7 @@ TEST_CASE("NormalizedFormFactor::set_normalization") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        NormalizedFormFactor ff(a, b, c);
+        xray::NormalizedFormFactor ff(a, b, c);
         ff.set_normalization(0.0);
         CHECK(ff.evaluate(0) == 0.0);
     }
@@ -111,92 +111,92 @@ TEST_CASE("NormalizedFormFactor::set_normalization") {
 TEST_CASE("NormalizedFormFactor::storage::atomic") {
     SECTION("get_form_factor for all types") {
         for (int i = 0; i < form_factor::total_ff_count; ++i) {
-            const NormalizedFormFactor& ff = lookup::atomic::normalized::get(static_cast<form_factor_t>(i));
+            const xray::NormalizedFormFactor& ff = xray::normalized::get(static_cast<form_factor_t>(i));
             CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
             CHECK(ff.I0() > 0);
         }
     }
 
     SECTION("hydrogen") {
-        const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
+        const xray::NormalizedFormFactor& H = xray::normalized::get(form_factor_t::H);
         CHECK_THAT(H.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("carbon") {
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
         CHECK_THAT(C.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("nitrogen") {
-        const NormalizedFormFactor& N = lookup::atomic::normalized::get(form_factor_t::N);
+        const xray::NormalizedFormFactor& N = xray::normalized::get(form_factor_t::N);
         CHECK_THAT(N.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("oxygen") {
-        const NormalizedFormFactor& O = lookup::atomic::normalized::get(form_factor_t::O);
+        const xray::NormalizedFormFactor& O = xray::normalized::get(form_factor_t::O);
         CHECK_THAT(O.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("sulfur") {
-        const NormalizedFormFactor& S = lookup::atomic::normalized::get(form_factor_t::S);
+        const xray::NormalizedFormFactor& S = xray::normalized::get(form_factor_t::S);
         CHECK_THAT(S.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("excluded_volume") {
-        const NormalizedFormFactor& exv = lookup::atomic::normalized::get(form_factor_t::EXCLUDED_VOLUME);
+        const xray::NormalizedFormFactor& exv = xray::normalized::get(form_factor_t::EXCLUDED_VOLUME);
         CHECK(exv.evaluate(0) > 0);
     }
 
     SECTION("invalid type throws") {
-        CHECK_THROWS(lookup::atomic::normalized::get(form_factor_t::UNKNOWN));
+        CHECK_THROWS(xray::normalized::get(form_factor_t::UNKNOWN));
     }
 }
 
 TEST_CASE("NormalizedFormFactor::storage::atomic groups") {
     SECTION("CH_sp3") {
-        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::CH);
+        const xray::NormalizedFormFactor& ff = xray::normalized::get(form_factor_t::CH);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("CH2_sp3") {
-        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::CH2);
+        const xray::NormalizedFormFactor& ff = xray::normalized::get(form_factor_t::CH2);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("CH3_sp3") {
-        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::CH3);
+        const xray::NormalizedFormFactor& ff = xray::normalized::get(form_factor_t::CH3);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("NH") {
-        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::NH);
+        const xray::NormalizedFormFactor& ff = xray::normalized::get(form_factor_t::NH);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("NH2") {
-        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::NH2);
+        const xray::NormalizedFormFactor& ff = xray::normalized::get(form_factor_t::NH2);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("NH3") {
-        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::NH3);
+        const xray::NormalizedFormFactor& ff = xray::normalized::get(form_factor_t::NH3);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("OH") {
-        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::OH);
+        const xray::NormalizedFormFactor& ff = xray::normalized::get(form_factor_t::OH);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 
     SECTION("SH") {
-        const NormalizedFormFactor& ff = lookup::atomic::normalized::get(form_factor_t::SH);
+        const xray::NormalizedFormFactor& ff = xray::normalized::get(form_factor_t::SH);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(1.0, 1e-6));
     }
 }
 
 TEST_CASE("NormalizedFormFactor::consistency with q_axis") {
     SECTION("evaluate across q_axis") {
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
         for (const double& q : constants::axes::q_vals) {
             double val = C.evaluate(q);
             CHECK(val > 0);

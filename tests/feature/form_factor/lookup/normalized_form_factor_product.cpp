@@ -12,8 +12,8 @@ using namespace form_factor;
 TEST_CASE("PrecalculatedFormFactorProduct::evaluate") {
     for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
         for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
-            const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
-            const NormalizedFormFactor& ff2_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff2));
+            const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(ff1));
+            const xray::NormalizedFormFactor& ff2_obj = xray::normalized::get(static_cast<form_factor_t>(ff2));
             NormalizedFormFactorProduct ff(ff1_obj, ff2_obj);
             for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                 CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(ff1_obj.evaluate(constants::axes::q_vals[i])*ff2_obj.evaluate(constants::axes::q_vals[i])));
@@ -28,8 +28,8 @@ TEST_CASE("PrecalculatedFormFactorProduct::table") {
     const auto& table = tables->normalized_atomic_table;
     for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
         for (int ff2 = 0; ff2 < tables->active_count; ++ff2) {
-            const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
-            const NormalizedFormFactor& ff2_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
+            const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+            const xray::NormalizedFormFactor& ff2_obj = xray::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
             const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
             for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                 CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(ff1_obj.evaluate(constants::axes::q_vals[i])*ff2_obj.evaluate(constants::axes::q_vals[i])));

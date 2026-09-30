@@ -41,6 +41,6 @@ namespace ausaxs::form_factor {
             }
 
         private:
-            std::array<double, constants::axes::q_axis.bins> precalculated_ff_q;
+            std::array<double, constants::axes::q_axis.bins> precalculated_ff_q{};
     };
 }

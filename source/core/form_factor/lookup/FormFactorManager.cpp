@@ -8,11 +8,13 @@
 #include <data/Molecule.h>
 #include <form_factor/FormFactorConcepts.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/NeutronFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
 #include <settings/ExvSettings.h>
 #include <settings/FormFactorSettings.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
@@ -42,8 +44,7 @@ namespace {
         }
     }
 
-    using ff_profile_t = std::array<double, constants::axes::q_axis.bins>; // A single form factor evaluated over the default q axis.
-    using profile_set_t = std::vector<ff_profile_t>; // One such profile per active form factor slot.
+    using profile_set_t = std::vector<manager::detail::profile_t>; // One profile per active form factor slot.
 
     /**
      * @brief Evaluate every active atomic form factor over the default q axis.
@@ -59,6 +60,33 @@ namespace {
             }
         }
         return profiles;
+    }
+
+    /**
+     * @brief Evaluate the amplitude and self-term correction of every active neutron form factor over the default q axis.
+     *        The excluded volume slot holds a normalized shape rather than a scattering length, so it is shared with the X-ray tables.
+     */
+    void evaluate_neutron_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices, profile_set_t& amplitudes, profile_set_t& self_corrections) {
+        amplitudes.assign(form_factor::get_active_count(), {});
+        self_corrections.assign(form_factor::get_active_count(), {});
+        for (int i = 0; i < form_factor::get_active_count(); ++i) {
+            auto type = static_cast<form_factor_t>(ff_indices[i]);
+            if (type == form_factor_t::EXCLUDED_VOLUME) {
+                const auto& ff = xray::raw::get(type);
+                for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
+                    amplitudes[i][q] = ff.evaluate(constants::axes::q_vals[q]);
+                    self_corrections[i][q] = 0;
+                }
+                continue;
+            }
+
+            const auto& ff = neutron::protonated::get(type);
+            for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
+                double f = ff.evaluate(constants::axes::q_vals[q]);
+                amplitudes[i][q] = f;
+                self_corrections[i][q] = ff.evaluate_self(constants::axes::q_vals[q]) - f*f;
+            }
+        }
     }
 
     /**
@@ -182,15 +210,24 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     // must come first; the profile evaluations and table generators below only fill the active sub-block, which they read from here
     form_factor::detail::active_ff_count = active_count;
 
-    const auto raw_profiles        = evaluate_atomic_profiles<lookup::detail::RawFormFactorLookup>(this->ff_indices);
-    const auto normalized_profiles = evaluate_atomic_profiles<lookup::detail::NormalizedFormFactorLookup>(this->ff_indices);
-    const auto exv_profiles        = evaluate_exv_profiles(this->ff_indices);
+    const auto exv_profiles = evaluate_exv_profiles(this->ff_indices);
+    switch (settings::scattering::radiation.value) {
+        case settings::scattering::Radiation::XRay: {
+            this->atomic_profiles = evaluate_atomic_profiles<xray::detail::RawFormFactorLookup>(this->ff_indices);
+            const auto normalized_profiles = evaluate_atomic_profiles<xray::detail::NormalizedFormFactorLookup>(this->ff_indices);
+            this->normalized_atomic_table = generate_atomic_table(normalized_profiles);
+            this->normalized_cross_table  = generate_cross_table(normalized_profiles, exv_profiles);
+            break;
+        }
+        case settings::scattering::Radiation::Neutron:
+            evaluate_neutron_profiles(this->ff_indices, this->atomic_profiles, this->self_correction);
+            this->self_corrected = true;
+            break;
+    }
 
-    this->raw_atomic_table         = generate_atomic_table(raw_profiles);
-    this->raw_cross_table          = generate_cross_table(raw_profiles, exv_profiles);
-    this->raw_exv_table            = generate_exv_table(exv_profiles);
-    this->normalized_atomic_table  = generate_atomic_table(normalized_profiles);
-    this->normalized_cross_table   = generate_cross_table(normalized_profiles, exv_profiles);
+    this->raw_atomic_table = generate_atomic_table(this->atomic_profiles);
+    this->raw_cross_table  = generate_cross_table(this->atomic_profiles, exv_profiles);
+    this->raw_exv_table    = generate_exv_table(exv_profiles);
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() {

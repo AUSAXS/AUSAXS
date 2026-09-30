@@ -6,16 +6,16 @@
 #include <form_factor/FormFactor.h>
 #include <form_factor/NormalizedFormFactor.h>
 
-namespace ausaxs::form_factor::lookup::detail {
+namespace ausaxs::form_factor::xray::detail {
     struct RawFormFactorLookup {
         static constexpr const FormFactor& get(form_factor_t type) {
-            return lookup::atomic::raw::get(type);
+            return raw::get(type);
         }
     };
 
     struct NormalizedFormFactorLookup {
         static constexpr const NormalizedFormFactor& get(form_factor_t type) {
-            return lookup::atomic::normalized::get(type);
+            return normalized::get(type);
         }
     };
 }

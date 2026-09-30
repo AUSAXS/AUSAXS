@@ -11,7 +11,10 @@
 #include <array>
 #include <utility>
 
-namespace ausaxs::form_factor {
+namespace ausaxs::form_factor::xray {
+    /**
+     * @brief An X-ray form factor normalized to 1 at q = 0.
+     */
     struct NormalizedFormFactor : public FormFactor {
         constexpr NormalizedFormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : FormFactor(a, b, c) {set_normalization(1);}
         constexpr NormalizedFormFactor(const ExvFormFactor& ffx) : FormFactor(ffx) {set_normalization(1);}
@@ -19,9 +22,9 @@ namespace ausaxs::form_factor {
     };
 
     /**
-     * The normalized vacuum form factors of all form factor types, as described by form_factor::detail::ff_info_table.
+     * The normalized vacuum X-ray form factors of all form factor types, as described by form_factor::detail::ff_info_table.
      */
-    namespace lookup::atomic::normalized {
+    namespace normalized {
         namespace detail {
             constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
                 return std::array<NormalizedFormFactor, total_ff_count>{NormalizedFormFactor(raw::detail::table[I])...};
@@ -31,12 +34,12 @@ namespace ausaxs::form_factor {
         constexpr const NormalizedFormFactor& get(form_factor_t type) {
             if (type == form_factor_t::UNKNOWN) {
                 throw ausaxs::except::runtime_error(
-                    "form_factor::lookup::atomic::normalized::get: Attempted to get the form factor of an UNKNOWN atom.\n"
+                    "form_factor::xray::normalized::get: Attempted to get the form factor of an UNKNOWN atom.\n"
                     "This typically occurs when performing species-dependent operations on data without form factor information."
                 );
             }
             if (!form_factor::detail::is_tabulated(type)) {
-                throw ausaxs::except::runtime_error("form_factor::lookup::atomic::normalized::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                throw ausaxs::except::runtime_error("form_factor::xray::normalized::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }
             return detail::table[static_cast<int>(type)];
         }

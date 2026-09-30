@@ -139,7 +139,7 @@ namespace ausaxs::io::pdb {
             int serial = -1, resSeq = -1; 
 
             // other properties
-            double effective_charge = -1;
+            double effective_charge = -1000; // unset; far below any physical value, since neutron scattering lengths may be negative
             int uid = -1;
 
         private: 

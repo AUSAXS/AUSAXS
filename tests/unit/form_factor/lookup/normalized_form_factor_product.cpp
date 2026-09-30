@@ -30,8 +30,8 @@ namespace {
 
 TEST_CASE("NormalizedFormFactorProduct::constructor") {
     SECTION("from two NormalizedFormFactors") {
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
-        const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& H = xray::normalized::get(form_factor_t::H);
         
         NormalizedFormFactorProduct ff(C, H);
         CHECK(ff.evaluate(0) > 0);
@@ -39,7 +39,7 @@ TEST_CASE("NormalizedFormFactorProduct::constructor") {
 
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
     SECTION("from NormalizedFormFactor and ExvFormFactor") {
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
         const ExvFormFactor& exv = exv_set.get(form_factor_t::C);
         
         NormalizedFormFactorProduct ff(C, exv);
@@ -57,8 +57,8 @@ TEST_CASE("NormalizedFormFactorProduct::constructor") {
 
 TEST_CASE("NormalizedFormFactorProduct::evaluate") {
     SECTION("matches manual calculation") {
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
-        const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& H = xray::normalized::get(form_factor_t::H);
         
         NormalizedFormFactorProduct ff(C, H);
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -68,8 +68,8 @@ TEST_CASE("NormalizedFormFactorProduct::evaluate") {
     }
 
     SECTION("symmetric") {
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
-        const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& H = xray::normalized::get(form_factor_t::H);
         
         NormalizedFormFactorProduct ff1(C, H);
         NormalizedFormFactorProduct ff2(H, C);
@@ -80,7 +80,7 @@ TEST_CASE("NormalizedFormFactorProduct::evaluate") {
     }
 
     SECTION("same form factor squared") {
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
         
         NormalizedFormFactorProduct ff(C, C);
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -94,8 +94,8 @@ TEST_CASE("NormalizedFormFactorProduct::all_pairs") {
     SECTION("all atomic form factor pairs") {
         for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
             for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
-                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
-                const NormalizedFormFactor& ff2_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff2));
+                const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(ff1));
+                const xray::NormalizedFormFactor& ff2_obj = xray::normalized::get(static_cast<form_factor_t>(ff2));
                 NormalizedFormFactorProduct ff(ff1_obj, ff2_obj);
                 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -130,8 +130,8 @@ TEST_CASE("manager::normalized_atomic_table") {
         auto [c_slot, h_slot] = use_C_and_H();
         const auto& table = manager::get_active_product_tables()->normalized_atomic_table;
 
-        const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
-        const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
+        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
+        const xray::NormalizedFormFactor& H = xray::normalized::get(form_factor_t::H);
 
         const auto& ff = table.index(c_slot, h_slot);
 
@@ -147,8 +147,8 @@ TEST_CASE("manager::normalized_atomic_table") {
         const auto& table = tables->normalized_atomic_table;
         for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
             for (int ff2 = 0; ff2 < tables->active_count; ++ff2) {
-                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
-                const NormalizedFormFactor& ff2_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
+                const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+                const xray::NormalizedFormFactor& ff2_obj = xray::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {

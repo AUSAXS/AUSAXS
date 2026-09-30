@@ -18,7 +18,7 @@ TEST_CASE("ExvFormFactor::evaluate") {}
 TEST_CASE("ExvFormFactor::plot", "[manual]") {
     plots::PlotDataset plot;
     {
-        const form_factor::NormalizedFormFactor& ff_exv = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
+        const form_factor::xray::NormalizedFormFactor& ff_exv = form_factor::xray::normalized::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
         Dataset dataset(0, 2);
         for (const double& q : q_vals) {
             dataset.push_back({q, ff_exv.evaluate(q)/ff_exv.evaluate(0)});
@@ -42,7 +42,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
 TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
     for (int ffi = 1; ffi < form_factor::total_ff_count; ++ffi) {
-        const form_factor::NormalizedFormFactor& ff = form_factor::lookup::atomic::normalized::get(static_cast<form_factor::form_factor_t>(ffi));
+        const form_factor::xray::NormalizedFormFactor& ff = form_factor::xray::normalized::get(static_cast<form_factor::form_factor_t>(ffi));
         const form_factor::ExvFormFactor& ffx = exv_set.get(static_cast<form_factor::form_factor_t>(ffi));
 
         Dataset dataset(0, 2), datasetx(0, 2);

@@ -34,7 +34,7 @@ TEST_CASE("FormFactorProduct::evaluate") {
         for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
             for (int ff2 = 1; ff2 < total_ff_count; ++ff2) {
                 if (!exv_set.contains(static_cast<form_factor_t>(ff2))) {continue;}
-                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
+                const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(ff1));
                 const ExvFormFactor& ff2_obj = exv_set.get(static_cast<form_factor_t>(ff2));
                 NormalizedFormFactorProduct ff(ff1_obj, ff2_obj);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
@@ -69,7 +69,7 @@ TEST_CASE("FormFactorProduct::table") {
         const auto& table = tables->normalized_cross_table;
         for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
-                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+                const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
                 const ExvFormFactor& ff2_obj = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {

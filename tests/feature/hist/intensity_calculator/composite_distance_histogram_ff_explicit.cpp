@@ -20,8 +20,8 @@ using namespace ausaxs::data;
 [[maybe_unused]] static int qcheck = 26; // only read under DEBYE_DEBUG
 TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
-    auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
-    auto ff_w = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::OH);
+    auto ff_C = form_factor::xray::raw::get(form_factor::form_factor_t::C);
+    auto ff_w = form_factor::xray::raw::get(form_factor::form_factor_t::OH);
     auto ff_Cx = form_factor::ExvTableManager::get_current_exv_form_factor_set().get(form_factor::form_factor_t::C);
     [[maybe_unused]] auto ff_wx = form_factor::ExvTableManager::get_current_exv_form_factor_set().get(form_factor::form_factor_t::OH); // only read under DEBYE_DEBUG
     const auto& q_axis = constants::axes::q_vals;
@@ -198,7 +198,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 TEST_CASE("CompositeDistanceHistogramFFExplicit: exv term normalization") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    auto ff_C  = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
+    auto ff_C  = form_factor::xray::raw::get(form_factor::form_factor_t::C);
     auto ff_Cx = form_factor::ExvTableManager::get_current_exv_form_factor_set().get(form_factor::form_factor_t::C);
 
     std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};

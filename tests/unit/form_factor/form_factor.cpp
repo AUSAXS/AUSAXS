@@ -13,13 +13,13 @@ TEST_CASE("FormFactor::constructor") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        FormFactor ff(a, b, c);
+        xray::FormFactor ff(a, b, c);
         CHECK_THAT(ff.I0(), Catch::Matchers::WithinAbs(15.5, 1e-10));
     }
 
     SECTION("ExvFormFactor conversion") {
         ExvFormFactor exv(10.0);
-        FormFactor ff(std::move(exv));
+        xray::FormFactor ff(std::move(exv));
         CHECK(ff.I0() > 0);
     }
 }
@@ -30,7 +30,7 @@ TEST_CASE("FormFactor::evaluate") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        FormFactor ff(a, b, c);
+        xray::FormFactor ff(a, b, c);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(15.5, 1e-6));
     }
 
@@ -39,7 +39,7 @@ TEST_CASE("FormFactor::evaluate") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        FormFactor ff(a, b, c);
+        xray::FormFactor ff(a, b, c);
         double result = ff.evaluate(0.1);
         CHECK(result > 0);
         CHECK(result < 15.5);
@@ -50,7 +50,7 @@ TEST_CASE("FormFactor::evaluate") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        FormFactor ff(a, b, c);
+        xray::FormFactor ff(a, b, c);
         double q1 = ff.evaluate(0.1);
         double q2 = ff.evaluate(0.5);
         double q3 = ff.evaluate(1.0);
@@ -66,7 +66,7 @@ TEST_CASE("FormFactor::set_normalization") {
         std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
         double c = 0.5;
         
-        FormFactor ff(a, b, c);
+        xray::FormFactor ff(a, b, c);
         ff.set_normalization(2);
         CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(2, 1e-9));
 
@@ -75,45 +75,45 @@ TEST_CASE("FormFactor::set_normalization") {
     }
 }
 
-TEST_CASE("FormFactor::lookup::atomic::raw") {
+TEST_CASE("FormFactor::xray::raw") {
     SECTION("get hydrogen form factor") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::H);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::H);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get carbon form factor") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::C);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::C);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get nitrogen form factor") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::N);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::N);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get oxygen form factor") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::O);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::O);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get sulfur form factor") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::S);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::S);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get excluded volume form factor") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::EXCLUDED_VOLUME);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::EXCLUDED_VOLUME);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("get form factor by type") {
-        const FormFactor& ff = lookup::atomic::raw::get(form_factor_t::C);
+        const xray::FormFactor& ff = xray::raw::get(form_factor_t::C);
         CHECK(ff.I0() > 0);
         CHECK(ff.evaluate(0) > 0);
     }
@@ -121,10 +121,10 @@ TEST_CASE("FormFactor::lookup::atomic::raw") {
 
 TEST_CASE("FormFactor::comparison with normalized") {
     SECTION("raw form factors are not normalized to 1") {
-        const FormFactor& ff_h = lookup::atomic::raw::get(form_factor_t::H);
-        const FormFactor& ff_c = lookup::atomic::raw::get(form_factor_t::C);
-        const FormFactor& ff_n = lookup::atomic::raw::get(form_factor_t::N);
-        const FormFactor& ff_o = lookup::atomic::raw::get(form_factor_t::O);
+        const xray::FormFactor& ff_h = xray::raw::get(form_factor_t::H);
+        const xray::FormFactor& ff_c = xray::raw::get(form_factor_t::C);
+        const xray::FormFactor& ff_n = xray::raw::get(form_factor_t::N);
+        const xray::FormFactor& ff_o = xray::raw::get(form_factor_t::O);
         
         CHECK(ff_h.evaluate(0) != 1.0);
         CHECK(ff_c.evaluate(0) != 1.0);

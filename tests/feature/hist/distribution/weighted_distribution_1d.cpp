@@ -207,7 +207,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
 
 //         auto qaxis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
 //         auto q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
-//         form_factor::FormFactor ff = form_factor::ExvFormFactor(std::pow(2*exv_radius, 3));
+//         form_factor::xray::FormFactor ff = form_factor::ExvFormFactor(std::pow(2*exv_radius, 3));
 //         hist::ScatteringProfile I(qaxis);
 //         for (unsigned int q = q0; q < q0+qaxis.bins; ++q) {
 //             double sum = 0;

@@ -41,7 +41,7 @@ TEST_CASE("ExvFormFactor: switch volumes") {
                 for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
                     auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
                     auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
-                    const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(t1);
+                    const xray::NormalizedFormFactor& ff1_obj = xray::normalized::get(t1);
                     const FormFactorProduct& ff = table.index(ff1, ff2);
                     for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                         double expected = ff1_obj.evaluate(constants::axes::q_vals[i])*exv(t2, constants::axes::q_vals[i]);
