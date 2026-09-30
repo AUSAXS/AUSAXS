@@ -61,7 +61,7 @@ void iterative_fit_evaluate(
     auto* iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
     if (!iterative_fit_state) {throw except::invalid_argument("Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\"");}
     if (iterative_fit_state->q.empty()) {
-        iterative_fit_state->q = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+        iterative_fit_state->q = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
     }
     auto& enabled_pars = iterative_fit_state->enabled_pars;
     if (n_pars != enabled_pars.get_enabled_pars_count()) {

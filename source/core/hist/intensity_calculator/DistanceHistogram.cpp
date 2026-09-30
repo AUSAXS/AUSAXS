@@ -55,7 +55,7 @@ void DistanceHistogram::initialize() {
 
 ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     const auto* sinqd_table = sinc_table.get_sinc_table();
 
     // calculate the scattering intensity based on the Debye equation
@@ -76,8 +76,9 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
 }
 
 SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
-    // if the q values are within the default range, we can just interpolate them for better performance
-    if (constants::axes::q_axis.min <= q.front() && q.back() <= constants::axes::q_axis.max) {
+    // if the q values are within the evaluated default range, we can just interpolate them for better performance
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
+    if (debye_axis.front() <= q.front() && q.back() <= debye_axis.back()) {
         return debye_transform().as_dataset().interpolate(q);
     }
     static table::DebyeTableManager sinc_table_extended;
@@ -104,7 +105,7 @@ const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;
 
 const std::vector<double>& DistanceHistogram::get_q_axis() {
     static std::vector<double> q_vals; 
-    q_vals = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+    q_vals = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
     return q_vals;
 }
 

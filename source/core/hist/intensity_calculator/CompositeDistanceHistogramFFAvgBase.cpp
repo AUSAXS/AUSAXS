@@ -56,7 +56,7 @@ double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::exv_factor(doub
 
 template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::debye_transform() const {
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     std::vector<double> Iq(debye_axis.bins, 0);
     auto[aa, ax, aw, xx, wx, ww] = cache_get_intensity_profiles();
     assert(aa.size() == Iq.size() && "CompositeDistanceHistogramFFAvgBase::debye_transform(): aa.size() != Iq.size()");
@@ -262,42 +262,42 @@ template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_aa() const {
     std::vector<double> aa;
     std::tie(aa, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();
-    return {aa, constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax)};
+    return {aa, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
 template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_ax() const {
     std::vector<double> ax;
     std::tie(std::ignore, ax, std::ignore, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();
-    return {ax, constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax)};
+    return {ax, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
 template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_xx() const {
     std::vector<double> xx;
     std::tie(std::ignore, std::ignore, std::ignore, xx, std::ignore, std::ignore) = cache_get_intensity_profiles();
-    return {xx, constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax)};
+    return {xx, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
 template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_wx() const {
     std::vector<double> wx;
     std::tie(std::ignore, std::ignore, std::ignore, std::ignore, wx, std::ignore) = cache_get_intensity_profiles();
-    return {wx, constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax)};
+    return {wx, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
 template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_aw() const {
     std::vector<double> aw;
     std::tie(std::ignore, std::ignore, aw, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();
-    return {aw, constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax)};
+    return {aw, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
 template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_profile_ww() const {
     std::vector<double> ww;
     std::tie(std::ignore, std::ignore, std::ignore, std::ignore, std::ignore, ww) = cache_get_intensity_profiles();
-    return {ww, constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax)};
+    return {ww, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
 template<typename FormFactorTableType>
@@ -337,7 +337,7 @@ std::tuple<
 ) const {
     if (free_params.DW_sigma_atomic == 0 && free_params.DW_sigma_exv == 0) {return profiles;}
     auto* pool = utility::multi_threading::get_global_pool();
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     // copy the profiles
@@ -438,7 +438,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
     auto* pool = utility::multi_threading::get_global_pool();
     const auto& sinqd_table = sinc_table.get_sinc_table();
 
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     if (cache.sinqd.aa.empty()) {
@@ -474,7 +474,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     auto* pool = utility::multi_threading::get_global_pool();
     const auto& ff_table = get_ff_table(); 
 
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     if (sinqd_changed) {

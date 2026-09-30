@@ -86,11 +86,27 @@ namespace ausaxs {
 			double get_bin_value(int bin) const noexcept;
 
 			/**
-			 * @brief Get a sub-axis of this Axis.
+			 * @brief Get the first value of this Axis, i.e. the first element of as_vector().
+			 */
+			constexpr double front() const noexcept {return min;}
+
+			/**
+			 * @brief Get the last value of this Axis, i.e. the last element of as_vector().
+			 * 		  Note that this is one bin width below max.
+			 */
+			constexpr double back() const noexcept {return min + (bins-1)*width();}
+
+			/**
+			 * @brief Get the sub-axis of this Axis within the range [min, max].
 			 * 		  The closest match to the specified minimum and maximum values are used.
-			 * 		  This guarantees that the returned Axis is an exact subset of this Axis.
 			 */
 			Axis sub_axis(double min, double max) const noexcept;
+
+			/**
+			 * @brief Get the smallest sub-axis of this Axis covering the range [min, max].
+			 *        This will be equivalent to sub_axis(min, max) plus up to one additional bin on either side.
+			 */
+			Axis sub_axis_covering(double min, double max) const noexcept;
 
 			/**
 			 * @brief Resize this Axis to a new number of bins.

@@ -51,7 +51,7 @@ TEST_CASE("ExactDebyeCalculator: works") {
         data::Molecule protein("tests/files/" + file + ".pdb");
         protein.clear_hydration();
 
-        auto qaxis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+        auto qaxis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
         auto I_exact = exact(protein, qaxis);
         auto Iq = hist::exact_debye_transform(protein, qaxis);
 
