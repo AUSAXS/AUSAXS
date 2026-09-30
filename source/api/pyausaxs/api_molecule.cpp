@@ -6,11 +6,13 @@
 #include <api/ObjectStorage.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/state/Signaller.h>
 #include <fitter/SmartFitter.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IHistogramManager.h>
+#include <hist/intensity_calculator/DebyeGradient.h>
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <io/pdb/PDBStructure.h>
@@ -293,6 +295,44 @@ void molecule_debye_exact_userq(
     if (static_cast<int>(Iq.size()) != n_points) {throw except::size_error("Exact Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
         I[i] = Iq[i]*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by exact_debye
+    }
+}, status);}
+
+void molecule_set_coordinates(
+    int molecule_id,
+    const double* x, const double* y, const double* z, int n_atoms,
+    int* status
+) {execute_with_catch([&]() {
+    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
+    if (n_atoms != molecule->size_atom()) {
+        throw except::size_error("molecule_set_coordinates: expected " + std::to_string(molecule->size_atom()) + " atoms, got " + std::to_string(n_atoms) + ".");
+    }
+    int i = 0;
+    for (auto& atom : molecule->iterate_atoms()) {
+        atom.coordinates() = {x[i], y[i], z[i]};
+        ++i;
+    }
+    for (const auto& body : molecule->get_bodies()) {body.get_signaller()->modified_internal();}
+    molecule->clear_grid();
+}, status);}
+
+void molecule_debye_raw_vjp(
+    int molecule_id,
+    const double* q, const double* v, int n_points,
+    double* gx, double* gy, double* gz, int n_atoms,
+    int* status
+) {execute_with_catch([&]() {
+    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
+    if (n_atoms != molecule->size_atom()) {
+        throw except::size_error("molecule_debye_raw_vjp: expected " + std::to_string(molecule->size_atom()) + " atoms, got " + std::to_string(n_atoms) + ".");
+    }
+    auto gradient = hist::debye_raw_vjp(*molecule, std::vector<double>(q, q + n_points), std::vector<double>(v, v + n_points));
+    for (int i = 0; i < n_atoms; ++i) {
+        gx[i] = gradient[i].x();
+        gy[i] = gradient[i].y();
+        gz[i] = gradient[i].z();
     }
 }, status);}
 

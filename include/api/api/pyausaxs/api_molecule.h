@@ -89,6 +89,29 @@ extern "C" API void molecule_debye_exact_userq(
     int* status
 );
 
+/**
+ * Overwrite the coordinates of the n_atoms atoms, in the order of molecule_get_data. The atoms keep their weights and
+ * form factors, and the hydration shell (if any) is left untouched.
+ */
+extern "C" API void molecule_set_coordinates(
+    int molecule_id,
+    const double* x, const double* y, const double* z, int n_atoms,
+    int* status
+);
+
+/**
+ * Vector-Jacobian product of molecule_debye_raw_userq with respect to the atomic coordinates. Given the adjoint
+ * v(q) = dL/dI(q) at the n_points values q, write dL/dr_i into (gx, gy, gz) for each of the n_atoms atoms, in the order
+ * of molecule_get_data. This is the derivative of the exact Debye sum, not of its binned approximation.
+ * Hydrated molecules are not supported yet.
+ */
+extern "C" API void molecule_debye_raw_vjp(
+    int molecule_id,
+    const double* q, const double* v, int n_points,
+    double* gx, double* gy, double* gz, int n_atoms,
+    int* status
+);
+
 extern "C" API int molecule_debye_fit(
     int molecule_id, int data_id,
     int* status
