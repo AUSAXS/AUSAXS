@@ -5,6 +5,7 @@
 
 #include <utility/Limit.h>
 
+#include <algorithm>
 #include <cmath>
 #include <ostream>
 
@@ -57,6 +58,13 @@ Axis Axis::sub_axis(double vmin, double vmax) const noexcept {
     double new_min = get_bin_value(min_bin);
     double new_max = get_bin_value(max_bin);
     return {new_min, new_max, max_bin - min_bin};
+}
+
+Axis Axis::sub_axis_covering(double vmin, double vmax) const noexcept {
+    if (bins == 0) [[unlikely]] {return *this;}
+    int min_bin = std::min(get_bin(vmin), bins-1);
+    int max_bin = std::clamp(static_cast<int>(std::ceil((vmax-1e-6-min)/width())), min_bin, bins-1); // -1e-6 to avoid ceiling floating point errors
+    return {get_bin_value(min_bin), get_bin_value(max_bin+1), max_bin - min_bin + 1};
 }
 
 namespace {

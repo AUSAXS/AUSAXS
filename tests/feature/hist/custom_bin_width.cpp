@@ -151,7 +151,7 @@ TEST_CASE("Custom bin width: smaller widths increase accuracy") {
     settings::molecule::implicit_hydrogens = false;
 
     Molecule protein("tests/files/c60.pdb");
-    auto exact = hist::exact_debye_transform(protein, constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector());
+    auto exact = hist::exact_debye_transform(protein, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector());
     invoke_for_all_nongrid_histogram_manager_variants(
         []<template<bool> class MANAGER>(const Molecule& protein, const std::vector<double>& exact) {
             run_test5<MANAGER>(protein, exact);

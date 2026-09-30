@@ -36,7 +36,7 @@ double CompositeDistanceHistogramFFGrid::exv_factor(double /*q*/) const {
 void CompositeDistanceHistogramFFGrid::cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const {
     auto* pool = utility::multi_threading::get_global_pool();
 
-    int bins = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).bins;
+    int bins = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).bins;
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     // this lazily initializes shared state, so it must be resolved before any job is submitted
@@ -75,7 +75,7 @@ void CompositeDistanceHistogramFFGrid::cache_refresh_sinqd_exv() const {
     const auto& sinqd_table_ax = get_sinc_table_ax();
     const auto& sinqd_table_xx = get_sinc_table_xx();
 
-    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
     if (exv_sinqd.ax.empty()) {

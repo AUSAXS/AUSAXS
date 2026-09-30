@@ -33,7 +33,7 @@ CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(
 void CompositeDistanceHistogramFFAvg::cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const {
     auto* pool = utility::multi_threading::get_global_pool();
 
-    int bins = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).bins;
+    int bins = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).bins;
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
     const double Z = Z_exv_avg;
 

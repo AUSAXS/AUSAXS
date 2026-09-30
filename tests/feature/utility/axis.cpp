@@ -221,3 +221,35 @@ TEST_CASE("Axis::sub_axis") {
         }
     }
 }
+TEST_CASE("Axis::sub_axis_covering") {
+    SECTION("simple") {
+        Axis axis(1, 10, 9);
+        Axis sub_axis = axis.sub_axis_covering(2, 8);
+        CHECK(sub_axis.min == 2);
+        CHECK(sub_axis.max == 9);
+        CHECK(sub_axis.bins == 7);
+
+        sub_axis = axis.sub_axis_covering(0, 11);
+        CHECK(sub_axis.min == 1);
+        CHECK(sub_axis.max == 10);
+        CHECK(sub_axis.bins == 9);
+
+        sub_axis = axis.sub_axis_covering(0.5, 5.5);
+        CHECK(sub_axis.min == 1);
+        CHECK(sub_axis.max == 7);
+        CHECK(sub_axis.bins == 6);
+    }
+
+    SECTION("q_conversion") {
+        auto q_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
+        auto qvals = q_axis.as_vector();
+        CHECK(q_axis.front() == qvals.front());
+        CHECK(q_axis.back() == qvals.back());
+        CHECK(qvals.front() <= settings::axes::qmin);
+        CHECK(settings::axes::qmax <= qvals.back());
+        CHECK(qvals[qvals.size()-2] < settings::axes::qmax);
+        for (int i = 0; i < q_axis.bins; ++i) {
+            CHECK_THAT(qvals[i], Catch::Matchers::WithinAbs(constants::axes::q_vals[i], 1e-6));
+        }
+    }
+}

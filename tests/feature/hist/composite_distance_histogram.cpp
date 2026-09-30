@@ -34,7 +34,7 @@ static auto exact_aa_carbon = [] (const data::Molecule& molecule) {
         }
     }
 
-    auto qaxis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    auto qaxis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     auto q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
     hist::ScatteringProfile I(qaxis);
     for (int q = q0; q < q0+qaxis.bins; ++q) {
