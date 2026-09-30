@@ -266,7 +266,7 @@ int molecule_debye_exact(
 ) {return execute_with_catch([&]() {
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    auto qv = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+    auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
     auto Iq = hist::exact_debye_transform(*molecule, qv);
     _molecule_debye_obj data(static_cast<int>(Iq.size()));
     for (int i = 0; i < static_cast<int>(Iq.size()); ++i) {
