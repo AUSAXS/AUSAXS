@@ -4,7 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <data/Body.h>
+#include <data/Body.h> // NOLINT
 #include <data/Molecule.h>
 #include <grid/Grid.h>
 #include <grid/detail/GridObj.h>
