@@ -67,6 +67,7 @@ jobs:
             --object-directory build-asan-coverage \
             --exclude-directories '.*/_deps$' \
             --filter 'source/' \
+            --filter 'include/' \
             --exclude '.*_deps/.*' \
             --cobertura-pretty \
             --output coverage.xml \
