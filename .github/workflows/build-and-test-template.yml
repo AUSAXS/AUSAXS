@@ -22,12 +22,15 @@ jobs:
           fetch-depth: 0
           filter: blob:none
 
-      # the two cheap checks run first so a failure reports before anything is installed
+      # the cheap checks run first so a failure reports before anything is installed
       - name: Check headers
         run: python .github/check_headers.py
 
       - name: Check exceptions
         run: python .github/check_exceptions.py
+
+      - name: Check unit test layout
+        run: python .github/check_unit_tests.py
 
       # Finds the newest commit on this branch whose conventions check already passed, so the
       # step below can analyse what changed since then rather than the whole pull request again.
