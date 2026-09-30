@@ -211,8 +211,8 @@ TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables
     auto indices_before = manager::get_active_product_tables()->ff_indices;
     int count_before = manager::get_active_product_tables()->active_count;
 
-    // capture one exv table value before rebuild
-    double exv_val_before = manager::get_active_product_tables()->raw_exv_table.index(0, 0).evaluate(0);
+    // capture one exv table value before rebuild; the exv table is only filled from start_index_for_explicit_exv() onwards
+    double exv_val_before = manager::get_active_product_tables()->raw_exv_table.index(start_index_for_explicit_exv(), start_index_for_explicit_exv()).evaluate(0);
 
     manager::rebuild();
 
@@ -227,7 +227,7 @@ TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables
     }
 
     SECTION("table values reproduced identically after rebuild with same EXV set") {
-        double exv_val_after = tables->raw_exv_table.index(0, 0).evaluate(0);
+        double exv_val_after = tables->raw_exv_table.index(start_index_for_explicit_exv(), start_index_for_explicit_exv()).evaluate(0);
         REQUIRE(exv_val_before == exv_val_after);
     }
 

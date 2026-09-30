@@ -61,8 +61,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     SECTION("selecting a body name switches to ManualSelect targeting that body") {
         auto seq = parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "select b2\n"
         );
@@ -77,8 +77,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     SECTION("selecting a known strategy name inline works without braces") {
         auto seq = parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "select sequential_body\n"
         );
@@ -93,8 +93,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     SECTION("selecting an unknown body name or strategy is rejected") {
         CHECK_THROWS(parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "select doesnotexist\n"
         ));
@@ -103,8 +103,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     SECTION("more than one inline argument is rejected") {
         CHECK_THROWS(parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "select b1 b2\n"
         ));
@@ -113,8 +113,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     SECTION("selecting a symmetry tag targets that symmetry alone") {
         auto seq = parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "symmetry c2\n"
             "symmetry c3\n"
@@ -141,8 +141,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     SECTION("a replica tag resolves to the same symmetry as its short form") {
         auto seq = parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "symmetry c2\n"
             "symmetry c3\n"
@@ -168,11 +168,11 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         auto tag = GENERATE(as<std::string>{}, "b1s1", "b2s1", "b2s1r1");
         auto seq = parse(
             "load {\n"
-            "    pdb tests/files/LAR1-2.pdb\n"
-            "    saxs tests/files/LAR1-2.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "symmetry b1 c2\n"
-            "split b1 99\n"
+            "split b1 65\n"
             "select " + tag + "\n"
         );
         REQUIRE(seq != nullptr);
@@ -191,8 +191,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     SECTION("an unknown symmetry tag is rejected as a parse error") {
         CHECK_THROWS_AS(parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "symmetry c2\n"
             "select b1s7\n"
@@ -200,8 +200,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
 
         CHECK_THROWS_AS(parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "symmetry c2\n"
             "select b1s1r99\n"
@@ -211,8 +211,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     SECTION("named argument block form still works") {
         auto seq = parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "select {\n"
             "    point random_body\n"
@@ -232,8 +232,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
         auto token = GENERATE(as<std::string>{}, "random_symmetry", "sequential_symmetry");
         auto seq = parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "symmetry c2\n"
             "select " + token + "\n"
@@ -258,8 +258,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
 TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement symmetry isolation") {
     auto seq = parse(
         "load {\n"
-        "    pdb tests/files/SASDJG5_single.pdb\n"
-        "    saxs tests/files/SASDJG5.dat\n"
+        "    pdb tests/files/2epe.pdb\n"
+        "    saxs tests/files/2epe.dat\n"
         "}\n"
         "symmetry c2\n"
         "symmetry c3\n"
@@ -304,8 +304,8 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     auto mask_of = [this] (const std::string& mask_name) {
         auto seq = parse(
             "load {\n"
-            "    pdb tests/files/SASDJG5_single.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
             "}\n"
             "symmetry c2\n"
             "select {\n"

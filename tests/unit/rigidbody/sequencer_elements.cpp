@@ -37,8 +37,9 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::SaveElement basic
         std::string output_path = out_dir.path() + "/test_save.pdb";
         auto seq = parse_sequence(
             "load {\n"
-            "    pdb tests/files/SASDJG5.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
+            "    split 40 80\n"
             "}\n"
             "loop 2\n"
             "    optimize_once\n"
@@ -58,10 +59,11 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::EveryNStepElement
         std::string output_path = out_dir.path() + "/every_n_%.pdb";
         auto seq = parse_sequence(
             "load {\n"
-            "    pdb tests/files/SASDJG5.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
+            "    split 40 80\n"
             "}\n"
-            "loop 5\n"
+            "loop 3\n"
             "    optimize_once\n"
             "    every 2\n"
             "        save " + output_path + "\n"
@@ -78,10 +80,11 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::OnImprovementElem
     SECTION("Basic optimization steps") {
         auto seq = parse_sequence(
             "load {\n"
-            "    pdb tests/files/SASDJG5.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
+            "    split 40 80\n"
             "}\n"
-            "loop 5\n"
+            "loop 2\n"
             "    optimize_once\n"
             "end\n"
         );
@@ -148,11 +151,12 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement neste
     SECTION("Two nested loops") {
         auto seq = parse_sequence(
             "load {\n"
-            "    pdb tests/files/SASDJG5.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
+            "    split 40 80\n"
             "}\n"
             "loop 2\n"
-            "    loop 3\n"
+            "    loop 2\n"
             "        optimize_once\n"
             "    end\n"
             "end\n"
@@ -170,8 +174,9 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::ParameterElement 
         REQUIRE_NOTHROW(
             parse_sequence(
                 "load {\n"
-                "    pdb tests/files/SASDJG5.pdb\n"
-                "    saxs tests/files/SASDJG5.dat\n"
+                "    pdb tests/files/2epe.pdb\n"
+                "    saxs tests/files/2epe.dat\n"
+                "    split 40 80\n"
                 "}\n"
                 "loop 5\n"
                 "    optimize_once\n"
@@ -186,8 +191,9 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::BodySelectElement
         REQUIRE_NOTHROW(
             parse_sequence(
                 "load {\n"
-                "    pdb tests/files/SASDJG5.pdb\n"
-                "    saxs tests/files/SASDJG5.dat\n"
+                "    pdb tests/files/2epe.pdb\n"
+                "    saxs tests/files/2epe.dat\n"
+                "    split 40 80\n"
                 "}\n"
                 "loop 3\n"
                 "    optimize_once\n"
@@ -200,8 +206,9 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::BodySelectElement
         REQUIRE_NOTHROW(
             parse_sequence(
                 "load {\n"
-                "    pdb tests/files/SASDJG5.pdb\n"
-                "    saxs tests/files/SASDJG5.dat\n"
+                "    pdb tests/files/2epe.pdb\n"
+                "    saxs tests/files/2epe.dat\n"
+                "    split 40 80\n"
                 "}\n"
                 "loop 3\n"
                 "    optimize_once\n"
@@ -216,8 +223,9 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::TransformElement 
         REQUIRE_NOTHROW(
             parse_sequence(
                 "load {\n"
-                "    pdb tests/files/SASDJG5.pdb\n"
-                "    saxs tests/files/SASDJG5.dat\n"
+                "    pdb tests/files/2epe.pdb\n"
+                "    saxs tests/files/2epe.dat\n"
+                "    split 40 80\n"
                 "}\n"
                 "loop 3\n"
                 "    optimize_once\n"
@@ -230,8 +238,9 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::TransformElement 
         REQUIRE_NOTHROW(
             parse_sequence(
                 "load {\n"
-                "    pdb tests/files/SASDJG5.pdb\n"
-                "    saxs tests/files/SASDJG5.dat\n"
+                "    pdb tests/files/2epe.pdb\n"
+                "    saxs tests/files/2epe.dat\n"
+                "    split 40 80\n"
                 "}\n"
                 "loop 3\n"
                 "    optimize_once\n"
@@ -252,8 +261,9 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement stop 
     SECTION("Stop request ends the loop after the current iteration") {
         auto seq = parse_sequence(
             "load {\n"
-            "    pdb tests/files/SASDJG5.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
+            "    split 40 80\n"
             "}\n"
             "loop 10\n"
             "    optimize_once\n"
@@ -280,8 +290,9 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement stop 
 
         auto seq = parse_sequence(
             "load {\n"
-            "    pdb tests/files/SASDJG5.pdb\n"
-            "    saxs tests/files/SASDJG5.dat\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
+            "    split 40 80\n"
             "}\n"
             "loop 3\n"
             "    optimize_once\n"

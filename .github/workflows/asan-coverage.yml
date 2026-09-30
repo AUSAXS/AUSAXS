@@ -11,7 +11,7 @@ permissions:
 jobs:
   unit-tests:
     name: Unit tests with ASan and coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
 
@@ -19,7 +19,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libcurl4-openssl-dev
-          python3 -m pip install --disable-pip-version-check gcovr==8.4
+          python3 -m venv "$RUNNER_TEMP/gcovr"
+          "$RUNNER_TEMP/gcovr/bin/pip" install --disable-pip-version-check gcovr==8.4
+          echo "$RUNNER_TEMP/gcovr/bin" >> "$GITHUB_PATH"
 
       - name: Configure
         env:
@@ -27,10 +29,10 @@ jobs:
           INSTRUMENT_LINK_FLAGS: -fsanitize=address --coverage
         run: |
           cmake -B build-asan-coverage -S . \
-            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_BUILD_TYPE=Release \
             -DSAFE_CHECKS=ON \
-            -DCMAKE_C_FLAGS_DEBUG="$INSTRUMENT_FLAGS" \
-            -DCMAKE_CXX_FLAGS_DEBUG="$INSTRUMENT_FLAGS" \
+            -DCMAKE_C_FLAGS_RELEASE="-O3 -DNDEBUG $INSTRUMENT_FLAGS" \
+            -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG $INSTRUMENT_FLAGS" \
             -DCMAKE_EXE_LINKER_FLAGS="$INSTRUMENT_LINK_FLAGS" \
             -DCMAKE_SHARED_LINKER_FLAGS="$INSTRUMENT_LINK_FLAGS"
 
@@ -40,11 +42,12 @@ jobs:
         run: cmake --build build-asan-coverage --target unit_tests -j12
 
       - name: Run unit tests
+        id: unit-tests
         env:
           ASAN_OPTIONS: detect_leaks=0
         run: |
           find build-asan-coverage -name '*.gcda' -delete
-          python3 scripts/run_instrumented_unit_tests.py \
+          python3 .github/run_instrumented_unit_tests.py \
             build-asan-coverage/tests/unit/bin \
             --timeout 5 \
             --output-directory asan-coverage-unit-results
@@ -58,17 +61,23 @@ jobs:
           retention-days: 14
 
       - name: Generate coverage report
+        if: ${{ !cancelled() && steps.unit-tests.outcome != 'skipped' }}
         run: |
           gcovr --root . \
             --object-directory build-asan-coverage \
+            --exclude-directories '.*/_deps$' \
             --filter 'source/' \
             --exclude '.*_deps/.*' \
             --cobertura-pretty \
-            --output coverage.xml
+            --output coverage.xml \
+            build-asan-coverage
 
       - name: Upload coverage to Codecov
+        if: ${{ !cancelled() && steps.unit-tests.outcome != 'skipped' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
+          disable_search: true
+          plugins: noop
           fail_ci_if_error: true
