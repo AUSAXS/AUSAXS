@@ -136,7 +136,11 @@ void PDBAtom::add_implicit_hydrogens() {
     try {
         // First determine the atomic group, then get the form factor for that group
         atomic_group = constants::symbols::get_atomic_group(resName, name, element);
-        effective_charge = constants::charge::get_ff_charge(get_form_factor_type(), element) + constants::hydrogen_atoms::residues.get(resName).get(name, element);
+        auto type = get_form_factor_type();
+        effective_charge = constants::charge::get_ff_charge(type, element);
+        if (!form_factor::has_implicit_hydrogens(type)) { // add missing hydrogens if not part of the form factor
+            effective_charge += constants::hydrogen_atoms::residues.get(resName).get(name, element);
+        }
     } catch (const except::base&) {
         throw except::invalid_argument(
             "PDBAtom::add_implicit_hydrogens: Unknown atom name \"" + name + "\" in residue \"" + resName + "\"" 

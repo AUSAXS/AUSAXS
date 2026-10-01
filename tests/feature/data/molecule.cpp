@@ -834,11 +834,11 @@ TEST_CASE("Molecule: implicit hydrogens") {
         Molecule protein({Body{res.atoms, res.waters}});
         auto atoms = protein.get_atoms();
 
-        // Weight is I0(grouped form factor) + hydrogen count
-        CHECK_THAT(atoms[0].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[0].form_factor_type()) + 1, 1e-12));
+        // Weight is I0 of the grouped form factor, which already includes its hydrogens
+        CHECK_THAT(atoms[0].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[0].form_factor_type()), 1e-12));
         CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::NH);
 
-        CHECK_THAT(atoms[1].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[1].form_factor_type()) + 1, 1e-12));
+        CHECK_THAT(atoms[1].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[1].form_factor_type()), 1e-12));
         CHECK(atoms[1].form_factor_type() == form_factor::form_factor_t::CH);
 
         CHECK_THAT(atoms[2].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[2].form_factor_type()) + 0, 1e-12));
@@ -847,19 +847,19 @@ TEST_CASE("Molecule: implicit hydrogens") {
         CHECK_THAT(atoms[3].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[3].form_factor_type()) + 0, 1e-12));
         CHECK(atoms[3].form_factor_type() == form_factor::form_factor_t::O);
 
-        CHECK_THAT(atoms[4].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[4].form_factor_type()) + 2, 1e-12));
+        CHECK_THAT(atoms[4].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[4].form_factor_type()), 1e-12));
         CHECK(atoms[4].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK_THAT(atoms[5].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[5].form_factor_type()) + 2, 1e-12));
+        CHECK_THAT(atoms[5].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[5].form_factor_type()), 1e-12));
         CHECK(atoms[5].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK_THAT(atoms[6].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[6].form_factor_type()) + 2, 1e-12));
+        CHECK_THAT(atoms[6].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[6].form_factor_type()), 1e-12));
         CHECK(atoms[6].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK_THAT(atoms[7].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[7].form_factor_type()) + 2, 1e-12));
+        CHECK_THAT(atoms[7].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[7].form_factor_type()), 1e-12));
         CHECK(atoms[7].form_factor_type() == form_factor::form_factor_t::CH2);
 
-        CHECK_THAT(atoms[8].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[8].form_factor_type()) + 3, 1e-12));
+        CHECK_THAT(atoms[8].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[8].form_factor_type()), 1e-12));
         CHECK(atoms[8].form_factor_type() == form_factor::form_factor_t::NH3);
     }
 
