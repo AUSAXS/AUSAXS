@@ -2,8 +2,6 @@
 
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
-#include <settings/ExvSettings.h>
-#include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 
 #include <catch2/catch_test_macros.hpp>
