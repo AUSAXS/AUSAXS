@@ -17,6 +17,7 @@ LinearLeastSquares::LinearLeastSquares(const std::vector<double>& x, const std::
 {
     assert(y.size() == yerr.size() && "LinearLeastSquares::LinearLeastSquares: y and yerr must have the same size.");
     for (int i = 0; i < static_cast<int>(yerr.size()); ++i) {
+        assert(0 < yerr[i] && "LinearLeastSquares::LinearLeastSquares: every uncertainty must be positive.");
         inv_sigma[i] = 1./yerr[i];
     }
 }

@@ -39,7 +39,7 @@ namespace {
 
         // check that we have at least the expected number of columns
         if (expected_cols != 0 && mode < expected_cols) {
-            throw except::io_error("XVGReader::parse_data: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
+            throw except::io_error("XVGReader::parse_data: " + detail::message_too_few_columns(path, mode, expected_cols));
         }
 
         // copy the data to the dataset
