@@ -13,8 +13,6 @@ RecordType PDBWater::get_type() const {return RecordType::WATER;}
 
 std::string PDBWater::get_recName() const {return "HETATM";}
 
-double PDBWater::get_mass() const {return constants::mass::get_mass(constants::atom_t::O) + 2*constants::mass::get_mass(constants::atom_t::H);}
-
 bool PDBWater::is_water() const {return true;}
 
 PDBWater PDBWater::create_new_water() {

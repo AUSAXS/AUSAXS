@@ -42,12 +42,6 @@ TEST_CASE("PDBAtom::translate") {
     }
 }
 
-TEST_CASE("PDBAtom: implicit hydrogens") {
-    PDBAtom a(15, "O", "altLoc", "LYS", 'X', 3, "iCode", Vector3<double>{0, 1, 2}, 2.5, 3.5, constants::atom_t::O, "0+");
-    CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O) + constants::hydrogen_atoms::residues.get("LYS").get("O", constants::atom_t::O));
-    CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O));
-}
-
 TEST_CASE("PDBAtom: operators") {
     PDBAtom a1({3, 0, 5}, 2, constants::atom_t::He, "", 3);
     PDBAtom a2 = a1;

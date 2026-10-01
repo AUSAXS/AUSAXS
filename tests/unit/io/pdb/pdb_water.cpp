@@ -63,10 +63,6 @@ TEST_CASE_METHOD(fixture, "PDBWater::PDBWater") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "PDBWater::get_mass") {
-    CHECK(w1.get_mass() == constants::mass::get_mass(constants::atom_t::O) + 2*constants::mass::get_mass(constants::atom_t::H));
-}
-
 TEST_CASE_METHOD(fixture, "PDBWater::get_type") {
     CHECK(w1.get_type() == RecordType::WATER);
 }

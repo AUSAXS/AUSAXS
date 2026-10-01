@@ -158,24 +158,6 @@ TEST_CASE("PDBAtom::get_recName") {
     CHECK(a1.get_recName() == "ATOM  ");
 }
 
-TEST_CASE("PDBAtom::get_mass") {
-    SECTION("H") {
-        PDBAtom a1;
-        a1.set_element("H");
-        a1.resName = "GLY";
-        a1.name = "H";
-        CHECK(a1.get_mass() == constants::mass::get_mass(constants::atom_t::H));
-    }
-
-    SECTION("C") {
-        PDBAtom a1;
-        a1.set_element("C");
-        a1.resName = "GLY";
-        a1.name = "CA"; // CA has 2 H attached
-        CHECK(a1.get_mass() == constants::mass::get_mass(constants::atom_t::C) + 2*constants::mass::get_mass(constants::atom_t::H));
-    }
-}
-
 TEST_CASE("PDBAtom::Z") {
     SECTION("H") {
         PDBAtom a1;
