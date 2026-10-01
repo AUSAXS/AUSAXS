@@ -12,8 +12,6 @@ namespace ausaxs::io::pdb {
             PDBWater(PDBAtom&& a) noexcept;
             PDBWater(const PDBAtom& a);
 
-            double get_mass() const override;
-
             RecordType get_type() const override;
 
             std::string get_recName() const override;

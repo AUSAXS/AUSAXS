@@ -93,13 +93,6 @@ namespace ausaxs::io::pdb {
             virtual std::string get_recName() const;
 
             /**
-             * @brief Get the mass of this atom. 
-             *        If implicit hydrogens are enabled, the mass of the atom
-             *        is calculated as the mass of the nucleus plus the mass of the attached hydrogen atoms.
-             */
-            virtual double get_mass() const;
-
-            /**
              * @brief Get the number of protons in this atom.
              */
             int Z() const;

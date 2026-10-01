@@ -3,7 +3,6 @@
 #include <catch2/matchers/catch_matchers_vector.hpp>
 #include <cmath>
 
-#include <constants/Constants.h>
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
 #include <settings/All.h>
@@ -41,12 +40,6 @@ TEST_CASE("PDBAtom::translate") {
         a1.coordinates() += Vector3{1, 2, 3};
         CHECK(a1.coordinates() == Vector3<double>{2, 4, 6});
     }
-}
-
-TEST_CASE("PDBAtom: implicit hydrogens") {
-    PDBAtom a(15, "O", "altLoc", "LYS", 'X', 3, "iCode", Vector3<double>{0, 1, 2}, 2.5, 3.5, constants::atom_t::O, "0+");
-    CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O) + constants::hydrogen_atoms::residues.get("LYS").get("O", constants::atom_t::O));
-    CHECK(a.get_mass() == constants::mass::get_mass(constants::atom_t::O));
 }
 
 TEST_CASE("PDBAtom: operators") {

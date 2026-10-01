@@ -7,7 +7,6 @@
 
 #include <constants/Constants.h>
 #include <io/pdb/PDBAtom.h>
-#include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 #include <utility/Utility.h>
 
@@ -205,32 +204,6 @@ void PDBAtom::set_element(const std::string& element) {
 
 Vector3<double>& PDBAtom::coordinates() {return coords;}
 const Vector3<double>& PDBAtom::coordinates() const {return coords;}
-
-double PDBAtom::get_mass() const {
-    if (settings::molecule::implicit_hydrogens) {
-        // Neither lookup below can name the other's half of a failure: get_mass knows only the element, and the residue storage knows only 
-        // the residue. PDBAtom holds both, so the check lives here, where the atom can be identified completely.
-        assert([&]() -> bool {
-            try {
-                constants::mass::get_mass(element);
-                constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-                return true;
-            } catch (const std::exception& e) {
-                console::print_critical(
-                    std::string("PDBAtom::get_mass: ") + e.what() + "\n"
-                    "\tatom \"" + this->name + "\" (serial " + std::to_string(serial) + ") "
-                    "in residue \"" + this->resName + "\" with element " + constants::symbols::to_string(element)
-                );
-                return false;
-            }
-        }() && "PDBAtom::get_mass: the mass of this atom is not defined.");
-
-        // mass of this nucleus + mass of attached H atoms
-        return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
-    }
-    assert(element != constants::atom_t::unknown && "PDBAtom::get_mass: Attempted to get atomic mass, but the element was not set!");
-    return constants::mass::get_mass(element);
-}
 
 int PDBAtom::Z() const {
     assert(element != constants::atom_t::unknown && "PDBAtom::get_Z: Attempted to get atomic charge, but the element was not set!");
