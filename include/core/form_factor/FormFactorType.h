@@ -136,6 +136,13 @@ namespace ausaxs::form_factor {
         return detail::ff_info_table[static_cast<int>(type)];
     }
 
+    /**
+     * @brief Check if a form factor type represents an atomic group, i.e. already includes the hydrogens bound to the element.
+     */
+    constexpr bool has_implicit_hydrogens(form_factor_t type) {
+        return get_info(type).hydrogens != 0;
+    }
+
     [[maybe_unused]] static std::string to_string(form_factor_t type) {
         switch (type) {
             case form_factor_t::COUNT: return "CNT";

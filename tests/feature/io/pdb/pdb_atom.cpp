@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+#include <cmath>
 
 #include <constants/Constants.h>
 #include <io/pdb/PDBAtom.h>
@@ -283,4 +284,21 @@ TEST_CASE("PDBAtom: correct_atomic_group_ff") {
         REQUIRE(atom.atomic_group == constants::atomic_group_t::CH3);
         REQUIRE(form_factor::get_type(atom.element, atom.atomic_group) == form_factor::form_factor_t::CH3);
     }
+}
+
+TEST_CASE("PDBAtom: implicit hydrogens are counted once") {
+    settings::molecule::implicit_hydrogens = true;
+    settings::molecule::allow_unknown_atoms = false;
+    PDBAtom atom;
+
+    // a group form factor already carries its hydrogens, so its charge is the whole group: CA of LYS is CH, 7 electrons
+    atom.parse_pdb("ATOM      2  CA  LYS A   1      -2.451  68.681  -9.776  1.00 19.16           C  "); atom.add_implicit_hydrogens();
+    REQUIRE(atom.atomic_group == constants::atomic_group_t::CH);
+    CHECK(atom.effective_charge == constants::charge::get_ff_charge(form_factor::form_factor_t::CH));
+    CHECK(std::round(atom.effective_charge) == 7);
+
+    // likewise SG of CYS is SH, 17 electrons
+    atom.parse_pdb("ATOM      6  SG  CYS A   1       0.000   0.000   0.000  1.00 19.16           S  "); atom.add_implicit_hydrogens();
+    REQUIRE(atom.atomic_group == constants::atomic_group_t::SH);
+    CHECK(std::round(atom.effective_charge) == 17);
 }
