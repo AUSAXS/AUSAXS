@@ -5,6 +5,7 @@
 
 #include <api/ObjectStorage.h>
 #include <dataset/SimpleDataset.h>
+#include <settings/HistogramSettings.h>
 
 #include <string>
 
@@ -17,6 +18,30 @@ int data_read(
     auto dataset = SimpleDataset(std::string(filename));
     auto data_id = api::ObjectStorage::register_object(std::move(dataset));
     return data_id;
+}, status);}
+
+int data_create(
+    double* q, double* I, double* Ierr, int n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    if (n_points <= 0) {throw except::invalid_argument("data_create: at least one data point is required.");}
+    auto dataset = SimpleDataset(
+        std::vector<double>(q, q + n_points),
+        std::vector<double>(I, I + n_points),
+        std::vector<double>(Ierr, Ierr + n_points)
+    );
+
+    // same q-range restriction the file readers apply
+    if (settings::axes::clamp_to_qrange) {
+        dataset.limit_x(settings::axes::qmin, settings::axes::qmax);
+        if (dataset.empty()) {
+            throw except::invalid_argument(
+                "data_create: no data points inside the q-range "
+                "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(settings::axes::qmax) + "]."
+            );
+        }
+    }
+    return api::ObjectStorage::register_object(std::move(dataset));
 }, status);}
 
 namespace {

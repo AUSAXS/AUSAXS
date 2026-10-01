@@ -10,6 +10,14 @@ extern "C" API int data_read(
     int* status
 );
 
+/**
+ * @brief Create a dataset from arrays of q [1/A], I and Ierr, restricted to the configured q-range like a file read.
+ */
+extern "C" API int data_create(
+    double* q, double* I, double* Ierr, int n_points,
+    int* status
+);
+
 extern "C" API int data_get_data(
     int object_id,
     double** q, double** I, double** Ierr, int* n_points,
