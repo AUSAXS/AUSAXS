@@ -9,10 +9,6 @@
 
 using namespace ausaxs;
 
-struct fixture {
-    SimpleDataset dataset = {{1, 2, 3}, {4, 5, 6}};
-};
-
 TEST_CASE("SimpleDataset::SimpleDataset") {
     settings::general::verbose = false;
     SECTION("io::ExistingFile") {
@@ -80,7 +76,7 @@ TEST_CASE("SimpleDataset::save") {
     SECTION("accuracy") {
         SimpleDataset data;
         for (double x = 1.347e-01; x < 1.351e-01; x += 1e-6) {
-            data.push_back(x, sin(x));
+            data.push_back(x, sin(x), 1);
         }
         test::TempFile path(".dat");
         data.save(path);

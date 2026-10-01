@@ -137,11 +137,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
 
         {
             auto Iq = hist::HistogramManager<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+            REQUIRE(compare_hist(Iq_exp, Iq.get_intensity()));
         }
         {
             auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+            REQUIRE(compare_hist(Iq_exp, Iq.get_intensity()));
         }
     }
 
@@ -180,11 +180,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
 
         {
             auto Iq = hist::HistogramManager<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+            REQUIRE(compare_hist(Iq_exp, Iq.get_intensity()));
         }
         {
             auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+            REQUIRE(compare_hist(Iq_exp, Iq.get_intensity()));
         }
     }
 }

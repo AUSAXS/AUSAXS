@@ -3,7 +3,7 @@
 
 #include <plots/PlotImage.h>
 
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <em/Image.h>
 #include <hist/Histogram2D.h>
 #include <settings/PlotSettings.h>
@@ -27,7 +27,7 @@ PlotImage& PlotImage::plot_atoms(const em::Image& image, double cutoff) {
         y.push_back(atom.coordinates().y());
     }
 
-    SimpleDataset p(x, y);
+    Dataset p{x, y};
     ss << "PlotImageAtoms"
         << p.to_string()
         << "\n"

@@ -137,12 +137,12 @@ template<template<bool> class MANAGER>
 static void run_test5(const Molecule& protein, const std::vector<double>& exact) {
     settings::axes::bin_width = 0.5;
     auto target_dev = avg_deviation(
-        MANAGER<true>(&protein).calculate_all()->debye_transform().get_counts(),
+        MANAGER<true>(&protein).calculate_all()->debye_transform().get_intensity(),
         exact
     );
     for (auto width : {0.25, 0.15, 0.1}) {
         settings::axes::bin_width = width;
-        auto iq = MANAGER<true>(&protein).calculate_all()->debye_transform().get_counts();
+        auto iq = MANAGER<true>(&protein).calculate_all()->debye_transform().get_intensity();
         REQUIRE(avg_deviation(iq, exact) <= target_dev*1.001); // allow numerical noise
     }
 }

@@ -3,7 +3,7 @@
 
 #include <hist/Histogram.h>
 
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 
 #include <algorithm>
 #include <cassert>
@@ -186,8 +186,8 @@ std::string Histogram::to_string() const noexcept {
 
 int Histogram::size() const noexcept {return p.size();}
 
-SimpleDataset Histogram::as_dataset() const {
-    return {axis.as_vector(), std::vector<double>(p.begin(), p.end())};
+Dataset Histogram::as_dataset() const {
+    return {axis.as_vector(), p.data};
 }
 
 bool Histogram::operator==(const Histogram& rhs) const {

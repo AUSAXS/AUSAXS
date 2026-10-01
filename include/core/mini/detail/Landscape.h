@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <mini/detail/Evaluation.h>
 
 #include <vector>
@@ -17,11 +17,11 @@ namespace ausaxs::mini {
             Landscape(const std::vector<Evaluation>& evals);
 
             /**
-             * @brief Convert this landscape to a SimpleDataset. 
+             * @brief Convert this landscape to an [x | f(x)] dataset. 
              *        Requires that the landscape is 1-dimensional. 
              *        The dataset will be sorted by the x-axis. 
              */
-            SimpleDataset as_dataset() const;
+            Dataset as_dataset() const;
 
             void append(const std::vector<Evaluation>& evals);
             void append(const Landscape& evals);

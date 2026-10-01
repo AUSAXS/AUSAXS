@@ -229,8 +229,8 @@ mini::Landscape MinimumExplorer::landscape(int evals) {
 
 Result MinimumExplorer::minimize_override() {
     auto l = landscape(get_max_evals()).as_dataset();
-    auto min = l.find_minimum();
-    FittedParameter p(parameters[0], min.x, l.span_x() - min.x);
+    auto min = l.find_minimum(1);
+    FittedParameter p(parameters[0], min[0], l.span_x() - min[0]);
     return {p, l.mean(), fevals};
 }
 

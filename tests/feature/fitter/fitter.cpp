@@ -81,8 +81,7 @@ TEST_CASE("SmartFitter::fit") {
 
         for (auto v : std::vector{0.5, 2., 5.}) {
             h->apply_water_scaling_factor(v);
-            auto d = h->debye_transform().as_dataset();
-            d.simulate_errors();
+            auto d = SimpleDataset::simulate(h->debye_transform().as_dataset());
             fitter.set_data(d);
             REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::SCALING_WATER).value, Catch::Matchers::WithinAbs(v, 1e-3));
         }
@@ -95,8 +94,7 @@ TEST_CASE("SmartFitter::fit") {
 
         for (auto v : std::vector{0.92, 0.96, 1.04, 1.08}) {
             h->apply_excluded_volume_scaling_factor(v);
-            auto d = h->debye_transform().as_dataset();
-            d.simulate_errors();
+            auto d = SimpleDataset::simulate(h->debye_transform().as_dataset());
             fitter.set_data(d);
             REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::SCALING_EXV).value, Catch::Matchers::WithinAbs(v, 1e-3));
         }
@@ -109,8 +107,7 @@ TEST_CASE("SmartFitter::fit") {
 
         for (auto v : std::vector{0.95, 0.975, 1.025, 1.05}) {
             h->apply_solvent_density_scaling_factor(v);
-            auto d = h->debye_transform().as_dataset();
-            d.simulate_errors();
+            auto d = SimpleDataset::simulate(h->debye_transform().as_dataset());
             fitter.set_data(d);
             REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::SCALING_RHO).value, Catch::Matchers::WithinAbs(v, 1e-3));
         }
@@ -124,8 +121,7 @@ TEST_CASE("SmartFitter::fit") {
 
         for (auto v : std::vector{0.1, 0.5, 1.0, 2.0}) {
             h->apply_atomic_debye_waller_factor(v);
-            auto d = h->debye_transform().as_dataset();
-            d.simulate_errors();
+            auto d = SimpleDataset::simulate(h->debye_transform().as_dataset());
             fitter.set_data(d);
             REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::DEBYE_WALLER_ATOMIC).value, Catch::Matchers::WithinAbs(v, 1e-3));
         }
@@ -140,8 +136,7 @@ TEST_CASE("SmartFitter::fit") {
 
         for (auto v : std::vector{0.1, 0.5, 1.0, 2.0}) {
             h->apply_exv_debye_waller_factor(v);
-            auto d = h->debye_transform().as_dataset();
-            d.simulate_errors();
+            auto d = SimpleDataset::simulate(h->debye_transform().as_dataset());
             fitter.set_data(d);
             REQUIRE_THAT(fitter.fit()->get_parameter(constants::fit::Parameters::DEBYE_WALLER_EXV).value, Catch::Matchers::WithinAbs(v, 1e-3));
         }
