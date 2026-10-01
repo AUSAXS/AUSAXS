@@ -68,8 +68,8 @@ TEST_CASE("1d_landscape", "[manual]") {
     mini::Golden mini(decay1d.function, {"x1", decay1d.bounds[0]});
     auto res = mini.minimize();
 
-    SimpleDataset evaluations = mini.get_evaluated_points().as_dataset();
-    SimpleDataset landscape = mini.landscape().as_dataset();
+    Dataset evaluations = mini.get_evaluated_points().as_dataset();
+    Dataset landscape = mini.landscape().as_dataset();
 
     plots::PlotDataset plot(landscape, plots::PlotOptions(style::draw::line, {{"color", style::color::black}}));
     plot.plot(evaluations, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}));

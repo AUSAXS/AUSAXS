@@ -8,6 +8,7 @@
 #include <math/CubicSpline.h>
 #include <math/MovingAverager.h>
 #include <math/PeakFinder.h>
+#include <math/Statistics.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
@@ -170,6 +171,64 @@ Dataset Dataset::interpolate(int n) const {
     }
     interpolated[(size()-1)*(n+1)] = row(size()-1); // append the final point of the dataset
     return interpolated;
+}
+
+Limit Dataset::span_x() const noexcept {
+    if (empty()) {
+        return {0, 0};
+    }
+    auto x = this->x();
+    auto[min, max] = std::ranges::minmax_element(x);
+    return {*min, *max};
+}
+
+Limit Dataset::span_y() const noexcept {
+    if (empty()) {
+        return {0, 0};
+    }
+    auto y = this->y();
+    auto[min, max] = std::ranges::minmax_element(y);
+    return {*min, *max};
+}
+
+Limit Dataset::get_xlimits() const noexcept {return span_x();}
+
+Limit Dataset::get_ylimits() const noexcept {return span_y();}
+
+Limit Dataset::span_y_positive() const noexcept {
+    auto y = this->y();
+    if (empty()) {
+        return {0, 0};
+    }
+
+    Limit limits;
+    // find first non-zero y value
+    int i = 0;
+    for (; i < size(); i++) {
+        if (0 < y[i]) {
+            limits.min = y[i];
+            limits.max = y[i];
+            break;
+        }
+    }
+
+    // continue search for lower mins and higher max
+    for (; i < size(); i++) {
+        double val = y[i];
+        if (0 < val) {
+            limits.min = std::min(val, limits.min);
+        }
+        limits.max = std::max(val, limits.max);
+    }
+    return limits;
+}
+
+double Dataset::mean() const {
+    return stats::mean(y());
+}
+
+double Dataset::std() const {
+    return stats::std(y());
 }
 
 std::vector<double> Dataset::find_minimum(int col_i) const {

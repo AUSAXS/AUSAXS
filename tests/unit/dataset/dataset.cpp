@@ -285,3 +285,69 @@ TEST_CASE("Dataset::find_minimum") {
         CHECK(dataset.find_minimum(1).empty());
     }
 }
+
+TEST_CASE("Dataset::span_x") {
+    SECTION("empty dataset") {
+        Dataset dataset;
+        Limit span = dataset.span_x();
+        CHECK(span.min == 0);
+        CHECK(span.max == 0);
+    }
+
+    SECTION("non-empty dataset") {
+        Dataset dataset{{1, 5, 3, 9, 2}, {0, 0, 0, 0, 0}};
+        Limit span = dataset.span_x();
+        CHECK(span.min == 1);
+        CHECK(span.max == 9);
+    }
+}
+
+TEST_CASE("Dataset::span_y") {
+    SECTION("empty dataset") {
+        Dataset dataset;
+        Limit span = dataset.span_y();
+        CHECK(span.min == 0);
+        CHECK(span.max == 0);
+    }
+
+    SECTION("non-empty dataset") {
+        Dataset dataset{{0, 0, 0, 0, 0}, {1, 5, 3, 9, 2}};
+        Limit span = dataset.span_y();
+        CHECK(span.min == 1);
+        CHECK(span.max == 9);
+    }
+}
+
+TEST_CASE("Dataset::span_y_positive") {
+    SECTION("empty dataset") {
+        Dataset dataset;
+        Limit span = dataset.span_y_positive();
+        CHECK(span.min == 0);
+        CHECK(span.max == 0);
+    }
+
+    SECTION("all positive") {
+        Dataset dataset{{0, 0, 0, 0}, {1, 2, 3, 4}};
+        Limit span = dataset.span_y_positive();
+        CHECK(span.min == 1);
+        CHECK(span.max == 4);
+    }
+
+    SECTION("mixed positive and negative") {
+        Dataset dataset{{0, 0, 0, 0, 0}, {-1, 2, -3, 4, 5}};
+        Limit span = dataset.span_y_positive();
+        CHECK(span.min == 2);
+        CHECK(span.max == 5);
+    }
+}
+
+TEST_CASE("Dataset::mean") {
+    Dataset dataset{{1, 2, 3}, {10, 20, 30}};
+    CHECK_THAT(dataset.mean(), Catch::Matchers::WithinAbs(20, 1e-6));
+}
+
+TEST_CASE("Dataset::std") {
+    Dataset dataset{{1, 2, 3}, {10, 20, 30}};
+    double expected_std = 10.0; // sample std with ddof=1
+    CHECK_THAT(dataset.std(), Catch::Matchers::WithinAbs(expected_std, 1e-6));
+}

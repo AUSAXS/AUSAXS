@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <form_factor/FormFactorTable.h>
 #include <form_factor/NormalizedFormFactor.h>
 
@@ -105,16 +105,16 @@ TEST_CASE("NormalizedFormFactor: comparison with Waasmeier & Kirfel") {
     double c = -5.183497;
 
     NormalizedFormFactor Ba(a, s_to_q(b), c);
-    SimpleDataset ff_q, ff_s;
+    Dataset ff_q(0, 2), ff_s(0, 2);
     for (const double& q : q_vals) {
-        ff_q.push_back(q/(4*std::numbers::pi), Ba.evaluate(q));
+        ff_q.push_back({q/(4*std::numbers::pi), Ba.evaluate(q)});
     }
 
     auto ffBa = [a, b, c] (double s) {return a[0]*std::exp(-b[0]*s*s) + a[1]*std::exp(-b[1]*s*s) + a[2]*std::exp(-b[2]*s*s) + a[3]*std::exp(-b[3]*s*s) + a[4]*std::exp(-b[4]*s*s) + c;};
     double val0 = ffBa(0);
     for (double s = 0; s < 6; s += 0.01) {
         double val = ffBa(s)/val0;
-        ff_s.push_back(s, val);
+        ff_s.push_back({s, val});
     }
 
     for (int i = 0; i < ff_q.size(); ++i) {

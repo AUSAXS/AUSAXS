@@ -142,7 +142,7 @@ namespace ausaxs::hist {
 
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
-            [[nodiscard]] SimpleDataset as_dataset() const;
+            [[nodiscard]] Dataset as_dataset() const;
 
             /**
              * @brief Normalize the histogram to have a sum of 1. 

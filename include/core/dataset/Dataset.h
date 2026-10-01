@@ -114,6 +114,42 @@ namespace ausaxs {
             std::vector<double> find_minimum(int col) const;
 
             /**
+             * @brief Get the spanned x-range. 
+             */
+            [[nodiscard]] Limit span_x() const noexcept;
+
+            /**
+             * @brief Get the spanned y-range. 
+             */
+            [[nodiscard]] Limit span_y() const noexcept;
+
+            /**
+             * @brief Get the spanned x-range.
+             */
+            [[nodiscard]] Limit get_xlimits() const noexcept;
+
+            /**
+             * @brief Get the spanned y-range.
+             */
+            [[nodiscard]] Limit get_ylimits() const noexcept;
+
+            /**
+             * @brief Get the positive spanned y-range.
+             *        This can be useful for setting log ranges. 
+             */
+            [[nodiscard]] Limit span_y_positive() const noexcept;
+
+            /**
+             * @brief Get the mean of the y values.
+             */
+            [[nodiscard]] double mean() const;
+
+            /**
+             * @brief Get the standard deviation of the y values.
+             */
+            [[nodiscard]] double std() const;
+
+            /**
              * @brief Find the indices of minima in the dataset.
              * 
              * @param min_spacing The minimum spacing between minima.

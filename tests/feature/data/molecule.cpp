@@ -241,7 +241,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
         Molecule protein({Body{atoms}});
 
         std::vector<double> I_dumb = hist::exact_debye_transform(protein, constants::axes::q_axis.as_vector());
-        std::vector<double> I_smart = protein.get_histogram()->debye_transform().get_counts();
+        std::vector<double> I_smart = protein.get_histogram()->debye_transform().get_intensity();
 
         for (int i = 0; i < 8; i++) {
             if (!utility::approx(I_dumb[i], I_smart[i], 1e-1)) {
@@ -257,7 +257,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
         protein.clear_hydration();
 
         std::vector<double> I_dumb = hist::exact_debye_transform(protein, constants::axes::q_axis.as_vector());
-        std::vector<double> I_smart = protein.get_histogram()->debye_transform().get_counts();
+        std::vector<double> I_smart = protein.get_histogram()->debye_transform().get_intensity();
 
         for (int i = 0; i < 8; i++) {
             if (!utility::approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {

@@ -16,7 +16,7 @@ void mini::Landscape::append(const std::vector<Evaluation>& evals) {this->evals.
 
 void mini::Landscape::append(const Landscape& evals) {append(evals.evals);}
 
-SimpleDataset mini::Landscape::as_dataset() const {
+Dataset mini::Landscape::as_dataset() const {
     if (evals.empty()) {throw except::bad_order("Landscape::as_dataset: Cannot get evaluated points before a minimization call has been made.");}
     if (evals.front().vals.size() != 1) {throw except::invalid_operation("Landscape::as_dataset: Only 1D landscapes are convertible to datasets.");}
 
@@ -30,7 +30,7 @@ SimpleDataset mini::Landscape::as_dataset() const {
 
         if (i > 0 && x[i] < x[i - 1]) {ordered = false;}
     }
-    auto ds = SimpleDataset(x, y);
+    Dataset ds{x, y};
     if (!ordered) {ds.sort_x();}
     return ds;
 }

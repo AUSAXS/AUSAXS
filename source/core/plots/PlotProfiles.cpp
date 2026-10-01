@@ -3,6 +3,7 @@
 
 #include <plots/PlotProfiles.h>
 
+#include <hist/ScatteringProfile.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <io/File.h>
@@ -34,15 +35,15 @@ void PlotProfiles::quick_plot(observer_ptr<hist::DistanceHistogram> data, const 
 		plot.plot(cast->get_profile_wx(), plots::PlotOptions({{"color", style::color::cyan},   {"normalize", true}, {"legend", "wx"}}));
 
 		// extra plot: aa / xx
-		auto aa = cast->get_profile_aa().get_counts();
-		auto xx = cast->get_profile_xx().get_counts();
+		auto aa = cast->get_profile_aa().get_intensity();
+		auto xx = cast->get_profile_xx().get_intensity();
 		std::vector<double> aa_xx;
 		aa_xx.reserve(aa.size());
 		for (int i = 0; i < static_cast<int>(aa.size()); ++i) {
 			aa_xx.push_back(xx[i] / aa[i]);
 		}
 		PlotHistogram plot2;
-		plot2.plot(hist::Histogram(aa_xx, cast->get_profile_aa().get_axis()), plots::PlotOptions(
+		plot2.plot(hist::ScatteringProfile(aa_xx, cast->get_profile_aa().get_axis()), plots::PlotOptions(
 			{{"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}, {"normalize", true}, {"legend", "xx/aa"}})
 		);
 		plot2.save(io::File(path.append("_xx_aa")));
