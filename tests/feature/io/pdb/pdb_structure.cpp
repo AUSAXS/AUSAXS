@@ -96,4 +96,33 @@ TEST_CASE("PDBStructure: a written structure can be read back unchanged") {
         CHECK_THAT(reloaded.get_total_atomic_charge(), Catch::Matchers::WithinRel(molecule.get_total_atomic_charge(), 1e-12));
         CHECK_THAT(reloaded.get_absolute_mass(),       Catch::Matchers::WithinRel(molecule.get_absolute_mass(),       1e-12));
     }
+
+    SECTION("elements outside the tabulated form factors") {
+        settings::molecule::implicit_hydrogens = false;
+        std::string content =
+            "ATOM      1  N   ALA A   1       0.000   0.000   0.000  1.00  0.00           N \n"
+            "ATOM      2  CA  ALA A   1       1.000   0.000   0.000  1.00  0.00           C \n"
+            "HETATM    3  P   PO4 A 101       4.000   0.000   0.000  1.00  0.00           P \n"
+            "HETATM    4 ZN    ZN A 102       7.000   0.000   0.000  1.00  0.00          ZN \n"
+            "HETATM    5 CL    CL A 103      10.000   0.000   0.000  0.50  0.00          CL \n";
+        test::TempFile input(".pdb", content);
+        test::TempFile output(".pdb");
+
+        Molecule molecule(input);
+        molecule.save(output);
+
+        auto written = io::detail::pdb::read(output);
+        REQUIRE(written.atoms.size() == 5);
+        CHECK(written.atoms[2].element == constants::atom_t::P);
+        CHECK(written.atoms[3].element == constants::atom_t::Zn);
+        CHECK(written.atoms[4].element == constants::atom_t::Cl);
+
+        Molecule reloaded(output);
+        REQUIRE(reloaded.size_atom() == molecule.size_atom());
+        for (int i = 0; i < reloaded.size_atom(); ++i) {
+            CHECK(reloaded.get_body(0).get_atom(i).form_factor_type() == molecule.get_body(0).get_atom(i).form_factor_type());
+            CHECK_THAT(reloaded.get_body(0).get_atom(i).weight(), Catch::Matchers::WithinRel(molecule.get_body(0).get_atom(i).weight(), 1e-6));
+        }
+        settings::molecule::implicit_hydrogens = true;
+    }
 }
