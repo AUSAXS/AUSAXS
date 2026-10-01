@@ -139,6 +139,7 @@ static auto test_point_symmetry = [] (settings::hist::HistogramManagerChoice cho
 };
 
 TEST_CASE("SymmetryManager: PointSymmetry") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_point_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);

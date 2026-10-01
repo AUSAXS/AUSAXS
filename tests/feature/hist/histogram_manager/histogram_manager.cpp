@@ -53,6 +53,7 @@ static void run_test1(const Molecule& protein, const auto& target) {
 }
 
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
 

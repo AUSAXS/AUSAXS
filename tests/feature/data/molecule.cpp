@@ -223,6 +223,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_cm") {
 // }
 
 TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
 
     SECTION("delegated to HistogramManager") {
@@ -611,6 +612,7 @@ TEST_CASE("Molecule::translate", "[files]") {
 }
 
 TEST_CASE("Molecule::histogram", "[files]") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     SECTION("multiple bodies, simple") {
         // make the protein
         std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C)};

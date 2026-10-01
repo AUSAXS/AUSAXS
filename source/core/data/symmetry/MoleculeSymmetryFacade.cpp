@@ -49,6 +49,16 @@ bool symmetry::detail::MoleculeSymmetryFacade::has_symmetries() const {
     );
 }
 
+int symmetry::detail::MoleculeSymmetryFacade::size_atom_total() const {
+    return std::transform_reduce(
+        molecule->get_bodies().begin(), 
+        molecule->get_bodies().end(), 
+        0, 
+        std::plus{},
+        [] (const Body& body) {return body.symmetry().size_atom_total();}
+    );
+}
+
 void symmetry::detail::MoleculeSymmetryFacade::save(const io::File& path) const {
     auto body = explicit_structure();
     io::Writer::write(io::pdb::PDBStructure(Body(std::move(body.atoms), std::move(body.waters))), path);

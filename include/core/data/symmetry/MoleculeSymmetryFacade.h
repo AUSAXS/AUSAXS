@@ -24,6 +24,11 @@ namespace ausaxs::symmetry::detail {
             bool has_symmetries() const;
 
             /**
+             * @brief Get the total number of atoms in the molecule, including all symmetries.
+             */
+            int size_atom_total() const;
+
+            /**
              * @brief Save the explicit structure to a file.
              */
             void save(const io::File& path) const;
