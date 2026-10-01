@@ -70,6 +70,12 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
 
     // determine the most common number of columns, since that will likely be the data
     int mode = stats::mode(col_number);
+
+    // check that we have at least the expected number of columns
+    if (expected_cols != 0 && mode < expected_cols) {
+        throw except::io_error("DATReader::construct: " + detail::message_too_few_columns(path, mode, expected_cols));
+    }
+
     switch (mode) {
         case 2: 
             console::print_text("2 columns detected. Assuming the format is [q | I]");
@@ -79,11 +85,6 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
             break;
         default:
             console::print_text(std::to_string(mode) + " columns detected. Assuming the format is [q | I | Ierr | ... ]");
-    }
-
-    // check that we have at least the expected number of columns
-    if (expected_cols != 0 && mode < expected_cols) {
-        throw except::io_error("DATReader::construct: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
     }
 
     // copy the data to the dataset
