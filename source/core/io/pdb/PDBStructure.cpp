@@ -56,6 +56,7 @@ namespace {
         observer_ptr<const std::vector<float>>            occ      = (metadata && metadata->occupancy)   ? &metadata->occupancy.value()   : nullptr;
         observer_ptr<const std::vector<std::string>>      aname    = (metadata && metadata->atom_name)   ? &metadata->atom_name.value()   : nullptr;
         observer_ptr<const std::vector<std::string>>      rname    = (metadata && metadata->residue_name)? &metadata->residue_name.value(): nullptr;
+        observer_ptr<const std::vector<constants::atom_t>> elem    = (metadata && metadata->element)     ? &metadata->element.value()     : nullptr;
 
         for (int i = 0; i < static_cast<int>(batoms.size()); ++i) {
             // the body may contain symmetry duplicates, so we need to index the metadata modulo the number of atoms in the original body
@@ -85,9 +86,12 @@ namespace {
             std::string resName = (rname && !(*rname)[midx].empty()) ? (*rname)[midx].substr(0, 3) : "UNK"; // truncate to 3 chars
             double occupancy = occ ? (*occ)[midx] : 1;
 
+            // every element outside {H, C, N, O, S} shares the OTHER form factor type, which maps back to argon, so the source element must be preferred
+            constants::atom_t element = (elem && (*elem)[midx] != constants::atom_t::unknown) ? (*elem)[midx] : form_factor::to_atom_type(a.form_factor_type());
+
             atoms.emplace_back(
                 ++serial, name, "", resName, chain_identifier(chain), resSeq, "", a.coordinates(), occupancy, 1,
-                form_factor::to_atom_type(a.form_factor_type()), ""
+                element, ""
             );
         }
 
@@ -242,6 +246,7 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     md.occupancy.emplace().reserve(atoms.size());
     md.atom_name.emplace().reserve(atoms.size());
     md.residue_name.emplace().reserve(atoms.size());
+    md.element.emplace().reserve(atoms.size());
 
     for (auto& a : atoms) {
         assert(0 <= a.effective_charge && "PDBStructure::reduced_representation: encountered an atom whose effective_charge was never set. "
@@ -260,6 +265,7 @@ PDBStructure::_res PDBStructure::reduced_representation() {
         md.atom_name->emplace_back(a.name);
         md.residue_name->emplace_back(a.resName);
         md.occupancy->emplace_back(static_cast<float>(a.occupancy));
+        md.element->emplace_back(a.element);
     }
 
     res.metadata = std::move(md);

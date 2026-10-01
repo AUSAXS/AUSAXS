@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <constants/ConstantsFwd.h>
 #include <utility/Exceptions.h>
 
 #include <cassert>
@@ -34,9 +35,8 @@ namespace ausaxs::data {
         std::optional<std::vector<float>>       occupancy;    //< fraction of the atom present; already folded into the atom charge
         std::optional<std::vector<std::string>> atom_name;    //< source atom name, e.g. "CA"
         std::optional<std::vector<std::string>> residue_name; //< source residue name, e.g. "LYS"
-
-        // total number of fields, engaged or not. Must be kept in sync with _visit.
-        static constexpr std::size_t field_count = 6;
+        std::optional<std::vector<constants::atom_t>> element; //< source element
+        static constexpr std::size_t field_count = 7;
 
         /**
          * @brief Get the number of currently engaged fields.
@@ -110,6 +110,7 @@ namespace ausaxs::data {
                 f(self.occupancy);
                 f(self.atom_name);
                 f(self.residue_name);
+                f(self.element);
             }
 
             // Invoke f on every field of a paired up with the corresponding field of b. f must accept any of the field types, i.e. be a generic lambda.
@@ -121,6 +122,11 @@ namespace ausaxs::data {
                 f(a.occupancy,    b.occupancy);
                 f(a.atom_name,    b.atom_name);
                 f(a.residue_name, b.residue_name);
+                f(a.element,      b.element);
             }
     };
+    static_assert(
+        AtomMetadata::field_count == sizeof(AtomMetadata)/sizeof(std::optional<std::vector<int>>), 
+        "AtomMetadata::field_count is out of sync with the actual number of fields."
+    );
 }
