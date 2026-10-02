@@ -6,6 +6,7 @@
 #include <data/Molecule.h>
 #include <em/detail/ImageStackBase.h>
 #include <settings/EMSettings.h>
+#include <settings/ExvSettings.h>
 #include <settings/MoleculeSettings.h>
 #include <utility/Axis.h>
 
@@ -15,7 +16,8 @@ using namespace ausaxs::em::managers;
 ProteinManager::~ProteinManager() = default;
 
 ProteinManager::ProteinManager(observer_ptr<const em::ImageStackBase> images) : images(images) {
-    settings::molecule::implicit_hydrogens = false;     // we don't know how many hydrogens are attached to dummy structures
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the map voxels are point scatterers without any excluded volume
+    settings::molecule::implicit_hydrogens = false;             // we don't know how many hydrogens are attached to dummy structures
     double max = images->from_level(settings::em::alpha_levels.max);
     double min = images->from_level(settings::em::alpha_levels.min);
     Axis axis(min, max, settings::em::charge_levels);

@@ -3,12 +3,15 @@
 
 #include <settings/HistogramSettings.h>
 
-#include <hist/detail/SimpleExvModel.h>
+#include <constants/ConstantsAxes.h>
 #include <settings/ExvSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/InternalState.h>
 #include <settings/SettingsIORegistry.h>
 #include <utility/Console.h>
+#include <utility/StringUtils.h>
+
+#include <algorithm>
 
 using namespace ausaxs;
 
@@ -72,9 +75,6 @@ namespace {
 }
 
 settings::hist::HistogramManagerChoice settings::hist::get_histogram_manager() {
-    // without an excluded volume, the effective charge approximation of the simple model is disabled; the managers are the same
-    if (settings::exv::exv_method == settings::exv::ExvMethod::None) {ausaxs::hist::detail::SimpleExvModel::disable();}
-
     using Choice = settings::hist::HistogramManagerChoice;
     bool st = settings::general::threads == 1; // if no multi-threading is enabled, switch to the single-threaded manager
     if (settings::internal_state::prefer_partial_manager) {

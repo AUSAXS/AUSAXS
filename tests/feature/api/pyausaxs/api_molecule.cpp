@@ -71,7 +71,7 @@ TEST_CASE("molecule_debye: q axis honours qmin") {
     settings::axes::qmin = qmin;
     settings::axes::qmax = 0.5;
 
-    // each profile is compared against its own _userq variant right away: a _raw call changes the global exv state (BL-138)
+    // each profile is compared against its own _userq variant
     double *q, *I, *q_raw, *I_raw, *q_ex, *I_ex;
     int n = 0, n_raw = 0, n_ex = 0;
     molecule_debye(mol, &q, &I, &n, &status);

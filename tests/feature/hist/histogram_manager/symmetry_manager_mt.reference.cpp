@@ -182,6 +182,7 @@ static auto test_reference_symmetry_after_transform = [] (settings::hist::Histog
 };
 
 TEST_CASE("SymmetryManager: ReferenceSymmetry stays consistent with ground truth after a further rigid transform") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_reference_symmetry_after_transform(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);

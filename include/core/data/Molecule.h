@@ -305,8 +305,5 @@ namespace ausaxs::data {
 			 * 		  Only detects changes in the total (including symmetric) atom count. 
 			 */
 			bool is_grid_stale() const;
-
-			// @brief Total atom count across all bodies, including symmetry copies.
-			int symmetry_atom_count() const;
 	};
 }

@@ -9,25 +9,17 @@
 
 namespace ausaxs::hist::detail {
     /**
-     * @brief This class exists as a non-templated way to disable the effective charge excluded volume approximation used in the simple histogram managers.
+     * @brief The effective charge excluded volume approximation of settings::exv::ExvMethod::Simple, used by the non-form factor histogram managers.
+     *        The managers apply it only when that method is selected; settings::exv::ExvMethod::None uses the same managers without it.
      */
     class SimpleExvModel {
         public:
             /**
-             * @brief Enable the effective charge excluded volume model, thus subtracting the average excluded volume charge from each atom.
-             */
-            static void enable();
-
-            /**
-             * @brief Disable the effective charge excluded volume model.
-             */
-            static void disable();
-
-            /**
              * @brief Account for the excluded volume in the data.
              *		  Note: this should not be done for models with explicit excluded volume terms.
              *
-             * This is done by subtracting the average excluded volume charge from each atom.
+             * This is done by subtracting the average excluded volume charge from each atom. The excluded volume is that of the grid, which
+             * includes all symmetric copies, so it is shared over the atoms of all copies as well.
              *
              * @param data_a The atomic data to apply the excluded volume transformation to.
              * @param protein The protein to use for the excluded volume calculation.

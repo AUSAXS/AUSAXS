@@ -7,7 +7,6 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <fitter/SmartFitter.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IHistogramManager.h>
@@ -162,6 +161,16 @@ int molecule_distance_histogram(
 }, status);}
 
 namespace {
+// Selects the excluded volume model None for one scope and then restores the one it found, also on a throw, so a raw
+// calculation never changes the result of a later non-raw one.
+struct NoExvScope {
+    settings::exv::ExvMethod old = settings::exv::exv_method.value;
+    NoExvScope() {settings::exv::exv_method = settings::exv::ExvMethod::None;}
+    ~NoExvScope() {settings::exv::exv_method = old;}
+    NoExvScope(const NoExvScope&) = delete;
+    NoExvScope& operator=(const NoExvScope&) = delete;
+};
+
 struct _molecule_debye_obj {
     explicit _molecule_debye_obj(int size) :
         q(size), I(size)
@@ -215,7 +224,7 @@ int molecule_debye_raw(
     double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
+    NoExvScope no_exv; // raw profile: point scatterers with their weights, without any excluded volume
 
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
@@ -233,7 +242,6 @@ int molecule_debye_raw(
     *I = ref->I.data();
     *n_points = debye_I.size();
 
-    hist::detail::SimpleExvModel::enable(); // re-enable exv contributions to ensure consistency elsewhere
     return data_id;
 }, status);}
 
@@ -242,21 +250,17 @@ void molecule_debye_raw_userq(
     double* q, double* I, int n_points,
     int* status
 ) {execute_with_catch([&]() {
-    hist::detail::SimpleExvModel::disable(); // disable exv contributions to HistogramManager
+    NoExvScope no_exv; // raw profile: point scatterers with their weights, without any excluded volume
 
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     std::vector<double> q_vals(q, q + n_points);
     auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
     auto debye_I = hist->debye_transform(q_vals);
-    if (debye_I.size() != n_points) {
-        hist::detail::SimpleExvModel::enable();
-        throw except::size_error("Raw Debye transform returned an unexpected number of points.");
-    }
+    if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i)*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by debye transform
     }
-    hist::detail::SimpleExvModel::enable(); // re-enable exv contributions to ensure consistency elsewhere
 }, status);}
 
 int molecule_debye_exact(

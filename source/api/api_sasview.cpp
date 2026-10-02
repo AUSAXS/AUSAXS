@@ -6,7 +6,6 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <dataset/SimpleDataset.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 
@@ -178,11 +177,8 @@ void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int
     // default state is error since we don't trust the input enough to assume success
     *_return_status = 1;
 
-    // use the multithreaded version of the simple histogram manager
-    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
-
-    // do not subtract the solvent charge from the atoms
-    hist::detail::SimpleExvModel::disable();
+    // use the multithreaded version of the simple histogram manager, without subtracting the solvent charge from the atoms
+    settings::exv::exv_method = settings::exv::ExvMethod::None;
 
     // do not subtract the charge of bound hydrogens
     settings::molecule::implicit_hydrogens = false;

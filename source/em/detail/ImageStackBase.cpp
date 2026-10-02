@@ -9,7 +9,6 @@
 #include <em/detail/header/HeaderFactory.h>
 #include <em/detail/header/MapHeader.h>
 #include <em/manager/ProteinManagerFactory.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <mini/detail/FittedParameter.h>
 #include <settings/EMSettings.h>
@@ -38,7 +37,6 @@ ImageStackBase::ImageStackBase(const std::vector<Image>& images)
         image(z).set_z(z);
     }
     phm = factory::create_manager(this);
-    hist::detail::SimpleExvModel::disable();
     logging::log("ImageStackBase created with " + std::to_string(size_z) + " images of dimension (" + std::to_string(size_x) + ", " + std::to_string(size_y) + ")");
 }
 
@@ -64,7 +62,6 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
 
     read(input);
     phm = factory::create_manager(this);
-    hist::detail::SimpleExvModel::disable();
     logging::log("ImageStackBase created from file \"" + file.str() + "\" with " + std::to_string(size_z) + " images of dimension (" + std::to_string(size_x) + ", " + std::to_string(size_y) + ")");
 }
 

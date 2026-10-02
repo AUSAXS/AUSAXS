@@ -84,6 +84,7 @@ namespace {
 }
 
 TEST_CASE("SplitElement: splitting a symmetric body preserves scattering under rigid transforms", "[files]") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the effective charges of Simple depend on the grid volume, which differs by a few voxels between the two molecules
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;

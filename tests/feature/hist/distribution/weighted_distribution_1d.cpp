@@ -11,6 +11,7 @@
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
+#include <settings/ExvSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
 
@@ -103,6 +104,7 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
 
 // Check that the basic histogram managers agree on a weighted debye transform.
 TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     settings::general::warnings = true;
     auto d_exact = SimpleCube::d_exact;

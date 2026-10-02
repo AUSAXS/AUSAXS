@@ -117,6 +117,7 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
 }
 
 TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::warnings = true;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;

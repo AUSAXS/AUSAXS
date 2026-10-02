@@ -100,6 +100,7 @@ static void run_test3(const Molecule& protein, const auto& target) {
     REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
 }
 TEST_CASE("Custom bin width: varying widths agree with analytical result") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
 
     static auto calc_exp = [] (double width) {

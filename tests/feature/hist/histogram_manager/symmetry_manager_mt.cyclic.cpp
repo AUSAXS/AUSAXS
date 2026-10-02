@@ -274,6 +274,7 @@ static auto test_translation = [] (settings::hist::HistogramManagerChoice choice
 };
 
 TEST_CASE("SymmetryManager: translations") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_translation(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
@@ -352,6 +353,7 @@ static auto test_repeating_symmetries = [] (settings::hist::HistogramManagerChoi
 };
 
 TEST_CASE("SymmetryManager: repeating symmetries") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_repeating_symmetries(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
@@ -394,6 +396,7 @@ static auto test_rotations = [] (settings::hist::HistogramManagerChoice choice) 
 };
 
 TEST_CASE("SymmetryManager: rotations") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_rotations(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
@@ -465,6 +468,7 @@ static auto test_multi_atom = [] (settings::hist::HistogramManagerChoice choice)
     }
 };
 TEST_CASE("SymmetryManager: multi-atom systems") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("SymmetryManager") {
@@ -579,4 +583,29 @@ TEST_CASE("SymmetryManager: random tests") {
     SECTION("PartialSymmetryManager") {
         test_random(settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT);
     }
+}
+
+TEST_CASE("SymmetryManager: simple excluded volume matches the explicit structure") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::general::verbose = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+    auto choice = GENERATE(
+        settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT,
+        settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT
+    );
+    auto reps = GENERATE(1, 3);
+
+    Molecule m("tests/files/2epe.pdb");
+    m.clear_hydration();
+    m.set_histogram_manager(choice);
+    m.get_body(0).symmetry().add(make_unique_cyclic_sym({0, 0, 0}, {60, 0, 0}, {0, 0, 1}, 0, reps));
+    auto h = m.get_histogram();
+
+    auto explicit_body = m.get_body(0).symmetry().explicit_structure();
+    Molecule m_explicit({Body{std::move(explicit_body.atoms)}});
+    m_explicit.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+    REQUIRE(m_explicit.size_atom() == (reps+1)*m.size_atom());
+    REQUIRE_THAT(m.get_volume_grid(), Catch::Matchers::WithinRel(m_explicit.get_volume_grid(), 1e-6));
+    auto h_explicit = m_explicit.get_histogram();
+    CHECK(compare_hist_approx(h->get_weighted_counts(), h_explicit->get_weighted_counts()));
 }

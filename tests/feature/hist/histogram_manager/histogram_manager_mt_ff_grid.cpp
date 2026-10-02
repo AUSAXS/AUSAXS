@@ -112,6 +112,7 @@ static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::u
 
 // Check that the Grid histograms are correct (normalized comparison)
 TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("simple") {
         settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
@@ -137,6 +138,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
 
 // Check that the atom-atom form factor weighting is correct on absolute scale
 TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
 
@@ -160,6 +162,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
 
 template<typename H, typename C>
 static auto test_derived = [] () {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
 
