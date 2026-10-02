@@ -95,6 +95,7 @@ static auto test_polyhedral_symmetry_lysozyme = [] (settings::hist::HistogramMan
 };
 
 TEST_CASE("SymmetryManager: PolyhedralSymmetry on hydrated lysozyme") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the simple exv makes the atomic and water terms nearly cancel, so bin noise exceeds the relative tolerance
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_polyhedral_symmetry_lysozyme(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
