@@ -7,7 +7,6 @@
 #include <dataset/detail/QUnitAnnotation.h>
 #include <math/CubicSpline.h>
 #include <math/MovingAverager.h>
-#include <math/PeakFinder.h>
 #include <math/Statistics.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
@@ -276,14 +275,6 @@ double& Dataset::index(int i, int j) {
 
 void Dataset::push_back(const std::vector<double>& row) {
     data.push_back(row);
-}
-
-std::vector<int> Dataset::find_minima(int min_spacing, double min_prominence) const {
-    return math::find_minima(x(), y(), min_spacing, min_prominence);
-}
-
-std::vector<int> Dataset::find_maxima(int min_spacing, double min_prominence) const {
-    return math::find_minima(x(), -y(), min_spacing, min_prominence);
 }
 
 int Dataset::size() const noexcept {
