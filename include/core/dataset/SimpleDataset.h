@@ -9,7 +9,6 @@
 namespace ausaxs {
     /**
      * @brief A simple dataset is a collection of points of the form x | y | yerr. 
-     *        The errors are real uncertainties; a curve without them, such as a calculated I(q), is a plain Dataset.
      */
     class SimpleDataset : public Dataset {
         protected: 
