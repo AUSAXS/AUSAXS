@@ -151,14 +151,14 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
         chi2_data = l.as_dataset();
     }
 
-    chi2_data.sort_x();
+    chi2_data.sort(0);
     auto min_abs = landscape_minimum(chi2_data);
     console::print_text_minor("Minimum at " + std::to_string(min_abs.x) + " with chi2 " + std::to_string(min_abs.y));
 
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
     //##########################################################//
-    chi2_data.limit_y(0, min_abs.y*5);  // focus on the area near the absolute minimum
+    chi2_data.limit(1, 0, min_abs.y*5);  // focus on the area near the absolute minimum
     if (chi2_data.size_rows() < 10) {       // if we have too few points after imposing the limit, we must sample some more
         Limit bounds;                       // first we determine the bounds of the area we want to sample
         if (chi2_data.size_rows() < 3) {    // if we only have one or two points, sample the area between the neighbouring points
@@ -177,10 +177,10 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
             evals.append(l);
             chi2_data = l.as_dataset();
         }
-        chi2_data.sort_x();
+        chi2_data.sort(0);
         min_abs = landscape_minimum(chi2_data);
         console::print_text_minor("New minimum at " + std::to_string(min_abs.x) + " with chi2 " + std::to_string(min_abs.y));
-        chi2_data.limit_y(0, min_abs.y*5);
+        chi2_data.limit(1, 0, min_abs.y*5);
 
         if (chi2_data.size_rows() < 10) {
             throw except::unexpected("ImageStack::fit: Could not sample enough points around the minimum. Function varies too much.");
@@ -218,7 +218,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
             mass_data.index(i, 0) = this->evals[i].cutoff;
             mass_data.index(i, 1) = this->evals[i].mass;
         }
-        mass_data.sort_x();
+        mass_data.sort(0);
         data_avg_int.col("mass") = mass_data.interpolate(data_avg_int.x()).y();
     }
 
@@ -320,7 +320,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
         { // plot all evaluated points
             { // chi2 landscape
                 auto l = evals.as_dataset();
-                l.sort_x();
+                l.sort(0);
                 for (int i = 0; i < l.size(); ++i) {
                     l.x(i) = to_level(l.x(i));
                     l.y(i) /= dof;
@@ -341,7 +341,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
                     volume_data.x(i) = to_level(this->evals[i].cutoff);
                     volume_data.y(i) = this->evals[i].mass;
                 }
-                volume_data.sort_x();
+                volume_data.sort(0);
                 plots.volume = volume_data;
 
                 plots::PlotDataset::quick_plot(
@@ -411,7 +411,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
                 for (int i = static_cast<int>(this->evals.size() - explored_points.size()); i < static_cast<int>(this->evals.size()); ++i) {
                     mass_cutoff.push_back({this->evals[i].cutoff, this->evals[i].mass});
                 }
-                mass_cutoff.sort_x();
+                mass_cutoff.sort(0);
 
                 // create chi2 / mass dataset
                 explored_points.x() = mass_cutoff.y();

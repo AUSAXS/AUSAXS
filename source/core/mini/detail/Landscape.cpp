@@ -31,7 +31,7 @@ Dataset mini::Landscape::as_dataset() const {
         if (i > 0 && x[i] < x[i - 1]) {ordered = false;}
     }
     Dataset ds{x, y};
-    if (!ordered) {ds.sort_x();}
+    if (!ordered) {ds.sort(0);}
     return ds;
 }
 

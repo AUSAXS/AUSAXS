@@ -174,7 +174,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     // remove all rows outside the specified q-range
     if (settings::axes::clamp_to_qrange) {
         int N = dataset->size_rows();
-        dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
+        dataset->limit(0, settings::axes::qmin, settings::axes::qmax);
         if (N != dataset->size_rows()) {
             console::print_text(
                 "Removed " + std::to_string(N - dataset->size_rows()) + " data points outside specified q-range "
