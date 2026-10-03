@@ -12,3 +12,4 @@
 #include <api/pyausaxs/api_pdb.h>
 #include <api/pyausaxs/api_rigidbody.h>
 #include <api/pyausaxs/api_settings.h>
+#include <api/pyausaxs/api_shape.h>
