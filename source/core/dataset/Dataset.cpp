@@ -173,62 +173,21 @@ Dataset Dataset::interpolate(int n) const {
     return interpolated;
 }
 
-Limit Dataset::span_x() const noexcept {
+Limit Dataset::span(int col_i) const noexcept {
     if (empty()) {
         return {0, 0};
     }
-    auto x = this->x();
-    auto[min, max] = std::ranges::minmax_element(x);
+    auto c = col(col_i);
+    auto[min, max] = std::ranges::minmax_element(c);
     return {*min, *max};
 }
 
-Limit Dataset::span_y() const noexcept {
-    if (empty()) {
-        return {0, 0};
-    }
-    auto y = this->y();
-    auto[min, max] = std::ranges::minmax_element(y);
-    return {*min, *max};
+double Dataset::mean(int col_i) const {
+    return stats::mean(col(col_i));
 }
 
-Limit Dataset::get_xlimits() const noexcept {return span_x();}
-
-Limit Dataset::get_ylimits() const noexcept {return span_y();}
-
-Limit Dataset::span_y_positive() const noexcept {
-    auto y = this->y();
-    if (empty()) {
-        return {0, 0};
-    }
-
-    Limit limits;
-    // find first non-zero y value
-    int i = 0;
-    for (; i < size(); i++) {
-        if (0 < y[i]) {
-            limits.min = y[i];
-            limits.max = y[i];
-            break;
-        }
-    }
-
-    // continue search for lower mins and higher max
-    for (; i < size(); i++) {
-        double val = y[i];
-        if (0 < val) {
-            limits.min = std::min(val, limits.min);
-        }
-        limits.max = std::max(val, limits.max);
-    }
-    return limits;
-}
-
-double Dataset::mean() const {
-    return stats::mean(y());
-}
-
-double Dataset::std() const {
-    return stats::std(y());
+double Dataset::std(int col_i) const {
+    return stats::std(col(col_i));
 }
 
 std::vector<double> Dataset::find_minimum(int col_i) const {
