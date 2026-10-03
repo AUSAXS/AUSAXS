@@ -220,7 +220,7 @@ TEST_CASE("Dataset::rolling_average") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "Dataset::limit_x") {
+TEST_CASE_METHOD(fixture, "Dataset::limit") {
     settings::general::verbose = false;
     SECTION("real data") {
         Dataset data("tests/files/2epe.dat");
@@ -236,7 +236,7 @@ TEST_CASE_METHOD(fixture, "Dataset::limit_x") {
         }
 
         auto data_limited = data;
-        data_limited.limit_x(0.01, 0.3);
+        data_limited.limit(0, 0.01, 0.3);
         REQUIRE(data_limited.size() == end-start+1);
         for (int i = 0; i < data_limited.size(); i++) {
             CHECK(data_limited.x(i) == data.x(i+start));

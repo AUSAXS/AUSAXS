@@ -200,23 +200,23 @@ TEST_CASE("Dataset::select_columns") {
     }
 }
 
-TEST_CASE("Dataset::limit_x") {
+TEST_CASE("Dataset::limit: column 0") {
     std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<double> y = {10, 20, 30, 40, 50, 60, 70, 80, 90};
     Dataset dataset({x, y});
 
-    dataset.limit_x(3, 7);
+    dataset.limit(0, 3, 7);
     CHECK(dataset.size() == 5);
     CHECK(dataset.x(0) == 3);
     CHECK(dataset.x(4) == 7);
 }
 
-TEST_CASE("Dataset::limit_y") {
+TEST_CASE("Dataset::limit: column 1") {
     std::vector<double> x = {1, 2, 3, 4, 5};
     std::vector<double> y = {10, 20, 30, 40, 50};
     Dataset dataset({x, y});
 
-    dataset.limit_y(20, 40);
+    dataset.limit(1, 20, 40);
     CHECK(dataset.size() == 3);
     CHECK(dataset.y(0) == 20);
     CHECK(dataset.y(1) == 30);
@@ -240,12 +240,12 @@ TEST_CASE("Dataset::append") {
     CHECK(dataset1.y(4) == 10);
 }
 
-TEST_CASE("Dataset::sort_x") {
+TEST_CASE("Dataset::sort") {
     std::vector<double> x = {5, 2, 8, 1, 9};
     std::vector<double> y = {10, 20, 30, 40, 50};
     Dataset dataset({x, y});
 
-    dataset.sort_x();
+    dataset.sort(0);
     CHECK(dataset.x(0) == 1);
     CHECK(dataset.x(1) == 2);
     CHECK(dataset.x(2) == 5);

@@ -135,35 +135,21 @@ namespace ausaxs {
             void append(const Dataset& other);
 
             /**
-             * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-             *        This assumes that the x-values are sorted. 
+             * @brief Impose limits on the data. All rows with a value in column @a col outside this range will be removed. 
              *        Complexity: O(n)
              */
-            void limit_x(const Limit& limits);
+            void limit(int col, const Limit& limits);
 
             /**
-             * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-             *        This assumes that the x-values are sorted. 
+             * @brief Impose limits on the data. All rows with a value in column @a col outside this range will be removed. 
              *        Complexity: O(n)
              */
-            void limit_x(double min, double max);
+            void limit(int col, double min, double max);
 
             /**
-             * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
-             *        Complexity: O(n)
+             * @brief Sort the rows of this dataset by the values in column @a col. 
              */
-            void limit_y(const Limit& limits);
-
-            /**
-             * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
-             *        Complexity: O(n)
-             */
-            void limit_y(double min, double max);
-
-            /**
-             * @brief Sort this dataset by the x-values. 
-             */
-            void sort_x();
+            void sort(int col);
 
             /**
              * @brief Get the ith value in the dataset.
