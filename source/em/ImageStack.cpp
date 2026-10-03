@@ -165,7 +165,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
             bounds = {min_abs.x - s, min_abs.x + s};
         }
         else { // otherwise just use the new bounds of the limited landscape
-            bounds = chi2_data.span_x();
+            bounds = chi2_data.span(0);
         }
 
         // prepare a new minimizer with the new bounds
@@ -387,8 +387,8 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
             explored_points.y() = explored_points.y()/dof;
 
             // calculate the mean & standard deviation of the sampled points
-            double mu = explored_points.mean();
-            double sigma = explored_points.std();
+            double mu = explored_points.mean(1);
+            double sigma = explored_points.std(1);
 
             // plot the starting point in blue
             Dataset p_start(0, 2);
