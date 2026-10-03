@@ -79,7 +79,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         }
 
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_intensity()));
     }
 
     SECTION("with water") {
@@ -137,7 +137,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             #endif
         }
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_intensity()));
     }
 
     SECTION("real scalings") {
@@ -186,7 +186,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
         }
         auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
-        CHECK(compare_hist(Iq_exp, Iq.get_counts()));
+        CHECK(compare_hist(Iq_exp, Iq.get_intensity()));
     }
 
     // TODO: fix this test

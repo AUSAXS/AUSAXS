@@ -17,9 +17,9 @@ namespace ausaxs::fitter {
             double mass = 0;
 
             struct EMFitInfo {
-                SimpleDataset chi2_full, chi2_limited, chi2_minimum;
-                SimpleDataset mass_full, mass_limited, mass_minimum;
-                SimpleDataset water_factors, volume;
+                Dataset chi2_full, chi2_limited, chi2_minimum;
+                Dataset mass_full, mass_limited, mass_minimum;
+                Dataset water_factors, volume;
             } em_info;
     };
 }

@@ -9,7 +9,7 @@
 
 namespace ausaxs::plots {
 	/**
-	 * @brief Plot a specific \class Histogram object.
+	 * @brief Plot a specific \class Histogram or \class ScatteringProfile object.
 	 */
 	class PlotHistogram : public Plot {
 		public:
@@ -20,6 +20,8 @@ namespace ausaxs::plots {
 			PlotHistogram(const hist::Histogram& h, const plots::PlotOptions& options);
 
 			PlotHistogram& plot(const hist::Histogram& hist, const plots::PlotOptions& options);
+
+			PlotHistogram& plot(const hist::ScatteringProfile& profile, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot and save the input dataset and the specified location. 

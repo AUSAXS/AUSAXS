@@ -4,11 +4,13 @@
 #include <em/ImageStack.h>
 
 #include <data/Molecule.h>
+#include <dataset/PointSet.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <em/manager/ProteinManager.h>
 #include <fitter/SmartFitter.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <hydrate/generation/RadialHydration.h>
+#include <math/PeakFinder.h>
 #include <math/Vector3.h>
 #include <mini/Golden.h>
 #include <mini/LimitedScan.h>
@@ -28,6 +30,14 @@
 using namespace ausaxs;
 using namespace ausaxs::em;
 using namespace ausaxs::fitter;
+
+namespace {
+    // the (x, y) point with the smallest y-value of a landscape
+    Point2D landscape_minimum(const Dataset& landscape) {
+        auto min = landscape.find_minimum(1);
+        return {min[0], min[1]};
+    }
+}
 
 ImageStack::ImageStack(const io::ExistingFile& file) : ImageStackBase(file) {
     logging::log("ImageStack created from file \"" + file.str() + "\"");
@@ -133,7 +143,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
     //##########################################################//
     mini::LimitedScan minimizer(func, param, settings::fit::max_iterations);
     minimizer.set_limit(5, true);
-    SimpleDataset chi2_data;
+    Dataset chi2_data;
     {
         logging::log("ImageStack: running scan with " + std::to_string(settings::fit::max_iterations) + " iterations");
         auto l = minimizer.landscape(settings::fit::max_iterations);
@@ -141,14 +151,14 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
         chi2_data = l.as_dataset();
     }
 
-    chi2_data.sort_x();
-    auto min_abs = chi2_data.find_minimum();
+    chi2_data.sort(0);
+    auto min_abs = landscape_minimum(chi2_data);
     console::print_text_minor("Minimum at " + std::to_string(min_abs.x) + " with chi2 " + std::to_string(min_abs.y));
 
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
     //##########################################################//
-    chi2_data.limit_y(0, min_abs.y*5);  // focus on the area near the absolute minimum
+    chi2_data.limit(1, 0, min_abs.y*5);  // focus on the area near the absolute minimum
     if (chi2_data.size_rows() < 10) {       // if we have too few points after imposing the limit, we must sample some more
         Limit bounds;                       // first we determine the bounds of the area we want to sample
         if (chi2_data.size_rows() < 3) {    // if we only have one or two points, sample the area between the neighbouring points
@@ -156,7 +166,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
             bounds = {min_abs.x - s, min_abs.x + s};
         }
         else { // otherwise just use the new bounds of the limited landscape
-            bounds = chi2_data.span_x();
+            bounds = chi2_data.span(0);
         }
 
         // prepare a new minimizer with the new bounds
@@ -167,10 +177,10 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
             evals.append(l);
             chi2_data = l.as_dataset();
         }
-        chi2_data.sort_x();
-        min_abs = chi2_data.find_minimum();
+        chi2_data.sort(0);
+        min_abs = landscape_minimum(chi2_data);
         console::print_text_minor("New minimum at " + std::to_string(min_abs.x) + " with chi2 " + std::to_string(min_abs.y));
-        chi2_data.limit_y(0, min_abs.y*5);
+        chi2_data.limit(1, 0, min_abs.y*5);
 
         if (chi2_data.size_rows() < 10) {
             throw except::unexpected("ImageStack::fit: Could not sample enough points around the minimum. Function varies too much.");
@@ -190,7 +200,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
     }
 
     double spacing = data_avg_int.x(1)-data_avg_int.x(0); 
-    auto minima = data_avg_int.find_minima(static_cast<int>(0.1*data_avg_int.size()), 0.1); // find all minima. they should be fairly spaced out (10% seems reasonable?)
+    auto minima = math::find_minima(data_avg_int.x(), data_avg_int.y(), static_cast<int>(0.1*data_avg_int.size()), 0.1); // find all minima. they should be fairly spaced out (10% seems reasonable?)
     {   // find the absolute minimum in the smoothed landscape
         auto tmp = data_avg_int.find_minimum(1);
         if (tmp[1] < min_abs.y) {
@@ -208,7 +218,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
             mass_data.index(i, 0) = this->evals[i].cutoff;
             mass_data.index(i, 1) = this->evals[i].mass;
         }
-        mass_data.sort_x();
+        mass_data.sort(0);
         data_avg_int.col("mass") = mass_data.interpolate(data_avg_int.x()).y();
     }
 
@@ -248,14 +258,14 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
     if (settings::general::generate_plots) {
         { // make a nice plot of the landscape within some range of the minimum; this is often nicer to look at than the full landscape due to the reduced y-range
             // plot the minimum in blue
-            SimpleDataset p_min, chi2_copy = chi2_data, avg_copy = data_avg_int;
+            Dataset p_min(0, 2), chi2_copy = chi2_data, avg_copy = data_avg_int;
             for (auto m : minima) {
                 // if the minimum is too close to the absolute minimum & the absolute minimum is lower, plot the absolute minimum instead
                 if (std::abs(data_avg_int.x(m) - min_abs.x) < from_level(0.5) && min_abs.y < data_avg_int.y(m)) {
-                    p_min.push_back(to_level(min_abs.x), min_abs.y/dof);
+                    p_min.push_back({to_level(min_abs.x), min_abs.y/dof});
                     continue;
                 }
-                p_min.push_back(to_level(data_avg_int.x(m)), data_avg_int.y(m)/dof);
+                p_min.push_back({to_level(data_avg_int.x(m)), data_avg_int.y(m)/dof});
             }
 
             // convert cutoff to std levels & normalize chi2
@@ -277,22 +287,22 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
 
             if (settings::em::mass_axis) {
                 // create chi2 / mass dataset
-                SimpleDataset mass_avg_copy(data_avg_int.col("mass"), data_avg_int.col("chi2")/dof);
+                Dataset mass_avg_copy{data_avg_int.col("mass"), data_avg_int.col("chi2")/dof};
 
-                SimpleDataset mass_p_min;
+                Dataset mass_p_min(0, 2);
                 for (auto m : minima) {
                     // if the minimum is too close to the absolute minimum & the absolute minimum is lower, plot the absolute minimum instead
                     if (std::abs(data_avg_int.x(m) - min_abs.x) < from_level(0.5) && min_abs.y < data_avg_int.y(m)) {
-                        mass_p_min.push_back(data_avg_int.interpolate_x(min_abs.x, 2), min_abs.y/dof);
+                        mass_p_min.push_back({data_avg_int.interpolate_x(min_abs.x, 2), min_abs.y/dof});
                         continue;
                     }
-                    mass_p_min.push_back(data_avg_int.col("mass")[m], data_avg_int.col("chi2")[m]/dof);
+                    mass_p_min.push_back({data_avg_int.col("mass")[m], data_avg_int.col("chi2")[m]/dof});
                 }
                 plots.mass_limited = mass_avg_copy;
 
                 // make the plot
                 plots::PlotDataset plot_mass(mass_avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}));
-                plot_mass.plot(SimpleDataset(data_avg_int.interpolate(chi2_data.x()).col(2), chi2_copy.y()), plots::PlotOptions(style::draw::points, {}));
+                plot_mass.plot(Dataset{data_avg_int.interpolate(chi2_data.x()).col(2), chi2_copy.y()}, plots::PlotOptions(style::draw::points, {}));
                 plot_mass.plot(mass_p_min, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 12}}));
                 plot_mass.save(settings::general::output + "chi2_evaluated_points_limited_mass." + settings::plots::format);
             }
@@ -310,7 +320,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
         { // plot all evaluated points
             { // chi2 landscape
                 auto l = evals.as_dataset();
-                l.sort_x();
+                l.sort(0);
                 for (int i = 0; i < l.size(); ++i) {
                     l.x(i) = to_level(l.x(i));
                     l.y(i) /= dof;
@@ -326,12 +336,12 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
 
             // volume as a function of cutoff
             if (settings::general::supplementary_plots) {
-                SimpleDataset volume_data(static_cast<int>(this->evals.size())); 
+                Dataset volume_data(static_cast<int>(this->evals.size()), 2);
                 for (int i = 0; i < static_cast<int>(this->evals.size()); ++i) {
                     volume_data.x(i) = to_level(this->evals[i].cutoff);
                     volume_data.y(i) = this->evals[i].mass;
                 }
-                volume_data.sort_x();
+                volume_data.sort(0);
                 plots.volume = volume_data;
 
                 plots::PlotDataset::quick_plot(
@@ -369,7 +379,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
 
         // check if we found a better absolute minima
         auto explored_points = explorer.get_evaluated_points().as_dataset();
-        if (auto new_min = explored_points.find_minimum(); new_min.y < min_abs.y) {
+        if (auto new_min = landscape_minimum(explored_points); new_min.y < min_abs.y) {
             min_abs = new_min;
         }
 
@@ -378,12 +388,12 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
             explored_points.y() = explored_points.y()/dof;
 
             // calculate the mean & standard deviation of the sampled points
-            double mu = explored_points.mean();
-            double sigma = explored_points.std();
+            double mu = explored_points.mean(1);
+            double sigma = explored_points.std(1);
 
             // plot the starting point in blue
-            SimpleDataset p_start;
-            p_start.push_back(min_abs.x, min_abs.y/dof);
+            Dataset p_start(0, 2);
+            p_start.push_back({min_abs.x, min_abs.y/dof});
             plots.chi2_minimum = explored_points;
 
             // do the actual plotting
@@ -401,7 +411,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
                 for (int i = static_cast<int>(this->evals.size() - explored_points.size()); i < static_cast<int>(this->evals.size()); ++i) {
                     mass_cutoff.push_back({this->evals[i].cutoff, this->evals[i].mass});
                 }
-                mass_cutoff.sort_x();
+                mass_cutoff.sort(0);
 
                 // create chi2 / mass dataset
                 explored_points.x() = mass_cutoff.y();
@@ -427,7 +437,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
         mini::Golden golden(func, param);
         res = golden.minimize();
         if (res.fval < min_abs.y) {
-            min_abs = golden.get_evaluated_points().as_dataset().find_minimum();
+            min_abs = landscape_minimum(golden.get_evaluated_points().as_dataset());
         }
     }
 

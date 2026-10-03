@@ -7,6 +7,7 @@
 #include <io/ExistingFile.h>
 
 #include <memory>
+#include <string>
 
 namespace ausaxs::detail {
     /**
@@ -23,4 +24,15 @@ namespace ausaxs::detail {
          */
         virtual std::unique_ptr<Dataset> construct(const io::ExistingFile& path, int expected_cols) = 0;
     };
+
+    /**
+     * @brief The message for a data file with fewer columns than the caller needs.
+     */
+    inline std::string message_too_few_columns(const io::ExistingFile& path, int found, int expected) {
+        std::string message = "\"" + path.str() + "\" has " + std::to_string(found) + " columns, but " + std::to_string(expected) + " are required";
+        if (expected == 3) {
+            message += " [q | I | Ierr]";
+        }
+        return message + ".";
+    }
 }

@@ -199,11 +199,11 @@ std::vector<int> math::find_minima(const std::vector<double>& x, const std::vect
                     int index = local_minima[i];
 
                     // bounds
-    				SimpleDataset dummy1({x[bounds.min], x[bounds.max]}, {y[bounds.min], y[bounds.max]});
+    				Dataset dummy1{{x[bounds.min], x[bounds.max]}, {y[bounds.min], y[bounds.max]}};
                     plot.plot(dummy1, plots::PlotOptions({{"color", style::color::green}, {"lw", 0.5}, {"zorder", 0}}));
 
                     // prominence
-                    SimpleDataset dummy2({x[index], x[index]}, {y[index], y[index] + calc_prominence(bound, x[index], y[index])});
+                    Dataset dummy2{{x[index], x[index]}, {y[index], y[index] + calc_prominence(bound, x[index], y[index])}};
                     plot.plot(dummy2, plots::PlotOptions({{"color", style::color::green}, {"lw", 0.5}, {"zorder", 0}}));
                 }
 			#endif

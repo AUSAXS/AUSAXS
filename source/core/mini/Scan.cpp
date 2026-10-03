@@ -49,14 +49,14 @@ void Scan::add_parameter(const Parameter& param) {
 }
 
 Result Scan::minimize_override() {
-    SimpleDataset data = landscape(get_max_evals()).as_dataset();
-    auto min = data.find_minimum();
+    Dataset data = landscape(get_max_evals()).as_dataset();
+    auto min = data.find_minimum(1);
 
     // find local minimum
-    auto width = data.span_x().span()/data.size(); // find width of each step
+    auto width = data.span(0).span()/data.size(); // find width of each step
     auto prev_bounds = parameters[0].bounds;
     if (!prev_bounds.has_value()) {throw except::bad_order("Scan::minimize: The scanned parameter must be bounded.");}
-    parameters[0].bounds = Limit(std::max(min.x - width, prev_bounds->min), std::min(min.x + width, prev_bounds->max)); // update bounds
+    parameters[0].bounds = Limit(std::max(min[0] - width, prev_bounds->min), std::min(min[0] + width, prev_bounds->max)); // update bounds
     parameters[0].guess = {}; // remove guess to avoid warning
 
     // record_evaluations(false);

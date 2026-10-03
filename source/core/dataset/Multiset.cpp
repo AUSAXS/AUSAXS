@@ -61,7 +61,7 @@ void Multiset::push_back(const Dataset2D&& new_data) {
 void Multiset::ylimits(double min, double max) {ylimits({min, max});}
 
 void Multiset::ylimits(const Limit& limit) {
-    std::ranges::for_each(*this, [&limit] (Dataset2D& data) {data.limit_y(limit);});
+    std::ranges::for_each(*this, [&limit] (Dataset2D& data) {data.limit(1, limit);});
 }
 
 void Multiset::save(const io::File& path) const {

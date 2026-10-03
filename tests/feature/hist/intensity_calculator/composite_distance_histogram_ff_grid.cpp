@@ -47,7 +47,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
         // CHECK_THAT(V, Catch::Matchers::WithinRel(protein.get_volume_grid(), 1e-1));
     }
 
-    SimpleDataset dataset(rxs, volumes);
+    Dataset dataset{rxs, volumes};
     plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "composite_distance_histogram_ff_grid_volumes.png");
 }
 

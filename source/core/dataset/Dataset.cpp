@@ -7,7 +7,7 @@
 #include <dataset/detail/QUnitAnnotation.h>
 #include <math/CubicSpline.h>
 #include <math/MovingAverager.h>
-#include <math/PeakFinder.h>
+#include <math/Statistics.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
@@ -49,34 +49,20 @@ bool Dataset::empty() const noexcept {
     return data.data.empty();
 }
 
-void Dataset::limit_x(const Limit& limits) {
-    if (size() == 0) {return;}
-    if (limits.min < x(0) && x(size()-1) < limits.max) {return;}
-
-    Matrix<double> limited(0, data.M); 
-    for (int i = 0; i < size(); i++) {
-        double val = x(i);
-        if (val < limits.min) {continue;}
-        if (limits.max < val) {break;}
-        limited.push_back(row(i));
-    }
-    assign_matrix(std::move(limited));
-}
-
-void Dataset::limit_y(const Limit& limits) {
+void Dataset::limit(int col_i, const Limit& limits) {
     if (size() == 0) {return;}
 
+    auto c = col(col_i);
     Matrix<double> limited(0, data.M);
     for (int i = 0; i < size(); i++) {
-        double val = y(i);
+        double val = c[i];
         if (val < limits.min || limits.max < val) {continue;}
         limited.push_back(row(i));
     }
     assign_matrix(std::move(limited));
 }
 
-void Dataset::limit_x(double min, double max) {limit_x({min, max});}
-void Dataset::limit_y(double min, double max) {limit_y({min, max});}
+void Dataset::limit(int col_i, double min, double max) {limit(col_i, {min, max});}
 
 MutableColumn<double> Dataset::col(int index) {
     return data.col(index);
@@ -172,6 +158,23 @@ Dataset Dataset::interpolate(int n) const {
     return interpolated;
 }
 
+Limit Dataset::span(int col_i) const noexcept {
+    if (empty()) {
+        return {0, 0};
+    }
+    auto c = col(col_i);
+    auto[min, max] = std::ranges::minmax_element(c);
+    return {*min, *max};
+}
+
+double Dataset::mean(int col_i) const {
+    return stats::mean(col(col_i));
+}
+
+double Dataset::std(int col_i) const {
+    return stats::std(col(col_i));
+}
+
 std::vector<double> Dataset::find_minimum(int col_i) const {
     if (empty()) {
         if (settings::general::verbose) {
@@ -226,11 +229,12 @@ void Dataset::append(const Dataset& other) {
     }
 }
 
-void Dataset::sort_x() {
+void Dataset::sort(int col_i) {
     Matrix<double> newdata(data.N, data.M);
     std::vector<int> indices(data.N);
     std::iota(indices.begin(), indices.end(), 0);
-    std::ranges::sort(indices, [this] (int i, int j) {return x(i) < x(j);});
+    auto c = col(col_i);
+    std::ranges::sort(indices, [&c] (int i, int j) {return c[i] < c[j];});
     for (int i = 0; i < data.N; i++) {
         newdata.row(i) = this->row(indices[i]);
     }
@@ -258,14 +262,6 @@ double& Dataset::index(int i, int j) {
 
 void Dataset::push_back(const std::vector<double>& row) {
     data.push_back(row);
-}
-
-std::vector<int> Dataset::find_minima(int min_spacing, double min_prominence) const {
-    return math::find_minima(x(), y(), min_spacing, min_prominence);
-}
-
-std::vector<int> Dataset::find_maxima(int min_spacing, double min_prominence) const {
-    return math::find_minima(x(), -y(), min_spacing, min_prominence);
 }
 
 int Dataset::size() const noexcept {

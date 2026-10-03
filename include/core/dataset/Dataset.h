@@ -114,20 +114,19 @@ namespace ausaxs {
             std::vector<double> find_minimum(int col) const;
 
             /**
-             * @brief Find the indices of minima in the dataset.
-             * 
-             * @param min_spacing The minimum spacing between minima.
-             * @param prominence The minimum prominence of a minima as a percentage of the largest prominence. Higher values will result in fewer minima.
+             * @brief Get the range spanned by the values in column @a col.
              */
-            std::vector<int> find_minima(int min_spacing = 0, double prominence = 0) const;
+            [[nodiscard]] Limit span(int col) const noexcept;
 
             /**
-             * @brief Find the indices of minima in the dataset.
-             * 
-             * @param min_spacing The minimum spacing between minima.
-             * @param prominence The minimum prominence of a minima as a percentage of the largest prominence. Higher values will result in fewer minima. 
+             * @brief Get the mean of the values in column @a col.
              */
-            std::vector<int> find_maxima(int min_spacing = 0, double prominence = 0) const;
+            [[nodiscard]] double mean(int col) const;
+
+            /**
+             * @brief Get the standard deviation of the values in column @a col.
+             */
+            [[nodiscard]] double std(int col) const;
 
             /**
              * @brief Append another dataset with the same number of rows to this one.
@@ -136,35 +135,21 @@ namespace ausaxs {
             void append(const Dataset& other);
 
             /**
-             * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-             *        This assumes that the x-values are sorted. 
+             * @brief Impose limits on the data. All rows with a value in column @a col outside this range will be removed. 
              *        Complexity: O(n)
              */
-            void limit_x(const Limit& limits);
+            void limit(int col, const Limit& limits);
 
             /**
-             * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-             *        This assumes that the x-values are sorted. 
+             * @brief Impose limits on the data. All rows with a value in column @a col outside this range will be removed. 
              *        Complexity: O(n)
              */
-            void limit_x(double min, double max);
+            void limit(int col, double min, double max);
 
             /**
-             * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
-             *        Complexity: O(n)
+             * @brief Sort the rows of this dataset by the values in column @a col. 
              */
-            void limit_y(const Limit& limits);
-
-            /**
-             * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
-             *        Complexity: O(n)
-             */
-            void limit_y(double min, double max);
-
-            /**
-             * @brief Sort this dataset by the x-values. 
-             */
-            void sort_x();
+            void sort(int col);
 
             /**
              * @brief Get the ith value in the dataset.

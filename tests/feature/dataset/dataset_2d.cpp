@@ -37,14 +37,14 @@ TEST_CASE("Dataset2D: stats") {
     }
 
     SECTION("mean") {
-        CHECK_THAT(data1.mean(), Catch::Matchers::WithinAbs(6, 1e-3));
-        CHECK_THAT(data2.mean(), Catch::Matchers::WithinAbs(14.5, 1e-3));
-        CHECK_THAT(data3.mean(), Catch::Matchers::WithinAbs(79, 1e-3));
+        CHECK_THAT(data1.mean(1), Catch::Matchers::WithinAbs(6, 1e-3));
+        CHECK_THAT(data2.mean(1), Catch::Matchers::WithinAbs(14.5, 1e-3));
+        CHECK_THAT(data3.mean(1), Catch::Matchers::WithinAbs(79, 1e-3));
     }
 
     SECTION("std") {
-        CHECK_THAT(data1.std(), Catch::Matchers::WithinAbs(2.943920, 1e-3));
-        CHECK_THAT(data2.std(), Catch::Matchers::WithinAbs(1.643167, 1e-3));
-        CHECK_THAT(data3.std(), Catch::Matchers::WithinAbs(12.103718, 1e-3));
+        CHECK_THAT(data1.std(1), Catch::Matchers::WithinAbs(2.943920, 1e-3));
+        CHECK_THAT(data2.std(1), Catch::Matchers::WithinAbs(1.643167, 1e-3));
+        CHECK_THAT(data3.std(1), Catch::Matchers::WithinAbs(12.103718, 1e-3));
     }
 }

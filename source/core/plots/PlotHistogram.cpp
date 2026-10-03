@@ -3,8 +3,9 @@
 
 #include <plots/PlotHistogram.h>
 
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <hist/Histogram.h>
+#include <hist/ScatteringProfile.h>
 
 using namespace ausaxs::plots;
 
@@ -17,10 +18,17 @@ PlotHistogram::PlotHistogram(const hist::Histogram& h, const PlotOptions& option
 }
 
 PlotHistogram& PlotHistogram::plot(const hist::Histogram& hist, const PlotOptions& options) {
-    SimpleDataset p(hist.get_axis().as_vector(), hist.get_counts());
-
     ss << "PlotHistogram\n"
-        << p.to_string()
+        << hist.as_dataset().to_string()
+        << "\n"
+        << options.to_string()
+        << std::endl;
+    return *this;
+}
+
+PlotHistogram& PlotHistogram::plot(const hist::ScatteringProfile& profile, const PlotOptions& options) {
+    ss << "PlotHistogram\n"
+        << profile.as_dataset().to_string()
         << "\n"
         << options.to_string()
         << std::endl;

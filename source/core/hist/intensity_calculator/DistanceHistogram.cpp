@@ -3,7 +3,7 @@
 
 #include <hist/intensity_calculator/DistanceHistogram.h>
 
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <hist/Histogram.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
@@ -75,7 +75,7 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     return {Iq, debye_axis};
 }
 
-SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
+Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
     // if the q values are within the evaluated default range, we can just interpolate them for better performance
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     if (debye_axis.front() <= q.front() && q.back() <= debye_axis.back()) {
