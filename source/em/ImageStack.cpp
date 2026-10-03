@@ -10,6 +10,7 @@
 #include <fitter/SmartFitter.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <hydrate/generation/RadialHydration.h>
+#include <math/PeakFinder.h>
 #include <math/Vector3.h>
 #include <mini/Golden.h>
 #include <mini/LimitedScan.h>
@@ -199,7 +200,7 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
     }
 
     double spacing = data_avg_int.x(1)-data_avg_int.x(0); 
-    auto minima = data_avg_int.find_minima(static_cast<int>(0.1*data_avg_int.size()), 0.1); // find all minima. they should be fairly spaced out (10% seems reasonable?)
+    auto minima = math::find_minima(data_avg_int.x(), data_avg_int.y(), static_cast<int>(0.1*data_avg_int.size()), 0.1); // find all minima. they should be fairly spaced out (10% seems reasonable?)
     {   // find the absolute minimum in the smoothed landscape
         auto tmp = data_avg_int.find_minimum(1);
         if (tmp[1] < min_abs.y) {
