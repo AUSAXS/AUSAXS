@@ -64,13 +64,13 @@
 
                 /**
                  * @brief Check if the two vectors are compatible with the default table. 
-                 *        Note that this check is only performed in debug mode.
+                 *        Any incompatibilities are written to the log.
                  */
                 static void check_default(const std::vector<double>& q, const std::vector<double>& d);
 
                 /**
                  * @brief Check if the vector is compatible with the default table. 
-                 *        Note that this check is only performed in debug mode.
+                 *        Any incompatibilities are written to the log.
                  */
                 static void check_default(const std::vector<double>& d);
 
@@ -99,9 +99,6 @@
 #else
     #include <table/VectorDebyeTable.h>
     namespace ausaxs::table {
-        /**
-         * @brief Your compiler does not support large constexpr arrays, so ArrayDebyeTable is just an alias for VectorDebyeTable.
-         */
         using ArrayDebyeTable = VectorDebyeTable;
     }
 #endif
