@@ -11,6 +11,7 @@
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <settings/All.h>
+#include <support/form_factor_helper.h>
 
 #include <algorithm>
 #include <concepts>
@@ -28,12 +29,14 @@ static const std::vector<int>& identity() {
     return identity;
 }
 
-TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
+TEST_CASE("form_factor_manager: full identity selection") {
+    manager::detail::use_form_factors(identity());
     const auto* tables = manager::get_active_product_tables();
     REQUIRE(tables != nullptr);
 
-    SECTION("active_count equals total_ff_count for identity set") {
+    SECTION("active_count equals total_ff_count") {
         REQUIRE(tables->active_count == form_factor::total_ff_count);
+        REQUIRE(get_active_count() == form_factor::total_ff_count);
     }
 
     SECTION("ff_indices are identity") {
@@ -41,9 +44,18 @@ TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(i));
         }
     }
+
+    SECTION("identity mapping") {
+        auto mapping = manager::get_active_mapping();
+        REQUIRE(mapping.size() == total_ff_count);
+        for (int i = 0; i < total_ff_count; ++i) {
+            REQUIRE(mapping[i] == static_cast<int>(i));
+        }
+    }
 }
 
 TEST_CASE("form_factor::get_active_count") {
+    test::form_factor::use_random_form_factors();
     REQUIRE(get_active_count() == manager::get_active_product_tables()->active_count);
 
     SECTION("reflects custom subset") {
@@ -55,7 +67,6 @@ TEST_CASE("form_factor::get_active_count") {
         });
         REQUIRE(get_active_count() == 4);
         REQUIRE(get_active_count() == manager::get_active_product_tables()->active_count);
-        manager::detail::use_form_factors(identity());
     }
 
     SECTION("OTHER is appended to a subset that omits it") {
@@ -67,18 +78,6 @@ TEST_CASE("form_factor::get_active_count") {
         });
         REQUIRE(get_active_count() == 4);
         REQUIRE(manager::get_active_product_tables()->ff_indices[3] == static_cast<int>(form_factor_t::OTHER));
-        manager::detail::use_form_factors(identity());
-    }
-}
-
-TEST_CASE("form_factor_manager::get_active_mapping default") {
-    auto mapping = manager::get_active_mapping();
-    REQUIRE(mapping.size() == total_ff_count);
-
-    SECTION("identity mapping") {
-        for (int i = 0; i < total_ff_count; ++i) {
-            REQUIRE(mapping[i] == static_cast<int>(i));
-        }
     }
 }
 
@@ -112,8 +111,6 @@ TEST_CASE("form_factor_manager::get_active_mapping custom subset") {
         REQUIRE(get_active_count() == 4);
         REQUIRE(mapping[other] == 3);
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
@@ -146,8 +143,6 @@ TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(form_factor_t::OTHER));
         }
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
@@ -195,8 +190,6 @@ TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
             REQUIRE(mapping[t] != other_slot);
         }
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables") {
@@ -230,11 +223,11 @@ TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables
         double exv_val_after = tables->raw_exv_table.index(start_index_for_explicit_exv(), start_index_for_explicit_exv()).evaluate(0);
         REQUIRE(exv_val_before == exv_val_after);
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table") {
+    test::form_factor::use_random_form_factors();
+
     // capture exv product at (1,1) which is WATER vs WATER excluded volume — should differ between sets
     double exv_val_default = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
 
@@ -273,12 +266,14 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
     auto raw = [] (form_factor_t t, double q) {return lookup::atomic::raw::get(t).evaluate(q);};
     auto normalized = [] (form_factor_t t, double q) {return lookup::atomic::normalized::get(t).evaluate(q);};
     auto exv = [] (form_factor_t t, double q) {
-        return ExvTableManager::get_current_exv_form_factor_set().get(t).evaluate(q);
+        // types without a volume in the current set have an empty exv profile
+        auto set = ExvTableManager::get_current_exv_form_factor_set();
+        return set.contains(t) ? set.get(t).evaluate(q) : 0.0;
     };
     int s0 = start_index_for_explicit_exv();
 
-    SECTION("full default set") {
-        manager::detail::use_form_factors(identity());
+    SECTION("random set") {
+        test::form_factor::use_random_form_factors();
         const auto* tables = manager::get_active_product_tables();
         check(tables->raw_atomic_table,        0,  0,  raw,        raw);
         check(tables->normalized_atomic_table, 0,  0,  normalized, normalized);
@@ -298,8 +293,6 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
         check(tables->normalized_cross_table,  0,  s0, normalized, exv);
         check(tables->raw_exv_table,           s0, s0, exv,        exv);
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded volume") {
@@ -314,6 +307,12 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
     set.volumes[CH3].reset();
     ExvTableManager::set_custom_exv_table(set);
 
+    // not every type has a volume in the base set either, so count those that remain
+    int with_volume = 1; // EXCLUDED_VOLUME is always kept
+    for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
+        if (set.contains(static_cast<form_factor_t>(i))) {++with_volume;}
+    }
+
     auto is_active = [] (int type) {
         const auto* tables = manager::get_active_product_tables();
         return std::ranges::find(tables->ff_indices.begin(), tables->ff_indices.begin() + tables->active_count, type) != tables->ff_indices.begin() + tables->active_count;
@@ -321,7 +320,7 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
 
     SECTION("Fraser removes the type, and maps it onto OTHER") {
         settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
-        CHECK(get_active_count() == total_ff_count-1);
+        CHECK(get_active_count() == with_volume);
         CHECK_FALSE(is_active(CH3));
         CHECK(is_active(other));
         auto mapping = manager::get_active_mapping();
@@ -352,5 +351,4 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
 
     settings::exv::exv_method = original_method;
     settings::exv::exv_set = original_set;
-    manager::detail::use_form_factors(identity());
 }

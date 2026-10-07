@@ -232,6 +232,37 @@ TEST_CASE("form_factor::get_type from element") {
     CHECK(get_type(constants::atom_t::N) == form_factor_t::N);
     CHECK(get_type(constants::atom_t::O) == form_factor_t::O);
     CHECK(get_type(constants::atom_t::S) == form_factor_t::S);
-    CHECK(get_type(constants::atom_t::P) == form_factor_t::OTHER);
+    CHECK(get_type(constants::atom_t::P) == form_factor_t::P);
+    CHECK(get_type(constants::atom_t::Fe) == form_factor_t::Fe);
+    CHECK(get_type(constants::atom_t::Zn) == form_factor_t::Zn);
+    CHECK(get_type(constants::atom_t::Se) == form_factor_t::Se);
+    CHECK(get_type(constants::atom_t::I) == form_factor_t::I);
+    CHECK(get_type(constants::atom_t::Ar) == form_factor_t::OTHER);
+    CHECK(get_type(constants::atom_t::Au) == form_factor_t::OTHER);
     CHECK(get_type(constants::atom_t::unknown) == form_factor_t::OTHER);
+}
+
+TEST_CASE("form_factor::get_info: tabulated bare elements") {
+    SECTION("each bare element maps back to its own type") {
+        for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
+            auto type = static_cast<form_factor_t>(i);
+            const auto& info = get_info(type);
+            if (type == form_factor_t::OTHER || info.hydrogens != 0) {continue;}
+            CHECK(get_type(info.element) == type);
+        }
+    }
+
+    SECTION("the vacuum form factor at q=0 matches the number of electrons") {
+        // the five-Gaussian fits are only approximately normalized, with the worst (Zn) off by 0.009. this also caught a typo in S (off by 0.01)
+        for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
+            auto type = static_cast<form_factor_t>(i);
+            const auto& info = get_info(type);
+            if (info.hydrogens != 0) {continue;}
+            const auto& c = info.coefficients;
+            double f0 = c.c;
+            for (double a : c.a) {f0 += a;}
+            INFO("form factor " << to_string(type));
+            CHECK_THAT(f0, Catch::Matchers::WithinAbs(info.electrons, 0.01));
+        }
+    }
 }

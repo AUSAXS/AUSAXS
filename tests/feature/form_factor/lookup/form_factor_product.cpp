@@ -4,6 +4,7 @@
 #include <form_factor/FormFactor.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <support/form_factor_helper.h>
 
 using namespace ausaxs;
 using namespace form_factor;
@@ -26,11 +27,13 @@ TEST_CASE("FormFactorProduct::comprehensive_evaluation") {
 
 TEST_CASE("FormFactorProduct::table_comprehensive") {
     SECTION("all table entries match direct calculation") {
-        const auto& table = manager::get_active_product_tables()->raw_atomic_table;
-        for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
-            for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
-                const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff1));
-                const FormFactor& ff2_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(ff2));
+        test::form_factor::use_random_form_factors();
+        const auto* tables = manager::get_active_product_tables();
+        const auto& table = tables->raw_atomic_table;
+        for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
+            for (int ff2 = 0; ff2 < tables->active_count; ++ff2) {
+                const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+                const FormFactor& ff2_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);

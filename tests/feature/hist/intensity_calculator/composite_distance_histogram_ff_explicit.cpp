@@ -4,6 +4,7 @@
 #include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
@@ -64,6 +65,8 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);
         }
 
+        form_factor::manager::use_form_factors(protein);
+
         auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_intensity()));
     }
@@ -118,6 +121,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 }
             #endif
         }
+        form_factor::manager::use_form_factors(protein);
         auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_intensity()));
     }
@@ -160,6 +164,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] -= 2*awsum*ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2wx
             Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                     // + ww
         }
+        form_factor::manager::use_form_factors(protein);
         auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_intensity()));
     }
@@ -204,6 +209,8 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit: exv term normalization") {
     std::vector<Body> a = {Body(b1, w), Body(b2), Body(b3), Body(b4)};
     Molecule protein(a);
 
+    form_factor::manager::use_form_factors(protein);
+
     auto hist_data = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
     auto* hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());
     auto aa = hist->get_profile_aa();
@@ -233,6 +240,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     settings::general::verbose = false;
 
     data::Molecule protein("tests/files/2epe.pdb");
+    form_factor::manager::use_form_factors(protein);
     auto hist_data = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
     auto* hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());
     auto Iq = hist->debye_transform();

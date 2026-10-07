@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <container/ArrayContainer2D.h>
 #include <data/DataFwd.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorLookupFwd.h>
@@ -35,8 +34,9 @@ namespace ausaxs::form_factor::manager {
 
     /**
      * @brief Get the currently active form factor product tables. 
+     *        Throws if no form factor selection has been made yet; see use_form_factors.
      */
-    observer_ptr<const detail::ActiveTables> get_active_product_tables() noexcept;
+    observer_ptr<const detail::ActiveTables> get_active_product_tables();
 
     /**
      * @brief Get a mapping from form_factor_t enum index to active slot index.

@@ -4,6 +4,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <grid/exv/RawGridExv.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
@@ -26,6 +27,7 @@ using namespace ausaxs::data;
 // Test that compares FFGrid histograms against a simple HistogramManager using normalized (raw) counts.
 // This validates the histogram binning is correct for the excluded volume grid representation.
 static auto test_normalized = [] (Molecule& protein, const std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)>& calculate) {
+    form_factor::manager::use_form_factors(protein); // calculate constructs the manager directly, bypassing the factory which normally selects these
     auto h = calculate(protein);
 
     // convert the grid to water atoms with unit weight for normalized comparison
@@ -47,8 +49,8 @@ static auto test_normalized = [] (Molecule& protein, const std::function<std::un
     {
         auto aa = h_cast->get_raw_aa_counts_by_ff();
         hist::Distribution1D temp_aa(aa.size_z()), temp_ax(aa.size_z()), temp_xx(aa.size_z());
-        for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
-            for (int j = i; j < form_factor::total_ff_count; ++j) {
+        for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
+            for (int j = i; j < form_factor::get_active_count(); ++j) {
                 std::transform(aa.begin(i, j), aa.end(i, j), temp_aa.begin(), temp_aa.begin(), std::plus<>());
             }
             // atom-exv cross term (multiplied by 2 for symmetry)
@@ -89,6 +91,7 @@ static auto test_normalized = [] (Molecule& protein, const std::function<std::un
 // Test that compares atom-atom histograms on absolute scale (with form factor weighting).
 // This validates that the form factor weighting is correct, without the complexity of the excluded volume.
 static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)>& calculate) {
+    form_factor::manager::use_form_factors(protein); // calculate constructs the manager directly, bypassing the factory which normally selects these
     auto h = calculate(protein);
 
     // Get atom-atom histogram from FFGrid with form factor weighting
@@ -97,8 +100,8 @@ static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::u
     
     // Sum all form factor contributions
     hist::Distribution1D aa1(aa_by_ff.size_z());
-    for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::total_ff_count; ++i) {
-        for (int j = i; j < form_factor::total_ff_count; ++j) {
+    for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
+        for (int j = i; j < form_factor::get_active_count(); ++j) {
             std::transform(aa_by_ff.begin(i, j), aa_by_ff.end(i, j), aa1.begin(), aa1.begin(), std::plus<>());
         }
     }
@@ -194,6 +197,7 @@ static auto test_derived = [] () {
 
         Molecule protein("tests/files/LAR1-2.pdb");
         protein.generate_new_hydration();
+        form_factor::manager::use_form_factors(protein);
 
         auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
         auto h_grids = H(&protein).calculate_all();
@@ -257,6 +261,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
         Molecule protein(a);
         set_unity_charge(protein);
+        form_factor::manager::use_form_factors(protein);
 
         auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
         std::vector<AtomFF> atoms(exv_grid.interior.size());
@@ -292,6 +297,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation
+        form_factor::manager::use_form_factors(protein);
         auto h = DebugHistogramManagerMTFFGrid(&protein).calculate_all();
         auto* h_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h.get());
 
@@ -302,6 +308,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
     }
 
     SECTION("real data") {
+        form_factor::manager::use_form_factors(protein);
         auto exv_grid = grid::exv::RawGridExv::create(protein.get_grid());
         std::vector<AtomFF> atoms(exv_grid.interior.size());
         for (int i = 0; i < static_cast<int>(exv_grid.interior.size()); i++) {

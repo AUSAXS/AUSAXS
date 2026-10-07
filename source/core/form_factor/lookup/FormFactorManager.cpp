@@ -24,11 +24,7 @@ using namespace ausaxs::form_factor;
 
 namespace {
     std::unique_ptr<manager::detail::ActiveTables> active_tables;
-    std::vector<int> requested_indices = [] () { // the form factor selection before removing those unavailable for the current exv model
-        std::vector<int> indices(form_factor::total_ff_count);
-        std::iota(indices.begin(), indices.end(), 0);
-        return indices;
-    }();
+    std::vector<int> requested_indices;
 
     /**
      * @brief Check if the current excluded volume model uses the explicit per-type excluded volume tables.
@@ -46,7 +42,7 @@ namespace {
     }
 
     using ff_profile_t = std::array<double, constants::axes::q_axis.bins>; // A single form factor evaluated over the default q axis.
-    using profile_set_t = std::array<ff_profile_t, form_factor::total_ff_count>; // One such profile per active form factor slot.
+    using profile_set_t = std::vector<ff_profile_t>; // One such profile per active form factor slot.
 
     /**
      * @brief Evaluate every active atomic form factor over the default q axis.
@@ -54,7 +50,7 @@ namespace {
      */
     template<FormFactorLookupType FormFactorLookup>
     profile_set_t evaluate_atomic_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
-        profile_set_t profiles{};
+        profile_set_t profiles(form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
             const auto& ff = FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i]));
             for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
@@ -70,7 +66,7 @@ namespace {
     profile_set_t evaluate_exv_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
-        profile_set_t profiles{};
+        profile_set_t profiles(form_factor::get_active_count());
         for (int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
             // types without a volume are only active when the explicit exv tables are unused (see requires_explicit_exv)
             if (!exv_set.contains(static_cast<form_factor_t>(ff_indices[i]))) {continue;}
@@ -86,7 +82,7 @@ namespace {
      * @brief Generate an atomic form factor product table.
      */
     lookup::table_t generate_atomic_table(const profile_set_t& atomic) {
-        lookup::table_t table;
+        lookup::table_t table(form_factor::get_active_count(), form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
             for (int j = 0; j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(atomic[i], atomic[j]);
@@ -101,7 +97,7 @@ namespace {
      * @brief Generate an excluded volume form factor product table (exv-exv). This is a symmetric table.
      */
     lookup::table_t generate_exv_table(const profile_set_t& exv) {
-        lookup::table_t table;
+        lookup::table_t table(form_factor::get_active_count(), form_factor::get_active_count());
         for (int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
             for (int j = start_index_for_explicit_exv(); j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(exv[i], exv[j]);
@@ -116,7 +112,7 @@ namespace {
      * @brief Generate a cross form factor product table (atomic-exv).
      */
     lookup::table_t generate_cross_table(const profile_set_t& atomic, const profile_set_t& exv) {
-        lookup::table_t table;
+        lookup::table_t table(form_factor::get_active_count(), form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
             for (int j = start_index_for_explicit_exv(); j < form_factor::get_active_count(); ++j) {
                 table.index(i, j) = FormFactorProduct(atomic[i], exv[j]);
@@ -189,8 +185,13 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     this->normalized_cross_table   = generate_cross_table(normalized_profiles, exv_profiles);
 }
 
-observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() noexcept {
-    if (!active_tables) {build_tables(requested_indices);} // initialize default tables
+observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() {
+    if (!active_tables) {
+        throw except::unexpected(
+            "form_factor::manager::get_active_product_tables: No form factor selection has been made. "
+            "Call form_factor::manager::use_form_factors first."
+        );
+    }
     return active_tables.get();
 }
 
@@ -211,8 +212,8 @@ std::vector<int> manager::get_active_mapping() {
 void manager::detail::use_form_factors(std::vector<int> ff_indices) {
     assert(!ff_indices.empty() && "Custom form factors cannot be empty.");
     assert(ff_indices.size() <= form_factor::total_ff_count && "Custom form factors cannot exceed the total number of available form factors.");
+    build_tables(ff_indices);
     requested_indices = std::move(ff_indices);
-    build_tables(requested_indices);
 }
 
 void manager::use_form_factors(const data::Molecule& molecule) {
@@ -242,7 +243,7 @@ void manager::use_form_factors(const data::Molecule& molecule) {
     ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // OTHER will never be selected, so it is safe to assign it here
 
     // the histogram factory calls this for every manager it builds, so an unchanged request must not rebuild the tables.
-    // they are kept current with the exv settings by rebuild(), and if they are not built yet, the lazy init will build this same selection
+    // they are kept current with the exv settings by rebuild()
     if (ff_indices == requested_indices) {return;}
 
     if (logging::logging_enabled()) {
@@ -260,6 +261,6 @@ void manager::use_form_factors(const data::Molecule& molecule) {
 }
 
 void manager::rebuild() {
-    if (!active_tables) {return;} // lazy init will pick up the new EXV set
+    if (!active_tables) {return;} // no selection yet; the first one will be built with the new EXV set
     build_tables(requested_indices);
 }

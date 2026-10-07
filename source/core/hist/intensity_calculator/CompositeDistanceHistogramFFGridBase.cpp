@@ -33,8 +33,8 @@ namespace {
     template<FormFactorType T>
     form_factor::lookup::table_t generate_ff_table(T&& ffx) {
         auto ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
-        form_factor::lookup::table_t table;
         int n_active = form_factor::get_active_count();
+        form_factor::lookup::table_t table(n_active, n_active);
         for (int i = 0; i < n_active; ++i) {
             for (int j = 0; j < i; ++j) {
                 table.index(i, j) = NormalizedFormFactorProduct(
