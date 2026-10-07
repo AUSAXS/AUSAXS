@@ -4,7 +4,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Molecule.h>
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
