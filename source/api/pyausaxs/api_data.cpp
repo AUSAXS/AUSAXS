@@ -33,7 +33,7 @@ int data_create(
 
     // same q-range restriction the file readers apply
     if (settings::axes::clamp_to_qrange) {
-        dataset.limit_x(settings::axes::qmin, settings::axes::qmax);
+        dataset.limit(0, settings::axes::qmin, settings::axes::qmax);
         if (dataset.empty()) {
             throw except::invalid_argument(
                 "data_create: no data points inside the q-range "
