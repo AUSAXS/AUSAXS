@@ -203,7 +203,7 @@ void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int
 
     // perform the Debye transform
     *_return_status = 4;
-    auto Iq = dist->debye_transform(q);
+    auto Iq = dist->debye_transform<false>(q);
 
     // sanity check - the number of q values should match the number of I(q) values
     if (Iq.size() != _nq) {
@@ -211,9 +211,8 @@ void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int
         return;
     }
 
-    // remove the form factor applied by the debye transform
     for (int i = 0; i < Iq.size(); ++i) {
-        _return_Iq[i] =  Iq.y(i) / std::exp(-std::pow(Iq.x(i), 2));
+        _return_Iq[i] = Iq.y(i);
     }
     *_return_status = 0;
 }

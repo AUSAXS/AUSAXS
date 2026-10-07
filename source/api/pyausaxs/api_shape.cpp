@@ -3,10 +3,12 @@
 
 #include <api/pyausaxs/api_shape.h>
 
+#include <dataset/Dataset.h>
 #include <form_factor/ExvFormFactor.h>
 #include <grid/detail/GridExcludedVolume.h>
 #include <hist/detail/GridExvFFT.h>
 #include <hist/distribution/WeightedDistribution1D.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <math/Vector3.h>
 #include <settings/InternalState.h>
 #include <utility/Exceptions.h>
@@ -29,8 +31,8 @@ void shape_debye_userq(
     if (n_cells <= 0) {throw except::invalid_argument("shape_debye_userq: the shape has no cells.");}
     if (!(0 < spacing)) {throw except::invalid_argument("shape_debye_userq: the lattice spacing must be positive.");}
 
-    // snap the centres to integer lattice sites; anything off the lattice is a caller error, not something to round away
-    const double* coords[3] = {x, y, z};
+    // snap the centres to integer lattice sites; anything off the lattice is a caller error
+    std::array<const double*, 3> coords = {x, y, z};
     std::vector<Vector3<int>> sites(n_cells);
     for (int i = 0; i < n_cells; ++i) {
         for (int k = 0; k < 3; ++k) {
@@ -45,11 +47,11 @@ void shape_debye_userq(
         }
     }
 
-    // the transform needs non-negative sites, and would count a doubly occupied site as a pair at distance zero
+    // the transform needs non-negative sites
     Vector3<int> min = sites[0], extent{0, 0, 0};
     for (const auto& s : sites) {for (int k = 0; k < 3; ++k) {min[k] = std::min(min[k], s[k]);}}
     for (auto& s : sites) {for (int k = 0; k < 3; ++k) {s[k] -= min[k]; extent[k] = std::max(extent[k], s[k]);}}
-    {
+    {   // sort the sites and check for duplicates, which would be a caller error
         auto sorted = sites;
         auto order = [] (const Vector3<int>& a, const Vector3<int>& b) {return std::ranges::lexicographical_compare(a, b);};
         std::ranges::sort(sorted, order);
@@ -66,20 +68,15 @@ void shape_debye_userq(
     int bin_count = static_cast<int>(std::ceil(max_distance*inv_width)) + 2;
     auto p = hist::detail::lattice::self_correlation(exv, inv_width, bin_count);
     p.add_index(0, hist::detail::WeightedEntry(n_cells, n_cells, 0)); // self-pairs
-    auto counts = p.get_content();
-    auto d = p.get_weighted_axis();
 
+    // every cell scatters with the Gaussian form factor of its volume, as in the Grid excluded volume model
+    std::vector<double> q_vals(q, q + n_q);
+    auto debye_I = hist::DistanceHistogram(std::move(p)).debye_transform<false>(q_vals);
     double V = spacing*spacing*spacing;
     form_factor::ExvFormFactor ff(V);
     for (int j = 0; j < n_q; ++j) {
-        double sum = 0;
-        for (int k = 0; k < static_cast<int>(counts.size()); ++k) {
-            if (counts[k] == 0) {continue;}
-            double qd = q[j]*d[k];
-            sum += counts[k]*(qd < 1e-8 ? 1 : std::sin(qd)/qd);
-        }
         double f = V*ff.evaluate_normalized(q[j]);
-        I[j] = sum*f*f;
+        I[j] = debye_I.y(j)*f*f;
     }
 #endif
 }, status);}

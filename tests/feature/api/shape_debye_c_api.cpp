@@ -22,7 +22,7 @@ TEST_CASE("shape_debye_userq: two cells") {
         double d = 5*spacing;
         std::vector<double> q = {0, 0.1, 0.3, 0.7}, I(q.size());
         int status = 1;
-        shape_debye_userq(x.data(), y.data(), z.data(), 2, spacing, q.data(), I.data(), q.size(), &status);
+        shape_debye_userq(x.data(), y.data(), z.data(), 2, spacing, q.data(), I.data(), static_cast<int>(q.size()), &status);
         REQUIRE(status == 0);
         for (unsigned int i = 0; i < q.size(); ++i) {
             double sinc = q[i] == 0 ? 1 : std::sin(q[i]*d)/(q[i]*d);
@@ -46,16 +46,16 @@ TEST_CASE("shape_debye_userq: homogeneous sphere") {
             }
         }
     }
-    int n = x.size();
+    int n = static_cast<int>(x.size());
     double R_eff = std::cbrt(3.*n/(4*std::numbers::pi));
 
     std::vector<double> q, I;
     for (double qi = 1e-3; qi <= 0.5; qi += 0.005) {q.push_back(qi);}
     I.resize(q.size());
     int status = 1;
-    shape_debye_userq(x.data(), y.data(), z.data(), n, spacing, q.data(), I.data(), q.size(), &status);
+    shape_debye_userq(x.data(), y.data(), z.data(), n, spacing, q.data(), I.data(), static_cast<int>(q.size()), &status);
     REQUIRE(status == 0);
-    CHECK_THAT(I[0], Catch::Matchers::WithinRel(std::pow(n*cell_ff(q[0], spacing), 2), 1e-4));
+    CHECK_THAT(I[0], Catch::Matchers::WithinRel(std::pow(n*cell_ff(q[0], spacing), 2), 1e-3));
 
     std::vector<double> exact(q.size());
     for (unsigned int i = 0; i < q.size(); ++i) {

@@ -3,11 +3,6 @@
 
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
-#include <settings/HistogramSettings.h>
-#include <utility/MultiThreading.h>
-
-#include <numeric>
-
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
@@ -57,35 +52,14 @@ void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     for (int i = 0; i < p.size(); ++i) {p[i] = distance_profiles.aa.index(i) + k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
 }
 
-namespace {
-    auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::DebyeTable> sinqd_table) {
-        int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
-        Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
-
-        std::vector<double> Iq(debye_axis.bins, 0);
-        auto* pool = utility::multi_threading::get_global_pool();
-        pool->detach_blocks(q0, q0+debye_axis.bins,
-            [&p, &Iq, q0, sinqd_table] (int start, int end) {
-                const auto& q_axis = constants::axes::q_vals;
-                for (int q = start; q < end; ++q) {
-                    Iq[q-q0] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
-                    Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]);
-                }
-            }
-        );
-        pool->wait();
-        return ScatteringProfile(std::move(Iq), debye_axis);
-    };
-}
-
 ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
-    return partial_profile(get_aa_counts(), sinc_table.get_sinc_table());
+    return debye_sum<true>(get_aa_counts().get_content(), sinc_table.get_sinc_table());
 }
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_aw() const {
-    return partial_profile(get_aw_counts(), sinc_table.get_sinc_table());
+    return debye_sum<true>(get_aw_counts().get_content(), sinc_table.get_sinc_table());
 }
 
 ScatteringProfile CompositeDistanceHistogram::get_profile_ww() const {
-    return partial_profile(get_ww_counts(), sinc_table.get_sinc_table());
+    return debye_sum<true>(get_ww_counts().get_content(), sinc_table.get_sinc_table());
 }
