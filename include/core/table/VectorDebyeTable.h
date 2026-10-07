@@ -57,13 +57,13 @@ namespace ausaxs::table {
 
             /**
              * @brief Check if the two vectors are compatible with the default table. 
-             *        Note that this check is only performed in debug mode.
+             *        Any incompatibilities are written to the log.
              */
             static void check_default(const std::vector<double>& q, const std::vector<double>& d);
 
             /**
              * @brief Check if the vector is compatible with the default table. 
-             *        Note that this check is only performed in debug mode.
+             *        Any incompatibilities are written to the log.
              */
             static void check_default(const std::vector<double>& d);
 

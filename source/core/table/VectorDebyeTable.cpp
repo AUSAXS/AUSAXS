@@ -7,6 +7,7 @@
 #include <settings/GeneralSettings.h>
 #include <utility/Axis.h>
 #include <utility/Console.h>
+#include <utility/MultiThreading.h>
 #include <utility/Utility.h>
 
 #include <cmath>
@@ -22,21 +23,23 @@ VectorDebyeTable::VectorDebyeTable(const T1& d, const T2& q) : Table(q.size(), d
 template<container_type T1, container_type T2>
 void VectorDebyeTable::initialize(const T1& q, const T2& d) {
     constexpr double tolerance = 1e-3;  // The minimum x-value where sin(x)/x is replaced by its Taylor-series.
-    constexpr double inv_6 = 1./6;      // 1/6
-    constexpr double inv_120 = 1./120;  // 1/120
 
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < M; ++j) {
-            double qd = q[i]*d[j];
-            if (qd < tolerance) {
-                double qd2 = qd*qd;
-                index(i, j) = 1 - qd2*inv_6 + qd2*qd2*inv_120;
-            } else {
-                // index(i, j) = constexpr_math::fast::sin(qd)/qd;
-                index(i, j) = std::sin(qd)/qd;
+    auto* pool = utility::multi_threading::get_global_pool();
+    pool->submit_blocks(0, N, // iterate through all q values
+        [this, &q, &d] (int start, int end) {
+            for (int i = start; i < end; ++i) {
+                for (int j = 0; j < M; ++j) {
+                    double qd = q[i]*d[j];
+                    if (qd < tolerance) {
+                        double qd2 = qd*qd;
+                        index(i, j) = 1 - qd2/6 + qd2*qd2/120;
+                    } else {
+                        index(i, j) = std::sin(qd)/qd;
+                    }
+                }
             }
         }
-    }
+    ).wait();
 }
 
 template VectorDebyeTable::VectorDebyeTable(const std::vector<double>&, const std::vector<double>&);
