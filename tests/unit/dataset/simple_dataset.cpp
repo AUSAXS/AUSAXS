@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <dataset/Dataset.h>
 #include <dataset/PointSet.h>
 #include <dataset/SimpleDataset.h>
-#include <utility/Limit.h>
 
 using namespace ausaxs;
 
@@ -16,13 +16,13 @@ TEST_CASE("SimpleDataset::SimpleDataset") {
     }
 
     SECTION("copy constructor") {
-        SimpleDataset d1 = {{1, 2, 3}, {4, 5, 6}};
+        SimpleDataset d1({1, 2, 3}, {4, 5, 6}, {1, 1, 1});
         SimpleDataset d2 = d1;
         CHECK(d1 == d2);
     }
 
     SECTION("move constructor") {
-        SimpleDataset d1 = {{1, 2, 3}, {4, 5, 6}};
+        SimpleDataset d1({1, 2, 3}, {4, 5, 6}, {1, 1, 1});
         SimpleDataset d2 = std::move(d1);
         CHECK(d2.size() == 3);
         CHECK(d2.x() == std::vector{1, 2, 3});
@@ -46,19 +46,25 @@ TEST_CASE("SimpleDataset::SimpleDataset") {
         CHECK(dataset.yerr() == std::vector{7, 8, 9});
     }
 
-    SECTION("vector<double>, vector<double>") {
-        SimpleDataset dataset({1, 2, 3}, {4, 5, 6});
-        CHECK(dataset.size() == 3);
-        CHECK(dataset.size_rows() == 3);
-        CHECK(dataset.size_cols() == 3);
-        CHECK(dataset.x() == std::vector{1, 2, 3});
-        CHECK(dataset.y() == std::vector{4, 5, 6});
-        CHECK(dataset.yerr() == std::vector{0, 0, 0});
+    SECTION("Dataset") {
+        SECTION("two columns") {
+            Dataset d{{1, 2, 3}, {4, 5, 6}};
+            CHECK_THROWS(SimpleDataset(d));
+        }
+
+        SECTION("four columns") {
+            Dataset d{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}, {10, 11, 12}};
+            SimpleDataset dataset(d);
+            CHECK(dataset.size_cols() == 3);
+            CHECK(dataset.x() == std::vector{1, 2, 3});
+            CHECK(dataset.y() == std::vector{4, 5, 6});
+            CHECK(dataset.yerr() == std::vector{7, 8, 9});
+        }
     }
 }
 
 TEST_CASE("SimpleDataset::yerr") {
-    SimpleDataset dataset = {{1, 2, 3}, {4, 5, 6}};
+    SimpleDataset dataset({1, 2, 3}, {4, 5, 6}, {7, 8, 9});
 
     SECTION("column accessor") {
         CHECK(dataset.yerr() == dataset.col(2));
@@ -114,63 +120,8 @@ TEST_CASE("SimpleDataset::get_point") {
     CHECK(dataset.get_point(2) == Point2D(3, 6, 9));
 }
 
-TEST_CASE("SimpleDataset::span_x") {
-    SECTION("empty dataset") {
-        SimpleDataset dataset;
-        Limit span = dataset.span_x();
-        CHECK(span.min == 0);
-        CHECK(span.max == 0);
-    }
-
-    SECTION("non-empty dataset") {
-        SimpleDataset dataset({1, 5, 3, 9, 2}, {0, 0, 0, 0, 0});
-        Limit span = dataset.span_x();
-        CHECK(span.min == 1);
-        CHECK(span.max == 9);
-    }
-}
-
-TEST_CASE("SimpleDataset::span_y") {
-    SECTION("empty dataset") {
-        SimpleDataset dataset;
-        Limit span = dataset.span_y();
-        CHECK(span.min == 0);
-        CHECK(span.max == 0);
-    }
-
-    SECTION("non-empty dataset") {
-        SimpleDataset dataset({0, 0, 0, 0, 0}, {1, 5, 3, 9, 2});
-        Limit span = dataset.span_y();
-        CHECK(span.min == 1);
-        CHECK(span.max == 9);
-    }
-}
-
-TEST_CASE("SimpleDataset::span_y_positive") {
-    SECTION("empty dataset") {
-        SimpleDataset dataset;
-        Limit span = dataset.span_y_positive();
-        CHECK(span.min == 0);
-        CHECK(span.max == 0);
-    }
-
-    SECTION("all positive") {
-        SimpleDataset dataset({0, 0, 0, 0}, {1, 2, 3, 4});
-        Limit span = dataset.span_y_positive();
-        CHECK(span.min == 1);
-        CHECK(span.max == 4);
-    }
-
-    SECTION("mixed positive and negative") {
-        SimpleDataset dataset({0, 0, 0, 0, 0}, {-1, 2, -3, 4, 5});
-        Limit span = dataset.span_y_positive();
-        CHECK(span.min == 2);
-        CHECK(span.max == 5);
-    }
-}
-
 TEST_CASE("SimpleDataset::normalize") {
-    SimpleDataset dataset({1, 2, 3}, {10, 20, 30});
+    SimpleDataset dataset({1, 2, 3}, {10, 20, 30}, {1, 1, 1});
     
     double factor = dataset.normalize(5);
     CHECK_THAT(factor, Catch::Matchers::WithinAbs(0.5, 1e-6));
@@ -203,17 +154,6 @@ TEST_CASE("SimpleDataset::scale_errors") {
     CHECK(dataset.yerr(2) == 9);
 }
 
-TEST_CASE("SimpleDataset::mean") {
-    SimpleDataset dataset({1, 2, 3}, {10, 20, 30});
-    CHECK_THAT(dataset.mean(), Catch::Matchers::WithinAbs(20, 1e-6));
-}
-
-TEST_CASE("SimpleDataset::std") {
-    SimpleDataset dataset({1, 2, 3}, {10, 20, 30});
-    double expected_std = 10.0; // sample std with ddof=1
-    CHECK_THAT(dataset.std(), Catch::Matchers::WithinAbs(expected_std, 1e-6));
-}
-
 TEST_CASE("SimpleDataset::weighted_mean") {
     SimpleDataset dataset({1, 2, 3}, {10, 20, 30}, {1, 2, 3});
     double expected = (10/1.0 + 20/4.0 + 30/9.0) / (1/1.0 + 1/4.0 + 1/9.0);
@@ -227,8 +167,8 @@ TEST_CASE("SimpleDataset::weighted_mean_error") {
 }
 
 TEST_CASE("SimpleDataset::operator=") {
-    SimpleDataset dataset1({1, 2, 3}, {4, 5, 6});
-    SimpleDataset dataset2({7, 8, 9}, {10, 11, 12});
+    SimpleDataset dataset1({1, 2, 3}, {4, 5, 6}, {1, 1, 1});
+    SimpleDataset dataset2({7, 8, 9}, {10, 11, 12}, {1, 1, 1});
     
     dataset1 = dataset2;
     CHECK(dataset1 == dataset2);
@@ -237,8 +177,8 @@ TEST_CASE("SimpleDataset::operator=") {
 }
 
 TEST_CASE("SimpleDataset::operator==") {
-    SimpleDataset dataset1({1, 2, 3}, {4, 5, 6});
-    SimpleDataset dataset2({7, 8, 9}, {10, 11, 12});
+    SimpleDataset dataset1({1, 2, 3}, {4, 5, 6}, {1, 1, 1});
+    SimpleDataset dataset2({7, 8, 9}, {10, 11, 12}, {1, 1, 1});
     
     CHECK(dataset1 != dataset2);
     
@@ -291,13 +231,13 @@ TEST_CASE("SimpleDataset::generate_random_data") {
 
 TEST_CASE("SimpleDataset::remove_consecutive_duplicates") {
     SECTION("no duplicates") {
-        SimpleDataset dataset({1, 2, 3}, {1, 2, 3});
+        SimpleDataset dataset({1, 2, 3}, {1, 2, 3}, {1, 1, 1});
         dataset.remove_consecutive_duplicates();
         CHECK(dataset.size() == 3);
     }
 
     SECTION("with duplicates") {
-        SimpleDataset dataset({1, 2, 3, 4, 5, 6, 7}, {1, 1, 2, 2, 2, 3, 3});
+        SimpleDataset dataset({1, 2, 3, 4, 5, 6, 7}, {1, 1, 2, 2, 2, 3, 3}, {1, 1, 1, 1, 1, 1, 1});
         dataset.remove_consecutive_duplicates();
         CHECK(dataset.size() == 3);
         CHECK(dataset.x() == Vector{1, 3, 6});
@@ -305,7 +245,7 @@ TEST_CASE("SimpleDataset::remove_consecutive_duplicates") {
     }
 
     SECTION("all same") {
-        SimpleDataset dataset({1, 2, 3, 4}, {5, 5, 5, 5});
+        SimpleDataset dataset({1, 2, 3, 4}, {5, 5, 5, 5}, {1, 1, 1, 1});
         dataset.remove_consecutive_duplicates();
         CHECK(dataset.size() == 1);
         CHECK(dataset.x(0) == 1);
@@ -316,7 +256,8 @@ TEST_CASE("SimpleDataset::remove_consecutive_duplicates") {
 TEST_CASE("SimpleDataset::reduce") {
     SECTION("linear reduction") {
         SimpleDataset dataset({1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 
-                            {10, 20, 30, 40, 50, 60, 70, 80, 90, 100});
+                            {10, 20, 30, 40, 50, 60, 70, 80, 90, 100},
+                            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1});
         dataset.reduce(5, false);
         CHECK(dataset.size() <= 5);
     }
@@ -328,13 +269,13 @@ TEST_CASE("SimpleDataset::reduce") {
             x[i] = std::pow(10, i * 0.05);
             y[i] = i;
         }
-        SimpleDataset dataset(x, y);
+        SimpleDataset dataset(x, y, std::vector<double>(100, 1));
         dataset.reduce(20, true);
         CHECK(dataset.size() <= 20);
     }
 
     SECTION("target larger than size") {
-        SimpleDataset dataset({1, 2, 3}, {4, 5, 6});
+        SimpleDataset dataset({1, 2, 3}, {4, 5, 6}, {1, 1, 1});
         dataset.reduce(10, false);
         CHECK(dataset.size() == 3);
     }

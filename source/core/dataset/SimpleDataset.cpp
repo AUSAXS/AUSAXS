@@ -4,7 +4,6 @@
 #include <dataset/SimpleDataset.h>
 
 #include <dataset/DatasetFactory.h>
-#include <hist/Histogram.h>
 #include <math/Statistics.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
@@ -31,22 +30,13 @@ SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = defaul
 SimpleDataset::~SimpleDataset() = default;
 
 SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
-    if (d.data.M <= 1) {throw except::invalid_argument("SimpleDataset::SimpleDataset: Dataset must have at least two columns.");}
-
-    if (d.data.M == 3) {
-        data = d.data;
-    } else {
-        for (int i = 0; i < data.N; i++) {
-            row(i) = {d.x(i), d.y(i), 0};
-        }
+    if (d.data.M < 3) {throw except::invalid_argument("SimpleDataset::SimpleDataset: Dataset must have at least three columns [q | I | Ierr], but has " + std::to_string(d.data.M) + ".");}
+    for (int i = 0; i < data.N; i++) {
+        row(i) = {d.x(i), d.y(i), d.data.index(i, 2)};
     }
 }
 
-SimpleDataset::SimpleDataset(const hist::Histogram& h) : SimpleDataset(h.as_dataset()) {}
-
 SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : SimpleDataset(static_cast<int>(x.size())) {initialize(x, y, yerr);}
-
-SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y) : SimpleDataset(static_cast<int>(x.size())) {initialize(x, y);}
 
 SimpleDataset::SimpleDataset(int N, int M) : Dataset(N, M) {}
 
@@ -55,17 +45,6 @@ SimpleDataset::SimpleDataset(int rows) noexcept : Dataset(rows, 3) {}
 SimpleDataset::SimpleDataset(const io::ExistingFile& path) : SimpleDataset() {
     auto data = factory::DatasetFactory::construct(path, 3);
     *this = std::move(*data);
-}
-
-void SimpleDataset::initialize(const std::vector<double>& x, const std::vector<double>& y) {
-    assert([&]() -> bool {
-        if (x.size() == y.size()) {return true;}
-        std::cout << "SimpleDataset::initialize: x and y must have the same size (" << x.size() << ", " << y.size() << ")." << std::endl;
-        return false;
-    }() && "SimpleDataset::initialize: x and y must have the same size.");
-    for (int i = 0; i < static_cast<int>(x.size()); i++) {
-        row(i) = {x[i], y[i], 0};
-    }
 }
 
 void SimpleDataset::initialize(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) {
@@ -128,56 +107,6 @@ SimpleDataset& SimpleDataset::operator=(Matrix<double>&& other) { // NOLINT - on
     this->data.data = std::move(other.data);
     this->data.N = other.N;
     return *this;
-}
-
-Limit SimpleDataset::span_x() const noexcept {
-    if (empty()) {
-        return {0, 0};
-    }
-    auto x = this->x();
-    auto[min, max] = std::ranges::minmax_element(x);
-    return {*min, *max};
-}
-
-Limit SimpleDataset::span_y() const noexcept {
-    if (empty()) {
-        return {0, 0};
-    }
-    auto y = this->y();
-    auto[min, max] = std::ranges::minmax_element(y);
-    return {*min, *max};
-}
-
-Limit SimpleDataset::get_xlimits() const noexcept {return span_x();}
-
-Limit SimpleDataset::get_ylimits() const noexcept {return span_y();}
-
-Limit SimpleDataset::span_y_positive() const noexcept {
-    auto y = this->y();
-    if (empty()) {
-        return {0, 0};
-    }
-
-    Limit limits;
-    // find first non-zero y value
-    int i = 0;
-    for (; i < size(); i++) {
-        if (0 < y[i]) {
-            limits.min = y[i];
-            limits.max = y[i];
-            break;
-        }
-    }
-
-    // continue search for lower mins and higher max
-    for (; i < size(); i++) {
-        double val = y[i];
-        if (0 < val) {
-            limits.min = std::min(val, limits.min);
-        }
-        limits.max = std::max(val, limits.max);
-    }
-    return limits;
 }
 
 SimpleDataset SimpleDataset::generate_random_data(int size, double val) {
@@ -247,8 +176,16 @@ void SimpleDataset::simulate_errors() {
 }
 
 Point2D SimpleDataset::get_point(int index) const {
-    if (data.M < 3) {return {x(index), y(index)};}
     return {x(index), y(index), yerr(index)};
+}
+
+SimpleDataset SimpleDataset::simulate(const Dataset& model) {
+    SimpleDataset data(model.size());
+    for (int i = 0; i < data.size(); i++) {
+        data.row(i) = {model.x(i), model.y(i), 0};
+    }
+    data.simulate_errors();
+    return data;
 }
 
 Point2D SimpleDataset::find_minimum() const {
@@ -328,16 +265,8 @@ void SimpleDataset::remove_consecutive_duplicates() {
     this->assign_matrix(std::move(new_data));
 }
 
-double SimpleDataset::mean() const {
-    return stats::mean(y());
-}
-
 double SimpleDataset::weighted_mean() const {
     return stats::weighted_mean(y(), yerr());
-}
-
-double SimpleDataset::std() const {
-    return stats::std(y());
 }
 
 double SimpleDataset::weighted_mean_error() const {

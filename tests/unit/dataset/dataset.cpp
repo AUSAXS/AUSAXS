@@ -200,23 +200,23 @@ TEST_CASE("Dataset::select_columns") {
     }
 }
 
-TEST_CASE("Dataset::limit_x") {
+TEST_CASE("Dataset::limit: column 0") {
     std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<double> y = {10, 20, 30, 40, 50, 60, 70, 80, 90};
     Dataset dataset({x, y});
 
-    dataset.limit_x(3, 7);
+    dataset.limit(0, 3, 7);
     CHECK(dataset.size() == 5);
     CHECK(dataset.x(0) == 3);
     CHECK(dataset.x(4) == 7);
 }
 
-TEST_CASE("Dataset::limit_y") {
+TEST_CASE("Dataset::limit: column 1") {
     std::vector<double> x = {1, 2, 3, 4, 5};
     std::vector<double> y = {10, 20, 30, 40, 50};
     Dataset dataset({x, y});
 
-    dataset.limit_y(20, 40);
+    dataset.limit(1, 20, 40);
     CHECK(dataset.size() == 3);
     CHECK(dataset.y(0) == 20);
     CHECK(dataset.y(1) == 30);
@@ -240,12 +240,12 @@ TEST_CASE("Dataset::append") {
     CHECK(dataset1.y(4) == 10);
 }
 
-TEST_CASE("Dataset::sort_x") {
+TEST_CASE("Dataset::sort") {
     std::vector<double> x = {5, 2, 8, 1, 9};
     std::vector<double> y = {10, 20, 30, 40, 50};
     Dataset dataset({x, y});
 
-    dataset.sort_x();
+    dataset.sort(0);
     CHECK(dataset.x(0) == 1);
     CHECK(dataset.x(1) == 2);
     CHECK(dataset.x(2) == 5);
@@ -284,4 +284,32 @@ TEST_CASE("Dataset::find_minimum") {
         Dataset dataset;
         CHECK(dataset.find_minimum(1).empty());
     }
+}
+
+TEST_CASE("Dataset::span") {
+    SECTION("empty dataset") {
+        Dataset dataset;
+        Limit span = dataset.span(0);
+        CHECK(span.min == 0);
+        CHECK(span.max == 0);
+    }
+
+    SECTION("non-empty dataset") {
+        Dataset dataset{{1, 5, 3, 9, 2}, {4, -2, 7, 0, 1}};
+        CHECK(dataset.span(0) == Limit{1, 9});
+        CHECK(dataset.span(1) == Limit{-2, 7});
+    }
+}
+
+TEST_CASE("Dataset::mean") {
+    Dataset dataset{{1, 2, 3}, {10, 20, 30}};
+    CHECK_THAT(dataset.mean(0), Catch::Matchers::WithinAbs(2, 1e-6));
+    CHECK_THAT(dataset.mean(1), Catch::Matchers::WithinAbs(20, 1e-6));
+}
+
+TEST_CASE("Dataset::std") {
+    Dataset dataset{{1, 2, 3}, {10, 20, 30}};
+    double expected_std = 10.0; // sample std with ddof=1
+    CHECK_THAT(dataset.std(0), Catch::Matchers::WithinAbs(expected_std/10, 1e-6));
+    CHECK_THAT(dataset.std(1), Catch::Matchers::WithinAbs(expected_std, 1e-6));
 }

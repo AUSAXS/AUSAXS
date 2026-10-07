@@ -7,6 +7,7 @@
 #include <dataset/DatasetFwd.h>
 #include <hist/HistFwd.h>
 #include <hist/Histogram.h>
+#include <hist/ScatteringProfile.h>
 #include <hist/distribution/DistributionFwd.h>
 #include <table/DebyeTableManager.h>
 #include <utility/Axis.h>
@@ -59,8 +60,10 @@ namespace ausaxs::hist {
              *        If not, a size q*d sinc(x) lookup table will be calculated for every call to this function.
              *
              * @param q The q values at which to evaluate the scattering. 
+             *
+             * @return The [q | I] dataset.
              */
-            SimpleDataset debye_transform(const std::vector<double>& q) const;
+            Dataset debye_transform(const std::vector<double>& q) const;
 
             /**
              * @brief Get the distance axis describing the current histogram.

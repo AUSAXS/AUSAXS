@@ -4,7 +4,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Molecule.h>
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
@@ -47,7 +47,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
         // CHECK_THAT(V, Catch::Matchers::WithinRel(protein.get_volume_grid(), 1e-1));
     }
 
-    SimpleDataset dataset(rxs, volumes);
+    Dataset dataset{rxs, volumes};
     plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "composite_distance_histogram_ff_grid_volumes.png");
 }
 

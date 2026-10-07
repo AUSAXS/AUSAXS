@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
@@ -19,9 +19,9 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
     plots::PlotDataset plot;
     {
         const form_factor::NormalizedFormFactor& ff_exv = form_factor::lookup::atomic::normalized::get(form_factor::form_factor_t::EXCLUDED_VOLUME);
-        SimpleDataset dataset;
+        Dataset dataset(0, 2);
         for (const double& q : q_vals) {
-            dataset.push_back(q, ff_exv.evaluate(q)/ff_exv.evaluate(0));
+            dataset.push_back({q, ff_exv.evaluate(q)/ff_exv.evaluate(0)});
         }
         plot.plot(dataset, plots::PlotOptions({{"legend", "average exv"}, {"xlabel", "q"}, {"ylabel", "Amplitude"}, {"logx", true}, {"logy", true}, {"color", style::color::next()}, {"linewidth", 2}}));
     }
@@ -29,9 +29,9 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
     auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
     for (int ff = 1; ff < form_factor::total_ff_count; ++ff) {
         const form_factor::ExvFormFactor& ff_obj = exv_set.get(static_cast<form_factor::form_factor_t>(ff));
-        SimpleDataset dataset;
+        Dataset dataset(0, 2);
         for (const double& q : q_vals) {
-            dataset.push_back(q, ff_obj.evaluate_normalized(q));
+            dataset.push_back({q, ff_obj.evaluate_normalized(q)});
         }
         plot.plot(dataset, plots::PlotOptions({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ff))}, {"color", style::color::next()}}));
     }
@@ -45,10 +45,10 @@ TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
         const form_factor::NormalizedFormFactor& ff = form_factor::lookup::atomic::normalized::get(static_cast<form_factor::form_factor_t>(ffi));
         const form_factor::ExvFormFactor& ffx = exv_set.get(static_cast<form_factor::form_factor_t>(ffi));
 
-        SimpleDataset dataset, datasetx;
+        Dataset dataset(0, 2), datasetx(0, 2);
         for (const double& q : q_vals) {
-            dataset.push_back(q, ff.evaluate(q)*ffx.evaluate(0));
-            datasetx.push_back(q, ffx.evaluate(q));
+            dataset.push_back({q, ff.evaluate(q)*ffx.evaluate(0)});
+            datasetx.push_back({q, ffx.evaluate(q)});
         }
         plots::PlotDataset()
             .plot(dataset, plots::PlotOptions({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi))}, {"color", style::color::orange}}))

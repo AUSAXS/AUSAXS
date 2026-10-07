@@ -1,6 +1,7 @@
 target_sources(ausaxs_core PRIVATE 
 	"Histogram.cpp"
 	"Histogram2D.cpp"
+	"ScatteringProfile.cpp"
 
 	"detail/BodyTracker.cpp"
 	"detail/CompactCoordinatesFactory.cpp"

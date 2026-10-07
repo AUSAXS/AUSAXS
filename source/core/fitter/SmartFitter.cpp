@@ -170,7 +170,7 @@ fitter::detail::LinearLeastSquares SmartFitter::prepare_linear_fitter(const std:
         && "SmartFitter::get_model_curve: Invalid number of parameters."
     );
     enabled_fit_parameters.apply_pars(params, model.get());
-    return {splice(model->debye_transform().get_counts()), data.y(), data.yerr()};
+    return {splice(model->debye_transform().get_intensity()), data.y(), data.yerr()};
 }
 
 std::unique_ptr<FitResult> SmartFitter::fit() {

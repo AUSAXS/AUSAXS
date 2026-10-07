@@ -186,7 +186,7 @@ mini::Landscape MinimumExplorer::landscape(int evals) {
 
     // we now change tactics: instead of requiring 3 monotonic increases in fval before stopping, we now just want it to be higher than the mean four times in a row
     auto points = get_evaluated_points().as_dataset();
-    double mu = points.mean();
+    double mu = points.mean(1);
 
     if (right) {
         // now go the remaining steps to the right, terminating if four consecutive evals are all above the mean
@@ -229,9 +229,9 @@ mini::Landscape MinimumExplorer::landscape(int evals) {
 
 Result MinimumExplorer::minimize_override() {
     auto l = landscape(get_max_evals()).as_dataset();
-    auto min = l.find_minimum();
-    FittedParameter p(parameters[0], min.x, l.span_x() - min.x);
-    return {p, l.mean(), fevals};
+    auto min = l.find_minimum(1);
+    FittedParameter p(parameters[0], min[0], l.span(0) - min[0]);
+    return {p, l.mean(1), fevals};
 }
 
 void MinimumExplorer::add_parameter(const Parameter& param) {
