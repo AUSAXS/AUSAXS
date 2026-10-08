@@ -14,6 +14,7 @@
 #include <rigidbody/sequencer/elements/ParameterElement.h>
 
 #include <cassert>
+#include <ranges>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
@@ -168,7 +169,8 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
             observer_ptr<LoopElement> current = owner;
             int escape_counter = 0;
             while (current != nullptr) {
-                for (auto& e : current->_get_elements()) {
+                // the loop being parsed is not added to its owner yet, so the last match in a scope is the nearest preceding one
+                for (auto& e : std::views::reverse(current->_get_elements())) {
                     if (auto* parameter_element = dynamic_cast<ParameterElement*>(e.get())) {
                         return parameter_element;
                     }

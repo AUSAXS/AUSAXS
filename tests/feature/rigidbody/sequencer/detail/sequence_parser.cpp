@@ -61,3 +61,41 @@ TEST_CASE("SequenceParser: parse symmetry config", "[files]") {
     REQUIRE(result != nullptr);
     CHECK(result->fval > 0);
 }
+
+TEST_CASE("SequenceParser: a bare loop takes the nearest preceding parameter count", "[files]") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::grid::min_bins = 250;
+
+    std::string config =
+        "load {\n"
+        "    pdb tests/files/LAR1-2.pdb\n"
+        "    saxs tests/files/LAR1-2.dat\n"
+        "    split 9, 99\n"
+        "}\n"
+        "parameter_strategy {\n"
+        "    iterations 2\n"
+        "    translate 1\n"
+        "    rotate 1\n"
+        "}\n"
+        "loop\n"
+        "    optimize_once\n"
+        "    end\n"
+        "end\n"
+        "parameter_strategy {\n"
+        "    iterations 5\n"
+        "    translate 1\n"
+        "    rotate 1\n"
+        "}\n"
+        "loop\n"
+        "    optimize_once\n"
+        "    end\n"
+        "end\n";
+
+    auto sequencer = SequenceParser().parse_text(config);
+    std::vector<int> counts;
+    for (auto& e : sequencer->_get_elements()) {
+        if (auto* loop = dynamic_cast<LoopElement*>(e.get())) {counts.push_back(loop->_get_loop_iterations());}
+    }
+    CHECK(counts == std::vector<int>{2, 5});
+}
