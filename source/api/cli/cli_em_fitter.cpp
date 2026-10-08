@@ -6,7 +6,6 @@
 #include <CLI/CLI.hpp>
 
 #include <data/Molecule.h>
-#include <dataset/SimpleDataset.h>
 #include <em/ImageStack.h>
 #include <fitter/FitReporter.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
