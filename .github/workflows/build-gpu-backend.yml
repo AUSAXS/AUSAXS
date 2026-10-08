@@ -8,6 +8,7 @@ on:
       - 'source/gpu/**'
       - 'include/gpu/**'
       - '.github/workflows/build-gpu-backend.yml'
+      - '.github/prune_gpu_package.py'
   workflow_call:
   workflow_dispatch:
 
@@ -136,7 +137,8 @@ jobs:
             # As in the lookup, losing the answer has to cost a build rather than skip one.
             if [ -z "$baseline" ] \
               || ! changed=$(git diff --name-only "$baseline" "$HEAD_SHA" -- \
-                   'source/gpu' 'include/gpu' '.github/workflows/build-gpu-backend.yml'); then
+                   'source/gpu' 'include/gpu' '.github/workflows/build-gpu-backend.yml' \
+                   '.github/prune_gpu_package.py'); then
               decide "$platform" true "no usable baseline to compare against"
               continue
             fi
@@ -154,6 +156,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: gate
     if: needs.gate.outputs.build-linux == 'true'
+    env:
+      GPU_PACKAGE: dist/ausaxs-gpu-linux-x64
     steps:
       - uses: actions/checkout@v4
 
@@ -449,25 +453,59 @@ jobs:
           done
           exit $missing
 
+      # One directory holding the backend and every runtime component, uploaded as one artifact. -a keeps the
+      # deployed symlinks as symlinks, which is what lets the prune step tell an alias from a library.
       - name: Assemble runtime package
         run: |
           set -euo pipefail
-          mkdir -p dist/merged
+          mkdir -p "$GPU_PACKAGE"
           for component in "$DIST"/*/; do
-            name=$(basename "$component")
-            mkdir -p "dist/$name"
-            cp -r "$component"/* "dist/$name/"
-            cp -r "$component"/* dist/merged/
+            cp -a "$component"/. "$GPU_PACKAGE/"
           done
-          cp build/lib/libausaxs_gpu_sycl.so dist/
-          cp build/lib/libausaxs_gpu_sycl.so dist/merged/
-          du -sh dist/*
+          cp build/lib/libausaxs_gpu_sycl.so "$GPU_PACKAGE/"
+          du -sh "$GPU_PACKAGE"
 
+      - name: Prune runtime package
+        run: python3 .github/prune_gpu_package.py "$GPU_PACKAGE"
+
+      # libLLVM, and through it the OpenMP plugin, needs libraries such as libxml2.so.2 that newer distributions no
+      # longer ship (Ubuntu 26.04 has only libxml2.so.16). AdaptiveCpp terminates the process when it cannot load a
+      # CPU backend, which the loader cannot catch, so everything the package resolves from this runner is bundled.
+      # The exceptions must come from the user's system: glibc, the C++ runtime, and the GPU drivers. A missing
+      # driver library only fails that GPU plugin's load, which AdaptiveCpp survives.
+      - name: Bundle system libraries
+        run: |
+          set -euo pipefail
+          system='^(ld-linux-x86-64\.so|lib(c|m|dl|pthread|rt|util|resolv|mvec|stdc\+\+|gcc_s|cuda|drm|drm_amdgpu)\.so)'
+          outside() {
+            # ldd lists transitive dependencies too, so one pass also covers what the bundled libraries need.
+            LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE" \
+              ldd $(find "$PWD/$GPU_PACKAGE" -type f ! -name '*.bc') 2>/dev/null \
+              | awk -v pkg="$PWD/$GPU_PACKAGE/" '$2 == "=>" && index($3, pkg) != 1 {print $1, $3}' \
+              | grep -vE "$system" | sort -u || true
+          }
+          outside | while read -r name path; do
+            if [ "$path" = not ]; then
+              echo "::error::${name} is needed by the package but is not installed on the runner"
+              exit 1
+            fi
+            cp -L "$path" "$GPU_PACKAGE/$name"
+            printf '  bundled %-24s %8d bytes  (from %s)\n' "$name" "$(stat -c%s "$GPU_PACKAGE/$name")" "$path"
+          done
+          left=$(outside)
+          if [ -n "$left" ]; then
+            echo "::error::still not resolved inside the package after bundling:"
+            echo "$left"
+            exit 1
+          fi
+          du -sh "$GPU_PACKAGE"
+
+      # Before the probe, so the probe loads exactly what ships.
       - name: Compress libLLVM
         continue-on-error: true
         run: |
           set -uo pipefail
-          for lib in dist/core/libLLVM.so.*; do
+          for lib in "$GPU_PACKAGE"/libLLVM.so.*; do
             [ -f "$lib" ] || continue
             before=$(stat -c%s "$lib")
             if upx --best "$lib"; then
@@ -505,8 +543,8 @@ jobs:
           # The version is parsed out of stdout rather than returned as the exit status, so that
           # bumping the ABI can never collide with the probe's own failure codes.
           set +e
-          out=$(LD_LIBRARY_PATH="$PWD/dist/merged:${LD_LIBRARY_PATH:-}" \
-            /tmp/abi_probe "$PWD/dist/merged/libausaxs_gpu_sycl.so" 2>&1)
+          out=$(LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE:${LD_LIBRARY_PATH:-}" \
+            /tmp/abi_probe "$PWD/$GPU_PACKAGE/libausaxs_gpu_sycl.so" 2>&1)
           rc=$?
           set -e
           echo "$out"
@@ -527,39 +565,16 @@ jobs:
           {
             echo '## Dependencies resolved outside the runtime package'
             echo '```'
-            LD_LIBRARY_PATH="$PWD/dist/merged" \
-              ldd $(find "$PWD/dist/merged" -type f | grep -v '\.bc$') 2>/dev/null \
-              | grep -v "$PWD/dist/merged" | awk '{print $3;}' | sort -u | grep -v '^$'
+            LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE" \
+              ldd $(find "$PWD/$GPU_PACKAGE" -type f | grep -v '\.bc$') 2>/dev/null \
+              | grep -v "$PWD/$GPU_PACKAGE" | awk '{print $3;}' | sort -u | grep -v '^$'
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: gpu-backend-linux-x64
-          path: dist/libausaxs_gpu_sycl.so
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: gpu-runtime-core-linux-x64
-          path: dist/core/*
-
-      - uses: actions/upload-artifact@v4
-        if: hashFiles('dist/cuda/**') != ''
-        with:
-          name: gpu-runtime-cuda-linux-x64
-          path: dist/cuda/*
-
-      - uses: actions/upload-artifact@v4
-        if: hashFiles('dist/hip/**') != ''
-        with:
-          name: gpu-runtime-hip-linux-x64
-          path: dist/hip/*
-
-      - uses: actions/upload-artifact@v4
-        if: hashFiles('dist/ocl/**') != ''
-        with:
-          name: gpu-runtime-ocl-linux-x64
-          path: dist/ocl/*
+          name: ausaxs-gpu-linux-x64
+          path: ${{ env.GPU_PACKAGE }}
 
   # Follows AdaptiveCpp's windows-acppllvm.yml. Only CUDA is covered: that workflow never builds the ROCm or
   # OpenCL backends on Windows, so neither has been shown to work there.
@@ -575,6 +590,7 @@ jobs:
       ACPP_PREFIX: ${{ github.workspace }}\_acpp
       ACPP_LLVM_SRC: ${{ github.workspace }}\_src
       DIST: ${{ github.workspace }}\_deploy
+      GPU_PACKAGE: dist\ausaxs-gpu-windows-x64
     defaults:
       run:
         shell: pwsh
@@ -818,13 +834,14 @@ jobs:
       - name: Assemble runtime package
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          New-Item -ItemType Directory -Force dist\merged | Out-Null
+          New-Item -ItemType Directory -Force $env:GPU_PACKAGE | Out-Null
           Get-ChildItem $env:DIST -Directory | ForEach-Object {
-            Copy-Item -Recurse -Force $_.FullName "dist\$($_.Name)"
-            Copy-Item -Recurse -Force "$($_.FullName)\*" dist\merged
+            Copy-Item -Recurse -Force "$($_.FullName)\*" $env:GPU_PACKAGE
           }
-          Copy-Item build-gpu\lib\ausaxs_gpu_sycl.dll dist\
-          Copy-Item build-gpu\lib\ausaxs_gpu_sycl.dll dist\merged\
+          Copy-Item build-gpu\lib\ausaxs_gpu_sycl.dll $env:GPU_PACKAGE
+
+      - name: Prune runtime package
+        run: python .github/prune_gpu_package.py $env:GPU_PACKAGE
 
       - name: Load backend and query the ABI
         run: |
@@ -854,8 +871,8 @@ jobs:
 
           # PATH is how LoadLibrary finds the runtime beside the backend, as LD_LIBRARY_PATH is on Linux. The
           # version is parsed out of stdout, so bumping the ABI can never collide with the probe's exit codes.
-          $env:PATH = "$PWD\dist\merged;$env:PATH"
-          $out = & "$env:RUNNER_TEMP\abi_probe.exe" "$PWD\dist\merged\ausaxs_gpu_sycl.dll" 2>&1 | Out-String
+          $env:PATH = "$PWD\$env:GPU_PACKAGE;$env:PATH"
+          $out = & "$env:RUNNER_TEMP\abi_probe.exe" "$PWD\$env:GPU_PACKAGE\ausaxs_gpu_sycl.dll" 2>&1 | Out-String
           $rc = $LASTEXITCODE
           Write-Host $out
           if ($rc -ne 0) {
@@ -872,7 +889,7 @@ jobs:
       - name: Report dependencies resolved outside the package
         continue-on-error: true
         run: |
-          $files = Get-ChildItem -Recurse -File dist\merged -Include *.dll, *.exe
+          $files = Get-ChildItem -Recurse -File $env:GPU_PACKAGE -Include *.dll, *.exe
           $local = $files | ForEach-Object { $_.Name.ToLower() } | Sort-Object -Unique
           $system = Join-Path $env:SystemRoot 'System32'
           $outside = foreach ($f in $files) {
@@ -890,18 +907,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: gpu-backend-windows-x64
-          path: dist/ausaxs_gpu_sycl.dll
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: gpu-runtime-core-windows-x64
-          path: dist/core/*
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: gpu-runtime-cuda-windows-x64
-          path: dist/cuda/*
+          name: ausaxs-gpu-windows-x64
+          path: ${{ env.GPU_PACKAGE }}
 
   # Follows AdaptiveCpp's macos-metal.yml. The backend builds and loads, but cannot yet run its kernel on an
   # Apple GPU: AdaptiveCpp's Metal backend implements no 64-bit atomics (its atomic64 aspect is hard-coded
@@ -915,6 +922,7 @@ jobs:
     env:
       ACPP_PREFIX: ${{ github.workspace }}/_acpp
       DIST: ${{ github.workspace }}/_deploy
+      GPU_PACKAGE: dist/ausaxs-gpu-macos-arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -1033,19 +1041,19 @@ jobs:
           done
           exit $missing
 
+      # As on Linux: -R without -L copies the deployed symlinks as symlinks, for the prune step to collapse.
       - name: Assemble runtime package
         run: |
           set -euo pipefail
-          mkdir -p dist/merged
+          mkdir -p "$GPU_PACKAGE"
           for component in "$DIST"/*/; do
-            name=$(basename "$component")
-            mkdir -p "dist/$name"
-            cp -R "$component"/* "dist/$name/"
-            cp -R "$component"/* dist/merged/
+            cp -R "$component"/. "$GPU_PACKAGE/"
           done
-          cp build-gpu/lib/libausaxs_gpu_sycl.dylib dist/
-          cp build-gpu/lib/libausaxs_gpu_sycl.dylib dist/merged/
-          du -sh dist/*
+          cp build-gpu/lib/libausaxs_gpu_sycl.dylib "$GPU_PACKAGE/"
+          du -sh "$GPU_PACKAGE"
+
+      - name: Prune runtime package
+        run: python3 .github/prune_gpu_package.py "$GPU_PACKAGE"
 
       - name: Load backend and query the ABI
         run: |
@@ -1073,8 +1081,8 @@ jobs:
           PROBE
           cc -O0 -o "$RUNNER_TEMP/abi_probe" "$RUNNER_TEMP/abi_probe.c"
           set +e
-          out=$(DYLD_LIBRARY_PATH="$PWD/dist/merged:${DYLD_LIBRARY_PATH:-}" \
-            "$RUNNER_TEMP/abi_probe" "$PWD/dist/merged/libausaxs_gpu_sycl.dylib" 2>&1)
+          out=$(DYLD_LIBRARY_PATH="$PWD/$GPU_PACKAGE:${DYLD_LIBRARY_PATH:-}" \
+            "$RUNNER_TEMP/abi_probe" "$PWD/$GPU_PACKAGE/libausaxs_gpu_sycl.dylib" 2>&1)
           rc=$?
           set -e
           echo "$out"
@@ -1097,7 +1105,7 @@ jobs:
           {
             echo '## Dependencies resolved outside the runtime package (macOS)'
             echo '```'
-            find "$PWD/dist/merged" -type f ! -name '*.bc' -print0 \
+            find "$PWD/$GPU_PACKAGE" -type f ! -name '*.bc' -print0 \
               | xargs -0 otool -L 2>/dev/null \
               | awk '/^\t/ {print $1}' \
               | grep -vE '^(/usr/lib/|/System/)' | sort -u
@@ -1106,15 +1114,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: gpu-backend-macos-arm64
-          path: dist/libausaxs_gpu_sycl.dylib
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: gpu-runtime-core-macos-arm64
-          path: dist/core/*
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: gpu-runtime-metal-macos-arm64
-          path: dist/metal/*
+          name: ausaxs-gpu-macos-arm64
+          path: ${{ env.GPU_PACKAGE }}
