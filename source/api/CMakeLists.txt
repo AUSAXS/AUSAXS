@@ -30,6 +30,7 @@ add_library(ausaxs_api OBJECT
     "pyausaxs/api_pdb.cpp"
     "pyausaxs/api_rigidbody.cpp"
     "pyausaxs/api_settings.cpp"
+    "pyausaxs/api_shape.cpp"
 )
 
 target_include_directories(ausaxs_api PUBLIC "${CMAKE_SOURCE_DIR}/include/api")

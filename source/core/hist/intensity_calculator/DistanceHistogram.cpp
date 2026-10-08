@@ -53,53 +53,68 @@ void DistanceHistogram::initialize() {
     d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
 }
 
-ScatteringProfile DistanceHistogram::debye_transform() const {
-    // calculate the Debye scattering intensity
-    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
-    const auto* sinqd_table = sinc_table.get_sinc_table();
-
-    // calculate the scattering intensity based on the Debye equation
-    std::vector<double> Iq(debye_axis.bins, 0);
-    int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
-    auto* pool = utility::multi_threading::get_global_pool();
-    pool->detach_blocks(q0, q0+debye_axis.bins, // iterate through all q values
-        [this, &Iq, q0, sinqd_table] (int start, int end) {
-            const auto& q_axis = constants::axes::q_vals;
-            for (int q = start; q < end; ++q) {
-                Iq[q-q0] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
-                Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
-            }
-        }
-    );
-    pool->wait();
-    return {Iq, debye_axis};
-}
-
-Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
-    // if the q values are within the evaluated default range, we can just interpolate them for better performance
-    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
-    if (debye_axis.front() <= q.front() && q.back() <= debye_axis.back()) {
-        return debye_transform().as_dataset().interpolate(q);
-    }
-    static table::DebyeTableManager sinc_table_extended;
-    sinc_table_extended.set_q_axis(q);
-    sinc_table_extended.set_d_axis(this->d_axis);
-    const auto& sinqd_table = sinc_table_extended.get_sinc_table();
-
+template<bool form_factor>
+std::vector<double> DistanceHistogram::debye_sum(
+    std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table, std::span<const double> q, int first_row
+) {
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(q.size(), 0);
     auto* pool = utility::multi_threading::get_global_pool();
     pool->detach_blocks(0, static_cast<int>(q.size()), // iterate through all q values
-        [this, &Iq, &q, sinqd_table] (int start, int end) {
+        [counts, &Iq, q, first_row, sinqd_table] (int start, int end) {
             for (int i = start; i < end; ++i) {
-                Iq[i] = std::transform_reduce(p.begin(), p.end(), sinqd_table->begin(i), 0.0);
-                Iq[i] *= std::exp(-q[i]*q[i]); // form factor
+                Iq[i] = std::transform_reduce(counts.begin(), counts.end(), sinqd_table->begin(first_row+i), 0.0);
+                if constexpr (form_factor) {Iq[i] *= std::exp(-q[i]*q[i]);}
             }
         }
     );
     pool->wait();
-    return {q, Iq};
+    return Iq;
 }
+
+template<bool form_factor>
+ScatteringProfile DistanceHistogram::debye_sum(std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table) {
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
+    int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
+    auto q = std::span<const double>(constants::axes::q_vals).subspan(q0, debye_axis.bins);
+    return {debye_sum<form_factor>(counts, sinqd_table, q, q0), debye_axis};
+}
+
+ScatteringProfile DistanceHistogram::debye_transform() const {
+    return debye_sum<true>(p, sinc_table.get_sinc_table());
+}
+
+Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
+    return debye_transform<true>(q);
+}
+
+template<bool form_factor>
+ScatteringProfile DistanceHistogram::debye_transform() const {
+    if constexpr (form_factor) {return debye_transform();} // dispatch to any form factors of a subclass
+    else {return debye_sum<false>(p, sinc_table.get_sinc_table());}
+}
+
+template<bool form_factor>
+Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
+    // if the q values are within the evaluated default range, we can just interpolate them for better performance
+    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
+    if (debye_axis.front() <= q.front() && q.back() <= debye_axis.back()) {
+        return debye_transform<form_factor>().as_dataset().interpolate(q);
+    }
+    static table::DebyeTableManager sinc_table_extended;
+    sinc_table_extended.set_q_axis(q);
+    sinc_table_extended.set_d_axis(this->d_axis);
+    return {q, debye_sum<form_factor>(p, sinc_table_extended.get_sinc_table(), q)};
+}
+
+template std::vector<double> DistanceHistogram::debye_sum<true>(std::span<const double>, observer_ptr<const table::DebyeTable>, std::span<const double>, int);
+template std::vector<double> DistanceHistogram::debye_sum<false>(std::span<const double>, observer_ptr<const table::DebyeTable>, std::span<const double>, int);
+template ScatteringProfile DistanceHistogram::debye_sum<true>(std::span<const double>, observer_ptr<const table::DebyeTable>);
+template ScatteringProfile DistanceHistogram::debye_sum<false>(std::span<const double>, observer_ptr<const table::DebyeTable>);
+template ScatteringProfile DistanceHistogram::debye_transform<true>() const;
+template ScatteringProfile DistanceHistogram::debye_transform<false>() const;
+template Dataset DistanceHistogram::debye_transform<true>(const std::vector<double>&) const;
+template Dataset DistanceHistogram::debye_transform<false>(const std::vector<double>&) const;
 
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 

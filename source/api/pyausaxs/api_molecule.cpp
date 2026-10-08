@@ -229,12 +229,12 @@ int molecule_debye_raw(
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
-    auto debye_I = hist->debye_transform();
+    auto debye_I = hist->debye_transform<false>();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
     for (int i = 0; i < debye_I.size(); ++i) {
         data.q[i] = qv[i];
-        data.I[i] = debye_I[i]*std::exp(data.q[i]*data.q[i]); // remove form factor added by debye transform
+        data.I[i] = debye_I[i];
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
@@ -256,10 +256,10 @@ void molecule_debye_raw_userq(
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     std::vector<double> q_vals(q, q + n_points);
     auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
-    auto debye_I = hist->debye_transform(q_vals);
+    auto debye_I = hist->debye_transform<false>(q_vals);
     if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
-        I[i] = debye_I.y(i)*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by debye transform
+        I[i] = debye_I.y(i);
     }
 }, status);}
 
