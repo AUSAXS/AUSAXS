@@ -278,7 +278,7 @@ namespace {
         if (has_temp_factor) {i_B_iso_or_equiv   = labels.at("B_iso_or_equiv");}
         if (has_charge)      {i_pdbx_formal_charge = labels.at("pdbx_formal_charge");}
 
-        int discarded_hydrogens = 0;
+        int hydrogens_found = 0;
         for (auto& data : atom.data) {
             auto& group_PDB = default_to_ATOM.empty() ? data[i_group_PDB] : default_to_ATOM;
             if (io::pdb::Record::get_type(group_PDB) != io::pdb::RecordType::ATOM) {
@@ -322,9 +322,9 @@ namespace {
             io::pdb::PDBAtom a(serial, name, altLoc, resName, chainID, resSeq, iCode, coords, occupancy, tempFactor, element, charge);
 
             // check if this is a hydrogen atom
-            if (a.element == constants::atom_t::H && !settings::general::keep_hydrogens) {
-                discarded_hydrogens++;
-                continue;
+            if (a.element == constants::atom_t::H) {
+                hydrogens_found++;
+                if (!settings::general::keep_hydrogens) {continue;}
             }
 
             // check if this is a water molecule
@@ -343,8 +343,10 @@ namespace {
             for (auto& a : collection.atoms) {a.occupancy = 1.0;}
         }
 
-        if (discarded_hydrogens != 0) {
-            console::print_text("Discarded " + std::to_string(discarded_hydrogens) + " explicit hydrogen atoms.");
+        if (!settings::general::keep_hydrogens) {
+            if (hydrogens_found != 0) {console::print_text("Discarded " + std::to_string(hydrogens_found) + " explicit hydrogen atoms.");}
+        } else {
+            if (hydrogens_found == 0) {console::print_warning("CIFReader::read: No explicit hydrogen atoms were found, but --keep-hydrogens was specified.");}
         }
     }
 

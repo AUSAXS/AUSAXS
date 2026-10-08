@@ -28,7 +28,7 @@ using namespace ausaxs;
 int cli_saxs_fitter(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
     io::ExistingFile pdb, mfile, exv_ref_file, settings;
-    bool use_existing_hydration = false, save_settings = false, save_grid = false, save_exv = false;
+    bool keep_hydration = false, save_settings = false, save_grid = false, save_exv = false;
 
     CLI::App app{"Perform SAXS fitting for a given structure and measurement."};
     app.fallthrough();
@@ -110,10 +110,10 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     auto* sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
     sub_water->add_option_function<std::string>("--model,-m", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, 
         "The hydration model to use. Options: Radial, Axes, None.");
-    sub_water->add_flag("--keep,!--discard", use_existing_hydration, 
+    sub_water->add_flag("--keep,!--discard", keep_hydration, 
         "Keep or discard water molecules from the structure file. "
         "If they are discarded, a new solvation shell is generated."
-    )->default_val(use_existing_hydration);
+    )->default_val(keep_hydration);
     sub_water->add_flag("--fit,!--no-fit", settings::fit::fit_hydration, 
         "Fit the hydration shell.")->default_val(settings::fit::fit_hydration);
 
@@ -206,11 +206,13 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         //### ACTUAL PROGRAM ###//
         //######################//
 
-        data::Molecule protein(pdb);
-        if (!exv_ref_file.empty()) {protein.set_grid(grid::Grid::create_from_reference(exv_ref_file, protein));}
-        if (!use_existing_hydration || protein.size_water() == 0) {
-            if (protein.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
-            protein.generate_new_hydration();
+        data::Molecule molecule(pdb);
+        if (!exv_ref_file.empty()) {molecule.set_grid(grid::Grid::create_from_reference(exv_ref_file, molecule));}
+        if (!keep_hydration || molecule.size_water() == 0) {
+            if (molecule.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
+            molecule.generate_new_hydration();
+        } else {
+            if (molecule.size_water() == 0) {console::print_warning("No hydration atoms were found in the structure file, but --keep was specified. No hydration atoms will be used for this calculation.");}
         }
         std::string msg_exv_vol, msg_solv_dens;
 
@@ -219,7 +221,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
             console::print_info("\nSimulation mode enabled.");
             console::print_text("Please note that the evaluated hydration shell contribution will be quite poor for most molecules in this mode. For more information, refer to the documentation.");
             settings::general::output += "simulated/" + pdb.stem() + "/";
-            auto hist = protein.get_histogram();
+            auto hist = molecule.get_histogram();
 
             plots::PlotDistance::quick_plot(hist.get(), settings::general::output + "p(r)." + settings::plots::format);
             plots::PlotProfiles::quick_plot(hist.get(), settings::general::output + "profiles." + settings::plots::format);
@@ -236,7 +238,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
                 saxs_data.save(settings::general::output + "rebinned.dat");
             }
     
-            fitter::SmartFitter fitter(saxs_data, protein.get_histogram());
+            fitter::SmartFitter fitter(saxs_data, molecule.get_histogram());
             auto result = fitter.fit();
             fitter::FitReporter::report(result.get());
             fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);
@@ -250,7 +252,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
             if (settings::fit::fit_excluded_volume) {
                 msg_exv_vol = 
                     "\tExcluded:        " 
-                    + std::to_string((int) std::round(protein.get_volume_exv(result->get_parameter(constants::fit::Parameters::SCALING_EXV))))
+                    + std::to_string((int) std::round(molecule.get_volume_exv(result->get_parameter(constants::fit::Parameters::SCALING_EXV))))
                     + " A^3"
                 ;
             }
@@ -267,11 +269,11 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         console::print_info("\nExtra informaton");
         console::print_text("Volume:");
         // the grid volume is dry, so the mass must be dry too
-        double rhoM = protein.get_absolute_mass(false)/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
-        double exv_vol = protein.get_volume_grid();
-        double mol_charge = protein.get_total_atomic_charge();
-        console::print_text("\tvan der Waals:   " + std::to_string((int) std::round(protein.get_volume_vdw()))  + " A^3");
-        console::print_text("\tGrid:            " + std::to_string((int) std::round(protein.get_volume_grid())) + " A^3");
+        double rhoM = molecule.get_absolute_mass(false)/molecule.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
+        double exv_vol = molecule.get_volume_grid();
+        double mol_charge = molecule.get_total_atomic_charge();
+        console::print_text("\tvan der Waals:   " + std::to_string((int) std::round(molecule.get_volume_vdw()))  + " A^3");
+        console::print_text("\tGrid:            " + std::to_string((int) std::round(molecule.get_volume_grid())) + " A^3");
         if (settings::fit::fit_excluded_volume) {console::print_text(msg_exv_vol);}
         console::print_text("\nCharge:");
         console::print_text("\tMolecular:       " + utility::round_double(mol_charge, 1) + " e");
@@ -281,9 +283,9 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         console::print_text("\nOther properties:");
         console::print_text("\tRhoM:            " + utility::round_double(rhoM, 3) + " g/cm^3");
 
-        protein.save(settings::general::output + "model.pdb");
-        if (save_grid) {protein.get_grid()->save(settings::general::output + "grid.pdb");}
-        if (save_exv) {protein.get_grid()->generate_excluded_volume().save(settings::general::output + "exv.pdb");}
+        molecule.save(settings::general::output + "model.pdb");
+        if (save_grid) {molecule.get_grid()->save(settings::general::output + "grid.pdb");}
+        if (save_exv) {molecule.get_grid()->generate_excluded_volume().save(settings::general::output + "exv.pdb");}
     } catch (const except::base&) {
         return 1; // our own exceptions already report themselves when thrown
     } catch (const std::exception& e) {

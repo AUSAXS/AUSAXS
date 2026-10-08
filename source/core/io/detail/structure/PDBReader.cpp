@@ -25,7 +25,7 @@ namespace {
         std::ifstream input(file);
         if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + file.str() + "\"");}
 
-        int discarded_hydrogens = 0;
+        int hydrogens_found = 0;
         std::string line;
         while(getline(input, line)) {
             if (utility::remove_all(line, " \n\r").empty()) {continue;}
@@ -37,9 +37,9 @@ namespace {
                     atom.parse_pdb(line);
 
                     // check if this is a hydrogen atom
-                    if (atom.element == constants::atom_t::H && !settings::general::keep_hydrogens) {
-                        discarded_hydrogens++;
-                        continue;
+                    if (atom.element == constants::atom_t::H) {
+                        hydrogens_found++;
+                        if (!settings::general::keep_hydrogens) {continue;}
                     }
 
                     // check if this is a water molecule
@@ -77,8 +77,10 @@ namespace {
             for (auto& a : collection.atoms) {a.occupancy = 1.0;}
         }
 
-        if (discarded_hydrogens != 0) {
-            console::print_text("Discarded " + std::to_string(discarded_hydrogens) + " explicit hydrogen atoms.");
+        if (!settings::general::keep_hydrogens) {
+            if (hydrogens_found != 0) {console::print_text("Discarded " + std::to_string(hydrogens_found) + " explicit hydrogen atoms.");}
+        } else {
+            if (hydrogens_found == 0) {console::print_warning("PDBReader::read: No explicit hydrogen atoms were found, but --keep-hydrogens was specified.");}
         }
     };
 }
