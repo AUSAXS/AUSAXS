@@ -800,15 +800,25 @@ jobs:
             '{0}: {1:N0} MiB' -f $_.Name, ($bytes / 1MB)
           }
 
-      # Configured on its own rather than through the top-level project, which would need CURL just to
-      # configure. The compiler must be AdaptiveCpp's clang: the launcher hands its command line to acpp.
+      # The top-level project needs CURL to configure, though the backend never links it.
+      - name: Install CURL
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install curl --triplet x64-windows-static
+
+      # Through the top-level project, as on Linux: the backend takes the export macro from the core headers.
+      # The compiler must be AdaptiveCpp's clang: the launcher hands its command line to acpp.
       - name: Configure AUSAXS backend
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          cmake -S source/gpu -B build-gpu -G Ninja `
+          cmake -S . -B build-gpu -G Ninja `
             "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
             "-DCMAKE_CXX_COMPILER=$env:ACPP_PREFIX\bin\clang.exe" `
-            "-DAdaptiveCpp_ROOT=$env:ACPP_PREFIX"
+            "-DAdaptiveCpp_ROOT=$env:ACPP_PREFIX" `
+            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DBUILD_TESTS=OFF `
+            -DBUILD_EXECUTABLES=OFF
 
       - name: Build backend
         run: |
@@ -818,7 +828,7 @@ jobs:
       - name: Check exported ABI symbols
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          $lib = 'build-gpu\lib\ausaxs_gpu_sycl.dll'
+          $lib = 'build-gpu\bin\ausaxs_gpu_sycl.dll'
           if (-not (Test-Path $lib)) { Write-Host "::error::$lib was not built"; exit 1 }
           $expected = Select-String -Path include\gpu\gpu\GPUBackendABI.h -Pattern 'symbol_[a-z_]+ *= *"(ausaxs_gpu_[a-z_]+)"' `
             | ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique
@@ -838,7 +848,7 @@ jobs:
           Get-ChildItem $env:DIST -Directory | ForEach-Object {
             Copy-Item -Recurse -Force "$($_.FullName)\*" $env:GPU_PACKAGE
           }
-          Copy-Item build-gpu\lib\ausaxs_gpu_sycl.dll $env:GPU_PACKAGE
+          Copy-Item build-gpu\bin\ausaxs_gpu_sycl.dll $env:GPU_PACKAGE
 
       - name: Prune runtime package
         run: python .github/prune_gpu_package.py $env:GPU_PACKAGE
@@ -1009,12 +1019,15 @@ jobs:
           done
           du -sh "$DIST"/*
 
-      # Configured on its own rather than through the top-level project, like the Windows job.
+      # Through the top-level project, as on Linux: the backend takes the export macro from the core headers.
+      # The CURL it needs to configure comes with the macOS SDK.
       - name: Configure AUSAXS backend
         run: |
-          cmake -S source/gpu -B build-gpu -G Ninja \
+          cmake -S . -B build-gpu -G Ninja \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DAdaptiveCpp_ROOT="$ACPP_PREFIX"
+            -DAdaptiveCpp_ROOT="$ACPP_PREFIX" \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXECUTABLES=OFF
 
       - name: Build backend
         run: cmake --build build-gpu --target ausaxs_gpu_sycl

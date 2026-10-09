@@ -3,10 +3,14 @@
 
 #pragma once
 
-#include <settings/ExportMacro.h>
-
 #include <cstdint>
 #include <type_traits>
+
+#ifdef _WIN32
+    #define EXPORT_GPU __declspec(dllexport)
+#else
+    #define EXPORT_GPU 
+#endif
 
 /**
  * @brief The ABI between the library and a GPU backend.
@@ -119,14 +123,14 @@ namespace ausaxs::gpu::abi {
         /**
          * @brief The entry points a backend must export.
          */
-        EXPORT std::int32_t ausaxs_gpu_abi_version();
-        EXPORT bool ausaxs_gpu_available();
-        EXPORT const char* ausaxs_gpu_device_name();
-        EXPORT const char* ausaxs_gpu_last_error();
-        EXPORT Status ausaxs_gpu_begin(std::int32_t bin_count, float inv_width, bool weighted);
-        EXPORT Status ausaxs_gpu_submit(const Job* jobs, std::int32_t n_jobs);
-        EXPORT Status ausaxs_gpu_finish_unweighted(std::int32_t n_slots, double* out);
-        EXPORT Status ausaxs_gpu_finish_weighted(std::int32_t n_slots, WeightedBin* out);
+        EXPORT_GPU std::int32_t ausaxs_gpu_abi_version();
+        EXPORT_GPU bool ausaxs_gpu_available();
+        EXPORT_GPU const char* ausaxs_gpu_device_name();
+        EXPORT_GPU const char* ausaxs_gpu_last_error();
+        EXPORT_GPU Status ausaxs_gpu_begin(std::int32_t bin_count, float inv_width, bool weighted);
+        EXPORT_GPU Status ausaxs_gpu_submit(const Job* jobs, std::int32_t n_jobs);
+        EXPORT_GPU Status ausaxs_gpu_finish_unweighted(std::int32_t n_slots, double* out);
+        EXPORT_GPU Status ausaxs_gpu_finish_weighted(std::int32_t n_slots, WeightedBin* out);
 
         // The symbol names the loader resolves, kept beside the declarations they must match.
         constexpr const char* symbol_abi_version       = "ausaxs_gpu_abi_version";

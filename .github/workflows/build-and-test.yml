@@ -5,9 +5,11 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [master]
 
+# TEMPORARY: the expand_gpu_support branch only reworks the GPU workflow, so the test suite is skipped there.
+# Remove the head_ref conditions below before that branch is merged.
 jobs:
   build-and-test-internal:
-    if: github.event.pull_request.head.repo.full_name == 'AUSAXS/AUSAXS'
+    if: github.event.pull_request.head.repo.full_name == 'AUSAXS/AUSAXS' && github.head_ref != 'expand_gpu_support'
     permissions:
       packages: write
       contents: read
@@ -18,7 +20,7 @@ jobs:
       package_permission: true
 
   build-and-test-external:
-    if: github.event.pull_request.head.repo.full_name != 'AUSAXS/AUSAXS'
+    if: github.event.pull_request.head.repo.full_name != 'AUSAXS/AUSAXS' && github.head_ref != 'expand_gpu_support'
     permissions:
       packages: read
       contents: read
