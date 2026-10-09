@@ -13,6 +13,8 @@ option(USE_SYSTEM_CLI11 "Use system provided CLI11" OFF)
 option(USE_SYSTEM_THREADPOOL "Use system provided thread-pool" OFF)
 option(USE_SYSTEM_POCKETFFT "Use system provided pocketfft" OFF)
 option(USE_SYSTEM_CATCH "Use system provided Catch" OFF)
+option(GPU_DOWNLOADER "Build the downloader for prebuilt GPU backends (ausaxs gpu install). Needs miniz." ON)
+option(USE_SYSTEM_MINIZ "Use system provided miniz" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -30,6 +32,9 @@ setup_compile_commands()
 ############################################
 include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+if (POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW) # URL downloads get the time of extraction as their timestamp
+endif()
 get_property(
     compile_options
     DIRECTORY
@@ -87,6 +92,24 @@ else()
 	)
 	FetchContent_MakeAvailable(GCEM)
 	set(GCEM_INCLUDE_DIR ${gcem_SOURCE_DIR}/include)
+endif()
+
+if (GPU_DOWNLOADER)
+	if (USE_SYSTEM_MINIZ)
+		find_package(miniz CONFIG REQUIRED)
+	else()
+		# the release archive holds the amalgamated miniz.c/miniz.h, which build without miniz's own CMake configuration
+		FetchContent_Declare(
+			miniz
+			URL https://github.com/richgel999/miniz/releases/download/3.1.2/miniz-3.1.2.zip
+			URL_HASH SHA256=f0446d863f9c19926ad9483c523fdc42e42b8d4a6a431d27e09d49c79a140d9a
+		)
+		FetchContent_MakeAvailable(miniz)
+		add_library(miniz STATIC "${miniz_SOURCE_DIR}/miniz.c")
+		target_include_directories(miniz SYSTEM PUBLIC "${miniz_SOURCE_DIR}")
+		set_target_properties(miniz PROPERTIES POSITION_INDEPENDENT_CODE ON)
+		add_library(miniz::miniz ALIAS miniz)
+	endif()
 endif()
 
 set_property(

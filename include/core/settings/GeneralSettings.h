@@ -21,6 +21,7 @@ namespace ausaxs::settings {
         static Setting<bool> supplementary_plots;    // Whether to generate supplementary plots when possible.
         static Setting<bool> gpu;                    // Whether to offload the distance histogram calculations to the GPU. Requires a GPU backend to be installed alongside the library.
         static Setting<std::string> gpu_library;     // Path to the GPU backend to use. Empty to search the usual locations.
+        static Setting<std::string> gpu_folder;      // Install location for downloaded GPU backends.
 
         struct detail {
             /**
