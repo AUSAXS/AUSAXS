@@ -9,6 +9,7 @@ on:
       - 'include/gpu/**'
       - '.github/workflows/build-gpu-backend.yml'
       - '.github/prune_gpu_package.py'
+      - '.github/relocate_gpu_package.py'
   workflow_call:
   workflow_dispatch:
 
@@ -138,7 +139,7 @@ jobs:
             if [ -z "$baseline" ] \
               || ! changed=$(git diff --name-only "$baseline" "$HEAD_SHA" -- \
                    'source/gpu' 'include/gpu' '.github/workflows/build-gpu-backend.yml' \
-                   '.github/prune_gpu_package.py'); then
+                   '.github/prune_gpu_package.py' '.github/relocate_gpu_package.py'); then
               decide "$platform" true "no usable baseline to compare against"
               continue
             fi
@@ -158,6 +159,8 @@ jobs:
     if: needs.gate.outputs.build-linux == 'true'
     env:
       GPU_PACKAGE: dist/ausaxs-gpu-linux-x64
+      # What must come from the user's system rather than the package: glibc, the C++ runtime, and the GPU drivers.
+      SYSTEM_LIBS: '^(ld-linux-x86-64\.so|lib(c|m|dl|pthread|rt|util|resolv|mvec|stdc\+\+|gcc_s|cuda|drm|drm_amdgpu)\.so)'
     steps:
       - uses: actions/checkout@v4
 
@@ -242,7 +245,7 @@ jobs:
             build-essential cmake ninja-build python3 \
             libcurl4-openssl-dev libnuma-dev \
             ocl-icd-opencl-dev opencl-headers \
-            upx-ucl lsb-release wget gnupg ca-certificates
+            patchelf upx-ucl lsb-release wget gnupg ca-certificates
           size_end 'Base dependencies'
 
       # apt.llvm.org is flaky often enough that AdaptiveCpp's own CI retries it; keep the loop.
@@ -476,13 +479,12 @@ jobs:
       - name: Bundle system libraries
         run: |
           set -euo pipefail
-          system='^(ld-linux-x86-64\.so|lib(c|m|dl|pthread|rt|util|resolv|mvec|stdc\+\+|gcc_s|cuda|drm|drm_amdgpu)\.so)'
           outside() {
             # ldd lists transitive dependencies too, so one pass also covers what the bundled libraries need.
             LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE" \
               ldd $(find "$PWD/$GPU_PACKAGE" -type f ! -name '*.bc') 2>/dev/null \
               | awk -v pkg="$PWD/$GPU_PACKAGE/" '$2 == "=>" && index($3, pkg) != 1 {print $1, $3}' \
-              | grep -vE "$system" | sort -u || true
+              | grep -vE "$SYSTEM_LIBS" | sort -u || true
           }
           outside | while read -r name path; do
             if [ "$path" = not ]; then
@@ -499,6 +501,22 @@ jobs:
             exit 1
           fi
           du -sh "$GPU_PACKAGE"
+
+      # The package is opened from wherever the user unpacks it, with no LD_LIBRARY_PATH, so each library is found only
+      # through the RUNPATH of whatever needs it. Before UPX, which patchelf cannot see through.
+      - name: Relocate runtime package
+        run: |
+          set -euo pipefail
+          python3 .github/relocate_gpu_package.py "$GPU_PACKAGE"
+          # The same question as the bundling step, now asked without LD_LIBRARY_PATH: this is what a user's loader sees.
+          left=$(ldd $(find "$PWD/$GPU_PACKAGE" -type f ! -name '*.bc') 2>/dev/null \
+            | awk -v pkg="$PWD/$GPU_PACKAGE/" '$2 == "=>" && index($3, pkg) != 1 {print $1, $3}' \
+            | grep -vE "$SYSTEM_LIBS" | sort -u || true)
+          if [ -n "$left" ]; then
+            echo "::error::resolved outside the package without LD_LIBRARY_PATH:"
+            echo "$left"
+            exit 1
+          fi
 
       # Before the probe, so the probe loads exactly what ships.
       - name: Compress libLLVM
@@ -543,8 +561,8 @@ jobs:
           # The version is parsed out of stdout rather than returned as the exit status, so that
           # bumping the ABI can never collide with the probe's own failure codes.
           set +e
-          out=$(LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE:${LD_LIBRARY_PATH:-}" \
-            /tmp/abi_probe "$PWD/$GPU_PACKAGE/libausaxs_gpu_sycl.so" 2>&1)
+          # No LD_LIBRARY_PATH: the package has to find itself, as it will on a user's machine.
+          out=$(/tmp/abi_probe "$PWD/$GPU_PACKAGE/libausaxs_gpu_sycl.so" 2>&1)
           rc=$?
           set -e
           echo "$out"
@@ -565,8 +583,7 @@ jobs:
           {
             echo '## Dependencies resolved outside the runtime package'
             echo '```'
-            LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE" \
-              ldd $(find "$PWD/$GPU_PACKAGE" -type f | grep -v '\.bc$') 2>/dev/null \
+            ldd $(find "$PWD/$GPU_PACKAGE" -type f | grep -v '\.bc$') 2>/dev/null \
               | grep -v "$PWD/$GPU_PACKAGE" | awk '{print $3;}' | sort -u | grep -v '^$'
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
@@ -862,7 +879,8 @@ jobs:
           #include <stdbool.h>
           #include <stdio.h>
           int main(int argc, char** argv) {
-              HMODULE h = LoadLibraryA(argv[1]);
+              // as the loader opens it: dependencies from the DLL's own directory, then the system's
+              HMODULE h = LoadLibraryExA(argv[1], NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
               if (!h) {printf("LoadLibrary failed: error %lu\n", GetLastError()); return 2;}
               int (*abi_version)(void) = (int (*)(void)) GetProcAddress(h, "ausaxs_gpu_abi_version");
               bool (*available)(void) = (bool (*)(void)) GetProcAddress(h, "ausaxs_gpu_available");
@@ -879,9 +897,8 @@ jobs:
           cl /nologo "$env:RUNNER_TEMP\abi_probe.c" "/Fo:$env:RUNNER_TEMP\abi_probe.obj" "/Fe:$env:RUNNER_TEMP\abi_probe.exe"
           if ($LASTEXITCODE -ne 0) { Write-Host "::error::the probe did not compile"; exit 1 }
 
-          # PATH is how LoadLibrary finds the runtime beside the backend, as LD_LIBRARY_PATH is on Linux. The
-          # version is parsed out of stdout, so bumping the ABI can never collide with the probe's exit codes.
-          $env:PATH = "$PWD\$env:GPU_PACKAGE;$env:PATH"
+          # Nothing is added to PATH: the package has to find itself, as it will on a user's machine. The version
+          # is parsed out of stdout, so bumping the ABI can never collide with the probe's exit codes.
           $out = & "$env:RUNNER_TEMP\abi_probe.exe" "$PWD\$env:GPU_PACKAGE\ausaxs_gpu_sycl.dll" 2>&1 | Out-String
           $rc = $LASTEXITCODE
           Write-Host $out

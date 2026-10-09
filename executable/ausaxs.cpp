@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_em_fitter.h>
+#include <api/cli/cli_gpu.h>
 #include <api/cli/cli_rigidbody.h>
 #include <api/cli/cli_saxs_fitter.h>
 #include <utility/Console.h>
@@ -11,14 +12,15 @@
 using namespace ausaxs;
 
 namespace {
-    enum class Tool {Fit, EM, Rigidbody};
+    enum class Tool {Fit, EM, Rigidbody, GPU};
     std::unordered_map<std::string, Tool> tool_map {
         {"fit", Tool::Fit},
         {"saxs_fitter", Tool::Fit},
         {"em", Tool::EM},
         {"em_fitter", Tool::EM},
         {"rigidbody", Tool::Rigidbody},
-        {"rigidbody_optimizer", Tool::Rigidbody}
+        {"rigidbody_optimizer", Tool::Rigidbody},
+        {"gpu", Tool::GPU}
     };
 }
 
@@ -30,6 +32,7 @@ int main(int argc, char const *argv[]) {
             "\n  fit        - Fit SAXS data to a structure"
             "\n  em         - Fit EM map to SAXS data"
             "\n  rigidbody  - Rigid-body optimization"
+            "\n  gpu        - Install or check the GPU backend"
             "\n\nFor tool-specific help:"
             "\n  ausaxs <tool> --help"            
         );
@@ -53,5 +56,7 @@ int main(int argc, char const *argv[]) {
             return cli_em_fitter(argc-1, argv+1);
         case Tool::Rigidbody:
             return cli_rigidbody(argc-1, argv+1);
+        case Tool::GPU:
+            return cli_gpu(argc-1, argv+1);
     }
 }

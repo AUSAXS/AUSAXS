@@ -6,6 +6,10 @@ set_target_properties(ausaxs_core PROPERTIES
 target_include_directories(ausaxs_core PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
 
 target_link_libraries(ausaxs_core ausaxs_math ausaxs_gpu CURL::libcurl ${CMAKE_DL_LIBS})
+if (GPU_DOWNLOADER)
+	target_link_libraries(ausaxs_core miniz::miniz)
+	target_compile_definitions(ausaxs_core PRIVATE AUSAXS_GPU_DOWNLOADER)
+endif()
 
 add_library(libausaxs_static STATIC $<TARGET_OBJECTS:ausaxs_core>)
 target_include_directories(libausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
