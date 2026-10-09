@@ -6,7 +6,6 @@
 #include <CLI/CLI.hpp>
 
 #include <data/Molecule.h>
-#include <dataset/SimpleDataset.h>
 #include <em/ImageStack.h>
 #include <fitter/FitReporter.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
@@ -14,6 +13,7 @@
 #include <plots/PlotProfiles.h>
 #include <settings/All.h>
 #include <utility/Console.h>
+#include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
 #include <iostream>
@@ -166,9 +166,11 @@ int cli_em_fitter(int argc, char const *argv[]) {
             settings::general::output + "ausaxs.fit",
             "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof)
         );
+    } catch (const except::base&) {
+        return 1; // our own exceptions already report themselves when thrown
     } catch (const std::exception& e) {
         console::print_warning(e.what());
-        throw e;
+        return 1;
     }
     return 0;
 }

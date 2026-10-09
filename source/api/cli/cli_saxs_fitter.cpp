@@ -16,6 +16,7 @@
 #include <plots/PlotProfiles.h>
 #include <settings/All.h>
 #include <utility/Console.h>
+#include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
 #include <iostream>
@@ -285,9 +286,11 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         molecule.save(settings::general::output + "model.pdb");
         if (save_grid) {molecule.get_grid()->save(settings::general::output + "grid.pdb");}
         if (save_exv) {molecule.get_grid()->generate_excluded_volume().save(settings::general::output + "exv.pdb");}
+    } catch (const except::base&) {
+        return 1; // our own exceptions already report themselves when thrown
     } catch (const std::exception& e) {
         console::print_warning(e.what());
-        throw e;
+        return 1;
     }
     return 0;
 }

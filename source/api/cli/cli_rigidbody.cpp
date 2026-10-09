@@ -13,6 +13,7 @@
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <settings/All.h>
 #include <utility/Console.h>
+#include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
 #include <string>
@@ -121,9 +122,11 @@ int cli_rigidbody(int argc, char const *argv[]) {
         fitter::FitReporter::report(res.get());
         fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
         res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
+    } catch (const except::base&) {
+        return 1; // our own exceptions already report themselves when thrown
     } catch (const std::exception& e) {
         console::print_warning(e.what());
-        throw e;
+        return 1;
     }
     return 0;
 }
