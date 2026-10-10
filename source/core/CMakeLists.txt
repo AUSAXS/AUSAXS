@@ -4,11 +4,7 @@ set_target_properties(ausaxs_core PROPERTIES
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
 target_include_directories(ausaxs_core PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
-
-# the GPU backend ABI is a dependency-free header describing the interface of a backend that is looked
-# up at run time, so it is part of the core interface whether or not a backend is ever built.
-target_include_directories(ausaxs_core PUBLIC "${CMAKE_SOURCE_DIR}/include/gpu")
-target_link_libraries(ausaxs_core ausaxs_math CURL::libcurl ${CMAKE_DL_LIBS})
+target_link_libraries(ausaxs_core ausaxs_math ausaxs_gpu CURL::libcurl ${CMAKE_DL_LIBS})
 
 add_library(libausaxs_static STATIC $<TARGET_OBJECTS:ausaxs_core>)
 target_include_directories(libausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include/core")

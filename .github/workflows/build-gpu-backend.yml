@@ -8,20 +8,28 @@ on:
       - 'source/gpu/**'
       - 'include/gpu/**'
       - '.github/workflows/build-gpu-backend.yml'
+      - '.github/prune_gpu_package.py'
   workflow_call:
   workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
 
-  # Every version pin lives here and nowhere else.
+  ACPP_REPO: "https://github.com/AdaptiveCpp/AdaptiveCpp"
+  ACPP_COMMIT: "d2272b04"
+
   LLVM_VERSION: "21"
   CUDA_VERSION: "12.6"
   ROCM_VERSION: "7.2.4"
-  ACPP_REPO: "https://github.com/AdaptiveCpp/AdaptiveCpp"
-  ACPP_COMMIT: "d2272b04"
   ACPP_PREFIX: "/opt/acpp"
   DIST: "/opt/ausaxs-gpu-dist"
+
+  WINDOWS_LLVM_VERSION: "20"
+  WINDOWS_BASE_LLVM_VERSION: "19"
+  WINDOWS_CUDA_VERSION: "12.6.1"
+
+  MACOS_LLVM_VERSION: "20"
+  METAL_CPP_URL: "https://developer.apple.com/metal/cpp/files/metal-cpp_26.zip"
 
 jobs:
   gate:
@@ -31,7 +39,9 @@ jobs:
       actions: read
       contents: read
     outputs:
-      build: ${{ steps.decide.outputs.build }}
+      build-linux: ${{ steps.decide.outputs.linux }}
+      build-windows: ${{ steps.decide.outputs.windows }}
+      build-macos: ${{ steps.decide.outputs.macos }}
     steps:
       - uses: actions/checkout@v4
         if: github.event_name == 'pull_request'
@@ -39,168 +49,134 @@ jobs:
           fetch-depth: 0
           filter: blob:none
 
-      - id: verified
+      # One lookup per platform, each matching only its own job: the action takes the first job whose name
+      # matches, so a shared lookup would let a green Linux build stand in for a failed Windows one.
+      - id: verified-linux
         uses: ./.github/actions/last-verified-sha
         if: github.event_name == 'pull_request'
         with:
           workflow: build-gpu-backend.yml
-          job-name: "SYCL backend"
+          job-name: "SYCL backend (Linux"
           head-sha: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Decide whether the backend needs rebuilding
+      - id: verified-windows
+        uses: ./.github/actions/last-verified-sha
+        if: github.event_name == 'pull_request'
+        with:
+          workflow: build-gpu-backend.yml
+          job-name: "SYCL backend (Windows"
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: verified-macos
+        uses: ./.github/actions/last-verified-sha
+        if: github.event_name == 'pull_request'
+        with:
+          workflow: build-gpu-backend.yml
+          job-name: "SYCL backend (macOS"
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide which backends need rebuilding
         id: decide
         env:
           EVENT: ${{ github.event_name }}
           IS_DRAFT: ${{ github.event.pull_request.draft }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          VERIFIED_SHA: ${{ steps.verified.outputs.sha }}
+          VERIFIED_LINUX: ${{ steps.verified-linux.outputs.sha }}
+          VERIFIED_WINDOWS: ${{ steps.verified-windows.outputs.sha }}
+          VERIFIED_MACOS: ${{ steps.verified-macos.outputs.sha }}
         run: |
           set -euo pipefail
+          platforms='linux windows macos'
 
           decide() {
-            echo "build=$1" >> "$GITHUB_OUTPUT"
-            echo "$2"
-            printf '%s\n' "**Backend build: $([ "$1" = true ] && echo 'running' || echo 'skipped')** -- $2" \
+            echo "$1=$2" >> "$GITHUB_OUTPUT"
+            echo "$1: $3"
+            printf '%s\n' "**${1} backend build: $([ "$2" = true ] && echo 'running' || echo 'skipped')** -- $3" \
               >> "$GITHUB_STEP_SUMMARY"
           }
 
           # workflow_dispatch and workflow_call carry no diff to reason about, and are only ever
           # reached by someone asking for a build.
           if [ "$EVENT" != 'pull_request' ]; then
-            decide true "triggered by ${EVENT}, not a pull request"
+            for platform in $platforms; do decide "$platform" true "triggered by ${EVENT}, not a pull request"; done
             exit 0
           fi
           if [ "$IS_DRAFT" = 'true' ]; then
-            decide false "the pull request is a draft"
+            for platform in $platforms; do decide "$platform" false "the pull request is a draft"; done
             exit 0
           fi
 
-          if [ -n "$VERIFIED_SHA" ]; then
-            baseline=$VERIFIED_SHA
-            reason="since the last successful build, at ${baseline:0:8}"
-          else
-            # A pull request's first run, and any case where the lookup came up short. The merge
-            # base is what `paths:` itself compared against, so this is the old behaviour exactly:
-            # the gate can only ever be an improvement on it, never a regression.
-            baseline=$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || true)
-            reason="against the merge base ${baseline:0:8} (no earlier successful build on this history)"
-          fi
+          merge_base=$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || true)
 
-          # As in the lookup, losing the answer has to cost a build rather than skip one.
-          if [ -z "$baseline" ] \
-            || ! changed=$(git diff --name-only "$baseline" "$HEAD_SHA" -- \
-                 'source/gpu' 'include/gpu' '.github/workflows/build-gpu-backend.yml'); then
-            decide true "no usable baseline to compare against"
-            exit 0
-          fi
+          # Each platform keeps its own baseline, so one that failed keeps rebuilding until it succeeds,
+          # however green the others are.
+          for platform in $platforms; do
+            verified_var="VERIFIED_${platform^^}"
+            verified=${!verified_var}
+            if [ -n "$verified" ]; then
+              baseline=$verified
+              reason="since the last successful build, at ${baseline:0:8}"
+            else
+              # A pull request's first run, and any case where the lookup came up short. The merge
+              # base is what `paths:` itself compared against, so this is the old behaviour exactly:
+              # the gate can only ever be an improvement on it, never a regression.
+              baseline=$merge_base
+              reason="against the merge base ${baseline:0:8} (no earlier successful build on this history)"
+            fi
 
-          if [ -n "$changed" ]; then
-            printf 'changed:\n%s\n' "$changed"
-            decide true "backend sources changed ${reason}"
-          else
-            decide false "no backend sources changed ${reason}"
-          fi
+            # As in the lookup, losing the answer has to cost a build rather than skip one.
+            if [ -z "$baseline" ] \
+              || ! changed=$(git diff --name-only "$baseline" "$HEAD_SHA" -- \
+                   'source/gpu' 'include/gpu' '.github/workflows/build-gpu-backend.yml' \
+                   '.github/prune_gpu_package.py'); then
+              decide "$platform" true "no usable baseline to compare against"
+              continue
+            fi
+
+            if [ -n "$changed" ]; then
+              printf 'changed:\n%s\n' "$changed"
+              decide "$platform" true "backend sources changed ${reason}"
+            else
+              decide "$platform" false "no backend sources changed ${reason}"
+            fi
+          done
 
   backend:
     name: "SYCL backend (Linux x86_64)"
     runs-on: ubuntu-latest
     needs: gate
-    if: needs.gate.outputs.build == 'true'
+    if: needs.gate.outputs.build-linux == 'true'
+    env:
+      GPU_PACKAGE: dist/ausaxs-gpu-linux-x64
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up size accounting
-        run: |
-          cat > /tmp/sizes.sh <<'HELPER'
-          _used_kb() { df --output=used -k / | tail -1 | tr -d ' '; }
-          _total_kb() { df --output=size -k / | tail -1 | tr -d ' '; }
-          _avail_kb() { df --output=avail -k / | tail -1 | tr -d ' '; }
-          _human() {
-            awk -v k="${1:-0}" 'BEGIN {
-              sign = (k < 0 ? "-" : ""); k = (k < 0 ? -k : k);
-              if (k >= 1048576) printf "%s%.1f GiB", sign, k / 1048576;
-              else if (k >= 1024) printf "%s%.0f MiB", sign, k / 1024;
-              else printf "%s%d KiB", sign, k;
-            }'
-          }
-
-          # Bracket a step with `size_begin` and `size_end <label> [installed tree]`.
-          size_begin() { _size_before=$(_used_kb); }
-          size_end() {
-            _label=$1
-            _tree=${2:-}
-            _delta=$(( $(_used_kb) - _size_before ))
-            _avail=$(_avail_kb)
-            _tree_size="--"
-            if [ -n "$_tree" ] && [ -e "$_tree" ]; then
-              # Resolved first because /opt/rocm is a symlink to /opt/rocm-<version>, and du
-              # measures the link itself rather than its target: 0 KiB for a multi-gigabyte tree.
-              _resolved=$(readlink -f "$_tree" 2>/dev/null || echo "$_tree")
-              _tree_kb=$(du -sk "$_resolved" 2>/dev/null | cut -f1)
-              [ -z "$_tree_kb" ] && _tree_kb=$(sudo du -sk "$_resolved" 2>/dev/null | cut -f1)
-              [ -n "$_tree_kb" ] && _tree_size=$(_human "$_tree_kb")
-            fi
-            printf '| %s | %s | %s | %s | %s |\n' \
-              "$_label" "$(_human "$_delta")" "${_tree:---}" "$_tree_size" "$(_human "$_avail")" \
-              >> "$GITHUB_STEP_SUMMARY"
-            echo "size: ${_label}: delta $(_human "$_delta"), tree ${_tree_size}, $(_human "$_avail") free"
-
-            # The disk-clearing step below exists because these toolchains do not fit on a stock
-            # runner. This warning is the early signal that they have outgrown even what it buys;
-            # without it the first symptom is an ENOSPC in some unrelated later step.
-            if [ "$_avail" -lt 10485760 ]; then
-              echo "::warning::only $(_human "$_avail") free on / after ${_label}"
-            fi
-          }
-          HELPER
-          . /tmp/sizes.sh
-          {
-            echo '## Dependency sizes'
-            echo
-            # Recorded because the job's disk budget is set by the runner image, which is not a
-            # stable quantity: GitHub documents ~14 GB free on a standard hosted runner and has
-            # at times provided far more. If this line ever shrinks back toward the documented
-            # figure, the peak row below is what says whether this job still fits.
-            printf '_Runner disk: %s total, %s free before cleanup._\n' \
-              "$(_human "$(_total_kb)")" "$(_human "$(_avail_kb)")"
-            echo
-            echo '| Step | Disk delta | Installed tree | Tree size | Free after |'
-            echo '|---|---|---|---|---|'
-          } >> "$GITHUB_STEP_SUMMARY"
-
+      # These toolchains do not fit on a stock runner.
       - name: Free disk space
         run: |
-          . /tmp/sizes.sh
-          size_begin
-          df -h /
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
                       /usr/local/share/boost /usr/local/share/powershell \
                       /usr/local/lib/node_modules "${AGENT_TOOLSDIRECTORY:-/opt/hostedtoolcache}"
           sudo apt-get -qq purge -y '^ghc-.*' '^dotnet-.*' '^llvm-1[0-9].*' azure-cli firefox || true
           sudo apt-get -qq autoremove -y
-          df -h /
-          size_end 'Free disk space (reclaimed)'
 
       - name: Install base dependencies
         run: |
-          . /tmp/sizes.sh
-          size_begin
           sudo apt-get -qq update
           sudo apt-get -qq install -y --no-install-recommends \
             build-essential cmake ninja-build python3 \
             libcurl4-openssl-dev libnuma-dev \
             ocl-icd-opencl-dev opencl-headers \
             upx-ucl lsb-release wget gnupg ca-certificates
-          size_end 'Base dependencies'
 
       # apt.llvm.org is flaky often enough that AdaptiveCpp's own CI retries it; keep the loop.
       - name: Install LLVM ${{ env.LLVM_VERSION }}
         run: |
           set -e
-          . /tmp/sizes.sh
-          size_begin
           wget -q https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           success=0
@@ -219,14 +195,11 @@ jobs:
           sudo apt-get -qq install -y -o DPkg::options::="--force-overwrite" \
             "libclang-rt-${LLVM_VERSION}-dev"
           rm llvm.sh
-          size_end "LLVM ${LLVM_VERSION}" "/usr/lib/llvm-${LLVM_VERSION}"
 
       - name: Install CUDA ${{ env.CUDA_VERSION }}
         if: env.CUDA_VERSION != ''
         run: |
           set -e
-          . /tmp/sizes.sh
-          size_begin
           suffix="${CUDA_VERSION//./-}"
           distro="$(lsb_release -is | tr '[:upper:]' '[:lower:]')$(lsb_release -rs | tr -d '.')"
           wget -q "https://developer.download.nvidia.com/compute/cuda/repos/${distro}/x86_64/cuda-keyring_1.1-1_all.deb"
@@ -234,14 +207,11 @@ jobs:
           sudo apt-get -qq update
           sudo apt-get -qq install -y --no-install-recommends \
             "cuda-cudart-dev-${suffix}" "cuda-driver-dev-${suffix}" "cuda-nvcc-${suffix}"
-          size_end "CUDA ${CUDA_VERSION}" "/usr/local/cuda-${CUDA_VERSION}"
 
       - name: Install ROCm ${{ env.ROCM_VERSION }}
         if: env.ROCM_VERSION != ''
         run: |
           set -e
-          . /tmp/sizes.sh
-          size_begin
           sudo mkdir -p /etc/apt/keyrings
           wget -qO - https://repo.radeon.com/rocm/rocm.gpg.key \
             | gpg --dearmor | sudo tee /etc/apt/keyrings/rocm.gpg > /dev/null
@@ -270,14 +240,10 @@ jobs:
           done
 
           sudo apt-get -qq install -y rocm-dev
-          df -h /
-          size_end "ROCm ${ROCM_VERSION}" /opt/rocm
 
       - name: Build AdaptiveCpp
         run: |
           set -e
-          . /tmp/sizes.sh
-          size_begin
           # A user-owned prefix keeps the whole step unprivileged. Building or installing as root
           # leaves a root-owned build tree, which the cleanup below then cannot remove -- fatal
           # under `set -e`, after the build has already succeeded.
@@ -332,12 +298,7 @@ jobs:
           fi
           echo "  ok  llvm-spirv installed at ${spirv}"
 
-          # Reported before the build tree is deleted, because this is the job's high-water mark
-          # and therefore the only row that answers "would this still fit on a smaller runner?".
-          size_end 'AdaptiveCpp (peak, before cleanup)' /tmp/acpp
           cd / && rm -rf /tmp/acpp
-          # Measured after the build tree is gone, so this is the installed toolchain alone.
-          size_end 'AdaptiveCpp' "$ACPP_PREFIX"
 
       - name: Deploy runtime components
         run: |
@@ -403,25 +364,59 @@ jobs:
           done
           exit $missing
 
+      # One directory holding the backend and every runtime component, uploaded as one artifact. -a keeps the
+      # deployed symlinks as symlinks, which is what lets the prune step tell an alias from a library.
       - name: Assemble runtime package
         run: |
           set -euo pipefail
-          mkdir -p dist/merged
+          mkdir -p "$GPU_PACKAGE"
           for component in "$DIST"/*/; do
-            name=$(basename "$component")
-            mkdir -p "dist/$name"
-            cp -r "$component"/* "dist/$name/"
-            cp -r "$component"/* dist/merged/
+            cp -a "$component"/. "$GPU_PACKAGE/"
           done
-          cp build/lib/libausaxs_gpu_sycl.so dist/
-          cp build/lib/libausaxs_gpu_sycl.so dist/merged/
-          du -sh dist/*
+          cp build/lib/libausaxs_gpu_sycl.so "$GPU_PACKAGE/"
+          du -sh "$GPU_PACKAGE"
 
+      - name: Prune runtime package
+        run: python3 .github/prune_gpu_package.py "$GPU_PACKAGE"
+
+      # libLLVM, and through it the OpenMP plugin, needs libraries such as libxml2.so.2 that newer distributions no
+      # longer ship (Ubuntu 26.04 has only libxml2.so.16). AdaptiveCpp terminates the process when it cannot load a
+      # CPU backend, which the loader cannot catch, so everything the package resolves from this runner is bundled.
+      # The exceptions must come from the user's system: glibc, the C++ runtime, and the GPU drivers. A missing
+      # driver library only fails that GPU plugin's load, which AdaptiveCpp survives.
+      - name: Bundle system libraries
+        run: |
+          set -euo pipefail
+          system='^(ld-linux-x86-64\.so|lib(c|m|dl|pthread|rt|util|resolv|mvec|stdc\+\+|gcc_s|cuda|drm|drm_amdgpu)\.so)'
+          outside() {
+            # ldd lists transitive dependencies too, so one pass also covers what the bundled libraries need.
+            LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE" \
+              ldd $(find "$PWD/$GPU_PACKAGE" -type f ! -name '*.bc') 2>/dev/null \
+              | awk -v pkg="$PWD/$GPU_PACKAGE/" '$2 == "=>" && index($3, pkg) != 1 {print $1, $3}' \
+              | grep -vE "$system" | sort -u || true
+          }
+          outside | while read -r name path; do
+            if [ "$path" = not ]; then
+              echo "::error::${name} is needed by the package but is not installed on the runner"
+              exit 1
+            fi
+            cp -L "$path" "$GPU_PACKAGE/$name"
+            printf '  bundled %-24s %8d bytes  (from %s)\n' "$name" "$(stat -c%s "$GPU_PACKAGE/$name")" "$path"
+          done
+          left=$(outside)
+          if [ -n "$left" ]; then
+            echo "::error::still not resolved inside the package after bundling:"
+            echo "$left"
+            exit 1
+          fi
+          du -sh "$GPU_PACKAGE"
+
+      # Before the probe, so the probe loads exactly what ships.
       - name: Compress libLLVM
         continue-on-error: true
         run: |
           set -uo pipefail
-          for lib in dist/core/libLLVM.so.*; do
+          for lib in "$GPU_PACKAGE"/libLLVM.so.*; do
             [ -f "$lib" ] || continue
             before=$(stat -c%s "$lib")
             if upx --best "$lib"; then
@@ -439,12 +434,13 @@ jobs:
           echo "Header declares ABI version ${expected_version}"
           cat > /tmp/abi_probe.c <<'PROBE'
           #include <dlfcn.h>
+          #include <stdbool.h>
           #include <stdio.h>
           int main(int argc, char** argv) {
               void* h = dlopen(argv[1], RTLD_NOW);
               if (!h) {printf("dlopen failed: %s\n", dlerror()); return 2;}
               int (*abi_version)(void) = dlsym(h, "ausaxs_gpu_abi_version");
-              int (*available)(void) = dlsym(h, "ausaxs_gpu_available");
+              bool (*available)(void) = dlsym(h, "ausaxs_gpu_available"); // bool, not int: only the low byte of the return is defined
               const char* (*last_error)(void) = dlsym(h, "ausaxs_gpu_last_error");
               if (!abi_version || !available || !last_error) {printf("dlsym failed: %s\n", dlerror()); return 3;}
               printf("abi_version=%d\n", abi_version());
@@ -458,8 +454,8 @@ jobs:
           # The version is parsed out of stdout rather than returned as the exit status, so that
           # bumping the ABI can never collide with the probe's own failure codes.
           set +e
-          out=$(LD_LIBRARY_PATH="$PWD/dist/merged:${LD_LIBRARY_PATH:-}" \
-            /tmp/abi_probe "$PWD/dist/merged/libausaxs_gpu_sycl.so" 2>&1)
+          out=$(LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE:${LD_LIBRARY_PATH:-}" \
+            /tmp/abi_probe "$PWD/$GPU_PACKAGE/libausaxs_gpu_sycl.so" 2>&1)
           rc=$?
           set -e
           echo "$out"
@@ -480,36 +476,569 @@ jobs:
           {
             echo '## Dependencies resolved outside the runtime package'
             echo '```'
-            LD_LIBRARY_PATH="$PWD/dist/merged" \
-              ldd $(find "$PWD/dist/merged" -type f | grep -v '\.bc$') 2>/dev/null \
-              | grep -v "$PWD/dist/merged" | awk '{print $3;}' | sort -u | grep -v '^$'
+            LD_LIBRARY_PATH="$PWD/$GPU_PACKAGE" \
+              ldd $(find "$PWD/$GPU_PACKAGE" -type f | grep -v '\.bc$') 2>/dev/null \
+              | grep -v "$PWD/$GPU_PACKAGE" | awk '{print $3;}' | sort -u | grep -v '^$'
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: gpu-backend-linux-x64
-          path: dist/libausaxs_gpu_sycl.so
+          name: ausaxs-gpu-linux-x64
+          path: ${{ env.GPU_PACKAGE }}
+
+  # Follows AdaptiveCpp's windows-acppllvm.yml. Only CUDA is covered: that workflow never builds the ROCm or
+  # OpenCL backends on Windows, so neither has been shown to work there.
+  backend-windows:
+    name: "SYCL backend (Windows x86_64)"
+    runs-on: windows-2022
+    needs: gate
+    if: needs.gate.outputs.build-windows == 'true'
+    permissions:
+      contents: read
+      packages: write # publishing the toolchain package
+    env:
+      ACPP_PREFIX: ${{ github.workspace }}\_acpp
+      ACPP_LLVM_SRC: ${{ github.workspace }}\_src
+      DIST: ${{ github.workspace }}\_deploy
+      GPU_PACKAGE: dist\ausaxs-gpu-windows-x64
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      # clang-cl and the build of LLVM below both need the MSVC environment, and so does dumpbin, which
+      # --acpp-deploy uses to find indirect dependencies on Windows.
+      - uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
+
+      # One argument per line. The build step configures with exactly these, and the file's hash is the
+      # package version, so a changed flag or pin can never fetch a toolchain that was built another way.
+      - name: Describe the AdaptiveCpp-LLVM toolchain
+        id: toolchain
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $pins = "# image=$env:ImageOS llvm=release/$env:WINDOWS_LLVM_VERSION.x base-llvm=$env:WINDOWS_BASE_LLVM_VERSION " +
+                  "cuda=$env:WINDOWS_CUDA_VERSION acpp=$env:ACPP_REPO@$env:ACPP_COMMIT"
+          # LINK_INTO_TOOLS is what makes this work at all: a Windows DLL cannot be loaded into clang as a
+          # plugin, so the SSCP compiler has to be linked into clang itself.
+          $cmakeArgs = @(
+            '-S', "$env:ACPP_LLVM_SRC\llvm\llvm",
+            '-B', "$env:ACPP_LLVM_SRC\build",
+            '-G', 'Ninja',
+            '-DCMAKE_BUILD_TYPE=Release',
+            '-DCMAKE_C_COMPILER=clang-cl',
+            '-DCMAKE_CXX_COMPILER=clang-cl',
+            "-DCMAKE_INSTALL_PREFIX=$env:ACPP_PREFIX",
+            '-DLLVM_TARGETS_TO_BUILD=X86;NVPTX',
+            '-DLLVM_ENABLE_PROJECTS=clang;openmp;lld;compiler-rt',
+            '-DLLVM_PARALLEL_LINK_JOBS=1',
+            '-DLLVM_EXTERNAL_PROJECTS=AdaptiveCpp',
+            "-DLLVM_EXTERNAL_ADAPTIVECPP_SOURCE_DIR=$env:ACPP_LLVM_SRC\acpp",
+            '-DLLVM_ADAPTIVECPP_LINK_INTO_TOOLS=ON',
+            '-DWITH_CUDA_BACKEND=ON',
+            '-DWITH_ROCM_BACKEND=OFF',
+            '-DWITH_OPENCL_BACKEND=OFF',
+            '-DLLVM_TOOL_BUGPOINT_BUILD=OFF',
+            '-DOPENMP_ENABLE_LIBOMPTARGET=OFF',
+            '-DLLVM_INCLUDE_TESTS=OFF'
+          )
+          New-Item -ItemType Directory -Force _toolchain | Out-Null
+          @($pins) + $cmakeArgs | Set-Content _toolchain\acpp-llvm.txt
+          Get-Content _toolchain\acpp-llvm.txt
+
+          # Named and versioned the way vcpkg's binary cache names its packages on the same feed.
+          $hash = (Get-FileHash _toolchain\acpp-llvm.txt -Algorithm SHA256).Hash.ToLower()
+          "package=adaptivecpp-llvm_x64-windows" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$env:WINDOWS_LLVM_VERSION.0.0-acpp$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      # The toolchain is kept as a package on the organisation's GitHub Packages NuGet feed, beside vcpkg's
+      # binary cache. Unlike actions/cache, packages are never evicted and are visible to every branch.
+      - name: Configure the package feed
+        env:
+          FEED: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+          FEED_USER: ${{ github.repository_owner }}
+          FEED_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $nuget = (Get-Command nuget.exe -ErrorAction SilentlyContinue).Source
+          if (-not $nuget) { $nuget = & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" fetch nuget | Select-Object -Last 1 }
+          & $nuget sources add -Name AUSAXS -Source $env:FEED -UserName $env:FEED_USER -Password $env:FEED_TOKEN -StorePasswordInClearText
+          "NUGET=$nuget" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      # Never fails: anything short of a complete toolchain is a miss, and a miss costs a rebuild.
+      - name: Fetch AdaptiveCpp-LLVM
+        id: fetch
+        env:
+          PACKAGE: ${{ steps.toolchain.outputs.package }}
+          VERSION: ${{ steps.toolchain.outputs.version }}
+        run: |
+          $tar = "$env:SystemRoot\System32\tar.exe" # bsdtar; Git's GNU tar may shadow a bare `tar`
+          $pkg = "$env:RUNNER_TEMP\toolchain-package"
+          & $env:NUGET install $env:PACKAGE -Version $env:VERSION -Source AUSAXS -OutputDirectory $pkg -NonInteractive -DirectDownload
+          $archive = Get-ChildItem -Recurse -File -Path $pkg -Filter acpp-llvm.tar.gz -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (($LASTEXITCODE -eq 0) -and $archive) {
+            New-Item -ItemType Directory -Force $env:ACPP_PREFIX | Out-Null
+            & $tar -xzf $archive.FullName -C $env:ACPP_PREFIX
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "Using the published toolchain $env:PACKAGE $env:VERSION"
+              "hit=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+              Remove-Item -Recurse -Force $pkg
+              exit 0
+            }
+            Write-Host "::warning::$env:PACKAGE $env:VERSION could not be unpacked; building it instead"
+            Remove-Item -Recurse -Force $env:ACPP_PREFIX -ErrorAction SilentlyContinue
+          } else {
+            Write-Host "No published toolchain $env:PACKAGE $env:VERSION; building it"
+          }
+          "hit=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          exit 0
+
+      - name: Install LLVM ${{ env.WINDOWS_BASE_LLVM_VERSION }} (bootstrap compiler)
+        if: steps.fetch.outputs.hit != 'true'
+        uses: ZhongRuoyu/setup-llvm@v0.2.0
+        with:
+          llvm-version: ${{ env.WINDOWS_BASE_LLVM_VERSION }}
+
+      # Needed on a hit too: the cuda deployment component copies libdevice and cudart out of the toolkit.
+      - name: Install CUDA ${{ env.WINDOWS_CUDA_VERSION }}
+        uses: Jimver/cuda-toolkit@v0.2.35
+        with:
+          method: local
+          cuda: ${{ env.WINDOWS_CUDA_VERSION }}
+          sub-packages: '["nvcc", "cudart", "nvfatbin"]'
+
+      - name: Install Ninja
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          Invoke-WebRequest "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip" -OutFile "$env:RUNNER_TEMP\ninja.zip"
+          Expand-Archive -Path "$env:RUNNER_TEMP\ninja.zip" -DestinationPath "$env:RUNNER_TEMP\ninja"
+          "$env:RUNNER_TEMP\ninja" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      # About 40 minutes, and only ever run once per toolchain description.
+      - name: Build LLVM ${{ env.WINDOWS_LLVM_VERSION }} with AdaptiveCpp
+        if: steps.fetch.outputs.hit != 'true'
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $env:PATH = "$env:LLVM_PATH\bin;$env:PATH"
+
+          git clone --depth 1 --single-branch -b "release/$env:WINDOWS_LLVM_VERSION.x" https://github.com/llvm/llvm-project "$env:ACPP_LLVM_SRC\llvm"
+          git clone --recurse-submodules $env:ACPP_REPO "$env:ACPP_LLVM_SRC\acpp"
+          git -C "$env:ACPP_LLVM_SRC\acpp" checkout $env:ACPP_COMMIT
+          git -C "$env:ACPP_LLVM_SRC\acpp" submodule update --init --recursive
+
+          $cmakeArgs = Get-Content _toolchain\acpp-llvm.txt | Where-Object { $_ -and -not $_.StartsWith('#') }
+          cmake @cmakeArgs
+          cmake --build "$env:ACPP_LLVM_SRC\build" --target install
+
+          # Only the installed toolchain is needed from here on, and the build tree is most of the disk.
+          Remove-Item -Recurse -Force $env:ACPP_LLVM_SRC
+
+      # Published straight after the build, so the build is kept even when a later step fails. Allowed to
+      # fail: a pull request from a fork gets a read-only token, and must still be able to build.
+      #
+      # The tree goes in as one archive rather than as package content, because NuGet percent-encodes
+      # file names such as clang++.exe inside the package.
+      - name: Publish AdaptiveCpp-LLVM
+        if: steps.fetch.outputs.hit != 'true'
+        continue-on-error: true
+        env:
+          PACKAGE: ${{ steps.toolchain.outputs.package }}
+          VERSION: ${{ steps.toolchain.outputs.version }}
+          REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+          FEED_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $tar = "$env:SystemRoot\System32\tar.exe"
+          $staging = "$env:RUNNER_TEMP\toolchain-publish"
+          New-Item -ItemType Directory -Force $staging | Out-Null
+          & $tar -czf "$staging\acpp-llvm.tar.gz" -C $env:ACPP_PREFIX .
+
+          $description = "NOT FOR DIRECT USE. The AdaptiveCpp-LLVM toolchain the Windows GPU backend is built with, " +
+                         "published by build-gpu-backend.yml so it is only built once. Built from: " +
+                         ((Get-Content _toolchain\acpp-llvm.txt) -join ' ')
+          # The repository element links the package to this repository, which is what lets later runs read it.
+          $nuspec = @"
+          <?xml version="1.0" encoding="utf-8"?>
+          <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+            <metadata>
+              <id>$env:PACKAGE</id>
+              <version>$env:VERSION</version>
+              <authors>AUSAXS</authors>
+              <description>$([System.Security.SecurityElement]::Escape($description))</description>
+              <repository type="git" url="$env:REPOSITORY_URL" />
+            </metadata>
+            <files>
+              <file src="acpp-llvm.tar.gz" target="tools" />
+            </files>
+          </package>
+          "@
+          Set-Content -Path "$staging\toolchain.nuspec" -Value $nuspec
+          & $env:NUGET pack "$staging\toolchain.nuspec" -BasePath $staging -OutputDirectory $staging -NoPackageAnalysis -NonInteractive
+          $nupkg = Get-ChildItem "$staging\*.nupkg" | Select-Object -First 1
+          '{0}: {1:N0} MiB' -f $nupkg.Name, ($nupkg.Length / 1MB)
+          & $env:NUGET push $nupkg.FullName -Source AUSAXS -ApiKey $env:FEED_TOKEN -Timeout 3600 -NonInteractive
+          Remove-Item -Recurse -Force $staging
+
+      - name: Check the toolchain
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          python "$env:ACPP_PREFIX\bin\acpp" --version
+          if (-not (Test-Path "$env:ACPP_PREFIX\bin\clang.exe")) {
+            Write-Host "::error::the AdaptiveCpp-LLVM install has no clang.exe"
+            exit 1
+          }
+
+      - name: Deploy runtime components
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          function Deploy-Component([string]$component, [string]$sentinel) {
+            Write-Host "=== deploying component: $component ==="
+            python "$env:ACPP_PREFIX\bin\acpp" "--acpp-deploy=${component}:$env:DIST\$component"
+            if (-not (Test-Path "$env:DIST\$component\$sentinel")) {
+              Write-Host "::error::component '$component' deployed without '$sentinel'"
+              Write-Host "  --acpp-deploy reports missing files as warnings but still exits 0, so check the log above."
+              exit 1
+            }
+          }
+
+          Deploy-Component core 'acpp-rt.dll'
+          Deploy-Component cuda 'hipSYCL\ext\bitcode\ptx\libdevice.10.bc'
+          Get-ChildItem $env:DIST -Directory | ForEach-Object {
+            $bytes = (Get-ChildItem $_.FullName -Recurse -File | Measure-Object -Property Length -Sum).Sum
+            '{0}: {1:N0} MiB' -f $_.Name, ($bytes / 1MB)
+          }
+
+      # The top-level project needs CURL to configure, though the backend never links it.
+      - name: Install CURL
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install curl --triplet x64-windows-static
+
+      # Through the top-level project, as on Linux: the backend takes the export macro from the core headers.
+      # The compiler must be AdaptiveCpp's clang: the launcher hands its command line to acpp.
+      - name: Configure AUSAXS backend
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          cmake -S . -B build-gpu -G Ninja `
+            "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
+            "-DCMAKE_CXX_COMPILER=$env:ACPP_PREFIX\bin\clang.exe" `
+            "-DAdaptiveCpp_ROOT=$env:ACPP_PREFIX" `
+            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DBUILD_TESTS=OFF `
+            -DBUILD_EXECUTABLES=OFF
+
+      - name: Build backend
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          cmake --build build-gpu --target ausaxs_gpu_sycl
+
+      - name: Check exported ABI symbols
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $lib = 'build-gpu\bin\ausaxs_gpu_sycl.dll'
+          if (-not (Test-Path $lib)) { Write-Host "::error::$lib was not built"; exit 1 }
+          $expected = Select-String -Path include\gpu\gpu\GPUBackendABI.h -Pattern 'symbol_[a-z_]+ *= *"(ausaxs_gpu_[a-z_]+)"' `
+            | ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique
+          if (-not $expected) { Write-Host "::error::no ABI symbols found in the header"; exit 1 }
+          $exports = dumpbin /nologo /exports $lib | Out-String
+          $missing = 0
+          foreach ($sym in $expected) {
+            if ($exports -match "\b$sym\b") { Write-Host "  ok      $sym" }
+            else { Write-Host "  MISSING $sym"; $missing = 1 }
+          }
+          exit $missing
+
+      - name: Assemble runtime package
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          New-Item -ItemType Directory -Force $env:GPU_PACKAGE | Out-Null
+          Get-ChildItem $env:DIST -Directory | ForEach-Object {
+            Copy-Item -Recurse -Force "$($_.FullName)\*" $env:GPU_PACKAGE
+          }
+          Copy-Item build-gpu\bin\ausaxs_gpu_sycl.dll $env:GPU_PACKAGE
+
+      - name: Prune runtime package
+        run: python .github/prune_gpu_package.py $env:GPU_PACKAGE
+
+      - name: Load backend and query the ABI
+        run: |
+          $expected_version = [regex]::Match((Get-Content include\gpu\gpu\GPUBackendABI.h -Raw), 'version *= *([0-9]+)').Groups[1].Value
+          Write-Host "Header declares ABI version $expected_version"
+          $probe_src = @'
+          #include <windows.h>
+          #include <stdbool.h>
+          #include <stdio.h>
+          int main(int argc, char** argv) {
+              HMODULE h = LoadLibraryA(argv[1]);
+              if (!h) {printf("LoadLibrary failed: error %lu\n", GetLastError()); return 2;}
+              int (*abi_version)(void) = (int (*)(void)) GetProcAddress(h, "ausaxs_gpu_abi_version");
+              bool (*available)(void) = (bool (*)(void)) GetProcAddress(h, "ausaxs_gpu_available");
+              const char* (*last_error)(void) = (const char* (*)(void)) GetProcAddress(h, "ausaxs_gpu_last_error");
+              if (!abi_version || !available || !last_error) {printf("GetProcAddress failed: error %lu\n", GetLastError()); return 3;}
+              printf("abi_version=%d\n", abi_version());
+              printf("available=%d\n", available() ? 1 : 0);
+              const char* err = last_error();
+              printf("last_error=%s\n", err ? err : "(none)");
+              return 0;
+          }
+          '@
+          Set-Content -Path "$env:RUNNER_TEMP\abi_probe.c" -Value $probe_src
+          cl /nologo "$env:RUNNER_TEMP\abi_probe.c" "/Fo:$env:RUNNER_TEMP\abi_probe.obj" "/Fe:$env:RUNNER_TEMP\abi_probe.exe"
+          if ($LASTEXITCODE -ne 0) { Write-Host "::error::the probe did not compile"; exit 1 }
+
+          # PATH is how LoadLibrary finds the runtime beside the backend, as LD_LIBRARY_PATH is on Linux. The
+          # version is parsed out of stdout, so bumping the ABI can never collide with the probe's exit codes.
+          $env:PATH = "$PWD\$env:GPU_PACKAGE;$env:PATH"
+          $out = & "$env:RUNNER_TEMP\abi_probe.exe" "$PWD\$env:GPU_PACKAGE\ausaxs_gpu_sycl.dll" 2>&1 | Out-String
+          $rc = $LASTEXITCODE
+          Write-Host $out
+          if ($rc -ne 0) {
+            Write-Host "::error::the backend could not be loaded from the deployed package (probe exit $rc)"
+            exit 1
+          }
+          $reported = [regex]::Match($out, '(?m)^abi_version=([0-9]+)').Groups[1].Value
+          if ($reported -ne $expected_version) {
+            Write-Host "::error::backend reports ABI version '$reported', header declares '$expected_version'"
+            exit 1
+          }
+          Write-Host "ABI version $reported matches the header."
+
+      - name: Report dependencies resolved outside the package
+        continue-on-error: true
+        run: |
+          $files = Get-ChildItem -Recurse -File $env:GPU_PACKAGE -Include *.dll, *.exe
+          $local = $files | ForEach-Object { $_.Name.ToLower() } | Sort-Object -Unique
+          $system = Join-Path $env:SystemRoot 'System32'
+          $outside = foreach ($f in $files) {
+            dumpbin /nologo /dependents $f.FullName | ForEach-Object {
+              if ($_ -match '^\s+(\S+\.dll)\s*$') { $Matches[1].ToLower() }
+            }
+          }
+          # nvcuda.dll is expected here: like libcuda.so on Linux it comes with the driver and must not be shipped.
+          $outside = $outside | Sort-Object -Unique | Where-Object {
+            ($local -notcontains $_) -and ($_ -notlike 'api-ms-win-*') -and ($_ -notlike 'ext-ms-*') -and
+            -not (Test-Path (Join-Path $system $_))
+          }
+          $report = @('## Dependencies resolved outside the runtime package (Windows)', '```') + $outside + @('```')
+          $report | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
       - uses: actions/upload-artifact@v4
         with:
-          name: gpu-runtime-core-linux-x64
-          path: dist/core/*
+          name: ausaxs-gpu-windows-x64
+          path: ${{ env.GPU_PACKAGE }}
+
+  # Follows AdaptiveCpp's macos-metal.yml. The backend builds and loads, but cannot yet run its kernel on an
+  # Apple GPU: AdaptiveCpp's Metal backend implements no 64-bit atomics (its atomic64 aspect is hard-coded
+  # false), and the histogram bins are accumulated with them. Until that changes the kernel fails on first
+  # submit and the library falls back to the CPU, so this job proves the toolchain and packaging only.
+  #
+  # Disabled for that reason. Re-enable by dropping the `false &&` from its condition.
+  backend-macos:
+    name: "SYCL backend (macOS arm64)"
+    runs-on: macos-26
+    needs: gate
+    if: false && needs.gate.outputs.build-macos == 'true'
+    env:
+      ACPP_PREFIX: ${{ github.workspace }}/_acpp
+      DIST: ${{ github.workspace }}/_deploy
+      GPU_PACKAGE: dist/ausaxs-gpu-macos-arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          # brew exits non-zero for things like an already-installed formula; the build below is what
+          # finds out whether anything is really missing.
+          set +e
+          brew update
+          brew install "llvm@${MACOS_LLVM_VERSION}" "lld@${MACOS_LLVM_VERSION}" libomp ninja
+          set -e
+
+      - name: Download metal-cpp
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/metal-cpp.zip" "$METAL_CPP_URL"
+          unzip -q "$RUNNER_TEMP/metal-cpp.zip" -d "$RUNNER_TEMP/metal-cpp"
+
+      - name: Build AdaptiveCpp
+        run: |
+          set -euo pipefail
+          llvm_prefix=$(brew --prefix "llvm@${MACOS_LLVM_VERSION}")
+          lld_prefix=$(brew --prefix "lld@${MACOS_LLVM_VERSION}")
+          omp_prefix=$(brew --prefix libomp)
+          metal_cpp=$(ls -d "$RUNNER_TEMP"/metal-cpp/metal-cpp* | head -1)
+
+          git clone --recurse-submodules "$ACPP_REPO" "$RUNNER_TEMP/acpp"
+          cd "$RUNNER_TEMP/acpp"
+          git checkout "$ACPP_COMMIT"
+          git submodule update --init --recursive
+
+          # The feature profile must be named: AdaptiveCpp defaults to 'none' on Apple outside an LLVM tree,
+          # which drops the generic compiler that Metal is reached through.
+          cmake -S . -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$ACPP_PREFIX" \
+            -DCMAKE_C_COMPILER=/usr/bin/clang \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+            -DCLANG_EXECUTABLE_PATH="${llvm_prefix}/bin/clang++" \
+            -DLLVM_DIR="${llvm_prefix}/lib/cmake/llvm" \
+            -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
+            -DACPP_COMPILER_FEATURE_PROFILE=full \
+            -DWITH_METAL_BACKEND=ON \
+            -DMETAL_INCLUDE_DIR="$metal_cpp" \
+            -DWITH_OPENCL_BACKEND=OFF \
+            -DWITH_CUDA_BACKEND=OFF \
+            -DWITH_ROCM_BACKEND=OFF \
+            -DACPP_LLD_PATH="${lld_prefix}/bin/ld64.lld" \
+            -DSEQUENTIAL_LINK_LINE="${omp_prefix}/lib/libomp.dylib" \
+            "-DOMP_LINK_LINE=-fopenmp ${omp_prefix}/lib/libomp.dylib -L${omp_prefix}/lib/" \
+            "-DOMP_CXX_FLAGS=-fopenmp -D_ENABLE_EXTENDED_ALIGNED_STORAGE -I${omp_prefix}/include"
+          cmake --build build --target install
+          "$ACPP_PREFIX/bin/acpp" --version
+          cd / && rm -rf "$RUNNER_TEMP/acpp"
+
+      - name: Deploy runtime components
+        run: |
+          set -euo pipefail
+          export PATH="$ACPP_PREFIX/bin:$PATH"
+
+          echo "=== deploying component: core ==="
+          acpp "--acpp-deploy=core:${DIST}/core"
+          if [ ! -e "${DIST}/core/libacpp-rt.dylib" ]; then
+            echo "::error::component 'core' deployed without 'libacpp-rt.dylib'"
+            echo "  --acpp-deploy reports missing files as 'acpp error:' lines but still exits 0, so check the log above."
+            exit 1
+          fi
+
+          # AdaptiveCpp ships no deployment manifest for Metal, so the component is assembled by hand, in
+          # the layout the others use: the runtime plugin, its IR translator and its device bitcode library,
+          # at their paths relative to lib/. The runtime finds them there, relative to libacpp-rt.
+          echo "=== deploying component: metal ==="
+          cd "$ACPP_PREFIX/lib"
+          for f in hipSYCL/librt-backend-metal.dylib \
+                   hipSYCL/llvm-to-backend/libllvm-to-metal.dylib \
+                   hipSYCL/bitcode/libkernel-sscp-metal-full.bc; do
+            if [ ! -e "$f" ]; then
+              echo "::error::AdaptiveCpp installed without ${f}; was it built with -DWITH_METAL_BACKEND=ON?"
+              exit 1
+            fi
+            mkdir -p "${DIST}/metal/$(dirname "$f")"
+            cp -L "$f" "${DIST}/metal/$f"
+            echo "   ${ACPP_PREFIX}/lib/$f -> ${DIST}/metal/$f"
+          done
+          du -sh "$DIST"/*
+
+      # Through the top-level project, as on Linux: the backend takes the export macro from the core headers.
+      # The CURL it needs to configure comes with the macOS SDK.
+      - name: Configure AUSAXS backend
+        run: |
+          cmake -S . -B build-gpu -G Ninja \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DAdaptiveCpp_ROOT="$ACPP_PREFIX" \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXECUTABLES=OFF
+
+      - name: Build backend
+        run: cmake --build build-gpu --target ausaxs_gpu_sycl
+
+      - name: Check exported ABI symbols
+        run: |
+          set -euo pipefail
+          lib=build-gpu/lib/libausaxs_gpu_sycl.dylib
+          test -f "$lib"
+          expected=$(grep -oE 'symbol_[a-z_]+ *= *"ausaxs_gpu_[a-z_]+"' include/gpu/gpu/GPUBackendABI.h \
+            | grep -oE 'ausaxs_gpu_[a-z_]+' | sort -u)
+          test -n "$expected"
+          # Mach-O prefixes C symbols with an underscore. Dumped to a file first for the pipefail reason
+          # given in the Linux job.
+          nm -gU "$lib" | awk '{print $NF}' | sed 's/^_//' > "$RUNNER_TEMP/backend_syms.txt"
+          missing=0
+          for sym in $expected; do
+            if grep -qx "$sym" "$RUNNER_TEMP/backend_syms.txt"; then
+              echo "  ok      $sym"
+            else
+              echo "  MISSING $sym"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      # As on Linux: -R without -L copies the deployed symlinks as symlinks, for the prune step to collapse.
+      - name: Assemble runtime package
+        run: |
+          set -euo pipefail
+          mkdir -p "$GPU_PACKAGE"
+          for component in "$DIST"/*/; do
+            cp -R "$component"/. "$GPU_PACKAGE/"
+          done
+          cp build-gpu/lib/libausaxs_gpu_sycl.dylib "$GPU_PACKAGE/"
+          du -sh "$GPU_PACKAGE"
+
+      - name: Prune runtime package
+        run: python3 .github/prune_gpu_package.py "$GPU_PACKAGE"
+
+      - name: Load backend and query the ABI
+        run: |
+          set -euo pipefail
+          expected_version=$(grep -oE 'version *= *[0-9]+' include/gpu/gpu/GPUBackendABI.h \
+            | grep -oE '[0-9]+' | head -1)
+          echo "Header declares ABI version ${expected_version}"
+          cat > "$RUNNER_TEMP/abi_probe.c" <<'PROBE'
+          #include <dlfcn.h>
+          #include <stdbool.h>
+          #include <stdio.h>
+          int main(int argc, char** argv) {
+              void* h = dlopen(argv[1], RTLD_NOW);
+              if (!h) {printf("dlopen failed: %s\n", dlerror()); return 2;}
+              int (*abi_version)(void) = dlsym(h, "ausaxs_gpu_abi_version");
+              bool (*available)(void) = dlsym(h, "ausaxs_gpu_available");
+              const char* (*last_error)(void) = dlsym(h, "ausaxs_gpu_last_error");
+              if (!abi_version || !available || !last_error) {printf("dlsym failed: %s\n", dlerror()); return 3;}
+              printf("abi_version=%d\n", abi_version());
+              printf("available=%d\n", available() ? 1 : 0);
+              const char* err = last_error();
+              printf("last_error=%s\n", err ? err : "(none)");
+              return 0;
+          }
+          PROBE
+          cc -O0 -o "$RUNNER_TEMP/abi_probe" "$RUNNER_TEMP/abi_probe.c"
+          set +e
+          out=$(DYLD_LIBRARY_PATH="$PWD/$GPU_PACKAGE:${DYLD_LIBRARY_PATH:-}" \
+            "$RUNNER_TEMP/abi_probe" "$PWD/$GPU_PACKAGE/libausaxs_gpu_sycl.dylib" 2>&1)
+          rc=$?
+          set -e
+          echo "$out"
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::the backend could not be loaded from the deployed package (probe exit $rc)"
+            exit 1
+          fi
+          reported=$(echo "$out" | grep -oE '^abi_version=[0-9]+' | cut -d= -f2)
+          if [ "$reported" != "$expected_version" ]; then
+            echo "::error::backend reports ABI version '$reported', header declares '$expected_version'"
+            exit 1
+          fi
+          echo "ABI version $reported matches the header."
+
+      # Install names are what decide this on macOS, and Homebrew's are absolute paths into its own
+      # prefix, so anything listed here would still be loaded from the build machine's Homebrew.
+      - name: Report dependencies resolved outside the package
+        continue-on-error: true
+        run: |
+          {
+            echo '## Dependencies resolved outside the runtime package (macOS)'
+            echo '```'
+            find "$PWD/$GPU_PACKAGE" -type f ! -name '*.bc' -print0 \
+              | xargs -0 otool -L 2>/dev/null \
+              | awk '/^\t/ {print $1}' \
+              | grep -vE '^(/usr/lib/|/System/)' | sort -u
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
-        if: hashFiles('dist/cuda/**') != ''
         with:
-          name: gpu-runtime-cuda-linux-x64
-          path: dist/cuda/*
-
-      - uses: actions/upload-artifact@v4
-        if: hashFiles('dist/hip/**') != ''
-        with:
-          name: gpu-runtime-hip-linux-x64
-          path: dist/hip/*
-
-      - uses: actions/upload-artifact@v4
-        if: hashFiles('dist/ocl/**') != ''
-        with:
-          name: gpu-runtime-ocl-linux-x64
-          path: dist/ocl/*
+          name: ausaxs-gpu-macos-arm64
+          path: ${{ env.GPU_PACKAGE }}

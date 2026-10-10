@@ -1,3 +1,6 @@
+add_library(ausaxs_gpu INTERFACE)
+target_include_directories(ausaxs_gpu INTERFACE "${CMAKE_SOURCE_DIR}/include/gpu")
+
 include(GNUInstallDirs)
 
 if (NOT ACPP_TARGETS AND NOT DEFINED ENV{ACPP_TARGETS})
@@ -8,15 +11,16 @@ find_package(AdaptiveCpp CONFIG QUIET)
 if (AdaptiveCpp_FOUND)
 	add_library(ausaxs_gpu_sycl SHARED EXCLUDE_FROM_ALL "SYCL/SYCLBackend.cpp")
 	set_target_properties(ausaxs_gpu_sycl PROPERTIES
-		COMPILE_OPTIONS ""
 		COMPILE_DEFINITIONS ""
 		INCLUDE_DIRECTORIES ""
 		LINK_LIBRARIES ""
 	)
-	target_include_directories(ausaxs_gpu_sycl PRIVATE "${CMAKE_SOURCE_DIR}/include/gpu")
-	target_compile_options(ausaxs_gpu_sycl PRIVATE -O3) # the kernel is the point; never build it unoptimised
+	if (WIN32)
+		set_target_properties(ausaxs_gpu_sycl PROPERTIES PREFIX "")
+	endif()
+	target_link_libraries(ausaxs_gpu_sycl PRIVATE ausaxs_gpu)
 	add_sycl_to_target(TARGET ausaxs_gpu_sycl SOURCES "SYCL/SYCLBackend.cpp")
-	install(TARGETS ausaxs_gpu_sycl LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} OPTIONAL)
+	install(TARGETS ausaxs_gpu_sycl LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} OPTIONAL)
 else()
 	set(_no_acpp "${CMAKE_CURRENT_BINARY_DIR}/no_adaptivecpp.cmake")
 	file(WRITE ${_no_acpp}
