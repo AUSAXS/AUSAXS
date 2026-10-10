@@ -6,13 +6,14 @@
 #include <constants/ConstantsAxes.h>
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
-#include <form_factor/FormFactorConcepts.h>
+#include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/NeutronFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/detail/LookupHelpers.h>
 #include <settings/ExvSettings.h>
 #include <settings/FormFactorSettings.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
@@ -42,21 +43,39 @@ namespace {
         }
     }
 
-    using ff_profile_t = std::array<double, constants::axes::q_axis.bins>; // A single form factor evaluated over the default q axis.
-    using profile_set_t = std::vector<ff_profile_t>; // One such profile per active form factor slot.
+    using profile_set_t = std::vector<manager::detail::profile_t>; // One profile per active form factor slot.
 
     /**
-     * @brief Evaluate every active atomic form factor over the default q axis.
-     *        Evaluating first & then multiplying the results is faster than evaluating each product individually. 
+     * @brief Evaluate a single form factor over the default q axis, for the current probe.
+     *        The excluded volume form factor is a normalized shape rather than a scattering length, so it is the same for both probes.
+     *
+     * @param eval Evaluates a form factor of either probe at a given q value.
      */
-    template<FormFactorLookupType FormFactorLookup>
-    profile_set_t evaluate_atomic_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
+    template<typename F>
+    manager::detail::profile_t evaluate_profile(form_factor_t type, F&& eval) {
+        manager::detail::profile_t profile;
+        auto fill = [&profile, &eval] (const auto& ff) {
+            for (int q = 0; q < static_cast<int>(profile.size()); ++q) {profile[q] = eval(ff, constants::axes::q_vals[q]);}
+        };
+
+        if (type == form_factor_t::EXCLUDED_VOLUME) {fill(xray::raw::get(type)); return profile;}
+        switch (settings::scattering::radiation.value) {
+            case settings::scattering::Radiation::XRay:     fill(xray::raw::get(type)); break;
+            case settings::scattering::Radiation::Neutron:  fill(neutron::protonated::get(type)); break;
+        }
+        return profile;
+    }
+
+    /**
+     * @brief Evaluate every active form factor over the default q axis.
+     *        Evaluating first & then multiplying the results is faster than evaluating each product individually. 
+     *
+     * @param eval Evaluates the profile of a single form factor, e.g. manager::evaluate_amplitude.
+     */
+    profile_set_t evaluate_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices, manager::detail::profile_t (*eval)(form_factor_t)) {
         profile_set_t profiles(form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
-            const auto& ff = FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i]));
-            for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
-                profiles[i][q] = ff.evaluate(constants::axes::q_vals[q]);
-            }
+            profiles[i] = eval(static_cast<form_factor_t>(ff_indices[i]));
         }
         return profiles;
     }
@@ -182,15 +201,21 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     // must come first; the profile evaluations and table generators below only fill the active sub-block, which they read from here
     form_factor::detail::active_ff_count = active_count;
 
-    const auto raw_profiles        = evaluate_atomic_profiles<lookup::detail::RawFormFactorLookup>(this->ff_indices);
-    const auto normalized_profiles = evaluate_atomic_profiles<lookup::detail::NormalizedFormFactorLookup>(this->ff_indices);
-    const auto exv_profiles        = evaluate_exv_profiles(this->ff_indices);
+    const auto atomic_profiles = evaluate_profiles(this->ff_indices, manager::evaluate_amplitude);
+    const auto exv_profiles = evaluate_exv_profiles(this->ff_indices);
 
-    this->raw_atomic_table         = generate_atomic_table(raw_profiles);
-    this->raw_cross_table          = generate_cross_table(raw_profiles, exv_profiles);
-    this->raw_exv_table            = generate_exv_table(exv_profiles);
-    this->normalized_atomic_table  = generate_atomic_table(normalized_profiles);
-    this->normalized_cross_table   = generate_cross_table(normalized_profiles, exv_profiles);
+    this->raw_atomic_table = generate_atomic_table(atomic_profiles);
+    this->raw_self_table   = evaluate_profiles(this->ff_indices, manager::evaluate_self);
+    this->raw_cross_table  = generate_cross_table(atomic_profiles, exv_profiles);
+    this->raw_exv_table    = generate_exv_table(exv_profiles);
+}
+
+manager::detail::profile_t manager::evaluate_amplitude(form_factor_t type) {
+    return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate(q);});
+}
+
+manager::detail::profile_t manager::evaluate_self(form_factor_t type) {
+    return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() {

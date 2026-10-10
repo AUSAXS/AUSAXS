@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <form_factor/ExvFormFactor.h>
-#include <form_factor/NormalizedFormFactor.h>
+#include <form_factor/FormFactor.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <settings/All.h>
 #include <support/form_factor_helper.h>
@@ -36,12 +36,12 @@ TEST_CASE("ExvFormFactor: switch volumes") {
 
         SECTION("cross") {
             const auto* tables = manager::get_active_product_tables();
-            const auto& table = tables->normalized_cross_table;
+            const auto& table = tables->raw_cross_table;
             for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
                 for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
                     auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
                     auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
-                    const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(t1);
+                    const xray::FormFactor& ff1_obj = xray::raw::get(t1);
                     const FormFactorProduct& ff = table.index(ff1, ff2);
                     for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                         double expected = ff1_obj.evaluate(constants::axes::q_vals[i])*exv(t2, constants::axes::q_vals[i]);

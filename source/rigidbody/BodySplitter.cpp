@@ -9,7 +9,6 @@
 #include <io/Reader.h>
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBStructure.h>
-#include <settings/MoleculeSettings.h>
 #include <utility/Exceptions.h>
 
 #include <algorithm>
@@ -107,24 +106,23 @@ Molecule BodySplitter::split(const io::File& input, const std::vector<int>& spli
 
 data::Molecule BodySplitter::split(const io::File& input) {
     io::pdb::PDBStructure data = io::Reader::read(input);
-    if (settings::molecule::implicit_hydrogens) {data.add_implicit_hydrogens();}
-    std::vector<PDBAtom>& atoms = data.atoms;
+    const std::vector<PDBAtom>& atoms = data.atoms;
+    auto reduced = data.reduced_representation();
 
+    // one body per chain; the waters of the structure are discarded
     std::vector<Body> bodies;
-    auto begin = atoms.begin();
-    char current_id = atoms[0].chainID;
-    for (int i = 0; i < static_cast<int>(atoms.size()); i++) {
-        if (atoms[i].chainID != current_id) {
-            std::vector<PDBAtom> a(begin, atoms.begin() + i);
-            auto reduced = PDBStructure(a, {}).reduced_representation();
-            bodies.emplace_back(reduced.atoms, reduced.waters);
-            if (reduced.metadata) {bodies.back().set_metadata(std::move(*reduced.metadata));}
-            begin = atoms.begin() + i;
-            current_id = atoms[i].chainID;
+    auto add_body = [&] (std::ptrdiff_t begin, std::ptrdiff_t end) {
+        bodies.emplace_back(std::vector<AtomFF>(reduced.atoms.begin() + begin, reduced.atoms.begin() + end), std::vector<Water>{});
+        if (reduced.metadata) {bodies.back().set_metadata(reduced.metadata->subrange(begin, end));}
+    };
+
+    std::ptrdiff_t begin = 0;
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        if (atoms[i].chainID != atoms[begin].chainID) {
+            add_body(begin, i);
+            begin = i;
         }
     }
-    auto reduced = PDBStructure(std::vector<PDBAtom>(begin, atoms.end()), {}).reduced_representation();
-    bodies.emplace_back(reduced.atoms, reduced.waters);
-    if (reduced.metadata) {bodies.back().set_metadata(std::move(*reduced.metadata));}
+    add_body(begin, static_cast<std::ptrdiff_t>(atoms.size()));
     return Molecule(bodies);
 }

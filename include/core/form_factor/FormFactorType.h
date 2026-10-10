@@ -5,6 +5,7 @@
 
 #include <constants/Constants.h>
 #include <form_factor/FormFactorTable.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/Exceptions.h>
 
 #include <array>
@@ -85,11 +86,11 @@ namespace ausaxs::form_factor {
         int hydrogens;                                      // The number of implicit hydrogens bound to the element.
         int electrons;                                      // The number of electrons, including those of the bound hydrogens.
         double mass;                                        // The mass in amu, including the bound hydrogens.
-        constants::form_factor::FiveGaussian coefficients;  // The five-Gaussian approximation of the vacuum form factor.
+        xray::coefficients::FiveGaussian xray_coefficients; // The five-Gaussian approximation of the vacuum X-ray form factor.
     };
 
     namespace detail {
-        namespace ff = constants::form_factor;
+        namespace ff = xray::coefficients;
         using constants::atom_t;
         using constants::mass::get_mass;
 
@@ -99,37 +100,37 @@ namespace ausaxs::form_factor {
          *        Its excluded volume is described separately in form_factor/ExvTable.h, and is optional. 
          */
         constexpr std::array<FormFactorInfo, total_ff_count> ff_info_table = {{
-            {.type=form_factor_t::EXCLUDED_VOLUME, .name="EXV", .element=atom_t::unknown, .hydrogens=0, .electrons=0,  .mass=0,                   .coefficients=ff::excluded_volume},
-            {.type=form_factor_t::OH,              .name="OH",  .element=atom_t::O,       .hydrogens=1, .electrons=9,  .mass=16.999,              .coefficients=ff::OH_alc         },
-            {.type=form_factor_t::H,               .name="H",   .element=atom_t::H,       .hydrogens=0, .electrons=1,  .mass=get_mass(atom_t::H), .coefficients=ff::H              },
-            {.type=form_factor_t::C,               .name="C",   .element=atom_t::C,       .hydrogens=0, .electrons=6,  .mass=get_mass(atom_t::C), .coefficients=ff::C              },
-            {.type=form_factor_t::CH,              .name="CH",  .element=atom_t::C,       .hydrogens=1, .electrons=7,  .mass=13.019,              .coefficients=ff::CH_sp3         },
-            {.type=form_factor_t::CH2,             .name="CH2", .element=atom_t::C,       .hydrogens=2, .electrons=8,  .mass=14.027,              .coefficients=ff::CH2_sp3        },
-            {.type=form_factor_t::CH3,             .name="CH3", .element=atom_t::C,       .hydrogens=3, .electrons=9,  .mass=15.035,              .coefficients=ff::CH3_sp3        },
-            {.type=form_factor_t::N,               .name="N",   .element=atom_t::N,       .hydrogens=0, .electrons=7,  .mass=14.00674,            .coefficients=ff::N              },
-            {.type=form_factor_t::NH,              .name="NH",  .element=atom_t::N,       .hydrogens=1, .electrons=8,  .mass=15.01474,            .coefficients=ff::NH             },
-            {.type=form_factor_t::NH2,             .name="NH2", .element=atom_t::N,       .hydrogens=2, .electrons=9,  .mass=16.02274,            .coefficients=ff::NH2            },
-            {.type=form_factor_t::NH3,             .name="NH3", .element=atom_t::N,       .hydrogens=3, .electrons=10, .mass=17.03074,            .coefficients=ff::NH3_plus       },
-            {.type=form_factor_t::O,               .name="O",   .element=atom_t::O,       .hydrogens=0, .electrons=8,  .mass=15.999,              .coefficients=ff::O              },
-            {.type=form_factor_t::S,               .name="S",   .element=atom_t::S,       .hydrogens=0, .electrons=16, .mass=32.06,               .coefficients=ff::S              },
-            {.type=form_factor_t::SH,              .name="SH",  .element=atom_t::S,       .hydrogens=1, .electrons=17, .mass=33.06,               .coefficients=ff::SH             },
-            {.type=form_factor_t::F,               .name="F",   .element=atom_t::F,       .hydrogens=0, .electrons=9,  .mass=get_mass(atom_t::F),  .coefficients=ff::F             },
-            {.type=form_factor_t::Na,              .name="Na",  .element=atom_t::Na,      .hydrogens=0, .electrons=11, .mass=get_mass(atom_t::Na), .coefficients=ff::Na            },
-            {.type=form_factor_t::Mg,              .name="Mg",  .element=atom_t::Mg,      .hydrogens=0, .electrons=12, .mass=get_mass(atom_t::Mg), .coefficients=ff::Mg            },
-            {.type=form_factor_t::P,               .name="P",   .element=atom_t::P,       .hydrogens=0, .electrons=15, .mass=get_mass(atom_t::P),  .coefficients=ff::P             },
-            {.type=form_factor_t::Cl,              .name="Cl",  .element=atom_t::Cl,      .hydrogens=0, .electrons=17, .mass=get_mass(atom_t::Cl), .coefficients=ff::Cl            },
-            {.type=form_factor_t::K,               .name="K",   .element=atom_t::K,       .hydrogens=0, .electrons=19, .mass=get_mass(atom_t::K),  .coefficients=ff::K             },
-            {.type=form_factor_t::Ca,              .name="Ca",  .element=atom_t::Ca,      .hydrogens=0, .electrons=20, .mass=get_mass(atom_t::Ca), .coefficients=ff::Ca            },
-            {.type=form_factor_t::Mn,              .name="Mn",  .element=atom_t::Mn,      .hydrogens=0, .electrons=25, .mass=get_mass(atom_t::Mn), .coefficients=ff::Mn            },
-            {.type=form_factor_t::Fe,              .name="Fe",  .element=atom_t::Fe,      .hydrogens=0, .electrons=26, .mass=get_mass(atom_t::Fe), .coefficients=ff::Fe            },
-            {.type=form_factor_t::Co,              .name="Co",  .element=atom_t::Co,      .hydrogens=0, .electrons=27, .mass=get_mass(atom_t::Co), .coefficients=ff::Co            },
-            {.type=form_factor_t::Ni,              .name="Ni",  .element=atom_t::Ni,      .hydrogens=0, .electrons=28, .mass=get_mass(atom_t::Ni), .coefficients=ff::Ni            },
-            {.type=form_factor_t::Cu,              .name="Cu",  .element=atom_t::Cu,      .hydrogens=0, .electrons=29, .mass=get_mass(atom_t::Cu), .coefficients=ff::Cu            },
-            {.type=form_factor_t::Zn,              .name="Zn",  .element=atom_t::Zn,      .hydrogens=0, .electrons=30, .mass=get_mass(atom_t::Zn), .coefficients=ff::Zn            },
-            {.type=form_factor_t::Se,              .name="Se",  .element=atom_t::Se,      .hydrogens=0, .electrons=34, .mass=get_mass(atom_t::Se), .coefficients=ff::Se            },
-            {.type=form_factor_t::Br,              .name="Br",  .element=atom_t::Br,      .hydrogens=0, .electrons=35, .mass=get_mass(atom_t::Br), .coefficients=ff::Br            },
-            {.type=form_factor_t::I,               .name="I",   .element=atom_t::I,       .hydrogens=0, .electrons=53, .mass=get_mass(atom_t::I),  .coefficients=ff::I             },
-            {.type=form_factor_t::OTHER,           .name="OTH", .element=atom_t::Ar,      .hydrogens=0, .electrons=18, .mass=39.948,              .coefficients=ff::other          },
+            {.type=form_factor_t::EXCLUDED_VOLUME, .name="EXV", .element=atom_t::unknown, .hydrogens=0, .electrons=0,  .mass=0,                   .xray_coefficients=ff::excluded_volume},
+            {.type=form_factor_t::OH,              .name="OH",  .element=atom_t::O,       .hydrogens=1, .electrons=9,  .mass=16.999,              .xray_coefficients=ff::OH_alc         },
+            {.type=form_factor_t::H,               .name="H",   .element=atom_t::H,       .hydrogens=0, .electrons=1,  .mass=get_mass(atom_t::H), .xray_coefficients=ff::H              },
+            {.type=form_factor_t::C,               .name="C",   .element=atom_t::C,       .hydrogens=0, .electrons=6,  .mass=get_mass(atom_t::C), .xray_coefficients=ff::C              },
+            {.type=form_factor_t::CH,              .name="CH",  .element=atom_t::C,       .hydrogens=1, .electrons=7,  .mass=13.019,              .xray_coefficients=ff::CH_sp3         },
+            {.type=form_factor_t::CH2,             .name="CH2", .element=atom_t::C,       .hydrogens=2, .electrons=8,  .mass=14.027,              .xray_coefficients=ff::CH2_sp3        },
+            {.type=form_factor_t::CH3,             .name="CH3", .element=atom_t::C,       .hydrogens=3, .electrons=9,  .mass=15.035,              .xray_coefficients=ff::CH3_sp3        },
+            {.type=form_factor_t::N,               .name="N",   .element=atom_t::N,       .hydrogens=0, .electrons=7,  .mass=14.00674,            .xray_coefficients=ff::N              },
+            {.type=form_factor_t::NH,              .name="NH",  .element=atom_t::N,       .hydrogens=1, .electrons=8,  .mass=15.01474,            .xray_coefficients=ff::NH             },
+            {.type=form_factor_t::NH2,             .name="NH2", .element=atom_t::N,       .hydrogens=2, .electrons=9,  .mass=16.02274,            .xray_coefficients=ff::NH2            },
+            {.type=form_factor_t::NH3,             .name="NH3", .element=atom_t::N,       .hydrogens=3, .electrons=10, .mass=17.03074,            .xray_coefficients=ff::NH3_plus       },
+            {.type=form_factor_t::O,               .name="O",   .element=atom_t::O,       .hydrogens=0, .electrons=8,  .mass=15.999,              .xray_coefficients=ff::O              },
+            {.type=form_factor_t::S,               .name="S",   .element=atom_t::S,       .hydrogens=0, .electrons=16, .mass=32.06,               .xray_coefficients=ff::S              },
+            {.type=form_factor_t::SH,              .name="SH",  .element=atom_t::S,       .hydrogens=1, .electrons=17, .mass=33.06,               .xray_coefficients=ff::SH             },
+            {.type=form_factor_t::F,               .name="F",   .element=atom_t::F,       .hydrogens=0, .electrons=9,  .mass=get_mass(atom_t::F),  .xray_coefficients=ff::F             },
+            {.type=form_factor_t::Na,              .name="Na",  .element=atom_t::Na,      .hydrogens=0, .electrons=11, .mass=get_mass(atom_t::Na), .xray_coefficients=ff::Na            },
+            {.type=form_factor_t::Mg,              .name="Mg",  .element=atom_t::Mg,      .hydrogens=0, .electrons=12, .mass=get_mass(atom_t::Mg), .xray_coefficients=ff::Mg            },
+            {.type=form_factor_t::P,               .name="P",   .element=atom_t::P,       .hydrogens=0, .electrons=15, .mass=get_mass(atom_t::P),  .xray_coefficients=ff::P             },
+            {.type=form_factor_t::Cl,              .name="Cl",  .element=atom_t::Cl,      .hydrogens=0, .electrons=17, .mass=get_mass(atom_t::Cl), .xray_coefficients=ff::Cl            },
+            {.type=form_factor_t::K,               .name="K",   .element=atom_t::K,       .hydrogens=0, .electrons=19, .mass=get_mass(atom_t::K),  .xray_coefficients=ff::K             },
+            {.type=form_factor_t::Ca,              .name="Ca",  .element=atom_t::Ca,      .hydrogens=0, .electrons=20, .mass=get_mass(atom_t::Ca), .xray_coefficients=ff::Ca            },
+            {.type=form_factor_t::Mn,              .name="Mn",  .element=atom_t::Mn,      .hydrogens=0, .electrons=25, .mass=get_mass(atom_t::Mn), .xray_coefficients=ff::Mn            },
+            {.type=form_factor_t::Fe,              .name="Fe",  .element=atom_t::Fe,      .hydrogens=0, .electrons=26, .mass=get_mass(atom_t::Fe), .xray_coefficients=ff::Fe            },
+            {.type=form_factor_t::Co,              .name="Co",  .element=atom_t::Co,      .hydrogens=0, .electrons=27, .mass=get_mass(atom_t::Co), .xray_coefficients=ff::Co            },
+            {.type=form_factor_t::Ni,              .name="Ni",  .element=atom_t::Ni,      .hydrogens=0, .electrons=28, .mass=get_mass(atom_t::Ni), .xray_coefficients=ff::Ni            },
+            {.type=form_factor_t::Cu,              .name="Cu",  .element=atom_t::Cu,      .hydrogens=0, .electrons=29, .mass=get_mass(atom_t::Cu), .xray_coefficients=ff::Cu            },
+            {.type=form_factor_t::Zn,              .name="Zn",  .element=atom_t::Zn,      .hydrogens=0, .electrons=30, .mass=get_mass(atom_t::Zn), .xray_coefficients=ff::Zn            },
+            {.type=form_factor_t::Se,              .name="Se",  .element=atom_t::Se,      .hydrogens=0, .electrons=34, .mass=get_mass(atom_t::Se), .xray_coefficients=ff::Se            },
+            {.type=form_factor_t::Br,              .name="Br",  .element=atom_t::Br,      .hydrogens=0, .electrons=35, .mass=get_mass(atom_t::Br), .xray_coefficients=ff::Br            },
+            {.type=form_factor_t::I,               .name="I",   .element=atom_t::I,       .hydrogens=0, .electrons=53, .mass=get_mass(atom_t::I),  .xray_coefficients=ff::I             },
+            {.type=form_factor_t::OTHER,           .name="OTH", .element=atom_t::Ar,      .hydrogens=0, .electrons=18, .mass=39.948,              .xray_coefficients=ff::other          },
         }};
 
         constexpr bool ff_info_table_is_ordered() {
@@ -260,13 +261,25 @@ namespace ausaxs::constants::charge::nuclear {
 namespace ausaxs::constants::charge {
     /**
      * @brief Get the effective charge based on the form factor evaluated at q=0.
-     *        This represents the scattering power of the atom/group.
+     *        This represents the scattering power of the atom/group for the given radiation.
      */
+    template<settings::scattering::Radiation radiation>
     double get_ff_charge(ausaxs::form_factor::form_factor_t type);
 
     /**
      * @brief Get the effective charge of an atom, with its element as a fallback.
      *        When the form factor is unknown, the atomic charge is returned instead.
      */
+    template<settings::scattering::Radiation radiation>
     double get_ff_charge(ausaxs::form_factor::form_factor_t type, ausaxs::constants::atom_t fallback_element);
+
+    /**
+     * @brief Get the effective charge for the radiation of the current settings, with its element as a fallback.
+     */
+    double get_ff_charge(ausaxs::form_factor::form_factor_t type, ausaxs::constants::atom_t fallback_element);
+
+    /**
+     * @brief Get the effective charge for the radiation of the current settings.
+     */
+    double get_ff_charge(ausaxs::form_factor::form_factor_t type);
 }

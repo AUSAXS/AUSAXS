@@ -54,10 +54,10 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes", "[manual]") {
 
 static auto calc_scat = [] (double k) {
     const auto& q_axis = constants::axes::q_vals;
-    auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
+    auto ff_C = form_factor::xray::raw::get(form_factor::form_factor_t::C);
 
     auto V = std::pow(settings::grid::exv::width, 3);
-    form_factor::FormFactor ffx = form_factor::ExvFormFactor(V);
+    form_factor::xray::FormFactor ffx = form_factor::ExvFormFactor(V);
     auto d = SimpleCube::d_exact;
 
     std::vector<double> Iq_exp(q_axis.size(), 0);
@@ -127,9 +127,9 @@ static auto calc_scat = [] (double k) {
 
 static auto calc_scat_water = [] () {
     const auto& q_axis = constants::axes::q_vals;
-    auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
-    auto ff_O = form_factor::lookup::atomic::raw::get(static_cast<form_factor::form_factor_t>(form_factor::water_bin));
-    form_factor::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width, 3));
+    auto ff_C = form_factor::xray::raw::get(form_factor::form_factor_t::C);
+    auto ff_O = form_factor::xray::raw::get(static_cast<form_factor::form_factor_t>(form_factor::water_bin));
+    form_factor::xray::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width, 3));
     auto d = SimpleCube::d_exact;
 
     std::vector<double> Iq_exp(q_axis.size(), 0);
@@ -301,7 +301,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         auto calc = [] (double k) {
             const auto& q_axis = constants::axes::q_vals;
-            auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
+            auto ff_C = form_factor::xray::raw::get(form_factor::form_factor_t::C);
             auto ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width*k, 3));
             auto d = SimpleCube::d_exact;
             std::ranges::for_each(d, [k] (double& v) {v *= k;});
@@ -371,8 +371,8 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         auto calc = [] (double k) {
             const auto& q_axis = constants::axes::q_vals;
-            auto ff_C = form_factor::lookup::atomic::raw::get(form_factor::form_factor_t::C);
-            form_factor::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width*k, 3));
+            auto ff_C = form_factor::xray::raw::get(form_factor::form_factor_t::C);
+            form_factor::xray::FormFactor ffx = form_factor::ExvFormFactor(std::pow(settings::grid::exv::width*k, 3));
             auto d = SimpleCube::d_exact;
 
             std::vector<double> Iq_exp(q_axis.size(), 0);

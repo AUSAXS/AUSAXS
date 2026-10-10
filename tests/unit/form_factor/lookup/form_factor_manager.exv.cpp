@@ -78,7 +78,7 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
         for (auto [i, ti] : active_slots()) {
             for (auto [j, tj] : active_slots()) {
                 const FormFactorProduct& product = table.index(i, j);
-                const FormFactor& ff_atomic = lookup::atomic::raw::get(ti);
+                const xray::FormFactor& ff_atomic = xray::raw::get(ti);
                 ExvFormFactor exv = exv_set.get(tj);
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {

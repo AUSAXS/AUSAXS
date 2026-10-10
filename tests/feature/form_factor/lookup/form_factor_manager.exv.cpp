@@ -60,7 +60,7 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
         const auto& table = tables->raw_cross_table;
         for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
-                const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+                const xray::FormFactor& ff1_obj = xray::raw::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
                 ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {

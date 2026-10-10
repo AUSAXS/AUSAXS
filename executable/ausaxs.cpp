@@ -4,6 +4,7 @@
 #include <api/cli/cli_em_fitter.h>
 #include <api/cli/cli_rigidbody.h>
 #include <api/cli/cli_saxs_fitter.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
 #include <unordered_map>
@@ -11,14 +12,13 @@
 using namespace ausaxs;
 
 namespace {
-    enum class Tool {Fit, EM, Rigidbody};
+    enum class Tool {SAXS, SANS, EM, Rigidbody};
     std::unordered_map<std::string, Tool> tool_map {
-        {"fit", Tool::Fit},
-        {"saxs_fitter", Tool::Fit},
+        {"fit", Tool::SAXS},
+        {"saxs", Tool::SAXS},
+        {"sans", Tool::SANS},
         {"em", Tool::EM},
-        {"em_fitter", Tool::EM},
         {"rigidbody", Tool::Rigidbody},
-        {"rigidbody_optimizer", Tool::Rigidbody}
     };
 }
 
@@ -47,7 +47,10 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
     switch (tool_map[tool]) {
-        case Tool::Fit:
+        case Tool::SAXS:
+            return cli_saxs_fitter(argc-1, argv+1);
+        case Tool::SANS:
+            settings::scattering::radiation = settings::scattering::Radiation::Neutron;
             return cli_saxs_fitter(argc-1, argv+1);
         case Tool::EM:
             return cli_em_fitter(argc-1, argv+1);

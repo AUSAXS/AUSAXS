@@ -257,7 +257,7 @@ TEST_CASE("form_factor::get_info: tabulated bare elements") {
             auto type = static_cast<form_factor_t>(i);
             const auto& info = get_info(type);
             if (info.hydrogens != 0) {continue;}
-            const auto& c = info.coefficients;
+            const auto& c = info.xray_coefficients;
             double f0 = c.c;
             for (double a : c.a) {f0 += a;}
             INFO("form factor " << to_string(type));

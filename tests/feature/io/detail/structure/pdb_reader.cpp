@@ -53,65 +53,6 @@ TEST_CASE("PDBReader::read") {
     CHECK(protein.waters[0].resName == "HOH");
 }
 
-TEST_CASE("PDBReader: add_implicit_hydrogens") {
-    auto generate_molecule = [] () {
-        std::vector<PDBAtom> atoms = {
-            PDBAtom(1, "N",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
-            PDBAtom(2, "CA", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-            PDBAtom(3, "C",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-            PDBAtom(4, "O",  "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::O, "0"),
-            PDBAtom(5, "CB", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-            PDBAtom(6, "CG", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-            PDBAtom(7, "CD", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-            PDBAtom(8, "CE", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::C, "0"),
-            PDBAtom(9, "NZ", "", "LYS", 'A', 1, "", Vector3<double>(0, 0, 0), 1, 0, constants::atom_t::N, "0"),
-        };
-        return io::pdb::PDBStructure({atoms, {}});
-    };
-
-    SECTION("enabled") {
-        auto protein = generate_molecule();
-        protein.add_implicit_hydrogens();
-        auto& atoms = protein.atoms;
-
-        CHECK_THAT(atoms[0].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[0].get_form_factor_type()), 1e-12));
-        CHECK(atoms[0].atomic_group == constants::atomic_group_t::NH);
-
-        CHECK_THAT(atoms[1].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[1].get_form_factor_type()), 1e-12));
-        CHECK(atoms[1].atomic_group == constants::atomic_group_t::CH);
-
-        CHECK_THAT(atoms[2].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[2].get_form_factor_type()) + 0, 1e-12));
-        CHECK(atoms[2].atomic_group == constants::atomic_group_t::unknown);
-
-        CHECK_THAT(atoms[3].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[3].get_form_factor_type()) + 0, 1e-12));
-        CHECK(atoms[3].atomic_group == constants::atomic_group_t::unknown);
-
-        CHECK_THAT(atoms[4].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[4].get_form_factor_type()), 1e-12));
-        CHECK(atoms[4].atomic_group == constants::atomic_group_t::CH2);
-
-        CHECK_THAT(atoms[5].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[5].get_form_factor_type()), 1e-12));
-        CHECK(atoms[5].atomic_group == constants::atomic_group_t::CH2);
-
-        CHECK_THAT(atoms[6].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[6].get_form_factor_type()), 1e-12));
-        CHECK(atoms[6].atomic_group == constants::atomic_group_t::CH2);
-
-        CHECK_THAT(atoms[7].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[7].get_form_factor_type()), 1e-12));
-        CHECK(atoms[7].atomic_group == constants::atomic_group_t::CH2);
-
-        CHECK_THAT(atoms[8].effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[8].get_form_factor_type()), 1e-12));
-        CHECK(atoms[8].atomic_group == constants::atomic_group_t::NH3);
-    }
-
-    SECTION("disabled") {
-        auto protein = generate_molecule();
-
-        for (auto a : protein.atoms) {
-            CHECK_THAT(a.effective_charge, Catch::Matchers::WithinRel(constants::charge::get_ff_charge(a.get_form_factor_type()), 1e-12));
-            CHECK(a.atomic_group == constants::atomic_group_t::unknown);
-        }
-    }
-}
-
 TEST_CASE("PDBReader: can_parse_hydrogens") {
     std::vector<std::string> val = {
         "ATOM      1  N   VAL     1      -3.299   8.066 -11.443  1.00  0.00           N",

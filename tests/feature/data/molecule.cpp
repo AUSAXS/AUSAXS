@@ -831,7 +831,6 @@ TEST_CASE("Molecule: implicit hydrogens") {
     SECTION("enabled") {
         settings::molecule::implicit_hydrogens = true;
         auto file = generate_molecule();
-        file.add_implicit_hydrogens();
         auto res = file.reduced_representation();
         Molecule protein({Body{res.atoms, res.waters}});
         auto atoms = protein.get_atoms();

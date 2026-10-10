@@ -42,14 +42,6 @@ namespace ausaxs::io::pdb {
 
             RecordType get_type() const override;
 
-            form_factor::form_factor_t get_form_factor_type() const;
-
-            /**
-             * @brief Add implicit hydrogens to this atom. 
-             *        This is done by adding the number of implicit hydrogens to the effective charge of the atom and modifying its form factor. 
-             */
-            void add_implicit_hydrogens();
-
             /**
              * @brief Set the properties of this Atom based on a .pdb format ATOM string. 
              */
@@ -134,12 +126,10 @@ namespace ausaxs::io::pdb {
             std::string name, altLoc, resName, iCode, charge;
             char chainID = ' ';
             constants::atom_t element = constants::atom_t::unknown;
-            constants::atomic_group_t atomic_group = constants::atomic_group_t::unknown;
             double occupancy = 1, tempFactor = -1;
             int serial = -1, resSeq = -1; 
 
             // other properties
-            double effective_charge = -1;
             int uid = -1;
 
         private: 
