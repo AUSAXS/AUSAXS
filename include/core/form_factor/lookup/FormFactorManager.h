@@ -28,11 +28,6 @@ namespace ausaxs::form_factor::manager {
             lookup::table_t raw_atomic_table;
 
             /**
-             * @brief The amplitude f_i(q) of each slot. The products of these make up raw_atomic_table.
-             */
-            std::vector<profile_t> atomic_profiles;
-
-            /**
              * @brief The self-term correction s_i(q) - f_i(q)^2 of each slot, where s_i is the scattering of a single group with itself.
              *        raw_atomic_table uses f_i(q)^2 for every pair of the same type, which is only exact for spherically symmetric scatterers. 
              *        This must be added once for every group of the slot, i.e. weighted by the zero-distance bin of its diagonal partial histogram. 
@@ -50,6 +45,11 @@ namespace ausaxs::form_factor::manager {
          */
         void use_form_factors(std::vector<int> ff_indices);
     }
+
+    /**
+     * @brief Evaluate the amplitude f(q) of a single form factor over the default q axis, for the probe selected by settings::scattering::radiation.
+     */
+    detail::profile_t evaluate_amplitude(form_factor_t type);
 
     /**
      * @brief Get the currently active form factor product tables. 

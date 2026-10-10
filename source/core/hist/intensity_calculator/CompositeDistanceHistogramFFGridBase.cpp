@@ -37,7 +37,8 @@ namespace {
         form_factor::lookup::table_t table = tables->raw_atomic_table;
         int n_active = form_factor::get_active_count();
         for (int i = 0; i < n_active; ++i) {
-            table.index(i, form_factor::exv_bin) = FormFactorProduct(tables->atomic_profiles[i], ffx_profile);
+            auto atomic_profile = form_factor::manager::evaluate_amplitude(static_cast<form_factor_t>(tables->ff_indices[i]));
+            table.index(i, form_factor::exv_bin) = FormFactorProduct(atomic_profile, ffx_profile);
             table.index(form_factor::exv_bin, i) = table.index(i, form_factor::exv_bin);
         }
 

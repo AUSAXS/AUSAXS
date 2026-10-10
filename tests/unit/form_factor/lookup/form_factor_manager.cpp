@@ -305,7 +305,7 @@ TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
     SECTION("xray") {
         const auto* tables = manager::get_active_product_tables();
         CHECK_FALSE(tables->self_corrected);
-        CHECK_THAT(tables->atomic_profiles[CH2][q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::CH2).evaluate(q), 1e-12));
+        CHECK_THAT(manager::evaluate_amplitude(form_factor_t::CH2)[q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::CH2).evaluate(q), 1e-12));
         CHECK(tables->self_correction.empty());
     }
 
@@ -315,12 +315,12 @@ TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
         const auto& ff = neutron::protonated::get(form_factor_t::CH2);
         double f = ff.evaluate(q);
         CHECK(tables->self_corrected);
-        CHECK_THAT(tables->atomic_profiles[CH2][q_index], Catch::Matchers::WithinAbs(f, 1e-12));
+        CHECK_THAT(manager::evaluate_amplitude(form_factor_t::CH2)[q_index], Catch::Matchers::WithinAbs(f, 1e-12));
         CHECK_THAT(tables->raw_atomic_table.index(CH2, CH2).evaluate(q_index), Catch::Matchers::WithinAbs(f*f, 1e-12));
         CHECK_THAT(tables->self_correction[CH2][q_index], Catch::Matchers::WithinAbs(ff.evaluate_self(q) - f*f, 1e-12));
 
         // the excluded volume slot is a normalized shape shared by both probes
-        CHECK_THAT(tables->atomic_profiles[exv][q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::EXCLUDED_VOLUME).evaluate(q), 1e-12));
+        CHECK_THAT(manager::evaluate_amplitude(form_factor_t::EXCLUDED_VOLUME)[q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::EXCLUDED_VOLUME).evaluate(q), 1e-12));
         CHECK(tables->self_correction[exv][q_index] == 0);
 
         CHECK_THAT(constants::charge::get_ff_charge(form_factor_t::CH2), Catch::Matchers::WithinAbs(ff.I0(), 1e-12));
