@@ -11,14 +11,8 @@
 using namespace ausaxs;
 using namespace form_factor;
 
-namespace {
-    // types without a volume in the set have an empty exv profile
-    double evaluate_exv(const form_factor::detail::ExvFormFactorSet& exv_set, form_factor_t type, double q) {
-        return exv_set.contains(type) ? exv_set.get(type).evaluate(q) : 0.0;
-    }
-}
-
 TEST_CASE("ExvTableManager::set_custom_exv_table") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
     test::form_factor::use_random_form_factors();
 
     SECTION("set custom table") {
@@ -50,8 +44,8 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
                 auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
                 auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
                 for (int i = 0; i < 10; ++i) {
-                    double expected = evaluate_exv(ffset, t1, constants::axes::q_vals[i]) * evaluate_exv(ffset, t2, constants::axes::q_vals[i]);
-                    REQUIRE_THAT(table.index(ff1, ff2).evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-10));
+                    double expected = ffset.get(t1).evaluate(constants::axes::q_vals[i]) * ffset.get(t2).evaluate(constants::axes::q_vals[i]);
+                    REQUIRE_THAT(table.index(ff1, ff2).evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
         }
@@ -60,6 +54,7 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
 }
 
 TEST_CASE("ExvSet switching") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
     test::form_factor::use_random_form_factors();
 
     SECTION("Traube") {
@@ -77,8 +72,8 @@ TEST_CASE("ExvSet switching") {
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = evaluate_exv(ffset, t1, constants::axes::q_vals[i]) * evaluate_exv(ffset, t2, constants::axes::q_vals[i]);
-                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-10));
+                    double expected = ffset.get(t1).evaluate(constants::axes::q_vals[i]) * ffset.get(t2).evaluate(constants::axes::q_vals[i]);
+                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
         }
@@ -101,8 +96,8 @@ TEST_CASE("ExvSet switching") {
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = evaluate_exv(ffset, t1, constants::axes::q_vals[i]) * evaluate_exv(ffset, t2, constants::axes::q_vals[i]);
-                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-10));
+                    double expected = ffset.get(t1).evaluate(constants::axes::q_vals[i]) * ffset.get(t2).evaluate(constants::axes::q_vals[i]);
+                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
         }

@@ -244,6 +244,8 @@ TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table")
 }
 
 TEST_CASE("form_factor_manager: product tables hold the product their indices name") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
+
     auto check = [] <std::invocable<form_factor_t, double> Row, std::invocable<form_factor_t, double> Col> (
         const lookup::table_t& table, int i0, int j0, const Row& row, const Col& col
     ) {
@@ -254,10 +256,7 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
                 auto tj = static_cast<form_factor_t>(tables->ff_indices[j]);
                 for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
                     double expected = row(ti, constants::axes::q_vals[q])*col(tj, constants::axes::q_vals[q]);
-                    REQUIRE_THAT(
-                        table.index(i, j).evaluate(q),
-                        Catch::Matchers::WithinRel(expected, 1e-12) || Catch::Matchers::WithinAbs(expected, 1e-12)
-                    );
+                    REQUIRE_THAT(table.index(i, j).evaluate(q), Catch::Matchers::WithinRel(expected, 1e-12));
                 }
             }
         }
@@ -265,11 +264,7 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
 
     auto raw = [] (form_factor_t t, double q) {return lookup::atomic::raw::get(t).evaluate(q);};
     auto normalized = [] (form_factor_t t, double q) {return lookup::atomic::normalized::get(t).evaluate(q);};
-    auto exv = [] (form_factor_t t, double q) {
-        // types without a volume in the current set have an empty exv profile
-        auto set = ExvTableManager::get_current_exv_form_factor_set();
-        return set.contains(t) ? set.get(t).evaluate(q) : 0.0;
-    };
+    auto exv = [] (form_factor_t t, double q) {return ExvTableManager::get_current_exv_form_factor_set().get(t).evaluate(q);};
     int s0 = start_index_for_explicit_exv();
 
     SECTION("random set") {

@@ -11,15 +11,12 @@ using namespace ausaxs;
 using namespace form_factor;
 
 TEST_CASE("ExvFormFactor: switch volumes") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
     test::form_factor::use_random_form_factors();
 
     auto test = [&] (const constants::exv::detail::ExvSet& vols) {
         auto ffset = form_factor::detail::ExvFormFactorSet(vols);
-
-        // types without a volume in the set have an empty exv profile
-        auto exv = [&ffset] (form_factor_t type, double q) {
-            return ffset.contains(type) ? ffset.get(type).evaluate(q) : 0.0;
-        };
+        auto exv = [&ffset] (form_factor_t type, double q) {return ffset.get(type).evaluate(q);};
 
         SECTION("exv") {
             const auto* tables = manager::get_active_product_tables();

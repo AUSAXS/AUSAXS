@@ -6,6 +6,7 @@
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
+#include <settings/ExvSettings.h>
 #include <support/form_factor_helper.h>
 
 #include <utility>
@@ -25,11 +26,6 @@ namespace {
         });
         auto mapping = manager::get_active_mapping();
         return {mapping[static_cast<int>(form_factor_t::C)], mapping[static_cast<int>(form_factor_t::N)]};
-    }
-
-    // types without a volume in the current set have an empty exv profile
-    double evaluate_exv(const form_factor::detail::ExvFormFactorSet& exv_set, form_factor_t type, double q) {
-        return exv_set.contains(type) ? exv_set.get(type).evaluate(q) : 0.0;
     }
 }
 
@@ -52,6 +48,8 @@ TEST_CASE("manager::raw_exv_table") {
 }
 
 TEST_CASE("manager::raw_exv_table: completeness") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
+
     SECTION("table access") {
         auto [c_slot, n_slot] = use_C_and_N();
         const auto& table = manager::get_active_product_tables()->raw_exv_table;
@@ -79,8 +77,8 @@ TEST_CASE("manager::raw_exv_table: completeness") {
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = evaluate_exv(exv_set, t1, constants::axes::q_vals[i]) * evaluate_exv(exv_set, t2, constants::axes::q_vals[i]);
-                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-10));
+                    double expected = exv_set.get(t1).evaluate(constants::axes::q_vals[i]) * exv_set.get(t2).evaluate(constants::axes::q_vals[i]);
+                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
         }
@@ -110,6 +108,8 @@ TEST_CASE("manager::normalized_cross_table") {
 }
 
 TEST_CASE("manager::normalized_cross_table: completeness") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
+
     SECTION("table access") {
         auto [c_slot, n_slot] = use_C_and_N();
         const auto& table = manager::get_active_product_tables()->normalized_cross_table;
@@ -139,8 +139,8 @@ TEST_CASE("manager::normalized_cross_table: completeness") {
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * evaluate_exv(exv_set, t2, constants::axes::q_vals[i]);
-                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-10));
+                    double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * exv_set.get(t2).evaluate(constants::axes::q_vals[i]);
+                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
         }
