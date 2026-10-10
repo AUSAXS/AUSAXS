@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <concepts>
+#include <limits>
 #include <numeric>
 
 using namespace ausaxs;
@@ -30,6 +31,9 @@ static const std::vector<int>& identity() {
 }
 
 TEST_CASE("form_factor_manager: full identity selection") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple; // the Fraser-based models remove the types without an excluded volume
+    auto original_max = settings::form_factor::max_types;
+    settings::form_factor::max_types = total_ff_count;
     manager::detail::use_form_factors(identity());
     const auto* tables = manager::get_active_product_tables();
     REQUIRE(tables != nullptr);
@@ -52,6 +56,8 @@ TEST_CASE("form_factor_manager: full identity selection") {
             REQUIRE(mapping[i] == static_cast<int>(i));
         }
     }
+
+    settings::form_factor::max_types = original_max;
 }
 
 TEST_CASE("form_factor::get_active_count") {
@@ -295,6 +301,9 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
     const int other = static_cast<int>(form_factor_t::OTHER);
     auto original_method = settings::exv::exv_method.value;
     auto original_set = settings::exv::exv_set.value;
+    auto original_max = settings::form_factor::max_types;
+    auto original_fraction = settings::form_factor::min_fraction;
+    settings::form_factor::max_types = total_ff_count;
     manager::detail::use_form_factors(identity());
 
     // a volume set without CH3
@@ -344,6 +353,113 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
         CHECK_FALSE(is_active(CH3));
     }
 
+    SECTION("the type does not take up a slot of the molecule-based selection") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
+        data::Molecule molecule("tests/files/2epe.pdb");
+        std::vector<int> counts(total_ff_count, 0);
+        for (const auto& a : molecule.iterate_atoms()) {
+            if (form_factor::detail::is_tabulated(a.form_factor_type())) {++counts[static_cast<int>(a.form_factor_type())];}
+        }
+
+        // limit the slots to exactly the types at least as abundant as CH3, so CH3 would take the last one if it were not skipped
+        int at_least_ch3 = 0, below_ch3 = 0;
+        for (int t = start_index_for_explicit_exv(); t < total_ff_count; ++t) {
+            if (t == static_cast<int>(form_factor_t::WATER) || t == other || counts[t] == 0) {continue;}
+            if (counts[CH3] <= counts[t]) {++at_least_ch3;}
+            else {++below_ch3;}
+        }
+        REQUIRE(0 < below_ch3); // some type must be left to take the freed slot
+        settings::form_factor::max_types = 3 + at_least_ch3;
+        settings::form_factor::min_fraction = 0;
+
+        manager::use_form_factors(molecule);
+        CHECK_FALSE(is_active(CH3));
+        CHECK(get_active_count() == settings::form_factor::max_types);
+    }
+
     settings::exv::exv_method = original_method;
     settings::exv::exv_set = original_set;
+    settings::form_factor::max_types = original_max;
+    settings::form_factor::min_fraction = original_fraction;
+}
+
+TEST_CASE("form_factor_manager: max_types is a hard limit") {
+    const int exv   = static_cast<int>(form_factor_t::EXCLUDED_VOLUME);
+    const int water = static_cast<int>(form_factor_t::WATER);
+    const int C     = static_cast<int>(form_factor_t::C);
+    const int N     = static_cast<int>(form_factor_t::N);
+    const int O     = static_cast<int>(form_factor_t::O);
+    const int other = static_cast<int>(form_factor_t::OTHER);
+    auto original_max = settings::form_factor::max_types;
+    settings::form_factor::max_types = 5;
+
+    SECTION("a selection within the limit is accepted") {
+        manager::detail::use_form_factors({exv, water, C, N, other});
+        CHECK(get_active_count() == 5);
+    }
+
+    SECTION("a selection above the limit is rejected") {
+        CHECK_THROWS(manager::detail::use_form_factors({exv, water, C, N, O, other}));
+    }
+
+    SECTION("the appended OTHER counts towards the limit") {
+        CHECK_THROWS(manager::detail::use_form_factors({exv, water, C, N, O}));
+    }
+
+    settings::form_factor::max_types = original_max;
+}
+
+TEST_CASE("form_factor_manager: use_form_factors(Molecule) folds excess and rare types onto OTHER") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple; // the Fraser-based models remove the types without an excluded volume
+    auto original_max = settings::form_factor::max_types;
+    auto original_fraction = settings::form_factor::min_fraction;
+    data::Molecule molecule("tests/files/2epe.pdb");
+
+    // the atom counts of the present types, excluding the forced EXCLUDED_VOLUME, WATER, and OTHER
+    std::vector<int> counts(total_ff_count, 0);
+    for (const auto& a : molecule.iterate_atoms()) {
+        if (form_factor::detail::is_tabulated(a.form_factor_type())) {++counts[static_cast<int>(a.form_factor_type())];}
+    }
+    std::vector<int> present;
+    for (int t = 0; t < total_ff_count; ++t) {
+        if (t == static_cast<int>(form_factor_t::EXCLUDED_VOLUME) || t == static_cast<int>(form_factor_t::WATER) || t == static_cast<int>(form_factor_t::OTHER)) {continue;}
+        if (0 < counts[t]) {present.push_back(t);}
+    }
+    REQUIRE(4 < present.size());
+
+    auto has_own_slot = [] (int type) {
+        auto mapping = manager::get_active_mapping();
+        return mapping[type] != mapping[static_cast<int>(form_factor_t::OTHER)];
+    };
+
+    SECTION("the slot limit keeps the most abundant types") {
+        settings::form_factor::max_types = 6;
+        settings::form_factor::min_fraction = 0;
+        manager::use_form_factors(molecule);
+        const auto* tables = manager::get_active_product_tables();
+        REQUIRE(tables->active_count == 6);
+        CHECK(tables->ff_indices[0] == static_cast<int>(form_factor_t::EXCLUDED_VOLUME));
+        CHECK(tables->ff_indices[1] == static_cast<int>(form_factor_t::WATER));
+        CHECK(tables->ff_indices[5] == static_cast<int>(form_factor_t::OTHER));
+
+        int min_kept = std::numeric_limits<int>::max(), max_folded = 0;
+        for (int t : present) {
+            if (has_own_slot(t)) {min_kept = std::min(min_kept, counts[t]);}
+            else {max_folded = std::max(max_folded, counts[t]);}
+        }
+        CHECK(max_folded <= min_kept);
+    }
+
+    SECTION("types below the minimum fraction are folded onto OTHER") {
+        settings::form_factor::max_types = total_ff_count;
+        int rarest = *std::ranges::min_element(present, {}, [&counts] (int t) {return counts[t];});
+        settings::form_factor::min_fraction = (counts[rarest] + 0.5)/static_cast<double>(molecule.size_atom());
+        manager::use_form_factors(molecule);
+        for (int t : present) {
+            CHECK(has_own_slot(t) == (counts[rarest] < counts[t]));
+        }
+    }
+
+    settings::form_factor::max_types = original_max;
+    settings::form_factor::min_fraction = original_fraction;
 }

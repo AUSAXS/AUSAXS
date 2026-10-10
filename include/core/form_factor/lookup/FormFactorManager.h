@@ -28,6 +28,7 @@ namespace ausaxs::form_factor::manager {
          * @brief Activate a custom form factor set.
          *        form_factor_t::OTHER is appended if it is not already present.
          *        With the Fraser-based excluded volume models, form factors without a volume in the current set are removed and treated as OTHER.
+         *        Throws if the selection, including OTHER, exceeds settings::form_factor::max_types.
          */
         void use_form_factors(std::vector<int> ff_indices);
     }
@@ -46,6 +47,8 @@ namespace ausaxs::form_factor::manager {
 
     /**
      * @brief Determine the most appropriate form factor set for the given molecule and activate it. 
+     *        The most abundant types get a slot of their own, up to settings::form_factor::max_types slots in total. Types rarer than
+     *        settings::form_factor::min_fraction of the atoms are folded onto OTHER regardless.
      *        Requesting the set that is already active is a no-op, so this may be called before every calculation.
      */
     void use_form_factors(const data::Molecule& molecule);
