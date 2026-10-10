@@ -4,9 +4,9 @@
 #include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <settings/All.h>

@@ -6,8 +6,8 @@
 #include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <form_factor/lookup/FormFactorManager.h>
 #include <dataset/Dataset.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>

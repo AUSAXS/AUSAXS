@@ -4,8 +4,8 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Molecule.h>
-#include <form_factor/lookup/FormFactorManager.h>
 #include <dataset/Dataset.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>

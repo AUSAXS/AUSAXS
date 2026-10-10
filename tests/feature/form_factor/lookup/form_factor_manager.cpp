@@ -7,7 +7,6 @@
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <settings/All.h>
-#include <utility/Random.h>
 
 #include <support/hist_test_helper.h>
 
