@@ -3,6 +3,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
@@ -71,6 +72,7 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
     std::vector<AtomFF> b5 = {AtomFF({ 0,  0,  0}, form_factor::form_factor_t::C)};
     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
     Molecule protein(a);
+    form_factor::manager::use_form_factors(protein); // the form factor managers below are constructed directly, bypassing the factory which normally selects these
 
     { // hm
         CHECK(SimpleCube::check_default(hist::HistogramManager<false>(&protein).calculate_all()->get_d_axis()));

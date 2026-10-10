@@ -4,6 +4,7 @@
 #include <form_factor/FormFactor.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <support/form_factor_helper.h>
 
 using namespace ausaxs;
 using namespace form_factor;
@@ -70,12 +71,15 @@ TEST_CASE("FormFactorProduct::symmetry") {
 }
 
 TEST_CASE("FormFactorProduct::raw_atomic_table") {
+    test::form_factor::use_random_form_factors();
+
     SECTION("product entries match direct calculation") {
-        const auto& table = manager::get_active_product_tables()->raw_atomic_table;
-        for (int i = 0; i < form_factor::total_ff_count; ++i) {
-            for (int j = 0; j < form_factor::total_ff_count; ++j) {
-                const FormFactor& ff1 = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
-                const FormFactor& ff2 = lookup::atomic::raw::get(static_cast<form_factor_t>(j));
+        const auto* tables = manager::get_active_product_tables();
+        const auto& table = tables->raw_atomic_table;
+        for (int i = 0; i < tables->active_count; ++i) {
+            for (int j = 0; j < tables->active_count; ++j) {
+                const FormFactor& ff1 = lookup::atomic::raw::get(static_cast<form_factor_t>(tables->ff_indices[i]));
+                const FormFactor& ff2 = lookup::atomic::raw::get(static_cast<form_factor_t>(tables->ff_indices[j]));
                 const FormFactorProduct& product = table.index(i, j);
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
@@ -87,11 +91,12 @@ TEST_CASE("FormFactorProduct::raw_atomic_table") {
     }
 
     SECTION("all table entries match direct calculation") {
-        const auto& table = manager::get_active_product_tables()->raw_atomic_table;
-        for (int i = 0; i < form_factor::total_ff_count; ++i) {
-            for (int j = 0; j < form_factor::total_ff_count; ++j) {
-                const FormFactor& ff1 = lookup::atomic::raw::get(static_cast<form_factor_t>(i));
-                const FormFactor& ff2 = lookup::atomic::raw::get(static_cast<form_factor_t>(j));
+        const auto* tables = manager::get_active_product_tables();
+        const auto& table = tables->raw_atomic_table;
+        for (int i = 0; i < tables->active_count; ++i) {
+            for (int j = 0; j < tables->active_count; ++j) {
+                const FormFactor& ff1 = lookup::atomic::raw::get(static_cast<form_factor_t>(tables->ff_indices[i]));
+                const FormFactor& ff2 = lookup::atomic::raw::get(static_cast<form_factor_t>(tables->ff_indices[j]));
                 const FormFactorProduct& product = table.index(i, j);
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
@@ -104,10 +109,13 @@ TEST_CASE("FormFactorProduct::raw_atomic_table") {
 }
 
 TEST_CASE("FormFactorProduct::table symmetry") {
+    test::form_factor::use_random_form_factors();
+
     SECTION("table is symmetric") {
-        const auto& table = manager::get_active_product_tables()->raw_atomic_table;
-        for (int i = 0; i < form_factor::total_ff_count; ++i) {
-            for (int j = 0; j < form_factor::total_ff_count; ++j) {
+        const auto* tables = manager::get_active_product_tables();
+        const auto& table = tables->raw_atomic_table;
+        for (int i = 0; i < tables->active_count; ++i) {
+            for (int j = 0; j < tables->active_count; ++j) {
                 const FormFactorProduct& product1 = table.index(i, j);
                 const FormFactorProduct& product2 = table.index(j, i);
 

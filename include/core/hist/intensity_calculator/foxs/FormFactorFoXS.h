@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <container/ArrayContainer2D.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
@@ -48,10 +47,10 @@ namespace ausaxs::form_factor::foxs {
                 }
             }
 
-            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> generate_table() {
+            [[maybe_unused]] static lookup::table_t generate_table() {
                 const auto* ff_tables = form_factor::manager::get_active_product_tables();
                 auto ff_indices = ff_tables->ff_indices;
-                container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> table;
+                lookup::table_t table(ff_tables->active_count, ff_tables->active_count);
                 for (int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
                     for (int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
@@ -91,10 +90,10 @@ namespace ausaxs::form_factor::foxs {
                 }
             }
 
-            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> generate_table() {
+            [[maybe_unused]] static lookup::table_t generate_table() {
                 const auto* ff_tables = form_factor::manager::get_active_product_tables();
                 auto ff_indices = ff_tables->ff_indices;
-                container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> table;
+                lookup::table_t table(ff_tables->active_count, ff_tables->active_count);
                 for (int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
                     for (int j = form_factor::start_index_for_explicit_exv(); j < i; ++j) {
                         table.index(i, j) = FormFactorProduct(
@@ -113,10 +112,10 @@ namespace ausaxs::form_factor::foxs {
         }
 
         namespace cross {
-            [[maybe_unused]] static container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> generate_table() {
+            [[maybe_unused]] static lookup::table_t generate_table() {
                 const auto* ff_tables = form_factor::manager::get_active_product_tables();
                 auto ff_indices = ff_tables->ff_indices;
-                container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count> table;
+                lookup::table_t table(ff_tables->active_count, ff_tables->active_count);
                 for (int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
                     for (int j = form_factor::start_index_for_explicit_exv(); j < ff_tables->active_count; ++j) {
                         table.index(i, j) = FormFactorProduct(

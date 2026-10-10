@@ -3,10 +3,11 @@
 
 #pragma once
 
-#include <container/ArrayContainer2D.h>
+#include <container/Container2D.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 
 namespace ausaxs::form_factor::lookup {
-    using table_t = container::ArrayContainer2D<FormFactorProduct, form_factor::total_ff_count, form_factor::total_ff_count>;
+    // A table of form factor products, indexed by active slot.
+    using table_t = container::Container2D<FormFactorProduct>;
 }

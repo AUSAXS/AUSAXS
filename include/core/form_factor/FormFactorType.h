@@ -30,6 +30,22 @@ namespace ausaxs::form_factor {
         O,                  // neutral oxygen
         S,                  // neutral sulfur
         SH,                 // neutral sulfur with hydrogen
+        F,                  // neutral fluorine
+        Na,                 // neutral sodium
+        Mg,                 // neutral magnesium
+        P,                  // neutral phosphorus
+        Cl,                 // neutral chlorine
+        K,                  // neutral potassium
+        Ca,                 // neutral calcium
+        Mn,                 // neutral manganese
+        Fe,                 // neutral iron
+        Co,                 // neutral cobalt
+        Ni,                 // neutral nickel
+        Cu,                 // neutral copper
+        Zn,                 // neutral zinc
+        Se,                 // neutral selenium
+        Br,                 // neutral bromine
+        I,                  // neutral iodine
         OTHER,              // all other atoms
         COUNT,              // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
         UNKNOWN,            // this is used to indicate that the form factor is unknown
@@ -49,9 +65,9 @@ namespace ausaxs::form_factor {
 
     namespace detail {
         /**
-         * @brief The number of form factor slots currently in use.
+         * @brief The number of form factor slots currently in use. This is zero until a form factor selection has been made.
          */
-        inline int active_ff_count = total_ff_count;
+        inline int active_ff_count = 0;
     }
 
     /**
@@ -97,6 +113,22 @@ namespace ausaxs::form_factor {
             {.type=form_factor_t::O,               .name="O",   .element=atom_t::O,       .hydrogens=0, .electrons=8,  .mass=15.999,              .coefficients=ff::O              },
             {.type=form_factor_t::S,               .name="S",   .element=atom_t::S,       .hydrogens=0, .electrons=16, .mass=32.06,               .coefficients=ff::S              },
             {.type=form_factor_t::SH,              .name="SH",  .element=atom_t::S,       .hydrogens=1, .electrons=17, .mass=33.06,               .coefficients=ff::SH             },
+            {.type=form_factor_t::F,               .name="F",   .element=atom_t::F,       .hydrogens=0, .electrons=9,  .mass=get_mass(atom_t::F),  .coefficients=ff::F             },
+            {.type=form_factor_t::Na,              .name="Na",  .element=atom_t::Na,      .hydrogens=0, .electrons=11, .mass=get_mass(atom_t::Na), .coefficients=ff::Na            },
+            {.type=form_factor_t::Mg,              .name="Mg",  .element=atom_t::Mg,      .hydrogens=0, .electrons=12, .mass=get_mass(atom_t::Mg), .coefficients=ff::Mg            },
+            {.type=form_factor_t::P,               .name="P",   .element=atom_t::P,       .hydrogens=0, .electrons=15, .mass=get_mass(atom_t::P),  .coefficients=ff::P             },
+            {.type=form_factor_t::Cl,              .name="Cl",  .element=atom_t::Cl,      .hydrogens=0, .electrons=17, .mass=get_mass(atom_t::Cl), .coefficients=ff::Cl            },
+            {.type=form_factor_t::K,               .name="K",   .element=atom_t::K,       .hydrogens=0, .electrons=19, .mass=get_mass(atom_t::K),  .coefficients=ff::K             },
+            {.type=form_factor_t::Ca,              .name="Ca",  .element=atom_t::Ca,      .hydrogens=0, .electrons=20, .mass=get_mass(atom_t::Ca), .coefficients=ff::Ca            },
+            {.type=form_factor_t::Mn,              .name="Mn",  .element=atom_t::Mn,      .hydrogens=0, .electrons=25, .mass=get_mass(atom_t::Mn), .coefficients=ff::Mn            },
+            {.type=form_factor_t::Fe,              .name="Fe",  .element=atom_t::Fe,      .hydrogens=0, .electrons=26, .mass=get_mass(atom_t::Fe), .coefficients=ff::Fe            },
+            {.type=form_factor_t::Co,              .name="Co",  .element=atom_t::Co,      .hydrogens=0, .electrons=27, .mass=get_mass(atom_t::Co), .coefficients=ff::Co            },
+            {.type=form_factor_t::Ni,              .name="Ni",  .element=atom_t::Ni,      .hydrogens=0, .electrons=28, .mass=get_mass(atom_t::Ni), .coefficients=ff::Ni            },
+            {.type=form_factor_t::Cu,              .name="Cu",  .element=atom_t::Cu,      .hydrogens=0, .electrons=29, .mass=get_mass(atom_t::Cu), .coefficients=ff::Cu            },
+            {.type=form_factor_t::Zn,              .name="Zn",  .element=atom_t::Zn,      .hydrogens=0, .electrons=30, .mass=get_mass(atom_t::Zn), .coefficients=ff::Zn            },
+            {.type=form_factor_t::Se,              .name="Se",  .element=atom_t::Se,      .hydrogens=0, .electrons=34, .mass=get_mass(atom_t::Se), .coefficients=ff::Se            },
+            {.type=form_factor_t::Br,              .name="Br",  .element=atom_t::Br,      .hydrogens=0, .electrons=35, .mass=get_mass(atom_t::Br), .coefficients=ff::Br            },
+            {.type=form_factor_t::I,               .name="I",   .element=atom_t::I,       .hydrogens=0, .electrons=53, .mass=get_mass(atom_t::I),  .coefficients=ff::I             },
             {.type=form_factor_t::OTHER,           .name="OTH", .element=atom_t::Ar,      .hydrogens=0, .electrons=18, .mass=39.948,              .coefficients=ff::other          },
         }};
 

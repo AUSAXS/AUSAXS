@@ -11,9 +11,11 @@
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <settings/All.h>
+#include <support/form_factor_helper.h>
 
 #include <algorithm>
 #include <concepts>
+#include <limits>
 #include <numeric>
 
 using namespace ausaxs;
@@ -28,12 +30,17 @@ static const std::vector<int>& identity() {
     return identity;
 }
 
-TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
+TEST_CASE("form_factor_manager: full identity selection") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple; // the Fraser-based models remove the types without an excluded volume
+    auto original_max = settings::form_factor::max_types;
+    settings::form_factor::max_types = total_ff_count;
+    manager::detail::use_form_factors(identity());
     const auto* tables = manager::get_active_product_tables();
     REQUIRE(tables != nullptr);
 
-    SECTION("active_count equals total_ff_count for identity set") {
+    SECTION("active_count equals total_ff_count") {
         REQUIRE(tables->active_count == form_factor::total_ff_count);
+        REQUIRE(get_active_count() == form_factor::total_ff_count);
     }
 
     SECTION("ff_indices are identity") {
@@ -41,9 +48,20 @@ TEST_CASE("form_factor_manager::get_active_product_tables lazy init") {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(i));
         }
     }
+
+    SECTION("identity mapping") {
+        auto mapping = manager::get_active_mapping();
+        REQUIRE(mapping.size() == total_ff_count);
+        for (int i = 0; i < total_ff_count; ++i) {
+            REQUIRE(mapping[i] == static_cast<int>(i));
+        }
+    }
+
+    settings::form_factor::max_types = original_max;
 }
 
 TEST_CASE("form_factor::get_active_count") {
+    test::form_factor::use_random_form_factors();
     REQUIRE(get_active_count() == manager::get_active_product_tables()->active_count);
 
     SECTION("reflects custom subset") {
@@ -55,7 +73,6 @@ TEST_CASE("form_factor::get_active_count") {
         });
         REQUIRE(get_active_count() == 4);
         REQUIRE(get_active_count() == manager::get_active_product_tables()->active_count);
-        manager::detail::use_form_factors(identity());
     }
 
     SECTION("OTHER is appended to a subset that omits it") {
@@ -67,18 +84,6 @@ TEST_CASE("form_factor::get_active_count") {
         });
         REQUIRE(get_active_count() == 4);
         REQUIRE(manager::get_active_product_tables()->ff_indices[3] == static_cast<int>(form_factor_t::OTHER));
-        manager::detail::use_form_factors(identity());
-    }
-}
-
-TEST_CASE("form_factor_manager::get_active_mapping default") {
-    auto mapping = manager::get_active_mapping();
-    REQUIRE(mapping.size() == total_ff_count);
-
-    SECTION("identity mapping") {
-        for (int i = 0; i < total_ff_count; ++i) {
-            REQUIRE(mapping[i] == static_cast<int>(i));
-        }
     }
 }
 
@@ -112,8 +117,6 @@ TEST_CASE("form_factor_manager::get_active_mapping custom subset") {
         REQUIRE(get_active_count() == 4);
         REQUIRE(mapping[other] == 3);
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
@@ -146,8 +149,6 @@ TEST_CASE("form_factor_manager::detail::use_form_factors padding") {
             REQUIRE(tables->ff_indices[i] == static_cast<int>(form_factor_t::OTHER));
         }
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
@@ -195,8 +196,6 @@ TEST_CASE("form_factor_manager::use_form_factors(Molecule) ordering") {
             REQUIRE(mapping[t] != other_slot);
         }
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables") {
@@ -230,11 +229,11 @@ TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables
         double exv_val_after = tables->raw_exv_table.index(start_index_for_explicit_exv(), start_index_for_explicit_exv()).evaluate(0);
         REQUIRE(exv_val_before == exv_val_after);
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table") {
+    test::form_factor::use_random_form_factors();
+
     // capture exv product at (1,1) which is WATER vs WATER excluded volume — should differ between sets
     double exv_val_default = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
 
@@ -251,6 +250,8 @@ TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table")
 }
 
 TEST_CASE("form_factor_manager: product tables hold the product their indices name") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
+
     auto check = [] <std::invocable<form_factor_t, double> Row, std::invocable<form_factor_t, double> Col> (
         const lookup::table_t& table, int i0, int j0, const Row& row, const Col& col
     ) {
@@ -261,10 +262,7 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
                 auto tj = static_cast<form_factor_t>(tables->ff_indices[j]);
                 for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
                     double expected = row(ti, constants::axes::q_vals[q])*col(tj, constants::axes::q_vals[q]);
-                    REQUIRE_THAT(
-                        table.index(i, j).evaluate(q),
-                        Catch::Matchers::WithinRel(expected, 1e-12) || Catch::Matchers::WithinAbs(expected, 1e-12)
-                    );
+                    REQUIRE_THAT(table.index(i, j).evaluate(q), Catch::Matchers::WithinRel(expected, 1e-12));
                 }
             }
         }
@@ -272,13 +270,11 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
 
     auto raw = [] (form_factor_t t, double q) {return lookup::atomic::raw::get(t).evaluate(q);};
     auto normalized = [] (form_factor_t t, double q) {return lookup::atomic::normalized::get(t).evaluate(q);};
-    auto exv = [] (form_factor_t t, double q) {
-        return ExvTableManager::get_current_exv_form_factor_set().get(t).evaluate(q);
-    };
+    auto exv = [] (form_factor_t t, double q) {return ExvTableManager::get_current_exv_form_factor_set().get(t).evaluate(q);};
     int s0 = start_index_for_explicit_exv();
 
-    SECTION("full default set") {
-        manager::detail::use_form_factors(identity());
+    SECTION("random set") {
+        test::form_factor::use_random_form_factors();
         const auto* tables = manager::get_active_product_tables();
         check(tables->raw_atomic_table,        0,  0,  raw,        raw);
         check(tables->normalized_atomic_table, 0,  0,  normalized, normalized);
@@ -298,8 +294,6 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
         check(tables->normalized_cross_table,  0,  s0, normalized, exv);
         check(tables->raw_exv_table,           s0, s0, exv,        exv);
     }
-
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded volume") {
@@ -307,12 +301,21 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
     const int other = static_cast<int>(form_factor_t::OTHER);
     auto original_method = settings::exv::exv_method.value;
     auto original_set = settings::exv::exv_set.value;
+    auto original_max = settings::form_factor::max_types;
+    auto original_fraction = settings::form_factor::min_fraction;
+    settings::form_factor::max_types = total_ff_count;
     manager::detail::use_form_factors(identity());
 
     // a volume set without CH3
     auto set = constants::exv::MinimumFluctuation_implicit_H;
     set.volumes[CH3].reset();
     ExvTableManager::set_custom_exv_table(set);
+
+    // not every type has a volume in the base set either, so count those that remain
+    int with_volume = 1; // EXCLUDED_VOLUME is always kept
+    for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
+        if (set.contains(static_cast<form_factor_t>(i))) {++with_volume;}
+    }
 
     auto is_active = [] (int type) {
         const auto* tables = manager::get_active_product_tables();
@@ -321,7 +324,7 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
 
     SECTION("Fraser removes the type, and maps it onto OTHER") {
         settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
-        CHECK(get_active_count() == total_ff_count-1);
+        CHECK(get_active_count() == with_volume);
         CHECK_FALSE(is_active(CH3));
         CHECK(is_active(other));
         auto mapping = manager::get_active_mapping();
@@ -350,7 +353,113 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
         CHECK_FALSE(is_active(CH3));
     }
 
+    SECTION("the type does not take up a slot of the molecule-based selection") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
+        data::Molecule molecule("tests/files/2epe.pdb");
+        std::vector<int> counts(total_ff_count, 0);
+        for (const auto& a : molecule.iterate_atoms()) {
+            if (form_factor::detail::is_tabulated(a.form_factor_type())) {++counts[static_cast<int>(a.form_factor_type())];}
+        }
+
+        // limit the slots to exactly the types at least as abundant as CH3, so CH3 would take the last one if it were not skipped
+        int at_least_ch3 = 0, below_ch3 = 0;
+        for (int t = start_index_for_explicit_exv(); t < total_ff_count; ++t) {
+            if (t == static_cast<int>(form_factor_t::WATER) || t == other || counts[t] == 0) {continue;}
+            if (counts[CH3] <= counts[t]) {++at_least_ch3;}
+            else {++below_ch3;}
+        }
+        REQUIRE(0 < below_ch3); // some type must be left to take the freed slot
+        settings::form_factor::max_types = 3 + at_least_ch3;
+        settings::form_factor::min_fraction = 0;
+
+        manager::use_form_factors(molecule);
+        CHECK_FALSE(is_active(CH3));
+        CHECK(get_active_count() == settings::form_factor::max_types);
+    }
+
     settings::exv::exv_method = original_method;
     settings::exv::exv_set = original_set;
-    manager::detail::use_form_factors(identity());
+    settings::form_factor::max_types = original_max;
+    settings::form_factor::min_fraction = original_fraction;
+}
+
+TEST_CASE("form_factor_manager: max_types is a hard limit") {
+    const int exv   = static_cast<int>(form_factor_t::EXCLUDED_VOLUME);
+    const int water = static_cast<int>(form_factor_t::WATER);
+    const int C     = static_cast<int>(form_factor_t::C);
+    const int N     = static_cast<int>(form_factor_t::N);
+    const int O     = static_cast<int>(form_factor_t::O);
+    const int other = static_cast<int>(form_factor_t::OTHER);
+    auto original_max = settings::form_factor::max_types;
+    settings::form_factor::max_types = 5;
+
+    SECTION("a selection within the limit is accepted") {
+        manager::detail::use_form_factors({exv, water, C, N, other});
+        CHECK(get_active_count() == 5);
+    }
+
+    SECTION("a selection above the limit is rejected") {
+        CHECK_THROWS(manager::detail::use_form_factors({exv, water, C, N, O, other}));
+    }
+
+    SECTION("the appended OTHER counts towards the limit") {
+        CHECK_THROWS(manager::detail::use_form_factors({exv, water, C, N, O}));
+    }
+
+    settings::form_factor::max_types = original_max;
+}
+
+TEST_CASE("form_factor_manager: use_form_factors(Molecule) folds excess and rare types onto OTHER") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple; // the Fraser-based models remove the types without an excluded volume
+    auto original_max = settings::form_factor::max_types;
+    auto original_fraction = settings::form_factor::min_fraction;
+    data::Molecule molecule("tests/files/2epe.pdb");
+
+    // the atom counts of the present types, excluding the forced EXCLUDED_VOLUME, WATER, and OTHER
+    std::vector<int> counts(total_ff_count, 0);
+    for (const auto& a : molecule.iterate_atoms()) {
+        if (form_factor::detail::is_tabulated(a.form_factor_type())) {++counts[static_cast<int>(a.form_factor_type())];}
+    }
+    std::vector<int> present;
+    for (int t = 0; t < total_ff_count; ++t) {
+        if (t == static_cast<int>(form_factor_t::EXCLUDED_VOLUME) || t == static_cast<int>(form_factor_t::WATER) || t == static_cast<int>(form_factor_t::OTHER)) {continue;}
+        if (0 < counts[t]) {present.push_back(t);}
+    }
+    REQUIRE(4 < present.size());
+
+    auto has_own_slot = [] (int type) {
+        auto mapping = manager::get_active_mapping();
+        return mapping[type] != mapping[static_cast<int>(form_factor_t::OTHER)];
+    };
+
+    SECTION("the slot limit keeps the most abundant types") {
+        settings::form_factor::max_types = 6;
+        settings::form_factor::min_fraction = 0;
+        manager::use_form_factors(molecule);
+        const auto* tables = manager::get_active_product_tables();
+        REQUIRE(tables->active_count == 6);
+        CHECK(tables->ff_indices[0] == static_cast<int>(form_factor_t::EXCLUDED_VOLUME));
+        CHECK(tables->ff_indices[1] == static_cast<int>(form_factor_t::WATER));
+        CHECK(tables->ff_indices[5] == static_cast<int>(form_factor_t::OTHER));
+
+        int min_kept = std::numeric_limits<int>::max(), max_folded = 0;
+        for (int t : present) {
+            if (has_own_slot(t)) {min_kept = std::min(min_kept, counts[t]);}
+            else {max_folded = std::max(max_folded, counts[t]);}
+        }
+        CHECK(max_folded <= min_kept);
+    }
+
+    SECTION("types below the minimum fraction are folded onto OTHER") {
+        settings::form_factor::max_types = total_ff_count;
+        int rarest = *std::ranges::min_element(present, {}, [&counts] (int t) {return counts[t];});
+        settings::form_factor::min_fraction = (counts[rarest] + 0.5)/static_cast<double>(molecule.size_atom());
+        manager::use_form_factors(molecule);
+        for (int t : present) {
+            CHECK(has_own_slot(t) == (counts[rarest] < counts[t]));
+        }
+    }
+
+    settings::form_factor::max_types = original_max;
+    settings::form_factor::min_fraction = original_fraction;
 }

@@ -6,9 +6,27 @@
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/NormalizedFormFactorProduct.h>
+#include <support/form_factor_helper.h>
+
+#include <utility>
 
 using namespace ausaxs;
 using namespace form_factor;
+
+namespace {
+    // activate a small selection containing C and H, and return their slots
+    std::pair<int, int> use_C_and_H() {
+        manager::detail::use_form_factors({
+            static_cast<int>(form_factor_t::EXCLUDED_VOLUME),
+            static_cast<int>(form_factor_t::WATER),
+            static_cast<int>(form_factor_t::H),
+            static_cast<int>(form_factor_t::C),
+            static_cast<int>(form_factor_t::OTHER)
+        });
+        auto mapping = manager::get_active_mapping();
+        return {mapping[static_cast<int>(form_factor_t::C)], mapping[static_cast<int>(form_factor_t::H)]};
+    }
+}
 
 TEST_CASE("NormalizedFormFactorProduct::constructor") {
     SECTION("from two NormalizedFormFactors") {
@@ -90,24 +108,16 @@ TEST_CASE("NormalizedFormFactorProduct::all_pairs") {
 }
 
 TEST_CASE("manager::raw_atomic_table") {
+    auto [c_slot, h_slot] = use_C_and_H();
     const auto& table = manager::get_active_product_tables()->raw_atomic_table;
     SECTION("single access") {
-        const auto& ff = table.index(
-            static_cast<int>(form_factor_t::C),
-            static_cast<int>(form_factor_t::H)
-        );
+        const auto& ff = table.index(c_slot, h_slot);
         CHECK(ff.evaluate(0) > 0);
     }
 
     SECTION("symmetric access") {
-        const auto& ff1 = table.index(
-            static_cast<int>(form_factor_t::C),
-            static_cast<int>(form_factor_t::H)
-        );
-        const auto& ff2 = table.index(
-            static_cast<int>(form_factor_t::H),
-            static_cast<int>(form_factor_t::C)
-        );
+        const auto& ff1 = table.index(c_slot, h_slot);
+        const auto& ff2 = table.index(h_slot, c_slot);
 
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
             CHECK_THAT(ff1.evaluate(i), Catch::Matchers::WithinRel(ff2.evaluate(i), 1e-10));
@@ -117,15 +127,13 @@ TEST_CASE("manager::raw_atomic_table") {
 
 TEST_CASE("manager::normalized_atomic_table") {
     SECTION("table access") {
+        auto [c_slot, h_slot] = use_C_and_H();
         const auto& table = manager::get_active_product_tables()->normalized_atomic_table;
 
         const NormalizedFormFactor& C = lookup::atomic::normalized::get(form_factor_t::C);
         const NormalizedFormFactor& H = lookup::atomic::normalized::get(form_factor_t::H);
 
-        const auto& ff = table.index(
-            static_cast<int>(form_factor_t::C),
-            static_cast<int>(form_factor_t::H)
-        );
+        const auto& ff = table.index(c_slot, h_slot);
 
         for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
             double expected = C.evaluate(constants::axes::q_vals[i]) * H.evaluate(constants::axes::q_vals[i]);
@@ -134,11 +142,13 @@ TEST_CASE("manager::normalized_atomic_table") {
     }
 
     SECTION("table completeness") {
-        const auto& table = manager::get_active_product_tables()->normalized_atomic_table;
-        for (int ff1 = 0; ff1 < form_factor::total_ff_count; ++ff1) {
-            for (int ff2 = 0; ff2 < form_factor::total_ff_count; ++ff2) {
-                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff1));
-                const NormalizedFormFactor& ff2_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(ff2));
+        test::form_factor::use_random_form_factors();
+        const auto* tables = manager::get_active_product_tables();
+        const auto& table = tables->normalized_atomic_table;
+        for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
+            for (int ff2 = 0; ff2 < tables->active_count; ++ff2) {
+                const NormalizedFormFactor& ff1_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+                const NormalizedFormFactor& ff2_obj = lookup::atomic::normalized::get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {

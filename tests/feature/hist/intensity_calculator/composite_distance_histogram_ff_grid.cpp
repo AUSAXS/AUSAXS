@@ -5,6 +5,7 @@
 
 #include <data/Molecule.h>
 #include <dataset/Dataset.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
@@ -165,6 +166,7 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
 
     Molecule protein({Body{atoms, waters}});
     GridDebug::generate_debug_grid(protein);
+    form_factor::manager::use_form_factors(protein);
 
     SECTION("Grid") {
         auto h = DebugHistogramManagerMTFFGrid(&protein).calculate_all();
@@ -208,6 +210,7 @@ TEST_CASE("HistogramManagerMTFFGrid: consistent solvent density fitting", "[file
     settings::grid::exv::width = 1;
 
     data::Molecule protein("tests/files/2epe.pdb");
+    form_factor::manager::use_form_factors(protein); // the managers below are constructed directly, bypassing the factory which normally selects these
     auto hg = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
     auto* hg_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hg.get());
     
@@ -245,6 +248,7 @@ TEST_CASE("HistogramManagerMTFFGridSurface: surface_scaling") {
 
     Molecule protein({Body{atoms}});
     GridDebug::generate_debug_grid(protein);
+    form_factor::manager::use_form_factors(protein);
     auto h = DebugHistogramManagerMTFFGridSurface(&protein).calculate_all();
     auto* h_cast = static_cast<hist::CompositeDistanceHistogramFFGridSurface*>(h.get());
 
@@ -291,6 +295,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
+        form_factor::manager::use_form_factors(protein);
         auto h = DebugHistogramManagerMTFFGridScalableExv(&protein).calculate_all();
         auto* h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());
 
@@ -360,6 +365,7 @@ TEST_CASE("HistogramManagerMTFFGridScalableExv: exv scaling") {
 
         Molecule protein({Body{atoms}});
         GridDebug::generate_debug_grid(protein); // overrides exv generation to a known configuration
+        form_factor::manager::use_form_factors(protein);
         auto h = hist::HistogramManagerMTFFGridScalableExv(&protein).calculate_all();
         auto* h_cast = static_cast<hist::CompositeDistanceHistogramFFGridScalableExv*>(h.get());
 

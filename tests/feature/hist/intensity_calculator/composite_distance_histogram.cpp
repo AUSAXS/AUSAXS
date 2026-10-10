@@ -7,6 +7,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <dataset/Dataset.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
@@ -307,6 +308,7 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform", "[files]") {
                 std::ranges::transform(counts, axis, counts.begin(), [] (double x, double q) {return x*std::exp(q*q);});
                 REQUIRE(compare_hist(exact, counts, 0, 1e-2));
             }
+            form_factor::manager::use_form_factors(protein); // the form factor managers below are constructed directly, bypassing the factory which normally selects these
             { // hm_mt_ff_avg
                 auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()->get_profile_aa();
                 auto axis = hm_mt_ff_avg.get_axis().as_vector();

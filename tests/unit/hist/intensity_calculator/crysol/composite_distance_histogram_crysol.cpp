@@ -7,6 +7,7 @@
 #include <form_factor/ExvTable.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/ExvTableManager.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
 #include <settings/ExvSettings.h>
@@ -26,7 +27,8 @@ namespace {
 
     template<typename T>
     T construct(const Molecule& molecule) {
-        constexpr int n = form_factor::total_ff_count;
+        form_factor::manager::use_form_factors(molecule); // the histogram is constructed directly, bypassing the factory which normally selects these
+        int n = form_factor::get_active_count();
         return T(hist::Distribution3D<hist::Shape::Triangular>(n, n, 1), hist::Distribution2D(n, 1), hist::Distribution1D(1), hist::Distribution1D(1), &molecule);
     }
 }

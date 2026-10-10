@@ -12,6 +12,7 @@
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <form_factor/lookup/detail/LookupHelpers.h>
 #include <settings/ExvSettings.h>
+#include <settings/FormFactorSettings.h>
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
@@ -24,11 +25,7 @@ using namespace ausaxs::form_factor;
 
 namespace {
     std::unique_ptr<manager::detail::ActiveTables> active_tables;
-    std::vector<int> requested_indices = [] () { // the form factor selection before removing those unavailable for the current exv model
-        std::vector<int> indices(form_factor::total_ff_count);
-        std::iota(indices.begin(), indices.end(), 0);
-        return indices;
-    }();
+    std::vector<int> requested_indices;
 
     /**
      * @brief Check if the current excluded volume model uses the explicit per-type excluded volume tables.
@@ -46,7 +43,7 @@ namespace {
     }
 
     using ff_profile_t = std::array<double, constants::axes::q_axis.bins>; // A single form factor evaluated over the default q axis.
-    using profile_set_t = std::array<ff_profile_t, form_factor::total_ff_count>; // One such profile per active form factor slot.
+    using profile_set_t = std::vector<ff_profile_t>; // One such profile per active form factor slot.
 
     /**
      * @brief Evaluate every active atomic form factor over the default q axis.
@@ -54,7 +51,7 @@ namespace {
      */
     template<FormFactorLookupType FormFactorLookup>
     profile_set_t evaluate_atomic_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
-        profile_set_t profiles{};
+        profile_set_t profiles(form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
             const auto& ff = FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i]));
             for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
@@ -70,7 +67,7 @@ namespace {
     profile_set_t evaluate_exv_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
 
-        profile_set_t profiles{};
+        profile_set_t profiles(form_factor::get_active_count());
         for (int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
             // types without a volume are only active when the explicit exv tables are unused (see requires_explicit_exv)
             if (!exv_set.contains(static_cast<form_factor_t>(ff_indices[i]))) {continue;}
@@ -86,7 +83,7 @@ namespace {
      * @brief Generate an atomic form factor product table.
      */
     lookup::table_t generate_atomic_table(const profile_set_t& atomic) {
-        lookup::table_t table;
+        lookup::table_t table(form_factor::get_active_count(), form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
             for (int j = 0; j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(atomic[i], atomic[j]);
@@ -101,7 +98,7 @@ namespace {
      * @brief Generate an excluded volume form factor product table (exv-exv). This is a symmetric table.
      */
     lookup::table_t generate_exv_table(const profile_set_t& exv) {
-        lookup::table_t table;
+        lookup::table_t table(form_factor::get_active_count(), form_factor::get_active_count());
         for (int i = start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
             for (int j = start_index_for_explicit_exv(); j < i; ++j) {
                 table.index(i, j) = FormFactorProduct(exv[i], exv[j]);
@@ -116,7 +113,7 @@ namespace {
      * @brief Generate a cross form factor product table (atomic-exv).
      */
     lookup::table_t generate_cross_table(const profile_set_t& atomic, const profile_set_t& exv) {
-        lookup::table_t table;
+        lookup::table_t table(form_factor::get_active_count(), form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
             for (int j = start_index_for_explicit_exv(); j < form_factor::get_active_count(); ++j) {
                 table.index(i, j) = FormFactorProduct(atomic[i], exv[j]);
@@ -126,8 +123,16 @@ namespace {
     }
 
     /**
-     * @brief Remove the form factors which cannot be used with the current excluded volume model.
+     * @brief Check if a form factor type can be used with the current excluded volume model.
      *        The Fraser-based models need an explicit excluded volume for each form factor, so only types present in the current volume set can be used.
+     */
+    bool is_available(int index) {
+        if (!requires_explicit_exv() || index == static_cast<int>(form_factor_t::EXCLUDED_VOLUME)) {return true;}
+        return ExvTableManager::get_current_exv_table()->contains(static_cast<form_factor_t>(index));
+    }
+
+    /**
+     * @brief Remove the form factors which cannot be used with the current excluded volume model (see is_available).
      *        Atoms of removed types fall back to OTHER through get_active_mapping.
      */
     std::vector<int> remove_unavailable(std::vector<int> ff_indices) {
@@ -139,10 +144,9 @@ namespace {
         }
 
         std::string removed;
-        std::erase_if(ff_indices, [&exv_set, &removed] (int index) {
-            auto type = static_cast<form_factor_t>(index);
-            if (type == form_factor_t::EXCLUDED_VOLUME || exv_set.contains(type)) {return false;}
-            removed += " " + form_factor::to_string(type);
+        std::erase_if(ff_indices, [&removed] (int index) {
+            if (is_available(index)) {return false;}
+            removed += " " + form_factor::to_string(static_cast<form_factor_t>(index));
             return true;
         });
         if (!removed.empty()) {
@@ -189,8 +193,13 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     this->normalized_cross_table   = generate_cross_table(normalized_profiles, exv_profiles);
 }
 
-observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() noexcept {
-    if (!active_tables) {build_tables(requested_indices);} // initialize default tables
+observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() {
+    if (!active_tables) {
+        throw except::unexpected(
+            "form_factor::manager::get_active_product_tables: No form factor selection has been made. "
+            "Call form_factor::manager::use_form_factors first."
+        );
+    }
     return active_tables.get();
 }
 
@@ -211,8 +220,19 @@ std::vector<int> manager::get_active_mapping() {
 void manager::detail::use_form_factors(std::vector<int> ff_indices) {
     assert(!ff_indices.empty() && "Custom form factors cannot be empty.");
     assert(ff_indices.size() <= form_factor::total_ff_count && "Custom form factors cannot exceed the total number of available form factors.");
+
+    // OTHER is appended by build_tables if it is absent, so it counts towards the limit either way
+    constexpr int other = static_cast<int>(form_factor::form_factor_t::OTHER);
+    int n_slots = static_cast<int>(ff_indices.size()) + static_cast<int>(std::ranges::find(ff_indices, other) == ff_indices.end());
+    if (settings::form_factor::max_types < n_slots) {
+        throw except::invalid_argument(
+            "form_factor::manager: A selection of " + std::to_string(n_slots) + " form factors exceeds the limit of " 
+            + std::to_string(settings::form_factor::max_types) + " (settings::form_factor::max_types)."
+        );
+    }
+
+    build_tables(ff_indices);
     requested_indices = std::move(ff_indices);
-    build_tables(requested_indices);
 }
 
 void manager::use_form_factors(const data::Molecule& molecule) {
@@ -229,20 +249,35 @@ void manager::use_form_factors(const data::Molecule& molecule) {
 
     std::vector<int> ff_indices(form_factor::total_ff_count);
     std::iota(ff_indices.begin(), ff_indices.end(), 0);
-    std::ranges::sort(ff_indices, [&ff_counts](int a, int b) {return ff_counts[a] > ff_counts[b];});
+    std::ranges::stable_sort(ff_indices, std::greater{}, [&ff_counts] (int type) {return ff_counts[type];});
 
-    // Truncate to the form factors actually present. The sort above places EXCLUDED_VOLUME and WATER first (forced), then every type with a non-zero atom 
-    // count in descending order, then the absent types, and finally OTHER. Everything from the first absent type onwards is dead weight and therefore removed. 
-    int n_present = 0;
-    for (int i = 2; i < static_cast<int>(ff_indices.size()); ++i) {
-        if (ff_counts[ff_indices[i]] <= 0) {break;}
-        ++n_present;
+    // Drop the absent types. The sort above places EXCLUDED_VOLUME and WATER first (forced), then every type in descending order of abundance, and finally 
+    // OTHER, which is dropped along with them and appended again at the end. 
+    ff_indices.erase(std::ranges::find_if(ff_indices.begin() + 2, ff_indices.end(), [&ff_counts] (int type) {return ff_counts[type] <= 0;}), ff_indices.end());
+
+    // The present types which are not given a slot of their own, and are therefore folded onto OTHER. 
+    // Types unavailable with the current excluded volume model go first, so they do not take up a slot which an available type could have used. 
+    std::vector<int> folded;
+    std::erase_if(ff_indices, [&folded] (int type) {
+        if (is_available(type)) {return false;}
+        folded.emplace_back(type);
+        return true;
+    });
+
+    // Then cut the remaining types down to those worth a slot of their own. Selection stops at the first type which is rarer than 
+    // settings::form_factor::min_fraction, or beyond the settings::form_factor::max_types slot limit. 
+    const int max_selected = settings::form_factor::max_types - 3; // EXCLUDED_VOLUME, WATER and OTHER always take a slot
+    const double min_count = settings::form_factor::min_fraction*static_cast<double>(molecule.size_atom());
+    int n_selected = 0;
+    while (2 + n_selected < static_cast<int>(ff_indices.size()) && n_selected < max_selected && min_count <= ff_counts[ff_indices[2 + n_selected]]) {
+        ++n_selected;
     }
-    ff_indices.resize(std::min<int>(2 + n_present + 1, form_factor::total_ff_count));
-    ff_indices.back() = static_cast<int>(form_factor::form_factor_t::OTHER); // OTHER will never be selected, so it is safe to assign it here
+    folded.insert(folded.end(), ff_indices.begin() + 2 + n_selected, ff_indices.end());
+    ff_indices.resize(2 + n_selected);
+    ff_indices.emplace_back(static_cast<int>(form_factor::form_factor_t::OTHER));
 
     // the histogram factory calls this for every manager it builds, so an unchanged request must not rebuild the tables.
-    // they are kept current with the exv settings by rebuild(), and if they are not built yet, the lazy init will build this same selection
+    // they are kept current with the exv settings by rebuild()
     if (ff_indices == requested_indices) {return;}
 
     if (logging::logging_enabled()) {
@@ -253,6 +288,9 @@ void manager::use_form_factors(const data::Molecule& molecule) {
             log_msg += "\n\t" + form_factor::to_string(static_cast<form_factor_t>(ff_indices[i])) + " with count " + std::to_string(ff_counts[ff_indices[i]]);
         }
         log_msg += "\n\t" + form_factor::to_string(form_factor::form_factor_t::OTHER) + " (forced)";
+        for (int type : folded) {
+            log_msg += "\n\t" + form_factor::to_string(static_cast<form_factor_t>(type)) + " with count " + std::to_string(ff_counts[type]) + " (folded onto OTHER)";
+        }
         logging::log(log_msg);
     }
 
@@ -260,6 +298,6 @@ void manager::use_form_factors(const data::Molecule& molecule) {
 }
 
 void manager::rebuild() {
-    if (!active_tables) {return;} // lazy init will pick up the new EXV set
+    if (!active_tables) {return;} // no selection yet; the first one will be built with the new EXV set
     build_tables(requested_indices);
 }

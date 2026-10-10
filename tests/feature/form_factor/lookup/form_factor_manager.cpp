@@ -3,11 +3,11 @@
 #include <data/Molecule.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <settings/All.h>
-
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
+#include <settings/All.h>
+
 #include <support/hist_test_helper.h>
 
 #include <algorithm>
@@ -27,23 +27,26 @@ static const std::vector<int>& identity() {
     return identity;
 }
 
-static const std::vector<int>& shuffled() {
-    static std::vector<int> shuffled;
-    if (shuffled.empty()) {
-        shuffled = identity();
-        std::mt19937 g(std::random_device{}());
-        std::shuffle(shuffled.begin()+2, shuffled.end()-1, g);
-    }
+// the form factor set selected for the molecule, with all but EXCLUDED_VOLUME, WATER, and OTHER in random order
+static std::vector<int> shuffled(const data::Molecule& protein) {
+    manager::use_form_factors(protein);
+    const auto* tables = manager::get_active_product_tables();
+    std::vector<int> selected(tables->ff_indices.begin(), tables->ff_indices.begin() + tables->active_count);
+
+    auto shuffled = selected;
+    std::mt19937 g(std::random_device{}());
+    std::shuffle(shuffled.begin()+2, shuffled.end()-1, g);
+    if (shuffled == selected) {std::reverse(shuffled.begin()+2, shuffled.end()-1);} // make sure the slots actually move
     return shuffled;
 }
 
 template<template<bool> class MANAGER>
 static void run_comparison(const data::Molecule& protein) {
-    manager::detail::use_form_factors(identity());
+    manager::use_form_factors(protein);
     auto i1 = MANAGER<false>(&protein).calculate_all()->debye_transform();
     auto i2 = MANAGER<true>(&protein).calculate_all()->debye_transform();
 
-    manager::detail::use_form_factors(shuffled());
+    manager::detail::use_form_factors(shuffled(protein));
     auto i1s = MANAGER<false>(&protein).calculate_all()->debye_transform();
     auto i2s = MANAGER<true>(&protein).calculate_all()->debye_transform();
 
@@ -53,10 +56,10 @@ static void run_comparison(const data::Molecule& protein) {
 
 template<typename MANAGER>
 static void run_comparison(const data::Molecule& protein) {
-    manager::detail::use_form_factors(identity());
+    manager::use_form_factors(protein);
     auto i = MANAGER(&protein).calculate_all()->debye_transform();
 
-    manager::detail::use_form_factors(shuffled());
+    manager::detail::use_form_factors(shuffled(protein));
     auto is = MANAGER(&protein).calculate_all()->debye_transform();
 
     REQUIRE(compare_hist(i, is));
@@ -78,7 +81,6 @@ TEST_CASE("manager ff set change scattering consistent across all managers") {
         },
         protein
     );
-    manager::detail::use_form_factors(identity());
 }
 
 TEST_CASE("manager ff set change scattering consistent for special exv calculators") {
@@ -106,7 +108,6 @@ TEST_CASE("manager ff set change scattering consistent for special exv calculato
     }
 
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
-    manager::detail::use_form_factors(identity());
 }
 
 // The molecule-derived form factor set is truncated to the types the molecule actually contains, which
@@ -141,6 +142,11 @@ static void run_truncation_comparison(data::Molecule& protein) {
 }
 
 TEST_CASE("form_factor_manager: truncated ff set scattering consistent across all managers") {
+    // the full identity selection is the untruncated reference, so it needs every slot, and only the absent types may be dropped
+    auto original_max = settings::form_factor::max_types;
+    auto original_fraction = settings::form_factor::min_fraction;
+    settings::form_factor::max_types = total_ff_count;
+    settings::form_factor::min_fraction = 0;
     settings::general::verbose = false;
 
     auto run = [] () {
@@ -158,23 +164,30 @@ TEST_CASE("form_factor_manager: truncated ff set scattering consistent across al
         );
     };
 
-    SECTION("implicit hydrogens") { // 2epe contains every type but H, so the set shrinks 15 -> 14
+    SECTION("implicit hydrogens") { // 2epe contains neither H nor any of the bare elements beyond C/N/O/S, so the set shrinks
         settings::molecule::implicit_hydrogens = true;
         run();
     }
 
-    SECTION("explicit hydrogens") { // only C/N/O/S are present, so the set shrinks 15 -> 7
+    SECTION("explicit hydrogens") { // only C/N/O/S are present, so the set shrinks to 7
         settings::molecule::implicit_hydrogens = false;
         run();
     }
 
     settings::molecule::implicit_hydrogens = true;
-    manager::detail::use_form_factors(identity());
+    settings::form_factor::max_types = original_max;
+    settings::form_factor::min_fraction = original_fraction;
 }
 
 TEST_CASE("form_factor_manager: truncated ff set scattering consistent for special exv calculators") {
     // the FoXS product tables are only filled over the active sub-block, so they need the same check as the histograms.
     // Pepsi and CRYSOL share the manager tables, but switch them to the Traube volumes - and all of these are only reachable through their exv models
+
+    // the full identity selection is the untruncated reference, so it needs every slot, and only the absent types may be dropped
+    auto original_max = settings::form_factor::max_types;
+    auto original_fraction = settings::form_factor::min_fraction;
+    settings::form_factor::max_types = total_ff_count;
+    settings::form_factor::min_fraction = 0;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
 
@@ -191,17 +204,23 @@ TEST_CASE("form_factor_manager: truncated ff set scattering consistent for speci
     SECTION("CRYSOL") {run_exv(settings::exv::ExvMethod::CRYSOL);}
 
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
-    manager::detail::use_form_factors(identity());
+    settings::form_factor::max_types = original_max;
+    settings::form_factor::min_fraction = original_fraction;
 }
 
 TEST_CASE("form_factor_manager: use_form_factors(Molecule) reproduces identity scattering") {
+    // the full identity selection is the untruncated reference, so it needs every slot, and only the absent types may be dropped
+    auto original_max = settings::form_factor::max_types;
+    auto original_fraction = settings::form_factor::min_fraction;
+    settings::form_factor::max_types = total_ff_count;
+    settings::form_factor::min_fraction = 0;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
 
     data::Molecule protein("tests/files/2epe.pdb");
     protein.generate_new_hydration();
 
-    // baseline: the default identity form factor ordering
+    // baseline: the full identity form factor ordering
     manager::detail::use_form_factors(identity());
     auto I = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
 
@@ -211,12 +230,18 @@ TEST_CASE("form_factor_manager: use_form_factors(Molecule) reproduces identity s
     auto I2 = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
 
     REQUIRE(compare_hist(I, I2));
-    manager::detail::use_form_factors(identity());
+    settings::form_factor::max_types = original_max;
+    settings::form_factor::min_fraction = original_fraction;
 }
 
 // Everything reaching a histogram through a Molecule - the API, pyAUSAXS, the rigidbody optimizer, the EM fitter and the CLI alike - builds its
 // manager through the factory, so that is where the form factor set is selected. A manager constructed by hand leaves the caller's selection alone.
 TEST_CASE("form_factor_manager: the factory selects the molecule's form factor set") {
+    // the full identity selection is the untruncated reference, so it needs every slot, and only the absent types may be dropped
+    auto original_max = settings::form_factor::max_types;
+    auto original_fraction = settings::form_factor::min_fraction;
+    settings::form_factor::max_types = total_ff_count;
+    settings::form_factor::min_fraction = 0;
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::exv::exv_method = settings::exv::ExvMethod::Average;
@@ -244,5 +269,6 @@ TEST_CASE("form_factor_manager: the factory selects the molecule's form factor s
 
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
     settings::molecule::implicit_hydrogens = true;
-    manager::detail::use_form_factors(identity());
+    settings::form_factor::max_types = original_max;
+    settings::form_factor::min_fraction = original_fraction;
 }

@@ -4,6 +4,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <settings/All.h>
 
@@ -15,6 +16,7 @@ using namespace ausaxs::data;
 
 template<template<bool> class MANAGER>
 static void run_nongrid_test1(const Molecule& protein, std::size_t expected_bins) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(h1->get_d_axis().size() == expected_bins);
     auto h2 = MANAGER<true>(&protein).calculate_all();
@@ -23,6 +25,7 @@ static void run_nongrid_test1(const Molecule& protein, std::size_t expected_bins
 
 template<typename MANAGER>
 static void run_grid_test1(const Molecule& protein, std::size_t min_bins) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h = MANAGER(&protein).calculate_all();
     REQUIRE(h->get_d_axis().size() >= min_bins);
 }
@@ -60,6 +63,7 @@ TEST_CASE("Deduced bin count: axis covers the structure") {
 
 template<template<bool> class MANAGER>
 static void run_test2(const Molecule& protein) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE_THAT(h1->get_d_axis()[1] - h1->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
     auto h2 = MANAGER<true>(&protein).calculate_all();
@@ -68,6 +72,7 @@ static void run_test2(const Molecule& protein) {
 
 template<typename MANAGER>
 static void run_test2(const Molecule& protein) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h = MANAGER(&protein).calculate_all();
     REQUIRE_THAT(h->get_d_axis()[1] - h->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
 }
@@ -89,11 +94,13 @@ TEST_CASE("Custom bin width: respected by managers") {
 
 template<typename MANAGER>
 static void run_test3(const Molecule& protein, const auto& target) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h = MANAGER(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h.get()), target));
 }
 template<template<bool> class MANAGER>
 static void run_test3(const Molecule& protein, const auto& target) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h1.get()), target));
     auto h2 = MANAGER<true>(&protein).calculate_all();
@@ -136,6 +143,7 @@ static auto avg_deviation = [] (const std::vector<double>& a, const std::vector<
 };
 template<template<bool> class MANAGER>
 static void run_test5(const Molecule& protein, const std::vector<double>& exact) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     settings::axes::bin_width = 0.5;
     auto target_dev = avg_deviation(
         MANAGER<true>(&protein).calculate_all()->debye_transform().get_intensity(),
