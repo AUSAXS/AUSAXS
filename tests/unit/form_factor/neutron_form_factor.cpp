@@ -92,3 +92,12 @@ TEST_CASE("NeutronFormFactor::lookup") {
         CHECK_THROWS(deuterated::get(form_factor_t::EXCLUDED_VOLUME));
     }
 }
+
+TEST_CASE("neutron::solvent_density") {
+    // the tabulated SLDs are -0.56e-6 and 6.36e-6 Å^-2, and 1 fm/Å^3 = 1e-5 Å^-2
+    CHECK_THAT(neutron::solvent_density(0), WithinAbs(-0.056, 0.001));
+    CHECK_THAT(neutron::solvent_density(1), WithinAbs(0.636, 0.001));
+    CHECK_THAT(neutron::solvent_density(0.25), Catch::Matchers::WithinRel(0.75*neutron::solvent_density(0) + 0.25*neutron::solvent_density(1), 1e-12));
+    CHECK_THROWS(neutron::solvent_density(-0.1));
+    CHECK_THROWS(neutron::solvent_density(1.1));
+}

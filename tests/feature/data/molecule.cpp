@@ -376,11 +376,11 @@ TEST_CASE("Molecule::get_total_atomic_charge", "[files]") {
     REQUIRE_THAT(protein.get_total_atomic_charge(), Catch::Matchers::WithinRel(sum, 1e-9));
 }
 
-TEST_CASE("Molecule::get_relative_charge_density", "[files]") {
+TEST_CASE("Molecule::get_excess_charge_density", "[files]") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     REQUIRE_THAT(
-        protein.get_relative_charge_density(), 
+        protein.get_excess_charge_density(), 
         Catch::Matchers::WithinAbs(
             (protein.get_total_atomic_charge() - constants::charge::density::water*protein.get_volume_grid())/protein.get_volume_grid(), 
             1e-6
@@ -388,7 +388,7 @@ TEST_CASE("Molecule::get_relative_charge_density", "[files]") {
     );
 }
 
-TEST_CASE("Molecule::get_relative_mass_density", "[files]") {
+TEST_CASE("Molecule::get_excess_mass_density", "[files]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = true;      // do not inherit the override from get_Rg above
     settings::molecule::allow_unknown_atoms = true;     // SASDJQ4 carries a few
@@ -416,7 +416,7 @@ TEST_CASE("Molecule::get_relative_mass_density", "[files]") {
     // converted from an absolute (SI) density to Da/A^3 before it can be subtracted
     double m_water = constants::mass::density::water*V*constants::SI::volume::A3/constants::SI::mass::u;
     REQUIRE_THAT(
-        protein.get_relative_mass_density(),
+        protein.get_excess_mass_density(),
         Catch::Matchers::WithinAbs((protein.get_absolute_mass(false) - m_water)/V, 1e-6)
     );
 
@@ -425,7 +425,7 @@ TEST_CASE("Molecule::get_relative_mass_density", "[files]") {
     CHECK_THAT(to_gcm3(protein.get_absolute_mass(false)/V), Catch::Matchers::WithinAbs(1.39, 0.05));
 
     // ... and the excess over water (0.998 g/cm^3) correspondingly near 0.39
-    CHECK_THAT(to_gcm3(protein.get_relative_mass_density()), Catch::Matchers::WithinAbs(0.39, 0.05));
+    CHECK_THAT(to_gcm3(protein.get_excess_mass_density()), Catch::Matchers::WithinAbs(0.39, 0.05));
 
     // the shell contributes mass only when asked to
     CHECK(protein.get_absolute_mass(true) > protein.get_absolute_mass(false));
@@ -433,11 +433,11 @@ TEST_CASE("Molecule::get_relative_mass_density", "[files]") {
     settings::molecule::allow_unknown_atoms = false;
 }
 
-TEST_CASE("Molecule::get_relative_charge", "[files]") {
+TEST_CASE("Molecule::get_excess_charge", "[files]") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     REQUIRE_THAT(
-        protein.get_relative_charge(),
+        protein.get_excess_charge(),
         Catch::Matchers::WithinAbs(
             protein.get_total_atomic_charge() - protein.get_volume_grid()*constants::charge::density::water,
             1e-6

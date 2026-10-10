@@ -22,6 +22,12 @@ namespace ausaxs::form_factor {
             static bool is_default();
 
             /**
+             * @brief Discard the cached excluded volume form factor sets, so they are rebuilt on their next access.
+             *        The sets are built with settings::internal_state::solvent_density, so this must be called whenever it changes.
+             */
+            static void clear_exv_form_factor_sets();
+
+            /**
              * @brief Get the total solvent volume displaced by @a molecule, in cubic angstroms.
              */
             static double get_total_displaced_volume(observer_ptr<const data::Molecule> molecule);

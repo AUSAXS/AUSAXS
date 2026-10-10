@@ -88,4 +88,9 @@ namespace ausaxs::form_factor::neutron {
     namespace deuterated {
         const FormFactor& get(form_factor_t type);
     }
+
+    /**
+     * @brief The coherent scattering length density of an H2O/D2O mixture in fm/Å^3.
+     */
+    double solvent_density(double d2o_fraction);
 }

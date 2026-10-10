@@ -16,6 +16,7 @@
 #include <support/form_factor_helper.h>
 
 #include <algorithm>
+#include <cmath>
 #include <concepts>
 #include <limits>
 #include <numeric>
@@ -501,4 +502,46 @@ TEST_CASE("form_factor_manager: use_form_factors(Molecule) folds excess and rare
 
     settings::form_factor::max_types = original_max;
     settings::form_factor::min_fraction = original_fraction;
+}
+
+TEST_CASE("form_factor_manager: solvent density scales the excluded volume tables") {
+    manager::detail::use_form_factors({
+        static_cast<int>(form_factor_t::EXCLUDED_VOLUME),
+        static_cast<int>(form_factor_t::WATER),
+        static_cast<int>(form_factor_t::CH2)
+    });
+    const int CH2 = 2; // active slot
+    auto q_index = GENERATE(0, 50, 199);
+    auto evaluate = [q_index] () {
+        const auto* tables = manager::get_active_product_tables();
+        return std::make_pair(tables->raw_cross_table.index(CH2, CH2).evaluate(q_index), tables->raw_exv_table.index(CH2, CH2).evaluate(q_index));
+    };
+    auto [ax, xx] = evaluate();
+
+    SECTION("xray") {
+        settings::scattering::xray_solvent_density = -0.5*constants::charge::density::water;
+        auto [ax_scaled, xx_scaled] = evaluate();
+        CHECK_THAT(ax_scaled, Catch::Matchers::WithinRel(-0.5*ax, 1e-12));
+        CHECK_THAT(xx_scaled, Catch::Matchers::WithinRel(0.25*xx, 1e-12));
+
+        // the density of the other probe is ignored
+        settings::scattering::neutron_solvent_density = 1;
+        auto [ax_other, xx_other] = evaluate();
+        CHECK(ax_other == ax_scaled);
+        CHECK(xx_other == xx_scaled);
+    }
+
+    SECTION("neutron") {
+        settings::scattering::radiation = settings::scattering::Radiation::Neutron;
+        auto [ax_h2o, xx_h2o] = evaluate();
+        CHECK_THAT(ax_h2o, Catch::Matchers::WithinRel(ax*neutron::solvent_density(0)/constants::charge::density::water, 1e-12));
+
+        settings::scattering::neutron_solvent_density = neutron::solvent_density(1);
+        auto [ax_d2o, xx_d2o] = evaluate();
+        CHECK_THAT(ax_d2o, Catch::Matchers::WithinRel(ax*neutron::solvent_density(1)/constants::charge::density::water, 1e-12));
+        CHECK_THAT(xx_d2o, Catch::Matchers::WithinRel(xx*std::pow(neutron::solvent_density(1)/constants::charge::density::water, 2), 1e-12));
+        settings::scattering::radiation = settings::scattering::Radiation::XRay;
+    }
+    settings::scattering::xray_solvent_density = constants::charge::density::water;
+    settings::scattering::neutron_solvent_density = neutron::solvent_density(0);
 }

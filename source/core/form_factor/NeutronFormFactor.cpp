@@ -2,6 +2,8 @@
 // Author: Kristian Lytje
 
 #include <form_factor/NeutronFormFactor.h>
+
+#include <constants/ConstantsProperties.h>
 #include <utility/Exceptions.h>
 
 #include <array>
@@ -131,4 +133,23 @@ const FormFactor& neutron::protonated::get(form_factor_t type) {
 
 const FormFactor& neutron::deuterated::get(form_factor_t type) {
     return ::get(deuterated_table, type);
+}
+
+namespace {
+    // Number of molecules per Å^3 of a liquid with the given mass density (SI) and molecular mass (u).
+    constexpr double number_density(double mass_density, double molecular_mass) {
+        return mass_density*constants::SI::volume::A3/(molecular_mass*constants::SI::mass::u);
+    }
+
+    // Both mass densities are at 20 °C: 0.9982 g/cm^3 for H2O and 1.1053 g/cm^3 for D2O.
+    constexpr double mass_D = 2.0141;
+    constexpr double density_H2O = (2*b::H + b::O)*number_density(constants::mass::density::water, 2*constants::mass::get_mass(atom_t::H) + constants::mass::get_mass(atom_t::O));
+    constexpr double density_D2O = (2*b::D + b::O)*number_density(1.1053*constants::SI::mass::gm/constants::SI::volume::cm3, 2*mass_D + constants::mass::get_mass(atom_t::O));
+}
+
+double neutron::solvent_density(double d2o_fraction) {
+    if (d2o_fraction < 0 || 1 < d2o_fraction) {
+        throw except::invalid_argument("form_factor::neutron::solvent_density: The D2O fraction must be between 0 and 1, but was " + std::to_string(d2o_fraction) + ".");
+    }
+    return (1-d2o_fraction)*density_H2O + d2o_fraction*density_D2O;
 }

@@ -3,7 +3,10 @@
 
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/ExvTable.h>
+#include <form_factor/NeutronFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
+#include <settings/ScatteringSettings.h>
+
 #include <numbers>
 
 using namespace ausaxs;
@@ -59,6 +62,33 @@ TEST_CASE("ExvFormFactor::evaluate") {
         for (double q = 0; q < 2.0; q += 0.1) {
             CHECK(exv.evaluate(q) > 0);
         }
+    }
+}
+
+TEST_CASE("ExvFormFactor: probe densities") {
+    double volume = 10.0;
+
+    SECTION("the default density is the electron density of water") {
+        CHECK(ExvFormFactor(volume).q0 == volume*constants::charge::density::water);
+        CHECK(ExvFormFactor(volume, -0.5).q0 == -0.5*volume);
+    }
+
+    SECTION("the factory uses the solvent density of the active probe") {
+        settings::scattering::xray_solvent_density = 0.5;
+        settings::scattering::neutron_solvent_density = -0.25;
+        CHECK(factory::construct_exv_form_factor(volume).q0 == 0.5*volume);
+        CHECK(factory::construct_exv_form_factor(volume).exponent == ExvFormFactor(volume).exponent);
+        settings::scattering::radiation = settings::scattering::Radiation::Neutron;
+        CHECK(factory::construct_exv_form_factor(volume).q0 == -0.25*volume);
+    }
+
+    SECTION("the current form factor set uses the solvent density of the active probe") {
+        double volume_C = ExvTableManager::get_current_exv_table()->get(form_factor_t::C);
+        settings::scattering::xray_solvent_density = 0.5;
+        settings::scattering::neutron_solvent_density = -0.25;
+        CHECK(ExvTableManager::get_current_exv_form_factor_set().get(form_factor_t::C).q0 == 0.5*volume_C);
+        settings::scattering::radiation = settings::scattering::Radiation::Neutron;
+        CHECK(ExvTableManager::get_current_exv_form_factor_set().get(form_factor_t::C).q0 == -0.25*volume_C);
     }
 }
 

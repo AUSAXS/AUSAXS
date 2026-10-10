@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <form_factor/ExvFormFactor.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 
-#include <form_factor/ExvFormFactor.h>
 #include <settings/GridSettings.h>
 
 using namespace ausaxs;

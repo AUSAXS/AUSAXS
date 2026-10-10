@@ -8,6 +8,7 @@
 #include <form_factor/FormFactorTable.h>
 #include <form_factor/FormFactorType.h>
 #include <math/ConstexprMath.h>
+#include <settings/InternalState.h>
 
 #include <array>
 #include <cmath>
@@ -24,9 +25,10 @@ namespace ausaxs::form_factor {
              * @brief Create a new excluded volume form factor with the given volume.
              *
              * @param volume The excluded volume of the atom. 
+             * @param density The scattering density of the displaced solvent. The default is the electron density of water.
              */
-            constexpr ExvFormFactor(double volume) 
-                : exponent(constexpr_math::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*constants::charge::density::water) 
+            constexpr ExvFormFactor(double volume, double density = constants::charge::density::water) 
+                : exponent(constexpr_math::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*density) 
             {}
 
             constexpr double evaluate_normalized(double q) const {
@@ -48,15 +50,30 @@ namespace ausaxs::form_factor {
             double q0 = 1;
     };
 
+    namespace factory {
+        /**
+         * @brief Construct an excluded volume form factor displacing the bulk solvent of the active probe, settings::internal_state::solvent_density.
+         *
+         * @param volume The excluded volume of the atom.
+         */
+        inline ExvFormFactor construct_exv_form_factor(double volume) {
+            return {volume, settings::internal_state::solvent_density};
+        }
+    }
+
     namespace detail {
         /**
          * @brief The excluded volume form factors of a single displaced volume set. 
          *        Form factor types absent from the volume set are also absent here. 
          */
         struct ExvFormFactorSet {
-            constexpr ExvFormFactorSet(const constants::exv::detail::ExvSet& set) {
+            /**
+             * @param set The displaced volumes of each form factor type.
+             * @param density The scattering density of the displaced solvent. The default is the electron density of water.
+             */
+            constexpr ExvFormFactorSet(const constants::exv::detail::ExvSet& set, double density = constants::charge::density::water) {
                 for (int i = 0; i < total_ff_count; ++i) {
-                    if (const auto& v = set.volumes[i]; v.has_value()) {form_factors[i] = ExvFormFactor(*v);}
+                    if (const auto& v = set.volumes[i]; v.has_value()) {form_factors[i] = ExvFormFactor(*v, density);}
                 }
             }
 

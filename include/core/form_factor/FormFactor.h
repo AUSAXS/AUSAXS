@@ -35,7 +35,7 @@ namespace ausaxs::form_factor::xray {
              *        This is only used to instantiate the average excluded volume form factor.
              *        Note that these excluded volume form factors are not normalized. 
              */
-            constexpr FormFactor(const ExvFormFactor& ffx) : a({ffx.q0, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0) {}
+            constexpr FormFactor(const form_factor::ExvFormFactor& ffx) : a({ffx.q0, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0) {}
 
             /**
              * @brief Evaluate the form factor at a given q value.
