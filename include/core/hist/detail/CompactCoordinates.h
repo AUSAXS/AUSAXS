@@ -8,6 +8,7 @@
 #include <data/Molecule.h>
 #include <hist/detail/data/CompactCoordinatesXYZW.h>
 #include <math/Transform.h>
+#include <settings/InternalState.h>
 #include <utility/Concepts.h>
 #include <utility/Random.h>
 #include <utility/observer_ptr.h>
@@ -153,7 +154,7 @@ inline void ausaxs::hist::detail::CompactCoordinates::append(const CompactCoordi
 }
 
 inline void ausaxs::hist::detail::CompactCoordinates::implicit_excluded_volume(double volume_per_atom) {
-    double displaced_charge = constants::charge::density::water*volume_per_atom;
+    double displaced_charge = settings::internal_state::solvent_density*volume_per_atom;
     auto charge_per_atom = static_cast<float>(-displaced_charge);
     std::ranges::for_each(_w, [charge_per_atom] (float& w) {w += charge_per_atom;});
 }

@@ -215,6 +215,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
             if (molecule.size_water() == 0) {console::print_warning("No hydration atoms were found in the structure file, but --keep was specified. No hydration atoms will be used for this calculation.");}
         }
         std::string msg_exv_vol, msg_solv_dens;
+        const std::string charge_unit = settings::scattering::radiation == settings::scattering::Radiation::XRay ? "e" : "fm";
 
         // simulation mode
         if (mfile.empty()) {
@@ -259,8 +260,8 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
             if (settings::fit::fit_solvent_density) {
                 msg_solv_dens = 
                     "\tSolvent density: " 
-                    + std::to_string(constants::charge::density::water*result->get_parameter(constants::fit::Parameters::SCALING_RHO)) 
-                    + " e/A^3"
+                    + std::to_string(settings::internal_state::solvent_density*result->get_parameter(constants::fit::Parameters::SCALING_RHO)) 
+                    + " " + charge_unit + "/A^3"
                 ;
             }
         }
@@ -276,9 +277,9 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         console::print_text("\tGrid:            " + std::to_string((int) std::round(molecule.get_volume_grid())) + " A^3");
         if (settings::fit::fit_excluded_volume) {console::print_text(msg_exv_vol);}
         console::print_text("\nCharge:");
-        console::print_text("\tMolecular:       " + utility::round_double(mol_charge, 1) + " e");
-        console::print_text("\tExcluded volume: " + utility::round_double(exv_vol*constants::charge::density::water, 1) + " e");
-        console::print_text("\tExcess density:  " + utility::round_double((mol_charge - exv_vol*constants::charge::density::water)/exv_vol, 3) + " e/A^3");
+        console::print_text("\tMolecular:       " + utility::round_double(mol_charge, 1) + " " + charge_unit);
+        console::print_text("\tExcluded volume: " + utility::round_double(exv_vol*settings::internal_state::solvent_density, 1) + " " + charge_unit);
+        console::print_text("\tExcess density:  " + utility::round_double((mol_charge - exv_vol*settings::internal_state::solvent_density)/exv_vol, 3) + " " + charge_unit + "/A^3");
         if (settings::fit::fit_solvent_density) {console::print_text(msg_solv_dens);}
         console::print_text("\nOther properties:");
         console::print_text("\tRhoM:            " + utility::round_double(rhoM, 3) + " g/cm^3");

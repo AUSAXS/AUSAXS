@@ -6,6 +6,7 @@
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
 #include <settings/ExvSettings.h>
+#include <settings/InternalState.h>
 
 #include <unordered_map>
 
@@ -48,16 +49,21 @@ bool ExvTableManager::is_default() {
     return !_use_custom_exv_table;
 }
 
+namespace {
+    // The excluded volume form factor sets built so far, all with the current solvent density. 
+    std::unordered_map<settings::exv::ExvSet, form_factor::detail::ExvFormFactorSet>& exv_form_factor_sets() {
+        static std::unordered_map<settings::exv::ExvSet, form_factor::detail::ExvFormFactorSet> sets;
+        return sets;
+    }
+}
+
 const form_factor::detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_form_factor_set() {
-    static auto standard = form_factor::detail::ExvFormFactorSet(get_default_exv_table());
-    static auto available_sets = std::unordered_map<settings::exv::ExvSet, form_factor::detail::ExvFormFactorSet>{
-        {settings::exv::ExvSet::Default, standard}
-    };
+    auto& available_sets = exv_form_factor_sets();
 
     // always update custom sets to ensure they reflect changes to the exv table
     if (settings::exv::exv_set == settings::exv::ExvSet::Custom) {
         //? add caching for custom tables? 
-            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
+            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, form_factor::detail::ExvFormFactorSet(*get_current_exv_table(), settings::internal_state::solvent_density));
             return available_sets.at(settings::exv::ExvSet::Custom);
     }
 
@@ -65,9 +71,13 @@ const form_factor::detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_
     if (auto it = available_sets.find(settings::exv::exv_set); it != available_sets.end()) {
         return it->second;
     }
-    available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
+    available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table(), settings::internal_state::solvent_density));
     return available_sets.at(settings::exv::exv_set);
    
+}
+
+void ExvTableManager::clear_exv_form_factor_sets() {
+    exv_form_factor_sets().clear();
 }
 
 void ExvTableManager::set_custom_exv_table(const constants::exv::detail::ExvSet& set) {

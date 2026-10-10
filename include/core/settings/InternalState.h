@@ -12,5 +12,6 @@ namespace ausaxs::settings {
         static double inv_bin_width;        // The inverse of the bin width for the distance histogram.
         static bool prefer_partial_manager; // Whether to prefer a partial histogram manager if one is available for the chosen excluded volume method.
         static bool allow_decorrelate_atom_order; // Whether the distance calculators may permute the atom order before accumulating a histogram.
+        static double solvent_density;      // The solvent density of the active probe, in its units. Kept in sync by the settings::scattering callbacks.
     };
 }
