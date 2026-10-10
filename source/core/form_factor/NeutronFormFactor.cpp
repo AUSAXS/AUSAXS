@@ -22,8 +22,24 @@ namespace {
         constexpr double C  =  6.6460;
         constexpr double N  =  9.36;
         constexpr double O  =  5.803;
+        constexpr double F  =  5.654;
+        constexpr double Na =  3.63;
+        constexpr double Mg =  5.375;
+        constexpr double P  =  5.13;
         constexpr double S  =  2.847;
+        constexpr double Cl =  9.5770;
         constexpr double Ar =  1.909;
+        constexpr double K  =  3.67;
+        constexpr double Ca =  4.70;
+        constexpr double Mn = -3.73;
+        constexpr double Fe =  9.45;
+        constexpr double Co =  2.49;
+        constexpr double Ni = 10.3;
+        constexpr double Cu =  7.718;
+        constexpr double Zn =  5.680;
+        constexpr double Se =  7.970;
+        constexpr double Br =  6.795;
+        constexpr double I  =  5.28;
     }
 
     constexpr double scattering_length(atom_t element) {
@@ -31,8 +47,24 @@ namespace {
             case atom_t::C:  return b::C;
             case atom_t::N:  return b::N;
             case atom_t::O:  return b::O;
+            case atom_t::F:  return b::F;
+            case atom_t::Na: return b::Na;
+            case atom_t::Mg: return b::Mg;
+            case atom_t::P:  return b::P;
             case atom_t::S:  return b::S;
+            case atom_t::Cl: return b::Cl;
             case atom_t::Ar: return b::Ar;
+            case atom_t::K:  return b::K;
+            case atom_t::Ca: return b::Ca;
+            case atom_t::Mn: return b::Mn;
+            case atom_t::Fe: return b::Fe;
+            case atom_t::Co: return b::Co;
+            case atom_t::Ni: return b::Ni;
+            case atom_t::Cu: return b::Cu;
+            case atom_t::Zn: return b::Zn;
+            case atom_t::Se: return b::Se;
+            case atom_t::Br: return b::Br;
+            case atom_t::I:  return b::I;
             default: throw except::invalid_argument("form_factor::neutron::scattering_length: No scattering length for element (enum " + std::to_string(static_cast<int>(element)) + ")");
         }
     }
