@@ -46,33 +46,38 @@ namespace {
     using profile_set_t = std::vector<manager::detail::profile_t>; // One profile per active form factor slot.
 
     /**
-     * @brief Evaluate the amplitude of every active form factor over the default q axis, for the current probe.
-     *        Evaluating first & then multiplying the results is faster than evaluating each product individually. 
+     * @brief Evaluate a single form factor over the default q axis, for the current probe.
+     *        The excluded volume form factor is a normalized shape rather than a scattering length, so it is the same for both probes.
+     *
+     * @param eval Evaluates a form factor of either probe at a given q value.
      */
-    profile_set_t evaluate_atomic_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
-        profile_set_t profiles(form_factor::get_active_count());
-        for (int i = 0; i < form_factor::get_active_count(); ++i) {
-            profiles[i] = manager::evaluate_amplitude(static_cast<form_factor_t>(ff_indices[i]));
+    template<typename F>
+    manager::detail::profile_t evaluate_profile(form_factor_t type, F&& eval) {
+        manager::detail::profile_t profile;
+        auto fill = [&profile, &eval] (const auto& ff) {
+            for (int q = 0; q < static_cast<int>(profile.size()); ++q) {profile[q] = eval(ff, constants::axes::q_vals[q]);}
+        };
+
+        if (type == form_factor_t::EXCLUDED_VOLUME) {fill(xray::raw::get(type)); return profile;}
+        switch (settings::scattering::radiation.value) {
+            case settings::scattering::Radiation::XRay:     fill(xray::raw::get(type)); break;
+            case settings::scattering::Radiation::Neutron:  fill(neutron::protonated::get(type)); break;
         }
-        return profiles;
+        return profile;
     }
 
     /**
-     * @brief Evaluate the neutron self-term correction s_i(q) - f_i(q)^2 of every active form factor over the default q axis.
-     *        The excluded volume slot is a normalized shape rather than a group of nuclei, so its correction is zero.
+     * @brief Evaluate every active form factor over the default q axis.
+     *        Evaluating first & then multiplying the results is faster than evaluating each product individually. 
+     *
+     * @param eval Evaluates the profile of a single form factor, e.g. manager::evaluate_amplitude.
      */
-    profile_set_t evaluate_neutron_self_corrections(const std::array<int, form_factor::total_ff_count>& ff_indices, const profile_set_t& amplitudes) {
-        profile_set_t corrections(form_factor::get_active_count());
+    profile_set_t evaluate_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices, manager::detail::profile_t (*eval)(form_factor_t)) {
+        profile_set_t profiles(form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
-            auto type = static_cast<form_factor_t>(ff_indices[i]);
-            if (type == form_factor_t::EXCLUDED_VOLUME) {continue;}
-
-            const auto& ff = neutron::protonated::get(type);
-            for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
-                corrections[i][q] = ff.evaluate_self(constants::axes::q_vals[q]) - amplitudes[i][q]*amplitudes[i][q];
-            }
+            profiles[i] = eval(static_cast<form_factor_t>(ff_indices[i]));
         }
-        return corrections;
+        return profiles;
     }
 
     /**
@@ -196,30 +201,21 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     // must come first; the profile evaluations and table generators below only fill the active sub-block, which they read from here
     form_factor::detail::active_ff_count = active_count;
 
-    const auto atomic_profiles = evaluate_atomic_profiles(this->ff_indices);
+    const auto atomic_profiles = evaluate_profiles(this->ff_indices, manager::evaluate_amplitude);
     const auto exv_profiles = evaluate_exv_profiles(this->ff_indices);
-    if (settings::scattering::radiation.value == settings::scattering::Radiation::Neutron) {
-        this->self_correction = evaluate_neutron_self_corrections(this->ff_indices, atomic_profiles);
-        this->self_corrected = true;
-    }
 
     this->raw_atomic_table = generate_atomic_table(atomic_profiles);
+    this->raw_self_table   = evaluate_profiles(this->ff_indices, manager::evaluate_self);
     this->raw_cross_table  = generate_cross_table(atomic_profiles, exv_profiles);
     this->raw_exv_table    = generate_exv_table(exv_profiles);
 }
 
 manager::detail::profile_t manager::evaluate_amplitude(form_factor_t type) {
-    detail::profile_t profile;
-    auto fill = [&profile] (const auto& ff) {
-        for (int q = 0; q < static_cast<int>(profile.size()); ++q) {profile[q] = ff.evaluate(constants::axes::q_vals[q]);}
-    };
+    return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate(q);});
+}
 
-    if (type == form_factor_t::EXCLUDED_VOLUME) {fill(xray::raw::get(type)); return profile;}
-    switch (settings::scattering::radiation.value) {
-        case settings::scattering::Radiation::XRay:     fill(xray::raw::get(type)); break;
-        case settings::scattering::Radiation::Neutron:  fill(neutron::protonated::get(type)); break;
-    }
-    return profile;
+manager::detail::profile_t manager::evaluate_self(form_factor_t type) {
+    return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() {

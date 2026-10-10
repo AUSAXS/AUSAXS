@@ -53,6 +53,14 @@ namespace ausaxs::form_factor::xray {
             }
 
             /**
+             * @brief Evaluate the self-correlation form factor at a given q value.
+             */
+            constexpr double evaluate_self(double q) const {
+                double f = evaluate(q);
+                return f*f;
+            }
+
+            /**
              * @brief Evaluate the form factor at q = 0.
              */
             constexpr double I0() const {

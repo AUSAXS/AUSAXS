@@ -6,6 +6,7 @@
 #include <hist/distribution/DistributionFwd.h>
 
 #include <constants/Constants.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
@@ -154,6 +155,11 @@ namespace ausaxs::hist {
             ScatteringProfile get_profile_wx() const override;
 
             virtual const FormFactorTableType& get_ff_table() const = 0;
+
+            /**
+             * @brief Get the self-correlation form factor of each slot.
+             */
+            virtual const std::vector<form_factor::manager::detail::profile_t>& get_ff_self_table() const;
 
             /**
              * @brief Get the atomic Debye Waller factor for a given q and sigma value.

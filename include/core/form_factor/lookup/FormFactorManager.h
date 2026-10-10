@@ -18,6 +18,8 @@ namespace ausaxs::form_factor::manager {
 
         /**
          * @brief The form factor tables of the active form factor set, for the probe selected by settings::scattering::radiation.
+         *        The product tables hold the cross-correlation form factors of two distinct scatterers.
+         *        A scatterer correlated with itself instead uses the self-correlation form factor of its slot.
          */
         struct ActiveTables {
             ActiveTables(const std::array<int, form_factor::total_ff_count>& ff_indices, int active_count);
@@ -26,15 +28,7 @@ namespace ausaxs::form_factor::manager {
             lookup::table_t raw_exv_table;
             lookup::table_t raw_cross_table;
             lookup::table_t raw_atomic_table;
-
-            /**
-             * @brief The self-term correction s_i(q) - f_i(q)^2 of each slot, where s_i is the scattering of a single group with itself.
-             *        raw_atomic_table uses f_i(q)^2 for every pair of the same type, which is only exact for spherically symmetric scatterers. 
-             *        This must be added once for every group of the slot, i.e. weighted by the zero-distance bin of its diagonal partial histogram. 
-             *        It is only populated if self_corrected is true.
-             */
-            std::vector<profile_t> self_correction;
-            bool self_corrected = false;
+            std::vector<profile_t> raw_self_table; // One entry per active slot.
         };
 
         /**
@@ -50,6 +44,12 @@ namespace ausaxs::form_factor::manager {
      * @brief Evaluate the amplitude f(q) of a single form factor over the default q axis, for the probe selected by settings::scattering::radiation.
      */
     detail::profile_t evaluate_amplitude(form_factor_t type);
+
+    /**
+     * @brief Evaluate the self-correlation form factor of a single form factor over the default q axis, for the probe selected by settings::scattering::radiation.
+     *        This is the form factor of a scatterer correlated with itself, which is only the squared amplitude for spherically symmetric scatterers.
+     */
+    detail::profile_t evaluate_self(form_factor_t type);
 
     /**
      * @brief Get the currently active form factor product tables. 

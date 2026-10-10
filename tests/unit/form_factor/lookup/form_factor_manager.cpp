@@ -304,9 +304,10 @@ TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
 
     SECTION("xray") {
         const auto* tables = manager::get_active_product_tables();
-        CHECK_FALSE(tables->self_corrected);
         CHECK_THAT(manager::evaluate_amplitude(form_factor_t::CH2)[q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::CH2).evaluate(q), 1e-12));
-        CHECK(tables->self_correction.empty());
+
+        // the electron cloud is spherically symmetric, so the self-correlation is the squared amplitude
+        CHECK_THAT(tables->raw_self_table[CH2][q_index], Catch::Matchers::WithinAbs(tables->raw_atomic_table.index(CH2, CH2).evaluate(q_index), 1e-12));
     }
 
     SECTION("neutron") {
@@ -314,18 +315,19 @@ TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
         const auto* tables = manager::get_active_product_tables();
         const auto& ff = neutron::protonated::get(form_factor_t::CH2);
         double f = ff.evaluate(q);
-        CHECK(tables->self_corrected);
         CHECK_THAT(manager::evaluate_amplitude(form_factor_t::CH2)[q_index], Catch::Matchers::WithinAbs(f, 1e-12));
         CHECK_THAT(tables->raw_atomic_table.index(CH2, CH2).evaluate(q_index), Catch::Matchers::WithinAbs(f*f, 1e-12));
-        CHECK_THAT(tables->self_correction[CH2][q_index], Catch::Matchers::WithinAbs(ff.evaluate_self(q) - f*f, 1e-12));
+        CHECK_THAT(manager::evaluate_self(form_factor_t::CH2)[q_index], Catch::Matchers::WithinAbs(ff.evaluate_self(q), 1e-12));
+        CHECK_THAT(tables->raw_self_table[CH2][q_index], Catch::Matchers::WithinAbs(ff.evaluate_self(q), 1e-12));
 
         // the excluded volume slot is a normalized shape shared by both probes
         CHECK_THAT(manager::evaluate_amplitude(form_factor_t::EXCLUDED_VOLUME)[q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::EXCLUDED_VOLUME).evaluate(q), 1e-12));
-        CHECK(tables->self_correction[exv][q_index] == 0);
+        CHECK_THAT(tables->raw_self_table[exv][q_index], Catch::Matchers::WithinAbs(tables->raw_atomic_table.index(exv, exv).evaluate(q_index), 1e-12));
 
         CHECK_THAT(constants::charge::get_ff_charge(form_factor_t::CH2), Catch::Matchers::WithinAbs(ff.I0(), 1e-12));
         settings::scattering::radiation = settings::scattering::Radiation::XRay;
-        CHECK_FALSE(manager::get_active_product_tables()->self_corrected);
+        const auto* xray_tables = manager::get_active_product_tables();
+        CHECK_THAT(xray_tables->raw_self_table[CH2][q_index], Catch::Matchers::WithinAbs(xray_tables->raw_atomic_table.index(CH2, CH2).evaluate(q_index), 1e-12));
     }
 }
 
