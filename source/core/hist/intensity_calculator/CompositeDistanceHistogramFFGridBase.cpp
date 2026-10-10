@@ -4,9 +4,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
 
 #include <form_factor/ExvFormFactor.h>
-#include <form_factor/NormalizedFormFactor.h>  // IWYU pragma: keep
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/lookup/NormalizedFormFactorProduct.h>
 #include <settings/GridSettings.h>
 
 using namespace ausaxs;
@@ -39,12 +37,12 @@ namespace {
         form_factor::lookup::table_t table = tables->raw_atomic_table;
         int n_active = form_factor::get_active_count();
         for (int i = 0; i < n_active; ++i) {
-            table.index(i, form_factor::exv_bin) = NormalizedFormFactorProduct(tables->atomic_profiles[i], ffx_profile);
+            table.index(i, form_factor::exv_bin) = FormFactorProduct(tables->atomic_profiles[i], ffx_profile);
             table.index(form_factor::exv_bin, i) = table.index(i, form_factor::exv_bin);
         }
 
         // must come last; the loop above overwrites this slot on its first iteration
-        table.index(form_factor::exv_bin, form_factor::exv_bin) = NormalizedFormFactorProduct(ffx_profile, ffx_profile);
+        table.index(form_factor::exv_bin, form_factor::exv_bin) = FormFactorProduct(ffx_profile, ffx_profile);
         return table;
     }
 }
@@ -52,7 +50,6 @@ namespace {
 template<FormFactorType T>
 void CompositeDistanceHistogramFFGridBase::regenerate_ff_table(T&& ffx) {ff_table = generate_ff_table(std::forward<T>(ffx));}
 template void CompositeDistanceHistogramFFGridBase::regenerate_ff_table(ExvFormFactor&&);
-template void CompositeDistanceHistogramFFGridBase::regenerate_ff_table(xray::NormalizedFormFactor&&);
 
 void CompositeDistanceHistogramFFGridBase::regenerate_ff_table() {
     regenerate_ff_table(ExvFormFactor(std::pow(settings::grid::exv::width, 3)));

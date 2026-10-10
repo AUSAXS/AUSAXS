@@ -2,8 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <dataset/Dataset.h>
-#include <form_factor/FormFactorTable.h>
-#include <form_factor/NormalizedFormFactor.h>
+#include <form_factor/FormFactor.h>
 
 #include <iostream>
 #include <numbers>
@@ -11,10 +10,18 @@
 using namespace ausaxs;
 using namespace form_factor;
 
+namespace {
+    // a copy of ff scaled to 1 at q = 0, so form factors can be compared by shape alone
+    xray::FormFactor normalized(xray::FormFactor ff) {
+        ff.set_normalization(1);
+        return ff;
+    }
+}
+
 // Check that we have the correct conversion of the s-values. The form factors are not supposed to change a lot over the span of our q-values.
-TEST_CASE("NormalizedFormFactor::evaluate") {
+TEST_CASE("FormFactor::evaluate") {
     for (int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
-        const xray::NormalizedFormFactor& ff_obj = xray::normalized::get(static_cast<form_factor_t>(ff));
+        auto ff_obj = normalized(xray::raw::get(static_cast<form_factor_t>(ff)));
         CHECK_THAT(ff_obj.evaluate(0.0), Catch::Matchers::WithinAbs(1, 1e-6));
         if (ff_obj.evaluate(0.5) < 0.95) {
             std::cout << "Warning: Form factor " << ff << " has a value of " << ff_obj.evaluate(0.5) << " at q = 0.5" << std::endl;
@@ -24,26 +31,18 @@ TEST_CASE("NormalizedFormFactor::evaluate") {
     }
 }
 
-// Check that the form factors are normalized. 
-TEST_CASE("NormalizedFormFactor: normalized") {
-    for (int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
-        const xray::NormalizedFormFactor& ff_obj = xray::normalized::get(static_cast<form_factor_t>(ff));
-        CHECK_THAT(ff_obj.evaluate(0), Catch::Matchers::WithinAbs(1, 1e-6));
-    }
-}
-
 // Compare our five-Gaussian form factors with the more typical four-Gaussian form factors.
 // These are all taken from the table at https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php (International Tables for Crystallography)
 using form_factor::xray::coefficients::s_to_q;
 static const auto& q_vals = constants::axes::q_vals;
-TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
+TEST_CASE("FormFactor: compare_with_four_gaussians") {
     SECTION("oxygen") {
         std::array<double, 5> a =        {3.0485,  2.2868, 1.5463, 0.867,   0};
         std::array<double, 5> b = s_to_q({13.2771, 5.7011, 0.3239, 32.9089, 0});
         double c = 0.2508;
 
-        xray::NormalizedFormFactor ff(a, b, c);
-        const xray::NormalizedFormFactor& O = xray::normalized::get(form_factor_t::O);
+        auto ff = xray::FormFactor(a, b, c);
+        auto O = xray::raw::get(form_factor_t::O);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(O.evaluate(q), 1e-3));
         }
@@ -54,8 +53,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({0.0057,  9.8933, 28.9975, 0.5826, 0});
         double c = -11.529;
 
-        xray::NormalizedFormFactor ff(a, b, c);
-        const xray::NormalizedFormFactor& N = xray::normalized::get(form_factor_t::N);
+        auto ff = xray::FormFactor(a, b, c);
+        auto N = xray::raw::get(form_factor_t::N);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(N.evaluate(q), 1e-3));
         }
@@ -66,8 +65,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({20.8439, 10.2075, 0.5687, 51.6512, 0});
         double c = 0.2156;
 
-        xray::NormalizedFormFactor ff(a, b, c);
-        const xray::NormalizedFormFactor& C = xray::normalized::get(form_factor_t::C);
+        auto ff = xray::FormFactor(a, b, c);
+        auto C = xray::raw::get(form_factor_t::C);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(C.evaluate(q), 1e-3));
         }
@@ -78,8 +77,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({0.9072, 14.8407, 43.8983, 33.3929, 0});
         double c = 1.4445;
 
-        xray::NormalizedFormFactor ff(a, b, c);
-        const xray::NormalizedFormFactor& other = xray::normalized::get(form_factor_t::OTHER);
+        auto ff = xray::FormFactor(a, b, c);
+        auto other = xray::raw::get(form_factor_t::OTHER);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(other.evaluate(q), 1e-3));
         }
@@ -90,8 +89,8 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
         std::array<double, 5> b = s_to_q({1.4679, 22.2151, 0.2536, 56.172, 0});
         double c = 0.8669;
 
-        xray::NormalizedFormFactor ff(a, b, c);
-        const xray::NormalizedFormFactor& S = xray::normalized::get(form_factor_t::S);
+        auto ff = xray::FormFactor(a, b, c);
+        auto S = xray::raw::get(form_factor_t::S);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(S.evaluate(q), 1e-3));
         }
@@ -99,21 +98,20 @@ TEST_CASE("NormalizedFormFactor: compare_with_four_gaussians") {
 }
 
 // Check that the form factors are equivalent to the figures in the Waasmeier & Kirfel paper. 
-TEST_CASE("NormalizedFormFactor: comparison with Waasmeier & Kirfel") {
+TEST_CASE("FormFactor: comparison with Waasmeier & Kirfel") {
     std::array<double, 5> a = {19.747344, 17.368476, 10.465718, 2.592602, 11.003653};
     std::array<double, 5> b = {3.481823, 0.371224, 21.226641, 173.834271, 0.010719};
     double c = -5.183497;
 
-    xray::NormalizedFormFactor Ba(a, s_to_q(b), c);
+    auto Ba = xray::FormFactor(a, s_to_q(b), c);
     Dataset ff_q(0, 2), ff_s(0, 2);
     for (const double& q : q_vals) {
         ff_q.push_back({q/(4*std::numbers::pi), Ba.evaluate(q)});
     }
 
     auto ffBa = [a, b, c] (double s) {return a[0]*std::exp(-b[0]*s*s) + a[1]*std::exp(-b[1]*s*s) + a[2]*std::exp(-b[2]*s*s) + a[3]*std::exp(-b[3]*s*s) + a[4]*std::exp(-b[4]*s*s) + c;};
-    double val0 = ffBa(0);
     for (double s = 0; s < 6; s += 0.01) {
-        double val = ffBa(s)/val0;
+        double val = ffBa(s);
         ff_s.push_back({s, val});
     }
 

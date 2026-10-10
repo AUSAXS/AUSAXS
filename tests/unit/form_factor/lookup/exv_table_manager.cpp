@@ -4,7 +4,7 @@
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/lookup/NormalizedFormFactorProduct.h>
+#include <form_factor/lookup/FormFactorProduct.h>
 #include <settings/ExvSettings.h>
 #include <support/form_factor_helper.h>
 
@@ -69,7 +69,7 @@ TEST_CASE("ExvSet switching") {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
                 auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
                 auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
-                const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
+                const FormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ffset.get(t1).evaluate(constants::axes::q_vals[i]) * ffset.get(t2).evaluate(constants::axes::q_vals[i]);
@@ -93,7 +93,7 @@ TEST_CASE("ExvSet switching") {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
                 auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
                 auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
-                const NormalizedFormFactorProduct& ff = table.index(ff1, ff2);
+                const FormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ffset.get(t1).evaluate(constants::axes::q_vals[i]) * ffset.get(t2).evaluate(constants::axes::q_vals[i]);

@@ -7,6 +7,5 @@ Contents
 - `NeutronFormFactor.h` — the neutron form-factor class `neutron::FormFactor`, holding both the orientationally averaged amplitude of a group and its self-term, and the lookups `neutron::protonated` and `neutron::deuterated`. The table itself is generated at compile time in `NeutronFormFactor.cpp` from the coherent scattering lengths and the X-H geometry.
 - `ExvTable.h` — `exv_info_table`, the optional excluded-volume descriptor table with one row per type and one column per displaced-volume set. A type missing from the current set cannot be used with the Fraser-based models and is treated as OTHER.
 - `ExvFormFactor.h` — excluded-volume form factors, representing the solvent displaced by each atom.
-- `NormalizedFormFactor.h` — X-ray form factors normalized to 1 at q = 0.
 - `FormFactorConcepts.h` — C++ concepts constraining form-factor template parameters.
 - `lookup/` — the manager and product tables that cache form-factor products for every pair of types, avoiding repeated evaluation during histogram-to-intensity conversion.

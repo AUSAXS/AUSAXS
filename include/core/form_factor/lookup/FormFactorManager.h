@@ -18,7 +18,6 @@ namespace ausaxs::form_factor::manager {
 
         /**
          * @brief The form factor tables of the active form factor set, for the probe selected by settings::scattering::radiation.
-         *        All tables are indexed by active slot, not by form_factor_t.
          */
         struct ActiveTables {
             ActiveTables(const std::array<int, form_factor::total_ff_count>& ff_indices, int active_count);
@@ -27,8 +26,6 @@ namespace ausaxs::form_factor::manager {
             lookup::table_t raw_exv_table;
             lookup::table_t raw_cross_table;
             lookup::table_t raw_atomic_table;
-            lookup::table_t normalized_cross_table;  // Only defined for X-rays, since a neutron form factor may vanish at q = 0.
-            lookup::table_t normalized_atomic_table; // Only defined for X-rays, since a neutron form factor may vanish at q = 0.
 
             /**
              * @brief The amplitude f_i(q) of each slot. The products of these make up raw_atomic_table.

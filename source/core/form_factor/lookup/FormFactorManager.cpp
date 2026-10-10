@@ -6,12 +6,11 @@
 #include <constants/ConstantsAxes.h>
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
-#include <form_factor/FormFactorConcepts.h>
+#include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/NeutronFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/lookup/detail/LookupHelpers.h>
 #include <settings/ExvSettings.h>
 #include <settings/FormFactorSettings.h>
 #include <settings/ScatteringSettings.h>
@@ -50,11 +49,10 @@ namespace {
      * @brief Evaluate every active atomic form factor over the default q axis.
      *        Evaluating first & then multiplying the results is faster than evaluating each product individually. 
      */
-    template<FormFactorLookupType FormFactorLookup>
     profile_set_t evaluate_atomic_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices) {
         profile_set_t profiles(form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
-            const auto& ff = FormFactorLookup::get(static_cast<form_factor_t>(ff_indices[i]));
+            const auto& ff = xray::raw::get(static_cast<form_factor_t>(ff_indices[i]));
             for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
                 profiles[i][q] = ff.evaluate(constants::axes::q_vals[q]);
             }
@@ -212,13 +210,9 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
 
     const auto exv_profiles = evaluate_exv_profiles(this->ff_indices);
     switch (settings::scattering::radiation.value) {
-        case settings::scattering::Radiation::XRay: {
-            this->atomic_profiles = evaluate_atomic_profiles<xray::detail::RawFormFactorLookup>(this->ff_indices);
-            const auto normalized_profiles = evaluate_atomic_profiles<xray::detail::NormalizedFormFactorLookup>(this->ff_indices);
-            this->normalized_atomic_table = generate_atomic_table(normalized_profiles);
-            this->normalized_cross_table  = generate_cross_table(normalized_profiles, exv_profiles);
+        case settings::scattering::Radiation::XRay:
+            this->atomic_profiles = evaluate_atomic_profiles(this->ff_indices);
             break;
-        }
         case settings::scattering::Radiation::Neutron:
             evaluate_neutron_profiles(this->ff_indices, this->atomic_profiles, this->self_correction);
             this->self_corrected = true;

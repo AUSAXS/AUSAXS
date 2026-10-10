@@ -8,7 +8,6 @@
 #include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/NeutronFormFactor.h>
-#include <form_factor/NormalizedFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
@@ -271,18 +270,15 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
     };
 
     auto raw = [] (form_factor_t t, double q) {return xray::raw::get(t).evaluate(q);};
-    auto normalized = [] (form_factor_t t, double q) {return xray::normalized::get(t).evaluate(q);};
     auto exv = [] (form_factor_t t, double q) {return ExvTableManager::get_current_exv_form_factor_set().get(t).evaluate(q);};
     int s0 = start_index_for_explicit_exv();
 
     SECTION("random set") {
         test::form_factor::use_random_form_factors();
         const auto* tables = manager::get_active_product_tables();
-        check(tables->raw_atomic_table,        0,  0,  raw,        raw);
-        check(tables->normalized_atomic_table, 0,  0,  normalized, normalized);
-        check(tables->raw_cross_table,         0,  s0, raw,        exv);
-        check(tables->normalized_cross_table,  0,  s0, normalized, exv);
-        check(tables->raw_exv_table,           s0, s0, exv,        exv);
+        check(tables->raw_atomic_table, 0,  0,  raw, raw);
+        check(tables->raw_cross_table,  0,  s0, raw, exv);
+        check(tables->raw_exv_table,    s0, s0, exv, exv);
     }
 
     SECTION("truncated set from a molecule") {
@@ -290,11 +286,9 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
         manager::use_form_factors(molecule);
         REQUIRE(get_active_count() < total_ff_count); // the truncation has to actually bite
         const auto* tables = manager::get_active_product_tables();
-        check(tables->raw_atomic_table,        0,  0,  raw,        raw);
-        check(tables->normalized_atomic_table, 0,  0,  normalized, normalized);
-        check(tables->raw_cross_table,         0,  s0, raw,        exv);
-        check(tables->normalized_cross_table,  0,  s0, normalized, exv);
-        check(tables->raw_exv_table,           s0, s0, exv,        exv);
+        check(tables->raw_atomic_table, 0,  0,  raw, raw);
+        check(tables->raw_cross_table,  0,  s0, raw, exv);
+        check(tables->raw_exv_table,    s0, s0, exv, exv);
     }
 }
 

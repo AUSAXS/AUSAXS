@@ -39,7 +39,6 @@ namespace ausaxs::form_factor::xray {
 
             /**
              * @brief Evaluate the form factor at a given q value.
-             *        The vacuum form factors are normalized to 1 at q = 0.
              */
             constexpr double evaluate(double q) const {
                 double sum = 0;
