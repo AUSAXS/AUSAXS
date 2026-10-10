@@ -3,9 +3,9 @@
 #include <constants/ConstantsAxes.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <form_factor/lookup/FormFactorManager.h>
 #include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <data/state/StateManager.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
