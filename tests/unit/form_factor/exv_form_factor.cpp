@@ -184,7 +184,9 @@ TEST_CASE("ExvTableManager::get_current_exv_form_factor_set") {
     SECTION("all form factors evaluate properly") {
         const auto& set = ExvTableManager::get_current_exv_form_factor_set();
         for (int i = 1; i < total_ff_count; ++i) {
-            const ExvFormFactor& exv = set.get(static_cast<form_factor_t>(i));
+            auto type = static_cast<form_factor_t>(i);
+            if (!set.contains(type)) {continue;}
+            const ExvFormFactor& exv = set.get(type);
             if (exv.is_initialized()) {
                 CHECK_THAT(exv.evaluate_normalized(0), Catch::Matchers::WithinAbs(1.0, 1e-10));
             }

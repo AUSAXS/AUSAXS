@@ -3,6 +3,7 @@
 #include <constants/ConstantsAxes.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <data/state/StateManager.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
@@ -39,12 +40,14 @@ struct analytical_histogram {
 
 template<typename MANAGER>
 static void run_test1(const Molecule& protein, const auto& target) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h = MANAGER(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h.get()), target));
 }
 
 template<template<bool> class MANAGER>
 static void run_test1(const Molecule& protein, const auto& target) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h1.get()), target));
 
@@ -129,12 +132,14 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
 template<typename MANAGER>
 static void run_test2(const Molecule& protein, const auto& target) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h = MANAGER(&protein).calculate_all();
     REQUIRE(compare_hist_approx(h->get_weighted_counts(), target));
 }
 
 template<template<bool> class MANAGER>
 static void run_test2(const Molecule& protein, const auto& target) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h1 = MANAGER<false>(&protein).calculate_all();
     REQUIRE(compare_hist_approx(h1->get_weighted_counts(), target));
 
@@ -144,6 +149,7 @@ static void run_test2(const Molecule& protein, const auto& target) {
 
 template<typename MANAGER>
 static void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
+    form_factor::manager::use_form_factors(original); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h1 = MANAGER(&original).calculate_all();
     auto h2 = MANAGER(&permuted).calculate_all();
     REQUIRE(compare_hist(h1->debye_transform(), h2->debye_transform()));
@@ -151,6 +157,7 @@ static void run_test_atom_order_invariance(const Molecule& original, const Molec
 
 template<template<bool> class MANAGER>
 static void run_test_atom_order_invariance(const Molecule& original, const Molecule& permuted) {
+    form_factor::manager::use_form_factors(original); // the manager is constructed directly, bypassing the factory which normally selects these
     auto h1 = MANAGER<false>(&original).calculate_all();
     auto h2 = MANAGER<false>(&permuted).calculate_all();
     REQUIRE(compare_hist(h1->debye_transform(), h2->debye_transform()));
