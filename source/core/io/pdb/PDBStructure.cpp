@@ -9,8 +9,10 @@
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
 #include <settings/MoleculeSettings.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
+#include <algorithm>
 #include <cassert>
 #include <string>
 #include <string_view>
@@ -90,8 +92,7 @@ namespace {
             constants::atom_t element = (elem && (*elem)[midx] != constants::atom_t::unknown) ? (*elem)[midx] : form_factor::to_atom_type(a.form_factor_type());
 
             atoms.emplace_back(
-                ++serial, name, "", resName, chain_identifier(chain), resSeq, "", a.coordinates(), occupancy, 1,
-                element, ""
+                ++serial, name, "", resName, chain_identifier(chain), resSeq, "", a.coordinates(), occupancy, 1, element, ""
             );
         }
 
@@ -129,37 +130,6 @@ PDBStructure::PDBStructure(const data::Molecule& molecule) {
 void PDBStructure::update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& hatoms) {
     atoms = patoms;
     waters = hatoms;
-}
-
-void PDBStructure::add_implicit_hydrogens() {
-    if (!supports_implicit_hydrogens) {
-        console::print_text("\tPDBStructure::add_implicit_hydrogens: This structure does not carry the residue and atom naming required to assign implicit hydrogens. Skipping.");
-        return;
-    }
-
-    for (auto& a : atoms) {
-        // sanity check: if the structure already contains hydrogens, don't implicitly add more
-        if (a.element != constants::atom_t::H) {continue;}
-        console::print_warning("Molecule::add_implicit_hydrogens: The molecule already contains hydrogen atoms. Skipping implicit addition.");
-        return;
-    }
-
-    int unknown_res_count = 0;
-    console::print_text("\tAdding implicit hydrogens to the molecule.");
-    for (auto& a : atoms) {
-        // verify that the residue is valid, otherwise add_implicit_hydrogens will throw
-        if (!constants::hydrogen_atoms::residues.load(a.resName)) {++unknown_res_count; continue;}
-        a.add_implicit_hydrogens();
-    }
-
-    if (unknown_res_count != 0) {
-        std::string msg = "Molecule::add_implicit_hydrogens: Molecule contains " + std::to_string(unknown_res_count) + " atoms with unknown residues.";
-        if (!settings::molecule::allow_unknown_residues) {
-            msg += " Disable implicit hydrogens with --no-implicit-hydrogens flag, or use --allow-unknown-residues to continue anyway.";
-            throw except::io_error(msg);
-        }
-        console::print_warning("PDBStructure::add_implicit_hydrogens: " + msg + " Implicit hydrogens will be SKIPPED for these atoms.");
-    }
 }
 
 void PDBStructure::add(const PDBAtom& a) {
@@ -234,7 +204,67 @@ void PDBStructure::refresh() {
     }
 }
 
-PDBStructure::_res PDBStructure::reduced_representation() {
+namespace {
+    /**
+     * @brief The implicit hydrogens of a single atom.
+     */
+    struct ImplicitHydrogens {
+        constants::atomic_group_t group = constants::atomic_group_t::unknown;
+        double count = 0; // hydrogens which are not already part of the form factor of the group; may be a residue average for unknown atom names
+    };
+
+    /**
+     * @brief Determine the implicit hydrogens of every atom in the structure, parallel-indexed to its atoms. 
+     *        No atom is given any if implicit hydrogens are disabled, or if the structure cannot support them. 
+     */
+    std::vector<ImplicitHydrogens> get_implicit_hydrogens(const PDBStructure& structure) {
+        std::vector<ImplicitHydrogens> hydrogens(structure.atoms.size());
+        if (!settings::molecule::implicit_hydrogens) {return hydrogens;}
+        if (!structure.supports_implicit_hydrogens) {
+            console::print_text("\tPDBStructure::reduced_representation: This structure does not carry the residue and atom naming required to assign implicit hydrogens. Skipping.");
+            return hydrogens;
+        }
+
+        // sanity check: if the structure already contains hydrogens, don't implicitly add more
+        if (std::ranges::any_of(structure.atoms, [] (const PDBAtom& a) {return a.element == constants::atom_t::H;})) {
+            console::print_warning("PDBStructure::reduced_representation: The molecule already contains hydrogen atoms. Skipping implicit addition.");
+            return hydrogens;
+        }
+
+        int unknown_res_count = 0;
+        console::print_text("\tAdding implicit hydrogens to the molecule.");
+        for (std::size_t i = 0; i < structure.atoms.size(); ++i) {
+            const auto& a = structure.atoms[i];
+
+            // verify that the residue is valid, otherwise the lookups below will throw
+            if (!constants::hydrogen_atoms::residues.load(a.resName)) {++unknown_res_count; continue;}
+            try {
+                auto group = constants::symbols::get_atomic_group(a.resName, a.name, a.element);
+                hydrogens[i].group = group;
+                if (!form_factor::has_implicit_hydrogens(form_factor::get_type(a.element, group))) {
+                    hydrogens[i].count = constants::hydrogen_atoms::residues.get(a.resName).get(a.name, a.element);
+                }
+            } catch (const except::base&) {
+                throw except::invalid_argument(
+                    "PDBStructure::reduced_representation: Unknown atom name \"" + a.name + "\" in residue \"" + a.resName + "\"" 
+                    "(element: " + constants::symbols::to_string(a.element) + ", serial: " + std::to_string(a.serial) + ")"
+                );
+            }
+        }
+
+        if (unknown_res_count != 0) {
+            std::string msg = "PDBStructure::reduced_representation: Molecule contains " + std::to_string(unknown_res_count) + " atoms with unknown residues.";
+            if (!settings::molecule::allow_unknown_residues) {
+                msg += " Disable implicit hydrogens with --no-implicit-hydrogens flag, or use --allow-unknown-residues to continue anyway.";
+                throw except::io_error(msg);
+            }
+            console::print_warning(msg + " Implicit hydrogens will be SKIPPED for these atoms.");
+        }
+        return hydrogens;
+    }
+}
+
+PDBStructure::_res PDBStructure::reduced_representation() const {
     PDBStructure::_res res;
     res.atoms.reserve(atoms.size());
     res.waters.reserve(waters.size());
@@ -248,10 +278,17 @@ PDBStructure::_res PDBStructure::reduced_representation() {
     md.residue_name.emplace().reserve(atoms.size());
     md.element.emplace().reserve(atoms.size());
 
-    for (auto& a : atoms) {
-        assert(a.effective_charge != -1000 && "PDBStructure::reduced_representation: encountered an atom whose effective_charge was never set. "
-            "Every reader must construct atoms through a path that derives it (set_element(), or a constructor/parse_pdb that takes an element).");
-        res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, a.atomic_group), a.effective_charge*a.occupancy);
+    const auto hydrogens = get_implicit_hydrogens(*this);
+    const double hydrogen_charge = settings::scattering::radiation == settings::scattering::Radiation::XRay
+        ? constants::charge::get_ff_charge<settings::scattering::Radiation::XRay>(form_factor::form_factor_t::H)
+        : constants::charge::get_ff_charge<settings::scattering::Radiation::Neutron>(form_factor::form_factor_t::H)
+    ;
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        const auto& a = atoms[i];
+        assert(a.element != constants::atom_t::unknown && "PDBStructure::reduced_representation: encountered an atom whose element was never set.");
+        auto type = form_factor::get_type(a.element, hydrogens[i].group);
+        double charge = constants::charge::get_ff_charge(type, a.element) + hydrogens[i].count*hydrogen_charge;
+        res.atoms.emplace_back(a.coords, type, charge*a.occupancy);
 
         data::backbone_t bt = data::backbone_t::none;
         if      (a.element == constants::atom_t::C && a.name == "CA") {bt = data::backbone_t::c_alpha;}
@@ -259,7 +296,6 @@ PDBStructure::_res PDBStructure::reduced_representation() {
         else if (a.element == constants::atom_t::C && a.name == "C")  {bt = data::backbone_t::c;}
         else if (a.element == constants::atom_t::O && a.name == "O")  {bt = data::backbone_t::o;}
         md.backbone->emplace_back(bt);
-
         md.residue_seq->emplace_back(a.resSeq);
         md.chain_id->emplace_back(a.chainID);
         md.atom_name->emplace_back(a.name);
@@ -270,7 +306,7 @@ PDBStructure::_res PDBStructure::reduced_representation() {
 
     res.metadata = std::move(md);
 
-    for (auto& w : waters) {
+    for (const auto& w : waters) {
         res.waters.emplace_back(w.coords);
     }
     return res;

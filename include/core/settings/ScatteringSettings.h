@@ -16,7 +16,7 @@ namespace ausaxs::settings {
         };
 
         // The probe used in the experiment. This decides which form factor tables are generated.
-        // The effective charges of the atoms are derived from it when they are constructed, so it must be set before loading any structure.
+        // The effective charges of the atoms are derived from it when a molecule is built, so it must be set before loading any structure.
         static detail::Setting<Radiation> radiation;
     };
 }

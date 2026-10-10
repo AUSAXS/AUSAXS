@@ -32,7 +32,6 @@ int molecule_from_file(const char* filename, int* status) {return execute_with_c
 int molecule_from_pdb_id(int pdb_id, int* status) {return execute_with_catch([&]() {
     auto* pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
     if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
-    if (settings::molecule::implicit_hydrogens) {pdb->add_implicit_hydrogens();}
     auto data = pdb->reduced_representation();
     auto molecule = data.waters.empty() 
         ? Molecule({Body{std::move(data.atoms)}})

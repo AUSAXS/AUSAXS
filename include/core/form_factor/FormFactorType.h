@@ -5,6 +5,7 @@
 
 #include <constants/Constants.h>
 #include <form_factor/FormFactorTable.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/Exceptions.h>
 
 #include <array>
@@ -260,13 +261,25 @@ namespace ausaxs::constants::charge::nuclear {
 namespace ausaxs::constants::charge {
     /**
      * @brief Get the effective charge based on the form factor evaluated at q=0.
-     *        This represents the scattering power of the atom/group.
+     *        This represents the scattering power of the atom/group for the given radiation.
      */
+    template<settings::scattering::Radiation radiation>
     double get_ff_charge(ausaxs::form_factor::form_factor_t type);
 
     /**
      * @brief Get the effective charge of an atom, with its element as a fallback.
      *        When the form factor is unknown, the atomic charge is returned instead.
      */
+    template<settings::scattering::Radiation radiation>
     double get_ff_charge(ausaxs::form_factor::form_factor_t type, ausaxs::constants::atom_t fallback_element);
+
+    /**
+     * @brief Get the effective charge for the radiation of the current settings, with its element as a fallback.
+     */
+    double get_ff_charge(ausaxs::form_factor::form_factor_t type, ausaxs::constants::atom_t fallback_element);
+
+    /**
+     * @brief Get the effective charge for the radiation of the current settings.
+     */
+    double get_ff_charge(ausaxs::form_factor::form_factor_t type);
 }
