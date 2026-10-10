@@ -11,7 +11,6 @@ find_package(AdaptiveCpp CONFIG QUIET)
 if (AdaptiveCpp_FOUND)
 	add_library(ausaxs_gpu_sycl SHARED EXCLUDE_FROM_ALL "SYCL/SYCLBackend.cpp")
 	set_target_properties(ausaxs_gpu_sycl PROPERTIES
-		COMPILE_OPTIONS ""
 		COMPILE_DEFINITIONS ""
 		INCLUDE_DIRECTORIES ""
 		LINK_LIBRARIES ""
@@ -20,7 +19,6 @@ if (AdaptiveCpp_FOUND)
 		set_target_properties(ausaxs_gpu_sycl PROPERTIES PREFIX "")
 	endif()
 	target_link_libraries(ausaxs_gpu_sycl PRIVATE ausaxs_gpu)
-	target_compile_options(ausaxs_gpu_sycl PRIVATE -O3)
 	add_sycl_to_target(TARGET ausaxs_gpu_sycl SOURCES "SYCL/SYCLBackend.cpp")
 	install(TARGETS ausaxs_gpu_sycl LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} OPTIONAL)
 else()

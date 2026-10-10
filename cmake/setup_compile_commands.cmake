@@ -83,7 +83,6 @@ function(setup_compile_commands)
         add_compile_definitions(NOMINMAX BUILD_EXPORT_DLL)
         list(APPEND CompilerFlags
             /fp:fast
-            /constexpr:steps10000000000
             /Zm500
             /wd4267 # disable size_t --> int, unsigned int conversions
             /wd4244 # disable double --> float,int conversions
@@ -109,14 +108,7 @@ function(setup_compile_commands)
             "$<$<CONFIG:Debug>:-Wextra>"
         )
 
-        if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-            list(APPEND CompilerFlags "-fconstexpr-ops-limit=10000000000")
-
-        elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-            list(APPEND CompilerFlags "-fconstexpr-steps=1000000000")
-
-        elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-            list(APPEND CompilerFlags "-fconstexpr-steps=1000000000")
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
             # -march is not supported on arm64 Apple targets; the SDK/toolchain handles targeting.
             # Use CMAKE_OSX_ARCHITECTURES when explicitly set (CI), otherwise fall back to the
             # host processor. Suppress -march whenever the target includes arm64 (covers both

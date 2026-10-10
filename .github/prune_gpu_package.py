@@ -1,13 +1,6 @@
 """
 Reduce an assembled GPU runtime package to what is loaded at run time.
-
     python prune_gpu_package.py <package directory>
-
-acpp --acpp-deploy recreates every development and version alias of a shared library as a symlink beside it.
-Neither upload-artifact nor a wheel preserves symlinks, so each alias would ship as a full copy: libLLVM four
-times over, which is most of what made the Linux package 400 MB. Each library is therefore collapsed into one
-regular file under the name the dynamic loader asks for: its SONAME on Linux, its install name on macOS.
-Windows deploys plain DLLs without aliases, so there the collapse finds nothing to do.
 """
 
 from __future__ import annotations
