@@ -5,6 +5,7 @@
 #include <form_factor/FormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <settings/ExvSettings.h>
 #include <support/form_factor_helper.h>
 
 #include <utility>
@@ -13,11 +14,6 @@ using namespace ausaxs;
 using namespace form_factor;
 
 namespace {
-    // types without a volume in the current set have an empty exv profile
-    double exv_profile(const form_factor::detail::ExvFormFactorSet& exv_set, form_factor_t type, double q) {
-        return exv_set.contains(type) ? exv_set.get(type).evaluate(q) : 0.0;
-    }
-
     // activate a small set containing C and N, and return their active slots
     std::pair<int, int> use_carbon_and_nitrogen() {
         manager::detail::use_form_factors({
@@ -33,6 +29,8 @@ namespace {
 }
 
 TEST_CASE("ExvFormFactorProduct::comprehensive_exv_evaluation") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
+
     SECTION("all exv form factor products match direct calculation") {
         test::form_factor::use_random_form_factors();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
@@ -40,12 +38,12 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_exv_evaluation") {
         const auto& table = tables->raw_exv_table;
         for (int ff1 = start_index_for_explicit_exv(); ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
-                auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
-                auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
+                ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+                ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = exv_profile(exv_set, t1, constants::axes::q_vals[i]) * exv_profile(exv_set, t2, constants::axes::q_vals[i]);
-                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-12));
+                    double expected = exv1.evaluate(constants::axes::q_vals[i]) * exv2.evaluate(constants::axes::q_vals[i]);
+                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
         }
@@ -53,6 +51,8 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_exv_evaluation") {
 }
 
 TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
+
     SECTION("all cross form factor products match direct calculation") {
         test::form_factor::use_random_form_factors();
         auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
@@ -60,54 +60,12 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
         const auto& table = tables->raw_cross_table;
         for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
-                auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
-                auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
-                const FormFactor& ff1_obj = lookup::atomic::raw::get(t1);
+                const FormFactor& ff1_obj = lookup::atomic::raw::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+                ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * exv_profile(exv_set, t2, constants::axes::q_vals[i]);
-                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-12));
-                }
-            }
-        }
-    }
-}
-
-TEST_CASE("ExvFormFactorProduct::exv_table_comprehensive") {
-    SECTION("all exv table entries match direct calculation") {
-        test::form_factor::use_random_form_factors();
-        auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        const auto* tables = manager::get_active_product_tables();
-        const auto& table = tables->raw_exv_table;
-        for (int ff1 = start_index_for_explicit_exv(); ff1 < tables->active_count; ++ff1) {
-            for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
-                auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
-                auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
-                const FormFactorProduct& ff = table.index(ff1, ff2);
-                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = exv_profile(exv_set, t1, constants::axes::q_vals[i]) * exv_profile(exv_set, t2, constants::axes::q_vals[i]);
-                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-12));
-                }
-            }
-        }
-    }
-}
-
-TEST_CASE("ExvFormFactorProduct::cross_table_comprehensive") {
-    SECTION("all cross table entries match direct calculation") {
-        test::form_factor::use_random_form_factors();
-        auto exv_set = ExvTableManager::get_current_exv_form_factor_set();
-        const auto* tables = manager::get_active_product_tables();
-        const auto& table = tables->raw_cross_table;
-        for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
-            for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
-                auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
-                auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
-                const FormFactor& ff1_obj = lookup::atomic::raw::get(t1);
-                const FormFactorProduct& ff = table.index(ff1, ff2);
-                for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * exv_profile(exv_set, t2, constants::axes::q_vals[i]);
-                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10) || Catch::Matchers::WithinAbs(expected, 1e-12));
+                    double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * exv2.evaluate(constants::axes::q_vals[i]);
+                    CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
         }
