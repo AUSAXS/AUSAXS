@@ -249,7 +249,7 @@ void manager::use_form_factors(const data::Molecule& molecule) {
 
     std::vector<int> ff_indices(form_factor::total_ff_count);
     std::iota(ff_indices.begin(), ff_indices.end(), 0);
-    std::ranges::sort(ff_indices, [&ff_counts](int a, int b) {return ff_counts[a] > ff_counts[b];});
+    std::ranges::stable_sort(ff_indices, std::greater{}, [&ff_counts] (int type) {return ff_counts[type];});
 
     // Drop the absent types. The sort above places EXCLUDED_VOLUME and WATER first (forced), then every type in descending order of abundance, and finally 
     // OTHER, which is dropped along with them and appended again at the end. 

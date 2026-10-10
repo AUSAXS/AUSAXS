@@ -253,7 +253,6 @@ TEST_CASE("form_factor::get_info: tabulated bare elements") {
     }
 
     SECTION("the vacuum form factor at q=0 matches the number of electrons") {
-        // the five-Gaussian fits are only approximately normalized, with the worst (Zn) off by 0.009. this also caught a typo in S (off by 0.01)
         for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
             auto type = static_cast<form_factor_t>(i);
             const auto& info = get_info(type);
