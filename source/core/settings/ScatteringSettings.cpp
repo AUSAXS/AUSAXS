@@ -36,6 +36,6 @@ template<> void settings::io::detail::SettingRef<settings::scattering::Radiation
     if (     str == "xray" || str == "x-ray") {settingref = settings::scattering::Radiation::XRay;}
     else if (str == "neutron") {settingref = settings::scattering::Radiation::Neutron;}
     else {
-        throw except::io_error("settings: Unknown radiation \"" + str + "\". Valid options are \"xray\" and \"neutron\".");
+        throw except::io_error("settings: Unknown radiation \"" + str + R"(". Valid options are "xray" and "neutron".)");
     }
 }
