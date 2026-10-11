@@ -21,10 +21,6 @@ struct SequenceParserQuotingFixture {
         settings::general::output = "output/";
     }
 
-    ~SequenceParserQuotingFixture() {
-        settings::general::output = "output/";
-    }
-
     static std::unique_ptr<Sequencer> parse(const std::string& content) {
         test::TempFile config(".conf", content);
         SequenceParser parser;

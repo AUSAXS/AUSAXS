@@ -31,7 +31,6 @@ struct PathResolutionFixture {
     }
 
     ~PathResolutionFixture() {
-        settings::general::output = original_output;
         std::error_code ec;
         std::filesystem::remove_all(root, ec);
     }
@@ -50,7 +49,6 @@ struct PathResolutionFixture {
     }
 
     std::string root;
-    std::string original_output = settings::general::output;
 };
 
 TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::OutputFolderElement modes", "[files]") {

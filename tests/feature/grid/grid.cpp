@@ -451,7 +451,6 @@ TEST_CASE("Grid::expand_volume") {
             grid.add(body, true);
             REQUIRE(grid.get_volume() == 323);
         }
-        settings::grid::min_bins = 0;
     }
 }
 
@@ -1166,8 +1165,6 @@ TEST_CASE("Grid: cubic_grid") {
             CHECK(ax.bins == gaxes.x.bins);
         }
     }
-
-    settings::grid::cubic = false;
 }
 
 TEST_CASE("Grid::operator=", "[files]") {

@@ -106,8 +106,6 @@ TEST_CASE("manager ff set change scattering consistent for special exv calculato
     SECTION("CRYSOL") {
         run_exv(settings::exv::ExvMethod::CRYSOL);
     }
-
-    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
 }
 
 // The molecule-derived form factor set is truncated to the types the molecule actually contains, which

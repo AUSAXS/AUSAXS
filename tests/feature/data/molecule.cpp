@@ -183,7 +183,6 @@ TEST_CASE("Molecule::get_Rg", "[files]") {
         Molecule protein("tests/files/SASDJQ4.pdb");
         REQUIRE_THAT(protein.get_Rg(), Catch::Matchers::WithinAbs(28.08, 0.02));
     }
-    settings::molecule::allow_unknown_atoms = false;
 }
 
 TEST_CASE("Molecule::simulate_dataset", "[files]") {
@@ -304,6 +303,7 @@ TEST_CASE("Molecule::save", "[files]") {
 
 TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
     settings::general::verbose = false;
+    settings::grid::scaling = 0.25;
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     SECTION("generates new waters") {
@@ -312,7 +312,6 @@ TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
         Molecule protein(bodies);
         protein.generate_new_hydration();
         REQUIRE(protein.size_water() != 0);
-        settings::grid::scaling = 0.25;
     }
 
     // we want to check that the hydration shells are consistent for fitting purposes
@@ -429,8 +428,6 @@ TEST_CASE("Molecule::get_relative_mass_density", "[files]") {
 
     // the shell contributes mass only when asked to
     CHECK(protein.get_absolute_mass(true) > protein.get_absolute_mass(false));
-
-    settings::molecule::allow_unknown_atoms = false;
 }
 
 TEST_CASE("Molecule::get_relative_charge", "[files]") {

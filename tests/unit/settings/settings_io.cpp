@@ -11,9 +11,6 @@
 using namespace ausaxs;
 
 struct SettingsIOFixture {
-    SettingsIOFixture() : original(settings::general::output) {}
-    ~SettingsIOFixture() {settings::general::output = original;}
-
     // write the current settings to a scratch file, clear the output setting, and read them back
     static std::string round_trip(const std::string& value) {
         settings::general::output = value;
@@ -23,8 +20,6 @@ struct SettingsIOFixture {
         settings::read(file);
         return settings::general::output;
     }
-
-    std::string original;
 };
 
 // The output folder is a path, and a path may contain spaces. settings::read splits on whitespace,

@@ -81,6 +81,4 @@ TEST_CASE("ExvFormFactor: switch volumes") {
         settings::exv::exv_set = settings::exv::ExvSet::vdw;
         test(constants::exv::vdw);
     }
-
-    settings::exv::exv_set = settings::exv::ExvSet::Default;
 }

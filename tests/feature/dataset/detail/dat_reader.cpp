@@ -143,7 +143,6 @@ TEST_CASE("DATReader: different unit") {
             REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
             REQUIRE(loaded_dataset.y(i) == dataset.y(i));
         }
-        settings::general::input_q_unit = settings::general::QUnit::A;
     }
 
     // our own output is always in inverse Ångström, so it must survive a round-trip regardless of the default unit
@@ -157,7 +156,6 @@ TEST_CASE("DATReader: different unit") {
             REQUIRE_THAT(loaded_dataset.x(i), Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
             REQUIRE(loaded_dataset.y(i) == dataset.y(i));
         }
-        settings::general::input_q_unit = settings::general::QUnit::A;
     }
 
     // a unit named by the caller is never overridden by the annotation
@@ -171,6 +169,5 @@ TEST_CASE("DATReader: different unit") {
             REQUIRE_THAT(loaded_dataset.x(i)*10, Catch::Matchers::WithinAbs(dataset.x(i), 1e-6));
             REQUIRE(loaded_dataset.y(i) == dataset.y(i));
         }
-        settings::general::input_q_unit = settings::general::QUnit::A;
     }
 }

@@ -118,7 +118,6 @@ TEST_CASE("ImageStack::get_protein") {
             for (const auto& atom : protein->get_atoms()) {
                 REQUIRE(atom.weight() == 1);
             }
-            settings::em::fixed_weights = false;
         }
     }
 }

@@ -131,7 +131,6 @@ TEST_CASE("CIFReader: file residues agrees with PDB") {
             REQUIRE(loaded.get(atom) == num);
         }
     }
-    settings::molecule::allow_unknown_residues = false;
 }
 
 TEST_CASE("CIFReader::read: crystal file") {
