@@ -28,17 +28,21 @@ CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
+    std::vector<double>&& self_aa,
+    double self_ww,
     hist::Distribution1D&& p_tot,
     observer_ptr<const data::Molecule> molecule
-) : CompositeDistanceHistogramFFExplicit(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(use_traube_volumes(molecule)) {}
+) : CompositeDistanceHistogramFFExplicit(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot)), average_displaced_V(use_traube_volumes(molecule)) {}
 
 CompositeDistanceHistogramCrysol::CompositeDistanceHistogramCrysol(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
-    hist::Distribution1D&& p_ww, 
+    hist::Distribution1D&& p_ww,
+    std::vector<double>&& self_aa,
+    double self_ww,
     hist::WeightedDistribution1D&& p_tot,
     observer_ptr<const data::Molecule> molecule
-) : CompositeDistanceHistogramFFExplicit(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), average_displaced_V(use_traube_volumes(molecule)) {}
+) : CompositeDistanceHistogramFFExplicit(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot)), average_displaced_V(use_traube_volumes(molecule)) {}
 
 double CompositeDistanceHistogramCrysol::exv_factor(double q, double cx, double avg_displaced_V) {
     // G(q) factor from CRYSOL: https://doi.org/10.1107/S0021889895007047

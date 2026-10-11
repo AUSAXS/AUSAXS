@@ -93,7 +93,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     // the excluded volume may reach further than the atoms, in which case the atomic distributions are grown to match
     auto atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<CompositeDistanceHistogramFFAvg&>(*base_res));
     int max_bin = atomic.grow(hist::detail::trimmed_bin_count(p_xx.surface, p_xx.interior, p_wx.surface, p_wx.interior));
-    auto& [p_aa, p_aw, p_ww, p_tot] = atomic;
+    auto& [p_aa, p_aw, p_ww, self_aa, self_ww, p_tot] = atomic;
 
     // calculate weighted distance bins
     WeightedDistribution1D p_tot_ax = std::max<int>(max_bin, p_wx.surface.size());
@@ -129,6 +129,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 
+        std::move(self_aa),
+        self_ww,
         std::move(p_xx),
         std::move(p_ax),
         std::move(p_wx),

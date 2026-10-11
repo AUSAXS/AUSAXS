@@ -17,6 +17,8 @@
 #include <memory>
 #include <ranges>
 #include <type_traits>
+#include <variant>
+#include <vector>
 
 /**
  * @brief What the histogram managers build from their distance calculations, shared between the weighted and the form
@@ -25,7 +27,8 @@
 namespace ausaxs::hist::detail {
 	/**
 	 * @brief The pairwise distance distributions of a histogram manager, before any excluded volume accounting.
-	 *        With form_factors, the atomic distributions are resolved by form factor type.
+	 *        With form_factors, the atomic distributions are resolved by form factor type, and the self-correlation weights
+	 *        are kept, since only the form factor intensity calculators give the self-correlations their own form factor.
 	 */
 	template<bool weighted_bins, bool form_factors>
 	struct ManagerDistributions {
@@ -38,11 +41,15 @@ namespace ausaxs::hist::detail {
 			typename GenericDistribution1D<weighted_bins>::type
 		>;
 		using ww_t = typename GenericDistribution1D<weighted_bins>::type;
+		using self_aa_t = std::conditional_t<form_factors, std::vector<double>, std::monostate>; // per ff_type, see HistogramStore::get_self_3d
+		using self_ww_t = std::conditional_t<form_factors, double, std::monostate>;              // see HistogramStore::get_self_1d
 
 		aa_t p_aa;
 		aw_t p_aw;
 		ww_t p_ww;
 		ww_t p_tot;
+		[[no_unique_address]] self_aa_t self_aa{};
+		[[no_unique_address]] self_ww_t self_ww{};
 
 		/**
 		 * @brief Keep only the first @a bins distance bins of every distribution.
@@ -73,6 +80,16 @@ namespace ausaxs::hist::detail {
 		assert(it != std::ranges::end(ids) && "sum_results: expected at least one result.");
 		T total = store.template get<T>(*it);
 		for (++it; it != std::ranges::end(ids); ++it) {add_to(total, store.template get<T>(*it));}
+		return total;
+	}
+
+	/**
+	 * @brief The sum of the self-correlation weights of each class over the allocate_3d() results @a ids of @a store.
+	 */
+	template<typename Store, std::ranges::input_range Ids>
+	std::vector<double> sum_self_weights(const Store& store, const Ids& ids) {
+		std::vector<double> total(store.classes(), 0);
+		for (int id : ids) {add_to(total, store.get_self_3d(id));}
 		return total;
 	}
 

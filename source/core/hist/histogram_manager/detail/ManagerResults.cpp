@@ -26,6 +26,10 @@ using namespace ausaxs::hist::detail;
 template<bool wb, bool ff>
 ManagerDistributions<wb, ff> hist::detail::export_distributions(distance_calculator::HistogramStore<wb>& store, int aa, int aw, int ww) {
     ManagerDistributions<wb, ff> res;
+    if constexpr (ff) { // read before the results are exported
+        res.self_aa = store.get_self_3d(aa);
+        res.self_ww = store.get_self_1d(ww);
+    }
     res.p_ww = store.export_1d(ww);
     res.p_tot = typename ManagerDistributions<wb, ff>::ww_t(store.bins());
     auto add = [&p_tot = res.p_tot] (auto begin) {std::transform(p_tot.begin(), p_tot.end(), begin, p_tot.begin(), std::plus<>());};
@@ -62,6 +66,8 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),
                 Distribution1D(std::move(d.p_ww)),
+                std::move(d.self_aa),
+                d.self_ww,
                 std::move(d.p_tot)
             );
         case settings::exv::ExvMethod::Pepsi:
@@ -69,6 +75,8 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),
                 Distribution1D(std::move(d.p_ww)),
+                std::move(d.self_aa),
+                d.self_ww,
                 std::move(d.p_tot),
                 protein
             );
@@ -77,6 +85,8 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),
                 Distribution1D(std::move(d.p_ww)),
+                std::move(d.self_aa),
+                d.self_ww,
                 std::move(d.p_tot),
                 protein
             );
@@ -85,6 +95,8 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),
                 Distribution1D(std::move(d.p_ww)),
+                std::move(d.self_aa),
+                d.self_ww,
                 std::move(d.p_tot)
             );
     }
@@ -99,6 +111,8 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogra
         Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
         Distribution2D(std::move(d.p_aw)),
         Distribution1D(std::move(d.p_ww)),
+        std::move(d.self_aa),
+        d.self_ww,
         std::move(d.p_tot),
         Z_exv_avg
     );

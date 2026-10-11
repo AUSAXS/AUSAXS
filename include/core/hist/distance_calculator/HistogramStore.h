@@ -8,10 +8,12 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
+#include <hist/distribution/detail/WeightedEntry.h>
 #include <utility/observer_ptr.h>
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <map>
 #include <span>
 #include <utility>
@@ -30,6 +32,9 @@ namespace ausaxs::hist::distance_calculator {
      *
      * The store owns the results. They are only written when the calculator runs, so until then they hold what the
      * previous run left, and they are zero before the first. Read them with get_*() or move them out with export_*().
+     *
+     * The first bin of a histogram holds both the zero distance of each point with itself and the distinct pairs closer
+     * than a bin width. The store records the former separately for every histogram, see get_self_1d() and get_self_3d().
      */
     template<bool weighted_bins>
     class HistogramStore {
@@ -90,6 +95,26 @@ namespace ausaxs::hist::distance_calculator {
             decltype(auto) visit(int id, F&& f) const {return std::visit(std::forward<F>(f), results[check_valid_id(id)]);}
 
             /**
+             * @brief The self-correlation weight of the result @a id of allocate_1d(): how much of its first bin is the zero distance
+             *        of points with themselves, i.e. their summed squared weights. It is zero unless a self-correlation was calculated into it.
+             *        It must be read before the result is exported.
+             */
+            double get_self_1d(int id) const {
+                const auto& result = get_1d(id);
+                return recorded_self({result.begin(), result.end()});
+            }
+
+            /**
+             * @brief The self-correlation weight of each class with itself of the result @a id of allocate_3d(). See get_self_1d().
+             */
+            std::vector<double> get_self_3d(int id) const {
+                const auto& result = get_3d(id);
+                std::vector<double> self(n_classes);
+                for (int i = 0; i < n_classes; ++i) {self[i] = recorded_self(result.row(i, i));}
+                return self;
+            }
+
+            /**
              * @brief Move the result @a id out of the store. It must not be used again afterwards.
              */
             GenericDistribution1D_t export_1d(int id) {return take<GenericDistribution1D_t>(id);}
@@ -126,6 +151,8 @@ namespace ausaxs::hist::distance_calculator {
             std::vector<std::variant<GenericDistribution1D_t, GenericDistribution2D_t, GenericDistribution3D_t>> results;
             std::map<std::pair<entry_type*, int>, Scratch> scratch; // per (row, factor) with queued calculations, keyed by the first bin of the row
             std::vector<std::span<entry_type>> resets;        // rows calculated from an empty set, zeroed by the next fold
+            std::map<const entry_type*, double> pending_self; // per row, the self-correlation weight queued since the last fold
+            std::map<const entry_type*, double> self_weights; // per row, the self-correlation weight its first bin holds, see assign_self()
 
             /**
              * @brief The histogram of the result @a id of allocate_1d(), the one of class @a i of the result @a id of
@@ -150,16 +177,38 @@ namespace ausaxs::hist::distance_calculator {
             }
 
             /**
+             * @brief Queue the zero distance of the points of a self-correlation with themselves, of total @a weight, into @a row.
+             *        It is added on the next fold, so the distinct pairs of the same calculation must be given a target into @a row.
+             *        Must be called on the thread that enqueues.
+             */
+            void queue_self(std::span<entry_type> row, double weight) {pending_self[row.data()] += weight;}
+
+            /**
+             * @brief Add the zero distance of the points of @a row with themselves, of total @a weight, to its first bin, and record it
+             *        as the self-correlation weight of the row. The record is replaced rather than added to, since a row is always
+             *        calculated in full.
+             */
+            void assign_self(std::span<entry_type> row, double weight) {
+                if constexpr (weighted_bins) {row[0] += hist::detail::WeightedEntry(weight, static_cast<std::int64_t>(weight), 0);}
+                else {row[0] += weight;}
+                self_weights[row.data()] = weight;
+            }
+
+            /**
              * @brief Zero @a row on the next fold, since the calculation queued into it has nothing to calculate.
              */
             void reset(std::span<entry_type> row) {resets.push_back(row);}
 
             /**
              * @brief Zero the rows that were reset, and assign every row given a target the sum over its targets of the
-             *        factor times the sum of its per-thread copies. This must only be done after all calculations have finished.
+             *        factor times the sum of its per-thread copies, plus the self-correlation queued into it.
+             *        This must only be done after all calculations have finished.
              */
             void fold() {
-                for (auto row : resets) {std::fill(row.begin(), row.end(), entry_type{});}
+                for (auto row : resets) {
+                    std::fill(row.begin(), row.end(), entry_type{});
+                    self_weights.erase(row.data());
+                }
                 resets.clear();
                 entry_type* previous = nullptr;
                 for (auto& [key, local] : scratch) {
@@ -167,7 +216,11 @@ namespace ausaxs::hist::distance_calculator {
                     std::span<entry_type> row(start, static_cast<std::size_t>(n_bins));
 
                     // the targets of a row are adjacent, since the map is ordered by row first
-                    if (start != previous) {std::fill(row.begin(), row.end(), entry_type{});}
+                    if (start != previous) {
+                        std::fill(row.begin(), row.end(), entry_type{});
+                        auto queued = pending_self.extract(start);
+                        assign_self(row, queued.empty() ? 0 : queued.mapped());
+                    }
                     previous = start;
 
                     for (const auto& copy : local.get_all()) {
@@ -177,6 +230,7 @@ namespace ausaxs::hist::distance_calculator {
                         );
                     }
                 }
+                assert(pending_self.empty() && "HistogramStore: a self-correlation was queued into a row without a target.");
                 scratch.clear();
             }
 
@@ -200,6 +254,13 @@ namespace ausaxs::hist::distance_calculator {
             int check_valid_id(int id) const {
                 assert(0 <= id && id < static_cast<int>(results.size()) && "HistogramStore: unknown result id.");
                 return id;
+            }
+
+            // the self-correlation weight recorded for @a row, see assign_self()
+            double recorded_self(std::span<const entry_type> row) const {
+                assert(static_cast<int>(row.size()) == n_bins && "HistogramStore: self-correlation weight of an exported result requested.");
+                auto it = self_weights.find(row.data());
+                return it == self_weights.end() ? 0 : it->second;
             }
 
             // an exported result is left empty, and fold() would write n_bins entries past its end
