@@ -16,7 +16,7 @@
 
 namespace ausaxs::form_factor::xray {
     /**
-     * @brief An X-ray form factor, described by a five-Gaussian approximation of the electron cloud.
+     * @brief An X-ray form factor, described by a five-Gaussian approximation.
      */
     class FormFactor {
         public:

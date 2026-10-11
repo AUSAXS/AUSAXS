@@ -28,7 +28,7 @@ namespace ausaxs::form_factor::manager {
             lookup::table_t raw_exv_table;
             lookup::table_t raw_cross_table;
             lookup::table_t raw_atomic_table;
-            std::vector<profile_t> raw_self_table; // One entry per active slot.
+            std::vector<profile_t> raw_self_table;
         };
 
         /**
