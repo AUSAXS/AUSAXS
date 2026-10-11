@@ -30,11 +30,11 @@ int cli_em_fitter(int argc, char const *argv[]) {
     CLI::App app{"Fit an EM map to a SAXS measurement."};
     auto* input_map = app.add_option("input-map", mapfile, "Path to the EM map.")->check(CLI::ExistingFile);
     auto* input_saxs = app.add_option("input-saxs", mfile, "Path to the SAXS measurement.")->check(CLI::ExistingFile);
-    app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/em_fitter/");
+    app.add_option("--output,-o", settings::general::output.value, "Output folder to write the results to.")->default_val("output/em_fitter/");
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
-    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
-    app.add_flag("--gpu", settings::general::gpu, "Use GPU acceleration if available.")->default_val(settings::general::gpu);
+    app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);
+    app.add_flag("--gpu", settings::general::gpu.value, "Use GPU acceleration if available.")->default_val(settings::general::gpu.value);
 
     // config subcommands
     auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
@@ -59,22 +59,22 @@ int cli_em_fitter(int argc, char const *argv[]) {
         ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
     ;
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, "The unit of the q values in the measurement file. Options: A, nm.");
-    sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
-    sub_data->add_flag("--rebin", settings::axes::rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin);
+    sub_data->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
+    sub_data->add_flag("--rebin", settings::axes::rebin.value, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin.value);
 
     // em subcommands
     auto* sub_em = app.add_subcommand("em", "See and set additional options for the EM map.");
-    auto* levelmin = sub_em->add_option("--levelmin,--level", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance and memory load.");
-    auto* levelmax = sub_em->add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
-    sub_em->add_option("--charge-levels", settings::em::charge_levels, "Number of charge levels to use for the EM map.");
-    sub_em->add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
-    sub_em->add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Generate a hydration shell for the protein before fitting.");
-    sub_em->add_flag("--fixed-weight,!--dynamic-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
+    auto* levelmin = sub_em->add_option("--levelmin,--level", settings::em::alpha_levels.value.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance and memory load.");
+    auto* levelmax = sub_em->add_option("--levelmax", settings::em::alpha_levels.value.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
+    sub_em->add_option("--charge-levels", settings::em::charge_levels.value, "Number of charge levels to use for the EM map.");
+    sub_em->add_option("--frequency", settings::em::sample_frequency.value, "Sampling frequency of the EM map.");
+    sub_em->add_flag("--hydrate,!--no-hydrate", settings::em::hydrate.value, "Generate a hydration shell for the protein before fitting.");
+    sub_em->add_flag("--fixed-weight,!--dynamic-weight", settings::em::fixed_weights.value, "Use a fixed weight for the fit.");
 
     // fit subcommands
     auto* sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
-    sub_fit->add_option("--max-iterations", settings::fit::max_iterations, "Maximum number of iterations to perform. This is only approximate.");
-    sub_fit->add_flag("--verbose,!--quiet", settings::fit::verbose, "Print the progress of the fit to the console.");
+    sub_fit->add_option("--max-iterations", settings::fit::max_iterations.value, "Maximum number of iterations to perform. This is only approximate.");
+    sub_fit->add_flag("--verbose,!--quiet", settings::fit::verbose.value, "Print the progress of the fit to the console.");
 
     app.final_callback([&] () {
         // save settings if requested
@@ -130,24 +130,24 @@ int cli_em_fitter(int argc, char const *argv[]) {
             throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile.str() + "\"");
         }
         if (!settings::em::hydrate) {settings::fit::fit_hydration = false;}
-        if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
+        if (!settings::general::output->empty() && settings::general::output->back() != '/') {settings::general::output += "/";}
 
         // simulation mode: compute and save the raw scattering profile at the requested cutoff level
         if (simulate) {
             console::print_info("\nSimulation mode enabled.");
             console::print_text("Please note that the evaluated hydration shell contribution will be quite poor for most molecules in this mode. For more information, refer to the documentation.");
-            if ((levelmax->count() != 0u) && settings::em::alpha_levels.min != settings::em::alpha_levels.max) {console::print_warning("Warning: Ignoring --levelmax in simulation mode.");}
+            if ((levelmax->count() != 0u) && settings::em::alpha_levels->min != settings::em::alpha_levels->max) {console::print_warning("Warning: Ignoring --levelmax in simulation mode.");}
             settings::general::output += "simulated/" + mapfile.stem() + "/";
-            console::print_text("Simulating scattering profile for map \"" + mapfile.str() + "\" at cutoff level " + std::to_string(settings::em::alpha_levels.min) + "σ");
+            console::print_text("Simulating scattering profile for map \"" + mapfile.str() + "\" at cutoff level " + std::to_string(settings::em::alpha_levels->min) + "σ");
 
             em::ImageStack map(mapfile);
-            auto* mol = map.get_protein(map.from_level(settings::em::alpha_levels.min));
+            auto* mol = map.get_protein(map.from_level(settings::em::alpha_levels->min));
             if (settings::em::hydrate) {mol->generate_new_hydration();}
             auto hist = mol->get_histogram();
 
             hist->debye_transform().as_dataset().save(
                 settings::general::output + mapfile.stem() + ".dat",
-                "q I(q) (raw profile at cutoff level " + std::to_string(settings::em::alpha_levels.min) + " sigma)"
+                "q I(q) (raw profile at cutoff level " + std::to_string(settings::em::alpha_levels->min) + " sigma)"
             );
             plots::PlotDistance::quick_plot(hist.get(), settings::general::output + "p(r)." + settings::plots::format);
             plots::PlotProfiles::quick_plot(hist.get(), settings::general::output + "profiles." + settings::plots::format);

@@ -7,8 +7,8 @@
 
 using namespace ausaxs;
 
-int settings::form_factor::max_types = 15;
-double settings::form_factor::min_fraction = 0.001;
+settings::Setting<int> settings::form_factor::max_types{15};
+settings::Setting<double> settings::form_factor::min_fraction{0.001};
 
 namespace {
     using namespace ausaxs::settings;

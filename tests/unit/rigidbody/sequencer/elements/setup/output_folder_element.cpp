@@ -63,18 +63,18 @@ TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::OutputFolderElement mod
 
     SECTION("absolute anchors the folder against the working directory") {
         REQUIRE_NOTHROW(parse(load + "output {\n    path results\n    mode absolute\n}\n"));
-        CHECK(std::filesystem::path(settings::general::output).is_absolute());
+        CHECK(std::filesystem::path(settings::general::output.value).is_absolute());
     }
 
     SECTION("an already absolute path is left where it points") {
         auto target = std::filesystem::absolute(root).string() + "/results";
         REQUIRE_NOTHROW(parse(load + "output {\n    path " + target + "\n    mode absolute\n}\n"));
-        CHECK(settings::general::output.starts_with(target));
+        CHECK(settings::general::output->starts_with(target));
     }
 
     SECTION("relative_config is prefixed with the script folder") {
         REQUIRE_NOTHROW(parse(load + "output {\n    path results\n    mode relative_config\n}\n"));
-        CHECK(settings::general::output.starts_with(root));
+        CHECK(settings::general::output->starts_with(root));
     }
 
     SECTION("relative is left alone") {

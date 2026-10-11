@@ -67,7 +67,7 @@ Molecule& Molecule::operator=(Molecule&& other) noexcept {
 
 void Molecule::lazy_histogram_manager_init() const {
     if (phm != nullptr) {return;}
-    if (!settings::hist::weighted_bins.is_auto()) {
+    if (!settings::hist::weighted_bins->is_auto()) {
         phm = hist::factory::construct_histogram_manager(this);
         bind_body_signallers();
         return;
@@ -82,7 +82,7 @@ void Molecule::lazy_histogram_manager_init() const {
     const bool grid = hist::factory::uses_grid_exv();
     settings::hist::weighted_bins = ordered || grid;
 
-    if (settings::hist::weighted_bins.is_true()) {
+    if (settings::hist::weighted_bins->is_true()) {
         phm = hist::factory::construct_histogram_manager(this, true);
         bind_body_signallers();
         console::print_text(grid

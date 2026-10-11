@@ -25,11 +25,11 @@ namespace ausaxs::settings::io {
         static std::vector<observer_ptr<SettingSection>>& get_sections();
     };
 
-    template<typename T> std::unique_ptr<detail::SettingRef<T>> create(T& setting, const std::string& name) {
-        return std::make_unique<detail::SettingRef<T>>(setting, std::vector<std::string>({name}));
+    template<typename T> std::unique_ptr<detail::SettingRef<settings::detail::Setting<T>>> create(settings::detail::Setting<T>& setting, const std::string& name) {
+        return std::make_unique<detail::SettingRef<settings::detail::Setting<T>>>(setting, std::vector<std::string>({name}));
     }
 
-    template<typename T> std::unique_ptr<detail::SettingRef<T>> create(T& setting, const std::initializer_list<std::string>& names) {
-        return std::make_unique<detail::SettingRef<T>>(setting, names);
+    template<typename T> std::unique_ptr<detail::SettingRef<settings::detail::Setting<T>>> create(settings::detail::Setting<T>& setting, const std::initializer_list<std::string>& names) {
+        return std::make_unique<detail::SettingRef<settings::detail::Setting<T>>>(setting, names);
     }
 }

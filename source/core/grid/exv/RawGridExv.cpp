@@ -36,7 +36,7 @@ GridExcludedVolume RawGridExv::create(observer_ptr<grid::Grid> grid) {
     ;
 
     int stride = point_stride();
-    int buffer = static_cast<int>(std::max(1., std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
+    int buffer = static_cast<int>(std::max(1., std::round(std::max<double>(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
     const auto& axes = grid->get_axes();
 
     auto[imin, imax] = grid->bounding_box_index();

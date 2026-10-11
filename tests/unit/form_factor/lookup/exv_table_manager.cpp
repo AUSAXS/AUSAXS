@@ -16,8 +16,6 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
     test::form_factor::use_random_form_factors();
 
     SECTION("set custom table") {
-        auto original_setting = settings::exv::exv_set.value;
-
         constants::exv::detail::ExvSet custom_set = constants::exv::vdw;
         ExvTableManager::set_custom_exv_table(custom_set);
 
@@ -26,13 +24,9 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
 
         REQUIRE(table_exv.index(form_factor::water_bin, form_factor::water_bin).evaluate(0) > 0);
         REQUIRE(table_cross.index(form_factor::water_bin, form_factor::water_bin).evaluate(0) > 0);
-
-        settings::exv::exv_set = original_setting;
     }
 
     SECTION("products match direct calculation after custom table is set") {
-        auto original_setting = settings::exv::exv_set.value;
-
         constants::exv::detail::ExvSet custom_set = constants::exv::Traube;
         ExvTableManager::set_custom_exv_table(custom_set);
 
@@ -49,7 +43,6 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
                 }
             }
         }
-        settings::exv::exv_set = original_setting;
     }
 }
 
@@ -58,7 +51,6 @@ TEST_CASE("ExvSet switching") {
     test::form_factor::use_random_form_factors();
 
     SECTION("Traube") {
-        auto original_setting = settings::exv::exv_set.value;
         settings::exv::exv_set = settings::exv::ExvSet::Traube;
 
         const auto* tables = manager::get_active_product_tables();
@@ -77,12 +69,9 @@ TEST_CASE("ExvSet switching") {
                 }
             }
         }
-
-        settings::exv::exv_set = original_setting;
     }
 
     SECTION("vdw") {
-        auto original_setting = settings::exv::exv_set.value;
         settings::exv::exv_set = settings::exv::ExvSet::vdw;
 
         const auto* tables = manager::get_active_product_tables();
@@ -101,7 +90,5 @@ TEST_CASE("ExvSet switching") {
                 }
             }
         }
-
-        settings::exv::exv_set = original_setting;
     }
 }

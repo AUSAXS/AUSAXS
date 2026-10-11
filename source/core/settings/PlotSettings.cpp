@@ -7,8 +7,8 @@
 
 using namespace ausaxs;
 
-std::string settings::plots::format = "png";
-std::vector<double> settings::plots::contour = {};
+settings::Setting<std::string> settings::plots::format{"png"};
+settings::Setting<std::vector<double>> settings::plots::contour{{}};
 
 namespace {
     using namespace ausaxs::settings;

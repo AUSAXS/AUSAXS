@@ -9,14 +9,14 @@
 
 using namespace ausaxs;
 
-settings::detail::Setting<settings::exv::ExvMethod> settings::exv::exv_method{
+settings::Setting<settings::exv::ExvMethod> settings::exv::exv_method{
     settings::exv::ExvMethod::Simple,
     [] (settings::exv::ExvMethod&) {
         ausaxs::form_factor::manager::rebuild(); // the available form factors depend on the method
     }
 };
 
-settings::detail::Setting<settings::exv::ExvSet> settings::exv::exv_set{
+settings::Setting<settings::exv::ExvSet> settings::exv::exv_set{
     settings::exv::ExvSet::Default,
     [] (settings::exv::ExvSet&) {
         ausaxs::form_factor::manager::rebuild();

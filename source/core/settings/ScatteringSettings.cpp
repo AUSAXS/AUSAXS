@@ -9,7 +9,7 @@
 
 using namespace ausaxs;
 
-settings::detail::Setting<settings::scattering::Radiation> settings::scattering::radiation{
+settings::Setting<settings::scattering::Radiation> settings::scattering::radiation{
     settings::scattering::Radiation::XRay,
     [] (settings::scattering::Radiation&) {
         ausaxs::form_factor::manager::rebuild(); // the form factor tables depend on the probe

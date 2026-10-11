@@ -25,7 +25,7 @@ const constants::exv::detail::ExvSet& ExvTableManager::get_default_exv_table() {
 }
 
 observer_ptr<const constants::exv::detail::ExvSet> ExvTableManager::get_current_exv_table() {
-    switch (settings::exv::exv_set) {
+    switch (settings::exv::ExvSet set = settings::exv::exv_set; set) {
         case settings::exv::ExvSet::Traube: return &constants::exv::Traube;
         case settings::exv::ExvSet::Voronoi_explicit_H: return &constants::exv::Voronoi_explicit_H;
         case settings::exv::ExvSet::Voronoi_implicit_H: return &constants::exv::Voronoi_implicit_H;
@@ -39,7 +39,7 @@ observer_ptr<const constants::exv::detail::ExvSet> ExvTableManager::get_current_
         default: 
             throw ausaxs::except::runtime_error(
                 "constants::displaced_volume::get_exv_set: Invalid displaced volume set" 
-                "(enum " + std::to_string(static_cast<int>(settings::exv::exv_set.value)) + ")"
+                "(enum " + std::to_string(static_cast<int>(set)) + ")"
             );
     }
 }

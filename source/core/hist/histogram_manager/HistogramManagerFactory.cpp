@@ -141,8 +141,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins
 ) {
-    auto exv_method = settings::exv::exv_method.value;
-    bool ff = uses_form_factors(exv_method);
+    bool ff = uses_form_factors(settings::exv::exv_method);
 
     // only the form factor managers read the active tables, so only these have an opinion on which set should be active
     if (ff) {form_factor::manager::use_form_factors(*protein);}
@@ -155,7 +154,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
 
         case Choice::HistogramManagerMT:
             if (!ff) {return create_manager<HistogramManagerMT>(weighted_bins, protein);}
-            if (exv_method == ExvMethod::Average) {return create_manager<HistogramManagerMTFFAvg>(weighted_bins, protein);}
+            if (settings::exv::exv_method == ExvMethod::Average) {return create_manager<HistogramManagerMTFFAvg>(weighted_bins, protein);}
             return create_manager<HistogramManagerMTFFExplicit>(weighted_bins, protein);
 
         case Choice::HistogramSymmetryManagerMT:

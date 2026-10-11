@@ -113,7 +113,7 @@ namespace {
         }
 
         int stride = point_stride();
-        int buffer = static_cast<int>(std::max<double>(1, std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
+        int buffer = static_cast<int>(std::max<double>(1, std::round(std::max<double>(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
         vol.spacing = point_spacing();
 
         const auto& axes = grid->get_axes();

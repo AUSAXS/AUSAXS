@@ -4,23 +4,24 @@
 #pragma once
 
 #include <settings/ExportMacro.h>
+#include <settings/SettingsHelper.h>
 
 #include <string>
 
 namespace ausaxs::settings {
     struct EXPORT general {
-        static std::string residue_folder;  // Download location for all ligand files.
-        static bool offline;                // Whether to use the offline mode. This will prevent any network requests, but may result in less accurate results.
-        static bool verbose;                // Whether to print out extra information.
-        static bool warnings;               // Whether to print out warnings.
-        static int threads;                 // The number of threads to use for parallelization.
-        static std::string output;          // The output directory.
-        static std::string cache;           // The cache directory.
-        static bool keep_hydrogens;         // Whether to keep bound hydrogens when reading a structure.
-        static bool generate_plots;         // Whether to generate plots when possible.
-        static bool supplementary_plots;    // Whether to generate supplementary plots when possible.
-        static bool gpu;                    // Whether to offload the distance histogram calculations to the GPU. Requires a GPU backend to be installed alongside the library.
-        static std::string gpu_library;     // Path to the GPU backend to use. Empty to search the usual locations.
+        static Setting<std::string> residue_folder;  // Download location for all ligand files.
+        static Setting<bool> offline;                // Whether to use the offline mode. This will prevent any network requests, but may result in less accurate results.
+        static Setting<bool> verbose;                // Whether to print out extra information.
+        static Setting<bool> warnings;               // Whether to print out warnings.
+        static Setting<int> threads;                 // The number of threads to use for parallelization.
+        static Setting<std::string> output;          // The output directory.
+        static Setting<std::string> cache;           // The cache directory.
+        static Setting<bool> keep_hydrogens;         // Whether to keep bound hydrogens when reading a structure.
+        static Setting<bool> generate_plots;         // Whether to generate plots when possible.
+        static Setting<bool> supplementary_plots;    // Whether to generate supplementary plots when possible.
+        static Setting<bool> gpu;                    // Whether to offload the distance histogram calculations to the GPU. Requires a GPU backend to be installed alongside the library.
+        static Setting<std::string> gpu_library;     // Path to the GPU backend to use. Empty to search the usual locations.
 
         struct detail {
             /**
@@ -35,7 +36,7 @@ namespace ausaxs::settings {
             NM      = (1 << 2),          // Nanometer (system-default, may be converted)
             USER_NM = (1 << 2)+(1 << 3), // Nanometer (user-specified, cannot be converted)
         };
-        static QUnit input_q_unit; // Unit of q values in the input file.
+        static Setting<QUnit> input_q_unit; // Unit of q values in the input file.
 
         struct helper {
             static bool is_angstroms(QUnit u);    // Whether the input unit is Ångström.

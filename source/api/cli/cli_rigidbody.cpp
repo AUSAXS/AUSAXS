@@ -33,16 +33,16 @@ int cli_rigidbody(int argc, char const *argv[]) {
     auto* p_script = app.add_option("input_script", script, "Path to the rigid-body configuration script.")->check(CLI::ExistingFile);
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
-    app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms, 
+    app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms.value, 
         "Allow processing files with unknown atoms. Use only if you understand the implications.")
-        ->default_val(settings::molecule::allow_unknown_atoms);
-    app.add_flag("--allow-unknown-residues", settings::molecule::allow_unknown_residues,
+        ->default_val(settings::molecule::allow_unknown_atoms.value);
+    app.add_flag("--allow-unknown-residues", settings::molecule::allow_unknown_residues.value,
         "Allow processing files with unknown residues. Use only if you understand the implications.")
-        ->default_val(settings::molecule::allow_unknown_residues);
-    app.add_flag("--offline", settings::general::offline, "Run the program in offline mode. This will prevent any network requests.")
-        ->default_val(settings::general::offline);
-    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);    
-    app.add_flag("--gpu", settings::general::gpu, "Use GPU acceleration if available.")->default_val(settings::general::gpu);
+        ->default_val(settings::molecule::allow_unknown_residues.value);
+    app.add_flag("--offline", settings::general::offline.value, "Run the program in offline mode. This will prevent any network requests.")
+        ->default_val(settings::general::offline.value);
+    app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);    
+    app.add_flag("--gpu", settings::general::gpu.value, "Use GPU acceleration if available.")->default_val(settings::general::gpu.value);
 
     // config subcommands
     auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
@@ -68,24 +68,24 @@ int cli_rigidbody(int argc, char const *argv[]) {
     ;
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
         "The unit of the q values in the measurement file. Options: A, nm.");
-    sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
-    sub_data->add_flag("--rebin", settings::axes::rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin);
-    sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins);
+    sub_data->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
+    sub_data->add_flag("--rebin", settings::axes::rebin.value, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin.value);
+    sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins.value, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins.value);
 
     // molecule subcommands
     auto* sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
-    sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, 
-        "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy);
+    sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy.value, 
+        "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy.value);
 
     // hydrogen subcommands
     auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
-    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
+    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens.value, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens.value);
 
     // grid subcommands
     auto* sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
-    sub_grid->add_option("--width,-w", settings::grid::cell_width, 
+    sub_grid->add_option("--width,-w", settings::grid::cell_width.value, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
-    )->default_val(settings::grid::cell_width);
+    )->default_val(settings::grid::cell_width.value);
 
     app.final_callback([&] () {if (save_settings) {
         settings::write("settings.txt");

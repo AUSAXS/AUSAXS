@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <settings/SettingsIORegistry.h>
+#include <settings/SettingsIO.h>
 
 #include <utility/observer_ptr.h>
 
@@ -24,4 +25,10 @@ SettingSection::SettingSection(std::string_view name, std::initializer_list<std:
         }
     }
     get_sections().push_back(this);
+}
+
+void ausaxs::settings::reset() {
+    for (const auto& section : SettingSection::get_sections()) {
+        for (const auto& setting : section->settings) {setting->reset();}
+    }
 }

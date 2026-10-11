@@ -4,13 +4,14 @@
 #pragma once
 
 #include <settings/ExportMacro.h>
+#include <settings/SettingsHelper.h>
 
 namespace ausaxs::settings {
     struct EXPORT molecule {
-        static bool allow_unknown_atoms;    // Decides whether an exception will be thrown if an unknown atom is encountered.
-        static bool allow_unknown_residues; // Decides whether to allow unknown residues (WARNING: implicit hydrogens will be skipped for these residues).
-        static bool implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
-        static bool use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
+        static Setting<bool> allow_unknown_atoms;    // Decides whether an exception will be thrown if an unknown atom is encountered.
+        static Setting<bool> allow_unknown_residues; // Decides whether to allow unknown residues (WARNING: implicit hydrogens will be skipped for these residues).
+        static Setting<bool> implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
+        static Setting<bool> use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
     };
 
     struct EXPORT hydrate {
@@ -30,7 +31,7 @@ namespace ausaxs::settings {
             // No hydration molecules will be placed with this strategy
             NoStrategy
         };
-        static HydrationStrategy hydration_strategy;
+        static Setting<HydrationStrategy> hydration_strategy;
 
         enum class CullingStrategy {
             // Every N molecule is removed from the list of possible waters to achieve the target number of molecules
@@ -48,10 +49,10 @@ namespace ausaxs::settings {
             // No molecules will be removed with this strategy
             NoStrategy
         };
-        static CullingStrategy culling_strategy;
+        static Setting<CullingStrategy> culling_strategy;
 
         // Correction added to the sum of van der Waals radii when calculating the distance to the placed water molecules.
         // By default this is tuned to roughly match MD density profiles. 
-        static double shell_correction;
+        static Setting<double> shell_correction;
     };
 }

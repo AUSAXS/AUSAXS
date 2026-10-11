@@ -7,16 +7,16 @@
 
 using namespace ausaxs;
 
-int settings::em::sample_frequency = 1;
-double settings::em::concentration = 1;
-int settings::em::charge_levels = 50;
-bool settings::em::hydrate = true;
-bool settings::em::save_pdb = true;
-Limit settings::em::alpha_levels = {1, 10};
-bool settings::em::fixed_weights = true;
-bool settings::em::plot_landscapes = false;
-bool settings::em::simulation::noise = true;
-bool settings::em::mass_axis = true;
+settings::Setting<int> settings::em::sample_frequency{1};
+settings::Setting<double> settings::em::concentration{1};
+settings::Setting<int> settings::em::charge_levels{50};
+settings::Setting<bool> settings::em::hydrate{true};
+settings::Setting<bool> settings::em::save_pdb{true};
+settings::Setting<Limit> settings::em::alpha_levels{{1, 10}};
+settings::Setting<bool> settings::em::fixed_weights{true};
+settings::Setting<bool> settings::em::plot_landscapes{false};
+settings::Setting<bool> settings::em::simulation::noise{true};
+settings::Setting<bool> settings::em::mass_axis{true};
 
 namespace {
     using namespace ausaxs::settings;

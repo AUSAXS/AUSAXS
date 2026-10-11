@@ -34,7 +34,6 @@ namespace {
 }
 
 TEST_CASE("CompositeDistanceHistogramCrysol: always uses the Traube volumes") {
-    auto original_set = settings::exv::exv_set.value;
     settings::exv::exv_set = settings::exv::ExvSet::vdw;
     auto molecule = make_molecule();
     double vdw_V = form_factor::ExvTableManager::get_average_displaced_volume(&molecule);
@@ -51,6 +50,4 @@ TEST_CASE("CompositeDistanceHistogramCrysol: always uses the Traube volumes") {
 
     SECTION("CRYSOL") {check(construct<hist::CompositeDistanceHistogramCrysol>(molecule));}
     SECTION("Pepsi")  {check(construct<hist::CompositeDistanceHistogramPepsi>(molecule));}
-
-    settings::exv::exv_set = original_set;
 }

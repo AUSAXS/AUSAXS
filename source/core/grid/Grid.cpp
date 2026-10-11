@@ -200,7 +200,7 @@ double Grid::get_minimum_edge_margin() {
     // so bounding that table alone would under-bound the shell for EM maps. Both are O(1), so cover both.
     constexpr double noise_allowance = 4;
     return
-        std::max(largest_shell_radius(), settings::grid::min_exv_radius) +  // the furthest atom surface
+        std::max<double>(largest_shell_radius(), settings::grid::min_exv_radius) +  // the furthest atom surface
         constants::radius::get_vdw_radius(constants::atom_t::O) +           // the hydration radius
         settings::hydrate::shell_correction +                               // the shell offset from that surface
         noise_allowance +                                                   // the noise on the water positions, in absolute units

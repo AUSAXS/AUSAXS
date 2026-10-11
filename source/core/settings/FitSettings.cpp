@@ -7,14 +7,14 @@
 
 using namespace ausaxs;
 
-bool settings::fit::verbose = false;
-int settings::fit::N = 100;
-int settings::fit::max_iterations = 100;
-bool settings::fit::fit_excluded_volume = false;
-bool settings::fit::fit_solvent_density = false;
-bool settings::fit::fit_hydration = true;
-bool settings::fit::fit_atomic_debye_waller = false;
-bool settings::fit::fit_exv_debye_waller = false;
+settings::Setting<bool> settings::fit::verbose{false};
+settings::Setting<int> settings::fit::N{100};
+settings::Setting<int> settings::fit::max_iterations{100};
+settings::Setting<bool> settings::fit::fit_excluded_volume{false};
+settings::Setting<bool> settings::fit::fit_solvent_density{false};
+settings::Setting<bool> settings::fit::fit_hydration{true};
+settings::Setting<bool> settings::fit::fit_atomic_debye_waller{false};
+settings::Setting<bool> settings::fit::fit_exv_debye_waller{false};
 
 namespace {
     using namespace ausaxs::settings;

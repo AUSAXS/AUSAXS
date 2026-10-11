@@ -51,7 +51,7 @@ namespace ausaxs::settings {
             // Disable excluded volume modeling.
             None
         };
-        static detail::Setting<ExvMethod> exv_method; // The method used to model the excluded volume.
+        static Setting<ExvMethod> exv_method; // The method used to model the excluded volume.
 
         /// @brief The available sets of per-atom displaced solvent volumes.
         enum class ExvSet { //NOLINT
@@ -68,6 +68,6 @@ namespace ausaxs::settings {
             //! Keep this in sync with form_factor::ExvTableManager::get_default_exv_table.
             Default = MinimumFluctutation_implicit_H // Default displaced volume set
         };
-        static detail::Setting<ExvSet> exv_set;
+        static Setting<ExvSet> exv_set;
     };
 }

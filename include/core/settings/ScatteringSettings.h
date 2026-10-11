@@ -13,6 +13,6 @@ namespace ausaxs::settings {
             Neutron
         };
 
-        static detail::Setting<Radiation> radiation;
+        static Setting<Radiation> radiation;
     };
 }
