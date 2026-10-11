@@ -46,7 +46,7 @@ namespace ausaxs::settings::io::detail {
         /**
          * @brief Restore the default value.
          */
-        virtual void reset() = 0;
+        virtual void reset_value() = 0;
 
         std::vector<std::string> names; // The name of the setting.
 
@@ -79,7 +79,7 @@ namespace ausaxs::settings::io::detail {
 
         bool requires_quoting() const override {return false;}
 
-        void reset() override {
+        void reset_value() override {
             throw ausaxs::except::runtime_error("settings::io::detail::SettingRef::reset: a plain reference has no default value.");
         }
 
@@ -117,7 +117,7 @@ namespace ausaxs::settings::io::detail {
             return ref.requires_quoting();
         }
 
-        void reset() override {settingref.reset();}
+        void reset_value() override {settingref.reset();}
 
         ausaxs::settings::detail::Setting<T>& settingref;
     };

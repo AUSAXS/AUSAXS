@@ -2,8 +2,8 @@
 // Author: Kristian Lytje
 
 #include <settings/SettingsIORegistry.h>
-#include <settings/SettingsIO.h>
 
+#include <settings/SettingsIO.h>
 #include <utility/observer_ptr.h>
 
 using namespace ausaxs;
@@ -29,6 +29,6 @@ SettingSection::SettingSection(std::string_view name, std::initializer_list<std:
 
 void ausaxs::settings::reset() {
     for (const auto& section : SettingSection::get_sections()) {
-        for (const auto& setting : section->settings) {setting->reset();}
+        for (const auto& setting : section->settings) {setting->reset_value();}
     }
 }

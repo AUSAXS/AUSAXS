@@ -18,7 +18,7 @@ struct SettingsIOFixture {
         settings::write(file);
         settings::general::output = "";
         settings::read(file);
-        return settings::general::output;
+        return settings::general::output.value;
     }
 };
 
