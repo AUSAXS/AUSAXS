@@ -503,12 +503,13 @@ TEST_CASE("form_factor_manager: solvent density scales the excluded volume table
 
     SECTION("neutron") {
         settings::scattering::radiation = settings::scattering::Radiation::Neutron;
+        settings::scattering::neutron_solvent_density = neutron::solvent_density(0);
         auto [ax_h2o, xx_h2o] = evaluate();
-        CHECK_THAT(ax_h2o, Catch::Matchers::WithinRel(ax*neutron::solvent_density(0)/constants::charge::density::water, 1e-12));
+        CHECK_THAT(xx_h2o, Catch::Matchers::WithinRel(xx*std::pow(neutron::solvent_density(0)/constants::charge::density::water, 2), 1e-12));
 
         settings::scattering::neutron_solvent_density = neutron::solvent_density(1);
         auto [ax_d2o, xx_d2o] = evaluate();
-        CHECK_THAT(ax_d2o, Catch::Matchers::WithinRel(ax*neutron::solvent_density(1)/constants::charge::density::water, 1e-12));
+        CHECK_THAT(ax_d2o, Catch::Matchers::WithinRel(ax_h2o*neutron::solvent_density(1)/neutron::solvent_density(0), 1e-12));
         CHECK_THAT(xx_d2o, Catch::Matchers::WithinRel(xx*std::pow(neutron::solvent_density(1)/constants::charge::density::water, 2), 1e-12));
         settings::scattering::radiation = settings::scattering::Radiation::XRay;
     }

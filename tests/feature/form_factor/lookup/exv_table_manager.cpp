@@ -15,7 +15,7 @@ TEST_CASE("ExvFormFactor: switch volumes") {
     test::form_factor::use_random_form_factors();
 
     auto test = [&] (const constants::exv::detail::ExvSet& vols) {
-        auto ffset = form_factor::detail::ExvFormFactorSet(vols);
+        auto ffset = form_factor::detail::ExvFormFactorSet(vols, constants::charge::density::water);
         auto exv = [&ffset] (form_factor_t type, double q) {return ffset.get(type).evaluate(q);};
 
         SECTION("exv") {

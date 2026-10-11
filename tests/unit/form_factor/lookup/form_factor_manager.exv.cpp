@@ -37,8 +37,8 @@ TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
             for (auto [j, tj] : active_slots()) {
                 const FormFactorProduct& product = table.index(i, j);
 
-                ExvFormFactor exv1 = exv_set.get(ti);
-                ExvFormFactor exv2 = exv_set.get(tj);
+                auto exv1 = exv_set.get(ti);
+                auto exv2 = exv_set.get(tj);
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
                     double expected = exv1.evaluate(constants::axes::q_vals[k]) * exv2.evaluate(constants::axes::q_vals[k]);
@@ -79,7 +79,7 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
             for (auto [j, tj] : active_slots()) {
                 const FormFactorProduct& product = table.index(i, j);
                 const xray::FormFactor& ff_atomic = xray::raw::get(ti);
-                ExvFormFactor exv = exv_set.get(tj);
+                auto exv = exv_set.get(tj);
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
                     double expected = ff_atomic.evaluate(constants::axes::q_vals[k]) * exv.evaluate(constants::axes::q_vals[k]);

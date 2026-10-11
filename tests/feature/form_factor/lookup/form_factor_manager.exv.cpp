@@ -38,8 +38,8 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_exv_evaluation") {
         const auto& table = tables->raw_exv_table;
         for (int ff1 = start_index_for_explicit_exv(); ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
-                ExvFormFactor exv1 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
-                ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
+                auto exv1 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
+                auto exv2 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = exv1.evaluate(constants::axes::q_vals[i]) * exv2.evaluate(constants::axes::q_vals[i]);
@@ -61,7 +61,7 @@ TEST_CASE("ExvFormFactorProduct::comprehensive_cross_evaluation") {
         for (int ff1 = 0; ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
                 const xray::FormFactor& ff1_obj = xray::raw::get(static_cast<form_factor_t>(tables->ff_indices[ff1]));
-                ExvFormFactor exv2 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
+                auto exv2 = exv_set.get(static_cast<form_factor_t>(tables->ff_indices[ff2]));
                 const FormFactorProduct& ff = table.index(ff1, ff2);
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
                     double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * exv2.evaluate(constants::axes::q_vals[i]);

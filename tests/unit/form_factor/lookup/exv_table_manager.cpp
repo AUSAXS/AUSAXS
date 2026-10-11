@@ -32,7 +32,7 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
 
         const auto* tables = manager::get_active_product_tables();
         const auto& table = tables->raw_exv_table;
-        auto ffset = form_factor::detail::ExvFormFactorSet(custom_set);
+        auto ffset = form_factor::detail::ExvFormFactorSet(custom_set, constants::charge::density::water);
         for (int ff1 = start_index_for_explicit_exv(); ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
                 auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
@@ -55,7 +55,7 @@ TEST_CASE("ExvSet switching") {
 
         const auto* tables = manager::get_active_product_tables();
         const auto& table = tables->raw_exv_table;
-        auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::Traube);
+        auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::Traube, constants::charge::density::water);
 
         for (int ff1 = start_index_for_explicit_exv(); ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {
@@ -76,7 +76,7 @@ TEST_CASE("ExvSet switching") {
 
         const auto* tables = manager::get_active_product_tables();
         const auto& table = tables->raw_exv_table;
-        auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::vdw);
+        auto ffset = form_factor::detail::ExvFormFactorSet(constants::exv::vdw, constants::charge::density::water);
 
         for (int ff1 = start_index_for_explicit_exv(); ff1 < tables->active_count; ++ff1) {
             for (int ff2 = start_index_for_explicit_exv(); ff2 < tables->active_count; ++ff2) {

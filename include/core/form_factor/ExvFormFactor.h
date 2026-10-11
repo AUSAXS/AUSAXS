@@ -14,36 +14,36 @@
 #include <optional>
 
 namespace ausaxs::form_factor {
-    /**
-     * @brief Calculate the excluded volume form factor based on the description from Fraser, MacRae & Suzuki: https://doi.org/10.1107/S0021889878014296
-     */
-    class ExvFormFactor {
-        public: 
-            /**
-             * @brief Create a new excluded volume form factor with the given volume.
-             *
-             * @param volume The excluded volume of the atom. 
-             * @param density The scattering density of the displaced solvent. The default is the electron density of water.
-             */
-            constexpr ExvFormFactor(double volume, double density = constants::charge::density::water) 
-                : exponent(math::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*density) 
-            {}
+    namespace detail {
+        /**
+         * @brief Calculate the excluded volume form factor based on the description from Fraser, MacRae & Suzuki: https://doi.org/10.1107/S0021889878014296
+         */
+        class ExvFormFactor {
+            public: 
+                /**
+                 * @param volume The excluded volume of the atom. 
+                 * @param density The scattering density of the displaced solvent, in the units of the probe being modelled.
+                 */
+                constexpr ExvFormFactor(double volume, double density) 
+                    : exponent(math::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*density) 
+                {}
 
-            constexpr double evaluate_normalized(double q) const {
-                return math::exp(-exponent*q*q);
-            }
+                constexpr double evaluate_normalized(double q) const {
+                    return math::exp(-exponent*q*q);
+                }
 
-            constexpr double evaluate(double q) const {
-                return q0*evaluate_normalized(q);
-            }
+                constexpr double evaluate(double q) const {
+                    return q0*evaluate_normalized(q);
+                }
 
-            constexpr bool is_initialized() const {
-                return exponent != 0;
-            }
+                constexpr bool is_initialized() const {
+                    return exponent != 0;
+                }
 
-            double exponent = 0;
-            double q0 = 1;
-    };
+                double exponent = 0;
+                double q0 = 1;
+        };
+    }
 
     namespace factory {
         /**
@@ -51,7 +51,7 @@ namespace ausaxs::form_factor {
          *
          * @param volume The excluded volume of the atom.
          */
-        inline ExvFormFactor construct_exv_form_factor(double volume) {
+        inline detail::ExvFormFactor construct_exv_form_factor(double volume) {
             return {volume, settings::internal_state::solvent_density};
         }
     }
@@ -64,9 +64,9 @@ namespace ausaxs::form_factor {
         struct ExvFormFactorSet {
             /**
              * @param set The displaced volumes of each form factor type.
-             * @param density The scattering density of the displaced solvent. The default is the electron density of water.
+             * @param density The scattering density of the displaced solvent, in the units of the probe being modelled.
              */
-            constexpr ExvFormFactorSet(const constants::exv::detail::ExvSet& set, double density = constants::charge::density::water) {
+            constexpr ExvFormFactorSet(const constants::exv::detail::ExvSet& set, double density) {
                 for (int i = 0; i < total_ff_count; ++i) {
                     if (const auto& v = set.volumes[i]; v.has_value()) {form_factors[i] = ExvFormFactor(*v, density);}
                 }

@@ -23,7 +23,6 @@ namespace ausaxs::form_factor {
 
             /**
              * @brief Discard the cached excluded volume form factor sets, so they are rebuilt on their next access.
-             *        The sets are built with settings::internal_state::solvent_density, so this must be called whenever it changes.
              */
             static void clear_exv_form_factor_sets();
 
@@ -45,7 +44,9 @@ namespace ausaxs::form_factor {
 }
 
 constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_default_exv_form_factor_set() {
-    return {constants::exv::MinimumFluctuation_implicit_H};
+    // the solvent density is a runtime setting, so a constant evaluation can only model the default X-ray solvent
+    double density = std::is_constant_evaluated() ? constants::charge::density::water : settings::internal_state::solvent_density;
+    return {constants::exv::MinimumFluctuation_implicit_H, density};
 }
 
 constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_current_exv_form_factor_set() {

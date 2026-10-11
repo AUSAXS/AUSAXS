@@ -50,8 +50,8 @@ namespace {
 
 template<FormFactorType T>
 void CompositeDistanceHistogramFFGridBase::regenerate_ff_table(T&& ffx) {ff_table = generate_ff_table(std::forward<T>(ffx));}
-template void CompositeDistanceHistogramFFGridBase::regenerate_ff_table(ExvFormFactor&&);
+template void CompositeDistanceHistogramFFGridBase::regenerate_ff_table(form_factor::detail::ExvFormFactor&&);
 
 void CompositeDistanceHistogramFFGridBase::regenerate_ff_table() {
-    regenerate_ff_table(ExvFormFactor(std::pow(settings::grid::exv::width, 3)));
+    regenerate_ff_table(factory::construct_exv_form_factor(std::pow(settings::grid::exv::width, 3)));
 }
