@@ -719,11 +719,14 @@ jobs:
 
       # Through the top-level project, as on Linux: the backend takes the export macro from the core headers.
       # The compiler must be AdaptiveCpp's clang: the launcher hands its command line to acpp.
+      # C is pinned to the same clang: left unset, CMake picks cl.exe from the MSVC environment, and refuses to mix
+      # it with a GNU-style clang.
       - name: Configure AUSAXS backend
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           cmake -S . -B build-gpu -G Ninja `
             "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
+            "-DCMAKE_C_COMPILER=$env:ACPP_PREFIX\bin\clang.exe" `
             "-DCMAKE_CXX_COMPILER=$env:ACPP_PREFIX\bin\clang.exe" `
             "-DAdaptiveCpp_ROOT=$env:ACPP_PREFIX" `
             "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" `
