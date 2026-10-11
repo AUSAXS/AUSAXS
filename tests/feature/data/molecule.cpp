@@ -363,7 +363,7 @@ TEST_CASE("Molecule::get_absolute_mass", "[files]") {
         sum += constants::mass::get_mass(atom.form_factor_type());
     }
     sum += protein.size_water()*constants::mass::get_mass(ausaxs::data::Water::form_factor_type());
-    REQUIRE(protein.get_absolute_mass() == sum);
+    REQUIRE_THAT(protein.get_absolute_mass(), Catch::Matchers::WithinRel(sum, 1e-12));
 }
 
 TEST_CASE("Molecule::get_total_atomic_charge", "[files]") {
@@ -831,7 +831,6 @@ TEST_CASE("Molecule: implicit hydrogens") {
     SECTION("enabled") {
         settings::molecule::implicit_hydrogens = true;
         auto file = generate_molecule();
-        file.add_implicit_hydrogens();
         auto res = file.reduced_representation();
         Molecule protein({Body{res.atoms, res.waters}});
         auto atoms = protein.get_atoms();

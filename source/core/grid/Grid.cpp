@@ -7,7 +7,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/atoms/AtomHelper.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 #include <grid/detail/GridMember.h>
 #include <grid/detail/GridObj.h>
 #include <grid/expansion/GridExpander.h>

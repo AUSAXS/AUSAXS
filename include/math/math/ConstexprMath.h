@@ -5,46 +5,40 @@
 
 #include <gcem.hpp>
 
-#include <numbers>
+#include <cmath>
+#include <type_traits>
 #include <version>
 
-// Fast, low-accuracy trigonometric approximations usable in constexpr contexts. Prefer these
-// only where the ~0.001 maximum error is acceptable and compile-time evaluation or raw speed
-// matters more than precision; otherwise use the constexpr_math alias defined below.
-namespace ausaxs::gcem::fast {
-    /**
-     * @brief Fast cosine function with a maximum error of 0.001.
-     */
-    [[maybe_unused]] constexpr double cos(double x) noexcept {
-        // this is taken directly from https://stackoverflow.com/a/28050328
-        constexpr double tp = 1./(2*std::numbers::pi);
-        x *= tp;
-        x -= 0.25 + ::gcem::floor(x + 0.25);
-        x *= 16.*(::gcem::abs(x) - 0.5);
-        x += .225*x*(::gcem::abs(x) - 1.);
-        return x;
+namespace ausaxs::math {
+    namespace detail {
+        #if defined __cpp_lib_constexpr_cmath
+            namespace backend = std;
+        #else
+            namespace backend = ::gcem;
+        #endif
     }
 
-    /**
-     * @brief Fast sine function with a maximum error of 0.001.
-     */
-    constexpr double sin(double x) noexcept {
-        // this is a slightly altered version of https://stackoverflow.com/a/28050328
-        constexpr double tp = 1./(2*std::numbers::pi);
-        x *= tp;
-        x -= 0.5 + ::gcem::floor(x);
-        x *= 16.*(::gcem::abs(x) - 0.5);
-        x += .225*x*(::gcem::abs(x) - 1.);
-        return x;
+    constexpr double sin(double x) {
+        if (std::is_constant_evaluated()) {return detail::backend::sin(x);}
+        return std::sin(x);
     }
-}
 
-namespace ausaxs {
-    // Alias for a constexpr-capable cmath: the standard library where it provides constexpr math
-    // functions, otherwise the third-party gcem library as a fallback.
-    #if defined __cpp_lib_constexpr_cmath
-        namespace constexpr_math = std;
-    #else
-        namespace constexpr_math = ::gcem;
-    #endif
+    constexpr double sinc(double x) {
+        if (-1e-3 < x && x < 1e-3) {
+            double x2 = x*x;
+            return 1 - x2/6 + x2*x2/120;
+        }
+        return sin(x)/x;
+    }
+
+    constexpr double exp(double x) {
+        if (std::is_constant_evaluated()) {return detail::backend::exp(x);}
+        return std::exp(x);
+    }
+
+    template<typename T> requires std::is_arithmetic_v<T>
+    constexpr double pow(double base, T exponent) {
+        if (std::is_constant_evaluated()) {return detail::backend::pow(base, exponent);}
+        return std::pow(base, exponent);
+    }
 }

@@ -5,7 +5,7 @@
 #include <data/atoms/Atom.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

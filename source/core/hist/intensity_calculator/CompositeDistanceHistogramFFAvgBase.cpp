@@ -5,6 +5,7 @@
 
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorLookupFwd.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
 
@@ -17,6 +18,11 @@ using namespace ausaxs::hist;
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase() = default;
+
+template<typename FormFactorTableType>
+const std::vector<form_factor::manager::detail::profile_t>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ff_self_table() const {
+    return form_factor::manager::get_active_product_tables()->raw_self_table;
+}
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(const CompositeDistanceHistogramFFAvgBase&) = default;
@@ -473,6 +479,7 @@ template<typename FormFactorTableType>
 void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
     auto* pool = utility::multi_threading::get_global_pool();
     const auto& ff_table = get_ff_table(); 
+    const auto& self_table = get_ff_self_table();
 
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
@@ -506,6 +513,15 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
                     }
                 }
             }
+
+            // the zero-distance bin of a diagonal partial holds the self-correlation of each atom, 
+            // which the loop above weighted with the cross-correlation form factor rather than the self-correlation one
+            for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
+                double n_self = distance_profiles.aa.index(ff1, ff1, 0);
+                for (int q = start; q < end; ++q) {
+                    cache.intensity_profiles.aa[q-q0] += n_self*(self_table[ff1][q] - ff_table.index(ff1, ff1).evaluate(q));
+                }
+            }
         });
     }
 
@@ -523,6 +539,13 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
         pool->detach_blocks(q0, q0+debye_axis.bins, [&] (int start, int end) {
             for (int q = start; q < end; ++q) {
                 cache.intensity_profiles.ww[q-q0] += free_params.cw*free_params.cw*cache.sinqd.ww.index(q-q0)*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
+            }
+
+            double n_self = distance_profiles.ww.index(0);
+            for (int q = start; q < end; ++q) {
+                cache.intensity_profiles.ww[q-q0] += free_params.cw*free_params.cw*n_self*(
+                    self_table[form_factor::water_bin][q] - ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q)
+                );
             }
         });
     }

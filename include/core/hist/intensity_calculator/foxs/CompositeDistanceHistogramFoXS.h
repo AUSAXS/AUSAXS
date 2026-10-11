@@ -21,6 +21,10 @@ namespace ausaxs::hist {
                 return ff_aa_table;
             }
 
+            const std::vector<form_factor::manager::detail::profile_t>& get_ff_self_table() const override {
+                return ff_self_table;
+            }
+
             const form_factor::lookup::table_t& get_ffax_table() const override {
                 return ff_ax_table;
             }
@@ -42,5 +46,6 @@ namespace ausaxs::hist {
             form_factor::lookup::table_t ff_aa_table = form_factor::foxs::storage::atomic::generate_table();
             form_factor::lookup::table_t ff_ax_table  = form_factor::foxs::storage::cross::generate_table();
             form_factor::lookup::table_t ff_xx_table    = form_factor::foxs::storage::exv::generate_table();
+            std::vector<form_factor::manager::detail::profile_t> ff_self_table = form_factor::foxs::storage::atomic::generate_self_table();
     };
 }

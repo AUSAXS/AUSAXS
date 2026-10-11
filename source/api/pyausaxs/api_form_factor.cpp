@@ -4,7 +4,7 @@
 #include <api/pyausaxs/api_form_factor.h>
 
 #include <api/ObjectStorage.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 #include <form_factor/lookup/ExvTableManager.h>
 
 #include <algorithm>
@@ -45,7 +45,7 @@ void ff_get_five_gaussian_coefficients(
     int* status
 ) {execute_with_catch([&]() {
     form_factor::form_factor_t type = from_string(element);
-    const auto& coefficients = form_factor::get_info(type).coefficients;
+    const auto& coefficients = form_factor::get_info(type).xray_coefficients;
     std::ranges::copy(coefficients.a, a);
     std::ranges::copy(coefficients.b, b);
     *c = coefficients.c;

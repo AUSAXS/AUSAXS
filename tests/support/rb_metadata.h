@@ -7,7 +7,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/atoms/AtomMetadata.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 
 #include <vector>
 

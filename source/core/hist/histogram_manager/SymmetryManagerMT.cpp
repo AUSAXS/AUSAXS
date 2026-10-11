@@ -5,7 +5,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>

@@ -7,6 +7,7 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/data/BinWidth.h>
+#include <math/ConstexprMath.h>
 #include <utility/MultiThreading.h>
 
 #include <cmath>
@@ -21,10 +22,7 @@ std::vector<double> hist::exact_debye_transform(const data::Molecule& molecule, 
     const float inv_width = hist::detail::inv_bin_width(); // only the exact distances are used, but the kernels also bin them
 
     auto contribution = [] (double qr, float w) -> double {
-        if (qr < 1e-9) {
-            return w;
-        } 
-        return w*std::sin(qr)/qr;
+        return w*math::sinc(qr);
     };
 
     std::vector<double> I(q_vals.size());

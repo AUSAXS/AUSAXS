@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <constants/ConstantsAxes.h>
 #include <data/DataFwd.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorLookupFwd.h>
@@ -11,8 +12,29 @@
 #include <array>
 #include <vector>
 
+namespace ausaxs::form_factor {
+    namespace detail {
+        /**
+         * @brief The number of form factor slots currently in use. This is zero until a form factor selection has been made.
+         */
+        inline int active_ff_count = 0;
+    }
+
+    /**
+     * @brief Get the number of active form factors.
+     */
+    inline int get_active_count() noexcept {return detail::active_ff_count;}
+}
+
 namespace ausaxs::form_factor::manager {
     namespace detail {
+        using profile_t = std::array<double, constants::axes::q_axis.bins>; // A single function evaluated over the default q axis.
+
+        /**
+         * @brief The form factor tables of the active form factor set, for the probe selected by settings::scattering::radiation.
+         *        The product tables hold the cross-correlation form factors of two distinct scatterers.
+         *        A scatterer correlated with itself instead uses the self-correlation form factor of its slot.
+         */
         struct ActiveTables {
             ActiveTables(const std::array<int, form_factor::total_ff_count>& ff_indices, int active_count);
             int active_count;
@@ -20,8 +42,7 @@ namespace ausaxs::form_factor::manager {
             lookup::table_t raw_exv_table;
             lookup::table_t raw_cross_table;
             lookup::table_t raw_atomic_table;
-            lookup::table_t normalized_cross_table;
-            lookup::table_t normalized_atomic_table;
+            std::vector<profile_t> raw_self_table;
         };
 
         /**
@@ -32,6 +53,17 @@ namespace ausaxs::form_factor::manager {
          */
         void use_form_factors(std::vector<int> ff_indices);
     }
+
+    /**
+     * @brief Evaluate the amplitude f(q) of a single form factor over the default q axis, for the probe selected by settings::scattering::radiation.
+     */
+    detail::profile_t evaluate_amplitude(form_factor_t type);
+
+    /**
+     * @brief Evaluate the self-correlation form factor of a single form factor over the default q axis, for the probe selected by settings::scattering::radiation.
+     *        This is the form factor of a scatterer correlated with itself, which is only the squared amplitude for spherically symmetric scatterers.
+     */
+    detail::profile_t evaluate_self(form_factor_t type);
 
     /**
      * @brief Get the currently active form factor product tables. 

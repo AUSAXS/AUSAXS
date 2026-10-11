@@ -6,15 +6,17 @@
 #include <constants/ConstantsFwd.h>
 #include <data/DataFwd.h>
 #include <form_factor/ExvFormFactor.h>
-#include <form_factor/FormFactorTable.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
+#include <form_factor/xray/XrayFormFactorTable.h>
 #include <math/ConstexprMath.h>
 
 #include <array>
-#include <cmath>
 #include <utility>
 
-namespace ausaxs::form_factor {
+namespace ausaxs::form_factor::xray {
+    /**
+     * @brief An X-ray form factor, described by a five-Gaussian approximation.
+     */
     class FormFactor {
         public:
             /**
@@ -25,7 +27,7 @@ namespace ausaxs::form_factor {
             /**
              * @brief Initialize a vacuum form factor from a set of tabulated five-Gaussian coefficients.
              */
-            constexpr FormFactor(const constants::form_factor::FiveGaussian& coefficients) : FormFactor(coefficients.a, coefficients.b, coefficients.c) {}
+            constexpr FormFactor(const coefficients::FiveGaussian& coefficients) : FormFactor(coefficients.a, coefficients.b, coefficients.c) {}
 
             /**
              * @brief Initialize an excluded volume form factor.
@@ -36,18 +38,21 @@ namespace ausaxs::form_factor {
 
             /**
              * @brief Evaluate the form factor at a given q value.
-             *        The vacuum form factors are normalized to 1 at q = 0.
              */
             constexpr double evaluate(double q) const {
                 double sum = 0;
                 for (int i = 0; i < 5; ++i) {
-                    if (std::is_constant_evaluated()) {
-                        sum += a[i]*constexpr_math::exp(-b[i]*q*q);
-                    } else {
-                        sum += a[i]*std::exp(-b[i]*q*q);
-                    }
+                    sum += a[i]*math::exp(-b[i]*q*q);
                 }
                 return (sum + c)*q0;
+            }
+
+            /**
+             * @brief Evaluate the self-correlation form factor at a given q value.
+             */
+            constexpr double evaluate_self(double q) const {
+                double f = evaluate(q);
+                return f*f;
             }
 
             /**
@@ -75,24 +80,24 @@ namespace ausaxs::form_factor {
     };
 
     /**
-     * The vacuum form factors of all form factor types, as described by form_factor::detail::ff_info_table.
+     * The vacuum X-ray form factors of all form factor types, as described by form_factor::detail::ff_info_table.
      */
-    namespace lookup::atomic::raw {
+    namespace raw {
         namespace detail {
             constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
-                return std::array<FormFactor, total_ff_count>{FormFactor(form_factor::detail::ff_info_table[I].coefficients)...};
+                return std::array<FormFactor, total_ff_count>{FormFactor(form_factor::detail::ff_info_table[I].xray_coefficients)...};
             }(std::make_index_sequence<total_ff_count>{});
         }
 
         constexpr const FormFactor& get(form_factor_t type) {
             if (type == form_factor_t::UNKNOWN) {
                 throw ausaxs::except::runtime_error(
-                    "form_factor::lookup::atomic::raw::get: Attempted to get the form factor of an UNKNOWN atom.\n"
+                    "form_factor::xray::raw::get: Attempted to get the form factor of an UNKNOWN atom.\n"
                     "This typically occurs when performing species-dependent operations on data without form factor information."
                 );
             }
             if (!form_factor::detail::is_tabulated(type)) {
-                throw ausaxs::except::runtime_error("form_factor::lookup::atomic::raw::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+                throw ausaxs::except::runtime_error("form_factor::xray::raw::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }
             return detail::table[static_cast<int>(type)];
         }

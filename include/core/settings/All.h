@@ -14,5 +14,6 @@
 #include <settings/MoleculeSettings.h>
 #include <settings/PlotSettings.h>
 #include <settings/RigidBodySettings.h>
+#include <settings/ScatteringSettings.h>
 #include <settings/SettingsIO.h>
 #include <settings/SettingsValidation.h>

@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
+#include <math/ConstexprMath.h>
 
 #include <numbers>
 
@@ -13,7 +14,7 @@ double hist::CompositeDistanceHistogramPepsi::exv_factor(double /*unused*/, doub
     // double magic_constant = 1/(4*constants::pi*constants::pi);
     double magic_constant = 1;
     double rm = 1.64;
-    double c = 2*std::numbers::pi*constexpr_math::pow(4*std::numbers::pi/3, 2./3)*rm*rm*magic_constant;
+    double c = 2*std::numbers::pi*math::pow(4*std::numbers::pi/3, 2./3)*rm*rm*magic_constant;
     return (1 + cx*(3-c));
 }
 

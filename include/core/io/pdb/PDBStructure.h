@@ -62,11 +62,6 @@ namespace ausaxs::io::pdb {
              */
             void update(std::vector<PDBAtom>& patoms, std::vector<PDBWater>& hatoms);
 
-            /**
-             * @brief Add implicit hydrogens to the protein atoms.
-             */
-            void add_implicit_hydrogens();
-
             /** 
              * @brief Add an Atom record to this PDBStructure. 
              * @param a The Atom record to be added.
@@ -115,7 +110,10 @@ namespace ausaxs::io::pdb {
 
             bool equals_content(const PDBStructure& rhs) const;
 
-            _res reduced_representation();
+            /**
+             * @brief Get the reduced representation of this structure, with the effective charges derived for the radiation of the current settings.
+             */
+            _res reduced_representation() const;
 
             Header header;
             Footer footer;

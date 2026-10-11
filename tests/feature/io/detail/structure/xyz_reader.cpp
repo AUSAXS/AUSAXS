@@ -47,7 +47,7 @@ TEST_CASE("XYZReader::read") {
         for (int i = 0; i < static_cast<int>(reduced.atoms.size()); ++i) {
             REQUIRE_THAT(
                 static_cast<double>(reduced.atoms[i].weight()),
-                Catch::Matchers::WithinRel(structure.atoms[i].effective_charge, 1e-6)
+                Catch::Matchers::WithinRel(constants::charge::get_ff_charge(reduced.atoms[i].form_factor_type(), structure.atoms[i].element), 1e-6)
             );
         }
         // gold must not be weighted as an unknown form factor would be
@@ -82,8 +82,7 @@ TEST_CASE("XYZReader::read does not disable implicit hydrogens for later structu
         io::File file("tests/files/carbon_sphere.xyz");
         auto structure = io::detail::xyz::read(file);
         REQUIRE_FALSE(structure.supports_implicit_hydrogens);
-        structure.add_implicit_hydrogens();
-        for (const auto& a : structure.atoms) {REQUIRE(a.element == constants::atom_t::C);}
+        for (const auto& a : structure.reduced_representation().atoms) {REQUIRE(a.form_factor_type() == form_factor::form_factor_t::C);}
     }
 
     Molecule sphere("tests/files/carbon_sphere.xyz");

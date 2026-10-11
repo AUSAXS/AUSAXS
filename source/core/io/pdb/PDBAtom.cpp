@@ -21,22 +21,15 @@ using namespace ausaxs::io::pdb;
 PDBAtom::PDBAtom() : uid(uid_counter++) {}
 
 PDBAtom::PDBAtom(Vector3<double> v, double occupancy, constants::atom_t element, std::string resName, int serial) : 
-    coords(v), resName(std::move(resName)), element(element), occupancy(occupancy), serial(serial), 
-    effective_charge(constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown), this->element)), uid(uid_counter++)
+    coords(v), resName(std::move(resName)), element(element), occupancy(occupancy), serial(serial), uid(uid_counter++)
 {}
 
 PDBAtom::PDBAtom(int serial, std::string name, std::string altLoc, std::string resName, char chainID, int resSeq, std::string iCode, 
     Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, std::string charge)
 : 
     coords(coords), name(std::move(name)), altLoc(std::move(altLoc)), resName(std::move(resName)), iCode(std::move(iCode)), charge(std::move(charge)), chainID(chainID),
-    element(element), occupancy(occupancy), tempFactor(tempFactor), serial(serial), resSeq(resSeq), 
-    effective_charge(constants::charge::get_ff_charge(form_factor::get_type(this->element, constants::atomic_group_t::unknown), this->element)),
-    uid(uid_counter++)
+    element(element), occupancy(occupancy), tempFactor(tempFactor), serial(serial), resSeq(resSeq), uid(uid_counter++)
 {}
-
-form_factor::form_factor_t PDBAtom::get_form_factor_type() const {
-    return form_factor::get_type(element, atomic_group);
-}
 
 
 void PDBAtom::parse_pdb(const std::string& str) {
@@ -125,27 +118,6 @@ void PDBAtom::parse_pdb(const std::string& str) {
         console::print_warning("PDBAtom::parse_pdb: Invalid field values in line \"" + s + "\".");
         throw;
     }
-
-    atomic_group = constants::atomic_group_t::unknown;
-    effective_charge = constants::charge::get_ff_charge(get_form_factor_type(), this->element);
-}
-
-void PDBAtom::add_implicit_hydrogens() {
-    assert(element != constants::atom_t::H && "PDBAtom::add_implicit_hydrogens: Attempted to add implicit hydrogens to a hydrogen atom.");
-    try {
-        // First determine the atomic group, then get the form factor for that group
-        atomic_group = constants::symbols::get_atomic_group(resName, name, element);
-        auto type = get_form_factor_type();
-        effective_charge = constants::charge::get_ff_charge(type, element);
-        if (!form_factor::has_implicit_hydrogens(type)) { // add missing hydrogens if not part of the form factor
-            effective_charge += constants::hydrogen_atoms::residues.get(resName).get(name, element);
-        }
-    } catch (const except::base&) {
-        throw except::invalid_argument(
-            "PDBAtom::add_implicit_hydrogens: Unknown atom name \"" + name + "\" in residue \"" + resName + "\"" 
-            "(element: " + constants::symbols::to_string(element) + ", serial: " + std::to_string(serial) + ")"
-        );
-    }
 }
 
 namespace {
@@ -195,7 +167,6 @@ bool PDBAtom::is_water() const {return (resName == "HOH") || (resName == "SOL");
 void PDBAtom::set_element(constants::atom_t element) {
     assert(element != constants::atom_t::unknown && "PDBAtom::set_element: Attempted to set element to unknown.");
     this->element = element;
-    effective_charge = constants::charge::get_ff_charge(get_form_factor_type(), this->element);
 }
 
 void PDBAtom::set_element(const std::string& element) {
@@ -303,13 +274,6 @@ bool PDBAtom::equals_content(const PDBAtom& rhs) const {
     if (resSeq != rhs.resSeq) {
         #if FAILURE_MSG
             std::cout << "resSeq \"" + std::to_string(resSeq) +  "\" != rhs.resSeq \"" + std::to_string(rhs.resSeq) + "\"" << std::endl;
-        #endif
-        return false;
-    }
-
-    if (effective_charge != rhs.effective_charge) {
-        #if FAILURE_MSG
-            std::cout << "effective_charge \"" + std::to_string(effective_charge) +  "\" != rhs.effective_charge \"" + std::to_string(rhs.effective_charge) + "\"" << std::endl;
         #endif
         return false;
     }

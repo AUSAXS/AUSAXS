@@ -6,6 +6,7 @@
 #include <constants/Constants.h>
 #include <data/Molecule.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/distribution/Distribution1D.h>

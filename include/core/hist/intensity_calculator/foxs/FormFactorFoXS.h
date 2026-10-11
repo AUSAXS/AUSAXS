@@ -8,6 +8,7 @@
 #include <form_factor/lookup/FormFactorProduct.h>
 
 #include <cmath>
+#include <vector>
 
 namespace ausaxs::form_factor::foxs {
     class FormFactorFoXS {
@@ -16,6 +17,15 @@ namespace ausaxs::form_factor::foxs {
 
             double evaluate(double q) const {
                 return q0*std::exp(-modulation*q*q);
+            }
+
+            /**
+             * @brief Evaluate the self-correlation form factor at a given q value.
+             *        The scatterer is spherically symmetric, so this is the squared amplitude.
+             */
+            double evaluate_self(double q) const {
+                double f = evaluate(q);
+                return f*f;
             }
 
         private:
@@ -63,6 +73,18 @@ namespace ausaxs::form_factor::foxs {
                         get_form_factor(static_cast<form_factor_t>(ff_indices[i])), 
                         get_form_factor(static_cast<form_factor_t>(ff_indices[i]))
                     );
+                }
+                return table;
+            }
+
+            [[maybe_unused]] static std::vector<manager::detail::profile_t> generate_self_table() {
+                const auto* ff_tables = form_factor::manager::get_active_product_tables();
+                std::vector<manager::detail::profile_t> table(ff_tables->active_count);
+                for (int i = form_factor::start_index_for_explicit_exv(); i < ff_tables->active_count; ++i) {
+                    auto ff = get_form_factor(static_cast<form_factor_t>(ff_tables->ff_indices[i]));
+                    for (int q = 0; q < static_cast<int>(constants::axes::q_axis.bins); ++q) {
+                        table[i][q] = ff.evaluate_self(constants::axes::q_vals[q]);
+                    }
                 }
                 return table;
             }
