@@ -41,7 +41,6 @@ namespace ausaxs::form_factor::neutron {
     namespace coefficients {
         /**
          * @brief A heavy atom X with n equivalent bound hydrogens: every hydrogen is at the same distance d_xh from X, and every pair of hydrogens is d_hh apart.
-         *        The hydrogen scattering length is not part of the group, since it depends on the isotope.
          */
         struct Group {
             double b_heavy = 0;     // The coherent scattering length of the heavy atom in fm.

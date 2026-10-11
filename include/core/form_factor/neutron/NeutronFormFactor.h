@@ -5,90 +5,58 @@
 
 #include <form_factor/FormFactorInfo.h>
 #include <form_factor/neutron/NeutronFormFactorTable.h>
-#include <math/ConstexprMath.h>
+#include <math/Sinc.h>
 #include <utility/Exceptions.h>
 
 #include <array>
-#include <cmath>
 #include <string>
-#include <type_traits>
 #include <utility>
 
 namespace ausaxs::form_factor::neutron {
     /**
-     * @brief The orientationally averaged neutron form factor of a heavy atom X with n equivalent bound hydrogens.
-     *        Nuclei scatter as points, so both quantities below are exact for a rigid group and involve no parametrization.
-     *        Scattering lengths are in fm, and may be negative.
-     *
-     *        The amplitude enters every pair of distinct groups, which contributes f_i(q)*f_j(q)*sinc(q*r_ij):
-     *            f(q) = b_X + n*b_H*sinc(q*d_XH)
-     *
-     *        The self-term replaces f(q)^2 for a group with itself, since it retains the X-H and H-H interference within the group:
-     *            s(q) = b_X^2 + n*b_H^2 + 2n*b_X*b_H*sinc(q*d_XH) + n(n-1)*b_H^2*sinc(q*d_HH)
+     * @brief The neutron form factor of a heavy atom X with n equivalent bound hydrogens.
      */
     class FormFactor {
         public:
-            constexpr FormFactor() = default;
-
-            /**
-             * @param b_heavy The coherent scattering length of the heavy atom.
-             * @param b_hydrogen The coherent scattering length of a single bound hydrogen.
-             * @param hydrogens The number of bound hydrogens.
-             * @param xh_distance The distance between the heavy atom and each hydrogen in Å.
-             * @param hh_distance The distance between each pair of hydrogens in Å.
-             */
-            constexpr FormFactor(double b_heavy, double b_hydrogen, int hydrogens, double xh_distance, double hh_distance)
-                : b_heavy(b_heavy), b_hydrogen(b_hydrogen), hydrogens(hydrogens), xh_distance(xh_distance), hh_distance(hh_distance) {}
-
             /**
              * @brief Initialize a form factor from a tabulated group.
-             *
-             * @param b_hydrogen The coherent scattering length of a single bound hydrogen.
              */
-            constexpr FormFactor(const coefficients::Group& group, double b_hydrogen)
-                : FormFactor(group.b_heavy, b_hydrogen, group.hydrogens, group.d_xh, group.d_hh) {}
+            constexpr FormFactor(const coefficients::Group& group) : group(group) {}
 
             /**
-             * @brief Evaluate the amplitude at a given q value.
+             * @brief Evaluate the amplitude f(q), which enters every pair of distinct groups as f_i(q)*f_j(q)*sinc(q*r_ij).
              */
             constexpr double evaluate(double q) const {
-                return b_heavy + hydrogens*b_hydrogen*sinc(q*xh_distance);
+                return group.b_heavy + group.hydrogens*b_hydrogen*math::sinc(q*group.d_xh);
             }
 
             /**
-             * @brief Evaluate the self-term at a given q value.
+             * @brief Evaluate the self-term s(q), which replaces f(q)^2 for a group paired with itself.
              */
             constexpr double evaluate_self(double q) const {
-                return b_heavy*b_heavy + hydrogens*b_hydrogen*b_hydrogen
-                    + 2*hydrogens*b_heavy*b_hydrogen*sinc(q*xh_distance)
-                    + hydrogens*(hydrogens-1)*b_hydrogen*b_hydrogen*sinc(q*hh_distance);
+                const auto& [b_heavy, n, d_xh, d_hh] = group;
+                return b_heavy*b_heavy + n*b_hydrogen*b_hydrogen
+                    + 2*n*b_heavy*b_hydrogen*math::sinc(q*d_xh)
+                    + n*(n-1)*b_hydrogen*b_hydrogen*math::sinc(q*d_hh);
             }
 
             /**
              * @brief Evaluate the amplitude at q = 0.
              */
             constexpr double I0() const {
-                return b_heavy + hydrogens*b_hydrogen;
+                return group.b_heavy + group.hydrogens*b_hydrogen;
             }
 
         private:
-            double b_heavy = 0;
-            double b_hydrogen = 0;
-            int hydrogens = 0;
-            double xh_distance = 0;
-            double hh_distance = 0;
+            coefficients::Group group;
 
-            static constexpr double sinc(double x) {
-                if (x == 0) {return 1;}
-                if (std::is_constant_evaluated()) {return constexpr_math::sin(x)/x;}
-                return std::sin(x)/x;
-            }
+            // the sample is assumed to be protonated and in 100% H2O, so every hydrogen is protium
+            static constexpr double b_hydrogen = scattering_length::H;
     };
 
     namespace detail {
-        // all hydrogens, implicit and explicit, are protium
         constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
-            return std::array<FormFactor, total_ff_count>{FormFactor(form_factor::detail::ff_info_table[I].neutron_coefficients, scattering_length::H)...};
+            return std::array<FormFactor, total_ff_count>{FormFactor(form_factor::detail::ff_info_table[I].neutron_coefficients)...};
         }(std::make_index_sequence<total_ff_count>{});
     }
 

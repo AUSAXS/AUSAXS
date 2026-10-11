@@ -12,7 +12,7 @@ using Catch::Matchers::WithinAbs;
 TEST_CASE("NeutronFormFactor::evaluate") {
     // CH2 with protium
     double bc = 6.646, bh = -3.739, dxh = 1.083, dhh = 1.768;
-    neutron::FormFactor ff(bc, bh, 2, dxh, dhh);
+    neutron::FormFactor ff({.b_heavy = bc, .hydrogens = 2, .d_xh = dxh, .d_hh = dhh});
     auto sinc = [] (double x) {return std::sin(x)/x;};
 
     SECTION("at q = 0") {
@@ -35,7 +35,7 @@ TEST_CASE("NeutronFormFactor::evaluate") {
     }
 
     SECTION("compile-time evaluation matches run-time evaluation") {
-        constexpr neutron::FormFactor cff(6.646, -3.739, 2, 1.083, 1.768);
+        constexpr neutron::FormFactor cff({.b_heavy = 6.646, .hydrogens = 2, .d_xh = 1.083, .d_hh = 1.768});
         constexpr double val = cff.evaluate(0.5);
         constexpr double val_self = cff.evaluate_self(0.5);
         CHECK_THAT(val, WithinAbs(ff.evaluate(0.5), 1e-12));
