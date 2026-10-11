@@ -154,6 +154,10 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMTBase<weigh
     d.p_aw = hist::detail::sum_results<typename Distributions::aw_t>(*store, id.aw);
     d.p_ww = store->get_1d(id.ww);
     d.p_tot = this->master; // NOLINT - intentional slicing
+    if constexpr (form_factors) {
+        d.self_aa = hist::detail::sum_self_weights(*store, id.aa);
+        d.self_ww = store->get_self_1d(id.ww);
+    }
     d.resize(bins);
     return hist::detail::make_histogram(std::move(d), protein);
 }

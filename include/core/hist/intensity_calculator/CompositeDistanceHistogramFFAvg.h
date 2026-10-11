@@ -21,6 +21,8 @@ namespace ausaxs::hist {
              * @param p_aa The partial distance histogram for atom-atom interactions.
              * @param p_aw The partial distance histogram for atom-water interactions.
              * @param p_ww The partial distance histogram for water-water interactions.
+             * @param self_aa The self-correlation weight of each form factor type: how much of the first bin of its diagonal partial in @a p_aa is the zero distance of atoms with themselves.
+             * @param self_ww The self-correlation weight of the waters in @a p_ww, see @a self_aa.
              * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
              * @param Z_exv_avg The average excluded volume charge displaced by a single atom.
              */
@@ -28,6 +30,8 @@ namespace ausaxs::hist {
                 hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
                 hist::Distribution2D&& p_aw,
                 hist::Distribution1D&& p_ww,
+                std::vector<double>&& self_aa,
+                double self_ww,
                 hist::Distribution1D&& p_tot,
                 double Z_exv_avg
             );
@@ -40,6 +44,8 @@ namespace ausaxs::hist {
                 hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
                 hist::Distribution2D&& p_aw,
                 hist::Distribution1D&& p_ww,
+                std::vector<double>&& self_aa,
+                double self_ww,
                 hist::WeightedDistribution1D&& p_tot,
                 double Z_exv_avg
             );

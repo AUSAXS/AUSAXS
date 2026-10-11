@@ -19,17 +19,21 @@ CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
     hist::Distribution2D&& p_aw,
     hist::Distribution1D&& p_ww,
+    std::vector<double>&& self_aa,
+    double self_ww,
     hist::Distribution1D&& p_tot,
     double Z_exv_avg
-) : CompositeDistanceHistogramFFAvgBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), Z_exv_avg(Z_exv_avg) {}
+) : CompositeDistanceHistogramFFAvgBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot)), Z_exv_avg(Z_exv_avg) {}
 
 CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa,
     hist::Distribution2D&& p_aw,
     hist::Distribution1D&& p_ww,
+    std::vector<double>&& self_aa,
+    double self_ww,
     hist::WeightedDistribution1D&& p_tot,
     double Z_exv_avg
-) : CompositeDistanceHistogramFFAvgBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot)), Z_exv_avg(Z_exv_avg) {}
+) : CompositeDistanceHistogramFFAvgBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot)), Z_exv_avg(Z_exv_avg) {}
 
 void CompositeDistanceHistogramFFAvg::cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const {
     auto* pool = utility::multi_threading::get_global_pool();

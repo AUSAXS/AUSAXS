@@ -41,16 +41,24 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHisto
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
+    std::vector<double>&& self_aa,
+    double self_ww,
     hist::Distribution1D&& p_tot
-) : ICompositeDistanceHistogramExv(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)} {}
+) : ICompositeDistanceHistogramExv(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)}, self_weights{.aa=std::move(self_aa), .ww=self_ww} {
+    assert(static_cast<int>(self_weights.aa.size()) == distance_profiles.aa.size_x() && "CompositeDistanceHistogramFFAvgBase: expected one self-correlation weight per form factor type.");
+}
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
-    hist::Distribution1D&& p_ww, 
+    hist::Distribution1D&& p_ww,
+    std::vector<double>&& self_aa,
+    double self_ww,
     hist::WeightedDistribution1D&& p_tot
-) : ICompositeDistanceHistogramExv(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)} {}
+) : ICompositeDistanceHistogramExv(std::move(p_tot)), distance_profiles{.aa=std::move(p_aa), .aw=std::move(p_aw), .ww=std::move(p_ww)}, self_weights{.aa=std::move(self_aa), .ww=self_ww} {
+    assert(static_cast<int>(self_weights.aa.size()) == distance_profiles.aa.size_x() && "CompositeDistanceHistogramFFAvgBase: expected one self-correlation weight per form factor type.");
+}
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::~CompositeDistanceHistogramFFAvgBase() = default;
@@ -189,6 +197,16 @@ const Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::
 template<typename FormFactorTableType>
 Distribution1D& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_raw_ww_counts_by_ff() {
     return distance_profiles.ww;
+}
+
+template<typename FormFactorTableType>
+const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_aa_self_weights() const {
+    return self_weights.aa;
+}
+
+template<typename FormFactorTableType>
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_ww_self_weight() const {
+    return self_weights.ww;
 }
 
 template<typename FormFactorTableType>
@@ -480,6 +498,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
     auto* pool = utility::multi_threading::get_global_pool();
     const auto& ff_table = get_ff_table(); 
     const auto& self_table = get_ff_self_table();
+    const auto& sinqd_table = sinc_table.get_sinc_table();
 
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
@@ -514,12 +533,12 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
                 }
             }
 
-            // the zero-distance bin of a diagonal partial holds the self-correlation of each atom, 
-            // which the loop above weighted with the cross-correlation form factor rather than the self-correlation one
+            // the first bin of a diagonal partial also holds the self-correlation of each atom, which the loop above evaluated
+            // at the distance of that bin with the cross-correlation form factor. it is swapped for the self-correlation form factor at zero distance
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-                double n_self = distance_profiles.aa.index(ff1, ff1, 0);
+                double n_self = self_weights.aa[ff1];
                 for (int q = start; q < end; ++q) {
-                    cache.intensity_profiles.aa[q-q0] += n_self*(self_table[ff1][q] - ff_table.index(ff1, ff1).evaluate(q));
+                    cache.intensity_profiles.aa[q-q0] += n_self*(self_table[ff1][q] - sinqd_table->lookup(q, 0)*ff_table.index(ff1, ff1).evaluate(q));
                 }
             }
         });
@@ -541,10 +560,10 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_int
                 cache.intensity_profiles.ww[q-q0] += free_params.cw*free_params.cw*cache.sinqd.ww.index(q-q0)*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
             }
 
-            double n_self = distance_profiles.ww.index(0);
+            double n_self = self_weights.ww;
             for (int q = start; q < end; ++q) {
                 cache.intensity_profiles.ww[q-q0] += free_params.cw*free_params.cw*n_self*(
-                    self_table[form_factor::water_bin][q] - ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q)
+                    self_table[form_factor::water_bin][q] - sinqd_table->lookup(q, 0)*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q)
                 );
             }
         });

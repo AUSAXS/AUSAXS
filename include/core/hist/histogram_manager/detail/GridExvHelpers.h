@@ -10,6 +10,7 @@
 #include <hist/distribution/WeightedDistribution2D.h>
 
 #include <memory>
+#include <vector>
 
 namespace ausaxs::hist {
 	class CompositeDistanceHistogramFFAvg;
@@ -24,6 +25,8 @@ namespace ausaxs::hist::detail::grid_exv {
 		Distribution3D<hist::Shape::Triangular> p_aa;
 		Distribution2D p_aw;
 		Distribution1D p_ww;
+		std::vector<double> self_aa;
+		double self_ww;
 		WeightedDistribution1D p_tot;
 
 		/**

@@ -34,6 +34,7 @@ namespace ausaxs::hist::distance_calculator::detail {
              */
             void enqueue_calculate_self(const CompactCoordinates_t& a, Row row, int scaling) {
                 if (a.empty()) {store->reset(row); return;}
+                store->queue_self(row, scaling*self_weight<unit_weights>(a));
                 enqueue_self<unit_weights>(a, store->target(row, scaling));
             }
 

@@ -51,12 +51,16 @@ namespace ausaxs::hist {
              * @param p_aa The partial distance histogram for atom-atom interactions.
              * @param p_aw The partial distance histogram for atom-water interactions.
              * @param p_ww The partial distance histogram for water-water interactions.
+             * @param self_aa The self-correlation weight of each form factor type: how much of the first bin of its diagonal partial in @a p_aa is the zero distance of atoms with themselves.
+             * @param self_ww The self-correlation weight of the waters in @a p_ww, see @a self_aa.
              * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
              */
             CompositeDistanceHistogramFFAvgBase(
                 hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww,
+                std::vector<double>&& self_aa,
+                double self_ww,
                 hist::Distribution1D&& p_tot
             );
 
@@ -66,12 +70,16 @@ namespace ausaxs::hist {
              * @param p_aa The partial distance histogram for atom-atom interactions.
              * @param p_aw The partial distance histogram for atom-water interactions.
              * @param p_ww The partial distance histogram for water-water interactions.
+             * @param self_aa The self-correlation weight of each form factor type: how much of the first bin of its diagonal partial in @a p_aa is the zero distance of atoms with themselves.
+             * @param self_ww The self-correlation weight of the waters in @a p_ww, see @a self_aa.
              * @param p_tot The total distance histogram. This is only used to extract the bin centers. 
              */
             CompositeDistanceHistogramFFAvgBase(
                 hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
                 hist::Distribution2D&& p_aw, 
-                hist::Distribution1D&& p_ww, 
+                hist::Distribution1D&& p_ww,
+                std::vector<double>&& self_aa,
+                double self_ww,
                 hist::WeightedDistribution1D&& p_tot
             );
 
@@ -123,6 +131,17 @@ namespace ausaxs::hist {
              */
             const Distribution1D& get_raw_ww_counts_by_ff() const override;
             Distribution1D& get_raw_ww_counts_by_ff() override;
+
+            /**
+             * @brief Get the self-correlation weight of each form factor type: how much of the first bin of its diagonal partial
+             *        in get_raw_aa_counts_by_ff() is the zero distance of atoms with themselves, rather than of distinct atoms.
+             */
+            const std::vector<double>& get_aa_self_weights() const;
+
+            /**
+             * @brief Get the self-correlation weight of the waters in get_raw_ww_counts_by_ff(). See get_aa_self_weights().
+             */
+            double get_ww_self_weight() const;
 
             /**
              * @brief Get the weighted partial distance histogram for atom-atom interactions, indexed by form factor type.
@@ -180,6 +199,7 @@ namespace ausaxs::hist {
                 double DW_sigma_exv = 0;     // excluded volume form factor debye-waller factor, zero for disabled
             } free_params;
             struct {Distribution3D<hist::Shape::Triangular> aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
+            struct {std::vector<double> aa; double ww = 0;} self_weights; // the self-correlations in the first bin of the diagonal distance_profiles
 
             /**
              * @brief Get the q-dependent multiplicative factor for the excluded volume form factor.
