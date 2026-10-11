@@ -8,6 +8,7 @@
 #include <data/state/StateManager.h>
 #include <data/symmetry/ReferenceSymmetry.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/SimpleExvModel.h>

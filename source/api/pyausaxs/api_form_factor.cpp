@@ -4,7 +4,7 @@
 #include <api/pyausaxs/api_form_factor.h>
 
 #include <api/ObjectStorage.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 #include <form_factor/lookup/ExvTableManager.h>
 
 #include <algorithm>

@@ -5,7 +5,7 @@
 
 #include <constants/ConstantsSI.h>
 #include <constants/vdwTable.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 #include <math/ConstexprMath.h>
 
 #include <array>

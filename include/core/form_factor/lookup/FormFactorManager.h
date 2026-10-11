@@ -12,6 +12,20 @@
 #include <array>
 #include <vector>
 
+namespace ausaxs::form_factor {
+    namespace detail {
+        /**
+         * @brief The number of form factor slots currently in use. This is zero until a form factor selection has been made.
+         */
+        inline int active_ff_count = 0;
+    }
+
+    /**
+     * @brief Get the number of active form factors.
+     */
+    inline int get_active_count() noexcept {return detail::active_ff_count;}
+}
+
 namespace ausaxs::form_factor::manager {
     namespace detail {
         using profile_t = std::array<double, constants::axes::q_axis.bins>; // A single function evaluated over the default q axis.

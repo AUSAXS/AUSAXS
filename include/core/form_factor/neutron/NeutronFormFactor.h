@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 #include <form_factor/neutron/NeutronFormFactorTable.h>
 #include <math/ConstexprMath.h>
 #include <utility/Exceptions.h>

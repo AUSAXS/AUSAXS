@@ -4,7 +4,7 @@
 #include <data/Body.h>
 #include <data/atoms/AtomFF.h>
 #include <data/atoms/Water.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 #include <math/Vector3.h>
 #include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>

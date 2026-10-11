@@ -4,6 +4,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 
 #include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 
 #include <form_factor/neutron/NeutronFormFactor.h>
 #include <form_factor/xray/XrayFormFactor.h>

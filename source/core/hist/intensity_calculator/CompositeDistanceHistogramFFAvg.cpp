@@ -4,6 +4,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 
 #include <form_factor/FormFactorType.h>
+#include <form_factor/lookup/FormFactorManager.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>

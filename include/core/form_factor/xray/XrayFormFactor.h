@@ -6,7 +6,7 @@
 #include <constants/ConstantsFwd.h>
 #include <data/DataFwd.h>
 #include <form_factor/ExvFormFactor.h>
-#include <form_factor/FormFactorType.h>
+#include <form_factor/FormFactorInfo.h>
 #include <form_factor/xray/XrayFormFactorTable.h>
 #include <math/ConstexprMath.h>
 
