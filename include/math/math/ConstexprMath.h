@@ -9,9 +9,6 @@
 #include <type_traits>
 #include <version>
 
-// Math functions usable in constant expressions. Constant evaluation uses the standard library where
-// it provides constexpr math functions, otherwise the third-party gcem library as a fallback.
-// At runtime they always call the standard library, since gcem is not meant for runtime use.
 namespace ausaxs::math {
     namespace detail {
         #if defined __cpp_lib_constexpr_cmath
@@ -39,7 +36,6 @@ namespace ausaxs::math {
         return std::exp(x);
     }
 
-    // the exponent type is kept, so gcem can raise integral exponents exactly by repeated squaring
     template<typename T> requires std::is_arithmetic_v<T>
     constexpr double pow(double base, T exponent) {
         if (std::is_constant_evaluated()) {return detail::backend::pow(base, exponent);}

@@ -16,11 +16,6 @@ namespace ausaxs::constants::mass {
      */
     constexpr double get_mass(atom_t atom);
 
-    /**
-     * @brief Get the mass of an atomic group in u.
-     */
-    constexpr double get_mass(atomic_group_t group); 
-
     namespace density {
         constexpr double water = 0.9982067*SI::mass::gm/SI::volume::cm3;
         constexpr double protein = 1.35*SI::mass::gm/SI::volume::cm3;
@@ -91,25 +86,6 @@ constexpr double ausaxs::constants::mass::get_mass(atom_t atom) {
             [[fallthrough]];
         default: 
             throw ausaxs::except::runtime_error("constants::mass::get_mass: Missing switch case for atom type: " + std::to_string(static_cast<int>(atom)));
-        return 0;
-    }
-}
-
-constexpr double ausaxs::constants::mass::get_mass(atomic_group_t group) {
-    switch(group) {
-        case atomic_group_t::CH: return get_mass(atom_t::C) + get_mass(atom_t::H);
-        case atomic_group_t::CH2: return get_mass(atom_t::C) + 2*get_mass(atom_t::H);
-        case atomic_group_t::CH3: return get_mass(atom_t::C) + 3*get_mass(atom_t::H);
-        case atomic_group_t::NH: return get_mass(atom_t::N) + get_mass(atom_t::H);
-        case atomic_group_t::NH2: return get_mass(atom_t::N) + 2*get_mass(atom_t::H);
-        case atomic_group_t::NH3: return get_mass(atom_t::N) + 3*get_mass(atom_t::H);
-        case atomic_group_t::OH: return get_mass(atom_t::O) + get_mass(atom_t::H);
-        case atomic_group_t::SH: return get_mass(atom_t::S) + get_mass(atom_t::H);
-        case atomic_group_t::unknown: 
-            assert(false && "constants::mass::get_mass: Attempting to get mass of \"unknown\" atomic group");
-            [[fallthrough]];
-        default: 
-            throw ausaxs::except::runtime_error("constants::mass::get_mass: Missing switch case for atomic group: " + std::to_string(static_cast<int>(group)));
         return 0;
     }
 }

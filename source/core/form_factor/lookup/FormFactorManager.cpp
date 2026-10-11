@@ -72,7 +72,7 @@ namespace {
      *
      * @param eval Evaluates the profile of a single form factor, e.g. manager::evaluate_amplitude.
      */
-    profile_set_t evaluate_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices, manager::detail::profile_t (*eval)(form_factor_t)) {
+    profile_set_t evaluate_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices, const auto& eval) {
         profile_set_t profiles(form_factor::get_active_count());
         for (int i = 0; i < form_factor::get_active_count(); ++i) {
             profiles[i] = eval(static_cast<form_factor_t>(ff_indices[i]));

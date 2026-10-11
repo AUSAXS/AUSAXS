@@ -39,10 +39,6 @@ void settings::validate_settings() {
             case settings::exv::ExvMethod::CRYSOL:
             case settings::exv::ExvMethod::FoXS:
                 throw except::invalid_argument("settings::validate_settings: The CRYSOL and FoXS excluded volume models mimic X-ray programs, and cannot be used with neutrons.");
-            case settings::exv::ExvMethod::Simple:
-            case settings::exv::ExvMethod::None:
-                console::print_warning("Warning: The chosen excluded volume model does not use form factors. The neutron scattering lengths will be treated as q-independent.");
-                break;
             default:
                 break;
         }

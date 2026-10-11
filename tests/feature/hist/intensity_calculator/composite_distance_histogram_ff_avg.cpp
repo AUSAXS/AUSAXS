@@ -338,10 +338,6 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: exv term normalization") {
 TEST_CASE("CompositeDistanceHistogramFFAvg: neutron self-term") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
-    struct RadiationGuard {
-        RadiationGuard() {settings::scattering::radiation = settings::scattering::Radiation::Neutron;}
-        ~RadiationGuard() {settings::scattering::radiation = settings::scattering::Radiation::XRay;}
-    } guard;
 
     std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::CH2), AtomFF({-1, 1, -1}, form_factor::form_factor_t::CH2)};
     std::vector<Body> a = {Body(b1)};
@@ -355,7 +351,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: neutron self-term") {
     const auto& q_axis = constants::axes::q_vals;
     auto d = SimpleCube::d[2];
     std::vector<double> aa_exp(aa.size(), 0);
-    for (int q = 0; q < static_cast<int>(aa.size()); ++q) {
+    for (int q = 0; q < aa.size(); ++q) {
         double f = ff.evaluate(q_axis[q]);
         aa_exp[q] = 2*ff.evaluate_self(q_axis[q]) + 2*f*f*std::sin(q_axis[q]*d)/(q_axis[q]*d);
     }

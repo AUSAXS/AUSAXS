@@ -2,7 +2,7 @@ This folder contains the atomic form factors that describe how each atom type sc
 
 Contents
 - `FormFactorType.h` — the enumeration of supported types and its index constants. It has no dependencies, so code that only stores or indexes by type should include this alone.
-- `FormFactorInfo.h` — `ff_info_table`, the descriptor table holding each type's name, element, hydrogens, electrons, mass, X-ray coefficients and neutron coefficients, and the per-type properties read from it (names, element mapping, mass, radius, charge). To add a type, add it to the enum and give it a row here.
+- `FormFactorInfo.h` — `ff_info_table`, the descriptor table holding each type's name, element, hydrogens, X-ray coefficients and neutron coefficients, and the per-type properties derived from it (names, element mapping, mass, radius, charge). To add a type, add it to the enum and give it a row here.
 - `xray/XrayFormFactor.h` — the X-ray form-factor class `xray::FormFactor`, and the lookup `xray::raw` built from the descriptor table.
 - `xray/XrayFormFactorTable.h` — tabulated five-Gaussian X-ray form-factor coefficients, with their literature sources.
 - `neutron/NeutronFormFactor.h` — the neutron form-factor class `neutron::FormFactor`, holding both the orientationally averaged amplitude of a group and its self-term, and the lookup `neutron::get` built from the descriptor table.
