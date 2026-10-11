@@ -5,12 +5,12 @@
 #include <constants/ConstantsAxes.h>
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
-#include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
-#include <form_factor/NeutronFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/neutron/FormFactor.h>
+#include <form_factor/xray/FormFactor.h>
 #include <settings/All.h>
 #include <support/form_factor_helper.h>
 
@@ -313,7 +313,7 @@ TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
     SECTION("neutron") {
         settings::scattering::radiation = settings::scattering::Radiation::Neutron;
         const auto* tables = manager::get_active_product_tables();
-        const auto& ff = neutron::protonated::get(form_factor_t::CH2);
+        const auto& ff = neutron::get(form_factor_t::CH2);
         double f = ff.evaluate(q);
         CHECK_THAT(manager::evaluate_amplitude(form_factor_t::CH2)[q_index], Catch::Matchers::WithinAbs(f, 1e-12));
         CHECK_THAT(tables->raw_atomic_table.index(CH2, CH2).evaluate(q_index), Catch::Matchers::WithinAbs(f*f, 1e-12));

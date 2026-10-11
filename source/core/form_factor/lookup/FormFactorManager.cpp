@@ -6,11 +6,11 @@
 #include <constants/ConstantsAxes.h>
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
-#include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
-#include <form_factor/NeutronFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <form_factor/neutron/FormFactor.h>
+#include <form_factor/xray/FormFactor.h>
 #include <settings/ExvSettings.h>
 #include <settings/FormFactorSettings.h>
 #include <settings/ScatteringSettings.h>
@@ -61,7 +61,7 @@ namespace {
         if (type == form_factor_t::EXCLUDED_VOLUME) {fill(xray::raw::get(type)); return profile;}
         switch (settings::scattering::radiation.value) {
             case settings::scattering::Radiation::XRay:     fill(xray::raw::get(type)); break;
-            case settings::scattering::Radiation::Neutron:  fill(neutron::protonated::get(type)); break;
+            case settings::scattering::Radiation::Neutron:  fill(neutron::get(type)); break;
         }
         return profile;
     }

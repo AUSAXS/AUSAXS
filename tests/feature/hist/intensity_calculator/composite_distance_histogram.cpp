@@ -8,6 +8,7 @@
 #include <data/Molecule.h>
 #include <dataset/Dataset.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/xray/FormFactor.h>
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>

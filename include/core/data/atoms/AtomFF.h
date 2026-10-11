@@ -4,7 +4,6 @@
 #pragma once
 
 #include <data/atoms/Atom.h>
-#include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorType.h>
 
 namespace ausaxs::data {

@@ -4,10 +4,15 @@
 #pragma once
 
 #include <form_factor/FormFactorType.h>
+#include <form_factor/neutron/FormFactorTable.h>
 #include <math/ConstexprMath.h>
+#include <utility/Exceptions.h>
 
+#include <array>
 #include <cmath>
+#include <string>
 #include <type_traits>
+#include <utility>
 
 namespace ausaxs::form_factor::neutron {
     /**
@@ -34,6 +39,14 @@ namespace ausaxs::form_factor::neutron {
              */
             constexpr FormFactor(double b_heavy, double b_hydrogen, int hydrogens, double xh_distance, double hh_distance)
                 : b_heavy(b_heavy), b_hydrogen(b_hydrogen), hydrogens(hydrogens), xh_distance(xh_distance), hh_distance(hh_distance) {}
+
+            /**
+             * @brief Initialize a form factor from a tabulated group.
+             *
+             * @param b_hydrogen The coherent scattering length of a single bound hydrogen.
+             */
+            constexpr FormFactor(const coefficients::Group& group, double b_hydrogen)
+                : FormFactor(group.b_heavy, b_hydrogen, group.hydrogens, group.d_xh, group.d_hh) {}
 
             /**
              * @brief Evaluate the amplitude at a given q value.
@@ -72,20 +85,25 @@ namespace ausaxs::form_factor::neutron {
             }
     };
 
-    // The neutron form factors of all form factor types, as described by form_factor::detail::ff_info_table.
-    // The excluded volume is not defined for neutrons, and requesting it throws.
-
-    /**
-     * @brief All hydrogens, implicit and explicit, are protium.
-     */
-    namespace protonated {
-        const FormFactor& get(form_factor_t type);
+    namespace detail {
+        // all hydrogens, implicit and explicit, are protium
+        constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
+            return std::array<FormFactor, total_ff_count>{FormFactor(form_factor::detail::ff_info_table[I].neutron_coefficients, scattering_length::H)...};
+        }(std::make_index_sequence<total_ff_count>{});
     }
 
     /**
-     * @brief All hydrogens, implicit and explicit, are deuterium.
+     * @brief Get the neutron form factor of a form factor type, as described by form_factor::detail::ff_info_table.
+     *        All hydrogens, implicit and explicit, are protium.
+     *        The excluded volume is not defined for neutrons, and requesting it throws.
      */
-    namespace deuterated {
-        const FormFactor& get(form_factor_t type);
+    constexpr const FormFactor& get(form_factor_t type) {
+        if (type == form_factor_t::EXCLUDED_VOLUME) {
+            throw ausaxs::except::runtime_error("form_factor::neutron::get: The excluded volume form factor is not defined for neutrons.");
+        }
+        if (!form_factor::detail::is_tabulated(type)) {
+            throw ausaxs::except::runtime_error("form_factor::neutron::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+        }
+        return detail::table[static_cast<int>(type)];
     }
 }

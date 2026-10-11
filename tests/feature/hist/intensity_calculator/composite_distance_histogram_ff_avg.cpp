@@ -6,7 +6,8 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/NeutronFormFactor.h>
+#include <form_factor/neutron/FormFactor.h>
+#include <form_factor/xray/FormFactor.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <settings/All.h>
@@ -350,7 +351,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: neutron self-term") {
     auto h = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
     auto aa = static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get())->get_profile_aa();
 
-    const auto& ff = form_factor::neutron::protonated::get(form_factor::form_factor_t::CH2);
+    const auto& ff = form_factor::neutron::get(form_factor::form_factor_t::CH2);
     const auto& q_axis = constants::axes::q_vals;
     auto d = SimpleCube::d[2];
     std::vector<double> aa_exp(aa.size(), 0);

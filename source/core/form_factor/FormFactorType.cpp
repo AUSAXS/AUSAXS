@@ -3,8 +3,8 @@
 
 #include <form_factor/FormFactorType.h>
 
-#include <form_factor/FormFactor.h>
-#include <form_factor/NeutronFormFactor.h>
+#include <form_factor/neutron/FormFactor.h>
+#include <form_factor/xray/FormFactor.h>
 #include <settings/ScatteringSettings.h>
 
 using namespace ausaxs::form_factor;
@@ -14,7 +14,7 @@ template<Radiation radiation>
 double ausaxs::constants::charge::get_ff_charge(form_factor_t type) {
     // the excluded volume form factor is a normalized shape, so it is shared by both probes
     if constexpr (radiation == Radiation::Neutron) {
-        if (type != form_factor_t::EXCLUDED_VOLUME) {return neutron::protonated::get(type).I0();}
+        if (type != form_factor_t::EXCLUDED_VOLUME) {return neutron::get(type).I0();}
     }
     return xray::raw::get(type).I0();
 }

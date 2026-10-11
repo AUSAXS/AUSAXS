@@ -2,8 +2,8 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <form_factor/ExvFormFactor.h>
-#include <form_factor/FormFactor.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/xray/FormFactor.h>
 #include <settings/All.h>
 #include <support/form_factor_helper.h>
 
