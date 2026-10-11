@@ -14,6 +14,7 @@ Usage:
 Bare names are resolved as a test file first, then a folder, then a test case name.
 Since folders often share their name with a file, use a path (anything containing a '/') to select a folder.
 All arguments can be prefixed with 'utest' or 'ftest' to specify test type explicitly.
+Every test case runs in its own process, so tests do not have to clean up global state after themselves.
 """
 
 import argparse
@@ -114,20 +115,34 @@ def build_test(test_target, jobs=12):
     return result.returncode == 0
 
 
+def list_test_cases(test_exe):
+    """Return the names of the test cases Catch2 runs by default in the given executable."""
+    result = subprocess.run(
+        [str(test_exe), "--list-tests", "--verbosity", "quiet"],
+        cwd=test_exe.parent, capture_output=True, text=True
+    )
+    return [line for line in result.stdout.splitlines() if line.strip()]
+
+
+def escape_test_name(name):
+    """Escape a test case name so Catch2 matches it exactly instead of parsing it as a test spec."""
+    return re.sub(r"([^A-Za-z0-9_])", r"\\\1", name)
+
+
 def run_test_executable(test_type, test_name, test_case_filter=None):
     """
-    Run a specific test executable or test case using CTest.
-    
+    Run the test cases of a test executable, each in its own process, so no state leaks from one test case to the next.
+
     Args:
         test_type: Either 'utest' or 'ftest'
         test_name: Name of the test file (without prefix)
         test_case_filter: Optional specific test case name to run
-    
+
     Returns:
-        The return code from the test execution
+        0 if all test cases pass, 1 otherwise
     """
     project_root = find_project_root()
-    
+
     # Determine the correct directory based on test type
     if test_type == 'utest':
         test_dir = "unit"
@@ -135,38 +150,37 @@ def run_test_executable(test_type, test_name, test_case_filter=None):
         test_dir = "feature"
     else:
         raise ValueError(f"Invalid test type: {test_type}")
-    
-    test_path = project_root / "build" / "tests" / test_dir
-    
-    # Use CTest to run the test
-    if test_case_filter:
-        # Run only the specific test case
-        # CTest test names are just the test case name (from TEST_CASE macro)
-        cmd = [
-            "ctest",
-            "--output-on-failure",
-            "-R", f"^{test_case_filter}$",
-            "--test-dir", str(test_path)
-        ]
-        print(f"Running specific test case: {test_case_filter}")
-    else:
-        # Run all test cases in the file
-        # For running all tests from a specific file, we can't easily filter by file
-        # so we'll fall back to running the executable directly
-        test_exe = project_root / "build" / "tests" / test_dir / "bin" / f"{test_type}_{test_name}"
-        
-        if not test_exe.exists():
-            print(f"Error: Test executable not found: {test_exe}")
-            return 1
-        
-        print(f"Running all test cases in: {test_name}")
-        print(f"Executable: {test_exe}")
-        result = subprocess.run([str(test_exe)], cwd=test_exe.parent)
-        return result.returncode
-    
-    print(f"Command: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=project_root)
-    return result.returncode
+
+    test_exe = project_root / "build" / "tests" / test_dir / "bin" / f"{test_type}_{test_name}"
+    if not test_exe.exists():
+        print(f"Error: Test executable not found: {test_exe}")
+        return 1
+
+    test_cases = [test_case_filter] if test_case_filter else list_test_cases(test_exe)
+    if not test_cases:
+        print(f"Error: No test cases found in: {test_exe}")
+        return 1
+
+    print(f"Running {len(test_cases)} test case(s) from: {test_exe}")
+    failed = []
+    for test_case in test_cases:
+        print(f"  {test_case} ... ", end="", flush=True)
+        result = subprocess.run(
+            [str(test_exe), escape_test_name(test_case)],
+            cwd=test_exe.parent, capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            print("passed")
+        elif result.returncode == 4: # Catch2 returns 4 when every test was skipped
+            print("skipped")
+        else:
+            print("FAILED" if result.returncode > 0 else f"CRASHED (signal {-result.returncode})")
+            print(result.stdout + result.stderr)
+            failed.append(test_case)
+
+    if failed:
+        print(f"Failed test cases in {test_name}: {', '.join(failed)}")
+    return 1 if failed else 0
 
 
 def run_all_tests(test_type, jobs=6, repeat=3):
