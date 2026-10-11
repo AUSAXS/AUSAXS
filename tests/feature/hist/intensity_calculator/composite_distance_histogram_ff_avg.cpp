@@ -338,6 +338,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg: exv term normalization") {
 TEST_CASE("CompositeDistanceHistogramFFAvg: neutron self-term") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
+    settings::scattering::radiation = settings::scattering::Radiation::Neutron;
 
     std::vector<AtomFF> b1 = {AtomFF({-1, -1, -1}, form_factor::form_factor_t::CH2), AtomFF({-1, 1, -1}, form_factor::form_factor_t::CH2)};
     std::vector<Body> a = {Body(b1)};

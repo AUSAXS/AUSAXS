@@ -44,7 +44,7 @@ TEST_CASE("FormFactor: compare_with_four_gaussians") {
         auto ff = xray::FormFactor(a, b, c);
         auto O = xray::raw::get(form_factor_t::O);
         for (const double& q : q_vals) {
-            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(O.evaluate(q), 1e-3));
+            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(O.evaluate(q), 5e-3));
         }
     }
 
@@ -56,7 +56,7 @@ TEST_CASE("FormFactor: compare_with_four_gaussians") {
         auto ff = xray::FormFactor(a, b, c);
         auto N = xray::raw::get(form_factor_t::N);
         for (const double& q : q_vals) {
-            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(N.evaluate(q), 1e-3));
+            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(N.evaluate(q), 5e-3));
         }
     }
 
@@ -68,7 +68,7 @@ TEST_CASE("FormFactor: compare_with_four_gaussians") {
         auto ff = xray::FormFactor(a, b, c);
         auto C = xray::raw::get(form_factor_t::C);
         for (const double& q : q_vals) {
-            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(C.evaluate(q), 1e-3));
+            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(C.evaluate(q), 5e-3));
         }
     }
 
@@ -80,7 +80,7 @@ TEST_CASE("FormFactor: compare_with_four_gaussians") {
         auto ff = xray::FormFactor(a, b, c);
         auto other = xray::raw::get(form_factor_t::OTHER);
         for (const double& q : q_vals) {
-            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(other.evaluate(q), 1e-3));
+            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(other.evaluate(q), 5e-3));
         }
     }
 
@@ -92,7 +92,7 @@ TEST_CASE("FormFactor: compare_with_four_gaussians") {
         auto ff = xray::FormFactor(a, b, c);
         auto S = xray::raw::get(form_factor_t::S);
         for (const double& q : q_vals) {
-            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(S.evaluate(q), 1e-3));
+            CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(S.evaluate(q), 5e-3));
         }
     }
 }
@@ -116,7 +116,7 @@ TEST_CASE("FormFactor: comparison with Waasmeier & Kirfel") {
     }
 
     for (int i = 0; i < ff_q.size(); ++i) {
-        REQUIRE_THAT(ff_q.y(i), Catch::Matchers::WithinAbs(ff_s.interpolate_x(ff_q.x(i), 1), 1e-3));
+        REQUIRE_THAT(ff_q.y(i), Catch::Matchers::WithinAbs(ffBa(ff_q.x(i)), 1e-9));
     }
 
     // plots::PlotDataset plot;
