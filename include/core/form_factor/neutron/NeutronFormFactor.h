@@ -5,7 +5,7 @@
 
 #include <form_factor/FormFactorInfo.h>
 #include <form_factor/neutron/NeutronFormFactorTable.h>
-#include <math/Sinc.h>
+#include <math/ConstexprMath.h>
 #include <utility/Exceptions.h>
 
 #include <array>

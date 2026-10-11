@@ -73,7 +73,7 @@ namespace ausaxs::form_factor::neutron {
          * @brief The H-H distance of two hydrogens at distance d_xh from X, separated by the H-X-H angle in degrees.
          */
         constexpr double hh_distance(double d_xh, double hh_angle) {
-            return 2*d_xh*constexpr_math::sin(hh_angle*std::numbers::pi/360);
+            return 2*d_xh*math::sin(hh_angle*std::numbers::pi/360);
         }
 
         namespace b = scattering_length;

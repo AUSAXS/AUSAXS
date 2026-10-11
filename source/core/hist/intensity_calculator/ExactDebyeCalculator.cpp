@@ -7,7 +7,7 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/data/BinWidth.h>
-#include <math/Sinc.h>
+#include <math/ConstexprMath.h>
 #include <utility/MultiThreading.h>
 
 #include <cmath>

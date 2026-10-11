@@ -47,7 +47,7 @@ namespace ausaxs::constants {
         constexpr double cm = 1e-8; // Ångström --> cm
         constexpr double nm = 1e-1; // Ångström --> nm
 
-        constexpr double mL = constexpr_math::pow(unit::cm, 3); // Ångström^3 --> mL
+        constexpr double mL = math::pow(unit::cm, 3); // Ångström^3 --> mL
     }
 
     // The 1-symbol names of all amino acids. 

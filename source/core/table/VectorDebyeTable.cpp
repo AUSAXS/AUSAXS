@@ -4,7 +4,7 @@
 #include <table/VectorDebyeTable.h>
 
 #include <constants/ConstantsAxes.h>
-#include <math/Sinc.h>
+#include <math/ConstexprMath.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Axis.h>
 #include <utility/Console.h>

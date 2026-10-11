@@ -6,11 +6,9 @@
 #include <constants/Constants.h>
 #include <form_factor/ExvTable.h>
 #include <form_factor/FormFactorType.h>
-#include <form_factor/xray/XrayFormFactorTable.h>
 #include <math/ConstexprMath.h>
 
 #include <array>
-#include <cmath>
 #include <numbers>
 #include <optional>
 
@@ -26,14 +24,11 @@ namespace ausaxs::form_factor {
              * @param volume The excluded volume of the atom. 
              */
             constexpr ExvFormFactor(double volume) 
-                : exponent(constexpr_math::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*constants::charge::density::water) 
+                : exponent(math::pow(volume, 2./3)/(4*std::numbers::pi)), q0(volume*constants::charge::density::water) 
             {}
 
             constexpr double evaluate_normalized(double q) const {
-                if (std::is_constant_evaluated()) {
-                    return constexpr_math::exp(-exponent*q*q);
-                }
-                return std::exp(-exponent*q*q);
+                return math::exp(-exponent*q*q);
             }
 
             constexpr double evaluate(double q) const {

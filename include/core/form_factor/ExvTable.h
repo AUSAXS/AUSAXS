@@ -59,10 +59,10 @@ namespace ausaxs::constants::exv {
         };
 
         constexpr double volume(double radius) {
-            return 4*std::numbers::pi/3*constexpr_math::pow(radius, 3);
+            return 4*std::numbers::pi/3*math::pow(radius, 3);
         }
 
-        constexpr double A3 = constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double A3 = math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
 
         namespace vdw = constants::radius::vdw;
         using ff_t = ausaxs::form_factor::form_factor_t;
@@ -129,6 +129,6 @@ namespace ausaxs::constants::exv {
     static_assert(MinimumFluctuation_explicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && MinimumFluctuation_explicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
     static_assert(vdw.contains(ausaxs::form_factor::form_factor_t::OTHER) && vdw.contains(ausaxs::form_factor::form_factor_t::WATER));
 
-    constexpr double OH2 = 2.98*constexpr_math::pow(10., -23)*constexpr_math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
+    constexpr double OH2 = 2.98*math::pow(10., -23)*math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = detail::volume(constants::radius::vdw::Ar);
 }

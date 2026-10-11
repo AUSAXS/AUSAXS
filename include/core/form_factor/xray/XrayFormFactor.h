@@ -11,7 +11,6 @@
 #include <math/ConstexprMath.h>
 
 #include <array>
-#include <cmath>
 #include <utility>
 
 namespace ausaxs::form_factor::xray {
@@ -43,11 +42,7 @@ namespace ausaxs::form_factor::xray {
             constexpr double evaluate(double q) const {
                 double sum = 0;
                 for (int i = 0; i < 5; ++i) {
-                    if (std::is_constant_evaluated()) {
-                        sum += a[i]*constexpr_math::exp(-b[i]*q*q);
-                    } else {
-                        sum += a[i]*std::exp(-b[i]*q*q);
-                    }
+                    sum += a[i]*math::exp(-b[i]*q*q);
                 }
                 return (sum + c)*q0;
             }
