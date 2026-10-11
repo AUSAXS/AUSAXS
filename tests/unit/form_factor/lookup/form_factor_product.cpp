@@ -3,7 +3,7 @@
 
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 #include <support/form_factor_helper.h>
 
 using namespace ausaxs;

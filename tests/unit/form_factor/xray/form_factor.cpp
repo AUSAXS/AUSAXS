@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <form_factor/ExvFormFactor.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 
 using namespace ausaxs;
 using namespace form_factor;

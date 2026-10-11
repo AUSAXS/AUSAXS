@@ -6,8 +6,8 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/neutron/FormFactor.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/neutron/NeutronFormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 #include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <settings/All.h>

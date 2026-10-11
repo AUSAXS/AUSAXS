@@ -3,7 +3,7 @@
 
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 #include <settings/All.h>
 #include <support/form_factor_helper.h>
 

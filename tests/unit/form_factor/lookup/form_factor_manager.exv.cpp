@@ -4,7 +4,7 @@
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 #include <settings/ExvSettings.h>
 #include <support/form_factor_helper.h>
 

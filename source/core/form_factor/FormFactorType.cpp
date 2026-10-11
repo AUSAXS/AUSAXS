@@ -3,8 +3,8 @@
 
 #include <form_factor/FormFactorType.h>
 
-#include <form_factor/neutron/FormFactor.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/neutron/NeutronFormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 #include <settings/ScatteringSettings.h>
 
 using namespace ausaxs::form_factor;

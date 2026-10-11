@@ -7,7 +7,7 @@
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 #include <hist/histogram_manager/HistogramManagerMTFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <settings/All.h>

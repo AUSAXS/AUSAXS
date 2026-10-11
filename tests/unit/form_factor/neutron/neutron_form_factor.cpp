@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <form_factor/neutron/FormFactor.h>
+#include <form_factor/neutron/NeutronFormFactor.h>
 
 #include <cmath>
 

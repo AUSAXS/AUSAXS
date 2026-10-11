@@ -9,8 +9,8 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
-#include <form_factor/neutron/FormFactor.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/neutron/NeutronFormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 #include <settings/ExvSettings.h>
 #include <settings/FormFactorSettings.h>
 #include <settings/ScatteringSettings.h>

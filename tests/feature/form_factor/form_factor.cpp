@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <dataset/Dataset.h>
-#include <form_factor/xray/FormFactor.h>
+#include <form_factor/xray/XrayFormFactor.h>
 
 #include <iostream>
 #include <numbers>

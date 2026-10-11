@@ -2,10 +2,10 @@ This folder contains the atomic form factors that describe how each atom type sc
 
 Contents
 - `FormFactorType.h` — the enumeration of supported types, and `ff_info_table`, the descriptor table holding each type's name, element, hydrogens, electrons, mass, X-ray coefficients and neutron coefficients. To add a type, add it to the enum and give it a row there.
-- `xray/FormFactor.h` — the X-ray form-factor class `xray::FormFactor`, and the lookup `xray::raw` built from the descriptor table.
-- `xray/FormFactorTable.h` — tabulated five-Gaussian X-ray form-factor coefficients, with their literature sources.
-- `neutron/FormFactor.h` — the neutron form-factor class `neutron::FormFactor`, holding both the orientationally averaged amplitude of a group and its self-term, and the lookup `neutron::get` built from the descriptor table.
-- `neutron/FormFactorTable.h` — coherent scattering lengths, and the X-H geometry of each group (a heavy atom with equivalent bound hydrogens), with their literature sources.
+- `xray/XrayFormFactor.h` — the X-ray form-factor class `xray::FormFactor`, and the lookup `xray::raw` built from the descriptor table.
+- `xray/XrayFormFactorTable.h` — tabulated five-Gaussian X-ray form-factor coefficients, with their literature sources.
+- `neutron/NeutronFormFactor.h` — the neutron form-factor class `neutron::FormFactor`, holding both the orientationally averaged amplitude of a group and its self-term, and the lookup `neutron::get` built from the descriptor table.
+- `neutron/NeutronFormFactorTable.h` — coherent scattering lengths, and the X-H geometry of each group (a heavy atom with equivalent bound hydrogens), with their literature sources.
 - `ExvTable.h` — `exv_info_table`, the optional excluded-volume descriptor table with one row per type and one column per displaced-volume set. A type missing from the current set cannot be used with the Fraser-based models and is treated as OTHER.
 - `ExvFormFactor.h` — excluded-volume form factors, representing the solvent displaced by each atom.
 - `FormFactorConcepts.h` — C++ concepts constraining form-factor template parameters.

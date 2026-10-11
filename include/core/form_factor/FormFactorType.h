@@ -4,8 +4,8 @@
 #pragma once
 
 #include <constants/Constants.h>
-#include <form_factor/neutron/FormFactorTable.h>
-#include <form_factor/xray/FormFactorTable.h>
+#include <form_factor/neutron/NeutronFormFactorTable.h>
+#include <form_factor/xray/XrayFormFactorTable.h>
 #include <settings/ScatteringSettings.h>
 #include <utility/Exceptions.h>
 
