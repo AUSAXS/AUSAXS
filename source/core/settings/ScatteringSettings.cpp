@@ -4,7 +4,6 @@
 #include <settings/ScatteringSettings.h>
 
 #include <constants/Constants.h>
-#include <form_factor/lookup/ExvTableManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/neutron/NeutronFormFactor.h>
 #include <settings/SettingsIORegistry.h>
@@ -12,17 +11,9 @@
 
 using namespace ausaxs;
 
-namespace {
-    // Drop the caches built with the old solvent density. Must run before the form factor tables are rebuilt.
-    void solvent_density_changed() {
-        ausaxs::form_factor::ExvTableManager::clear_exv_form_factor_sets();
-    }
-}
-
 settings::detail::Setting<settings::scattering::Radiation> settings::scattering::radiation{
     settings::scattering::Radiation::XRay,
     [] (settings::scattering::Radiation&) {
-        solvent_density_changed();
         ausaxs::form_factor::manager::rebuild(); // the form factor tables depend on the probe
     }
 };
@@ -30,7 +21,6 @@ settings::detail::Setting<settings::scattering::Radiation> settings::scattering:
 settings::detail::Setting<double> settings::scattering::xray_solvent_density{
     constants::charge::density::water,
     [] (double&) {
-        solvent_density_changed();
         ausaxs::form_factor::manager::rebuild(); // the excluded volume tables are scaled by the solvent density
     }
 };
@@ -38,7 +28,6 @@ settings::detail::Setting<double> settings::scattering::xray_solvent_density{
 settings::detail::Setting<double> settings::scattering::neutron_solvent_density{
     form_factor::neutron::solvent_density(0),
     [] (double&) {
-        solvent_density_changed();
         ausaxs::form_factor::manager::rebuild(); // the excluded volume tables are scaled by the solvent density
     }
 };

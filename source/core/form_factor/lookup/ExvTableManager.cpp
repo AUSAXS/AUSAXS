@@ -8,8 +8,6 @@
 #include <settings/ExvSettings.h>
 #include <settings/InternalState.h>
 
-#include <unordered_map>
-
 using namespace ausaxs;
 using namespace ausaxs::form_factor; 
 
@@ -49,35 +47,8 @@ bool ExvTableManager::is_default() {
     return !_use_custom_exv_table;
 }
 
-namespace {
-    // The excluded volume form factor sets built so far, all with the current solvent density. 
-    std::unordered_map<settings::exv::ExvSet, form_factor::detail::ExvFormFactorSet>& exv_form_factor_sets() {
-        static std::unordered_map<settings::exv::ExvSet, form_factor::detail::ExvFormFactorSet> sets;
-        return sets;
-    }
-}
-
-const form_factor::detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_form_factor_set() {
-    auto& available_sets = exv_form_factor_sets();
-
-    // always update custom sets to ensure they reflect changes to the exv table
-    if (settings::exv::exv_set == settings::exv::ExvSet::Custom) {
-        //? add caching for custom tables? 
-            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, form_factor::detail::ExvFormFactorSet(*get_current_exv_table(), settings::internal_state::solvent_density()));
-            return available_sets.at(settings::exv::ExvSet::Custom);
-    }
-
-    // check if the current set is already available, otherwise create it
-    if (auto it = available_sets.find(settings::exv::exv_set); it != available_sets.end()) {
-        return it->second;
-    }
-    available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table(), settings::internal_state::solvent_density()));
-    return available_sets.at(settings::exv::exv_set);
-   
-}
-
-void ExvTableManager::clear_exv_form_factor_sets() {
-    exv_form_factor_sets().clear();
+form_factor::detail::ExvFormFactorSet ExvTableManager::get_current_exv_form_factor_set() {
+    return {*get_current_exv_table(), settings::internal_state::solvent_density()};
 }
 
 void ExvTableManager::set_custom_exv_table(const constants::exv::detail::ExvSet& set) {

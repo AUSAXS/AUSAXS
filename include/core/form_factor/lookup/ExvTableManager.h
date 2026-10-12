@@ -15,16 +15,15 @@ namespace ausaxs::form_factor {
     class ExvTableManager {
         public:
             static const constants::exv::detail::ExvSet& get_default_exv_table();
-            static constexpr detail::ExvFormFactorSet get_default_exv_form_factor_set();
             static observer_ptr<const constants::exv::detail::ExvSet> get_current_exv_table();
-            static constexpr detail::ExvFormFactorSet get_current_exv_form_factor_set();
-            static void set_custom_exv_table(const constants::exv::detail::ExvSet& set);
-            static bool is_default();
 
             /**
-             * @brief Discard the cached excluded volume form factor sets, so they are rebuilt on their next access.
+             * @brief Build the excluded volume form factors of the current set, displacing the solvent of the active probe.
              */
-            static void clear_exv_form_factor_sets();
+            static detail::ExvFormFactorSet get_current_exv_form_factor_set();
+
+            static void set_custom_exv_table(const constants::exv::detail::ExvSet& set);
+            static bool is_default();
 
             /**
              * @brief Get the total solvent volume displaced by @a molecule, in cubic angstroms.
@@ -39,19 +38,5 @@ namespace ausaxs::form_factor {
         private:
             static inline bool _use_custom_exv_table = false;
             static inline std::unique_ptr<constants::exv::detail::ExvSet> custom_exv_tables;
-            static const detail::ExvFormFactorSet& _nonconstexpr_get_current_exv_form_factor_set();
     };
-}
-
-constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_default_exv_form_factor_set() {
-    // the solvent density is a runtime setting, so a constant evaluation can only model the default X-ray solvent
-    double density = std::is_constant_evaluated() ? constants::charge::density::water : settings::internal_state::solvent_density();
-    return {constants::exv::MinimumFluctuation_implicit_H, density};
-}
-
-constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_current_exv_form_factor_set() {
-    if (std::is_constant_evaluated()) {
-        return get_default_exv_form_factor_set();
-    }
-    return _nonconstexpr_get_current_exv_form_factor_set();
 }
