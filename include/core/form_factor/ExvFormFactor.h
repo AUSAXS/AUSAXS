@@ -47,12 +47,12 @@ namespace ausaxs::form_factor {
 
     namespace factory {
         /**
-         * @brief Construct an excluded volume form factor displacing the bulk solvent of the active probe, settings::internal_state::solvent_density.
+         * @brief Construct an excluded volume form factor displacing the bulk solvent of the active probe, settings::internal_state::solvent_density().
          *
          * @param volume The excluded volume of the atom.
          */
         inline detail::ExvFormFactor construct_exv_form_factor(double volume) {
-            return {volume, settings::internal_state::solvent_density};
+            return {volume, settings::internal_state::solvent_density()};
         }
     }
 

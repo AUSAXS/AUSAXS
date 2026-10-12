@@ -95,7 +95,7 @@ template<bool wb>
 std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
-    double Z_exv_avg = protein->size_atom() == 0 ? 0 : protein->get_volume_grid()*settings::internal_state::solvent_density/protein->size_atom();
+    double Z_exv_avg = protein->size_atom() == 0 ? 0 : protein->get_volume_grid()*settings::internal_state::solvent_density()/protein->size_atom();
     return std::make_unique<CompositeDistanceHistogramFFAvg>(
         Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
         Distribution2D(std::move(d.p_aw)),

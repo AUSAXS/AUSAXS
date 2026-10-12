@@ -156,14 +156,14 @@ double Molecule::get_Rg(bool include_waters) const {
 double Molecule::get_excess_charge() const {
     double V = get_volume_grid();
     double Z_molecule = get_total_atomic_charge();
-    double Z_water = settings::internal_state::solvent_density*V;
+    double Z_water = settings::internal_state::solvent_density()*V;
     return Z_molecule - Z_water;
 }
 
 double Molecule::get_excess_charge_density() const {
     double V = get_volume_grid();
     double Z_molecule = get_total_atomic_charge();
-    double Z_water = settings::internal_state::solvent_density*V;
+    double Z_water = settings::internal_state::solvent_density()*V;
     return (Z_molecule - Z_water)/V;
 }
 

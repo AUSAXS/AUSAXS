@@ -45,7 +45,7 @@ namespace ausaxs::form_factor {
 
 constexpr ausaxs::form_factor::detail::ExvFormFactorSet ausaxs::form_factor::ExvTableManager::get_default_exv_form_factor_set() {
     // the solvent density is a runtime setting, so a constant evaluation can only model the default X-ray solvent
-    double density = std::is_constant_evaluated() ? constants::charge::density::water : settings::internal_state::solvent_density;
+    double density = std::is_constant_evaluated() ? constants::charge::density::water : settings::internal_state::solvent_density();
     return {constants::exv::MinimumFluctuation_implicit_H, density};
 }
 

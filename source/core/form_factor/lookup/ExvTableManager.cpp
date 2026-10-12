@@ -63,7 +63,7 @@ const form_factor::detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_
     // always update custom sets to ensure they reflect changes to the exv table
     if (settings::exv::exv_set == settings::exv::ExvSet::Custom) {
         //? add caching for custom tables? 
-            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, form_factor::detail::ExvFormFactorSet(*get_current_exv_table(), settings::internal_state::solvent_density));
+            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, form_factor::detail::ExvFormFactorSet(*get_current_exv_table(), settings::internal_state::solvent_density()));
             return available_sets.at(settings::exv::ExvSet::Custom);
     }
 
@@ -71,7 +71,7 @@ const form_factor::detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_
     if (auto it = available_sets.find(settings::exv::exv_set); it != available_sets.end()) {
         return it->second;
     }
-    available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table(), settings::internal_state::solvent_density));
+    available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table(), settings::internal_state::solvent_density()));
     return available_sets.at(settings::exv::exv_set);
    
 }
