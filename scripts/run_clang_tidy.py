@@ -5,7 +5,7 @@
 Run clang-tidy over the AUSAXS sources, exiting non-zero if anything is reported.
 
 The project is normally configured with GCC, whose compile_commands.json contains
-flags clang rejects (-fconstexpr-ops-limit, -flto). A sanitized copy is written to
+flags clang rejects (-flto). A sanitized copy is written to
 build/clang-tidy, so no separate clang build directory is needed. Only a configure
 step is required, not a build:
 
@@ -71,7 +71,7 @@ targets = [a for a in argv[1:] if not a.startswith("-")]
 summary = next((a.split("=", 1)[1] for a in argv[1:] if a.startswith("--summary=")), None)
 
 # flags GCC accepts but clang does not, or that only slow the parse down
-unsupported = re.compile(r"^(-fconstexpr-ops-limit=.*|-fno-finite-math-only|-flto.*|-pipe|-w)$")
+unsupported = re.compile(r"^(-fno-finite-math-only|-flto.*|-pipe|-w)$")
 
 # clang-tidy always parses with clang, even though the build directory may have been
 # configured with GCC, so the compile database may name warnings the running clang does
