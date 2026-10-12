@@ -18,8 +18,8 @@ ProteinManager::~ProteinManager() = default;
 ProteinManager::ProteinManager(observer_ptr<const em::ImageStackBase> images) : images(images) {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the map voxels are point scatterers without any excluded volume
     settings::molecule::implicit_hydrogens = false;             // we don't know how many hydrogens are attached to dummy structures
-    double max = images->from_level(settings::em::alpha_levels.max);
-    double min = images->from_level(settings::em::alpha_levels.min);
+    double max = images->from_level(settings::em::alpha_levels->max);
+    double min = images->from_level(settings::em::alpha_levels->min);
     Axis axis(min, max, settings::em::charge_levels);
     ProteinManager::set_charge_levels(axis.as_vector());
 }

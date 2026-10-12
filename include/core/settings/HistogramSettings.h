@@ -12,12 +12,12 @@
 namespace ausaxs::settings {
     /// @brief Settings controlling the q-axis of the scattering curve and the distance-histogram binning.
     struct EXPORT axes {
-        static int skip;                       // The number of points to skip from the top of the scattering curve.
-        static detail::Setting<double> qmin;            // Lower limit on the used q-values
-        static detail::Setting<double> qmax;            // Upper limit on the used q-values
-        static detail::Setting<double> bin_width;       // The bin width to use for the distance histogram.
-        static bool clamp_to_qrange;                    // Whether to clamp the input q-range to the range defined by qmin and qmax.
-        static bool rebin;                              // Whether to rebin the scattering curve to increase the information content of each data point.
+        static Setting<int> skip;               // The number of points to skip from the top of the scattering curve.
+        static Setting<double> qmin;            // Lower limit on the used q-values
+        static Setting<double> qmax;            // Upper limit on the used q-values
+        static Setting<double> bin_width;       // The bin width to use for the distance histogram.
+        static Setting<bool> clamp_to_qrange;   // Whether to clamp the input q-range to the range defined by qmin and qmax.
+        static Setting<bool> rebin;             // Whether to rebin the scattering curve to increase the information content of each data point.
     };
 
     /// @brief Settings selecting how distance histograms are computed.
@@ -56,7 +56,7 @@ namespace ausaxs::settings {
 
             Value value = Value::Auto;
         };
-        static WeightedBins weighted_bins;
+        static Setting<WeightedBins> weighted_bins;
 
         /**
          * @brief Get the kind of histogram manager corresponding to the current number of threads and partial preference.

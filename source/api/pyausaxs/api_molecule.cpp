@@ -163,7 +163,7 @@ namespace {
 // Selects the excluded volume model None for one scope and then restores the one it found, also on a throw, so a raw
 // calculation never changes the result of a later non-raw one.
 struct NoExvScope {
-    settings::exv::ExvMethod old = settings::exv::exv_method.value;
+    settings::exv::ExvMethod old = settings::exv::exv_method;
     NoExvScope() {settings::exv::exv_method = settings::exv::ExvMethod::None;}
     ~NoExvScope() {settings::exv::exv_method = old;}
     NoExvScope(const NoExvScope&) = delete;

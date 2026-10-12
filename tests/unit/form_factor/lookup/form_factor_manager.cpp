@@ -33,7 +33,6 @@ static const std::vector<int>& identity() {
 
 TEST_CASE("form_factor_manager: full identity selection") {
     settings::exv::exv_method = settings::exv::ExvMethod::Simple; // the Fraser-based models remove the types without an excluded volume
-    auto original_max = settings::form_factor::max_types;
     settings::form_factor::max_types = total_ff_count;
     manager::detail::use_form_factors(identity());
     const auto* tables = manager::get_active_product_tables();
@@ -57,8 +56,6 @@ TEST_CASE("form_factor_manager: full identity selection") {
             REQUIRE(mapping[i] == static_cast<int>(i));
         }
     }
-
-    settings::form_factor::max_types = original_max;
 }
 
 TEST_CASE("form_factor::get_active_count") {
@@ -238,16 +235,10 @@ TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table")
     // capture exv product at (1,1) which is WATER vs WATER excluded volume — should differ between sets
     double exv_val_default = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
 
-    // directly update the setting value to avoid the stale-read bug in the callback, then manually call rebuild so it reads the new value
-    settings::exv::exv_set.value = settings::exv::ExvSet::Traube;
-    manager::rebuild();
-
+    settings::exv::exv_set = settings::exv::ExvSet::Traube; // the callback rebuilds the tables
     double exv_val_traube = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
 
     REQUIRE(exv_val_default != exv_val_traube);
-
-    settings::exv::exv_set.value = settings::exv::ExvSet::Default;
-    manager::rebuild();
 }
 
 TEST_CASE("form_factor_manager: product tables hold the product their indices name") {
@@ -334,10 +325,6 @@ TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
 TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded volume") {
     const int CH3   = static_cast<int>(form_factor_t::CH3);
     const int other = static_cast<int>(form_factor_t::OTHER);
-    auto original_method = settings::exv::exv_method.value;
-    auto original_set = settings::exv::exv_set.value;
-    auto original_max = settings::form_factor::max_types;
-    auto original_fraction = settings::form_factor::min_fraction;
     settings::form_factor::max_types = total_ff_count;
     manager::detail::use_form_factors(identity());
 
@@ -411,11 +398,6 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
         CHECK_FALSE(is_active(CH3));
         CHECK(get_active_count() == settings::form_factor::max_types);
     }
-
-    settings::exv::exv_method = original_method;
-    settings::exv::exv_set = original_set;
-    settings::form_factor::max_types = original_max;
-    settings::form_factor::min_fraction = original_fraction;
 }
 
 TEST_CASE("form_factor_manager: max_types is a hard limit") {
@@ -425,7 +407,6 @@ TEST_CASE("form_factor_manager: max_types is a hard limit") {
     const int N     = static_cast<int>(form_factor_t::N);
     const int O     = static_cast<int>(form_factor_t::O);
     const int other = static_cast<int>(form_factor_t::OTHER);
-    auto original_max = settings::form_factor::max_types;
     settings::form_factor::max_types = 5;
 
     SECTION("a selection within the limit is accepted") {
@@ -440,14 +421,10 @@ TEST_CASE("form_factor_manager: max_types is a hard limit") {
     SECTION("the appended OTHER counts towards the limit") {
         CHECK_THROWS(manager::detail::use_form_factors({exv, water, C, N, O}));
     }
-
-    settings::form_factor::max_types = original_max;
 }
 
 TEST_CASE("form_factor_manager: use_form_factors(Molecule) folds excess and rare types onto OTHER") {
     settings::exv::exv_method = settings::exv::ExvMethod::Simple; // the Fraser-based models remove the types without an excluded volume
-    auto original_max = settings::form_factor::max_types;
-    auto original_fraction = settings::form_factor::min_fraction;
     data::Molecule molecule("tests/files/2epe.pdb");
 
     // the atom counts of the present types, excluding the forced EXCLUDED_VOLUME, WATER, and OTHER
@@ -494,7 +471,4 @@ TEST_CASE("form_factor_manager: use_form_factors(Molecule) folds excess and rare
             CHECK(has_own_slot(t) == (counts[rarest] < counts[t]));
         }
     }
-
-    settings::form_factor::max_types = original_max;
-    settings::form_factor::min_fraction = original_fraction;
 }

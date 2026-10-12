@@ -124,7 +124,6 @@ TEST_CASE("PDBStructure: a written structure can be read back unchanged") {
             CHECK(reloaded.get_body(0).get_atom(i).form_factor_type() == molecule.get_body(0).get_atom(i).form_factor_type());
             CHECK_THAT(reloaded.get_body(0).get_atom(i).weight(), Catch::Matchers::WithinRel(molecule.get_body(0).get_atom(i).weight(), 1e-6));
         }
-        settings::molecule::implicit_hydrogens = true;
     }
 }
 

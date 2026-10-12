@@ -15,10 +15,10 @@
 
 using namespace ausaxs;
 
-int settings::axes::skip = 0;
+settings::Setting<int> settings::axes::skip{0};
 
 // qmin
-settings::detail::Setting<double> settings::axes::qmin{
+settings::Setting<double> settings::axes::qmin{
     constants::axes::q_axis.min,
     [](double& new_qmin) {
         if (new_qmin < 0. || new_qmin > constants::axes::q_axis.max) {
@@ -27,13 +27,13 @@ settings::detail::Setting<double> settings::axes::qmin{
                 "[" + std::to_string(constants::axes::q_axis.min) + ", " + std::to_string(settings::axes::qmax) + "]. "
                 "Clamping to closest value."
             );
-            new_qmin = std::clamp(new_qmin, constants::axes::q_axis.min, settings::axes::qmax.value);
+            new_qmin = std::clamp<double>(new_qmin, constants::axes::q_axis.min, settings::axes::qmax);
         }
     }
 };
 
 // qmax
-settings::detail::Setting<double> settings::axes::qmax{
+settings::Setting<double> settings::axes::qmax{
     0.5,
     [](double& new_qmax) {
         if (new_qmax < 0. || new_qmax > constants::axes::q_axis.max) {
@@ -42,21 +42,21 @@ settings::detail::Setting<double> settings::axes::qmax{
                 "[" + std::to_string(settings::axes::qmin) + ", " + std::to_string(constants::axes::q_axis.max) + "]. "
                 "Clamping to closest value."
             );
-            new_qmax = std::clamp(new_qmax, settings::axes::qmin.value, constants::axes::q_axis.max);
+            new_qmax = std::clamp<double>(new_qmax, settings::axes::qmin, constants::axes::q_axis.max);
         }
     }
 };
 
 // bin_width
-settings::detail::Setting<double> settings::axes::bin_width{
+settings::Setting<double> settings::axes::bin_width{
     constants::axes::d_axis.width(),
     [](double& new_width) {
         settings::internal_state::inv_bin_width = 1./new_width;
     }
 };
 
-bool settings::axes::clamp_to_qrange = true;
-bool settings::axes::rebin = false;
+settings::Setting<bool> settings::axes::clamp_to_qrange{true};
+settings::Setting<bool> settings::axes::rebin{false};
 
 namespace {
     using namespace ausaxs::settings;
@@ -105,7 +105,7 @@ bool settings::hist::supports_partial_calculation(settings::hist::HistogramManag
     }
 }
 
-settings::hist::WeightedBins settings::hist::weighted_bins(settings::hist::WeightedBins::Value::True);
+settings::Setting<settings::hist::WeightedBins> settings::hist::weighted_bins{settings::hist::WeightedBins::Value::True};
 settings::hist::WeightedBins::WeightedBins(std::string_view str) {
     if (auto lc = utility::to_lowercase(str); lc == "auto") {value = WeightedBins::Value::Auto;}
     else {value = utility::parse_bool(str) ? WeightedBins::Value::True : WeightedBins::Value::False;}

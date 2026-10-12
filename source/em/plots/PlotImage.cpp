@@ -47,7 +47,7 @@ void PlotImage::plot(const em::Image& image, const PlotOptions& options) {
     opt.zlabel = "Electron Density [Arb.]";
 
     std::string contours;
-    for (auto c : settings::plots::contour) {
+    for (auto c : settings::plots::contour.value) {
         contours += std::to_string(c) + " ";
     }
 

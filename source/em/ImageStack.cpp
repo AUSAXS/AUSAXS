@@ -56,7 +56,7 @@ double ImageStack::get_mass(double cutoff) const {
 }
 
 std::unique_ptr<EMFitResult> ImageStack::fit(const io::ExistingFile& file) {
-    Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
+    Limit lim = {from_level(settings::em::alpha_levels->min), from_level(settings::em::alpha_levels->max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }

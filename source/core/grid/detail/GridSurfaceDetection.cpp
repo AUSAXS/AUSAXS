@@ -84,7 +84,7 @@ grid::exv::GridExcludedVolume GridSurfaceDetection::helper() const {
     vol.interior.reserve(static_cast<int>(grid->get_volume()));
 
     int stride = std::max<int>(1, static_cast<int>(std::round(settings::grid::exv::width/settings::grid::cell_width)));
-    int buffer = std::max<int>(1, static_cast<int>(std::round(std::max(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
+    int buffer = std::max<int>(1, static_cast<int>(std::round(std::max<double>(settings::grid::min_exv_radius, 2.)/settings::grid::cell_width)));
 
     const auto& axes = grid->get_axes();
     auto& gobj = grid->grid;

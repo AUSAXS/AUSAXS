@@ -119,7 +119,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
     settings::molecule::implicit_hydrogens = false;
     SECTION("simple") {
         settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
-        settings::grid::exv::width = settings::grid::cell_width;
+        settings::grid::exv::width = static_cast<double>(settings::grid::cell_width);
 
         SECTION(std::string("width = ") + std::to_string(settings::grid::cell_width)) {
             AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);
@@ -171,8 +171,8 @@ static auto test_derived = [] () {
 
     SECTION("simple") {
         settings::grid::cell_width = GENERATE(0.2, 0.5, 1, 2);
-        settings::grid::exv::width = settings::grid::cell_width;
-        settings::grid::exv::surface_thickness = settings::grid::cell_width;
+        settings::grid::exv::width = static_cast<double>(settings::grid::cell_width);
+        settings::grid::exv::surface_thickness = static_cast<double>(settings::grid::cell_width);
 
         SECTION(std::string("width = ") + std::to_string(settings::grid::cell_width)) {
             AtomFF a1({0, 0, 0}, form_factor::form_factor_t::C);

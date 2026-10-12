@@ -46,9 +46,6 @@ template<> constexpr Request request_for<hist::HistogramManagerMTFFGridSurface>(
 template<> constexpr Request request_for<hist::HistogramManagerMTFFGridScalableExv>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::GridScalable};}
 
 TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") {
-    auto exv = settings::exv::exv_method.value;
-    auto threads = settings::general::threads;
-    auto prefer_partial = settings::internal_state::prefer_partial_manager;
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
     settings::general::threads = 4;
     settings::hist::weighted_bins = true;
@@ -105,18 +102,12 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
         // the excluded volume model wins: it changes the result, whereas dropping the partial preference only costs time
         CHECK(dynamic_cast<hist::HistogramManagerMTFFGrid*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
     }
-
-    settings::exv::exv_method = exv;
-    settings::general::threads = threads;
-    settings::internal_state::prefer_partial_manager = prefer_partial;
 }
 
 TEST_CASE("HistogramManagerFactory: creates expected manager") {
     Molecule protein({Body{SimpleCube::get_atoms()}});
 
     // the surface and scalable grid managers are only used when the excluded volume is fitted
-    auto exv = settings::exv::exv_method.value;
-    auto fit_excluded_volume = settings::fit::fit_excluded_volume;
     settings::fit::fit_excluded_volume = true;
 
     invoke_for_all_histogram_manager_variants(
@@ -137,6 +128,4 @@ TEST_CASE("HistogramManagerFactory: creates expected manager") {
         },
         protein
     );
-    settings::exv::exv_method = exv;
-    settings::fit::fit_excluded_volume = fit_excluded_volume;
 }

@@ -8,10 +8,10 @@
 
 using namespace ausaxs;
 
-bool settings::molecule::implicit_hydrogens = true;
-bool settings::molecule::use_occupancy = true;
-bool settings::molecule::allow_unknown_residues = false;
-bool settings::molecule::allow_unknown_atoms = false;
+settings::Setting<bool> settings::molecule::implicit_hydrogens{true};
+settings::Setting<bool> settings::molecule::use_occupancy{true};
+settings::Setting<bool> settings::molecule::allow_unknown_residues{false};
+settings::Setting<bool> settings::molecule::allow_unknown_atoms{false};
 
 namespace {
     using namespace ausaxs::settings;
@@ -28,9 +28,9 @@ namespace {
     });
 }
 
-settings::hydrate::HydrationStrategy settings::hydrate::hydration_strategy = HydrationStrategy::RadialStrategy;
-settings::hydrate::CullingStrategy settings::hydrate::culling_strategy = CullingStrategy::NoStrategy;
-double settings::hydrate::shell_correction = -0.35;
+settings::Setting<settings::hydrate::HydrationStrategy> settings::hydrate::hydration_strategy{HydrationStrategy::RadialStrategy};
+settings::Setting<settings::hydrate::CullingStrategy> settings::hydrate::culling_strategy{CullingStrategy::NoStrategy};
+settings::Setting<double> settings::hydrate::shell_correction{-0.35};
 
 template<> std::string settings::io::detail::SettingRef<settings::hydrate::HydrationStrategy>::get() const {
     switch (settingref) {

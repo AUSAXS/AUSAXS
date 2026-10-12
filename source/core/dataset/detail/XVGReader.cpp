@@ -181,7 +181,7 @@ std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(con
     console::print_info("Reading dataset from \"" + path.str() + "\"");
 
     // disable text from parsing of each dataset section
-    auto verbose = settings::general::verbose;
+    bool verbose = settings::general::verbose;
     settings::general::verbose = false;
 
     // check if file was succesfully opened

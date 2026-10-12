@@ -67,7 +67,6 @@ TEST_CASE("shape_debye_userq: homogeneous sphere") {
         height = std::max(height, exact[i]);
         CHECK(std::abs(I[i] - exact[i]) < 5e-2*height);
     }
-    ausaxs::settings::axes::bin_width = 0.25;
 }
 
 TEST_CASE("shape_debye_userq: invalid input") {

@@ -79,7 +79,7 @@ namespace {
      * the platform loader, which covers a development build and a system-wide installation.
      */
     std::vector<std::string> candidate_paths() {
-        if (!settings::general::gpu_library.empty()) {return {settings::general::gpu_library};}
+        if (!settings::general::gpu_library->empty()) {return {settings::general::gpu_library};}
 
         std::vector<std::string> candidates;
         if (auto directory = own_directory(); !directory.empty()) {

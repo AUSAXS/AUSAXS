@@ -34,19 +34,19 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     app.fallthrough();
     auto* input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
     auto* input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
-    app.add_option("--output,-o", settings::general::output, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
+    app.add_option("--output,-o", settings::general::output.value, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
-    app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms, 
+    app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms.value, 
         "Allow processing files with unknown atoms. Use only if you understand the implications.")
-        ->default_val(settings::molecule::allow_unknown_atoms);
-    app.add_flag("--allow-unknown-residues", settings::molecule::allow_unknown_residues,
+        ->default_val(settings::molecule::allow_unknown_atoms.value);
+    app.add_flag("--allow-unknown-residues", settings::molecule::allow_unknown_residues.value,
         "Allow processing files with unknown residues. Use only if you understand the implications.")
-        ->default_val(settings::molecule::allow_unknown_residues);
-    app.add_flag("--offline", settings::general::offline, "Run the program in offline mode. This will prevent any network requests.")
-        ->default_val(settings::general::offline);
-    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
-    app.add_flag("--gpu", settings::general::gpu, "Use GPU acceleration if available.")->default_val(settings::general::gpu);
+        ->default_val(settings::molecule::allow_unknown_residues.value);
+    app.add_flag("--offline", settings::general::offline.value, "Run the program in offline mode. This will prevent any network requests.")
+        ->default_val(settings::general::offline.value);
+    app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);
+    app.add_flag("--gpu", settings::general::gpu.value, "Use GPU acceleration if available.")->default_val(settings::general::gpu.value);
 
     // config subcommands
     auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
@@ -72,33 +72,33 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     ;
     sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
         "The unit of the q values in the measurement file. Options: A, nm.");
-    sub_data->add_option("--skip", settings::axes::skip, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip);
-    sub_data->add_flag("--rebin", settings::axes::rebin, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin);
-    sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins);
+    sub_data->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
+    sub_data->add_flag("--rebin", settings::axes::rebin.value, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin.value);
+    sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins.value, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins.value);
 
     // molecule subcommands
     auto* sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
-    sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy, 
-        "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy);
+    sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy.value, 
+        "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy.value);
 
     // exv subcommands
     auto* sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
     sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) 
         {settings::detail::parse_option("exv_model", {s});}, 
         "The excluded volume model to use. Options: Simple, Fraser, Grid.");
-    sub_exv->add_flag("--fit", settings::fit::fit_excluded_volume, 
-        "Fit the excluded volume.")->default_val(settings::fit::fit_excluded_volume);
-    sub_exv->add_flag("--fit-density", settings::fit::fit_solvent_density, 
-        "Fit the solvent density for the excluded volume.")->default_val(settings::fit::fit_solvent_density);
+    sub_exv->add_flag("--fit", settings::fit::fit_excluded_volume.value, 
+        "Fit the excluded volume.")->default_val(settings::fit::fit_excluded_volume.value);
+    sub_exv->add_flag("--fit-density", settings::fit::fit_solvent_density.value, 
+        "Fit the solvent density for the excluded volume.")->default_val(settings::fit::fit_solvent_density.value);
     sub_exv->add_option_function<std::string>("--table", [] (const std::string& s) {settings::detail::parse_option("exv_volume", {s});}, 
         "The set of displaced volume tables to use. Options: Traube, vdw, Voronoi, Minimum fluctuation (mf)."
     );
-    sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness, 
+    sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness.value, 
         "The thickness of the surface layer in Ångström."
-    )->default_val(settings::grid::exv::surface_thickness)->group("");
-    auto* sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width, 
+    )->default_val(settings::grid::exv::surface_thickness.value)->group("");
+    auto* sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width.value, 
         "The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Ångström."
-    )->default_val(settings::grid::exv::width);
+    )->default_val(settings::grid::exv::width.value);
     sub_exv->add_flag("--save", save_exv, 
         "Write a PDB representation of the excluded volume to disk."
     )->default_val(save_exv);
@@ -114,33 +114,33 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         "Keep or discard water molecules from the structure file. "
         "If they are discarded, a new solvation shell is generated."
     )->default_val(keep_hydration);
-    sub_water->add_flag("--fit,!--no-fit", settings::fit::fit_hydration, 
-        "Fit the hydration shell.")->default_val(settings::fit::fit_hydration);
+    sub_water->add_flag("--fit,!--no-fit", settings::fit::fit_hydration.value, 
+        "Fit the hydration shell.")->default_val(settings::fit::fit_hydration.value);
 
     // hydrogen subcommands
     auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
-    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens);
+    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens.value, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens.value);
 
     // grid subcommands
     auto* sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
-    sub_grid->add_option("--rvol", settings::grid::min_exv_radius, 
+    sub_grid->add_option("--rvol", settings::grid::min_exv_radius.value, 
         "The radius of the excluded volume sphere around each atom."
-    )->default_val(settings::grid::min_exv_radius);
-    auto* sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width, 
+    )->default_val(settings::grid::min_exv_radius.value);
+    auto* sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width.value, 
         "The distance between each grid point in Ångström. Lower widths increase the precision."
-    )->default_val(settings::grid::cell_width);
+    )->default_val(settings::grid::cell_width.value);
     sub_grid->add_flag("--save", save_grid, 
         "Write a PDB representation of the grid to disk."
     )->default_val(save_grid);
 
     // fit subcommands
     // auto sub_fit = app.add_subcommand("fit", "See and set additional options for the fitting process.");
-    // sub_fit->add_flag("--atomic-debye-waller", settings::fit::fit_atomic_debye_waller, 
+    // sub_fit->add_flag("--atomic-debye-waller", settings::fit::fit_atomic_debye_waller.value, 
     //     "Fit the atomic form factor debye-waller factor."
-    // )->default_val(settings::fit::fit_atomic_debye_waller);
-    // sub_fit->add_flag("--exv-debye-waller", settings::fit::fit_exv_debye_waller, 
+    // )->default_val(settings::fit::fit_atomic_debye_waller.value);
+    // sub_fit->add_flag("--exv-debye-waller", settings::fit::fit_exv_debye_waller.value, 
     //     "Fit the excluded volume form factor debye-waller factor."
-    // )->default_val(settings::fit::fit_exv_debye_waller);
+    // )->default_val(settings::fit::fit_exv_debye_waller.value);
 
     app.final_callback([&] () {
         // save settings if requested
@@ -160,12 +160,12 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
 
         // adjust grid width to support user-specified excluded volume width
         if (sub_exv_w->count() && !sub_grid_w->count()) {
-            settings::grid::cell_width = settings::grid::exv::width;
+            settings::grid::cell_width = static_cast<double>(settings::grid::exv::width);
         }
 
         // adjust excluded volume width to be at least as large as the grid width
         if (sub_grid_w->count() && !sub_exv_w->count() && settings::grid::exv::width < settings::grid::cell_width) {
-            settings::grid::exv::width = settings::grid::cell_width;
+            settings::grid::exv::width = static_cast<double>(settings::grid::cell_width);
         }
     });
 

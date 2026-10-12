@@ -29,4 +29,9 @@ namespace ausaxs::settings {
      * @return True if a settings file was found and read.
      */
     bool discover(const ausaxs::io::Folder& path);
+
+    /**
+     * @brief Restore every registered setting to its default value.
+     */
+    void reset();
 }

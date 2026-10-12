@@ -451,7 +451,6 @@ TEST_CASE("Grid::expand_volume") {
             grid.add(body, true);
             REQUIRE(grid.get_volume() == 323);
         }
-        settings::grid::min_bins = 0;
     }
 }
 
@@ -708,15 +707,16 @@ TEST_CASE("Grid::width") {
 TEST_CASE("Grid::hydrate") {
     settings::general::verbose = false;
     settings::hydrate::shell_correction = 0;
-    settings::hydrate::hydration_strategy = GENERATE(
+    auto strategy = GENERATE(
         settings::hydrate::HydrationStrategy::AxesStrategy, 
         settings::hydrate::HydrationStrategy::RadialStrategy,
         settings::hydrate::HydrationStrategy::JanStrategy
     );
+    settings::hydrate::hydration_strategy = strategy;
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
     // check that all the expected hydration sites are found
-    SECTION("correct placement " + std::to_string(static_cast<int>(settings::hydrate::hydration_strategy))) {
+    SECTION("correct placement " + std::to_string(static_cast<int>(strategy))) {
         Limit3D axes(-10, 10, -10, 10, -10, 10);
         settings::grid::cell_width = 1;
         auto grid = std::make_unique<GridDebug>(axes);
@@ -750,7 +750,7 @@ TEST_CASE("Grid::hydrate") {
     }
 
     // check that a hydration operation is reversible
-    SECTION("reversible " + std::to_string(static_cast<int>(settings::hydrate::hydration_strategy))) {
+    SECTION("reversible " + std::to_string(static_cast<int>(strategy))) {
         SECTION("LAR1-2") {
             // get the grid before hydrating it
             Molecule protein("tests/files/LAR1-2.pdb");
@@ -1165,8 +1165,6 @@ TEST_CASE("Grid: cubic_grid") {
             CHECK(ax.bins == gaxes.x.bins);
         }
     }
-
-    settings::grid::cubic = false;
 }
 
 TEST_CASE("Grid::operator=", "[files]") {

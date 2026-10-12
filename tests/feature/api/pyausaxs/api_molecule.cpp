@@ -103,6 +103,4 @@ TEST_CASE("molecule_debye: q axis honours qmin") {
         CHECK_THAT(I_user[i], Catch::Matchers::WithinRel(I[i], 1e-6));
         CHECK_THAT(I_raw_user[i], Catch::Matchers::WithinRel(I_raw[i], 1e-6));
     }
-
-    settings::axes::qmin = 1e-4;
 }

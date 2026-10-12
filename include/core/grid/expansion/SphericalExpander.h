@@ -163,7 +163,7 @@ void ausaxs::grid::volume::SphericalExpander<AMV, B>::deflate_volume(observer_pt
 
     double rmax;
     if constexpr (AMV) {
-        rmax = std::max(grid->get_atomic_radius(atom.get_atom_type()), settings::grid::min_exv_radius);
+        rmax = std::max<double>(grid->get_atomic_radius(atom.get_atom_type()), settings::grid::min_exv_radius);
     } else {
         rmax = grid->get_atomic_radius(atom.get_atom_type());
     }
@@ -208,7 +208,7 @@ void ausaxs::grid::volume::SphericalExpander<B, WMV>::deflate_volume(observer_pt
 
     double rmax;
     if constexpr (WMV) {
-        rmax = std::max(grid->get_hydration_radius(), settings::grid::min_exv_radius);
+        rmax = std::max<double>(grid->get_hydration_radius(), settings::grid::min_exv_radius);
     } else {
         rmax = grid->get_hydration_radius();
     }

@@ -106,8 +106,6 @@ TEST_CASE("manager ff set change scattering consistent for special exv calculato
     SECTION("CRYSOL") {
         run_exv(settings::exv::ExvMethod::CRYSOL);
     }
-
-    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
 }
 
 // The molecule-derived form factor set is truncated to the types the molecule actually contains, which
@@ -143,8 +141,6 @@ static void run_truncation_comparison(data::Molecule& protein) {
 
 TEST_CASE("form_factor_manager: truncated ff set scattering consistent across all managers") {
     // the full identity selection is the untruncated reference, so it needs every slot, and only the absent types may be dropped
-    auto original_max = settings::form_factor::max_types;
-    auto original_fraction = settings::form_factor::min_fraction;
     settings::form_factor::max_types = total_ff_count;
     settings::form_factor::min_fraction = 0;
     settings::general::verbose = false;
@@ -173,10 +169,6 @@ TEST_CASE("form_factor_manager: truncated ff set scattering consistent across al
         settings::molecule::implicit_hydrogens = false;
         run();
     }
-
-    settings::molecule::implicit_hydrogens = true;
-    settings::form_factor::max_types = original_max;
-    settings::form_factor::min_fraction = original_fraction;
 }
 
 TEST_CASE("form_factor_manager: truncated ff set scattering consistent for special exv calculators") {
@@ -184,8 +176,6 @@ TEST_CASE("form_factor_manager: truncated ff set scattering consistent for speci
     // Pepsi and CRYSOL share the manager tables, but switch them to the Traube volumes - and all of these are only reachable through their exv models
 
     // the full identity selection is the untruncated reference, so it needs every slot, and only the absent types may be dropped
-    auto original_max = settings::form_factor::max_types;
-    auto original_fraction = settings::form_factor::min_fraction;
     settings::form_factor::max_types = total_ff_count;
     settings::form_factor::min_fraction = 0;
     settings::general::verbose = false;
@@ -202,16 +192,10 @@ TEST_CASE("form_factor_manager: truncated ff set scattering consistent for speci
     SECTION("FoXS")   {run_exv(settings::exv::ExvMethod::FoXS);}
     SECTION("Pepsi")  {run_exv(settings::exv::ExvMethod::Pepsi);}
     SECTION("CRYSOL") {run_exv(settings::exv::ExvMethod::CRYSOL);}
-
-    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
-    settings::form_factor::max_types = original_max;
-    settings::form_factor::min_fraction = original_fraction;
 }
 
 TEST_CASE("form_factor_manager: use_form_factors(Molecule) reproduces identity scattering") {
     // the full identity selection is the untruncated reference, so it needs every slot, and only the absent types may be dropped
-    auto original_max = settings::form_factor::max_types;
-    auto original_fraction = settings::form_factor::min_fraction;
     settings::form_factor::max_types = total_ff_count;
     settings::form_factor::min_fraction = 0;
     settings::general::verbose = false;
@@ -230,16 +214,12 @@ TEST_CASE("form_factor_manager: use_form_factors(Molecule) reproduces identity s
     auto I2 = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
 
     REQUIRE(compare_hist(I, I2));
-    settings::form_factor::max_types = original_max;
-    settings::form_factor::min_fraction = original_fraction;
 }
 
 // Everything reaching a histogram through a Molecule - the API, pyAUSAXS, the rigidbody optimizer, the EM fitter and the CLI alike - builds its
 // manager through the factory, so that is where the form factor set is selected. A manager constructed by hand leaves the caller's selection alone.
 TEST_CASE("form_factor_manager: the factory selects the molecule's form factor set") {
     // the full identity selection is the untruncated reference, so it needs every slot, and only the absent types may be dropped
-    auto original_max = settings::form_factor::max_types;
-    auto original_fraction = settings::form_factor::min_fraction;
     settings::form_factor::max_types = total_ff_count;
     settings::form_factor::min_fraction = 0;
     settings::general::verbose = false;
@@ -266,9 +246,4 @@ TEST_CASE("form_factor_manager: the factory selects the molecule's form factor s
         // the dropped slots are empty, so the profile must be the one the full set produced
         REQUIRE(compare_hist(I, manager->calculate_all()->debye_transform()));
     }
-
-    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
-    settings::molecule::implicit_hydrogens = true;
-    settings::form_factor::max_types = original_max;
-    settings::form_factor::min_fraction = original_fraction;
 }

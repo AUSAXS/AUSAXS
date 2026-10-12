@@ -4,6 +4,7 @@
 #pragma once
 
 #include <settings/ExportMacro.h>
+#include <settings/SettingsHelper.h>
 
 namespace ausaxs::settings {
     /// @brief Settings controlling which form factor types get a slot of their own.
@@ -11,9 +12,9 @@ namespace ausaxs::settings {
         // The maximum number of active form factor slots, including EXCLUDED_VOLUME, WATER and OTHER, which are always present.
         // The partial histograms scale quadratically with this number, so it is the dominant memory cost of the partial managers.
         // Excess types are folded onto OTHER in order of increasing abundance.
-        static int max_types;
+        static Setting<int> max_types;
 
         // The minimum fraction of the atoms a form factor type must make up to get a slot of its own. Rarer types are folded onto OTHER.
-        static double min_fraction;
+        static Setting<double> min_fraction;
     };
 }

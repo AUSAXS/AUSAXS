@@ -11,20 +11,20 @@
 
 using namespace ausaxs;
 
-bool settings::general::verbose = true;
-bool settings::general::warnings = true;
-bool settings::general::offline = false;
-int settings::general::threads = std::max(1, static_cast<int>(std::thread::hardware_concurrency())-1);
-std::string settings::general::output = "output/";
-bool settings::general::keep_hydrogens = false;
-bool settings::general::supplementary_plots = true;
-bool settings::general::generate_plots = true;
-bool settings::general::gpu = false;
-settings::general::QUnit settings::general::input_q_unit = settings::general::QUnit::A;
+settings::Setting<bool> settings::general::verbose{true};
+settings::Setting<bool> settings::general::warnings{true};
+settings::Setting<bool> settings::general::offline{false};
+settings::Setting<int> settings::general::threads{std::max(1, static_cast<int>(std::thread::hardware_concurrency())-1)};
+settings::Setting<std::string> settings::general::output{"output/"};
+settings::Setting<bool> settings::general::keep_hydrogens{false};
+settings::Setting<bool> settings::general::supplementary_plots{true};
+settings::Setting<bool> settings::general::generate_plots{true};
+settings::Setting<bool> settings::general::gpu{false};
+settings::Setting<settings::general::QUnit> settings::general::input_q_unit{settings::general::QUnit::A};
 
-std::string settings::general::gpu_library;
+settings::Setting<std::string> settings::general::gpu_library{""};
 
-std::string settings::general::cache = [] () {
+settings::Setting<std::string> settings::general::cache{[] () {
     const char* env_p = nullptr;
 
     #ifdef _WIN32
@@ -49,8 +49,8 @@ std::string settings::general::cache = [] () {
         }
     #endif
     return output + "/temp/";
-}();
-std::string settings::general::residue_folder = cache + "residues/";
+}()};
+settings::Setting<std::string> settings::general::residue_folder{cache + "residues/"};
 
 int ausaxs::settings::general::detail::get_job_size(int n) {
     constexpr int jobs_per_thread = 8; // aim for this many jobs per thread
