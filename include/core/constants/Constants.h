@@ -172,6 +172,7 @@ namespace ausaxs::constants {
 constexpr int ausaxs::constants::charge::nuclear::get_charge(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return 1;
+        case atom_t::D:  return 1;
         case atom_t::He: return 2;
 
         case atom_t::Li: return 3;

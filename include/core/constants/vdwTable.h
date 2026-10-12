@@ -6,6 +6,7 @@
 namespace ausaxs::constants::radius::vdw {
     // Rowland 1996, crystallographic
     constexpr double H  = 1.1;
+    constexpr double D  = 1.1;
 
     // wikipedia, likely also crystallographic
     constexpr double He = 1.4;
