@@ -4,7 +4,6 @@
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/ExvTable.h>
 #include <form_factor/lookup/ExvTableManager.h>
-#include <form_factor/neutron/NeutronFormFactor.h>
 #include <settings/ScatteringSettings.h>
 
 #include <numbers>

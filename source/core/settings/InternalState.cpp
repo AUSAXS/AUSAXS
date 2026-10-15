@@ -3,7 +3,6 @@
 
 #include <settings/InternalState.h>
 
-#include <constants/Constants.h>
 #include <constants/ConstantsAxes.h>
 #include <settings/ScatteringSettings.h>
 #include <utility/Exceptions.h>

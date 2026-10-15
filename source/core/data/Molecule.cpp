@@ -3,7 +3,6 @@
 
 #include <data/Molecule.h>
 
-#include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/state/UnboundSignaller.h>
 #include <dataset/SimpleDataset.h>
