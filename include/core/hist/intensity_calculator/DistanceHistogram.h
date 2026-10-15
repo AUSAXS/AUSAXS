@@ -59,8 +59,9 @@ namespace ausaxs::hist {
 
             /**
              * @brief Perform the Fourier transform through the Debye equation.
-             *        If the given q-axis is within the range of the default q-axis, they will be interpolated for better efficiency.
-             *        If not, a size q*d sinc(x) lookup table will be calculated for every call to this function.
+             *        Within the compile-time q-axis, the transform is evaluated over all of it (regardless of qmin/qmax) and interpolated.
+             *        Beyond it, a size q*d sinc(x) lookup table will be calculated for every call to this function.
+             *        This is only possible without an excluded volume model, as those are not accurate enough there; they will throw instead.
              *
              * @param q The q values at which to evaluate the scattering.
              */
