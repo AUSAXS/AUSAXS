@@ -6,8 +6,7 @@
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
 #include <settings/ExvSettings.h>
-
-#include <unordered_map>
+#include <settings/InternalState.h>
 
 using namespace ausaxs;
 using namespace ausaxs::form_factor; 
@@ -48,26 +47,8 @@ bool ExvTableManager::is_default() {
     return !_use_custom_exv_table;
 }
 
-const form_factor::detail::ExvFormFactorSet& ExvTableManager::_nonconstexpr_get_current_exv_form_factor_set() {
-    static auto standard = form_factor::detail::ExvFormFactorSet(get_default_exv_table());
-    static auto available_sets = std::unordered_map<settings::exv::ExvSet, form_factor::detail::ExvFormFactorSet>{
-        {settings::exv::ExvSet::Default, standard}
-    };
-
-    // always update custom sets to ensure they reflect changes to the exv table
-    if (settings::exv::exv_set == settings::exv::ExvSet::Custom) {
-        //? add caching for custom tables? 
-            available_sets.insert_or_assign(settings::exv::ExvSet::Custom, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
-            return available_sets.at(settings::exv::ExvSet::Custom);
-    }
-
-    // check if the current set is already available, otherwise create it
-    if (auto it = available_sets.find(settings::exv::exv_set); it != available_sets.end()) {
-        return it->second;
-    }
-    available_sets.insert_or_assign(settings::exv::exv_set, form_factor::detail::ExvFormFactorSet(*get_current_exv_table()));
-    return available_sets.at(settings::exv::exv_set);
-   
+form_factor::detail::ExvFormFactorSet ExvTableManager::get_current_exv_form_factor_set() {
+    return {*get_current_exv_table(), settings::internal_state::solvent_density()};
 }
 
 void ExvTableManager::set_custom_exv_table(const constants::exv::detail::ExvSet& set) {

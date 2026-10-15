@@ -17,7 +17,8 @@ namespace ausaxs::constants::mass {
     constexpr double get_mass(atom_t atom);
 
     namespace density {
-        constexpr double water = 0.9982067*SI::mass::gm/SI::volume::cm3;
+        constexpr double water = 0.9982071*SI::mass::gm/SI::volume::cm3; // STP
+        constexpr double D2O = 1.1056*SI::mass::gm/SI::volume::cm3;      // STP
         constexpr double protein = 1.35*SI::mass::gm/SI::volume::cm3;
     }
 }
@@ -26,6 +27,7 @@ namespace ausaxs::constants::mass {
 constexpr double ausaxs::constants::mass::get_mass(atom_t atom) {
     switch(atom) {
         case atom_t::H: return 1.0079;
+        case atom_t::D: return 2.0141;
         case atom_t::He: return 4.0026;
         case atom_t::Li: return 6.941;
         case atom_t::Be: return 9.0122;

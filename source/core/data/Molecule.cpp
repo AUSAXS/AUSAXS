@@ -3,7 +3,6 @@
 
 #include <data/Molecule.h>
 
-#include <constants/Constants.h>
 #include <data/Body.h>
 #include <data/state/UnboundSignaller.h>
 #include <dataset/SimpleDataset.h>
@@ -153,21 +152,21 @@ double Molecule::get_Rg(bool include_waters) const {
     return std::sqrt(Rg/get_total_atomic_charge());
 }
 
-double Molecule::get_relative_charge() const {
+double Molecule::get_excess_charge() const {
     double V = get_volume_grid();
     double Z_molecule = get_total_atomic_charge();
-    double Z_water = constants::charge::density::water*V;
+    double Z_water = settings::internal_state::solvent_density()*V;
     return Z_molecule - Z_water;
 }
 
-double Molecule::get_relative_charge_density() const {
+double Molecule::get_excess_charge_density() const {
     double V = get_volume_grid();
     double Z_molecule = get_total_atomic_charge();
-    double Z_water = constants::charge::density::water*V;
+    double Z_water = settings::internal_state::solvent_density()*V;
     return (Z_molecule - Z_water)/V;
 }
 
-double Molecule::get_relative_mass_density() const {
+double Molecule::get_excess_mass_density() const {
     double V = get_volume_grid();
 
     // the grid volume is dry - waters are never added to it - so the mass must be dry as well

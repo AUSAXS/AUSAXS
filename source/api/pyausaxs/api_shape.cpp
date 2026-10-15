@@ -73,9 +73,9 @@ void shape_debye_userq(
     std::vector<double> q_vals(q, q + n_q);
     auto debye_I = hist::DistanceHistogram(std::move(p)).debye_transform<false>(q_vals);
     double V = spacing*spacing*spacing;
-    form_factor::ExvFormFactor ff(V);
+    form_factor::detail::ExvFormFactor ff(V, 1); // unit contrast: only the shape is modelled
     for (int j = 0; j < n_q; ++j) {
-        double f = V*ff.evaluate_normalized(q[j]);
+        double f = ff.evaluate(q[j]);
         I[j] = debye_I.y(j)*f*f;
     }
 #endif

@@ -133,20 +133,20 @@ namespace ausaxs::data {
 			[[nodiscard]] double get_total_atomic_charge() const;
 
 			/**
-			 * @brief Get the relative charge density. 
+			 * @brief Get the excess charge density, i.e. the excess charge divided by the volume.
 			 */
-			[[nodiscard]] double get_relative_charge_density() const;
+			[[nodiscard]] double get_excess_charge_density() const;
 
 			/**
-			 * @brief Get the relative mass density.
+			 * @brief Get the excess mass density, i.e. the dry mass density subtracted by the mass density of water.
 			 */
-			[[nodiscard]] double get_relative_mass_density() const;
+			[[nodiscard]] double get_excess_mass_density() const;
 
 			/**
-			 * @brief Get the relative charge.
-			 *        This is the total charge subtracted by the total charge of water of the same volume. 
+			 * @brief Get the excess charge.
+			 *        This is the total charge subtracted by the total charge of solvent of the same volume. 
 			 */
-			[[nodiscard]] double get_relative_charge() const;
+			[[nodiscard]] double get_excess_charge() const;
 
 			/**
 			 * @brief Get the grid representation. 

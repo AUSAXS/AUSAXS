@@ -3,23 +3,41 @@
 
 #include <settings/ScatteringSettings.h>
 
+#include <constants/Constants.h>
 #include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/neutron/NeutronFormFactor.h>
 #include <settings/SettingsIORegistry.h>
 #include <utility/StringUtils.h>
 
 using namespace ausaxs;
 
-settings::Setting<settings::scattering::Radiation> settings::scattering::radiation{
+settings::detail::Setting<settings::scattering::Radiation> settings::scattering::radiation{
     settings::scattering::Radiation::XRay,
     [] (settings::scattering::Radiation&) {
         ausaxs::form_factor::manager::rebuild(); // the form factor tables depend on the probe
     }
 };
 
+settings::detail::Setting<double> settings::scattering::xray_solvent_density{
+    constants::charge::density::water,
+    [] (double&) {
+        ausaxs::form_factor::manager::rebuild(); // the excluded volume tables are scaled by the solvent density
+    }
+};
+
+settings::detail::Setting<double> settings::scattering::neutron_solvent_density{
+    form_factor::neutron::solvent_density(0),
+    [] (double&) {
+        ausaxs::form_factor::manager::rebuild(); // the excluded volume tables are scaled by the solvent density
+    }
+};
+
 namespace {
     using namespace ausaxs::settings;
     settings::io::SettingSection scattering_section("Scattering", {
-        settings::io::create(settings::scattering::radiation, "radiation")
+        settings::io::create(settings::scattering::radiation, "radiation"),
+        settings::io::create(settings::scattering::xray_solvent_density, "xray_solvent_density"),
+        settings::io::create(settings::scattering::neutron_solvent_density, "neutron_solvent_density")
     });
 }
 

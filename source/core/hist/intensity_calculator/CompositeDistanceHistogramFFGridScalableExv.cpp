@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
+#include <form_factor/ExvFormFactor.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
 
-#include <form_factor/ExvFormFactor.h>
 #include <settings/GridSettings.h>
 
 using namespace ausaxs;
@@ -23,5 +23,5 @@ void CompositeDistanceHistogramFFGridScalableExv::apply_excluded_volume_scaling_
     axis = h->axis;
     cache.sinqd.valid = false;
     auto V = std::pow(settings::grid::exv::width*k, 3);
-    regenerate_ff_table(form_factor::ExvFormFactor(V));
+    regenerate_ff_table(form_factor::factory::construct_exv_form_factor(V));
 }

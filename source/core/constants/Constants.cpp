@@ -38,7 +38,7 @@ namespace ausaxs::constants {
     std::string symbols::oxygen   = "O";
 
     const saxs::detail::SimpleMap<constants::atom_t> symbols::detail::string_to_atomt_map = std::unordered_map<std::string, constants::atom_t>{
-        {"H", atom_t::H},   {"He", atom_t::He}, 
+        {"H", atom_t::H},   {"D", atom_t::D}, {"He", atom_t::He}, 
         {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B},   {"C", atom_t::C},   {"N", atom_t::N}, {"O", atom_t::O}, {"F", atom_t::F},   {"Ne", atom_t::Ne}, 
         {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P}, {"S", atom_t::S}, {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, 
         {"K",  atom_t::K},  {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V}, {"Cr", atom_t::Cr}, {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, 
@@ -102,6 +102,7 @@ constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t
 int constants::valence::get_valence(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return 1;
+        case atom_t::D:  return 1;
         case atom_t::C:  return 4;
         case atom_t::N:  return 3;
         case atom_t::O:  return 2;
@@ -120,6 +121,7 @@ int constants::valence::get_valence(atom_t atom) {
 double constants::radius::get_vdw_radius(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return vdw::H;
+        case atom_t::D:  return vdw::D;
         case atom_t::He: return vdw::He;
         case atom_t::Ne: return vdw::Ne;
         case atom_t::Ar: return vdw::Ar;
@@ -200,6 +202,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
 std::string ausaxs::constants::symbols::to_string(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return "H";
+        case atom_t::D:  return "D";
         case atom_t::He: return "He";
 
         case atom_t::Li: return "Li";

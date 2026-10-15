@@ -18,7 +18,7 @@ TEST_CASE("FormFactor::constructor") {
     }
 
     SECTION("ExvFormFactor conversion") {
-        ExvFormFactor exv(10.0);
+        auto exv = factory::construct_exv_form_factor(10.0);
         xray::FormFactor ff(std::move(exv));
         CHECK(ff.I0() > 0);
     }

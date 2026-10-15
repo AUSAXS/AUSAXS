@@ -15,6 +15,7 @@ namespace ausaxs::form_factor::neutron {
      */
     namespace scattering_length {
         constexpr double H  = -3.7390;
+        constexpr double D  =  6.671;
         constexpr double C  =  6.6460;
         constexpr double N  =  9.36;
         constexpr double O  =  5.803;

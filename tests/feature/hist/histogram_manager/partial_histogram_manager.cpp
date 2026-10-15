@@ -36,15 +36,15 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
             auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
             {   // phm
                 auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->get_weighted_counts();
-                REQUIRE(compare_hist(p_exp, phm, 0, 1e-2));
+                REQUIRE(compare_hist_approx(p_exp, phm, 0, 1e-2));
             }
             {   // phm_mt
                 auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
-                REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
+                REQUIRE(compare_hist_approx(p_exp, phm_mt, 0, 1e-2));
             }
             {   // pshm_mt
                 auto pshm_mt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
-                REQUIRE(compare_hist(p_exp, pshm_mt, 0, 1e-2));
+                REQUIRE(compare_hist_approx(p_exp, pshm_mt, 0, 1e-2));
             }
         }
 
@@ -54,15 +54,15 @@ TEST_CASE("PartialHistogramManager: initial calculation") {
             auto p_exp = hist::HistogramManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
             {   // phm
                 auto phm = hist::PartialHistogramManager<true>(&protein).calculate_all()->get_weighted_counts();
-                REQUIRE(compare_hist(p_exp, phm, 0, 1e-2));
+                REQUIRE(compare_hist_approx(p_exp, phm, 0, 1e-2));
             }
             {   // phm_mt
                 auto phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
-                REQUIRE(compare_hist(p_exp, phm_mt, 0, 1e-2));
+                REQUIRE(compare_hist_approx(p_exp, phm_mt, 0, 1e-2));
             }
             {   // pshm_mt
                 auto pshm_mt = hist::PartialSymmetryManagerMT<true>(&protein).calculate_all()->get_weighted_counts();
-                REQUIRE(compare_hist(p_exp, pshm_mt, 0, 1e-2));
+                REQUIRE(compare_hist_approx(p_exp, pshm_mt, 0, 1e-2));
             }
         }
     }
