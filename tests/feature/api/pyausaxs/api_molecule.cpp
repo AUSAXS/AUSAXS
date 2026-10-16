@@ -104,3 +104,32 @@ TEST_CASE("molecule_debye: q axis honours qmin") {
         CHECK_THAT(I_raw_user[i], Catch::Matchers::WithinRel(I_raw[i], 1e-6));
     }
 }
+
+TEST_CASE("molecule_distance_histogram_raw: weight products without excluded volume") {
+    // signed weights, so a subtracted excluded volume or a dropped self-term cannot cancel out
+    std::vector<double> x, y, z, w;
+    double w_sum = 0;
+    for (int i = 0; i < 60; ++i) {
+        x.emplace_back(9*std::sin(1.7*i)); y.emplace_back(6*std::cos(0.9*i)); z.emplace_back(0.5*i - 15); w.emplace_back(1.5*std::sin(2.3*i) + 0.5);
+        w_sum += w.back();
+    }
+    int status = 1;
+    int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), static_cast<int>(x.size()), &status);
+    REQUIRE(status == 0);
+
+    // Fraser cannot evaluate these atoms at all since they carry no form factor, but the raw histogram never uses it
+    std::string exv = GENERATE("simple", "none", "fraser");
+    set_setting("exv_model", exv.c_str(), &status);
+    REQUIRE(status == 0);
+
+    double *counts, *axis;
+    int n_bins = 0;
+    molecule_distance_histogram_raw(mol, &counts, &axis, &n_bins, &status);
+    REQUIRE(status == 0);
+    REQUIRE(n_bins > 0);
+
+    double total = 0;
+    for (int i = 0; i < n_bins; ++i) {total += counts[i];}
+    CHECK_THAT(total, Catch::Matchers::WithinRel(w_sum*w_sum, 1e-6)); // the histogram kernels take the weights in single precision
+    CHECK(axis[0] == 0);
+}

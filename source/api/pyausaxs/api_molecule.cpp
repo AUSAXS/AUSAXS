@@ -172,6 +172,39 @@ struct NoExvScope {
     NoExvScope& operator=(const NoExvScope&) = delete;
 };
 
+struct _molecule_distance_histogram_raw_obj {
+    explicit _molecule_distance_histogram_raw_obj(int n_bins) : counts(n_bins), axis(n_bins) {}
+    std::vector<double> counts, axis;
+};
+}
+int molecule_distance_histogram_raw(
+    int molecule_id,
+    double** counts, double** axis, int* n_bins,
+    int* status
+) {return execute_with_catch([&]() {
+    NoExvScope no_exv; // raw histogram: point scatterers with their weights, without any excluded volume
+
+    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
+    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
+    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    const auto& p_tot = hist->get_weighted_counts();
+    const auto& d_axis = hist->get_d_axis();
+    assert(p_tot.size() == d_axis.size() && "Misaligned distance vectors.");
+
+    _molecule_distance_histogram_raw_obj data(static_cast<int>(d_axis.size()));
+    std::ranges::copy(p_tot, data.counts.begin());
+    std::ranges::copy(d_axis, data.axis.begin());
+
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto* ref = api::ObjectStorage::get_object<_molecule_distance_histogram_raw_obj>(data_id);
+    *counts = ref->counts.data();
+    *axis = ref->axis.data();
+    *n_bins = static_cast<int>(d_axis.size());
+    return data_id;
+}, status);}
+
+namespace {
+
 struct _molecule_debye_obj {
     explicit _molecule_debye_obj(int size) :
         q(size), I(size)

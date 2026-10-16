@@ -34,24 +34,22 @@ extern "C" API void molecule_hydrate(
 
 extern "C" API int molecule_distance_histogram(
     int molecule_id,
-    double** aa, double** aw, double** ww, double** axis, int* n_bins, 
+    double** aa, double** aw, double** ww, double** axis, int* n_bins,
     int* status
 );
 
 /**
- * The three Debye families below differ in what they include, and share their q axis:
- *
- * - molecule_debye: the molecule's configured model (histogram manager and excluded volume), including its hydration
- *   shell if it has one. With the default Simple model every atom carries the one Gaussian form factor of the Debye
- *   transform, so I(q) keeps an overall exp(-q^2); the other exv models apply their per-species form factors instead.
- * - molecule_debye_raw: the plain binned Debye sum of the atoms and any waters as point scatterers with their weights:
- *   no excluded volume, and the exp(-q^2) divided out.
- * - molecule_debye_exact: as _raw, but summed over all pairs without distance binning. Exists only as a reference
- *   for _raw; far too slow for practical use.
- *
- * The variants without a q argument evaluate on the default q axis from settings::axes::qmin to settings::axes::qmax and
- * return those q values; the _userq variants evaluate at the given q values. The returned id owns the arrays and is
- * released with deallocate.
+ * The total distance histogram transformed by molecule_debye_raw: the atoms and any waters as point scatterers with their weights, without any excluded 
+ * volume. The counts sum the weight products over all ordered pairs, so the self-terms are included in the first bin.
+ */
+extern "C" API int molecule_distance_histogram_raw(
+    int molecule_id,
+    double** counts, double** axis, int* n_bins,
+    int* status
+);
+
+/**
+ * The Debye intensity of the molecule's configured model, including its hydration shell if it has one.
  */
 extern "C" API int molecule_debye(
     int molecule_id,
@@ -59,30 +57,46 @@ extern "C" API int molecule_debye(
     int* status
 );
 
+/**
+ * As molecule_debye, but evaluated at the given q values.
+ */
 extern "C" API void molecule_debye_userq(
     int molecule_id, 
     double* q, double* I, int n_points,
     int* status
 );
 
+/**
+ * The plain binned Debye sum of the atoms and any waters as point scatterers with their weights.
+ */
 extern "C" API int molecule_debye_raw(
     int molecule_id,
     double** q, double** I, int* n_points,
     int* status
 );
 
+/**
+ * As molecule_debye_raw, but evaluated at the given q values.
+ */
 extern "C" API void molecule_debye_raw_userq(
     int molecule_id, 
     double* q, double* I, int n_points,
     int* status
 );
 
+/**
+ * As molecule_debye_raw, but summed over all pairs without distance binning. Exists only as a reference for molecule_debye_raw; far too slow for 
+ * practical use.
+ */
 extern "C" API int molecule_debye_exact(
     int molecule_id,
     double** q, double** I, int* n_points,
     int* status
 );
 
+/**
+ * As molecule_debye_exact, but evaluated at the given q values.
+ */
 extern "C" API void molecule_debye_exact_userq(
     int molecule_id, 
     double* q, double* I, int n_points,
