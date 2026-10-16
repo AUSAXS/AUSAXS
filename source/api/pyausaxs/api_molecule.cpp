@@ -6,7 +6,7 @@
 #include <api/ObjectStorage.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <data/state/Signaller.h>
+#include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <fitter/SmartFitter.h>
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distribution/Distribution1D.h>

@@ -19,10 +19,10 @@
 #include <data/Molecule.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
-#include <hist/intensity_calculator/DebyeGradient.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/intensity_calculator/DebyeGradient.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <io/File.h>
 #include <math/Vector3.h>
