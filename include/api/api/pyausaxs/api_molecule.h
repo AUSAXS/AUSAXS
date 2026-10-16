@@ -89,10 +89,6 @@ extern "C" API void molecule_debye_exact_userq(
     int* status
 );
 
-/**
- * Overwrite the coordinates of the n_atoms atoms, in the order of molecule_get_data. The atoms keep their weights and
- * form factors, and the hydration shell (if any) is left untouched.
- */
 extern "C" API void molecule_set_coordinates(
     int molecule_id,
     const double* x, const double* y, const double* z, int n_atoms,
@@ -100,10 +96,9 @@ extern "C" API void molecule_set_coordinates(
 );
 
 /**
- * Vector-Jacobian product of molecule_debye_raw_userq with respect to the atomic coordinates. Given the adjoint
- * v(q) = dL/dI(q) at the n_points values q, write dL/dr_i into (gx, gy, gz) for each of the n_atoms atoms, in the order
- * of molecule_get_data. This is the derivative of the exact Debye sum, not of its binned approximation.
- * Only the atoms are differentiated: a hydration shell is ignored, and only affects the gradient through v(q).
+ * Vector-Jacobian product of molecule_debye_raw_userq with respect to the atomic coordinates. Given the gradient of the loss v(q) = dL/dI(q) at the n_points 
+ * values q, write dL/dr_i into (gx, gy, gz) for each of the n_atoms atoms, in the order of molecule_get_data. This is the derivative of the exact Debye sum, 
+ * not of its binned approximation. Only the atoms are differentiated: a hydration shell is ignored, and only affects the gradient through v(q).
  */
 extern "C" API void molecule_debye_raw_vjp(
     int molecule_id,

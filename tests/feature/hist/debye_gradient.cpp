@@ -14,7 +14,7 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 // L = sum_q v(q) I(q) for the exact raw Debye sum I(q) = sum_ij w_i w_j sinc(q r_ij)
-static double loss_gradient(const std::vector<AtomFF>& atoms, const std::vector<double>& q, const std::vector<double>& v) {
+static double loss(const std::vector<AtomFF>& atoms, const std::vector<double>& q, const std::vector<double>& v) {
     double L = 0;
     for (int k = 0; k < static_cast<int>(q.size()); ++k) {
         double I = 0;
@@ -69,11 +69,14 @@ TEST_CASE("debye_raw_vjp: agrees with finite differences") {
         atoms.back().weight() = weight(gen);
     }
     std::vector<double> q, v;
-    for (int k = 0; k < 25; ++k) {q.push_back(0.02*k); v.push_back(adjoint(gen));}
+    for (int k = 0; k < 25; ++k) {q.emplace_back(0.02*k); v.emplace_back(adjoint(gen));}
 
+    // the analytic gradient of L under test
     Molecule molecule({Body{atoms}});
     auto g = hist::debye_raw_vjp(molecule, q, v);
 
+    // the reference is the numerical gradient of L, by central differences: each coordinate of each atom is displaced by +h and -h,
+    // L is evaluated at both, and (L(+h) - L(-h))/(2h) approximates dL/dr to O(h^2). The two must agree
     constexpr double h = 1e-4;
     std::vector<Vector3<double>> fd(atoms.size());
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
@@ -81,7 +84,7 @@ TEST_CASE("debye_raw_vjp: agrees with finite differences") {
             auto plus = atoms, minus = atoms;
             plus[i].coordinates()[c] += h;
             minus[i].coordinates()[c] -= h;
-            fd[i][c] = (loss_gradient(plus, q, v) - loss_gradient(minus, q, v))/(2*h);
+            fd[i][c] = (loss(plus, q, v) - loss(minus, q, v))/(2*h);
         }
     }
     REQUIRE(max_relative_deviation(g, fd) < 1e-5);
@@ -96,7 +99,7 @@ TEST_CASE("debye_raw_vjp: agrees with the direct analytic gradient") {
     std::mt19937 gen(7);
     std::uniform_real_distribution<double> adjoint(-1, 1);
     std::vector<double> q, v;
-    for (int k = 0; k < 20; ++k) {q.push_back(0.001 + 0.05*k); v.push_back(adjoint(gen));}
+    for (int k = 0; k < 20; ++k) {q.emplace_back(0.001 + 0.05*k); v.emplace_back(adjoint(gen));}
 
     auto g = hist::debye_raw_vjp(molecule, q, v);
     auto direct = direct_gradient(molecule.get_atoms(), q, v);
