@@ -28,7 +28,7 @@ TEST_CASE("Curl::download") {
 namespace {
     std::string read_all(const std::string& path) {
         std::ifstream ifs(path);
-        return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+        return {std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>()};
     }
 
     std::string file_url(const io::File& file) {
