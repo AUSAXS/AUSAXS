@@ -88,7 +88,13 @@ observer_ptr<data::Molecule> ImageStackBase::get_protein(double cutoff) const {
 }
 
 int ImageStackBase::count_voxels(double cutoff) const {
-    return std::transform_reduce(data.begin(), data.end(), 0, std::plus{}, [&cutoff] (const Image& im) {return im.count_voxels(cutoff);});
+    // sample_frequency strides z as well as x and y, so only every step-th image is sampled
+    int count = 0;
+    int step = settings::em::sample_frequency;
+    for (int z = 0; z < static_cast<int>(data.size()); z += step) {
+        count += data[z].count_voxels(cutoff);
+    }
+    return count;
 }
 
 namespace {
