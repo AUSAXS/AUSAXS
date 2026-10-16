@@ -5,8 +5,10 @@
 
 #include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
+#include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
+#include <settings/GeneralSettings.h>
 #include <utility/Exceptions.h>
 #include <utility/MultiThreading.h>
 
@@ -16,91 +18,31 @@
 using namespace ausaxs;
 
 namespace {
-    // H(r) only contains frequencies up to the largest q, so linear interpolation is accurate to about (q_max*table_width)^2/8
     constexpr double table_width = 0.01;
     constexpr double inv_table_width = 1/table_width;
-
-    // each block seeds its own trigonometric recurrence, which bounds the accumulated rounding
-    constexpr int table_block = 512;
-
-    // below this qr, cos(x) - sinc(x) cancels too badly, and its Taylor series is used instead
     constexpr double series_limit = 0.1;
 
     /**
      * @brief Tabulate H(r) = 2 \sum_q v(q) (cos(qr) - sinc(qr))/r^2 at r = k*table_width for k in [0, size).
      */
-    std::vector<double> tabulate_pair_derivative(const std::vector<double>& q, const std::vector<double>& v, int size) {
-        int n_q = static_cast<int>(q.size());
-        std::vector<double> q2(n_q), inv_q(n_q), v2(n_q), cd(n_q), sd(n_q);
-        for (int i = 0; i < n_q; ++i) {
-            q2[i] = q[i]*q[i];
-            inv_q[i] = q[i] == 0 ? 0 : 1/q[i];
-            v2[i] = 2*v[i];
-            cd[i] = std::cos(q[i]*table_width);
-            sd[i] = std::sin(q[i]*table_width);
-        }
-
-        std::vector<double> H(size);
+    std::vector<float> tabulate_pair_derivative(const std::vector<double>& q, const std::vector<double>& v, int size) {
+        std::vector<float> H(size);
         auto* pool = utility::multi_threading::get_global_pool();
-        int n_blocks = (size + table_block - 1)/table_block;
-        pool->detach_blocks(0, n_blocks, [&] (int block_start, int block_end) {
-            std::vector<double> c(n_q), s(n_q);
-            for (int block = block_start; block < block_end; ++block) {
-                int k0 = block*table_block;
-                int k1 = std::min(size, k0 + table_block);
-                for (int i = 0; i < n_q; ++i) {
-                    c[i] = std::cos(q[i]*k0*table_width);
-                    s[i] = std::sin(q[i]*k0*table_width);
-                }
-
-                for (int k = k0; k < k1; ++k) {
-                    double r = k*table_width;
-                    double inv_r = k == 0 ? 0 : 1/r;
-                    double inv_r2 = inv_r*inv_r;
-                    double sum = 0;
-                    for (int i = 0; i < n_q; ++i) {
-                        double x = q[i]*r;
-                        double x2 = x*x;
-                        double series = q2[i]*(-1.0/3 + x2*(1.0/30 - x2/840));
-                        double direct = (c[i] - s[i]*inv_q[i]*inv_r)*inv_r2;
-                        sum += v2[i]*(x < series_limit ? series : direct);
-                    }
-                    H[k] = sum;
-
-                    // advance to the next r by rotating (cos, sin) by q*table_width
-                    for (int i = 0; i < n_q; ++i) {
-                        double cn = c[i]*cd[i] - s[i]*sd[i];
-                        s[i] = s[i]*cd[i] + c[i]*sd[i];
-                        c[i] = cn;
-                    }
-                }
+        pool->detach_loop(0, size, [&] (int k) {
+            double r = k*table_width;
+            double sum = 0;
+            for (unsigned int i = 0; i < q.size(); ++i) {
+                double x = q[i]*r;
+                double x2 = x*x;
+                sum += v[i]*(x < series_limit
+                    ? q[i]*q[i]*(-1.0/3 + x2*(1.0/30 - x2/840))
+                    : (std::cos(x) - std::sin(x)/x)/(r*r)
+                );
             }
+            H[k] = static_cast<float>(2*sum);
         });
         pool->wait();
         return H;
-    }
-
-    /**
-     * @brief Accumulate the contributions of all pairs (i, j > i) of row i into the gradient buffers.
-     */
-    void accumulate_row(
-        int i, int n, const double* x, const double* y, const double* z, const double* w, const double* H,
-        double* gx, double* gy, double* gz
-    ) {
-        const double xi = x[i], yi = y[i], zi = z[i], wi = w[i];
-        double ax = 0, ay = 0, az = 0;
-        for (int j = i+1; j < n; ++j) {
-            double dx = xi - x[j];
-            double dy = yi - y[j];
-            double dz = zi - z[j];
-            double t = std::sqrt(dx*dx + dy*dy + dz*dz)*inv_table_width;
-            int k = static_cast<int>(t);
-            double h = H[k] + (t - k)*(H[k+1] - H[k]);
-            double f = wi*w[j]*h;
-            ax += f*dx; ay += f*dy; az += f*dz;
-            gx[j] -= f*dx; gy[j] -= f*dy; gz[j] -= f*dz;
-        }
-        gx[i] += ax; gy[i] += ay; gz[i] += az;
     }
 }
 
@@ -113,40 +55,40 @@ std::vector<Vector3<double>> hist::debye_raw_vjp(const data::Molecule& molecule,
     std::vector<Vector3<double>> gradient(n, {0, 0, 0});
     if (n < 2 || q.empty()) {return gradient;}
 
-    std::vector<double> x(n), y(n), z(n), w(n);
-    Vector3<double> min{data.x(0), data.y(0), data.z(0)}, max = min;
-    for (int i = 0; i < n; ++i) {
-        x[i] = data.x(i); y[i] = data.y(i); z[i] = data.z(i); w[i] = data.get_weight(i);
-        min = {std::min(min.x(), x[i]), std::min(min.y(), y[i]), std::min(min.z(), z[i])};
-        max = {std::max(max.x(), x[i]), std::max(max.y(), y[i]), std::max(max.z(), z[i])};
-    }
+    // the margin covers the interpolation neighbour and rounding
+    auto H = tabulate_pair_derivative(q, v, static_cast<int>(hist::detail::bin_estimate::max_distance(data)*inv_table_width) + 3);
 
-    // no pair is farther apart than the bounding box diagonal; the margin covers the interpolation neighbour and rounding
-    int table_size = static_cast<int>(max.distance(min)*inv_table_width) + 3;
-    auto H = tabulate_pair_derivative(q, v, table_size);
-
-    // pairing row m with row n-1-m gives every task the same n-1 pairs
     auto* pool = utility::multi_threading::get_global_pool();
-    container::ThreadLocalWrapper<std::vector<double>> buffers(3*n, 0.0);
-    int folded = (n+1)/2;
-    pool->detach_blocks(0, folded, [&] (int start, int end) {
-        auto& buffer = buffers.get();
-        double* gx = buffer.data();
-        double* gy = gx + n;
-        double* gz = gy + n;
-        for (int m = start; m < end; ++m) {
-            accumulate_row(m, n, x.data(), y.data(), z.data(), w.data(), H.data(), gx, gy, gz);
-            if (int mirror = n-1-m; mirror != m) {
-                accumulate_row(mirror, n, x.data(), y.data(), z.data(), w.data(), H.data(), gx, gy, gz);
+    container::ThreadLocalWrapper<std::vector<float>> buffers(3*n, 0.f);
+    int job_size = settings::general::detail::get_job_size(n);
+    for (int i = 0; i < n; i += job_size) {
+        pool->detach_task([&, imin = i, imax = std::min(i+job_size, n)] () {
+            // the table is copied into an allocation local to the task, since the compiler can only prove that the gathers from it never alias the gradient 
+            // buffer stores when it sees the allocation; otherwise the loop below is not vectorized through a raw pointer, gcc extracts each index once and 
+            // reaches k+1 by an address offset; through table[k] it extracts both k and k+1 per lane, which is measurably slower
+            std::vector<float> table = H; // NOLINT
+            const float* h = table.data();
+            auto& g = buffers.get();
+            for (int i = imin; i < imax; ++i) {
+                float xi = data.x(i), yi = data.y(i), zi = data.z(i), wi = data.get_weight(i);
+                float sx = 0, sy = 0, sz = 0;
+                for (int j = i+1; j < n; ++j) {
+                    float dx = xi - data.x(j), dy = yi - data.y(j), dz = zi - data.z(j);
+                    float t = std::sqrt(dx*dx + dy*dy + dz*dz)*static_cast<float>(inv_table_width);
+                    int k = static_cast<int>(t);
+                    float s = wi*data.get_weight(j)*(h[k] + (t - static_cast<float>(k))*(h[k+1] - h[k]));
+                    float fx = dx*s, fy = dy*s, fz = dz*s;
+                    sx += fx; sy += fy; sz += fz;
+                    g[j] -= fx; g[n+j] -= fy; g[2*n+j] -= fz;
+                }
+                g[i] += sx; g[n+i] += sy; g[2*n+i] += sz;
             }
-        }
-    }, 4*pool->get_thread_count());
+        });
+    }
     pool->wait();
 
-    for (const std::vector<double>& buffer : buffers.get_all()) {
-        for (int i = 0; i < n; ++i) {
-            gradient[i] += Vector3<double>{buffer[i], buffer[n+i], buffer[2*n+i]};
-        }
+    for (const std::vector<float>& g : buffers.get_all()) {
+        for (int i = 0; i < n; ++i) {gradient[i] += Vector3<double>{g[i], g[i+n], g[i+2*n]};}
     }
     return gradient;
 }
