@@ -27,7 +27,7 @@ jobs:
           fi
 
           # extract the version string from the file (e.g. "v1.2.3")
-          VERSION_IN_FILE=$(sed -n -E 's/.*version\[\]\s*=\s*"([^"]+)".*/\1/p' "$VERSION_FILE" || true)
+          VERSION_IN_FILE=$(sed -n -E 's/.*version\s*=\s*"([^"]+)".*/\1/p' "$VERSION_FILE" || true)
           if [ -z "$VERSION_IN_FILE" ]; then
             echo "Could not extract version from file: $VERSION_FILE"
             exit 1
