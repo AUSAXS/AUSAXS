@@ -27,3 +27,12 @@ extern "C" API void load_settings(
     const char* path,
     int* status
 );
+
+/**
+ * @brief The default q-axis of the Debye transforms, i.e. the one used when no q values are given.
+ */
+extern "C" API int get_q_axis(
+    const double** q,
+    int* n_points,
+    int* status
+);
