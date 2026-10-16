@@ -18,8 +18,11 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/symmetry/PointSymmetry.h>
+#include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/intensity_calculator/DebyeGradient.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <io/File.h>
 #include <math/Vector3.h>
@@ -28,6 +31,7 @@
 #include <utility/Random.h>
 
 #include <array>
+#include <random>
 
 using namespace ausaxs;
 
@@ -265,5 +269,39 @@ TEST_CASE("Partial histogram benchmark: rigidbody body translation", "[.][benchm
                 return mol.get_histogram()->debye_transform();
             });
         };
+    }
+}
+
+// The raw (in-vacuo, unit-weight) Debye VJP against the forward it differentiates: the dry histogram of the same atoms
+// plus its Debye transform. The adjoint is random, on the q values the forward returns.
+TEST_CASE("Gradient benchmark: debye_raw_vjp", "[.][benchmark][gradient]") {
+    bench_settings();
+    const auto& spec = bench_molecules[GENERATE(0, 1, 2, 3, 4)];
+    data::Molecule mol(spec.pdb);
+    mol.clear_hydration();
+    SECTION(std::string(spec.label) + " (" + std::to_string(mol.size_atom()) + " atoms)") {
+        auto forward = [&] {return hist::HistogramManagerMT<false>(&mol).calculate()->debye_transform();};
+        auto q = forward().get_axis().as_vector();
+        std::mt19937 gen(1);
+        std::normal_distribution<double> dist;
+        std::vector<double> v(q.size());
+        for (auto& x : v) {x = dist(gen);}
+
+        BENCHMARK("forward (histogram + debye)") {return forward();};
+        BENCHMARK("debye_raw_vjp") {return hist::debye_raw_vjp(mol, q, v);};
+    }
+}
+
+TEST_CASE("Gradient benchmark: debye_raw_vjp, large molecule", "[.][benchmark][gradient][large]") {
+    bench_settings();
+    data::Molecule mol(large_molecule.pdb);
+    mol.clear_hydration();
+    SECTION(std::string(large_molecule.label) + " (" + std::to_string(mol.size_atom()) + " atoms)") {
+        auto forward = [&] {return hist::HistogramManagerMT<false>(&mol).calculate()->debye_transform();};
+        auto q = forward().get_axis().as_vector();
+        std::vector<double> v(q.size(), 1);
+
+        BENCHMARK("forward (histogram + debye)") {return forward();};
+        BENCHMARK("debye_raw_vjp") {return hist::debye_raw_vjp(mol, q, v);};
     }
 }
