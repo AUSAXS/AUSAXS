@@ -208,11 +208,11 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
 
         data::Molecule molecule(pdb);
         if (!exv_ref_file.empty()) {molecule.set_grid(grid::Grid::create_from_reference(exv_ref_file, molecule));}
-        if (!keep_hydration || molecule.size_water() == 0) {
+        if (!keep_hydration) {
             if (molecule.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}
             molecule.generate_new_hydration();
-        } else {
-            if (molecule.size_water() == 0) {console::print_warning("No hydration atoms were found in the structure file, but --keep was specified. No hydration atoms will be used for this calculation.");}
+        } else if (molecule.size_water() == 0) {
+            console::print_warning("No hydration atoms were found in the structure file, but --keep was specified. No hydration atoms will be used for this calculation.");
         }
         std::string msg_exv_vol, msg_solv_dens;
         const std::string charge_unit = settings::scattering::radiation == settings::scattering::Radiation::XRay ? "e" : "fm";
