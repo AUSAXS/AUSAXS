@@ -95,6 +95,23 @@ void Molecule::lazy_histogram_manager_init() const {
 
 void Molecule::reset_histogram_manager() {phm = nullptr;}
 
+void Molecule::refresh_weights() const {
+    if (weights_type == settings::scattering::radiation) {return;}
+    weights_type = settings::scattering::radiation;
+    phm = nullptr; // every cached histogram depends on the weights, so let the lazy init rebuild the manager from the new ones
+
+    int unchanged = 0;
+    for (auto& body : const_cast<std::vector<Body>&>(bodies)) {
+        unchanged += static_cast<int>(!body.refresh_weights());
+    }
+    if (unchanged != 0) {
+        console::print_warning(
+            "Molecule::refresh_weights: The scattering probe was changed after this molecule was created, but " + std::to_string(unchanged) +
+            " of its bodies carry weights which cannot be recomputed. Reload the molecule to use the new probe."
+        );
+    }
+}
+
 void Molecule::initialize() {
     logging::log("initializing Molecule");
     reset_histogram_manager();
@@ -134,10 +151,12 @@ double Molecule::get_excluded_volume_mass() const {
 }
 
 double Molecule::get_total_atomic_charge() const {
+    refresh_weights();
     return std::transform_reduce(bodies.begin(), bodies.end(), 0.0, std::plus{}, [] (const Body& body) {return body.get_total_atomic_charge();});
 }
 
 double Molecule::get_Rg(bool include_waters) const {
+    refresh_weights();
     Vector3<double> cm = get_cm(include_waters);
     double Rg = 0;
 
@@ -353,11 +372,13 @@ void Molecule::bind_body_signallers() const {
 }
 
 observer_ptr<IHistogramManager> Molecule::get_histogram_manager() {
+    refresh_weights();
     lazy_histogram_manager_init();
     return phm.get();
 }
 
 observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {
+    refresh_weights();
     lazy_histogram_manager_init();
     return phm.get();
 }

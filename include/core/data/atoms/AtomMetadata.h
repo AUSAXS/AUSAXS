@@ -36,7 +36,8 @@ namespace ausaxs::data {
         std::optional<std::vector<std::string>> atom_name;    //< source atom name, e.g. "CA"
         std::optional<std::vector<std::string>> residue_name; //< source residue name, e.g. "LYS"
         std::optional<std::vector<constants::atom_t>> element; //< source element
-        static constexpr std::size_t field_count = 7;
+        std::optional<std::vector<float>>       implicit_h;   //< implicit hydrogens added to the atom; already folded into the atom charge
+        static constexpr std::size_t field_count = 8;
 
         /**
          * @brief Get the number of currently engaged fields.
@@ -111,6 +112,7 @@ namespace ausaxs::data {
                 f(self.atom_name);
                 f(self.residue_name);
                 f(self.element);
+                f(self.implicit_h);
             }
 
             // Invoke f on every field of a paired up with the corresponding field of b. f must accept any of the field types, i.e. be a generic lambda.
@@ -123,6 +125,7 @@ namespace ausaxs::data {
                 f(a.atom_name,    b.atom_name);
                 f(a.residue_name, b.residue_name);
                 f(a.element,      b.element);
+                f(a.implicit_h,   b.implicit_h);
             }
     };
     static_assert(

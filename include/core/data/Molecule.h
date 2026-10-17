@@ -16,6 +16,7 @@
 #include <io/ExistingFile.h>
 #include <math/MathFwd.h>
 #include <settings/HistogramSettings.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -295,10 +296,16 @@ namespace ausaxs::data {
 			mutable std::unique_ptr<grid::Grid> grid; 						// The grid representation of this body
 			mutable int grid_atom_count = 0;								// Total atom count (incl. symmetry copies) `grid` was last synchronised to; used to detect staleness
 			mutable std::unique_ptr<hist::IHistogramManager> phm;			// The histogram manager of this molecule
+			mutable settings::scattering::Radiation weights_type = settings::scattering::radiation;
 			std::unique_ptr<hydrate::HydrationStrategy> hydration_strategy; // The strategy used to generate the hydration layer
 
 			void initialize();
 			void lazy_histogram_manager_init() const;
+
+			/**
+			 * @brief Rebuild the body weights if the scattering probe has changed since they were made.
+			 */
+			void refresh_weights() const;
 
 			/**
 			 * @brief Check whether `grid` is stale relative to the bodies. 
