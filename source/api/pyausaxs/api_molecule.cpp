@@ -185,7 +185,8 @@ int molecule_distance_histogram_raw(
 
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    molecule->reset_histogram_manager(); // rebuilt without excluded volume
+    auto hist = molecule->get_total_histogram();
     const auto& p_tot = hist->get_weighted_counts();
     const auto& d_axis = hist->get_d_axis();
     assert(p_tot.size() == d_axis.size() && "Misaligned distance vectors.");

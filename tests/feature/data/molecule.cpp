@@ -1049,5 +1049,4 @@ TEST_CASE("Molecule::uses_weighted_bins") {
         ordered.reset_histogram_manager();
         CHECK(dynamic_cast<hist::HistogramManagerMT<true>*>(ordered.get_histogram_manager()) != nullptr);
     }
-    settings::hist::weighted_bins = true;
 }
