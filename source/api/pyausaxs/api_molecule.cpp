@@ -9,7 +9,6 @@
 #include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <fitter/SmartFitter.h>
 #include <hist/distribution/Distribution1D.h>
-#include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/intensity_calculator/DebyeGradient.h>
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
@@ -262,7 +261,8 @@ int molecule_debye_raw(
 
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    molecule->reset_histogram_manager(); // rebuilt without excluded volume
+    auto hist = molecule->get_histogram();
     auto debye_I = hist->debye_transform<false>();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
@@ -289,7 +289,8 @@ void molecule_debye_raw_userq(
     auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
     if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
     std::vector<double> q_vals(q, q + n_points);
-    auto hist = hist::factory::construct_histogram_manager(molecule, settings::hist::HistogramManagerChoice::HistogramManagerMT)->calculate();
+    molecule->reset_histogram_manager(); // rebuilt without excluded volume
+    auto hist = molecule->get_histogram();
     auto debye_I = hist->debye_transform<false>(q_vals);
     if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {

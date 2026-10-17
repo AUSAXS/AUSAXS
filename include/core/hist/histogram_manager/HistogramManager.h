@@ -33,6 +33,7 @@ namespace ausaxs::hist {
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
+			settings::hist::HistogramManagerChoice get_type() const override;
 
 		protected:
 			observer_ptr<const data::Molecule> protein;

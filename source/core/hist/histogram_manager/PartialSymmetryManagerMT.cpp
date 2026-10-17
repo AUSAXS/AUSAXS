@@ -391,6 +391,9 @@ void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calc_aw(calculat
     calculator->release_hold();
 }
 
+template<bool weighted_bins, bool form_factors>
+settings::hist::HistogramManagerChoice PartialSymmetryManagerMTBase<weighted_bins, form_factors>::get_type() const {return settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT;}
+
 template class hist::PartialSymmetryManagerMTBase<false, false>;
 template class hist::PartialSymmetryManagerMTBase<false, true>;
 template class hist::PartialSymmetryManagerMTBase<true, false>;

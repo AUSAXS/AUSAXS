@@ -14,6 +14,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/ExvSettings.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
@@ -165,6 +166,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins>::ca
         );
     }
 }
+
+template<bool weighted_bins>
+settings::hist::HistogramManagerChoice HistogramManager<weighted_bins>::get_type() const {return settings::hist::HistogramManagerChoice::HistogramManager;}
 
 template class hist::HistogramManager<false>;
 template class hist::HistogramManager<true>;

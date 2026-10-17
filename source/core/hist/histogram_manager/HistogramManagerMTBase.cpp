@@ -10,6 +10,7 @@
 #include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
+#include <settings/HistogramSettings.h>
 
 #include <cassert>
 
@@ -61,6 +62,9 @@ typename HistogramManagerMTBase<wb, ff>::Distributions HistogramManagerMTBase<wb
 
     return hist::detail::export_distributions<wb, ff>(store, aa, aw, ww);
 }
+
+template<bool wb, bool ff>
+settings::hist::HistogramManagerChoice HistogramManagerMTBase<wb, ff>::get_type() const {return settings::hist::HistogramManagerChoice::HistogramManagerMT;}
 
 template class hist::HistogramManagerMTBase<false, false>;
 template class hist::HistogramManagerMTBase<false, true>;

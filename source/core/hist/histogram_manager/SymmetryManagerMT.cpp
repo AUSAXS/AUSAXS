@@ -14,6 +14,7 @@
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/ExvSettings.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 
 #include <ranges>
@@ -166,6 +167,9 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<w
     // without waters, aw and ww were never named, and are still zero
     return hist::detail::make_histogram(hist::detail::export_distributions<weighted_bins, form_factors>(store, aa, aw, ww), protein);
 }
+
+template<bool weighted_bins, bool form_factors>
+settings::hist::HistogramManagerChoice hist::SymmetryManagerMTBase<weighted_bins, form_factors>::get_type() const {return settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT;}
 
 template class hist::SymmetryManagerMTBase<false, false>;
 template class hist::SymmetryManagerMTBase<false, true>;

@@ -210,6 +210,9 @@ void PartialHistogramManagerMTBase<weighted_bins, form_factors>::calc_ww(calcula
     calculator->enqueue_calculate_self(this->coords_w, id.ww);
 }
 
+template<bool weighted_bins, bool form_factors>
+settings::hist::HistogramManagerChoice PartialHistogramManagerMTBase<weighted_bins, form_factors>::get_type() const {return settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
+
 template class hist::PartialHistogramManagerMTBase<false, false>;
 template class hist::PartialHistogramManagerMTBase<false, true>;
 template class hist::PartialHistogramManagerMTBase<true, false>;

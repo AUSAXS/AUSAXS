@@ -386,5 +386,8 @@ void PartialHistogramManager<weighted_bins>::calc_ww() {
     this->master += partials_ww; // add the new hydration histogram
 }
 
+template<bool weighted_bins>
+settings::hist::HistogramManagerChoice PartialHistogramManager<weighted_bins>::get_type() const {return settings::hist::HistogramManagerChoice::PartialHistogramManager;}
+
 template class hist::PartialHistogramManager<false>;
 template class hist::PartialHistogramManager<true>;

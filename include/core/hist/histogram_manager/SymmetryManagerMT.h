@@ -24,6 +24,7 @@ namespace ausaxs::hist {
             std::unique_ptr<hist::DistanceHistogram> calculate() override;
 
             std::unique_ptr<hist::ICompositeDistanceHistogram> calculate_all() override;
+            settings::hist::HistogramManagerChoice get_type() const override;
 
         private:
 			observer_ptr<const data::Molecule> protein;

@@ -19,6 +19,7 @@
 #include <utility/observer_ptr.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -266,6 +267,12 @@ namespace ausaxs::data {
 			void reset_histogram_manager(); // resets to default based on current settings
 
 			/**
+			 * @brief Whether this molecule requires weighted bins.
+			 *        Under settings::hist::weighted_bins = auto, this may have to calculate the histogram to decide.
+			 */
+			[[nodiscard]] bool uses_weighted_bins() const;
+
+			/**
 			 * @brief Signal that the hydration layer has been modified.
 			 */
 			void signal_modified_hydration_layer() const;
@@ -295,6 +302,7 @@ namespace ausaxs::data {
 			mutable std::unique_ptr<grid::Grid> grid; 						// The grid representation of this body
 			mutable int grid_atom_count = 0;								// Total atom count (incl. symmetry copies) `grid` was last synchronised to; used to detect staleness
 			mutable std::unique_ptr<hist::IHistogramManager> phm;			// The histogram manager of this molecule
+			mutable std::optional<bool> auto_weighted_bins;					// This molecule's decision for settings::hist::weighted_bins = auto, once made
 			std::unique_ptr<hydrate::HydrationStrategy> hydration_strategy; // The strategy used to generate the hydration layer
 
 			void initialize();
