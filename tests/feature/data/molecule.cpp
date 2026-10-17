@@ -1050,3 +1050,50 @@ TEST_CASE("Molecule::uses_weighted_bins") {
         CHECK(dynamic_cast<hist::HistogramManagerMT<true>*>(ordered.get_histogram_manager()) != nullptr);
     }
 }
+
+// The weights are derived from the active probe when a structure is read, so a later probe change must reach them (BL-188).
+TEST_CASE("Molecule: the weights follow the scattering probe", "[files]") {
+    settings::general::verbose = false;
+    auto probe = GENERATE(settings::scattering::Radiation::XRay, settings::scattering::Radiation::Neutron);
+    auto other = probe == settings::scattering::Radiation::XRay ? settings::scattering::Radiation::Neutron : settings::scattering::Radiation::XRay;
+
+    auto weights = [] (const data::Molecule& m) {
+        std::vector<double> w;
+        for (const auto& a : m.iterate_atoms()) {w.emplace_back(a.weight());}
+        for (const auto& a : m.iterate_waters()) {w.emplace_back(a.weight());}
+        return w;
+    };
+
+    // a molecule loaded under one probe and then switched to the other ...
+    random::set_seed(1);
+    settings::scattering::radiation = probe;
+    data::Molecule switched("tests/files/2epe.pdb");
+    switched.generate_new_hydration();
+    settings::scattering::radiation = other;
+    [[maybe_unused]] auto refresh = switched.get_total_atomic_charge();
+
+    // ... must be indistinguishable from one loaded under the other probe to begin with
+    random::set_seed(1);
+    data::Molecule loaded("tests/files/2epe.pdb");
+    loaded.generate_new_hydration();
+
+    REQUIRE(weights(switched).size() == weights(loaded).size());
+    CHECK(weights(switched) == weights(loaded));
+    CHECK(switched.get_total_atomic_charge() == loaded.get_total_atomic_charge());
+    auto I_switched = switched.get_histogram()->debye_transform().get_intensity();
+    auto I_loaded = loaded.get_histogram()->debye_transform().get_intensity();
+    REQUIRE(I_switched.size() == I_loaded.size());
+    for (unsigned i = 0; i < I_switched.size(); ++i) { // not bit-exact: the two managers sum the same terms in a different order
+        CHECK_THAT(I_switched[i], Catch::Matchers::WithinRel(I_loaded[i], 1e-9));
+    }
+
+    // and switching back must restore the original weights exactly
+    settings::scattering::radiation = probe;
+    data::Molecule original("tests/files/2epe.pdb");
+    random::set_seed(1);
+    original.generate_new_hydration();
+    refresh = switched.get_total_atomic_charge();
+    CHECK(weights(switched) == weights(original));
+
+    settings::scattering::radiation = settings::scattering::Radiation::XRay;
+}

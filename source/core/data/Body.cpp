@@ -12,6 +12,7 @@
 #include <math/Vector3.h>
 
 #include <algorithm>
+#include <cassert>
 #include <functional>
 #include <numbers>
 #include <numeric>
@@ -154,6 +155,27 @@ void Body::rotate(const Matrix<double>& R) {
             atom.coordinates().rotate(R);
         }
     }
+}
+
+bool Body::refresh_weights() {
+    // a water is always a plain water, so its weight is fully determined by the probe
+    if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+        double w = constants::charge::get_ff_charge(Water::form_factor_type());
+        std::ranges::for_each(h->waters, [w] (data::Water& water) {water.weight() = static_cast<data::Water::precision_t>(w);});
+    }
+
+    // the atom weights fold in the occupancy and the implicit hydrogens, so they can only be rebuilt where the metadata recorded both
+    if (atoms.empty()) {return true;}
+    if (!metadata || !metadata->element || !metadata->occupancy || !metadata->implicit_h) {return false;}
+    assert(metadata->size() == atoms.size() && "Body::refresh_weights: metadata is not parallel-indexed to the atoms.");
+
+    double hydrogen_charge = constants::charge::get_ff_charge(form_factor::form_factor_t::H);
+    for (std::size_t i = 0; i < atoms.size(); ++i) {
+        double charge = constants::charge::get_ff_charge(atoms[i].form_factor_type(), (*metadata->element)[i])
+            + (*metadata->implicit_h)[i]*hydrogen_charge;
+        atoms[i].weight() = static_cast<data::AtomFF::precision_t>(charge*(*metadata->occupancy)[i]);
+    }
+    return true;
 }
 
 double Body::get_total_atomic_charge() const {

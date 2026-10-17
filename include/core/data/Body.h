@@ -67,6 +67,12 @@ namespace ausaxs::data {
 			 */
 			void set_metadata(AtomMetadata metadata);
 
+			/**
+			 * @brief Recompute the atom and water weights for the probe currently selected by settings::scattering::radiation.
+			 * @return True if the atom weights were recomputed, false if the metadata needed to do so is not present.
+			 */
+			bool refresh_weights();
+
 			//? we use std::optional here to explicitly inform the user that it may be empty
 			//? principially this is equivalent to returning a potentially zero pointer, but the optional is more explicit
 			/**
