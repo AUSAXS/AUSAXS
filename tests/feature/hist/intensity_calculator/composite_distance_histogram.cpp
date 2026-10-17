@@ -381,3 +381,46 @@ TEST_CASE("CompositeDistanceHistogram::get_profile") {
         REQUIRE_THAT(Iq[i], Catch::Matchers::WithinAbs(profile_sum[i], 1e-6));
     }
 }
+
+TEST_CASE("CompositeDistanceHistogram::debye_transform(q) keeps the form factors outside qmin..qmax") {
+    settings::general::verbose = false;
+    settings::axes::qmin = constants::axes::q_axis.min;
+    settings::axes::qmax = 0.5;
+    data::Molecule protein("tests/files/2epe.pdb");
+    protein.generate_new_hydration();
+    form_factor::manager::use_form_factors(protein); // the managers below are constructed directly, bypassing the factory which normally selects these
+
+    auto check = [] (const auto& hist) {
+        std::vector<double> q = {0.01, 0.05, 0.1, 0.2, 0.3, 0.4};
+        auto I = hist->debye_transform(q);
+
+        // the q range of a request must not change the intensity at a shared point
+        auto q_wide = q; q_wide.push_back(0.6); q_wide.insert(q_wide.begin(), 0.0);
+        auto I_wide = hist->debye_transform(q_wide);
+        for (int i = 0; i < static_cast<int>(q.size()); ++i) {
+            REQUIRE_THAT(I_wide.y(i+1), Catch::Matchers::WithinRel(I.y(i), 1e-6));
+        }
+
+        // an unsorted request is the sorted one, permuted
+        auto I_unsorted = hist->debye_transform(std::vector<double>{0.1, 0.6, 0.05});
+        CHECK_THAT(I_unsorted.y(0), Catch::Matchers::WithinRel(I.y(2), 1e-6));
+        CHECK_THAT(I_unsorted.y(1), Catch::Matchers::WithinRel(I_wide.y(7), 1e-6));
+        CHECK_THAT(I_unsorted.y(2), Catch::Matchers::WithinRel(I.y(1), 1e-6));
+
+        // the evaluated range must be left as it was
+        CHECK(settings::axes::qmax == 0.5);
+        CHECK(hist->debye_transform().size() == constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).bins);
+
+        // a later qmin/qmax change must not reuse intensities cached for the old range
+        settings::axes::qmax = 0.3;
+        auto I_narrow = hist->debye_transform();
+        CHECK(I_narrow.size() == constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).bins);
+        auto I_narrow_q = I_narrow.as_dataset().interpolate(std::vector<double>{0.1});
+        CHECK_THAT(I_narrow_q.y(0), Catch::Matchers::WithinRel(I.y(2), 1e-6));
+        settings::axes::qmax = 0.5;
+    };
+
+    SECTION("FFAvg")      {check(hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all());}
+    SECTION("FFExplicit") {check(hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all());}
+    SECTION("FFGrid")     {check(hist::HistogramManagerMTFFGrid(&protein).calculate_all());}
+}

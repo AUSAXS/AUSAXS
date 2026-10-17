@@ -7,10 +7,14 @@
 #include <hist/Histogram.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <settings/HistogramSettings.h>
+#include <utility/Exceptions.h>
 #include <utility/MultiThreading.h>
 
+#include <algorithm>
 #include <numeric>
+#include <string>
 #include <utility>
 
 using namespace ausaxs;
@@ -96,15 +100,43 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
 
 template<bool form_factor>
 Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
-    // if the q values are within the evaluated default range, we can just interpolate them for better performance
-    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
-    if (debye_axis.front() <= q.front() && q.back() <= debye_axis.back()) {
-        return debye_transform<form_factor>().as_dataset().interpolate(q);
+    if (q.empty()) {return {std::vector<double>{}, std::vector<double>{}};}
+    auto [qlo, qhi] = std::ranges::minmax_element(q); // q need not be sorted
+
+    // beyond the compile-time q axis only a direct sum of the total histogram is possible. That is fine for point scatterers and the
+    // Gaussian form factor of this class, but the excluded volume models are not accurate enough to be used there
+    if (constants::axes::q_axis.max < *qhi) {
+        if (form_factor && dynamic_cast<const ICompositeDistanceHistogramExv*>(this) != nullptr) {
+            throw except::invalid_argument(
+                "DistanceHistogram::debye_transform: q = " + std::to_string(*qhi) + " is above " + std::to_string(constants::axes::q_axis.max) + ". "
+                "The excluded volume models are not valid in this range; disable the excluded volume to evaluate it."
+            );
+        }
+        static table::DebyeTableManager sinc_table_extended;
+        sinc_table_extended.set_q_axis(q);
+        sinc_table_extended.set_d_axis(this->d_axis);
+        return {q, debye_sum<form_factor>(p, sinc_table_extended.get_sinc_table(), q)};
     }
-    static table::DebyeTableManager sinc_table_extended;
-    sinc_table_extended.set_q_axis(q);
-    sinc_table_extended.set_d_axis(this->d_axis);
-    return {q, debye_sum<form_factor>(p, sinc_table_extended.get_sinc_table(), q)};
+
+    // otherwise evaluate over the whole q axis regardless of qmin/qmax, so the result never depends on the range of the request, and interpolate
+    Dataset full;
+    {
+        // the subclasses read the evaluated range from the settings, so widen it for this call only
+        struct RangeGuard {
+            double qmin = settings::axes::qmin, qmax = settings::axes::qmax;
+            ~RangeGuard() {settings::axes::qmin.value = qmin; settings::axes::qmax.value = qmax;}
+        } guard;
+        settings::axes::qmin.value = constants::axes::q_axis.min;
+        settings::axes::qmax.value = constants::axes::q_axis.max;
+        full = debye_transform<form_factor>().as_dataset();
+    }
+
+    // I(q) is flat below the first axis point, so clamp rather than extrapolate there
+    std::vector<double> q_clamped(q.size());
+    std::ranges::transform(q, q_clamped.begin(), [front = full.x(0)] (double qi) {return std::max(qi, front);});
+    auto I = full.interpolate(q_clamped);
+    for (int i = 0; i < static_cast<int>(q.size()); ++i) {I.index(i, 0) = q[i];}
+    return I;
 }
 
 template std::vector<double> DistanceHistogram::debye_sum<true>(std::span<const double>, observer_ptr<const table::DebyeTable>, std::span<const double>, int);
