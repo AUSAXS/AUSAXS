@@ -2,6 +2,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Molecule.h>
 #include <em/ObjectBounds3D.h>
 #include <em/detail/ImageStackBase.h>
 #include <em/detail/header/MRCHeader.h>
@@ -83,11 +84,31 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
     SECTION("single image") {
+        settings::em::sample_frequency = 1;
         em::ImageStackBase isb(images);
         REQUIRE(isb.count_voxels(0) == 27);
         REQUIRE(isb.count_voxels(10) == 18);
         REQUIRE(isb.count_voxels(20) == 8);
         REQUIRE(isb.count_voxels(30) == 0);
+    }
+
+    // the sampling frequency is a stride in all three directions
+    SECTION("sampling frequency") {
+        SECTION("dummy images") {
+            settings::em::sample_frequency = 2;
+            em::ImageStackBase isb(images);
+
+            // x and y each stride 2 over a 3x3 image, so 4 of its 9 voxels are sampled, and z skips the middle image
+            CHECK(isb.count_voxels(0) == 8);
+        }
+
+        SECTION("real map") {
+            for (int frequency : {1, 2, 3}) {
+                settings::em::sample_frequency = frequency;
+                em::ImageStackBase isb("tests/files/A2M_2020_Q4.ccp4");
+                CHECK(isb.count_voxels(5) == static_cast<int>(isb.get_protein(5)->size_atom()));
+            }
+        }
     }
 }
 

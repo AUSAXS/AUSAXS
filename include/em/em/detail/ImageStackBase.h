@@ -65,6 +65,8 @@ namespace ausaxs::em {
 
             /**
              * @brief Count the number of voxels for a given cutoff.
+             *
+             * Only the sampled voxels are counted, so this is the atom count of the molecule generated from the same map and cutoff.
              */
             int count_voxels(double cutoff) const;
 
