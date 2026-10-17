@@ -12,6 +12,8 @@
 #include <grid/Grid.h>
 #include <grid/detail/GridMember.h>  // IWYU pragma: keep
 #include <hist/histogram_manager/HistogramManager.h>
+#include <hist/histogram_manager/HistogramManagerMT.h>
+#include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <hydrate/generation/RadialHydration.h>
@@ -988,5 +990,63 @@ TEST_CASE("Molecule::iterate_waters") {
             CHECK(water == waters[count++]);
         }
         REQUIRE(count == waters.size());
+    }
+}
+
+// with weighted_bins = auto, every molecule decides for itself, and the setting stays at auto
+TEST_CASE("Molecule::uses_weighted_bins") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+
+    SECTION("auto") {
+        settings::hist::weighted_bins = settings::hist::WeightedBins::Value::Auto;
+        data::Molecule disordered("tests/files/2epe.pdb");
+        data::Molecule ordered("tests/files/c60.pdb");
+        CHECK_FALSE(disordered.uses_weighted_bins());
+        CHECK(settings::hist::weighted_bins->is_auto());
+        CHECK(ordered.uses_weighted_bins());
+
+        // in either order
+        data::Molecule ordered2("tests/files/c60.pdb");
+        data::Molecule disordered2("tests/files/2epe.pdb");
+        CHECK(ordered2.uses_weighted_bins());
+        CHECK_FALSE(disordered2.uses_weighted_bins());
+        CHECK(settings::hist::weighted_bins->is_auto());
+    }
+
+    SECTION("explicit") {
+        data::Molecule ordered("tests/files/c60.pdb");
+        settings::hist::weighted_bins = false;
+        CHECK_FALSE(ordered.uses_weighted_bins());
+        settings::hist::weighted_bins = true;
+        CHECK(ordered.uses_weighted_bins());
+    }
+
+    // the first calculation is kept for a disordered molecule, and redone with weighted bins for an ordered one
+    SECTION("get_histogram") {
+        auto profile = [] (const std::string& file) {return data::Molecule(file).get_histogram()->debye_transform().get_intensity();};
+        for (auto [file, weighted] : {std::pair{"tests/files/2epe.pdb", false}, std::pair{"tests/files/c60.pdb", true}}) {
+            settings::hist::weighted_bins = weighted;
+            auto expected = profile(file);
+            settings::hist::weighted_bins = settings::hist::WeightedBins::Value::Auto;
+            auto result = profile(file);
+            REQUIRE(result.size() == expected.size());
+            for (int i = 0; i < static_cast<int>(result.size()); ++i) {
+                REQUIRE_THAT(result[i], Catch::Matchers::WithinRel(expected[i], 1e-5));
+            }
+        }
+    }
+
+    SECTION("type and decision are kept") {
+        settings::hist::weighted_bins = settings::hist::WeightedBins::Value::Auto;
+        data::Molecule ordered("tests/files/c60.pdb");
+        ordered.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTBase<false, false>*>(ordered.get_histogram_manager()) != nullptr);
+        (void) ordered.get_histogram();
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTBase<true, false>*>(ordered.get_histogram_manager()) != nullptr);
+
+        ordered.reset_histogram_manager();
+        CHECK(dynamic_cast<hist::HistogramManagerMT<true>*>(ordered.get_histogram_manager()) != nullptr);
     }
 }

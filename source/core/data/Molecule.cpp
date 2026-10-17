@@ -60,37 +60,40 @@ Molecule& Molecule::operator=(Molecule&& other) noexcept {
     bodies = std::move(other.bodies);
     grid = std::move(other.grid);
     grid_atom_count = other.grid_atom_count; // must follow the grid, or it would immediately be considered stale and discarded
+    auto_weighted_bins = other.auto_weighted_bins; // a property of the structure, which moved along
     initialize(); // reinitialize since some of the members contains pointers to the old object
     return *this;
 }
 
+namespace {
+    // whether settings::hist::weighted_bins = auto leaves the bins to the molecule. The grid models always use weighted bins.
+    bool auto_bins() {
+        return settings::hist::weighted_bins->is_auto() && !hist::factory::uses_grid_exv();
+    }
+
+    // the bins of a new manager. Under auto they are unweighted until the molecule has decided otherwise, since most molecules
+    // are disordered: their first calculation is then also their final one.
+    bool initial_weighted_bins(std::optional<bool> decision) {
+        return auto_bins() ? decision.value_or(false) : settings::hist::weighted_bins->is_true();
+    }
+
+    // whether unweighted bins would distort the profile of a molecule. Ordering must be measured from the atom-atom component:
+    // hydration can hide sharp peaks in the total p(r).
+    bool is_ordered(const hist::ICompositeDistanceHistogram& histogram) {
+        return hist::DistanceHistogram::is_highly_ordered(histogram.get_aa_counts().get_content());
+    }
+}
+
 void Molecule::lazy_histogram_manager_init() const {
     if (phm != nullptr) {return;}
-    if (!settings::hist::weighted_bins->is_auto()) {
-        phm = hist::factory::construct_histogram_manager(this);
-        bind_body_signallers();
-        return;
-    }
-
-    // First build the cheap representation. Ordering must be measured from the atom-atom component: hydration can hide sharp peaks in the total p(r).
-    settings::hist::weighted_bins = false;
-    phm = hist::factory::construct_histogram_manager(this, false);
+    phm = hist::factory::construct_histogram_manager(this, initial_weighted_bins(auto_weighted_bins));
     bind_body_signallers();
-    const auto histogram = phm->calculate_all();
-    const bool ordered = hist::DistanceHistogram::is_highly_ordered(histogram->get_aa_counts().get_content());
-    const bool grid = hist::factory::uses_grid_exv();
-    settings::hist::weighted_bins = ordered || grid;
+}
 
-    if (settings::hist::weighted_bins->is_true()) {
-        phm = hist::factory::construct_histogram_manager(this, true);
-        bind_body_signallers();
-        console::print_text(grid
-            ? "Molecule: weighted bins enabled (required by grid excluded volume)."
-            : "Molecule: weighted bins enabled automatically (ordered atom-atom structure)."
-        );
-    } else {
-        console::print_text("Molecule: weighted bins disabled automatically (disordered atom-atom structure).");
-    }
+bool Molecule::uses_weighted_bins() const {
+    if (!auto_bins()) {return hist::factory::uses_grid_exv() || settings::hist::weighted_bins->is_true();}
+    if (!auto_weighted_bins) {(void) get_histogram();} // decides
+    return *auto_weighted_bins;
 }
 
 void Molecule::reset_histogram_manager() {phm = nullptr;}
@@ -267,10 +270,23 @@ void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrateg
 }
 
 std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
-    return get_histogram_manager()->calculate_all();
+    auto histogram = get_histogram_manager()->calculate_all();
+    if (!auto_bins() || auto_weighted_bins) {return histogram;}
+
+    // Under auto, the first calculation decides whether its unweighted bins are good enough, and is redone with weighted bins if not.
+    auto_weighted_bins = is_ordered(*histogram);
+    if (!*auto_weighted_bins) {
+        console::print_text("Molecule: weighted bins disabled automatically (disordered structure).");
+        return histogram;
+    }
+    console::print_text("Molecule: weighted bins enabled automatically (ordered structure); recalculating distance histogram.");
+    phm = hist::factory::construct_histogram_manager(this, phm->get_type(), true);
+    bind_body_signallers();
+    return phm->calculate_all();
 }
 
 std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
+    if (auto_bins() && !auto_weighted_bins) {return get_histogram();} // the decision needs the atom-atom component
     return get_histogram_manager()->calculate();
 }
 
@@ -368,7 +384,7 @@ void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> ma
 }
 
 void Molecule::set_histogram_manager(settings::hist::HistogramManagerChoice choice) {
-    phm = hist::factory::construct_histogram_manager(this, choice);
+    phm = hist::factory::construct_histogram_manager(this, choice, initial_weighted_bins(auto_weighted_bins));
     bind_body_signallers();
 }
 
