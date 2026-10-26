@@ -30,6 +30,5 @@ namespace ausaxs::rigidbody::sequencer {
         private:
             observer_ptr<LoopElement> owner;
             std::shared_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy;
-            int iterations = 0;
     };
 }

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <fitter/FitResult.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
@@ -67,6 +68,9 @@ TEST_CASE("SequenceParser: a bare loop takes the nearest preceding parameter cou
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 250;
 
+    // the count lives in the decay strategy, so it must survive every decay choice, including one that does not decay
+    std::string decay = GENERATE("linear", "exponential", "none");
+
     std::string config =
         "load {\n"
         "    pdb tests/files/LAR1-2.pdb\n"
@@ -77,6 +81,7 @@ TEST_CASE("SequenceParser: a bare loop takes the nearest preceding parameter cou
         "    iterations 2\n"
         "    translate 1\n"
         "    rotate 1\n"
+        "    decay " + decay + "\n"
         "}\n"
         "loop\n"
         "    optimize_once\n"
@@ -86,6 +91,7 @@ TEST_CASE("SequenceParser: a bare loop takes the nearest preceding parameter cou
         "    iterations 5\n"
         "    translate 1\n"
         "    rotate 1\n"
+        "    decay " + decay + "\n"
         "}\n"
         "loop\n"
         "    optimize_once\n"

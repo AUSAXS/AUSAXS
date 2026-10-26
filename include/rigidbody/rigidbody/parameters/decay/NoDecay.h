@@ -12,6 +12,7 @@ namespace ausaxs::rigidbody::parameter::decay {
     class NoDecay : public DecayStrategy {
         public:
             NoDecay() = default;
+            NoDecay(int iterations) : DecayStrategy(iterations) {}
             ~NoDecay() override = default;
 
             double next() override {return 1;}
