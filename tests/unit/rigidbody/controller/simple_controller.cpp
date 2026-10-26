@@ -89,4 +89,22 @@ TEST_CASE_METHOD(ControllerFixture, "Controllers::SimpleController basic functio
         fitter::ConstrainedFitter reference(rb->constraints.get(), io::ExistingFile("tests/files/2epe.dat"), rb->molecule.get_histogram());
         CHECK_THAT(ctrl.get_fitter()->fit_chi2_only(), Catch::Matchers::WithinRel(reference.fit_chi2_only(), 1e-12));
     }
+
+    SECTION("A rejected step restores the best hydration shell rather than generating a new one") {
+        rb->molecule.generate_new_hydration(); // as Sequencer::execute() does before setup()
+        ctrl.setup(io::ExistingFile("tests/files/2epe.dat"));
+        auto expected = rb->molecule.get_waters();
+        REQUIRE_FALSE(expected.empty());
+
+        // run until a step is rejected, tracking the shell of the best conformation
+        bool rejected = false;
+        for (int i = 0; i < 100 && !rejected; ++i) {
+            rejected = !ctrl.prepare_step();
+            ctrl.finish_step();
+            if (!rejected) {expected = rb->molecule.get_waters();}
+        }
+        REQUIRE(rejected);
+        CHECK(rb->molecule.get_waters() == expected);
+        CHECK(ctrl.get_current_best_config()->waters == expected);
+    }
 }

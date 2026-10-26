@@ -93,6 +93,37 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement stop 
         CHECK(result->fval > 0);
     }
 
+    SECTION("A stopped run still runs the top-level save elements") {
+        settings::general::output = ""; // save paths are resolved against it at parse time
+        io::File fit_file("temp/ausaxs_test_stop_" + test::detail::unique_tag() + ".fit");
+        auto seq = SequenceParser().parse_text(
+            "load {\n"
+            "    pdb tests/files/2epe.pdb\n"
+            "    saxs tests/files/2epe.dat\n"
+            "    split 40 80\n"
+            "}\n"
+            "loop 10\n"
+            "    optimize_once\n"
+            "    end\n"
+            "end\n"
+            "save " + fit_file.path() + "\n"
+        );
+        REQUIRE(seq != nullptr);
+        LoopElement* loop = nullptr;
+        for (auto& e : seq->_get_elements()) {
+            if (auto* l = dynamic_cast<LoopElement*>(e.get()); l != nullptr && loop == nullptr) {loop = l;}
+        }
+        REQUIRE(loop != nullptr);
+        loop->_get_elements().push_back(std::make_unique<StopRequestElement>());
+
+        fit_file.directory().create();
+        seq->execute();
+        CHECK(LoopElement::_get_current_iteration() == 1);
+        CHECK(fit_file.exists());
+        fit_file.remove();
+        settings::general::output.reset();
+    }
+
     SECTION("A stop requested while nothing is running does not affect the next run") {
         LoopElement::_request_stop();
 

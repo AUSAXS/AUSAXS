@@ -119,9 +119,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
         }
 
         auto res = rigidbody::sequencer::SequenceParser().parse_file(script)->execute();
-        fitter::FitReporter::report(res.get());
-        fitter::FitReporter::save(res.get(), settings::general::output + "fit.txt");
-        res->curves.save(settings::general::output + "ausaxs.fit", "chi2=" + std::to_string(res->fval/res->dof) + " dof=" + std::to_string(res->dof));
+        fitter::FitReporter::report(res.get()); // what lands on disk is up to the script's own 'save' elements
     } catch (const except::base&) {
         return 1; // our own exceptions already report themselves when thrown
     } catch (const std::exception& e) {

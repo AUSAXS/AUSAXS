@@ -3,6 +3,7 @@
 
 #include <rigidbody/sequencer/elements/SaveElement.h>
 
+#include <fitter/FitReporter.h>
 #include <fitter/FitResult.h>
 #include <io/detail/trajectory/XYZWriter.h>
 #include <plots/PlotDataset.h>
@@ -20,6 +21,7 @@ using namespace ausaxs::rigidbody::sequencer;
 namespace {
     int pdb_counter = 0;
     int fit_counter = 0;
+    int txt_counter = 0;
     int png_counter = 0;
     std::unordered_map<std::string, ausaxs::io::detail::xyz::XYZWriter> writers;
 }
@@ -35,6 +37,7 @@ SaveElement::~SaveElement() {
 void SaveElement::reset_statics() {
     pdb_counter = 0;
     fit_counter = 0;
+    txt_counter = 0;
     png_counter = 0;
     writers.clear();
 }
@@ -62,11 +65,18 @@ void SaveElement::run() {
 
     // FIT
     else if (ext == ".fit") {
+        // the same file the fitting CLIs write: all named columns, residuals included
         auto result = fit_current_state();
-        result->curves.select_columns({0, 1, 2, 3}).save(
+        result->curves.save(
             insert_counter(path, fit_counter),
-            "chi2=" + std::to_string(result->fval/result->dof) + ", dof=" + std::to_string(result->dof)
+            "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
         );
+    }
+
+    // TXT - the fit report
+    else if (ext == ".txt") {
+        auto result = fit_current_state();
+        fitter::FitReporter::save(result.get(), insert_counter(path, txt_counter));
     }
 
     // PNG
@@ -94,7 +104,7 @@ void SaveElement::run() {
         }
         writers.at(p).write_frame(owner->_get_molecule());
     } else {
-        throw ausaxs::except::runtime_error("SaveElement::run: Unknown file format: \"" + ext + "\"");
+        throw ausaxs::except::runtime_error("SaveElement::run: Unknown file format: \"" + ext + "\". Valid formats are .pdb, .fit, .txt, .png and .xyz.");
     }
 }
 
