@@ -36,6 +36,7 @@ Checks: >
   -bugprone-empty-catch,
   -bugprone-implicit-widening-of-multiplication-result,
   -bugprone-branch-clone,
+  -bugprone-unchecked-optional-access,
   -bugprone-virtual-near-miss,
   -clang-analyzer-optin.core.EnumCastOutOfRange,
   -clang-analyzer-security.FloatLoopCounter,
@@ -95,6 +96,14 @@ Checks: >
 #       include/core/container/ArrayContainer2D.h multiplies two `int` template
 #       arguments, where an overflowing product would not compile in the first place.
 #       The fixit only asks for a static_cast on operands that are already known small.
+#   bugprone-unchecked-optional-access
+#       The analysis does not follow function calls, so an optional that a call is
+#       guaranteed to fill is still reported as unchecked afterwards. Molecule::
+#       uses_weighted_bins is the motivating case: `if (!opt) {get_histogram();}`
+#       followed by `*opt`, where get_histogram() always makes the decision that
+#       fills opt. `.value()` counts as unchecked too, so the only edits that
+#       satisfy the check are restructuring, NOLINT, or a value_or() fallback that
+#       can never be taken and that misstates the invariant to the reader.
 #   bugprone-virtual-near-miss
 #       Renames a derived method whose name is within a small edit distance of a base
 #       class virtual with the same signature, assuming the near-match was a typo. The

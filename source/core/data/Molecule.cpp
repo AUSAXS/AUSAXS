@@ -92,9 +92,8 @@ void Molecule::lazy_histogram_manager_init() const {
 
 bool Molecule::uses_weighted_bins() const {
     if (!auto_bins()) {return hist::factory::uses_grid_exv() || settings::hist::weighted_bins->is_true();}
-    auto decision = auto_weighted_bins;
-    if (!decision.has_value()) {(void) get_histogram();} // decides
-    return *decision;
+    if (!auto_weighted_bins.has_value()) {(void) get_histogram();} // decides
+    return *auto_weighted_bins;
 }
 
 void Molecule::reset_histogram_manager() {phm = nullptr;}
