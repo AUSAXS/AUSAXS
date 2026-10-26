@@ -185,8 +185,10 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
 
         auto* last_parameter_element = find_last_parameter_element();
         if (!last_parameter_element) {
-            throw except::parse_error("loop", "Could not deduce the number of iterations: no preceding \"parameter\" element was found. "
-                "Either add one, or state the count explicitly as e.g. \"loop 100\".");
+            throw except::parse_error("loop", 
+                "Could not deduce the number of iterations: no preceding \"parameters\" element was found. "
+                "Either add one, or state the count explicitly as e.g. \"loop 100\"."
+            );
         }
         int iterations = last_parameter_element->get_parameter_strategy()->get_decay_strategy()->get_iterations();
         return iterations;

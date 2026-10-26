@@ -19,8 +19,8 @@ namespace ausaxs::settings {
         enum class BodySelectStrategyChoice {
             RandomBodySelect,           // Select a random body, then a random constraint within that body. 
             RandomConstraintSelect,     // Select a random constraint. 
-            SequentialBodySelect,       // Select the first constraint, then the second, etc.
-            SequentialConstraintSelect, // Select the first body, then the second, etc.
+            SequentialBodySelect,       // Select the first body, then the second, etc.
+            SequentialConstraintSelect, // Select the first constraint, then the second, etc.
             ManualSelect                // Select a body and a constraint manually.
         };
 

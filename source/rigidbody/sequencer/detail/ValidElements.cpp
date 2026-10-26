@@ -6,7 +6,6 @@
 #include <rigidbody/sequencer/detail/AdditionalElements.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/All.h>
-#include <utility/StringUtils.h>
 
 #include <algorithm>
 #include <cassert>
@@ -44,7 +43,7 @@ namespace {
             {ElementType::OptimizeStep, {"optimize_step", "optimize_once"}},
             {ElementType::OutputFolder, {"output", "output_folder"}},
             {ElementType::OverlapStrength, {"overlap_strength"}},
-            {ElementType::Parameter, {"parameter", "parameter_generator"}},
+            {ElementType::Parameter, {"parameters", "parameter_generator"}},
             {ElementType::RelativeHydration, {"relative_hydration"}},
             {ElementType::Rename, {"rename"}},
             {ElementType::Save, {"save", "write"}},
@@ -191,12 +190,8 @@ void ausaxs::rigidbody::sequencer::detail::validate_named_arguments(ElementType 
 
 ElementType ausaxs::rigidbody::sequencer::detail::get_type(std::string_view line) {
     const auto& type_map = get_type_map();
-    for (const auto& [type, prefixes] : type_map) {
-        for (const auto& prefix : prefixes) {
-            if (line.starts_with(prefix) && (line.size() == prefix.size() || !utility::isalpha(line[prefix.size()]))) {
-                return type;
-            }
-        }
+    for (const auto& [type, names] : type_map) {
+        if (std::ranges::find(names, line) != names.end()) {return type;}
     }
     throw except::parse_error("base", "Unknown element \"" + std::string(line) + "\".");
 }

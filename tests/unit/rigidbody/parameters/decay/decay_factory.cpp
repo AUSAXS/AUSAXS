@@ -13,15 +13,18 @@ TEST_CASE("DecayFactory::create_decay_strategy") {
     SECTION("Linear") {
         auto decay = factory::create_decay_strategy(100, settings::rigidbody::DecayStrategyChoice::Linear);
         REQUIRE(dynamic_cast<parameter::decay::LinearDecay*>(decay.get()) != nullptr);
+        CHECK(decay->get_iterations() == 100); // a bare `loop` takes its count from here
     }
 
     SECTION("Exponential") {
         auto decay = factory::create_decay_strategy(100, settings::rigidbody::DecayStrategyChoice::Exponential);
         REQUIRE(dynamic_cast<parameter::decay::ExponentialDecay*>(decay.get()) != nullptr);
+        CHECK(decay->get_iterations() == 100); // a bare `loop` takes its count from here
     }
 
     SECTION("None") {
         auto decay = factory::create_decay_strategy(100, settings::rigidbody::DecayStrategyChoice::None);
         REQUIRE(dynamic_cast<parameter::decay::NoDecay*>(decay.get()) != nullptr);
+        CHECK(decay->get_iterations() == 100); // a bare `loop` takes its count from here
     }
 }

@@ -18,7 +18,7 @@ std::unique_ptr<rigidbody::parameter::decay::DecayStrategy> rigidbody::factory::
         case settings::rigidbody::DecayStrategyChoice::Exponential:
             return std::make_unique<rigidbody::parameter::decay::ExponentialDecay>(iterations);
         case settings::rigidbody::DecayStrategyChoice::None:
-            return std::make_unique<rigidbody::parameter::decay::NoDecay>();
+            return std::make_unique<rigidbody::parameter::decay::NoDecay>(iterations); // the count is still read by a bare `loop`, so it must be carried even though nothing decays
         default:
             throw except::unknown_argument("rigidbody::parameters::factory::create_decay_strategy: Unknown strategy. Did you forget to add it to the switch statement?");
     }

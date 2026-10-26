@@ -44,7 +44,7 @@ struct ArgWhitelistFixture {
 TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments are rejected", "[files]") {
     SECTION("an unknown key in an element that has a whitelist") {
         CHECK_THROWS_AS(parse(load() +
-            "parameter {\n"
+            "parameters {\n"
             "    iterations 10\n"
             "    translate 5\n"
             "    symmetry 1\n"
@@ -54,7 +54,7 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
 
     SECTION("a misspelled key is rejected rather than silently defaulted") {
         CHECK_THROWS_AS(parse(load() +
-            "parameter {\n"
+            "parameters {\n"
             "    iteration 10\n"
             "    translate 5\n"
             "}\n"
@@ -72,7 +72,7 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
     SECTION("the error names the offending key and lists the valid ones") {
         try {
             parse(load() +
-                "parameter {\n"
+                "parameters {\n"
                 "    iterations 10\n"
                 "    translate 5\n"
                 "    symmetry 1\n"
@@ -88,7 +88,7 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
 
     SECTION("every valid key is still accepted") {
         CHECK_NOTHROW(parse(load() + "symmetry c2\n" +
-            "parameter {\n"
+            "parameters {\n"
             "    iterations 10\n"
             "    translate 5\n"
             "    rotate 0.1\n"
@@ -224,5 +224,23 @@ TEST_CASE("SequenceParser: every element declares its own named arguments") {
         for (const auto& arg : args) {
             CHECK_FALSE(arg.empty());
         }
+    }
+}
+
+TEST_CASE("SequenceParser: element names must match a registered name exactly") {
+    using namespace ausaxs::rigidbody::sequencer::detail;
+    CHECK(get_type("loop") == ElementType::LoopBegin);
+    CHECK(get_type("parameters") == ElementType::Parameter);
+
+    // a registered name followed by anything else is a different, unknown name: "loop3" used to parse as a bare "loop"
+    CHECK_THROWS_AS(get_type("loop3"), sequencer::except::parse_error);
+    CHECK_THROWS_AS(get_type("loop_3"), sequencer::except::parse_error);
+    CHECK_THROWS_AS(get_type("save-all"), sequencer::except::parse_error);
+    CHECK_THROWS_AS(get_type("parameters_strategy"), sequencer::except::parse_error);
+
+    // every name the parser accepts is advertised to the GUI
+    for (const auto& name : valid_elements()) {
+        INFO(name);
+        CHECK_NOTHROW(get_type(name));
     }
 }
