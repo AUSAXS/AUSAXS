@@ -18,10 +18,11 @@ using namespace ausaxs::rigidbody::sequencer;
 std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg) const {
     static auto iteration = [] () { return std::to_string(LoopElement::_get_current_iteration()); };
     static auto iterations_total  = [] () { return std::to_string(LoopElement::_get_total_iterations()); };
-    auto chi2 = [this] () { return utility::round_double(owner->_get_current_conf()->chi2, 3); };
-    auto chi2_best = [this] () { return utility::round_double(owner->_get_best_conf()->chi2, 3); };
-    auto chi2_penalty = [this] () { return utility::round_double(owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3); };
-    auto chi2_no_penalty = [this] () { return utility::round_double(owner->_get_current_conf()->chi2 - owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2(), 3);};
+    auto dof = [this] () { return static_cast<double>(owner->_get_rigidbody()->controller->get_fitter()->dof()); };
+    auto chi2 = [this, dof] () { return utility::round_double(owner->_get_current_conf()->chi2/dof(), 3); };
+    auto chi2_best = [this, dof] () { return utility::round_double(owner->_get_best_conf()->chi2/dof(), 3); };
+    auto chi2_penalty = [this, dof] () { return utility::round_double(owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2()/dof(), 3); };
+    auto chi2_no_penalty = [this, dof] () { return utility::round_double((owner->_get_current_conf()->chi2 - owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2())/dof(), 3);};
     auto body_names = [this] () {
         const auto& entries = owner->_get_sequencer()->_body_name_registry().all();
 
