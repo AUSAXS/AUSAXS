@@ -36,17 +36,21 @@ TEST_CASE("MessageElement: placeholders") {
     std::string it = std::to_string(LoopElement::_get_current_iteration());
 
     CHECK(contains(printed("A: it={iteration} end"), "A: it=" + it + " end"));
+    CHECK(contains(printed("B: it={iteration} again={iteration} end"), "B: it=" + it + " again=" + it + " end"));
+}
 
-    // an unknown placeholder is plain text, and the values after it stay where they were written;
-    // the parts used to be paired with the values off by one: "B: {unknown}<it> it= end"
-    CHECK(contains(printed("B: {unknown} it={iteration} end"), "B: {unknown} it=" + it + " end"));
-    CHECK(contains(printed("D: it={iteration} {x} again={iteration} end"), "D: it=" + it + " {x} again=" + it + " end"));
-    CHECK(contains(printed("E: {}{iteration}"), "E: {}" + it));
+TEST_CASE("MessageElement: an unknown placeholder or stray brace is refused") {
+    // the user evidently meant to print a value there, so it must not silently become text
+    Sequencer sequencer;
+    CHECK_THROWS_AS(MessageElement(&sequencer, "{unknown}", "white", false), rigidbody::sequencer::except::parse_error);
+    CHECK_THROWS_AS(MessageElement(&sequencer, "it={iteration} {x}", "white", false), rigidbody::sequencer::except::parse_error);
+    CHECK_THROWS_AS(MessageElement(&sequencer, "{}", "white", false), rigidbody::sequencer::except::parse_error);
+    CHECK_THROWS_AS(MessageElement(&sequencer, "{chi}", true), rigidbody::sequencer::except::parse_error);
 
-    // a lone brace is plain text; the text before it used to be printed twice
-    std::string lone = printed("C: brace { open");
-    CHECK(contains(lone, "C: brace { open"));
-    CHECK_FALSE(contains(lone, "C: brace C: brace"));
+    // braces are reserved for placeholders, so a stray one is refused too
+    CHECK_THROWS_AS(MessageElement(&sequencer, "brace { open", "white", false), rigidbody::sequencer::except::parse_error);
+    CHECK_THROWS_AS(MessageElement(&sequencer, "brace } close", "white", false), rigidbody::sequencer::except::parse_error);
+    CHECK_THROWS_AS(MessageElement(&sequencer, "{ {iteration}", "white", false), rigidbody::sequencer::except::parse_error);
 }
 
 TEST_CASE("MessageElement: an unknown colour is refused when the script is parsed", "[files]") {

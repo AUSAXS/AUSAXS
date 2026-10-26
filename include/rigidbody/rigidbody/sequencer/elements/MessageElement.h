@@ -32,6 +32,10 @@ namespace ausaxs::rigidbody::sequencer {
         private:
             observer_ptr<LoopElement> owner;
             std::function<void()> message_func;
-            std::function<std::string()> parse_user_msg(std::string_view msg) const;
+
+            /**
+             * @brief Build the message from its text and {placeholders}. An unknown placeholder throws a parse_error for @p element.
+             */
+            std::function<std::string()> parse_user_msg(std::string_view msg, std::string_view element) const;
     };
 }

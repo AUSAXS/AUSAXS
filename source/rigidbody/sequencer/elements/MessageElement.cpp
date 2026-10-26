@@ -14,10 +14,12 @@
 #include <utility/StringUtils.h>
 
 #include <cassert>
+#include <utility>
+#include <vector>
 
 using namespace ausaxs::rigidbody::sequencer;
 
-std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg) const {
+std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg, std::string_view element) const {
     static auto iteration = [] () { return std::to_string(LoopElement::_get_current_iteration()); };
     static auto iterations_total  = [] () { return std::to_string(LoopElement::_get_total_iterations()); };
     auto dof = [this] () { return static_cast<double>(owner->_get_rigidbody()->controller->get_fitter()->dof()); };
@@ -36,33 +38,38 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
         return utility::join(parts, ", ");
     };
 
+    const std::vector<std::pair<std::string_view, std::function<std::string()>>> placeholders = {
+        {"{iteration}", iteration},
+        {"{iterations_total}", iterations_total},
+        {"{chi2}", chi2},
+        {"{chi2_best}", chi2_best},
+        {"{chi2_penalty}", chi2_penalty},
+        {"{chi2_no_penalty}", chi2_no_penalty},
+        {"{body_names}", body_names}
+    };
     auto known_placeholder = [&] (std::string_view placeholder) -> std::function<std::string()> {
-        if (placeholder == "{iteration}") {return iteration;}
-        if (placeholder == "{iterations_total}") {return iterations_total;}
-        if (placeholder == "{chi2}") {return chi2;}
-        if (placeholder == "{chi2_best}") {return chi2_best;}
-        if (placeholder == "{chi2_penalty}") {return chi2_penalty;}
-        if (placeholder == "{chi2_no_penalty}") {return chi2_no_penalty;}
-        if (placeholder == "{body_names}") {return body_names;}
-        return nullptr;
+        for (const auto& [name, func] : placeholders) {
+            if (name == placeholder) {return func;}
+        }
+
+        std::string valid;
+        for (const auto& [name, func] : placeholders) {valid += (valid.empty() ? "" : ", ") + std::string(name);}
+        throw except::parse_error(element, "Unknown placeholder \"" + std::string(placeholder) + "\" in \"" + std::string(msg) + "\". Valid placeholders are: " + valid + ".");
     };
 
-    // parts[i] is the text before funcs[i], and parts always has one more entry than funcs. A new part is started only
-    // at a known placeholder: an unknown one, or a lone '{', is ordinary text and stays in the current part.
+    // '{' and '}' are reserved: every {...} must be a known placeholder. parts[i] is the text before funcs[i], so parts always has one
+    // more entry than funcs.
     std::vector<std::string> parts(1);
     std::vector<std::function<std::string()>> funcs;
     for (std::size_t i = 0; i < msg.size(); ++i) {
-        if (msg[i] == '{') {
-            if (std::size_t end = msg.find('}', i); end != std::string_view::npos) {
-                if (auto func = known_placeholder(msg.substr(i, end - i + 1))) {
-                    funcs.emplace_back(std::move(func));
-                    parts.emplace_back();
-                    i = end;
-                    continue;
-                }
-            }
-        }
-        parts.back() += msg[i];
+        if (msg[i] == '}') {throw except::parse_error(element, R"(Unmatched "}" in ")" + std::string(msg) + "\".");}
+        if (msg[i] != '{') {parts.back() += msg[i]; continue;}
+
+        std::size_t end = msg.find('}', i);
+        if (end == std::string_view::npos) {throw except::parse_error(element, R"(Unclosed "{" in ")" + std::string(msg) + "\".");}
+        funcs.emplace_back(known_placeholder(msg.substr(i, end - i + 1)));
+        parts.emplace_back();
+        i = end;
     }
     assert(parts.size() == funcs.size() + 1);
     return [parts, funcs] () {
@@ -82,7 +89,7 @@ MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> o
 MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, std::string_view colour, bool log) 
     : owner(owner)
 {
-    message_func = [log, colour=console::color::parse(colour), builder=parse_user_msg(message)] () -> void {
+    message_func = [log, colour=console::color::parse(colour), builder=parse_user_msg(message, log ? "log" : "print")] () -> void {
         if (log) {
             logging::log(builder());
         } else {
