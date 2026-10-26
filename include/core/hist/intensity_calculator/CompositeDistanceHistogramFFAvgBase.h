@@ -231,7 +231,6 @@ namespace ausaxs::hist {
                     container::TriangularContainer3D<double> aa; // unordered pairs, like the distribution it is built from
                     container::Container2D<double> aw;
                     container::Container1D<double> ww;
-                    int q0 = -1, bins = 0; // the slice of the q axis the cache covers; a qmin/qmax change makes it stale
                     bool valid = false;
                 } sinqd;
 

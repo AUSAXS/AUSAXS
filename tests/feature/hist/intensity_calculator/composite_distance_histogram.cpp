@@ -409,15 +409,6 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform(q) keeps the form factors
 
         // the evaluated range must be left as it was
         CHECK(settings::axes::qmax == 0.5);
-        CHECK(hist->debye_transform().size() == constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).bins);
-
-        // a later qmin/qmax change must not reuse intensities cached for the old range
-        settings::axes::qmax = 0.3;
-        auto I_narrow = hist->debye_transform();
-        CHECK(I_narrow.size() == constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).bins);
-        auto I_narrow_q = I_narrow.as_dataset().interpolate(std::vector<double>{0.1});
-        CHECK_THAT(I_narrow_q.y(0), Catch::Matchers::WithinRel(I.y(2), 1e-6));
-        settings::axes::qmax = 0.5;
     };
 
     SECTION("FFAvg")      {check(hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all());}

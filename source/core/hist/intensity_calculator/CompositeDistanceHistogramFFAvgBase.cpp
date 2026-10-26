@@ -385,9 +385,7 @@ std::tuple<
     std::vector<double>, std::vector<double>, std::vector<double>, 
     std::vector<double>, std::vector<double>, std::vector<double>
 > CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_get_intensity_profiles() const {
-    Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
-    int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
-    if (!cache.sinqd.valid || cache.sinqd.q0 != q0 || cache.sinqd.bins != debye_axis.bins) {
+    if (!cache.sinqd.valid) {
         cache_refresh_sinqd();
         cache_refresh_intensity_profiles(true, true, true);
         cache.sinqd.valid = true;
@@ -438,8 +436,6 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
     cache_refresh_sinqd_atomic();
     cache_refresh_sinqd_exv();
     utility::multi_threading::get_global_pool()->wait();
-    cache.sinqd.q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
-    cache.sinqd.bins = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).bins;
     cache.sinqd.valid = true;
 }
 
@@ -451,7 +447,7 @@ void CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::cache_refresh_sin
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
-    if (cache.sinqd.ww.size() != debye_axis.bins) {
+    if (cache.sinqd.aa.empty()) {
         cache.sinqd.aa = container::TriangularContainer3D<double>(form_factor::get_active_count(), form_factor::get_active_count(), debye_axis.bins);
         cache.sinqd.aw = container::Container2D<double>(form_factor::get_active_count(), debye_axis.bins);
         cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
