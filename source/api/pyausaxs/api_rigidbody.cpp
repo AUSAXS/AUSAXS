@@ -24,12 +24,20 @@
 using namespace ausaxs;
 
 namespace {
-struct _rigidbody_script_obj {
-    std::string script;
-    // lazily parsed and cached on the first read-only preview query (see get_cached_sequencer below)
-    std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
-};
+    // Lazily parsed and cached on the first query, and consumed by a run.
+    struct _rigidbody_script_obj {
+        std::string script;
+        std::unique_ptr<rigidbody::sequencer::Sequencer> sequencer;
+    };
+
+    rigidbody::sequencer::Sequencer& get_cached_sequencer(_rigidbody_script_obj& obj) {
+        if (!obj.sequencer) {
+            obj.sequencer = rigidbody::sequencer::SequenceParser().parse_text(obj.script);
+        }
+        return *obj.sequencer;
+    }
 }
+
 int rigidbody_load_script(
     const char* script,
     int* status
@@ -41,20 +49,11 @@ int rigidbody_load_script(
 }, status);}
 
 namespace {
-    rigidbody::sequencer::Sequencer& get_cached_sequencer(_rigidbody_script_obj& obj) {
-        if (!obj.sequencer) {
-            obj.sequencer = rigidbody::sequencer::SequenceParser().parse_text(obj.script);
-        }
-        return *obj.sequencer;
-    }
-}
-
-namespace {
-struct _rigidbody_preview_structure_obj {
-    std::vector<double> x, y, z;
-    std::vector<int> body_index, copy_index, residue_seq, is_ca;
-    std::vector<int> constraint_data; // flat triplets: [index1, index2, type, ...]
-};
+    struct _rigidbody_preview_structure_obj {
+        std::vector<double> x, y, z;
+        std::vector<int> body_index, copy_index, residue_seq, is_ca;
+        std::vector<int> constraint_data; // flat triplets: [index1, index2, type, ...]
+    };
 }
 int rigidbody_get_preview_structure(
     int rigidbody_id,
@@ -141,9 +140,9 @@ int rigidbody_get_preview_structure(
 }, status);}
 
 namespace {
-struct _rigidbody_live_structure_obj {
-    std::vector<double> x, y, z;
-};
+    struct _rigidbody_live_structure_obj {
+        std::vector<double> x, y, z;
+    };
 }
 int rigidbody_get_live_structure(
     double** x, double** y, double** z,
@@ -171,9 +170,9 @@ int rigidbody_get_live_structure(
 }, status);}
 
 namespace {
-struct _rigidbody_live_poller_obj {
-    std::vector<double> x, y, z;
-};
+    struct _rigidbody_live_poller_obj {
+        std::vector<double> x, y, z;
+    };
 }
 int rigidbody_create_live_poller(
     int* status
@@ -215,13 +214,13 @@ void rigidbody_validate(
 ) {execute_with_catch([&]() {
     auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
-    rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
+    get_cached_sequencer(*script_obj);
 }, status);}
 
 namespace {
-struct _rigidbody_get_data_obj {
-    std::vector<double> q, I, I_err, I_inter;
-};
+    struct _rigidbody_get_data_obj {
+        std::vector<double> q, I, I_err, I_inter;
+    };
 }
 int rigidbody_run(
     int rigidbody_id,
@@ -230,7 +229,8 @@ int rigidbody_run(
 ) {return execute_with_catch([&]() {
     auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
     if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
-    auto sequencer = rigidbody::sequencer::SequenceParser().parse_text(script_obj->script);
+    get_cached_sequencer(*script_obj);
+    auto sequencer = std::exchange(script_obj->sequencer, nullptr); // consume the sequencer so it cannot be reused after a run
     sequencer->execute();
 
     auto fit_result = sequencer->_get_controller()->get_fitter()->fit();
@@ -338,11 +338,11 @@ void rigidbody_get_body_names(
 }, status);}
 
 namespace {
-struct _rigidbody_symmetry_layout_obj {
-    std::vector<int> body, copy, symmetry, replica;
-    std::vector<std::string> type, name;
-    std::vector<const char*> type_ptr, name_ptr;
-};
+    struct _rigidbody_symmetry_layout_obj {
+        std::vector<int> body, copy, symmetry, replica;
+        std::vector<std::string> type, name;
+        std::vector<const char*> type_ptr, name_ptr;
+    };
 }
 int rigidbody_get_symmetry_layout(
     int rigidbody_id,
