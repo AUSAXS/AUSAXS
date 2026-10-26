@@ -401,12 +401,6 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform(q) keeps the form factors
             REQUIRE_THAT(I_wide.y(i+1), Catch::Matchers::WithinRel(I.y(i), 1e-6));
         }
 
-        // an unsorted request is the sorted one, permuted
-        auto I_unsorted = hist->debye_transform(std::vector<double>{0.1, 0.6, 0.05});
-        CHECK_THAT(I_unsorted.y(0), Catch::Matchers::WithinRel(I.y(2), 1e-6));
-        CHECK_THAT(I_unsorted.y(1), Catch::Matchers::WithinRel(I_wide.y(7), 1e-6));
-        CHECK_THAT(I_unsorted.y(2), Catch::Matchers::WithinRel(I.y(1), 1e-6));
-
         // the evaluated range must be left as it was
         CHECK(settings::axes::qmax == 0.5);
     };

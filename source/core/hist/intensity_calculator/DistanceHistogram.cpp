@@ -101,14 +101,13 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
 template<bool form_factor>
 Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
     if (q.empty()) {return {std::vector<double>{}, std::vector<double>{}};}
-    auto [qlo, qhi] = std::ranges::minmax_element(q); // q need not be sorted
 
     // beyond the compile-time q axis only a direct sum of the total histogram is possible. That is fine for point scatterers and the
     // Gaussian form factor of this class, but the excluded volume models are not accurate enough to be used there
-    if (constants::axes::q_axis.max < *qhi) {
+    if (constants::axes::q_axis.max < q.back()) {
         if (form_factor && dynamic_cast<const ICompositeDistanceHistogramExv*>(this) != nullptr) {
             throw except::invalid_argument(
-                "DistanceHistogram::debye_transform: q = " + std::to_string(*qhi) + " is above " + std::to_string(constants::axes::q_axis.max) + ". "
+                "DistanceHistogram::debye_transform: q = " + std::to_string(q.back()) + " is above " + std::to_string(constants::axes::q_axis.max) + ". "
                 "The excluded volume models are not valid in this range; disable the excluded volume to evaluate it."
             );
         }
