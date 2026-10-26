@@ -178,7 +178,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::LoopElement iteration d
     }
 
     SECTION("a parameter element supplies the count to a bare loop") {
-        auto seq = parse(load() + "parameter {\n    iterations 7\n    translate 5\n}\nloop\n    optimize_once\n    end\nend\n");
+        auto seq = parse(load() + "parameters {\n    iterations 7\n    translate 5\n}\nloop\n    optimize_once\n    end\nend\n");
         REQUIRE(seq != nullptr);
         for (auto& element : seq->_get_elements()) {
             if (auto* loop = dynamic_cast<LoopElement*>(element.get())) {

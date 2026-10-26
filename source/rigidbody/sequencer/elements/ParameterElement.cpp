@@ -56,13 +56,13 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
         if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
         if (line == "exponential") {return settings::rigidbody::DecayStrategyChoice::Exponential;}
         if (line == "none") {return settings::rigidbody::DecayStrategyChoice::None;}
-        throw except::parse_error("parameter", "Unknown choice \"" + std::string(line) + "\"");
+        throw except::parse_error("parameters", "Unknown choice \"" + std::string(line) + "\"");
     };
 
     auto iterations = args.get<int>(args_map[Args::iterations]);
     auto decay_strategy = args.get<std::string>(args_map[Args::decay_strategy], "linear");
 
-    if (!iterations.found) {throw except::parse_error("parameter", "Missing required argument \"iterations\".");}
+    if (!iterations.found) {throw except::parse_error("parameters", "Missing required argument \"iterations\".");}
 
     // a component is optimised exactly when its amplitude is non-zero, so the amplitudes are the whole configuration
     parameter::ParameterAmplitudes amplitudes = {
@@ -78,14 +78,14 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
     // nothing was named: fall back to optimising the symmetries, the only thing that can be done without an amplitude
     if (amplitudes.translation == 0 && amplitudes.rotation == 0 && amplitudes.symmetry_translation == 0 && amplitudes.symmetry_rotation == 0) {
         if (!has_symmetries) {
-            throw except::parse_error("parameter", R"(Missing one of "translate", "rotate", "sym_translate", or "sym_rotate".)");
+            throw except::parse_error("parameters", R"(Missing one of "translate", "rotate", "sym_translate", or "sym_rotate".)");
         }
         amplitudes.symmetry_translation = parameter::default_symmetry_translation(rigidbody);
         amplitudes.symmetry_rotation = parameter::default_symmetry_rotation();
     }
 
     if ((amplitudes.symmetry_translation != 0 || amplitudes.symmetry_rotation != 0) && !has_symmetries) {
-        throw except::parse_error("parameter", "Symmetry optimisation was requested, but the molecule has no symmetries.");
+        throw except::parse_error("parameters", "Symmetry optimisation was requested, but the molecule has no symmetries.");
     }
 
     return std::make_unique<ParameterElement>(

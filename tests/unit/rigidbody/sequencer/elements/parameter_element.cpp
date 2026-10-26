@@ -92,7 +92,7 @@ struct ParameterParseFixture {
 
 TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplitudes", "[files]") {
     SECTION("translate alone enables only body translation") {
-        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    translate 5\n}\n");
+        auto a = amplitudes_of(load() + "parameters {\n    iterations 10\n    translate 5\n}\n");
         CHECK(a.translation == 5);
         CHECK(a.rotation == 0);
         CHECK(a.symmetry_translation == 0);
@@ -100,7 +100,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
     }
 
     SECTION("rotate alone enables only body rotation") {
-        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    rotate 0.1\n}\n");
+        auto a = amplitudes_of(load() + "parameters {\n    iterations 10\n    rotate 0.1\n}\n");
         CHECK(a.translation == 0);
         CHECK(a.rotation == 0.1);
         CHECK(a.symmetry_translation == 0);
@@ -108,7 +108,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
     }
 
     SECTION("translate and rotate together no longer drag symmetry along") {
-        auto a = amplitudes_of(load_with_symmetry() + "parameter {\n    iterations 10\n    translate 5\n    rotate 0.1\n}\n");
+        auto a = amplitudes_of(load_with_symmetry() + "parameters {\n    iterations 10\n    translate 5\n    rotate 0.1\n}\n");
         CHECK(a.translation == 5);
         CHECK(a.rotation == 0.1);
         CHECK(a.symmetry_translation == 0);
@@ -116,7 +116,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
     }
 
     SECTION("sym_translate alone enables only the symmetry offset") {
-        auto a = amplitudes_of(load_with_symmetry() + "parameter {\n    iterations 10\n    sym_translate 10\n}\n");
+        auto a = amplitudes_of(load_with_symmetry() + "parameters {\n    iterations 10\n    sym_translate 10\n}\n");
         CHECK(a.translation == 0);
         CHECK(a.rotation == 0);
         CHECK(a.symmetry_translation == 10);
@@ -124,7 +124,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
     }
 
     SECTION("sym_rotate alone enables only the symmetry frame orientation") {
-        auto a = amplitudes_of(load_with_symmetry() + "parameter {\n    iterations 10\n    sym_rotate 0.2\n}\n");
+        auto a = amplitudes_of(load_with_symmetry() + "parameters {\n    iterations 10\n    sym_rotate 0.2\n}\n");
         CHECK(a.translation == 0);
         CHECK(a.rotation == 0);
         CHECK(a.symmetry_translation == 0);
@@ -133,7 +133,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
 
     SECTION("all four amplitudes can be named at once") {
         auto a = amplitudes_of(load_with_symmetry() +
-            "parameter {\n    iterations 10\n    translate 5\n    rotate 0.1\n    sym_translate 10\n    sym_rotate 0.2\n}\n");
+            "parameters {\n    iterations 10\n    translate 5\n    rotate 0.1\n    sym_translate 10\n    sym_rotate 0.2\n}\n");
         CHECK(a.translation == 5);
         CHECK(a.rotation == 0.1);
         CHECK(a.symmetry_translation == 10);
@@ -141,7 +141,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
     }
 
     SECTION("no amplitude at all falls back to the symmetry defaults") {
-        auto script = load_with_symmetry() + "parameter {\n    iterations 10\n}\n";
+        auto script = load_with_symmetry() + "parameters {\n    iterations 10\n}\n";
         auto a = amplitudes_of(script);
         CHECK(a.translation == 0);
         CHECK(a.rotation == 0);
@@ -150,7 +150,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
     }
 
     SECTION("an explicit zero is the same as leaving the amplitude out") {
-        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    translate 5\n    rotate 0\n}\n");
+        auto a = amplitudes_of(load() + "parameters {\n    iterations 10\n    translate 5\n    rotate 0\n}\n");
         CHECK(a.translation == 5);
         CHECK(a.rotation == 0);
     }
@@ -158,20 +158,20 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
 
 TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement rejects contradictions", "[files]") {
     SECTION("symmetry amplitudes on a molecule without symmetries") {
-        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    sym_translate 10\n}\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "parameters {\n    iterations 10\n    sym_translate 10\n}\n"), sequencer::except::parse_error);
     }
 
     SECTION("no amplitude and nothing to fall back on") {
-        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n}\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "parameters {\n    iterations 10\n}\n"), sequencer::except::parse_error);
     }
 
     SECTION("mode is no longer an argument") {
         CHECK_THROWS_AS(parse(load() +
-            "parameter {\n    iterations 10\n    translate 5\n    mode translate_only\n}\n"), sequencer::except::parse_error);
+            "parameters {\n    iterations 10\n    translate 5\n    mode translate_only\n}\n"), sequencer::except::parse_error);
     }
 
     SECTION("iterations is still required") {
-        CHECK_THROWS_AS(parse(load() + "parameter {\n    translate 5\n}\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "parameters {\n    translate 5\n}\n"), sequencer::except::parse_error);
     }
 
 }

@@ -63,7 +63,7 @@ TEST_CASE("ConstraintManager: an unconstrained split optimizes without tripping 
         "    saxs tests/files/LAR1-2.dat\n"
         "}\n"
         "split b1 99 202\n"
-        "parameter_strategy {\n"
+        "parameters {\n"
         "    iterations 3\n"
         "    translate 1\n"
         "    rotate 1\n"
