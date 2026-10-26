@@ -9,7 +9,6 @@
 #include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <fitter/SmartFitter.h>
 #include <hist/distribution/Distribution1D.h>
-#include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/intensity_calculator/DebyeGradient.h>
 #include <hist/intensity_calculator/ExactDebyeCalculator.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
