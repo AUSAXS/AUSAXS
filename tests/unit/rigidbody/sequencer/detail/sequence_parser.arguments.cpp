@@ -118,6 +118,15 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: named loops are scoped to
 
     CHECK_NOTHROW(parse(script));
     CHECK_NOTHROW(parse(script));
+
+    SECTION("a duplicate name within one script says so") {
+        try {
+            parse(script + "loop L1 2\n    optimize_once\n    end\nend\n");
+            FAIL("expected a parse_error");
+        } catch (const sequencer::except::parse_error& e) {
+            CHECK(std::string(e.what()).find("already exists") != std::string::npos);
+        }
+    }
 }
 
 TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: inline argument counts are rejected centrally", "[files]") {

@@ -225,16 +225,17 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
         }
 
         // pattern 6: [name] [iterations]
+        int iterations;
         try {
-            int iterations = std::stoi(args.inlined[1]);
-            const auto& name = args.inlined[0];
-            if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
-            auto loop = std::make_unique<LoopElement>(owner, iterations);
-            loop_names[name] = loop.get();
-            last_loop_element = loop.get();
-            return loop;
+            iterations = std::stoi(args.inlined[1]);
         } catch (std::exception&) {
             throw except::parse_error("loop", args.inlined, "Could not determine number of iterations.");
         }
+        const auto& name = args.inlined[0];
+        if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
+        auto loop = std::make_unique<LoopElement>(owner, iterations);
+        loop_names[name] = loop.get();
+        last_loop_element = loop.get();
+        return loop;
     }
 }
