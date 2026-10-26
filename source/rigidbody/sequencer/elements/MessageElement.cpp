@@ -13,6 +13,8 @@
 #include <utility/Logging.h>
 #include <utility/StringUtils.h>
 
+#include <cassert>
+
 using namespace ausaxs::rigidbody::sequencer;
 
 std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg) const {
@@ -34,46 +36,40 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
         return utility::join(parts, ", ");
     };
 
-    std::vector<std::string> parts;
-    std::vector<std::function<std::string()>> funcs;
+    auto known_placeholder = [&] (std::string_view placeholder) -> std::function<std::string()> {
+        if (placeholder == "{iteration}") {return iteration;}
+        if (placeholder == "{iterations_total}") {return iterations_total;}
+        if (placeholder == "{chi2}") {return chi2;}
+        if (placeholder == "{chi2_best}") {return chi2_best;}
+        if (placeholder == "{chi2_penalty}") {return chi2_penalty;}
+        if (placeholder == "{chi2_no_penalty}") {return chi2_no_penalty;}
+        if (placeholder == "{body_names}") {return body_names;}
+        return nullptr;
+    };
 
-    int last_pos = 0;
-    for (size_t i = 0; i < msg.size(); ++i) {
+    // parts[i] is the text before funcs[i], and parts always has one more entry than funcs. A new part is started only
+    // at a known placeholder: an unknown one, or a lone '{', is ordinary text and stays in the current part.
+    std::vector<std::string> parts(1);
+    std::vector<std::function<std::string()>> funcs;
+    for (std::size_t i = 0; i < msg.size(); ++i) {
         if (msg[i] == '{') {
-            parts.emplace_back(msg.substr(last_pos, i - last_pos)); // add everything up to the placeholder
-            size_t end = msg.find('}', i);
-            if (end != std::string_view::npos) {
-                std::string_view placeholder = msg.substr(i, end - i + 1);
-                if (placeholder == "{iteration}") {
-                    funcs.emplace_back(iteration);
-                } else if (placeholder == "{iterations_total}") {
-                    funcs.emplace_back(iterations_total);
-                } else if (placeholder == "{chi2}") {
-                    funcs.emplace_back(chi2);
-                } else if (placeholder == "{chi2_best}") {
-                    funcs.emplace_back(chi2_best);
-                } else if (placeholder == "{chi2_penalty}") {
-                    funcs.emplace_back(chi2_penalty);
-                } else if (placeholder == "{chi2_no_penalty}") {
-                    funcs.emplace_back(chi2_no_penalty);
-                } else if (placeholder == "{body_names}") {
-                    funcs.emplace_back(body_names);
-                } else {
-                    parts.back() += placeholder; // unknown placeholder, keep as is
+            if (std::size_t end = msg.find('}', i); end != std::string_view::npos) {
+                if (auto func = known_placeholder(msg.substr(i, end - i + 1))) {
+                    funcs.emplace_back(std::move(func));
+                    parts.emplace_back();
+                    i = end;
+                    continue;
                 }
-                i = end; // skip the placeholder
-                last_pos = static_cast<int>(i+1);
             }
         }
+        parts.back() += msg[i];
     }
-    parts.emplace_back(msg.substr(last_pos)); // add the rest of the message
+    assert(parts.size() == funcs.size() + 1);
     return [parts, funcs] () {
-        std::string result;
-        for (size_t i = 0; i < parts.size(); ++i) {
-            result += parts[i];
-            if (i < funcs.size()) {
-                result += funcs[i]();
-            }
+        std::string result = parts[0];
+        for (int i = 0; i < static_cast<int>(funcs.size()); ++i) {
+            result += funcs[i]();
+            result += parts[i+1];
         }
         return result;
     };
@@ -86,11 +82,11 @@ MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> o
 MessageElement::MessageElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, std::string_view message, std::string_view colour, bool log) 
     : owner(owner)
 {
-    message_func = [log, colour=std::string(colour), builder=parse_user_msg(message)] () -> void {
+    message_func = [log, colour=console::color::parse(colour), builder=parse_user_msg(message)] () -> void {
         if (log) {
             logging::log(builder());
         } else {
-            console::print_text(builder(), console::color::parse(colour));
+            console::print_text(builder(), colour);
         }
     };
 }
@@ -137,5 +133,7 @@ std::unique_ptr<GenericElement> MessageElement::_parse(observer_ptr<LoopElement>
         }
     }
     if (!message.found) {throw except::parse_error("print", "Missing required argument \"message\".");}
+    try {console::color::parse(color.value);}
+    catch (const std::exception&) {throw except::parse_error("print", "Unknown colour \"" + color.value + "\".");}
     return std::make_unique<MessageElement>(owner->_get_sequencer(), message.value, color.value, false);
 }
