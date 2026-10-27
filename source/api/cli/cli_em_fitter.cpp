@@ -43,7 +43,7 @@ int cli_em_fitter(int argc, char const *argv[]) {
     sub_config->add_flag_callback("--log", [] () {logging::start("em_fitter");}, "Enable logging to a file.");
 
     // data subcommands
-    auto* sub_data = app.add_subcommand("saxs", "See and set additional options for the SAXS data.");
+    auto* sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.")->alias("saxs"); // "saxs" kept for backwards compatibility
     sub_data->add_option(
         "--qmax", 
         settings::axes::qmax.value,
