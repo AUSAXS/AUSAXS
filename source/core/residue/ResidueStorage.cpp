@@ -69,7 +69,7 @@ ResidueMap& ResidueStorage::get(const std::string& name) {
 
 void ResidueStorage::initialize() {
     initialized = true;
-    const std::string& path = settings::general::residue_folder;
+    const std::string path = settings::general::helper::residue_folder();
     io::Folder(path).create();
     std::ifstream file(path + "master.dat");
     if (!file.is_open()) {
@@ -112,7 +112,7 @@ void ResidueStorage::initialize() {
 }
 
 bool ResidueStorage::update_or_download_residue(const std::string& name) {
-    const std::string& path = settings::general::residue_folder;
+    const std::string path = settings::general::helper::residue_folder();
     std::regex regex("[A-Z0-9]{1,3}");
 
     if (std::regex_match(name, regex)) {
@@ -155,7 +155,7 @@ bool ResidueStorage::update_or_download_residue(const std::string& name) {
 }
 
 void ResidueStorage::write_residue(const std::string& name) {
-    const std::string& path = settings::general::residue_folder;
+    const std::string path = settings::general::helper::residue_folder();
     io::Folder(path).create();
     std::ofstream file(path + "master.dat", std::ios::app); // open in append mode
     if (!file.is_open()) {throw except::io_error("ResidueStorage::write_residue: Could not open file: " + path + "master" + ".dat");}

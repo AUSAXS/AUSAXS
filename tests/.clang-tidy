@@ -6,6 +6,7 @@ InheritParentConfig: true
 Checks: >
   -bugprone-unchecked-optional-access,
   -misc-use-anonymous-namespace,
+  -performance-unnecessary-copy-initialization,
 
 #   bugprone-unchecked-optional-access
 #       70 of the 85 tree-wide hits are here, and in a test an access to an optional the
@@ -21,3 +22,9 @@ Checks: >
 #       Catch2's TEST_CASE lands a report on the test's own line that no edit here can
 #       satisfy, and there is no check option to exempt it. Every test binary links
 #       independently, so the ODR hazard the check exists to prevent does not arise here.
+#   performance-unnecessary-copy-initialization
+#       Tests copy state on purpose to snapshot it before the code under test changes it,
+#       often through a route the check cannot see (e.g. a setting changed by name through
+#       the settings registry), so the copy it wants turned into a reference would silently
+#       track the mutation and the comparison against the original would become vacuous.
+#       Copy cost is irrelevant in a test.

@@ -50,7 +50,12 @@ settings::Setting<std::string> settings::general::cache{[] () {
     #endif
     return output + "/temp/";
 }()};
-settings::Setting<std::string> settings::general::residue_folder{cache + "residues/"};
+
+std::string settings::general::helper::residue_folder() {
+    std::string path = cache;
+    if (!path.empty() && path.back() != '/' && path.back() != '\\') {path += '/';}
+    return path + "residues/";
+}
 
 int ausaxs::settings::general::detail::get_job_size(int n) {
     constexpr int jobs_per_thread = 8; // aim for this many jobs per thread
