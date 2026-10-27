@@ -30,15 +30,30 @@ observer_ptr<parameter::ParameterGenerationStrategy> ParameterElement::get_param
 }
 
 namespace {
-    enum class Args {iterations, translate, rotate, sym_translate, sym_rotate, decay_strategy};
+    enum class Args {iterations, translate, rotate, translate_axes, rotate_axes, sym_translate, sym_rotate, decay_strategy};
     std::unordered_map<Args, std::vector<std::string>> args_map = {
         {Args::iterations,      {"iterations"}},
         {Args::translate,       {"translate"}},
         {Args::rotate,          {"rotate"}},
+        {Args::translate_axes,  {"translate_axes", "restrict"}},
+        {Args::rotate_axes,     {"rotate_axes"}},
         {Args::sym_translate,   {"sym_translate"}},
         {Args::sym_rotate,      {"sym_rotate"}},
         {Args::decay_strategy,  {"decay"}}
     };
+
+    // an axis selection is written as the axes it contains, e.g. "xy" or "z"
+    parameter::Axes parse_axes(const std::string& name, const std::string& value) {
+        parameter::Axes axes{.x = false, .y = false, .z = false};
+        for (char c : value) {
+            bool* axis = c == 'x' ? &axes.x : c == 'y' ? &axes.y : c == 'z' ? &axes.z : nullptr;
+            if (axis == nullptr) {throw sequencer::except::parse_error("parameter", "Unknown axis \"" + std::string(1, c) + "\" in \"" + name + "\". Expected a combination of x, y, and z.");}
+            if (*axis) {throw sequencer::except::parse_error("parameter", "Axis \"" + std::string(1, c) + "\" is named twice in \"" + name + "\".");}
+            *axis = true;
+        }
+        if (value.empty()) {throw sequencer::except::parse_error("parameter", "\"" + name + "\" must name at least one axis.");}
+        return axes;
+    }
 }
 
 std::vector<std::string> ParameterElement::_valid_arguments() {
@@ -50,7 +65,7 @@ InlineSignature ParameterElement::_valid_inline_arguments() {
     return {.names = {}, .min = 0, .max = 0};
 }
 
-// parameter { iterations [n], and any of: translate, rotate, sym_translate, sym_rotate, decay }
+// parameter { iterations [n], and any of: translate, rotate, translate_axes, rotate_axes, sym_translate, sym_rotate, decay }
 std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     static auto get_decay_strategy = [] (std::string_view line) {
         if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
@@ -71,6 +86,19 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
         .symmetry_translation = args.get<double>(args_map[Args::sym_translate], 0).value,
         .symmetry_rotation = args.get<double>(args_map[Args::sym_rotate], 0).value
     };
+
+    // the axes restrict the body moves to a subspace of the frame the structure was loaded in, e.g. "translate_axes xy" keeps
+    // every unconstrained body centred in its initial xy-plane while it remains free to rotate
+    auto translate_axes = args.get<std::string>(args_map[Args::translate_axes]);
+    auto rotate_axes = args.get<std::string>(args_map[Args::rotate_axes]);
+    if (translate_axes.found) {
+        if (amplitudes.translation == 0) {throw except::parse_error("parameter", R"("translate_axes" requires a non-zero "translate".)");}
+        amplitudes.translation_axes = parse_axes("translate_axes", translate_axes.value);
+    }
+    if (rotate_axes.found) {
+        if (amplitudes.rotation == 0) {throw except::parse_error("parameter", R"("rotate_axes" requires a non-zero "rotate".)");}
+        amplitudes.rotation_axes = parse_axes("rotate_axes", rotate_axes.value);
+    }
 
     auto* rigidbody = owner->_get_rigidbody();
     bool has_symmetries = rigidbody->molecule.symmetry().has_symmetries();

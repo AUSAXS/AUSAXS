@@ -18,8 +18,8 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
     assert(ibody < static_cast<int>(rigidbody->conformation->absolute_parameters.parameters.size()) && "ibody out of bounds");
     BodyTransformParametersRelative params;
 
-    if (amplitudes.translation != 0) {params.translation = draw_isotropic(draw(amplitudes.translation)*scaling);}
-    if (amplitudes.rotation != 0) {params.rotation = draw_isotropic(draw(amplitudes.rotation)*scaling);}
+    if (amplitudes.translation != 0) {params.translation = draw_isotropic(draw(amplitudes.translation)*scaling, amplitudes.translation_axes);}
+    if (amplitudes.rotation != 0) {params.rotation = draw_isotropic(draw(amplitudes.rotation)*scaling, amplitudes.rotation_axes);}
     if (amplitudes.symmetry_translation != 0 || amplitudes.symmetry_rotation != 0) {
         const auto& symmetries = rigidbody->conformation->absolute_parameters.parameters[ibody].symmetry_pars;
         params.symmetry_pars.emplace();

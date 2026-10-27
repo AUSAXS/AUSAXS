@@ -154,6 +154,24 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
         CHECK(a.translation == 5);
         CHECK(a.rotation == 0);
     }
+
+    SECTION("moves are drawn along all axes unless told otherwise") {
+        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    translate 5\n    rotate 0.1\n}\n");
+        CHECK(a.translation_axes == parameter::Axes{});
+        CHECK(a.rotation_axes == parameter::Axes{});
+    }
+
+    SECTION("axes restrict translations and rotations independently") {
+        auto a = amplitudes_of(load() +
+            "parameter {\n    iterations 10\n    translate 5\n    rotate 0.1\n    translate_axes xy\n    rotate_axes z\n}\n");
+        CHECK(a.translation_axes == parameter::Axes{.x = true, .y = true, .z = false});
+        CHECK(a.rotation_axes == parameter::Axes{.x = false, .y = false, .z = true});
+    }
+
+    SECTION("the order the axes are written in does not matter") {
+        auto a = amplitudes_of(load() + "parameter {\n    iterations 10\n    translate 5\n    translate_axes zx\n}\n");
+        CHECK(a.translation_axes == parameter::Axes{.x = true, .y = false, .z = true});
+    }
 }
 
 TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement rejects contradictions", "[files]") {
@@ -172,6 +190,19 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement reject
 
     SECTION("iterations is still required") {
         CHECK_THROWS_AS(parse(load() + "parameters {\n    translate 5\n}\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("axes for a component that is not optimised") {
+        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    translate 5\n    rotate_axes z\n}\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    rotate 0.1\n    translate_axes xy\n}\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("an unknown axis") {
+        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    translate 5\n    translate_axes xw\n}\n"), sequencer::except::parse_error);
+    }
+
+    SECTION("an axis named twice") {
+        CHECK_THROWS_AS(parse(load() + "parameter {\n    iterations 10\n    translate 5\n    translate_axes xx\n}\n"), sequencer::except::parse_error);
     }
 
 }
