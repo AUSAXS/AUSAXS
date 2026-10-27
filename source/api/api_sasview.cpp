@@ -172,19 +172,30 @@ namespace {
 //     *_return_status = 0;
 // }
 
+namespace {
+    // the settings debye_no_ff needs, restored to the caller's values when it returns (or throws)
+    struct RawDebyeScope {
+        settings::exv::ExvMethod exv_method = settings::exv::exv_method;
+        bool implicit_hydrogens = settings::molecule::implicit_hydrogens;
+        double qmax = settings::axes::qmax;
+
+        RawDebyeScope() {
+            settings::exv::exv_method = settings::exv::ExvMethod::None; // simple histogram manager, no solvent charge subtracted from the atoms
+            settings::molecule::implicit_hydrogens = false;             // do not add the charge of bound hydrogens
+            settings::axes::qmax = 1;                                   // as high as it can go
+        }
+        ~RawDebyeScope() {
+            settings::exv::exv_method = exv_method;
+            settings::molecule::implicit_hydrogens = implicit_hydrogens;
+            settings::axes::qmax = qmax;
+        }
+    };
+}
+
 void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, double* _return_Iq, int* _return_status) {
-    std::cout << "AUSAXS: Starting method \"evaluate_sans_debye\"." << std::endl;
     // default state is error since we don't trust the input enough to assume success
     *_return_status = 1;
-
-    // use the multithreaded version of the simple histogram manager, without subtracting the solvent charge from the atoms
-    settings::exv::exv_method = settings::exv::ExvMethod::None;
-
-    // do not subtract the charge of bound hydrogens
-    settings::molecule::implicit_hydrogens = false;
-
-    // set qmax as high as it can go
-    settings::axes::qmax = 1;
+    RawDebyeScope scope;
 
     // convert coordinate input to Atom objects
     std::vector<double> q(_q, _q+_nq);

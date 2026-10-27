@@ -52,6 +52,7 @@ extern "C" API void test_integration(int* test_value);
  *        The coordinates are assumed to be in the form of a list of x, y, z, and w values.
  *        The return status will be non-zero if an error occurred.
  *        The resulting I(q) values will be stored in the given array.
+ *        No form factors, excluded volume or implicit hydrogens are used; the global settings are left as they were.
  */
 extern "C" API void debye_no_ff(
     double* _q, double* _x, double* _y, double* _z, double* _w, 
