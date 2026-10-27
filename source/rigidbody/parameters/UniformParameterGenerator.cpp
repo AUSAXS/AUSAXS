@@ -39,7 +39,7 @@ BodyTransformParametersRelative UniformParameterGenerator::next(int ibody) {
 
             auto t = leaf.span_translation();
             auto translation = translate
-                ? draw_isotropic(draw(amplitudes.symmetry_translation)*scaling, t.size())
+                ? draw_isotropic(draw(amplitudes.symmetry_translation)*scaling, static_cast<int>(t.size()))
                 : Vector3<double>{0, 0, 0};
             for (int i = 0; i < static_cast<int>(t.size()); ++i) {t[i] = translation[i];}
 
