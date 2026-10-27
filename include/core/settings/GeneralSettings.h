@@ -10,7 +10,6 @@
 
 namespace ausaxs::settings {
     struct EXPORT general {
-        static Setting<std::string> residue_folder;  // Download location for all ligand files.
         static Setting<bool> offline;                // Whether to use the offline mode. This will prevent any network requests, but may result in less accurate results.
         static Setting<bool> verbose;                // Whether to print out extra information.
         static Setting<bool> warnings;               // Whether to print out warnings.
@@ -42,6 +41,12 @@ namespace ausaxs::settings {
             static bool is_angstroms(QUnit u);    // Whether the input unit is Ångström.
             static bool is_nanometers(QUnit u);   // Whether the input unit is Nanometer.
             static bool is_user_defined(QUnit u); // Whether the input unit is user-defined.
+
+            /**
+             * @brief The download location for all residue files: the residues/ subfolder of the current cache directory.
+             *        It is derived at each call, so a changed cache setting moves it too.
+             */
+            static std::string residue_folder();
         };
     };
 }

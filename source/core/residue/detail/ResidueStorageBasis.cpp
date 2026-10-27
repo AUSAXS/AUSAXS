@@ -323,7 +323,7 @@ cl cl 0
 CIP
 na na 0
 )";
-    std::string path = settings::general::residue_folder;
+    std::string path = settings::general::helper::residue_folder();
     std::ofstream file(path + "master.dat");
     file << basis;
     file.close();
