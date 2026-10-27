@@ -70,7 +70,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
         "The unit of the q values in the measurement file. Options: A, nm.");
     sub_data->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
     sub_data->add_flag("--rebin", settings::axes::rebin.value, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin.value);
-    sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins.value, "Decides whether weighted bins are used.")->default_val(settings::hist::weighted_bins.value);
+    sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins.value, "Use weighted bins (true/false). By default, this is automatically decided for each molecule.")->default_val(settings::hist::weighted_bins.value);
 
     // molecule subcommands
     auto* sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");

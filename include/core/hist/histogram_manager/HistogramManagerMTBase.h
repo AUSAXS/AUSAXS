@@ -28,6 +28,8 @@ namespace ausaxs::hist {
 
 			~HistogramManagerMTBase() override;
 
+			settings::hist::HistogramManagerChoice get_type() const override;
+
 		protected:
 			using Distributions = hist::detail::ManagerDistributions<weighted_bins, form_factors>;
 
