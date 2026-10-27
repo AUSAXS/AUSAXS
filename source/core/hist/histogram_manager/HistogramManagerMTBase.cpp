@@ -31,7 +31,7 @@ typename HistogramManagerMTBase<wb, ff>::Distributions HistogramManagerMTBase<wb
     data_a_ptr = std::make_unique<decltype(factory::construct_from_atoms<ff>(this->protein))>(factory::construct_from_atoms<ff>(this->protein));
     if constexpr (!ff) {
         if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
-            SimpleExvModel::apply_simple_excluded_volume(*data_a_ptr, this->protein);
+            SimpleExvModel::apply_simple_excluded_volume(*data_a_ptr, SimpleExvModel::get_volume_per_atom(this->protein));
         }
     }
     auto& data_a = *data_a_ptr;

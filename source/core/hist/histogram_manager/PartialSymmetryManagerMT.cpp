@@ -75,9 +75,15 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMTBase<weighted_bins, f
 
     auto* pool = utility::multi_threading::get_global_pool();
 
+    // the exv volume comes from the molecule's grid, which is built lazily and is not thread-safe, so it is resolved before any task is submitted
+    double exv_volume = 0;
+    if constexpr (!form_factors) {
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {exv_volume = hist::detail::SimpleExvModel::get_volume_per_atom(this->protein);}
+    }
+
     // check if the object has already been initialized
     if (this->master.empty()) [[unlikely]] {
-        initialize(bin_count);
+        initialize(bin_count, exv_volume);
     }
 
     // if not, we must first check if the atom coordinates have been changed in any of the bodies
@@ -86,14 +92,14 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMTBase<weighted_bins, f
 
             // if the internal state was modified, we have to recalculate the self-correlation
             if (internally_modified[ibody]) {
-                update_compact_representation_body(ibody); //? unnecessary to update whole body; enough to update main body
+                update_compact_representation_body(ibody, exv_volume); //? unnecessary to update whole body; enough to update main body
             }
 
             // if the external state was modified, we have to update the coordinate representations for later calculations
             // (implicitly done in calc_self_correlation)
             else if (externally_modified[ibody]) {
                 pool->detach_task(
-                    [this, ibody] () {update_compact_representation_body(ibody);}
+                    [this, ibody, exv_volume] () {update_compact_representation_body(ibody, exv_volume);}
                 );
             }
 
@@ -103,7 +109,7 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMTBase<weighted_bins, f
                 for (int isym = 0; isym < this->protein->get_body(ibody).size_symmetry(); ++isym) {
                     if (symmetry_modified[ibody][isym]) {
                         pool->detach_task(
-                            [this, ibody, isym] () {update_compact_representation_symmetry(ibody, isym+1);}
+                            [this, ibody, isym, exv_volume] () {update_compact_representation_symmetry(ibody, isym+1, exv_volume);}
                         );
                     }
                 }
@@ -194,13 +200,13 @@ std::unique_ptr<DistanceHistogram> PartialSymmetryManagerMTBase<weighted_bins, f
 }
 
 template<bool weighted_bins, bool form_factors>
-void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_representation_body(int ibody) {
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_representation_body(int ibody, double exv_volume) {
     coords[ibody] = symmetry::detail::generate_transformed_data<form_factors>(this->protein->get_body(ibody));
     if constexpr (!form_factors) {
         if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
             for (auto& c : coords[ibody].atomic) {
                 for (auto& sym : c) {
-                    hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
+                    hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, exv_volume);
                 }
             }
         }
@@ -208,14 +214,14 @@ void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_r
 }
 
 template<bool weighted_bins, bool form_factors>
-void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_representation_symmetry(int ibody, int isym) {
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_representation_symmetry(int ibody, int isym, double exv_volume) {
     assert(ibody < static_cast<int>(coords.size()) && "update_compact_representation_symmetry: ibody out of range");
     assert(isym > 0 && isym < static_cast<int>(coords[ibody].atomic.size()) && "update_compact_representation_symmetry: isym out of range");
     coords[ibody].atomic[isym] = symmetry::detail::generate_transformed_data<form_factors>(this->protein->get_body(ibody), isym-1).data;
     if constexpr (!form_factors) {
         if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
             for (auto& sym : coords[ibody].atomic[isym]) {
-                hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, this->protein);
+                hist::detail::SimpleExvModel::apply_simple_excluded_volume(sym, exv_volume);
             }
         }
     }
@@ -261,7 +267,7 @@ int PartialSymmetryManagerMTBase<weighted_bins, form_factors>::prepare_axis() {
 }
 
 template<bool weighted_bins, bool form_factors>
-void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::initialize(int bin_count) {
+void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::initialize(int bin_count, double exv_volume) {
     Axis axis(0, settings::axes::bin_width*bin_count, bin_count);
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<weighted_bins>(p_base, axis);
@@ -279,7 +285,7 @@ void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::initialize(int b
     ww = store->allocate_1d();
 
     for (int ibody = 0; ibody < this->body_size; ++ibody) {
-        update_compact_representation_body(ibody); //? unnecessary to update whole body; enough to update main body
+        update_compact_representation_body(ibody, exv_volume); //? unnecessary to update whole body; enough to update main body
     }
 }
 

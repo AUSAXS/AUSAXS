@@ -70,8 +70,10 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Initialize the master histogram, the layout of the partial histograms, and their storage.
 			 *        The number of symmetries of each body is fixed from here on.
+			 *
+			 * @param exv_volume The excluded volume per atom, see update_compact_representation_body.
 			 */
-			void initialize(int bin_count);
+			void initialize(int bin_count, double exv_volume);
 
 			/**
 			 * @brief Take the partial histogram @a id out of the master histogram before it is recalculated.
@@ -125,16 +127,19 @@ namespace ausaxs::hist {
 			 * @brief Update the compact representation of the coordinates of body @a index.
 			 * 
 			 * @param index The index of the body to update.
+			 * @param exv_volume The excluded volume per atom, resolved by the caller since this may run inside a pool task.
+			 *                   Only read with the simple excluded volume model.
 			 */
-			void update_compact_representation_body(int ibody);
+			void update_compact_representation_body(int ibody, double exv_volume);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.
-			 * 
+			 *
 			 * @param ibody The index of the body to update.
 			 * @param isym The index of the symmetry to update. Index 0 is the main body.
+			 * @param exv_volume The excluded volume per atom, see update_compact_representation_body.
 			 */
-			void update_compact_representation_symmetry(int ibody, int isym);
+			void update_compact_representation_symmetry(int ibody, int isym, double exv_volume);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of the hydration layer.
