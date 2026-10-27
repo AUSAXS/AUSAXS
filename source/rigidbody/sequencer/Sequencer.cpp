@@ -3,7 +3,6 @@
 
 #include <rigidbody/sequencer/Sequencer.h>
 
-#include <data/Body.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
 #include <rigidbody/Rigidbody.h>
