@@ -50,9 +50,10 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<w
     auto[data, data_w] = generate_transformed_data<form_factors>(*protein);
     if constexpr (!form_factors) {
         if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
+            double exv_volume = hist::detail::SimpleExvModel::get_volume_per_atom(protein);
             for (auto& body : data) {
                 for (auto& copies : body.atomic) {
-                    for (auto& copy : copies) {hist::detail::SimpleExvModel::apply_simple_excluded_volume(copy, protein);}
+                    for (auto& copy : copies) {hist::detail::SimpleExvModel::apply_simple_excluded_volume(copy, exv_volume);}
                 }
             }
         }

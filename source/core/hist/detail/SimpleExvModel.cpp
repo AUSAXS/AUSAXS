@@ -9,9 +9,13 @@
 
 using namespace ausaxs::hist::detail;
 
-void SimpleExvModel::apply_simple_excluded_volume(hist::detail::CompactCoordinates& data_a, observer_ptr<const data::Molecule> molecule) {
-    assert(molecule != nullptr && "SimpleExvModel::apply_simple_excluded_volume: molecule is nullptr.");
+double SimpleExvModel::get_volume_per_atom(observer_ptr<const data::Molecule> molecule) {
+    assert(molecule != nullptr && "SimpleExvModel::get_volume_per_atom: molecule is nullptr.");
     int n_atoms = molecule->symmetry().size_atom_total();
-    assert(0 < n_atoms && "SimpleExvModel::apply_simple_excluded_volume: Division by zero. The molecule has no atoms.");
-    data_a.implicit_excluded_volume(molecule->get_volume_grid()/static_cast<double>(n_atoms));
+    assert(0 < n_atoms && "SimpleExvModel::get_volume_per_atom: Division by zero. The molecule has no atoms.");
+    return molecule->get_volume_grid()/static_cast<double>(n_atoms);
+}
+
+void SimpleExvModel::apply_simple_excluded_volume(hist::detail::CompactCoordinates& data_a, double volume_per_atom) {
+    data_a.implicit_excluded_volume(volume_per_atom);
 }

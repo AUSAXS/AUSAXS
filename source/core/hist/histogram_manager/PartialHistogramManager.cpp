@@ -81,7 +81,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins>::calcu
                 // if the external state was modified, we have to update the coordinate representations
                 this->coords_a[i] = hist::detail::factory::construct<false>(this->protein->get_body(i).get_atoms());
                 if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
-                    hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], protein);
+                    hist::detail::SimpleExvModel::apply_simple_excluded_volume(coords_a[i], hist::detail::SimpleExvModel::get_volume_per_atom(protein));
                 }
             }
         }
@@ -213,7 +213,7 @@ template<bool weighted_bins>
 void PartialHistogramManager<weighted_bins>::calc_self_correlation(int index) {
     auto current = hist::detail::factory::construct<false>(this->protein->get_body(index).get_atoms());
     if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
-        hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, protein);
+        hist::detail::SimpleExvModel::apply_simple_excluded_volume(current, hist::detail::SimpleExvModel::get_volume_per_atom(protein));
     }
 
     // calculate internal distances between atoms

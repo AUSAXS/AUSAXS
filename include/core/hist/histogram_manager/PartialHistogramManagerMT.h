@@ -78,8 +78,10 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
+			 *
+			 * @param exv_volume The excluded volume per atom, see update_compact_representation_body.
 			 */
-			void calc_self_correlation(calculator_t calculator, int index);
+			void calc_self_correlation(calculator_t calculator, int index, double exv_volume);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
@@ -103,8 +105,10 @@ namespace ausaxs::hist {
 			 * @brief Update the compact representation of the coordinates of body @a index.
 			 * 
 			 * @param index The index of the body to update.
+			 * @param exv_volume The excluded volume per atom, resolved by the caller since this may run inside a pool task.
+			 *                   Only read with the simple excluded volume model.
 			 */
-			void update_compact_representation_body(int index);
+			void update_compact_representation_body(int index, double exv_volume);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of the hydration layer.
