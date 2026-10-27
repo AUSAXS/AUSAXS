@@ -55,18 +55,6 @@ namespace ausaxs::table {
              */
             [[nodiscard]] static const VectorDebyeTable& get_default_table();
 
-            /**
-             * @brief Check if the two vectors are compatible with the default table. 
-             *        Any incompatibilities are written to the log.
-             */
-            static void check_default(const std::vector<double>& q, const std::vector<double>& d);
-
-            /**
-             * @brief Check if the vector is compatible with the default table. 
-             *        Any incompatibilities are written to the log.
-             */
-            static void check_default(const std::vector<double>& d);
-
         private: 
             /**
              * @brief Initialize this class for the given input. 
