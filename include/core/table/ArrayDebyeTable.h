@@ -10,7 +10,6 @@
     #include <table/DebyeTable.h>
 
     #include <cmath>
-    #include <vector>
 
     namespace ausaxs::table {
         /**
@@ -61,18 +60,6 @@
                  * @brief Get the default table. 
                  */
                 [[nodiscard]] static const ArrayDebyeTable& get_default_table();
-
-                /**
-                 * @brief Check if the two vectors are compatible with the default table. 
-                 *        Any incompatibilities are written to the log.
-                 */
-                static void check_default(const std::vector<double>& q, const std::vector<double>& d);
-
-                /**
-                 * @brief Check if the vector is compatible with the default table. 
-                 *        Any incompatibilities are written to the log.
-                 */
-                static void check_default(const std::vector<double>& d);
 
             private: 
                 constexpr void initialize() noexcept {
