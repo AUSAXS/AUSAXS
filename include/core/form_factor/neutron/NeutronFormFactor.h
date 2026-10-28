@@ -77,9 +77,9 @@ namespace ausaxs::form_factor::neutron {
     }
 
     namespace detail {
-        // Number of molecules per Å^3 of a liquid with the given mass density (SI) and molecular mass (u).
+        // Number of molecules per Å^3 of a liquid with the given mass density (Da/Å^3) and molecular mass (Da).
         constexpr double number_density(double mass_density, double molecular_mass) {
-            return mass_density*constants::SI::volume::A3/(molecular_mass*constants::SI::mass::u);
+            return mass_density/molecular_mass;
         }
 
         constexpr double density_H2O = (2*scattering_length::H + scattering_length::O)*number_density(
