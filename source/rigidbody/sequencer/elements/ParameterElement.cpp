@@ -47,11 +47,11 @@ namespace {
         parameter::Axes axes{.x = false, .y = false, .z = false};
         for (char c : value) {
             bool* axis = c == 'x' ? &axes.x : c == 'y' ? &axes.y : c == 'z' ? &axes.z : nullptr;
-            if (axis == nullptr) {throw sequencer::except::parse_error("parameter", "Unknown axis \"" + std::string(1, c) + "\" in \"" + name + "\". Expected a combination of x, y, and z.");}
-            if (*axis) {throw sequencer::except::parse_error("parameter", "Axis \"" + std::string(1, c) + "\" is named twice in \"" + name + "\".");}
+            if (axis == nullptr) {throw sequencer::except::parse_error("parameters", "Unknown axis \"" + std::string(1, c) + "\" in \"" + name + "\". Expected a combination of x, y, and z.");}
+            if (*axis) {throw sequencer::except::parse_error("parameters", "Axis \"" + std::string(1, c) + "\" is named twice in \"" + name + "\".");}
             *axis = true;
         }
-        if (value.empty()) {throw sequencer::except::parse_error("parameter", "\"" + name + "\" must name at least one axis.");}
+        if (value.empty()) {throw sequencer::except::parse_error("parameters", "\"" + name + "\" must name at least one axis.");}
         return axes;
     }
 }
@@ -65,7 +65,7 @@ InlineSignature ParameterElement::_valid_inline_arguments() {
     return {.names = {}, .min = 0, .max = 0};
 }
 
-// parameter { iterations [n], and any of: translate, rotate, translate_axes, rotate_axes, sym_translate, sym_rotate, decay }
+// parameters { iterations [n], and any of: translate, rotate, translate_axes, rotate_axes, sym_translate, sym_rotate, decay }
 std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     static auto get_decay_strategy = [] (std::string_view line) {
         if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
@@ -92,11 +92,11 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
     auto translate_axes = args.get<std::string>(args_map[Args::translate_axes]);
     auto rotate_axes = args.get<std::string>(args_map[Args::rotate_axes]);
     if (translate_axes.found) {
-        if (amplitudes.translation == 0) {throw except::parse_error("parameter", R"("translate_axes" requires a non-zero "translate".)");}
+        if (amplitudes.translation == 0) {throw except::parse_error("parameters", R"("translate_axes" requires a non-zero "translate".)");}
         amplitudes.translation_axes = parse_axes("translate_axes", translate_axes.value);
     }
     if (rotate_axes.found) {
-        if (amplitudes.rotation == 0) {throw except::parse_error("parameter", R"("rotate_axes" requires a non-zero "rotate".)");}
+        if (amplitudes.rotation == 0) {throw except::parse_error("parameters", R"("rotate_axes" requires a non-zero "rotate".)");}
         amplitudes.rotation_axes = parse_axes("rotate_axes", rotate_axes.value);
     }
 
