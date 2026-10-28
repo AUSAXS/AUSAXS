@@ -9,7 +9,6 @@
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
 #include <settings/MoleculeSettings.h>
-#include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
 #include <algorithm>
@@ -280,20 +279,10 @@ PDBStructure::_res PDBStructure::reduced_representation() const {
     md.implicit_h.emplace().reserve(atoms.size());
 
     const auto hydrogens = get_implicit_hydrogens(*this);
-    const double hydrogen_charge = settings::scattering::radiation == settings::scattering::Radiation::XRay
-        ? constants::charge::get_ff_charge<settings::scattering::Radiation::XRay>(form_factor::form_factor_t::H)
-        : constants::charge::get_ff_charge<settings::scattering::Radiation::Neutron>(form_factor::form_factor_t::H)
-    ;
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
         const auto& a = atoms[i];
         assert(a.element != constants::atom_t::unknown && "PDBStructure::reduced_representation: encountered an atom whose element was never set.");
-        auto type = form_factor::get_type(a.element, hydrogens[i].group);
-
-        // use the occupancy and hydrogen count as they are recorded in the metadata, so that Body::refresh_weights reproduces this weight exactly
-        float occupancy = static_cast<float>(a.occupancy);
-        float implicit_h = static_cast<float>(hydrogens[i].count);
-        double charge = constants::charge::get_ff_charge(type, a.element) + implicit_h*hydrogen_charge;
-        res.atoms.emplace_back(a.coords, type, charge*occupancy);
+        res.atoms.emplace_back(a.coords, form_factor::get_type(a.element, hydrogens[i].group), 0); // the weight depends on the probe, so it is left to the Body
 
         data::backbone_t bt = data::backbone_t::none;
         if      (a.element == constants::atom_t::C && a.name == "CA") {bt = data::backbone_t::c_alpha;}
@@ -305,9 +294,9 @@ PDBStructure::_res PDBStructure::reduced_representation() const {
         md.chain_id->emplace_back(a.chainID);
         md.atom_name->emplace_back(a.name);
         md.residue_name->emplace_back(a.resName);
-        md.occupancy->emplace_back(occupancy);
+        md.occupancy->emplace_back(static_cast<float>(a.occupancy));
         md.element->emplace_back(a.element);
-        md.implicit_h->emplace_back(implicit_h);
+        md.implicit_h->emplace_back(static_cast<float>(hydrogens[i].count));
     }
 
     res.metadata = std::move(md);

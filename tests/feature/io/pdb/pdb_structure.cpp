@@ -132,7 +132,7 @@ namespace {
     AtomFF reduce_single(const std::string& line) {
         PDBAtom atom;
         atom.parse_pdb(line);
-        return PDBStructure({atom}, {}).reduced_representation().atoms[0];
+        return Body(PDBStructure({atom}, {})).get_atom(0);
     }
 }
 

@@ -24,9 +24,9 @@ namespace ausaxs::io::pdb {
      */
     class PDBStructure {
         struct _res {
-            std::vector<data::AtomFF> atoms;
+            std::vector<data::AtomFF> atoms;                //< the atom weights are left unset, since they depend on the probe; data::Body derives them from the metadata
             std::vector<data::Water> waters;
-            std::optional<data::AtomMetadata> metadata;     //< parallel-indexed to atoms; engaged iff metadata retention is enabled
+            std::optional<data::AtomMetadata> metadata;     //< parallel-indexed to atoms
         };
 
         public:
@@ -111,7 +111,8 @@ namespace ausaxs::io::pdb {
             bool equals_content(const PDBStructure& rhs) const;
 
             /**
-             * @brief Get the reduced representation of this structure, with the effective charges derived for the radiation of the current settings.
+             * @brief Get the reduced representation of this structure. 
+             *        This does not carry the atom weights, so construct a data::Body from the structure rather than from this.
              */
             _res reduced_representation() const;
 

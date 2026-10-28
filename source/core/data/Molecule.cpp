@@ -20,6 +20,7 @@
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <numeric>
@@ -99,8 +100,7 @@ bool Molecule::uses_weighted_bins() const {
 void Molecule::reset_histogram_manager() {phm = nullptr;}
 
 void Molecule::refresh_weights() const {
-    if (weights_type == settings::scattering::radiation) {return;}
-    weights_type = settings::scattering::radiation;
+    if (std::ranges::none_of(bodies, [] (const Body& body) {return body.has_stale_weights();})) {return;}
     phm = nullptr; // every cached histogram depends on the weights, so let the lazy init rebuild the manager from the new ones
 
     int unchanged = 0;

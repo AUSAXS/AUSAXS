@@ -8,6 +8,7 @@
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/ImplicitHydration.h>
 #include <io/Reader.h>
+#include <io/pdb/PDBStructure.h>
 #include <math/Matrix.h>
 #include <math/Vector3.h>
 
@@ -23,13 +24,14 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 Body::Body() : hydration(hydrate::Hydration::create()), symmetries(std::make_unique<symmetry::SymmetryStorage>()), uid(uid_counter++) {initialize();}
-Body::Body(const Body& body) : atoms(body.atoms), metadata(body.metadata), hydration(body.hydration->clone()), symmetries(body.symmetries->clone()), uid(body.uid) {initialize();}
-Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), metadata(std::move(body.metadata)), hydration(std::move(body.hydration)), symmetries(std::move(body.symmetries)), uid(body.uid) {initialize();}
+Body::Body(const Body& body) : atoms(body.atoms), metadata(body.metadata), hydration(body.hydration->clone()), symmetries(body.symmetries->clone()), uid(body.uid), weights_probe(body.weights_probe) {initialize();}
+Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), metadata(std::move(body.metadata)), hydration(std::move(body.hydration)), symmetries(std::move(body.symmetries)), uid(body.uid), weights_probe(body.weights_probe) {initialize();}
 Body::~Body() = default;
 
-Body::Body(const io::File& path) : uid(uid_counter++) {
-    auto file = io::Reader::read(path);
-    auto data = file.reduced_representation();
+Body::Body(const io::File& path) : Body(io::Reader::read(path)) {}
+
+Body::Body(const io::pdb::PDBStructure& structure) : uid(uid_counter++) {
+    auto data = structure.reduced_representation();
     atoms = std::move(data.atoms);
     metadata = std::move(data.metadata);
     if (data.waters.empty()) {
@@ -38,6 +40,8 @@ Body::Body(const io::File& path) : uid(uid_counter++) {
         hydration = hydrate::Hydration::create(std::move(data.waters));
     }
     symmetries = std::make_unique<symmetry::SymmetryStorage>();
+    [[maybe_unused]] bool derived = derive_weights();
+    assert(derived && "Body::Body: a parsed structure must carry the metadata needed to derive its weights.");
     initialize();
 }
 
@@ -157,7 +161,16 @@ void Body::rotate(const Matrix<double>& R) {
     }
 }
 
+bool Body::has_stale_weights() const {return weights_probe != settings::scattering::radiation;}
+
 bool Body::refresh_weights() {
+    if (!has_stale_weights()) {return true;}
+    return derive_weights();
+}
+
+bool Body::derive_weights() {
+    weights_probe = settings::scattering::radiation;
+
     // a water is always a plain water, so its weight is fully determined by the probe
     if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         double w = constants::charge::get_ff_charge(Water::form_factor_type());
@@ -167,7 +180,7 @@ bool Body::refresh_weights() {
     // the atom weights fold in the occupancy and the implicit hydrogens, so they can only be rebuilt where the metadata recorded both
     if (atoms.empty()) {return true;}
     if (!metadata || !metadata->element || !metadata->occupancy || !metadata->implicit_h) {return false;}
-    assert(metadata->size() == atoms.size() && "Body::refresh_weights: metadata is not parallel-indexed to the atoms.");
+    assert(metadata->size() == atoms.size() && "Body::derive_weights: metadata is not parallel-indexed to the atoms.");
 
     double hydrogen_charge = constants::charge::get_ff_charge(form_factor::form_factor_t::H);
     for (std::size_t i = 0; i < atoms.size(); ++i) {
@@ -202,6 +215,7 @@ Body& Body::operator=(Body&& rhs) noexcept {
     hydration = std::move(rhs.hydration);
     symmetries = std::move(rhs.symmetries);
     uid = rhs.uid;
+    weights_probe = rhs.weights_probe;
     signal->modified_internal();
     signal->modified_external();
     signal->modified_hydration();
@@ -219,6 +233,7 @@ Body& Body::operator=(const Body& rhs) {
         throw ausaxs::except::runtime_error("Body::operator=: Implicit hydration is not implemented.");
     }
     symmetries = rhs.symmetries->clone();
+    weights_probe = rhs.weights_probe;
     signal->modified_internal();
     signal->modified_external();
     signal->modified_hydration();

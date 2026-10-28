@@ -830,8 +830,7 @@ TEST_CASE("Molecule: implicit hydrogens") {
     SECTION("enabled") {
         settings::molecule::implicit_hydrogens = true;
         auto file = generate_molecule();
-        auto res = file.reduced_representation();
-        Molecule protein({Body{res.atoms, res.waters}});
+        Molecule protein({Body(file)});
         auto atoms = protein.get_atoms();
 
         // Weight is I0 of the grouped form factor, which already includes its hydrogens
@@ -866,8 +865,7 @@ TEST_CASE("Molecule: implicit hydrogens") {
     SECTION("disabled") {
         settings::molecule::implicit_hydrogens = false;
         auto file = generate_molecule();
-        auto res = file.reduced_representation();
-        Molecule protein({Body{res.atoms, res.waters}});
+        Molecule protein({Body(file)});
 
         for (auto a : protein.get_atoms()) {
             CHECK_THAT(a.weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(a.form_factor_type()), 1e-12));
@@ -1080,6 +1078,13 @@ TEST_CASE("Molecule: the weights follow the scattering probe", "[files]") {
     REQUIRE(weights(switched).size() == weights(loaded).size());
     CHECK(weights(switched) == weights(loaded));
     CHECK(switched.get_total_atomic_charge() == loaded.get_total_atomic_charge());
+
+    // the probe is tracked per body, so a body made before the switch is caught up even if its molecule is only made after it
+    settings::scattering::radiation = probe;
+    data::Body early("tests/files/2epe.pdb");
+    settings::scattering::radiation = other;
+    data::Molecule late({early});
+    CHECK(late.get_total_atomic_charge() == loaded.get_total_atomic_charge());
     auto I_switched = switched.get_histogram()->debye_transform().get_intensity();
     auto I_loaded = loaded.get_histogram()->debye_transform().get_intensity();
     REQUIRE(I_switched.size() == I_loaded.size());

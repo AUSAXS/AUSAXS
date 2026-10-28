@@ -31,11 +31,7 @@ int molecule_from_file(const char* filename, int* status) {return execute_with_c
 
 int molecule_from_pdb_id(int pdb_id, int* status) {return execute_with_catch([&]() {
     auto& pdb = api::ObjectStorage::get<io::pdb::PDBStructure>(pdb_id, "pdb");
-    auto data = pdb.reduced_representation();
-    auto molecule = data.waters.empty() 
-        ? Molecule({Body{std::move(data.atoms)}})
-        : Molecule({Body{std::move(data.atoms), std::move(data.waters)}})
-    ;
+    auto molecule = Molecule({Body(pdb)});
     auto molecule_id = api::ObjectStorage::register_object(std::move(molecule));
     return molecule_id;
 }, status);}
