@@ -1,5 +1,6 @@
 // Tests of the molecule_* functions of the C API backing pyausaxs.
 
+#include <api/ObjectStorage.h>
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
 #include <settings/HistogramSettings.h>
@@ -132,4 +133,60 @@ TEST_CASE("molecule_distance_histogram_raw: weight products without excluded vol
     for (int i = 0; i < n_bins; ++i) {total += counts[i];}
     CHECK_THAT(total, Catch::Matchers::WithinRel(w_sum*w_sum, 1e-6)); // the histogram kernels take the weights in single precision
     CHECK(axis[0] == 0);
+}
+
+TEST_CASE("object ids: an object of the wrong type is refused") {
+    // an id is just an int from the caller, so it can name any stored object; reading it as the wrong type aborts or segfaults the host
+    int status = 0;
+    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
+    REQUIRE(status == 0);
+    int pdb = pdb_read("tests/files/2epe.pdb", &status);
+    REQUIRE(status == 0);
+    int data = data_read("tests/files/2epe.dat", &status);
+    REQUIRE(status == 0);
+
+    int fit = molecule_debye_fit(mol, data, &status);
+    REQUIRE(status == 0); // control
+
+    for (int not_data : {mol, pdb, fit}) {
+        molecule_debye_fit(mol, not_data, &status);
+        CHECK(status != 0);
+    }
+    for (int not_molecule : {data, pdb, fit}) {
+        molecule_debye_fit(not_molecule, data, &status);
+        CHECK(status != 0);
+        iterative_fit_init(not_molecule, &status);
+        CHECK(status != 0);
+        double *q = nullptr, *I = nullptr;
+        int n = 0;
+        molecule_debye_exact(not_molecule, &q, &I, &n, &status);
+        CHECK(status != 0);
+    }
+    molecule_from_pdb_id(mol, &status);
+    CHECK(status != 0);
+}
+
+TEST_CASE("object ids: a missing id and a wrong type give different errors") {
+    auto last_error = [] {
+        char* msg = nullptr;
+        int status = 0;
+        get_last_error_msg(&msg, &status);
+        return std::string(msg);
+    };
+
+    int status = 0;
+    int data = data_read("tests/files/2epe.dat", &status);
+    REQUIRE(status == 0);
+    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
+    REQUIRE(status == 0);
+
+    molecule_debye_fit(mol, mol, &status);
+    REQUIRE(status != 0);
+    CHECK(last_error() == "Object \"" + std::to_string(mol) + "\" has the wrong type (expected: dataset).");
+
+    deallocate(data, &status);
+    REQUIRE(status == 0);
+    molecule_debye_fit(mol, data, &status);
+    REQUIRE(status != 0);
+    CHECK(last_error() == "No object with id \"" + std::to_string(data) + "\" exists (expected: dataset). It may have been deallocated.");
 }

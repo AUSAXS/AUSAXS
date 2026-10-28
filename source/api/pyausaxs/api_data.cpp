@@ -57,19 +57,18 @@ int data_get_data(
     double** q, double** I, double** Ierr, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* dataset = api::ObjectStorage::get_object<SimpleDataset>(object_id);
-    if (!dataset) {throw except::invalid_argument("Invalid dataset id: \"" + std::to_string(object_id) + "\"");}
-    _data_get_data_obj data(dataset->size());
-    for (int i = 0; i < dataset->size(); ++i) {
-        data.q[i] = dataset->x(i);
-        data.I[i] = dataset->y(i);
-        data.Ierr[i] = dataset->yerr(i);
+    auto& dataset = api::ObjectStorage::get<SimpleDataset>(object_id, "dataset");
+    _data_get_data_obj data(dataset.size());
+    for (int i = 0; i < dataset.size(); ++i) {
+        data.q[i] = dataset.x(i);
+        data.I[i] = dataset.y(i);
+        data.Ierr[i] = dataset.yerr(i);
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto* ref = api::ObjectStorage::get_object<_data_get_data_obj>(data_id);
     *q = ref->q.data();
     *I = ref->I.data();
     *Ierr = ref->Ierr.data();
-    *n_points = dataset->size();
+    *n_points = dataset.size();
     return data_id;
 }, status);}

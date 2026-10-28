@@ -63,10 +63,9 @@ int rigidbody_get_preview_structure(
     int** constraint_data, int* n_constraints,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
+    auto& script_obj = api::ObjectStorage::get<_rigidbody_script_obj>(rigidbody_id, "rigidbody script");
 
-    auto& sequencer = get_cached_sequencer(*script_obj);
+    auto& sequencer = get_cached_sequencer(script_obj);
     auto* molecule = sequencer._get_molecule();
 
     _rigidbody_preview_structure_obj data;
@@ -186,22 +185,21 @@ void rigidbody_poll_live_structure(
     int* n_atoms, int* version,
     int* status
 ) {execute_with_catch([&]() {
-    auto* poller = api::ObjectStorage::get_object<_rigidbody_live_poller_obj>(poller_id);
-    if (!poller) {throw except::invalid_argument("Invalid live poller id: \"" + std::to_string(poller_id) + "\"");}
+    auto& poller = api::ObjectStorage::get<_rigidbody_live_poller_obj>(poller_id, "live poller");
 
     // copied under the publisher's lock: the buffers are resized from a thread pool task, so reading them
     // directly from the consumer's thread would race with a reallocation
     rigidbody::sequencer::UpdateElement::lock();
-    poller->x = rigidbody::sequencer::UpdateElement::x;
-    poller->y = rigidbody::sequencer::UpdateElement::y;
-    poller->z = rigidbody::sequencer::UpdateElement::z;
+    poller.x = rigidbody::sequencer::UpdateElement::x;
+    poller.y = rigidbody::sequencer::UpdateElement::y;
+    poller.z = rigidbody::sequencer::UpdateElement::z;
     *version = rigidbody::sequencer::UpdateElement::version;
     rigidbody::sequencer::UpdateElement::unlock();
 
-    *x = poller->x.data();
-    *y = poller->y.data();
-    *z = poller->z.data();
-    *n_atoms = static_cast<int>(poller->x.size());
+    *x = poller.x.data();
+    *y = poller.y.data();
+    *z = poller.z.data();
+    *n_atoms = static_cast<int>(poller.x.size());
 }, status);}
 
 void rigidbody_register_live_consumer(bool connected, int* status) {execute_with_catch([&]() {
@@ -212,9 +210,8 @@ void rigidbody_validate(
     int rigidbody_id,
     int* status
 ) {execute_with_catch([&]() {
-    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
-    get_cached_sequencer(*script_obj);
+    auto& script_obj = api::ObjectStorage::get<_rigidbody_script_obj>(rigidbody_id, "rigidbody script");
+    get_cached_sequencer(script_obj);
 }, status);}
 
 namespace {
@@ -227,10 +224,9 @@ int rigidbody_run(
     double** q, double** I, double** I_err, double** I_interp, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
-    get_cached_sequencer(*script_obj);
-    auto sequencer = std::exchange(script_obj->sequencer, nullptr); // consume the sequencer so it cannot be reused after a run
+    auto& script_obj = api::ObjectStorage::get<_rigidbody_script_obj>(rigidbody_id, "rigidbody script");
+    get_cached_sequencer(script_obj);
+    auto sequencer = std::exchange(script_obj.sequencer, nullptr); // consume the sequencer so it cannot be reused after a run
     sequencer->execute();
 
     auto fit_result = sequencer->_get_controller()->get_fitter()->fit();
@@ -320,10 +316,9 @@ void rigidbody_get_body_names(
     int* size,
     int* status
 ) {execute_with_catch([&]() {
-    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
+    auto& script_obj = api::ObjectStorage::get<_rigidbody_script_obj>(rigidbody_id, "rigidbody script");
 
-    auto& sequencer = get_cached_sequencer(*script_obj);
+    auto& sequencer = get_cached_sequencer(script_obj);
     // the setup elements (merge/delete/convert_to_symmetry) are applied during parsing, so the registry
     // already reflects the final body set, ordered identically to rigidbody_get_preview_structure's bodies
     static std::vector<std::string> body_names;
@@ -351,10 +346,9 @@ int rigidbody_get_symmetry_layout(
     int* n_replicas,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* script_obj = api::ObjectStorage::get_object<_rigidbody_script_obj>(rigidbody_id);
-    if (!script_obj) {throw except::invalid_argument("Invalid rigidbody script id: \"" + std::to_string(rigidbody_id) + "\"");}
+    auto& script_obj = api::ObjectStorage::get<_rigidbody_script_obj>(rigidbody_id, "rigidbody script");
 
-    auto& sequencer = get_cached_sequencer(*script_obj);
+    auto& sequencer = get_cached_sequencer(script_obj);
     auto* molecule = sequencer._get_molecule();
     const auto& name_registry = sequencer._body_name_registry();
 

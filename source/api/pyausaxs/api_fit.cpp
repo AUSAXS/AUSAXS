@@ -26,12 +26,11 @@ int fit_get_fit_info(
     double* chi_squared, int* dof,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
-    if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
+    auto& fit_result = api::ObjectStorage::get<fitter::FitResult>(fit_id, "fit result");
 
-    _fit_get_fit_info_obj data(static_cast<int>(fit_result->parameters.size()));
-    for (int i = 0; i < static_cast<int>(fit_result->parameters.size()); ++i) {
-        const auto& par = fit_result->parameters[i];
+    _fit_get_fit_info_obj data(static_cast<int>(fit_result.parameters.size()));
+    for (int i = 0; i < static_cast<int>(fit_result.parameters.size()); ++i) {
+        const auto& par = fit_result.parameters[i];
         data.pars[i] = par.name;
         data.pvals[i] = par.value;
         data.perr_n[i] = par.error.min;
@@ -41,9 +40,9 @@ int fit_get_fit_info(
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto* ref = api::ObjectStorage::get_object<_fit_get_fit_info_obj>(data_id);
 
-    *dof = fit_result->dof;
-    *chi_squared = fit_result->fval;
-    *n_pars = static_cast<int>(fit_result->parameters.size());
+    *dof = fit_result.dof;
+    *chi_squared = fit_result.fval;
+    *n_pars = static_cast<int>(fit_result.parameters.size());
     *pars = ref->pars_ptr.data();
     *pvals = ref->pvals.data();
     *perr_min = ref->perr_n.data();
@@ -65,14 +64,13 @@ int fit_get_fit_curves(
     double** q, double** I_data, double** I_err, double** I_model, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
-    if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
-    _fit_get_fit_curves_obj data(fit_result->curves.size_rows());
+    auto& fit_result = api::ObjectStorage::get<fitter::FitResult>(fit_id, "fit result");
+    _fit_get_fit_curves_obj data(fit_result.curves.size_rows());
     for (int i = 0; i < static_cast<int>(data.size()); ++i) {
-        data.q[i]       = fit_result->curves.col(0)[i];
-        data.I_data[i]  = fit_result->curves.col(1)[i];
-        data.I_err[i]   = fit_result->curves.col(2)[i];
-        data.I_model[i] = fit_result->curves.col(3)[i];
+        data.q[i]       = fit_result.curves.col(0)[i];
+        data.I_data[i]  = fit_result.curves.col(1)[i];
+        data.I_err[i]   = fit_result.curves.col(2)[i];
+        data.I_model[i] = fit_result.curves.col(3)[i];
     }
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto* ref = api::ObjectStorage::get_object<_fit_get_fit_curves_obj>(data_id);

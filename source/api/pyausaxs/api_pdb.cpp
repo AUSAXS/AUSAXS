@@ -51,9 +51,8 @@ int pdb_get_data(
     const char*** iCode_out, double** x_out, double** y_out, double** z_out, double** occupancy_out, double** tempFactor_out, const char*** element_out, 
     const char*** charge_out, int* n_atoms_out, int* status
 ) {return execute_with_catch([&]() {
-    auto* pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(object_id);
-    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(object_id) + "\"");}
-    const auto& atoms = pdb->atoms;
+    auto& pdb = api::ObjectStorage::get<io::pdb::PDBStructure>(object_id, "pdb");
+    const auto& atoms = pdb.atoms;
     _pdb_get_data_obj data(static_cast<int>(atoms.size()));
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
         const auto& atom = atoms[i];
@@ -112,13 +111,12 @@ int pdb_decompose_symmetry(
     double** x_out, double** y_out, double** z_out, int** copy_index_out, int* n_atoms_out,
     double* rmsd_out, int* status
 ) {return execute_with_catch([&]() {
-    auto* pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
-    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
+    auto& pdb = api::ObjectStorage::get<io::pdb::PDBStructure>(pdb_id, "pdb");
 
     // group atoms into chains, preserving first-seen chain order (chain 0 = reference)
     std::unordered_map<char, int> chain_index;
     std::vector<std::vector<Vector3<double>>> chains;
-    for (const auto& atom : pdb->atoms) {
+    for (const auto& atom : pdb.atoms) {
         auto [it, inserted] = chain_index.try_emplace(atom.chainID, static_cast<int>(chains.size()));
         if (inserted) {chains.emplace_back();}
         chains[it->second].push_back(atom.coords);
@@ -177,14 +175,12 @@ int pdb_debye_fit(
     int pdb_id, int data_id,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
-    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
-    auto data = pdb->reduced_representation();
+    auto& pdb = api::ObjectStorage::get<io::pdb::PDBStructure>(pdb_id, "pdb");
+    auto data = pdb.reduced_representation();
     auto molecule = data.waters.empty() ? Molecule({Body{std::move(data.atoms)}}) : Molecule({Body{std::move(data.atoms), std::move(data.waters)}});
     molecule.reset_histogram_manager();
-    auto* dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
-    if (!dataset) {throw except::invalid_argument("Invalid dataset id: \"" + std::to_string(data_id) + "\"");}
-    auto fitter = fitter::SmartFitter(*dataset, molecule.get_histogram());
+    auto& dataset = api::ObjectStorage::get<SimpleDataset>(data_id, "dataset");
+    auto fitter = fitter::SmartFitter(dataset, molecule.get_histogram());
     int fit_result_id = api::ObjectStorage::register_object(fitter.fit());
     return fit_result_id;
 }, status);}
