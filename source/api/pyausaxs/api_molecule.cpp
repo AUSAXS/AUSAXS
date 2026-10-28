@@ -30,9 +30,8 @@ int molecule_from_file(const char* filename, int* status) {return execute_with_c
 }, status);}
 
 int molecule_from_pdb_id(int pdb_id, int* status) {return execute_with_catch([&]() {
-    auto* pdb = api::ObjectStorage::get_object<io::pdb::PDBStructure>(pdb_id);
-    if (!pdb) {throw except::invalid_argument("Invalid pdb id: \"" + std::to_string(pdb_id) + "\"");}
-    auto data = pdb->reduced_representation();
+    auto& pdb = api::ObjectStorage::get<io::pdb::PDBStructure>(pdb_id, "pdb");
+    auto data = pdb.reduced_representation();
     auto molecule = data.waters.empty() 
         ? Molecule({Body{std::move(data.atoms)}})
         : Molecule({Body{std::move(data.atoms), std::move(data.waters)}})
@@ -73,10 +72,9 @@ int molecule_get_data(
     double** wx_out, double** wy_out, double** wz_out, double** ww_out,
     int* na, int* nw, int* status
 ) {return execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    auto atoms = molecule->get_atoms();
-    auto waters = molecule->get_waters();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    auto atoms = molecule.get_atoms();
+    auto waters = molecule.get_waters();
     _molecule_get_data_obj data(static_cast<int>(atoms.size()), static_cast<int>(waters.size()));
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
         const auto& atom = atoms[i];
@@ -114,9 +112,8 @@ void molecule_hydrate(
     int molecule_id,
     int* status
 ) {execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->generate_new_hydration();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.generate_new_hydration();
 }, status);}
 
 namespace {
@@ -130,10 +127,9 @@ int molecule_distance_histogram(
     double** aa, double** aw, double** ww, double** axis, int* n_bins, 
     int* status
 ) {return execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->reset_histogram_manager();
-    auto hist = molecule->get_histogram();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager();
+    auto hist = molecule.get_histogram();
     auto& aa_dist = hist->get_aa_counts();
     auto& aw_dist = hist->get_aw_counts();
     auto& ww_dist = hist->get_ww_counts();
@@ -182,10 +178,9 @@ int molecule_distance_histogram_raw(
 ) {return execute_with_catch([&]() {
     NoExvScope no_exv; // raw histogram: point scatterers with their weights, without any excluded volume
 
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->reset_histogram_manager(); // rebuilt without excluded volume
-    auto hist = molecule->get_total_histogram();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager(); // rebuilt without excluded volume
+    auto hist = molecule.get_total_histogram();
     const auto& p_tot = hist->get_weighted_counts();
     const auto& d_axis = hist->get_d_axis();
     assert(p_tot.size() == d_axis.size() && "Misaligned distance vectors.");
@@ -216,10 +211,9 @@ int molecule_debye(
     double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->reset_histogram_manager();
-    auto hist = molecule->get_histogram();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager();
+    auto hist = molecule.get_histogram();
     auto debye_I = hist->debye_transform();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
@@ -240,11 +234,10 @@ void molecule_debye_userq(
     double* q, double* I, int n_points,
     int* status
 ) {execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->reset_histogram_manager();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager();
     std::vector<double> q_vals(q, q + n_points);
-    auto hist = molecule->get_histogram();
+    auto hist = molecule.get_histogram();
     auto debye_I = hist->debye_transform(q_vals);
     if (debye_I.size() != n_points) {throw except::size_error("Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
@@ -259,10 +252,9 @@ int molecule_debye_raw(
 ) {return execute_with_catch([&]() {
     NoExvScope no_exv; // raw profile: point scatterers with their weights, without any excluded volume
 
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->reset_histogram_manager(); // rebuilt without excluded volume
-    auto hist = molecule->get_histogram();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager(); // rebuilt without excluded volume
+    auto hist = molecule.get_histogram();
     auto debye_I = hist->debye_transform<false>();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
@@ -286,11 +278,10 @@ void molecule_debye_raw_userq(
 ) {execute_with_catch([&]() {
     NoExvScope no_exv; // raw profile: point scatterers with their weights, without any excluded volume
 
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     std::vector<double> q_vals(q, q + n_points);
-    molecule->reset_histogram_manager(); // rebuilt without excluded volume
-    auto hist = molecule->get_histogram();
+    molecule.reset_histogram_manager(); // rebuilt without excluded volume
+    auto hist = molecule.get_histogram();
     auto debye_I = hist->debye_transform<false>(q_vals);
     if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
@@ -303,10 +294,9 @@ int molecule_debye_exact(
     double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
-    auto Iq = hist::exact_debye_transform(*molecule, qv);
+    auto Iq = hist::exact_debye_transform(molecule, qv);
     _molecule_debye_obj data(static_cast<int>(Iq.size()));
     for (int i = 0; i < static_cast<int>(Iq.size()); ++i) {
         data.q[i] = qv[i];
@@ -325,10 +315,9 @@ void molecule_debye_exact_userq(
     double* q, double* I, int n_points,
     int* status
 ) {execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     std::vector<double> q_vals(q, q + n_points);
-    auto Iq = hist::exact_debye_transform(*molecule, q_vals);
+    auto Iq = hist::exact_debye_transform(molecule, q_vals);
     if (static_cast<int>(Iq.size()) != n_points) {throw except::size_error("Exact Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
         I[i] = Iq[i]*std::exp(q_vals[i]*q_vals[i]); // remove form factor added by exact_debye
@@ -340,18 +329,17 @@ void molecule_set_coordinates(
     const double* x, const double* y, const double* z, int n_atoms,
     int* status
 ) {execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    if (n_atoms != molecule->size_atom()) {
-        throw except::size_error("molecule_set_coordinates: expected " + std::to_string(molecule->size_atom()) + " atoms, got " + std::to_string(n_atoms) + ".");
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    if (n_atoms != molecule.size_atom()) {
+        throw except::size_error("molecule_set_coordinates: expected " + std::to_string(molecule.size_atom()) + " atoms, got " + std::to_string(n_atoms) + ".");
     }
     int i = 0;
-    for (auto& atom : molecule->iterate_atoms()) {
+    for (auto& atom : molecule.iterate_atoms()) {
         atom.coordinates() = {x[i], y[i], z[i]};
         ++i;
     }
-    for (const auto& body : molecule->get_bodies()) {body.get_signaller()->modified_internal();}
-    molecule->clear_grid();
+    for (const auto& body : molecule.get_bodies()) {body.get_signaller()->modified_internal();}
+    molecule.clear_grid();
 }, status);}
 
 void molecule_debye_raw_vjp(
@@ -360,12 +348,11 @@ void molecule_debye_raw_vjp(
     double* gx, double* gy, double* gz, int n_atoms,
     int* status
 ) {execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    if (n_atoms != molecule->size_atom()) {
-        throw except::size_error("molecule_debye_raw_vjp: expected " + std::to_string(molecule->size_atom()) + " atoms, got " + std::to_string(n_atoms) + ".");
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    if (n_atoms != molecule.size_atom()) {
+        throw except::size_error("molecule_debye_raw_vjp: expected " + std::to_string(molecule.size_atom()) + " atoms, got " + std::to_string(n_atoms) + ".");
     }
-    auto gradient = hist::debye_raw_vjp(*molecule, std::vector<double>(q, q + n_points), std::vector<double>(v, v + n_points));
+    auto gradient = hist::debye_raw_vjp(molecule, std::vector<double>(q, q + n_points), std::vector<double>(v, v + n_points));
     for (int i = 0; i < n_atoms; ++i) {
         gx[i] = gradient[i].x();
         gy[i] = gradient[i].y();
@@ -377,12 +364,10 @@ int molecule_debye_fit(
     int molecule_id, int data_id,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->reset_histogram_manager();
-    auto* dataset = api::ObjectStorage::get_object<SimpleDataset>(data_id);
-    if (!dataset) {throw except::invalid_argument("Invalid dataset id: \"" + std::to_string(data_id) + "\"");}
-    auto fitter = fitter::SmartFitter(*dataset, molecule->get_histogram());
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager();
+    auto& dataset = api::ObjectStorage::get<SimpleDataset>(data_id, "dataset");
+    auto fitter = fitter::SmartFitter(dataset, molecule.get_histogram());
     int fit_result_id = api::ObjectStorage::register_object(fitter.fit());
     return fit_result_id;
 }, status);}
@@ -391,9 +376,8 @@ void molecule_clear_hydration(
     int molecule_id,
     int* status
 ) {execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->clear_hydration();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.clear_hydration();
 }, status);}
 
 void molecule_Rg(
@@ -401,7 +385,6 @@ void molecule_Rg(
     double* Rg,
     int* status
 ) {execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    *Rg = molecule->get_Rg();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    *Rg = molecule.get_Rg();
 }, status);}

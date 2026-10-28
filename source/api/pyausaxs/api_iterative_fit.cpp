@@ -28,12 +28,11 @@ int iterative_fit_init(
     int molecule_id, 
     int* status
 ) {return execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->reset_histogram_manager();
-    auto obj = _iterative_fit_state_obj(molecule);
-    obj.enabled_pars.validate_model(molecule->get_histogram().get());
-    obj.hist = molecule->get_histogram();
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager();
+    auto obj = _iterative_fit_state_obj(&molecule);
+    obj.enabled_pars.validate_model(molecule.get_histogram().get());
+    obj.hist = molecule.get_histogram();
     return api::ObjectStorage::register_object(std::move(obj));
 }, status);}
 
@@ -42,13 +41,12 @@ int iterative_fit_init_userq(
     double* q, int n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto* molecule = api::ObjectStorage::get_object<Molecule>(molecule_id);
-    if (!molecule) {throw except::invalid_argument("Invalid molecule id: \"" + std::to_string(molecule_id) + "\"");}
-    molecule->reset_histogram_manager();
-    auto obj = _iterative_fit_state_obj(molecule);
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager();
+    auto obj = _iterative_fit_state_obj(&molecule);
     obj.q = std::vector<double>(q, q + n_points);
-    obj.hist = molecule->get_histogram();
-    obj.enabled_pars.validate_model(molecule->get_histogram().get());
+    obj.hist = molecule.get_histogram();
+    obj.enabled_pars.validate_model(molecule.get_histogram().get());
     return api::ObjectStorage::register_object(std::move(obj));
 }, status);}
 
@@ -58,12 +56,11 @@ void iterative_fit_evaluate(
     double** return_I, int* n_points,
     int* status
 ) {execute_with_catch([&]() {
-    auto* iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
-    if (!iterative_fit_state) {throw except::invalid_argument("Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\"");}
-    if (iterative_fit_state->q.empty()) {
-        iterative_fit_state->q = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
+    auto& iterative_fit_state = api::ObjectStorage::get<_iterative_fit_state_obj>(iterative_fit_id, "iterative fit");
+    if (iterative_fit_state.q.empty()) {
+        iterative_fit_state.q = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
     }
-    auto& enabled_pars = iterative_fit_state->enabled_pars;
+    auto& enabled_pars = iterative_fit_state.enabled_pars;
     if (n_pars != enabled_pars.get_enabled_pars_count()) {
         throw ausaxs::except::runtime_error(
             "Number of provided parameters (" + std::to_string(n_pars) + ") " 
@@ -72,12 +69,12 @@ void iterative_fit_evaluate(
     }
     enabled_pars.apply_pars(
         std::vector<double>(pars, pars+n_pars),
-        iterative_fit_state->hist.get()
+        iterative_fit_state.hist.get()
     );
 
-    iterative_fit_state->I = iterative_fit_state->hist->debye_transform(iterative_fit_state->q).y();
-    *return_I = iterative_fit_state->I.data();
-    *n_points = static_cast<int>(iterative_fit_state->I.size());
+    iterative_fit_state.I = iterative_fit_state.hist->debye_transform(iterative_fit_state.q).y();
+    *return_I = iterative_fit_state.I.data();
+    *n_points = static_cast<int>(iterative_fit_state.I.size());
 }, status);}
 
 void iterative_fit_evaluate_userq(
@@ -86,9 +83,8 @@ void iterative_fit_evaluate_userq(
     double* q, double* I, int n_points,
     int* status
 ) {execute_with_catch([&]() {
-    auto* iterative_fit_state = api::ObjectStorage::get_object<_iterative_fit_state_obj>(iterative_fit_id);
-    if (!iterative_fit_state) {throw except::invalid_argument("Invalid iterative fit id: \"" + std::to_string(iterative_fit_id) + "\"");}
-    auto& enabled_pars = iterative_fit_state->enabled_pars;
+    auto& iterative_fit_state = api::ObjectStorage::get<_iterative_fit_state_obj>(iterative_fit_id, "iterative fit");
+    auto& enabled_pars = iterative_fit_state.enabled_pars;
     if (n_pars != enabled_pars.get_enabled_pars_count()) {
         throw ausaxs::except::runtime_error(
             "Number of provided parameters (" + std::to_string(n_pars) + ") " 
@@ -97,10 +93,10 @@ void iterative_fit_evaluate_userq(
     }
     enabled_pars.apply_pars(
         std::vector<double>(pars, pars+n_pars),
-        iterative_fit_state->hist.get()
+        iterative_fit_state.hist.get()
     );
 
     std::vector<double> q_vals(q, q + n_points);
-    std::vector<double> I_vals = iterative_fit_state->hist->debye_transform(q_vals).y();
+    std::vector<double> I_vals = iterative_fit_state.hist->debye_transform(q_vals).y();
     std::ranges::copy(I_vals, I);
 }, status);}
