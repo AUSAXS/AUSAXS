@@ -168,3 +168,29 @@ TEST_CASE("Custom bin width: smaller widths increase accuracy") {
         protein, exact
     );
 }
+template<template<bool> class MANAGER>
+static void run_test6(const Molecule& protein) {
+    form_factor::manager::use_form_factors(protein); // the manager is constructed directly, bypassing the factory which normally selects these
+    for (auto width : {0.15, 0.1, 0.05}) {
+        settings::axes::bin_width = width;
+        auto unweighted = MANAGER<false>(&protein).calculate_all()->debye_transform().get_intensity();
+        auto weighted = MANAGER<true>(&protein).calculate_all()->debye_transform().get_intensity();
+        INFO("width " << width);
+        REQUIRE(avg_deviation(unweighted, weighted) < 0.01);
+    }
+}
+TEST_CASE("Custom bin width: unweighted bins transform with their own width") {
+    // unweighted bins carry no distance axis of their own, so their Debye transform must not borrow the default table's,
+    // which is precomputed for the default width. On a disordered structure the two binnings then agree closely.
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+
+    Molecule protein("tests/files/2epe.pdb");
+    protein.clear_hydration();
+    invoke_for_all_nongrid_histogram_manager_variants(
+        []<template<bool> class MANAGER>(const Molecule& protein) {
+            run_test6<MANAGER>(protein);
+        },
+        protein
+    );
+}
