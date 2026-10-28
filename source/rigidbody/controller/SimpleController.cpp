@@ -4,6 +4,7 @@
 #include <rigidbody/controller/SimpleController.h>
 
 #include <data/Molecule.h>
+#include <hydrate/ExplicitHydration.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
@@ -20,6 +21,16 @@ using namespace ausaxs::rigidbody::parameter;
 using namespace ausaxs::rigidbody::constraints;
 using namespace ausaxs::rigidbody::controller;
 
+namespace {
+    // replace the hydration shell with a snapshot from get_waters(); copied, since the snapshot must outlive further rejected steps
+    void restore_hydration(data::Molecule& molecule, const std::vector<data::Water>& waters) {
+        molecule.clear_hydration();
+        auto hydration = std::make_unique<hydrate::ExplicitHydration>(waters);
+        hydration->expanded_across_symmetry = true; // snapshotted from a molecule already hydrated by generate_new_hydration()
+        molecule.get_body(0).set_hydration(std::move(hydration));
+    }
+}
+
 SimpleController::~SimpleController() = default;
 
 void SimpleController::setup(const io::ExistingFile& measurement_path) {
@@ -32,6 +43,7 @@ void SimpleController::setup(const io::ExistingFile& measurement_path) {
     // initialize the best configuration with the current conformation
     rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
     *current_best_config = rigidbody->conformation->absolute_parameters;
+    current_best_config->waters = rigidbody->molecule.get_waters(); // a step rejected before any is accepted restores these
 }
 
 void SimpleController::update_fitter() {
@@ -76,10 +88,14 @@ void SimpleController::finish_step() {
         rigidbody->transformer->undo();
         rigidbody->conformation->absolute_parameters.chi2 = current_best_config->chi2; // also restore chi2
 
-        // regenerate grid & hydration layer
-        //? potential inconsistency: the new grid may not be exactly identical to the old one,
-        //? as the order of adding bodies may differ. perhaps the difference is negligible?
+        // the grid still holds the rejected body positions, so it is rebuilt from the restored ones on next use
         rigidbody->molecule.clear_grid();
-        rigidbody->molecule.generate_new_hydration();
+
+        // restore the best conformation's hydration shell rather than generating a new one
+        if (current_best_config->waters.empty()) {
+            rigidbody->molecule.generate_new_hydration(); // no shell to restore, e.g. a hydration strategy that adds no waters
+        } else {
+            restore_hydration(rigidbody->molecule, current_best_config->waters);
+        }
     }
 }

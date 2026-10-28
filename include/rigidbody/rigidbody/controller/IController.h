@@ -36,7 +36,10 @@ namespace ausaxs::rigidbody::controller {
             virtual bool prepare_step() = 0;
 
             /**
-             * @brief Finish the current step. 
+             * @brief Finish the current step.
+             *
+             * Afterwards the molecule is in the best conformation found so far, hydration shell included, since anything
+             * run between steps (e.g. a save) must see that structure. The fitter is not updated.
              */
             virtual void finish_step() = 0;
 

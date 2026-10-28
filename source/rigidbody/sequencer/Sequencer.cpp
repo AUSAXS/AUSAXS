@@ -3,13 +3,12 @@
 
 #include <rigidbody/sequencer/Sequencer.h>
 
-#include <data/Body.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
-#include <hydrate/ExplicitHydration.h>
 #include <io/ExistingFile.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
+#include <rigidbody/sequencer/elements/SaveElement.h>
 #include <utility/Console.h>
 
 using namespace ausaxs;
@@ -99,7 +98,8 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     // prepare the fitter for the actual optimization
     _get_controller()->setup(saxs_path);
     for (auto& e : LoopElement::elements) {
-        if (_stop_requested()) {break;}
+        // a stopped run skips the remaining work, but still writes the outputs the script asks for at the top level
+        if (_stop_requested() && dynamic_cast<SaveElement*>(e.get()) == nullptr) {continue;}
         e->run();
     }
 
@@ -108,17 +108,8 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
         console::print_text_critical("Refinement stopped. Returning the best conformation found so far.");
     }
 
-    // restore the best hydration shell before the final fit
-    auto* best_conf = _get_best_conf();
-    if (!best_conf->waters.empty()) {
-        rigidbody->molecule.clear_hydration();
-        auto hydration = std::make_unique<hydrate::ExplicitHydration>(std::move(best_conf->waters));
-        hydration->expanded_across_symmetry = true; // snapshotted from a molecule already hydrated by generate_new_hydration()
-        rigidbody->molecule.get_body(0).set_hydration(std::move(hydration));
-    }
-
-    // update the fitter with the restored hydration shell and symmetry state. This is unconditional because the last
-    // step may have been rejected, in which case finish_step() left the fitter holding the rejected candidate's model.
+    // finish_step() leaves the molecule in the best conformation, waters included. The fitter is updated unconditionally
+    // because after a rejected last step it still holds the rejected candidate's model.
     _get_controller()->update_fitter();
 
     return _get_controller()->get_fitter()->unconstrained_fit();
