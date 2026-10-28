@@ -5,7 +5,6 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <dataset/SimpleDataset.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 
