@@ -10,6 +10,7 @@
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
 
+#include <cmath>
 #include <numeric>
 #include <utility>
 
@@ -51,6 +52,9 @@ void DistanceHistogram::initialize(std::vector<double>&& d_axis) {
 void DistanceHistogram::initialize() {
     d_axis = axis.as_vector();
     d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
+
+    // the shared default sinc table is precomputed for the default bin width; any other width needs a table of its own
+    if (std::abs(axis.width() - constants::axes::d_axis.width()) > 1e-12) {sinc_table.set_d_axis(d_axis);}
 }
 
 template<bool form_factor>
