@@ -10,7 +10,6 @@
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 #include <utility/observer_ptr.h>
 
-#include <cstddef>
 #include <random>
 
 namespace ausaxs::rigidbody::parameter {    
@@ -86,7 +85,13 @@ namespace ausaxs::rigidbody::parameter {
              * isotropically within its own plane rather than by the projection of a three-dimensional direction.
              * Any dimension beyond the requested count is zero.
              */
-            Vector3<double> draw_isotropic(double magnitude, std::size_t dimensions = 3);
+            Vector3<double> draw_isotropic(double magnitude, int dimensions);
+
+            /**
+             * @brief Draw a vector of the given magnitude pointing in a uniformly distributed direction within the span of the given axes.
+             *        The components along the remaining axes are zero.
+             */
+            Vector3<double> draw_isotropic(double magnitude, const Axes& axes);
 
             observer_ptr<const Rigidbody> rigidbody;
             ParameterAmplitudes amplitudes;

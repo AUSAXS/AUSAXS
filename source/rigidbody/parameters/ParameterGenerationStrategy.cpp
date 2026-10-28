@@ -40,18 +40,20 @@ Vector3<double> ParameterGenerationStrategy::draw_direction() {
     return {r*std::cos(azimuth), r*std::sin(azimuth), z};
 }
 
-Vector3<double> ParameterGenerationStrategy::draw_isotropic(double magnitude, std::size_t dimensions) {
-    switch (dimensions) {
-        case 0: return {0, 0, 0}; // a symmetry with no parameters of its own, e.g. a view onto another body's
-        case 2: { // a planar parameter, whose direction is a single uniform azimuth
-            double azimuth = std::numbers::pi*unit_dist(random::generator());
-            return {magnitude*std::cos(azimuth), magnitude*std::sin(azimuth), 0};
-        }
-        case 3: return draw_direction()*magnitude;
-        default:
-            assert(false && "ParameterGenerationStrategy::draw_isotropic: unexpected parameter count.");
-            return {0, 0, 0};
-    }
+Vector3<double> ParameterGenerationStrategy::draw_isotropic(double magnitude, int dimensions) {
+    // a symmetry with no parameters of its own, e.g. a view onto another body's, has zero dimensions; a planar one has the first two
+    assert(dimensions <= 3 && "ParameterGenerationStrategy::draw_isotropic: unexpected parameter count.");
+    return draw_isotropic(magnitude, Axes{.x = 0 < dimensions, .y = 1 < dimensions, .z = 2 < dimensions});
+}
+
+Vector3<double> ParameterGenerationStrategy::draw_isotropic(double magnitude, const Axes& axes) {
+    // a uniform direction projected onto a subspace is still uniform in direction within it, so only its length must be restored
+    auto direction = draw_direction();
+    if (!axes.x) {direction.x() = 0;}
+    if (!axes.y) {direction.y() = 0;}
+    if (!axes.z) {direction.z() = 0;}
+    double length = direction.magnitude();
+    return length == 0 ? Vector3<double>{0, 0, 0} : direction*(magnitude/length);
 }
 
 void ParameterGenerationStrategy::set_decay_strategy(std::unique_ptr<parameter::decay::DecayStrategy> decay_strategy) {

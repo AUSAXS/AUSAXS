@@ -8,13 +8,26 @@
 
 namespace ausaxs::rigidbody::parameter {
     /**
-     * @brief The maximum magnitude of each parameter component generated per optimisation step.
+     * @brief A subset of the Cartesian axes of the coordinate frame the structure was loaded in.
+     */
+    struct Axes {
+        bool x = true;
+        bool y = true;
+        bool z = true;
+        bool operator==(const Axes&) const = default;
+    };
+
+    /**
+     * @brief The maximum magnitude of each parameter component generated per optimisation step, and the axes they are drawn along.
      */
     struct ParameterAmplitudes {
         double translation = 0;          // Body translation, in Ångström.
         double rotation = 0;             // Body rotation, in radians.
         double symmetry_translation = 0; // Symmetry offset translation, in Ångström.
         double symmetry_rotation = 0;    // Symmetry rotation, in radians.
+
+        Axes translation_axes{};
+        Axes rotation_axes{};
     };
 
     /**

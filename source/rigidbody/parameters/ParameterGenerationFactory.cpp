@@ -16,9 +16,9 @@ ParameterAmplitudes rigidbody::factory::restrict_to(ParameterAmplitudes amplitud
         case settings::rigidbody::ParameterGenerationStrategyChoice::Simple:
             return amplitudes;
         case settings::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly:
-            return {.rotation = amplitudes.rotation};
+            return {.rotation = amplitudes.rotation, .rotation_axes = amplitudes.rotation_axes};
         case settings::rigidbody::ParameterGenerationStrategyChoice::TranslationsOnly:
-            return {.translation = amplitudes.translation};
+            return {.translation = amplitudes.translation, .translation_axes = amplitudes.translation_axes};
         case settings::rigidbody::ParameterGenerationStrategyChoice::SymmetryOnly:
             return {.symmetry_translation = amplitudes.symmetry_translation, .symmetry_rotation = amplitudes.symmetry_rotation};
         default: 

@@ -132,7 +132,7 @@ void TransformStrategy::apply(const parameter::BodyTransformParametersRelative& 
 
     // compute new absolute transform parameters for the body
     parameter::BodyTransformParametersAbsolute& body_params = rigidbody->conformation->absolute_parameters.parameters[ibody];
-    if (par.rotation.has_value()) {body_params.rotation = matrix::euler_angles(matrix::rotation_matrix(body_params.rotation)*matrix::rotation_matrix(par.rotation.value()));}
+    if (par.rotation.has_value()) {body_params.rotation = matrix::euler_angles(matrix::rotation_matrix(par.rotation.value())*matrix::rotation_matrix(body_params.rotation));}
     if (par.translation.has_value()) {body_params.translation += par.translation.value();}
 
     // apply transformations
