@@ -1,8 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <io/File.h>
 #include <io/Folder.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>
@@ -47,4 +49,54 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::SaveElement basic
         REQUIRE(seq != nullptr);
         REQUIRE_NOTHROW(seq->execute());
     }
+}
+
+TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::SaveElement checks the format when parsed") {
+    std::string load =
+        "load {\n"
+        "    pdb tests/files/2epe.pdb\n"
+        "    saxs tests/files/2epe.dat\n"
+        "    split 40 80\n"
+        "}\n";
+    for (std::string ok : {"a.pdb", "a_%.fit", "a.txt", "a.png", "a.xyz"}) {
+        INFO(ok);
+        CHECK_NOTHROW(parse_sequence(load + "save " + ok + "\n"));
+    }
+
+    // these used to parse, run the whole optimization, and only then throw when the save was reached
+    for (std::string bad : {"final.dat", "final", "final.pdb.gz"}) {
+        INFO(bad);
+        CHECK_THROWS_AS(parse_sequence(load + "save " + bad + "\n"), rigidbody::sequencer::except::parse_error);
+    }
+}
+
+TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::SaveElement numbers each path template on its own") {
+    io::Folder out_dir("temp/ausaxs_test_output_" + test::detail::unique_tag());
+    out_dir.create();
+    settings::general::output = out_dir.path() + "/"; // save paths are resolved relative to the output folder
+    auto seq = parse_sequence(
+        "load {\n"
+        "    pdb tests/files/2epe.pdb\n"
+        "    saxs tests/files/2epe.dat\n"
+        "    split 40 80\n"
+        "}\n"
+        "save first_%.pdb\n"
+        "loop 2\n"
+        "    optimize_once\n"
+        "    save every_%.pdb\n"
+        "    save first_%.pdb\n"
+        "end\n"
+    );
+    REQUIRE_NOTHROW(seq->execute());
+
+    // the counters used to be shared per file type, so the second series started where the first left off
+    auto exists = [&] (const std::string& name) {return io::File(out_dir.path() + "/" + name).exists();};
+    CHECK(exists("every_1.pdb"));
+    CHECK(exists("every_2.pdb"));
+    CHECK_FALSE(exists("every_3.pdb"));
+
+    // two elements saving to the same template continue one series
+    CHECK(exists("first_1.pdb"));
+    CHECK(exists("first_2.pdb"));
+    CHECK(exists("first_3.pdb"));
 }
