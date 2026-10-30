@@ -77,9 +77,9 @@ std::function<std::vector<double>(const std::vector<double>&)> ImageStack::prepa
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
     // double c = settings::em::concentration;                                // concentration
-    // double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
+    // double m = protein->get_absolute_mass()*constants::unit::external::mg;          // mass
     // double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
-    // double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
+    // double re2 = pow(constants::radius::electron*constants::unit::external::cm, 2); // squared scattering length
     // double I0 = DrhoV2*re2*c/m;
     // fitter.normalize_intensity(I0);
 

@@ -4,7 +4,7 @@
 #pragma once
 
 #include <constants/ConstantsFwd.h>
-#include <constants/ConstantsSI.h>
+#include <constants/ConstantsUnits.h>
 
 #include <cassert>
 #include <utility/Exceptions.h>
@@ -17,9 +17,10 @@ namespace ausaxs::constants::mass {
     constexpr double get_mass(atom_t atom);
 
     namespace density {
-        constexpr double water = 0.9982071*SI::mass::gm/SI::volume::cm3; // STP
-        constexpr double D2O = 1.1056*SI::mass::gm/SI::volume::cm3;      // STP
-        constexpr double protein = 1.35*SI::mass::gm/SI::volume::cm3;
+        // The literals are the published values in g/cm^3.
+        constexpr double water = 0.9982071*unit::internal::gm/unit::internal::mL; // STP
+        constexpr double D2O = 1.1056*unit::internal::gm/unit::internal::mL;      // STP
+        constexpr double protein = 1.35*unit::internal::gm/unit::internal::mL;
     }
 }
 

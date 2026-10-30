@@ -8,10 +8,10 @@
 #include <constants/ConstantsFwd.h>
 #include <constants/ConstantsProperties.h>
 #include <constants/ConstantsSI.h>
+#include <constants/ConstantsUnits.h>
 #include <constants/ValidFileExtensions.h>
 #include <constants/Version.h>
 #include <io/IOFwd.h>
-#include <math/ConstexprMath.h>
 #include <residue/ResidueStorage.h>
 #include <utility/Exceptions.h>
 #include <utility/SimpleMap.h>
@@ -31,24 +31,6 @@ namespace ausaxs::constants {
         constexpr double electron = 0.0000281794; // electron radius in units of Ångström
     }
     constexpr double Avogadro = 6.02214076e23; // mol^-1
-
-    /**
-     * @brief Relative units.
-     * 
-     * This namespace contains all the unit conversion constants used in this project. 
-     * The basic units are for:
-     *     mass: Dalton
-     *     length: Å
-     *     charge: e
-     */
-    namespace unit {
-        constexpr double gm = 1.66054e-24; // Dalton --> grams
-        constexpr double mg = 1.66054e-21; // Dalton --> mg
-        constexpr double cm = 1e-8; // Ångström --> cm
-        constexpr double nm = 1e-1; // Ångström --> nm
-
-        constexpr double mL = math::pow(unit::cm, 3); // Ångström^3 --> mL
-    }
 
     // The 1-symbol names of all amino acids. 
     extern const saxs::detail::SimpleMap<char> name_1symbol_map;

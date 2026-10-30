@@ -151,7 +151,7 @@ double Molecule::get_absolute_mass(bool include_waters) const {
 }
 
 double Molecule::get_excluded_volume_mass() const {
-    return get_volume_grid()*constants::SI::volume::A3*constants::mass::density::protein/constants::SI::mass::u;
+    return get_volume_grid()*constants::mass::density::protein;
 }
 
 double Molecule::get_total_atomic_charge() const {
@@ -195,8 +195,7 @@ double Molecule::get_excess_mass_density() const {
     // the grid volume is dry - waters are never added to it - so the mass must be dry as well
     double m_molecule = get_absolute_mass(false);
 
-    // density::water is an absolute (SI) density; convert it to Da/A^3 exactly as get_excluded_volume_mass does
-    double m_water = constants::mass::density::water*V*constants::SI::volume::A3/constants::SI::mass::u;
+    double m_water = constants::mass::density::water*V;
     return (m_molecule - m_water)/V;
 }
 
