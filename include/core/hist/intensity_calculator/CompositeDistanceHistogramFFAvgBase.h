@@ -40,9 +40,9 @@ namespace ausaxs::hist {
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
             CompositeDistanceHistogramFFAvgBase();
-            CompositeDistanceHistogramFFAvgBase(const CompositeDistanceHistogramFFAvgBase&);
+            CompositeDistanceHistogramFFAvgBase(const CompositeDistanceHistogramFFAvgBase&) = delete;
             CompositeDistanceHistogramFFAvgBase(CompositeDistanceHistogramFFAvgBase&&) noexcept;
-            CompositeDistanceHistogramFFAvgBase& operator=(const CompositeDistanceHistogramFFAvgBase&);
+            CompositeDistanceHistogramFFAvgBase& operator=(const CompositeDistanceHistogramFFAvgBase&) = delete;
             CompositeDistanceHistogramFFAvgBase& operator=(CompositeDistanceHistogramFFAvgBase&&) noexcept;
 
             /**
