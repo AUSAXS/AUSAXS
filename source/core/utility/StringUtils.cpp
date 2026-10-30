@@ -132,7 +132,8 @@ std::vector<std::string> utility::split_quoted(std::string_view s, std::string_v
 }
 
 std::string utility::quote_if_needed(std::string_view s, std::string_view delimiters) {
-    if (s.find_first_of(delimiters) == std::string_view::npos) {return std::string(s);}
+    // an empty string must be quoted too: unquoted it is no token at all, and split_quoted would not read it back
+    if (!s.empty() && s.find_first_of(delimiters) == std::string_view::npos) {return std::string(s);}
     return '"' + std::string(s) + '"';
 }
 

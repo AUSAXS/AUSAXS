@@ -38,6 +38,17 @@ TEST_CASE_METHOD(SettingsIOFixture, "settings: string values round-trip through 
     }
 }
 
+// An empty value must survive too. Written bare it is a line with no value, which settings::read skips, so the setting
+// silently kept whatever it held before the read - a non-empty default, in practice.
+TEST_CASE_METHOD(SettingsIOFixture, "settings: an empty string value round-trips through write/read") {
+    settings::general::output = "";
+    test::TempFile file(".txt");
+    settings::write(file);
+    settings::general::output = "not/empty/";
+    settings::read(file);
+    CHECK(settings::general::output == "");
+}
+
 TEST_CASE_METHOD(SettingsIOFixture, "settings: a hand-written quoted path is read as one value") {
     test::TempFile file(".txt", "output \"C:\\my folder\\out\\\"\n");
     settings::general::output = "";

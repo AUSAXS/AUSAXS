@@ -52,7 +52,8 @@ namespace ausaxs::utility {
 
     /**
      * @brief Enclose a string in double quotes if it contains any of the given delimiters, so that split_quoted
-     *        reads it back as a single token. Strings without delimiters are returned unchanged.
+     *        reads it back as a single token. An empty string is quoted as well, since it would otherwise produce no
+     *        token at all. Other strings without delimiters are returned unchanged.
      */
     std::string quote_if_needed(std::string_view s, std::string_view delimiters);
 

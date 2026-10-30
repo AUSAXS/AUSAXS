@@ -184,8 +184,10 @@ TEST_CASE("StringUtils::quote_if_needed") {
         REQUIRE(result == std::vector<std::string>{"output", path});
     }
 
-    SECTION("empty") {
-        REQUIRE(utility::quote_if_needed("", " \t").empty());
+    SECTION("empty is quoted, so it round-trips as an empty token") {
+        REQUIRE(utility::quote_if_needed("", " \t") == "\"\"");
+        auto result = utility::split_quoted("output " + utility::quote_if_needed("", " \t"), " \t");
+        REQUIRE(result == std::vector<std::string>{"output", ""});
     }
 }
 
