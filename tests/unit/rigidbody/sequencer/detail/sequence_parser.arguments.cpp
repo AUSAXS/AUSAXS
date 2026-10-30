@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -16,9 +19,6 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::sequencer;
-
-// SPDX-License-Identifier: LGPL-3.0-or-later
-// Author: Kristian Lytje
 
 struct ArgWhitelistFixture {
     ArgWhitelistFixture() {
