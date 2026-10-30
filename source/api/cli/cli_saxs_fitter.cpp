@@ -5,7 +5,11 @@
 
 #include <CLI/CLI.hpp>
 
-#include <constants/Constants.h>
+#include <constants/ConstantsAxes.h>
+#include <constants/ConstantsFitParameters.h>
+#include <constants/ConstantsUnits.h>
+#include <constants/ValidFileExtensions.h>
+#include <constants/Version.h>
 #include <data/Molecule.h>
 #include <fitter/FitReporter.h>
 #include <fitter/SmartFitter.h>
