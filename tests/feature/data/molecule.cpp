@@ -3,6 +3,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <support/exact_grid.h>
+#include <support/hist_test_helper.h>
 
 #include <constants/Constants.h>
 #include <data/Body.h>
@@ -57,20 +58,6 @@ struct fixture {
     std::vector<AtomFF> b4 = {a7, a8};
     std::vector<Body> bodies = {Body(b1, std::vector{w1, w2}), Body(b2), Body(b3), Body(b4)};
 };
-
-/**
- * @brief Compare two histograms. 
- *        Only indices [0, p1.size()] are checked.
- */
-static bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    for (int i = 0; i < p1.size(); i++) {
-        if (!utility::approx(p1[i], p2[i])) {
-            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-            return false;
-        }
-    }
-    return true;
-}
 
 TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
     settings::general::verbose = false;
@@ -1078,12 +1065,7 @@ TEST_CASE("Molecule: the weights follow the scattering probe", "[files]") {
     REQUIRE(weights(switched).size() == weights(loaded).size());
     CHECK(weights(switched) == weights(loaded));
     CHECK(switched.get_total_atomic_charge() == loaded.get_total_atomic_charge());
-    auto I_switched = switched.get_histogram()->debye_transform().get_intensity();
-    auto I_loaded = loaded.get_histogram()->debye_transform().get_intensity();
-    REQUIRE(I_switched.size() == I_loaded.size());
-    for (unsigned i = 0; i < I_switched.size(); ++i) { // not bit-exact: the two managers sum the same terms in a different order
-        CHECK_THAT(I_switched[i], Catch::Matchers::WithinRel(I_loaded[i], 1e-9));
-    }
+    CHECK(compare_hist_approx(switched.get_histogram()->get_weighted_counts(), loaded.get_histogram()->get_weighted_counts()));
 
     // and switching back must restore the original weights exactly
     settings::scattering::radiation = probe;
