@@ -46,7 +46,7 @@ TEST_CASE_METHOD(SettingsIOFixture, "settings: an empty string value round-trips
     settings::write(file);
     settings::general::output = "not/empty/";
     settings::read(file);
-    CHECK(settings::general::output.empty());
+    CHECK(settings::general::output == "");
 }
 
 TEST_CASE_METHOD(SettingsIOFixture, "settings: a hand-written quoted path is read as one value") {
