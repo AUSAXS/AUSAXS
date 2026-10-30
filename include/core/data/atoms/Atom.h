@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <constants/ConstantsCoordinates.h>
 #include <form_factor/FormFactorType.h>
 #include <math/Vector3.h>
 
@@ -13,21 +12,19 @@ namespace ausaxs::data {
     namespace detail {
         template<typename T>
         struct AtomForwarder {
-            using precision_t = constants::coords_precision_t;
+            [[nodiscard]] const Vector3<double>& coordinates() const {return static_cast<const T*>(this)->get_atom().coords;}
+            [[nodiscard]] Vector3<double>& coordinates()             {return static_cast<T*>(this)->get_atom().coords;}
+            [[nodiscard]] const Vector3<double>& position() const    {return coordinates();}
+            [[nodiscard]] Vector3<double>& position()                {return coordinates();}
+            [[nodiscard]] double weight() const                      {return static_cast<const T*>(this)->get_atom().w;}
+            [[nodiscard]] double& weight()                           {return static_cast<T*>(this)->get_atom().w;}
 
-            [[nodiscard]] const Vector3<precision_t>& coordinates() const {return static_cast<const T*>(this)->get_atom().coords;}
-            [[nodiscard]] Vector3<precision_t>& coordinates()             {return static_cast<T*>(this)->get_atom().coords;}
-            [[nodiscard]] const Vector3<precision_t>& position() const    {return coordinates();}
-            [[nodiscard]] Vector3<precision_t>& position()                {return coordinates();}
-            [[nodiscard]] precision_t weight() const                      {return static_cast<const T*>(this)->get_atom().w;}
-            [[nodiscard]] precision_t& weight()                           {return static_cast<T*>(this)->get_atom().w;}
-
-            [[nodiscard]] precision_t x() const                           {return static_cast<const T*>(this)->get_atom().coords.x();}
-            [[nodiscard]] precision_t y() const                           {return static_cast<const T*>(this)->get_atom().coords.y();}
-            [[nodiscard]] precision_t z() const                           {return static_cast<const T*>(this)->get_atom().coords.z();}
-            [[nodiscard]] precision_t& x()                                {return static_cast<T*>(this)->get_atom().coords.x();}
-            [[nodiscard]] precision_t& y()                                {return static_cast<T*>(this)->get_atom().coords.y();}
-            [[nodiscard]] precision_t& z()                                {return static_cast<T*>(this)->get_atom().coords.z();}
+            [[nodiscard]] double x() const                           {return static_cast<const T*>(this)->get_atom().coords.x();}
+            [[nodiscard]] double y() const                           {return static_cast<const T*>(this)->get_atom().coords.y();}
+            [[nodiscard]] double z() const                           {return static_cast<const T*>(this)->get_atom().coords.z();}
+            [[nodiscard]] double& x()                                {return static_cast<T*>(this)->get_atom().coords.x();}
+            [[nodiscard]] double& y()                                {return static_cast<T*>(this)->get_atom().coords.y();}
+            [[nodiscard]] double& z()                                {return static_cast<T*>(this)->get_atom().coords.z();}
 
             [[nodiscard]] bool operator==(const AtomForwarder& rhs) const = default;
 
@@ -41,15 +38,15 @@ namespace ausaxs::data {
      */
     struct Atom : detail::AtomForwarder<Atom> {
         Atom() = default;
-        Atom(Vector3<precision_t> coords, precision_t weight) : coords(coords), w(weight) {}
+        Atom(Vector3<double> coords, double weight) : coords(coords), w(weight) {}
         [[nodiscard]] const Atom& get_atom() const {return *this;}
         [[nodiscard]] Atom& get_atom() {return *this;}
         bool operator==(const Atom& rhs) const = default;
 
-        Vector3<precision_t> coords;
-        precision_t w;
+        Vector3<double> coords;
+        double w;
     };
-    static_assert(sizeof(Atom) == 4*sizeof(constants::coords_precision_t), "Atom size is off");
+    static_assert(sizeof(Atom) == 4*sizeof(double),                        "Atom size is off");
     static_assert(std::is_trivial_v<Atom>,                                 "Atom is not trivial");
     static_assert(std::is_standard_layout_v<Atom>,                         "Atom is not standard layout");
     static_assert(supports_nothrow_move_v<Atom>,                           "Atom should support nothrow move semantics.");

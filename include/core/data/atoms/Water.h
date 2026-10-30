@@ -12,7 +12,7 @@ namespace ausaxs::data {
      */
     struct Water : detail::AtomForwarder<Water> {
         Water() = default;
-        Water(Vector3<precision_t> coords) : 
+        Water(Vector3<double> coords) : 
             coords(coords), 
             w(constants::charge::get_ff_charge(form_factor_type())) 
         {}
@@ -22,10 +22,10 @@ namespace ausaxs::data {
         [[nodiscard]] Water& get_atom() {return *this;}
         bool operator==(const Water& rhs) const = default;
 
-        Vector3<precision_t> coords;
-        precision_t w;
+        Vector3<double> coords;
+        double w;
     };
-    static_assert(sizeof(Water) == 4*sizeof(constants::coords_precision_t), "WaterBasic size is off");
+    static_assert(sizeof(Water) == 4*sizeof(double),                        "WaterBasic size is off");
     static_assert(std::is_trivial_v<Water>,                                 "WaterBasic is not trivial");
     static_assert(std::is_standard_layout_v<Water>,                         "WaterBasic is not standard layout");
     static_assert(supports_nothrow_move_v<Water>,                           "WaterBasic should support nothrow move semantics.");

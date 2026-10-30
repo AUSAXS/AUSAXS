@@ -165,7 +165,7 @@ bool Body::refresh_weights() {
     // a water is always a plain water, so its weight is fully determined by the probe
     if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
         double w = constants::charge::get_ff_charge(Water::form_factor_type());
-        std::ranges::for_each(h->waters, [w] (data::Water& water) {water.weight() = static_cast<data::Water::precision_t>(w);});
+        std::ranges::for_each(h->waters, [w] (data::Water& water) {water.weight() = w;});
     }
 
     // the atom weights fold in the occupancy and the implicit hydrogens, so they can only be rebuilt where the metadata recorded both
@@ -177,7 +177,7 @@ bool Body::refresh_weights() {
     for (std::size_t i = 0; i < atoms.size(); ++i) {
         double charge = constants::charge::get_ff_charge(atoms[i].form_factor_type(), (*metadata->element)[i])
             + (*metadata->implicit_h)[i]*hydrogen_charge;
-        atoms[i].weight() = static_cast<data::AtomFF::precision_t>(charge*(*metadata->occupancy)[i]);
+        atoms[i].weight() = charge*(*metadata->occupancy)[i];
     }
     return true;
 }

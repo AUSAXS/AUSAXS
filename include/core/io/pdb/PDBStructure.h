@@ -112,7 +112,7 @@ namespace ausaxs::io::pdb {
 
             /**
              * @brief Get the reduced representation of this structure. 
-             *        This does not carry the atom weights, so construct a data::Body from the structure rather than from this.
+             *        Atomic scattering weights are only assigned by the data::Body constructor. 
              */
             _res reduced_representation() const;
 

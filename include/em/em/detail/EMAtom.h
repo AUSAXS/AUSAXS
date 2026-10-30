@@ -15,7 +15,7 @@ namespace ausaxs::data {
         public:
             EMAtom() = default;
             EMAtom(const Atom& a, double density) : basic(a), density(density) {}
-            EMAtom(const Vector3<precision_t>& coords, double weight, double density) : basic(coords, weight), density(density) {}
+            EMAtom(const Vector3<double>& coords, double weight, double density) : basic(coords, weight), density(density) {}
             Atom& get_atom() {return basic.get_atom();}
             const Atom& get_atom() const {return basic.get_atom();}
             AtomFF get_atom_ff() const {return AtomFF{basic, form_factor::form_factor_t::UNKNOWN};}
