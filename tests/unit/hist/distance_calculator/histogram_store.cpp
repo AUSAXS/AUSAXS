@@ -79,4 +79,44 @@ TEST_CASE("HistogramStore") {
         CHECK(result.index(0, 4) == 1);
         for (int i = 0; i < store.bins(); ++i) {CHECK(result.index(1, i) == 0);}
     }
+
+    SECTION("the self-correlations are recorded apart from distinct pairs sharing the first bin") {
+        int id = store.allocate_1d();
+        auto a = points_at({0, 0, 5}); // two coincident points, which land in the first bin as a distinct pair
+        Calculator calculator(store);
+        calculator.enqueue_calculate_self(a, id, 3);
+        calculator.run();
+        CHECK(store.get_1d(id).index(0) == 3*(3 + 2)); // each point with itself, plus the coincident pair in either order
+        CHECK(store.get_self_1d(id) == 3*3);
+    }
+
+    SECTION("the self-correlation weight is replaced by a run, and zeroed with an empty set") {
+        int id = store.allocate_1d();
+        auto a = points_at({0, 5});
+        for (int run = 0; run < 2; ++run) {
+            self(store, a, id);
+            CHECK(store.get_self_1d(id) == 2);
+        }
+        self(store, Coordinates{}, id);
+        CHECK(store.get_self_1d(id) == 0);
+    }
+
+    SECTION("a cross-correlation has no self-correlation weight") {
+        int id = store.allocate_1d();
+        auto a = points_at({0}), b = points_at({0});
+        Calculator calculator(store);
+        calculator.enqueue_calculate_cross(a, b, id, 2);
+        calculator.run();
+        CHECK(store.get_1d(id).index(0) == 2);
+        CHECK(store.get_self_1d(id) == 0);
+    }
+
+    SECTION("partitioned sets record the self-correlation weight of each class") {
+        int id = store.allocate_3d();
+        std::vector<Coordinates> partitioned{points_at({0, 0}), points_at({0, 1, 2})};
+        Calculator calculator(store);
+        calculator.enqueue_calculate_self(partitioned, id);
+        calculator.run();
+        CHECK(store.get_self_3d(id) == std::vector<double>{2, 3});
+    }
 }

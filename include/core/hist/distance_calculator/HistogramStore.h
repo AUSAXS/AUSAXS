@@ -8,12 +8,18 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
+#include <hist/distribution/detail/WeightedEntry.h>
+#include <utility/Exceptions.h>
 #include <utility/observer_ptr.h>
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <map>
+#include <memory>
 #include <span>
+#include <string>
+#include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -30,6 +36,9 @@ namespace ausaxs::hist::distance_calculator {
      *
      * The store owns the results. They are only written when the calculator runs, so until then they hold what the
      * previous run left, and they are zero before the first. Read them with get_*() or move them out with export_*().
+     *
+     * The first bin of a histogram holds both the zero distance of each point with itself and the distinct pairs closer
+     * than a bin width. The store records the former separately for every histogram, see get_self_1d() and get_self_3d().
      */
     template<bool weighted_bins>
     class HistogramStore {
@@ -85,12 +94,41 @@ namespace ausaxs::hist::distance_calculator {
 
             /**
              * @brief Call @a f with the result @a id, whichever shape it was allocated with.
+             *        Like get_*(), this throws except::invalid_operation if the result was exported.
              */
             template<typename F>
-            decltype(auto) visit(int id, F&& f) const {return std::visit(std::forward<F>(f), results[check_valid_id(id)]);}
+            decltype(auto) visit(int id, F&& f) const {
+                return std::visit(
+                    [&f, id] <typename T> (const T& result) {
+                        if constexpr (std::is_same_v<T, std::monostate>) {HistogramStore::throw_exported(id);}
+                        else {return f(result);}
+                    },
+                    results[check_valid_id(id)]
+                );
+            }
 
             /**
-             * @brief Move the result @a id out of the store. It must not be used again afterwards.
+             * @brief The self-correlation weight of the result @a id of allocate_1d(): how much of its first bin is the zero distance
+             *        of points with themselves, i.e. their summed squared weights. It is zero unless a self-correlation was calculated into it.
+             *        It must be read before the result is exported.
+             */
+            double get_self_1d(int id) const {
+                const auto& result = get_1d(id);
+                return get_self({result.begin(), result.end()});
+            }
+
+            /**
+             * @brief The self-correlation weight of each class with itself of the result @a id of allocate_3d(). See get_self_1d().
+             */
+            std::vector<double> get_self_3d(int id) const {
+                const auto& result = get_3d(id);
+                std::vector<double> self(n_classes);
+                for (int i = 0; i < n_classes; ++i) {self[i] = get_self(result.row(i, i));}
+                return self;
+            }
+
+            /**
+             * @brief Move the result @a id out of the store. Any later use of @a id throws except::invalid_operation.
              */
             GenericDistribution1D_t export_1d(int id) {return take<GenericDistribution1D_t>(id);}
             GenericDistribution2D_t export_2d(int id) {return take<GenericDistribution2D_t>(id);} //< @copydoc export_1d
@@ -123,9 +161,11 @@ namespace ausaxs::hist::distance_calculator {
             };
 
             int n_bins, n_classes;
-            std::vector<std::variant<GenericDistribution1D_t, GenericDistribution2D_t, GenericDistribution3D_t>> results;
+            std::vector<std::variant<std::monostate, GenericDistribution1D_t, GenericDistribution2D_t, GenericDistribution3D_t>> results; // monostate once exported
             std::map<std::pair<entry_type*, int>, Scratch> scratch; // per (row, factor) with queued calculations, keyed by the first bin of the row
             std::vector<std::span<entry_type>> resets;        // rows calculated from an empty set, zeroed by the next fold
+            std::map<const entry_type*, double> scratch_diagonal; // per row, the self-correlation weight added since the last fold, see add_diagonal()
+            std::map<const entry_type*, double> self_weights; // per row, the self-correlation weight its first bin holds, see assign_diagonal()
 
             /**
              * @brief The histogram of the result @a id of allocate_1d(), the one of class @a i of the result @a id of
@@ -133,10 +173,10 @@ namespace ausaxs::hist::distance_calculator {
              */
             std::span<entry_type> row(int id) {
                 auto& result = std::get<GenericDistribution1D_t>(results[check_valid_id(id)]);
-                return check_live_result({result.begin(), result.end()});
+                return {result.begin(), result.end()};
             }
-            std::span<entry_type> row(int id, int i) {return check_live_result(std::get<GenericDistribution2D_t>(results[check_valid_id(id)]).row(i));}           //< @copydoc row(int)
-            std::span<entry_type> row(int id, int i, int j) {return check_live_result(std::get<GenericDistribution3D_t>(results[check_valid_id(id)]).row(i, j));} //< @copydoc row(int)
+            std::span<entry_type> row(int id, int i) {return std::get<GenericDistribution2D_t>(results[check_valid_id(id)]).row(i);}           //< @copydoc row(int)
+            std::span<entry_type> row(int id, int i, int j) {return std::get<GenericDistribution3D_t>(results[check_valid_id(id)]).row(i, j);} //< @copydoc row(int)
 
             /**
              * @brief The target a CPU calculation into @a row accumulates through, scaled by @a factor on the next fold.
@@ -150,16 +190,38 @@ namespace ausaxs::hist::distance_calculator {
             }
 
             /**
+             * @brief Add the zero distance of the points of a self-correlation with themselves, of total @a weight, to @a row on the
+             *        next fold. Only rows with a target are folded, so the distinct pairs of the same calculation must be given a
+             *        target into @a row. Must be called on the thread that enqueues.
+             */
+            void add_diagonal(std::span<entry_type> row, double weight) {scratch_diagonal[row.data()] += weight;}
+
+            /**
+             * @brief Add the zero distance of the points of @a row with themselves, of total @a weight, to its first bin, and record it
+             *        as the self-correlation weight of the row. The record is replaced rather than added to, since a row is always
+             *        calculated in full.
+             */
+            void assign_diagonal(std::span<entry_type> row, double weight) {
+                if constexpr (weighted_bins) {row[0] += hist::detail::WeightedEntry(weight, static_cast<std::int64_t>(weight), 0);}
+                else {row[0] += weight;}
+                self_weights[row.data()] = weight;
+            }
+
+            /**
              * @brief Zero @a row on the next fold, since the calculation queued into it has nothing to calculate.
              */
             void reset(std::span<entry_type> row) {resets.push_back(row);}
 
             /**
              * @brief Zero the rows that were reset, and assign every row given a target the sum over its targets of the
-             *        factor times the sum of its per-thread copies. This must only be done after all calculations have finished.
+             *        factor times the sum of its per-thread copies, plus the diagonal added to it.
+             *        This must only be done after all calculations have finished.
              */
             void fold() {
-                for (auto row : resets) {std::fill(row.begin(), row.end(), entry_type{});}
+                for (auto row : resets) {
+                    std::fill(row.begin(), row.end(), entry_type{});
+                    self_weights.erase(row.data());
+                }
                 resets.clear();
                 entry_type* previous = nullptr;
                 for (auto& [key, local] : scratch) {
@@ -167,7 +229,11 @@ namespace ausaxs::hist::distance_calculator {
                     std::span<entry_type> row(start, static_cast<std::size_t>(n_bins));
 
                     // the targets of a row are adjacent, since the map is ordered by row first
-                    if (start != previous) {std::fill(row.begin(), row.end(), entry_type{});}
+                    if (start != previous) {
+                        std::fill(row.begin(), row.end(), entry_type{});
+                        auto diagonal = scratch_diagonal.extract(start);
+                        assign_diagonal(row, diagonal.empty() ? 0 : diagonal.mapped());
+                    }
                     previous = start;
 
                     for (const auto& copy : local.get_all()) {
@@ -177,6 +243,7 @@ namespace ausaxs::hist::distance_calculator {
                         );
                     }
                 }
+                assert(scratch_diagonal.empty() && "HistogramStore: a diagonal was added to a row without a target.");
                 scratch.clear();
             }
 
@@ -192,20 +259,32 @@ namespace ausaxs::hist::distance_calculator {
             T take(int id) {
                 assert(scratch.empty() && resets.empty() && "HistogramStore: the calculator must run before its results are exported.");
                 auto& result = std::get<T>(results[check_valid_id(id)]);
+
+                // the rows of a result are contiguous, so their self-correlation weights are adjacent in the map
+                const entry_type* first = std::to_address(result.begin());
+                const entry_type* last = std::to_address(result.end());
+                self_weights.erase(self_weights.lower_bound(first), self_weights.lower_bound(last));
+
                 T taken = std::move(result);
-                result = T{};
+                results[id] = std::monostate{};
                 return taken;
             }
 
+            // @a id, after checking that it is a result of this store which has not been exported
             int check_valid_id(int id) const {
                 assert(0 <= id && id < static_cast<int>(results.size()) && "HistogramStore: unknown result id.");
+                if (std::holds_alternative<std::monostate>(results[id])) [[unlikely]] {throw_exported(id);}
                 return id;
             }
 
-            // an exported result is left empty, and fold() would write n_bins entries past its end
-            std::span<entry_type> check_live_result(std::span<entry_type> row) const {
-                assert(static_cast<int>(row.size()) == n_bins && "HistogramStore: calculation queued into an exported result.");
-                return row;
+            [[noreturn]] static void throw_exported(int id) {
+                throw except::invalid_operation("HistogramStore: result " + std::to_string(id) + " was exported and can no longer be used.");
+            }
+
+            // the self-correlation weight held by the first bin of @a row, see assign_diagonal()
+            double get_self(std::span<const entry_type> row) const {
+                auto it = self_weights.find(row.data());
+                return it == self_weights.end() ? 0 : it->second;
             }
     };
 }

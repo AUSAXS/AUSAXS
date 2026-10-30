@@ -197,7 +197,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                             const auto& bin = out[static_cast<std::size_t>(slot)*bin_count + i];
                             row[i] = hist::detail::WeightedEntry{bin.value, bin.count, bin.center};
                         }
-                        row[0] += hist::detail::WeightedEntry{diagonal[slot], static_cast<std::int64_t>(diagonal[slot]), 0};
+                        store->assign_diagonal(row, diagonal[slot]);
                     }
                 } else {
                     std::vector<double> out(static_cast<std::size_t>(n_slots)*bin_count);
@@ -206,7 +206,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                     for (int slot = 0; slot < n_slots; ++slot) {
                         auto row = rows[slot];
                         std::copy_n(out.begin() + static_cast<std::ptrdiff_t>(slot)*bin_count, bin_count, row.begin());
-                        row[0] += diagonal[slot];
+                        store->assign_diagonal(row, diagonal[slot]);
                     }
                 }
             }

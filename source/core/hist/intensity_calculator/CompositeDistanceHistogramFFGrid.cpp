@@ -21,11 +21,13 @@ CompositeDistanceHistogramFFGrid::~CompositeDistanceHistogramFFGrid() = default;
 CompositeDistanceHistogramFFGrid::CompositeDistanceHistogramFFGrid(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
-    hist::Distribution1D&& p_ww, 
+    hist::Distribution1D&& p_ww,
+    std::vector<double>&& self_aa,
+    double self_ww,
     hist::WeightedDistribution1D&& p_tot_aa,
     hist::WeightedDistribution1D&& p_tot_ax, // NOLINT
     hist::WeightedDistribution1D&& p_tot_xx  // NOLINT
-) : CompositeDistanceHistogramFFGridBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot_aa)) {
+) : CompositeDistanceHistogramFFGridBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot_aa)) {
     regenerate_ff_table();
     initialize_grid_axes(p_tot_ax.get_weighted_axis(), p_tot_xx.get_weighted_axis());
 }

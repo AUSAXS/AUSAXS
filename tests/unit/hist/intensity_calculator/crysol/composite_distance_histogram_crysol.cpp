@@ -29,7 +29,7 @@ namespace {
     T construct(const Molecule& molecule) {
         form_factor::manager::use_form_factors(molecule); // the histogram is constructed directly, bypassing the factory which normally selects these
         int n = form_factor::get_active_count();
-        return T(hist::Distribution3D<hist::Shape::Triangular>(n, n, 1), hist::Distribution2D(n, 1), hist::Distribution1D(1), hist::Distribution1D(1), &molecule);
+        return T(hist::Distribution3D<hist::Shape::Triangular>(n, n, 1), hist::Distribution2D(n, 1), hist::Distribution1D(1), std::vector<double>(n, 0), 0, hist::Distribution1D(1), &molecule);
     }
 }
 

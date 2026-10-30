@@ -21,6 +21,8 @@ AtomicDistributions AtomicDistributions::take(CompositeDistanceHistogramFFAvg& b
         .p_aa = std::move(base.get_raw_aa_counts_by_ff()),
         .p_aw = std::move(base.get_raw_aw_counts_by_ff()),
         .p_ww = std::move(base.get_raw_ww_counts_by_ff()),
+        .self_aa = base.get_aa_self_weights(),
+        .self_ww = base.get_ww_self_weight(),
         .p_tot = std::move(p_tot)
     };
 }
@@ -64,6 +66,8 @@ std::unique_ptr<CompositeDistanceHistogramFFGrid> hist::detail::grid_exv::splice
         std::move(atomic.p_aa),
         std::move(atomic.p_aw),
         std::move(atomic.p_ww),
+        std::move(atomic.self_aa),
+        atomic.self_ww,
         std::move(atomic.p_tot),
         std::move(p_tot_ax),
         std::move(p_xx)

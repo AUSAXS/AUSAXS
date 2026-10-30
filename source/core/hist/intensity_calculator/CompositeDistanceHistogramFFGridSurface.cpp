@@ -41,14 +41,16 @@ CompositeDistanceHistogramFFGridSurface::WXContainer CompositeDistanceHistogramF
 CompositeDistanceHistogramFFGridSurface::CompositeDistanceHistogramFFGridSurface(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
-    hist::Distribution1D&& p_ww, 
+    hist::Distribution1D&& p_ww,
+    std::vector<double>&& self_aa,
+    double self_ww,
     XXContainer&& xx, // NOLINT 
     AXContainer&& ax, // NOLINT
     WXContainer&& wx, // NOLINT
     hist::WeightedDistribution1D&& p_tot_aa,
     hist::WeightedDistribution1D&& p_tot_ax, // NOLINT 
     hist::WeightedDistribution1D&& p_tot_xx  // NOLINT
-) : hist::CompositeDistanceHistogramFFGridBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot_aa)),
+) : hist::CompositeDistanceHistogramFFGridBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot_aa)),
     exv_distance_profiles{.xx_i=hist::Distribution1D(xx.interior), .xx_s=hist::Distribution1D(xx.surface), .xx_c=hist::Distribution1D(xx.cross), 
                           .wx_i=hist::Distribution1D(wx.interior), .wx_s=hist::Distribution1D(wx.surface), .ax_i=hist::Distribution2D(ax.interior), 
                           .ax_s=hist::Distribution2D(ax.surface)}

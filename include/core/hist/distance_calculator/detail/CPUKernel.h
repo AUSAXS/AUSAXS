@@ -6,15 +6,12 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/data/BinWidth.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
-#include <hist/distribution/detail/WeightedEntry.h>
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
 
 #include <algorithm>
 #include <concepts>
-#include <cstdint>
 #include <span>
-#include <type_traits>
 
 namespace ausaxs::hist::distance_calculator::detail {
     /**
@@ -44,8 +41,8 @@ namespace ausaxs::hist::distance_calculator::detail {
     }
 
     /**
-     * @brief Queue the self-correlation of @a data into @a target: each distinct pair counted twice, once in either order,
-     *        and the zero distance of every point with itself once.
+     * @brief Queue the distinct pairs of the self-correlation of @a data into @a target, each counted twice, once in either order.
+     *        The zero distance of every point with itself is not included; the store adds it, see HistogramStore::add_diagonal.
      *
      * @tparam unit_weights Whether every point weighs 1, in which case the stored weights are never read.
      */
@@ -83,19 +80,6 @@ namespace ausaxs::hist::distance_calculator::detail {
                 }
             );
         }
-
-        // calculate skipped diagonal
-        pool->detach_task(
-            [&data, target] () {
-                auto&& p_aa = target.get();
-                double weight = self_weight<unit_weights>(data);
-                if constexpr (std::is_same_v<typename T::entry_type, hist::detail::WeightedEntry>) {
-                    p_aa[0] += hist::detail::WeightedEntry(weight, static_cast<std::int64_t>(weight), 0);
-                } else {
-                    p_aa[0] += weight;
-                }
-            }
-        );
     }
 
     /**
