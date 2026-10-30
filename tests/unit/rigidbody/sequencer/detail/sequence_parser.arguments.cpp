@@ -227,6 +227,17 @@ TEST_CASE("SequenceParser: every element declares its own named arguments") {
     }
 }
 
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: an unknown element reports its own line", "[files]") {
+    // the load block is lines 1-4; the unknown element opens a block on line 5 which ends on line 7
+    try {
+        parse(load() + "parameter {\n    iterations 10\n}\n");
+        FAIL("expected a parse_error");
+    } catch (const sequencer::except::parse_error& e) {
+        CHECK(std::string(e.what()).find("(line 5)") != std::string::npos);
+        CHECK(std::string(e.what()).find("Did you mean \"parameters\"?") != std::string::npos);
+    }
+}
+
 TEST_CASE("SequenceParser: element names must match a registered name exactly") {
     using namespace ausaxs::rigidbody::sequencer::detail;
     CHECK(get_type("loop") == ElementType::LoopBegin);
@@ -237,6 +248,17 @@ TEST_CASE("SequenceParser: element names must match a registered name exactly") 
     CHECK_THROWS_AS(get_type("loop_3"), sequencer::except::parse_error);
     CHECK_THROWS_AS(get_type("save-all"), sequencer::except::parse_error);
     CHECK_THROWS_AS(get_type("parameters_strategy"), sequencer::except::parse_error);
+
+    // the message names the line and the closest valid name
+    auto message = [] (std::string_view name, int line) -> std::string {
+        try {get_type(name, line);} catch (const sequencer::except::parse_error& e) {return e.what();}
+        return "";
+    };
+    CHECK(message("parameter", 7).find("(line 7)") != std::string::npos);
+    CHECK(message("parameter", 7).find("Did you mean \"parameters\"?") != std::string::npos);
+    CHECK(message("optimise_once", -1).find("Did you mean \"optimize_once\"?") != std::string::npos);
+    CHECK(message("parameter", -1).find("line") == std::string::npos);
+    CHECK(message("xyzzy", -1).find("Did you mean") == std::string::npos);
 
     // every name the parser accepts is advertised to the GUI
     for (const auto& name : valid_elements()) {
