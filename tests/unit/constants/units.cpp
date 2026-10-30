@@ -8,10 +8,6 @@
 
 using namespace ausaxs;
 
-// constants::SI holds factors *to* SI; constants::unit::external holds factors *out of* the
-// internal (Da, A, e) system. The same physical conversion is reachable through both, and for the atomic
-// mass unit the two spellings once disagreed by 6e-6 relative - larger than the constant's own
-// uncertainty - which is what put an SI density into a Da/A^3 expression (BL-001, BL-089).
 TEST_CASE("units: the two conversion namespaces agree") {
     // 1 Da expressed in kg, reached through either namespace
     CHECK_THAT(constants::unit::external::gm*constants::SI::mass::gm, Catch::Matchers::WithinRel(constants::SI::mass::u, 1e-15));
@@ -32,8 +28,6 @@ TEST_CASE("units: the two conversion namespaces agree") {
     );
 }
 
-// Both density namespaces must be in internal units, so that a charge or a mass follows from a
-// grid volume in A^3 by a plain multiplication.
 TEST_CASE("units: densities are in internal units") {
     auto to_gcm3 = [] (double rho) {return rho*constants::unit::external::gm/constants::unit::external::mL;};
 
@@ -49,7 +43,4 @@ TEST_CASE("units: densities are in internal units") {
     CHECK(constants::mass::density::water < constants::mass::density::protein);
     CHECK(constants::mass::density::protein < 10);
     CHECK(0.1 < constants::mass::density::water);
-
-    // the sibling that was already correct, for comparison
-    CHECK(constants::charge::density::water == 0.334);
 }

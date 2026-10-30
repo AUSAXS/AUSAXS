@@ -7,7 +7,7 @@
  * @brief Absolute units.
  * 
  * This namespace contains all the absolute unit conversion constants. 
- * Each constant is the factor that takes a value *to* SI, not a value that is already in SI:
+ * Each constant is the factor that takes an internal value *to* SI, not a value that is already in SI:
  * SI::length::A is "one Ångström, expressed in metres", so a length in Å becomes metres by
  * multiplication. See constants::unit for the conversions in and out of the internal unit system.
  */
@@ -16,7 +16,7 @@ namespace ausaxs::constants::SI {
         constexpr double kg = 1;
         constexpr double gm = 1e-3;
         constexpr double mg = 1e-6;
-        constexpr double u = 1.66053906892e-27; // CODATA 2022: 1.66053906892(52)e-27 kg
+        constexpr double u = 1.66053906892e-27; // CODATA 2022
     }
 
     namespace length {
