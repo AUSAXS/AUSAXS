@@ -4,6 +4,7 @@
 #include <rigidbody/controller/SimpleController.h>
 
 #include <data/Molecule.h>
+#include <dataset/SimpleDataset.h>
 #include <hydrate/ExplicitHydration.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
@@ -14,6 +15,7 @@
 #include <rigidbody/selection/BodySelectStrategy.h>  // IWYU pragma: keep
 #include <rigidbody/selection/ParameterMask.h>
 #include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
+#include <settings/HistogramSettings.h>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
@@ -34,9 +36,11 @@ namespace {
 SimpleController::~SimpleController() = default;
 
 void SimpleController::setup(const io::ExistingFile& measurement_path) {
+    SimpleDataset data(measurement_path);
+    if (settings::axes::rebin) {data.rebin();}
     this->fitter = std::make_unique<fitter::ConstrainedFitter>(
-        rigidbody->constraints.get(), 
-        measurement_path, 
+        rigidbody->constraints.get(),
+        std::move(data),
         rigidbody->molecule.get_histogram()
     );
 

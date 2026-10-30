@@ -5,6 +5,7 @@
 
 #include <data/Molecule.h>
 #include <dataset/PointSet.h>
+#include <dataset/SimpleDataset.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <em/manager/ProteinManager.h>
 #include <fitter/SmartFitter.h>
@@ -64,7 +65,9 @@ std::unique_ptr<EMFitResult> ImageStack::fit(const io::ExistingFile& file) {
 std::unique_ptr<EMFitResult> ImageStack::fit(const io::ExistingFile& file, mini::Parameter& param) {
     if (!param.bounds.has_value()) {return fit(file);} // ensure parameter bounds are present
     logging::log("ImageStack: Preparing fit to file \"" + file.str() + "\" with cutoff bounds [" + std::to_string(param.bounds->min) + ", " + std::to_string(param.bounds->max) + "]");
-    std::unique_ptr<SmartFitter> fitter = std::make_unique<SmartFitter>(file);
+    SimpleDataset data(file);
+    if (settings::axes::rebin) {data.rebin();}
+    std::unique_ptr<SmartFitter> fitter = std::make_unique<SmartFitter>(std::move(data));
     return fit_helper(std::move(fitter), param);
 }
 
