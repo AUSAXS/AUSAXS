@@ -16,6 +16,7 @@
 #include <io/ExistingFile.h>
 #include <math/MathFwd.h>
 #include <settings/HistogramSettings.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -303,13 +304,14 @@ namespace ausaxs::data {
 			mutable int grid_atom_count = 0;								// Total atom count (incl. symmetry copies) `grid` was last synchronised to; used to detect staleness
 			mutable std::unique_ptr<hist::IHistogramManager> phm;			// The histogram manager of this molecule
 			mutable std::optional<bool> auto_weighted_bins;					// This molecule's decision for settings::hist::weighted_bins = auto, once made
+			mutable settings::scattering::Radiation weights_probe = settings::scattering::radiation; // The probe the weights of the bodies were last made for
 			std::unique_ptr<hydrate::HydrationStrategy> hydration_strategy; // The strategy used to generate the hydration layer
 
 			void initialize();
 			void lazy_histogram_manager_init() const;
 
 			/**
-			 * @brief Rebuild the weights of every body whose weights were made for a different probe than the current one.
+			 * @brief Rebuild the weights of all bodies if the scattering probe has changed since they were made.
 			 */
 			void refresh_weights() const;
 

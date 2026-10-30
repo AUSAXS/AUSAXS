@@ -20,7 +20,6 @@
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
-#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <numeric>
@@ -62,6 +61,7 @@ Molecule& Molecule::operator=(Molecule&& other) noexcept {
     grid = std::move(other.grid);
     grid_atom_count = other.grid_atom_count; // must follow the grid, or it would immediately be considered stale and discarded
     auto_weighted_bins = other.auto_weighted_bins; // a property of the structure, which moved along
+    weights_probe = other.weights_probe; // likewise, the weights moved along with the bodies
     initialize(); // reinitialize since some of the members contains pointers to the old object
     return *this;
 }
@@ -100,7 +100,8 @@ bool Molecule::uses_weighted_bins() const {
 void Molecule::reset_histogram_manager() {phm = nullptr;}
 
 void Molecule::refresh_weights() const {
-    if (std::ranges::none_of(bodies, [] (const Body& body) {return body.has_stale_weights();})) {return;}
+    if (weights_probe == settings::scattering::radiation) {return;}
+    weights_probe = settings::scattering::radiation;
     phm = nullptr; // every cached histogram depends on the weights, so let the lazy init rebuild the manager from the new ones
 
     int unchanged = 0;

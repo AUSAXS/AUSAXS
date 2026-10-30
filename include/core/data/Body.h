@@ -15,7 +15,6 @@
 #include <io/IOFwd.h>
 #include <io/pdb/PDBFwd.h>
 #include <math/MathFwd.h>
-#include <settings/ScatteringSettings.h>
 
 #include <memory>
 #include <optional>
@@ -76,16 +75,10 @@ namespace ausaxs::data {
 			void set_metadata(AtomMetadata metadata);
 
 			/**
-			 * @brief Bring the atom and water weights in line with the probe currently selected by settings::scattering::radiation.
-			 * 		  Does nothing if they already are.
+			 * @brief Recompute the atom and water weights for the probe currently selected by settings::scattering::radiation.
 			 * @return False if the atom weights could not follow the probe since the metadata needed to derive them is not present.
 			 */
 			bool refresh_weights();
-
-			/**
-			 * @brief Whether the weights were made for a different probe than the one currently selected by settings::scattering::radiation.
-			 */
-			[[nodiscard]] bool has_stale_weights() const;
 
 			//? we use std::optional here to explicitly inform the user that it may be empty
 			//? principially this is equivalent to returning a potentially zero pointer, but the optional is more explicit
@@ -222,18 +215,11 @@ namespace ausaxs::data {
 
 			int uid;
 			inline static int uid_counter = 0;
-			settings::scattering::Radiation weights_probe = settings::scattering::radiation; // the probe the weights were last made for
 
 			// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
 			mutable std::shared_ptr<signaller::Signaller> signal;
 
 			void initialize();
-
-			/**
-			 * @brief Unconditionally recompute the weights for the current probe. 
-			 * @return False if the atom weights cannot be derived since the metadata needed to do so is not present.
-			 */
-			bool derive_weights();
 
 		friend class symmetry::detail::BodySymmetryFacade<Body>;
 		friend class symmetry::detail::BodySymmetryFacade<const Body>;
