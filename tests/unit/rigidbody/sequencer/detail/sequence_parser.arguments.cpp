@@ -1,6 +1,11 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <io/ExistingFile.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
@@ -14,9 +19,6 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::sequencer;
-
-// SPDX-License-Identifier: LGPL-3.0-or-later
-// Author: Kristian Lytje
 
 struct ArgWhitelistFixture {
     ArgWhitelistFixture() {
@@ -242,5 +244,37 @@ TEST_CASE("SequenceParser: element names must match a registered name exactly") 
     for (const auto& name : valid_elements()) {
         INFO(name);
         CHECK_NOTHROW(get_type(name));
+    }
+}
+
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: overlap_strength sets the overlap penalty", "[files]") {
+    struct OverlapConstraint : constraints::OverlapConstraint {using constraints::OverlapConstraint::weight;}; // weight() is protected
+    using Catch::Matchers::WithinRel;
+    const double default_weight = std::exp(-5*0.5);
+
+    SECTION("a scaling alone multiplies the default weight") {
+        auto seq = parse(load() + "overlap_strength 2\n");
+        CHECK_THAT(OverlapConstraint::weight(0.5), WithinRel(2*default_weight, 1e-12));
+    }
+
+    SECTION("a scaling and a distance give a quadratic well of that range") {
+        auto seq = parse(load() + "overlap_strength 2 5\n");
+        CHECK_THAT(OverlapConstraint::weight(2.5), WithinRel(0.5, 1e-12));
+        CHECK(OverlapConstraint::weight(5) == 0);
+    }
+
+    SECTION("the block form agrees with the inline form") {
+        auto seq = parse(load() + "overlap_strength {\n    scaling 2\n    distance 5\n}\n");
+        CHECK_THAT(OverlapConstraint::weight(2.5), WithinRel(0.5, 1e-12));
+    }
+
+    SECTION("a distance alone uses unit scaling") {
+        auto seq = parse(load() + "overlap_strength {\n    distance 5\n}\n");
+        CHECK_THAT(OverlapConstraint::weight(2.5), WithinRel(0.25, 1e-12));
+    }
+
+    SECTION("malformed values are rejected") {
+        CHECK_THROWS_AS(parse(load() + "overlap_strength\n"), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "overlap_strength x\n"), sequencer::except::parse_error);
     }
 }
