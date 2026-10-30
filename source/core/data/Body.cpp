@@ -174,9 +174,8 @@ bool Body::refresh_weights() {
     assert(metadata->size() == atoms.size() && "Body::refresh_weights: metadata is not parallel-indexed to the atoms.");
 
     double hydrogen_charge = constants::charge::get_ff_charge(form_factor::form_factor_t::H);
-    for (std::size_t i = 0; i < atoms.size(); ++i) {
-        double charge = constants::charge::get_ff_charge(atoms[i].form_factor_type(), (*metadata->element)[i])
-            + (*metadata->implicit_h)[i]*hydrogen_charge;
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        double charge = constants::charge::get_ff_charge(atoms[i].form_factor_type(), (*metadata->element)[i]) + (*metadata->implicit_h)[i]*hydrogen_charge;
         atoms[i].weight() = charge*(*metadata->occupancy)[i];
     }
     return true;
