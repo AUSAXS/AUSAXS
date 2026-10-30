@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cassert>
 #include <map>
+#include <string>
+#include <vector>
 
 using namespace ausaxs::rigidbody::sequencer::detail;
 
@@ -188,10 +190,44 @@ void ausaxs::rigidbody::sequencer::detail::validate_named_arguments(ElementType 
     throw except::parse_error(element, msg);
 }
 
-ElementType ausaxs::rigidbody::sequencer::detail::get_type(std::string_view line) {
+namespace {
+    std::size_t edit_distance(std::string_view a, std::string_view b) {
+        std::vector<std::size_t> row(b.size()+1);
+        for (std::size_t j = 0; j <= b.size(); ++j) {row[j] = j;}
+        for (std::size_t i = 1; i <= a.size(); ++i) {
+            std::size_t diag = row[0];
+            row[0] = i;
+            for (std::size_t j = 1; j <= b.size(); ++j) {
+                std::size_t up = row[j];
+                row[j] = std::min({row[j]+1, row[j-1]+1, diag + (a[i-1] == b[j-1] ? 0 : 1)});
+                diag = up;
+            }
+        }
+        return row[b.size()];
+    }
+
+    // the valid element name an unknown one was most likely meant to be, or empty if none is close
+    std::string suggest_element(std::string_view name) {
+        std::string best;
+        std::size_t best_distance = 3; // only suggest names at most two edits away
+        for (const auto& candidate : valid_elements()) {
+            if (auto d = edit_distance(name, candidate); d < best_distance) {
+                best_distance = d;
+                best = candidate;
+            }
+        }
+        return best;
+    }
+}
+
+ElementType ausaxs::rigidbody::sequencer::detail::get_type(std::string_view line, int line_number) {
     const auto& type_map = get_type_map();
     for (const auto& [type, names] : type_map) {
         if (std::ranges::find(names, line) != names.end()) {return type;}
     }
-    throw except::parse_error("base", "Unknown element \"" + std::string(line) + "\".");
+    std::string msg = "Unknown element \"" + std::string(line) + "\"";
+    if (0 <= line_number) {msg += " (line " + std::to_string(line_number) + ")";}
+    msg += ".";
+    if (auto suggestion = suggest_element(line); !suggestion.empty()) {msg += " Did you mean \"" + suggestion + "\"?";}
+    throw except::parse_error("base", msg);
 }

@@ -73,6 +73,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         std::getline(in, line);
         ++line_no;
         if (line.empty()) {continue;}
+        const int element_line = line_no; // line_no moves on past a multiline argument block
 
         ParsedArgs pargs;
         auto tokens = tokenize(line);
@@ -134,7 +135,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         logging::log(parsed_script);
 
         auto& elements = loop_stack.back()->_get_elements();
-        auto type = get_type(tokens[0]);
+        auto type = get_type(tokens[0], element_line);
 
         // validate the argument forms and counts for this element type
         validate_argument_forms(tokens[0], pargs);         // ensure inline and named args are not mixed

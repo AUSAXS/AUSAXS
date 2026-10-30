@@ -45,7 +45,12 @@ namespace ausaxs::rigidbody::sequencer::detail {
     std::vector<std::string> valid_elements();
     std::vector<std::string> valid_arguments(ElementType type);
     InlineSignature valid_inline_arguments(ElementType type);
-    ElementType get_type(std::string_view line);
+    /**
+     * @brief Get the type of the element with the given name.
+     * @param line_number The script line the name is from, for the error message. Negative if not from a script.
+     * @throws except::parse_error if the name is unknown, suggesting the closest valid name if there is one.
+     */
+    ElementType get_type(std::string_view line, int line_number = -1);
 
     /**
      * @brief Render an inline signature the way a script writes it, e.g. "[old name] [new name]".
