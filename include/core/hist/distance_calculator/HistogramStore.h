@@ -151,8 +151,8 @@ namespace ausaxs::hist::distance_calculator {
             std::vector<std::variant<GenericDistribution1D_t, GenericDistribution2D_t, GenericDistribution3D_t>> results;
             std::map<std::pair<entry_type*, int>, Scratch> scratch; // per (row, factor) with queued calculations, keyed by the first bin of the row
             std::vector<std::span<entry_type>> resets;        // rows calculated from an empty set, zeroed by the next fold
-            std::map<const entry_type*, double> pending_self; // per row, the self-correlation weight queued since the last fold
-            std::map<const entry_type*, double> self_weights; // per row, the self-correlation weight its first bin holds, see assign_self()
+            std::map<const entry_type*, double> pending_diagonal; // per row, the self-correlation weight added since the last fold, see add_diagonal()
+            std::map<const entry_type*, double> self_weights; // per row, the self-correlation weight its first bin holds, see assign_diagonal()
 
             /**
              * @brief The histogram of the result @a id of allocate_1d(), the one of class @a i of the result @a id of
@@ -177,18 +177,18 @@ namespace ausaxs::hist::distance_calculator {
             }
 
             /**
-             * @brief Queue the zero distance of the points of a self-correlation with themselves, of total @a weight, into @a row.
-             *        It is added on the next fold, so the distinct pairs of the same calculation must be given a target into @a row.
-             *        Must be called on the thread that enqueues.
+             * @brief Add the zero distance of the points of a self-correlation with themselves, of total @a weight, to @a row on the
+             *        next fold. Only rows with a target are folded, so the distinct pairs of the same calculation must be given a
+             *        target into @a row. Must be called on the thread that enqueues.
              */
-            void queue_self(std::span<entry_type> row, double weight) {pending_self[row.data()] += weight;}
+            void add_diagonal(std::span<entry_type> row, double weight) {pending_diagonal[row.data()] += weight;}
 
             /**
              * @brief Add the zero distance of the points of @a row with themselves, of total @a weight, to its first bin, and record it
              *        as the self-correlation weight of the row. The record is replaced rather than added to, since a row is always
              *        calculated in full.
              */
-            void assign_self(std::span<entry_type> row, double weight) {
+            void assign_diagonal(std::span<entry_type> row, double weight) {
                 if constexpr (weighted_bins) {row[0] += hist::detail::WeightedEntry(weight, static_cast<std::int64_t>(weight), 0);}
                 else {row[0] += weight;}
                 self_weights[row.data()] = weight;
@@ -201,7 +201,7 @@ namespace ausaxs::hist::distance_calculator {
 
             /**
              * @brief Zero the rows that were reset, and assign every row given a target the sum over its targets of the
-             *        factor times the sum of its per-thread copies, plus the self-correlation queued into it.
+             *        factor times the sum of its per-thread copies, plus the diagonal added to it.
              *        This must only be done after all calculations have finished.
              */
             void fold() {
@@ -218,8 +218,8 @@ namespace ausaxs::hist::distance_calculator {
                     // the targets of a row are adjacent, since the map is ordered by row first
                     if (start != previous) {
                         std::fill(row.begin(), row.end(), entry_type{});
-                        auto queued = pending_self.extract(start);
-                        assign_self(row, queued.empty() ? 0 : queued.mapped());
+                        auto diagonal = pending_diagonal.extract(start);
+                        assign_diagonal(row, diagonal.empty() ? 0 : diagonal.mapped());
                     }
                     previous = start;
 
@@ -230,7 +230,7 @@ namespace ausaxs::hist::distance_calculator {
                         );
                     }
                 }
-                assert(pending_self.empty() && "HistogramStore: a self-correlation was queued into a row without a target.");
+                assert(pending_diagonal.empty() && "HistogramStore: a diagonal was added to a row without a target.");
                 scratch.clear();
             }
 
@@ -256,7 +256,7 @@ namespace ausaxs::hist::distance_calculator {
                 return id;
             }
 
-            // the self-correlation weight recorded for @a row, see assign_self()
+            // the self-correlation weight recorded for @a row, see assign_diagonal()
             double recorded_self(std::span<const entry_type> row) const {
                 assert(static_cast<int>(row.size()) == n_bins && "HistogramStore: self-correlation weight of an exported result requested.");
                 auto it = self_weights.find(row.data());

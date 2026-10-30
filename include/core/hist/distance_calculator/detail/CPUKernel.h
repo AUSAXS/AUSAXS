@@ -42,7 +42,7 @@ namespace ausaxs::hist::distance_calculator::detail {
 
     /**
      * @brief Queue the distinct pairs of the self-correlation of @a data into @a target, each counted twice, once in either order.
-     *        The zero distance of every point with itself is not included; the store adds it, see HistogramStore::queue_self.
+     *        The zero distance of every point with itself is not included; the store adds it, see HistogramStore::add_diagonal.
      *
      * @tparam unit_weights Whether every point weighs 1, in which case the stored weights are never read.
      */
