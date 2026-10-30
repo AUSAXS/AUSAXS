@@ -5,8 +5,8 @@
 
 #include <constants/ConstantsProperties.h>
 #include <form_factor/FormFactorInfo.h>
+#include <form_factor/GroupFormFactor.h>
 #include <form_factor/neutron/NeutronFormFactorTable.h>
-#include <math/ConstexprMath.h>
 #include <utility/Exceptions.h>
 
 #include <array>
@@ -15,49 +15,41 @@
 
 namespace ausaxs::form_factor::neutron {
     /**
-     * @brief The neutron form factor of a heavy atom X with n equivalent bound hydrogens.
+     * @brief The neutron form factor of a single nucleus: its coherent scattering length, which does not depend on q.
      */
-    class FormFactor {
+    class AtomicFormFactor {
         public:
-            /**
-             * @brief Initialize a form factor from a tabulated group.
-             */
-            constexpr FormFactor(const coefficients::Group& group) : group(group) {}
+            constexpr AtomicFormFactor(double scattering_length) : b(scattering_length) {}
 
             /**
-             * @brief Evaluate the amplitude f(q), which enters every pair of distinct groups as f_i(q)*f_j(q)*sinc(q*r_ij).
+             * @brief Evaluate the form factor at a given q value.
              */
-            constexpr double evaluate(double q) const {
-                return group.b_heavy + group.hydrogens*b_hydrogen*math::sinc(q*group.d_xh);
-            }
+            constexpr double evaluate(double /*q*/) const {return b;}
 
             /**
-             * @brief Evaluate the self-term s(q), which replaces f(q)^2 for a group paired with itself.
+             * @brief Evaluate the form factor at q = 0.
              */
-            constexpr double evaluate_self(double q) const {
-                const auto& [b_heavy, n, d_xh, d_hh] = group;
-                return b_heavy*b_heavy + n*b_hydrogen*b_hydrogen
-                    + 2*n*b_heavy*b_hydrogen*math::sinc(q*d_xh)
-                    + n*(n-1)*b_hydrogen*b_hydrogen*math::sinc(q*d_hh);
-            }
-
-            /**
-             * @brief Evaluate the amplitude at q = 0.
-             */
-            constexpr double I0() const {
-                return group.b_heavy + group.hydrogens*b_hydrogen;
-            }
+            constexpr double I0() const {return b;}
 
         private:
-            coefficients::Group group;
-
-            // the sample is assumed to be protonated and in 100% H2O, so every hydrogen is protium
-            static constexpr double b_hydrogen = scattering_length::H;
+            double b;
     };
 
+    /**
+     * @brief The neutron form factor of a form factor type: a heavy atom with its bound hydrogens.
+     */
+    using FormFactor = GroupFormFactor<AtomicFormFactor>;
+
     namespace detail {
+        // the sample is assumed to be protonated and in 100% H2O, so every hydrogen is protium
+        constexpr AtomicFormFactor hydrogen(scattering_length::H);
+
         constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
-            return std::array<FormFactor, total_ff_count>{FormFactor(form_factor::detail::ff_info_table[I].neutron_coefficients)...};
+            return std::array<FormFactor, total_ff_count>{FormFactor(
+                AtomicFormFactor(form_factor::detail::ff_info_table[I].neutron_scattering_length),
+                hydrogen,
+                form_factor::detail::ff_info_table[I].geometry
+            )...};
         }(std::make_index_sequence<total_ff_count>{});
     }
 

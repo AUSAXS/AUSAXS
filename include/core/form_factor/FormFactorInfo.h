@@ -5,12 +5,12 @@
 
 #include <constants/Constants.h>
 #include <form_factor/FormFactorType.h>
+#include <form_factor/GroupGeometry.h>
 #include <form_factor/neutron/NeutronFormFactorTable.h>
 #include <form_factor/xray/XrayFormFactorTable.h>
 #include <settings/ScatteringSettings.h>
 #include <utility/Exceptions.h>
 
-#include <algorithm>
 #include <array>
 #include <string>
 #include <string_view>
@@ -23,14 +23,14 @@ namespace ausaxs::form_factor {
         form_factor_t type;                                 // The type described. Must match the row index in the table below.
         std::string_view name;                              // Short name, used for I/O.
         constants::atom_t element;                          // The (heavy) atom of the type.
-        int hydrogens;                                      // The number of implicit hydrogens bound to the element.
-        xray::coefficients::FiveGaussian xray_coefficients; // The five-Gaussian approximation of the vacuum X-ray form factor.
-        neutron::coefficients::Group neutron_coefficients;  // The scattering length and hydrogen geometry of the neutron form factor.
+        group::Geometry geometry;                           // The implicit hydrogens bound to the element.
+        xray::coefficients::FiveGaussian xray_coefficients; // The five-Gaussian approximation of the vacuum X-ray form factor of the element.
+        double neutron_scattering_length;                   // The coherent neutron scattering length of the element in fm.
     };
 
     namespace detail {
         namespace ff = xray::coefficients;
-        namespace nff = neutron::coefficients;
+        namespace b = neutron::scattering_length;
         using constants::atom_t;
 
         /**
@@ -39,37 +39,37 @@ namespace ausaxs::form_factor {
          *        Its excluded volume is described separately in form_factor/ExvTable.h, and is optional. 
          */
         constexpr std::array<FormFactorInfo, total_ff_count> ff_info_table = {{
-            {.type=form_factor_t::EXCLUDED_VOLUME, .name="EXV", .element=atom_t::unknown, .hydrogens=0, .xray_coefficients=ff::excluded_volume, .neutron_coefficients=nff::excluded_volume},
-            {.type=form_factor_t::OH,              .name="OH",  .element=atom_t::O,       .hydrogens=1, .xray_coefficients=ff::OH_alc,          .neutron_coefficients=nff::OH             },
-            {.type=form_factor_t::H,               .name="H",   .element=atom_t::H,       .hydrogens=0, .xray_coefficients=ff::H,               .neutron_coefficients=nff::H              },
-            {.type=form_factor_t::C,               .name="C",   .element=atom_t::C,       .hydrogens=0, .xray_coefficients=ff::C,               .neutron_coefficients=nff::C              },
-            {.type=form_factor_t::CH,              .name="CH",  .element=atom_t::C,       .hydrogens=1, .xray_coefficients=ff::CH_sp3,          .neutron_coefficients=nff::CH             },
-            {.type=form_factor_t::CH2,             .name="CH2", .element=atom_t::C,       .hydrogens=2, .xray_coefficients=ff::CH2_sp3,         .neutron_coefficients=nff::CH2            },
-            {.type=form_factor_t::CH3,             .name="CH3", .element=atom_t::C,       .hydrogens=3, .xray_coefficients=ff::CH3_sp3,         .neutron_coefficients=nff::CH3            },
-            {.type=form_factor_t::N,               .name="N",   .element=atom_t::N,       .hydrogens=0, .xray_coefficients=ff::N,               .neutron_coefficients=nff::N              },
-            {.type=form_factor_t::NH,              .name="NH",  .element=atom_t::N,       .hydrogens=1, .xray_coefficients=ff::NH,              .neutron_coefficients=nff::NH             },
-            {.type=form_factor_t::NH2,             .name="NH2", .element=atom_t::N,       .hydrogens=2, .xray_coefficients=ff::NH2,             .neutron_coefficients=nff::NH2            },
-            {.type=form_factor_t::NH3,             .name="NH3", .element=atom_t::N,       .hydrogens=3, .xray_coefficients=ff::NH3_plus,        .neutron_coefficients=nff::NH3            },
-            {.type=form_factor_t::O,               .name="O",   .element=atom_t::O,       .hydrogens=0, .xray_coefficients=ff::O,               .neutron_coefficients=nff::O              },
-            {.type=form_factor_t::S,               .name="S",   .element=atom_t::S,       .hydrogens=0, .xray_coefficients=ff::S,               .neutron_coefficients=nff::S              },
-            {.type=form_factor_t::SH,              .name="SH",  .element=atom_t::S,       .hydrogens=1, .xray_coefficients=ff::SH,              .neutron_coefficients=nff::SH             },
-            {.type=form_factor_t::F,               .name="F",   .element=atom_t::F,       .hydrogens=0, .xray_coefficients=ff::F,               .neutron_coefficients=nff::F              },
-            {.type=form_factor_t::Na,              .name="Na",  .element=atom_t::Na,      .hydrogens=0, .xray_coefficients=ff::Na,              .neutron_coefficients=nff::Na             },
-            {.type=form_factor_t::Mg,              .name="Mg",  .element=atom_t::Mg,      .hydrogens=0, .xray_coefficients=ff::Mg,              .neutron_coefficients=nff::Mg             },
-            {.type=form_factor_t::P,               .name="P",   .element=atom_t::P,       .hydrogens=0, .xray_coefficients=ff::P,               .neutron_coefficients=nff::P              },
-            {.type=form_factor_t::Cl,              .name="Cl",  .element=atom_t::Cl,      .hydrogens=0, .xray_coefficients=ff::Cl,              .neutron_coefficients=nff::Cl             },
-            {.type=form_factor_t::K,               .name="K",   .element=atom_t::K,       .hydrogens=0, .xray_coefficients=ff::K,               .neutron_coefficients=nff::K              },
-            {.type=form_factor_t::Ca,              .name="Ca",  .element=atom_t::Ca,      .hydrogens=0, .xray_coefficients=ff::Ca,              .neutron_coefficients=nff::Ca             },
-            {.type=form_factor_t::Mn,              .name="Mn",  .element=atom_t::Mn,      .hydrogens=0, .xray_coefficients=ff::Mn,              .neutron_coefficients=nff::Mn             },
-            {.type=form_factor_t::Fe,              .name="Fe",  .element=atom_t::Fe,      .hydrogens=0, .xray_coefficients=ff::Fe,              .neutron_coefficients=nff::Fe             },
-            {.type=form_factor_t::Co,              .name="Co",  .element=atom_t::Co,      .hydrogens=0, .xray_coefficients=ff::Co,              .neutron_coefficients=nff::Co             },
-            {.type=form_factor_t::Ni,              .name="Ni",  .element=atom_t::Ni,      .hydrogens=0, .xray_coefficients=ff::Ni,              .neutron_coefficients=nff::Ni             },
-            {.type=form_factor_t::Cu,              .name="Cu",  .element=atom_t::Cu,      .hydrogens=0, .xray_coefficients=ff::Cu,              .neutron_coefficients=nff::Cu             },
-            {.type=form_factor_t::Zn,              .name="Zn",  .element=atom_t::Zn,      .hydrogens=0, .xray_coefficients=ff::Zn,              .neutron_coefficients=nff::Zn             },
-            {.type=form_factor_t::Se,              .name="Se",  .element=atom_t::Se,      .hydrogens=0, .xray_coefficients=ff::Se,              .neutron_coefficients=nff::Se             },
-            {.type=form_factor_t::Br,              .name="Br",  .element=atom_t::Br,      .hydrogens=0, .xray_coefficients=ff::Br,              .neutron_coefficients=nff::Br             },
-            {.type=form_factor_t::I,               .name="I",   .element=atom_t::I,       .hydrogens=0, .xray_coefficients=ff::I,               .neutron_coefficients=nff::I              },
-            {.type=form_factor_t::OTHER,           .name="OTH", .element=atom_t::Ar,      .hydrogens=0, .xray_coefficients=ff::other,           .neutron_coefficients=nff::other          },
+            {.type=form_factor_t::EXCLUDED_VOLUME, .name="EXV", .element=atom_t::unknown, .geometry=group::atom, .xray_coefficients=ff::excluded_volume, .neutron_scattering_length=b::excluded_volume},
+            {.type=form_factor_t::OH,              .name="OH",  .element=atom_t::O,       .geometry=group::OH,   .xray_coefficients=ff::O,               .neutron_scattering_length=b::O              },
+            {.type=form_factor_t::H,               .name="H",   .element=atom_t::H,       .geometry=group::atom, .xray_coefficients=ff::H,               .neutron_scattering_length=b::H              },
+            {.type=form_factor_t::C,               .name="C",   .element=atom_t::C,       .geometry=group::atom, .xray_coefficients=ff::C,               .neutron_scattering_length=b::C              },
+            {.type=form_factor_t::CH,              .name="CH",  .element=atom_t::C,       .geometry=group::CH,   .xray_coefficients=ff::C,               .neutron_scattering_length=b::C              },
+            {.type=form_factor_t::CH2,             .name="CH2", .element=atom_t::C,       .geometry=group::CH2,  .xray_coefficients=ff::C,               .neutron_scattering_length=b::C              },
+            {.type=form_factor_t::CH3,             .name="CH3", .element=atom_t::C,       .geometry=group::CH3,  .xray_coefficients=ff::C,               .neutron_scattering_length=b::C              },
+            {.type=form_factor_t::N,               .name="N",   .element=atom_t::N,       .geometry=group::atom, .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
+            {.type=form_factor_t::NH,              .name="NH",  .element=atom_t::N,       .geometry=group::NH,   .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
+            {.type=form_factor_t::NH2,             .name="NH2", .element=atom_t::N,       .geometry=group::NH2,  .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
+            {.type=form_factor_t::NH3,             .name="NH3", .element=atom_t::N,       .geometry=group::NH3,  .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
+            {.type=form_factor_t::O,               .name="O",   .element=atom_t::O,       .geometry=group::atom, .xray_coefficients=ff::O,               .neutron_scattering_length=b::O              },
+            {.type=form_factor_t::S,               .name="S",   .element=atom_t::S,       .geometry=group::atom, .xray_coefficients=ff::S,               .neutron_scattering_length=b::S              },
+            {.type=form_factor_t::SH,              .name="SH",  .element=atom_t::S,       .geometry=group::SH,   .xray_coefficients=ff::S,               .neutron_scattering_length=b::S              },
+            {.type=form_factor_t::F,               .name="F",   .element=atom_t::F,       .geometry=group::atom, .xray_coefficients=ff::F,               .neutron_scattering_length=b::F              },
+            {.type=form_factor_t::Na,              .name="Na",  .element=atom_t::Na,      .geometry=group::atom, .xray_coefficients=ff::Na,              .neutron_scattering_length=b::Na             },
+            {.type=form_factor_t::Mg,              .name="Mg",  .element=atom_t::Mg,      .geometry=group::atom, .xray_coefficients=ff::Mg,              .neutron_scattering_length=b::Mg             },
+            {.type=form_factor_t::P,               .name="P",   .element=atom_t::P,       .geometry=group::atom, .xray_coefficients=ff::P,               .neutron_scattering_length=b::P              },
+            {.type=form_factor_t::Cl,              .name="Cl",  .element=atom_t::Cl,      .geometry=group::atom, .xray_coefficients=ff::Cl,              .neutron_scattering_length=b::Cl             },
+            {.type=form_factor_t::K,               .name="K",   .element=atom_t::K,       .geometry=group::atom, .xray_coefficients=ff::K,               .neutron_scattering_length=b::K              },
+            {.type=form_factor_t::Ca,              .name="Ca",  .element=atom_t::Ca,      .geometry=group::atom, .xray_coefficients=ff::Ca,              .neutron_scattering_length=b::Ca             },
+            {.type=form_factor_t::Mn,              .name="Mn",  .element=atom_t::Mn,      .geometry=group::atom, .xray_coefficients=ff::Mn,              .neutron_scattering_length=b::Mn             },
+            {.type=form_factor_t::Fe,              .name="Fe",  .element=atom_t::Fe,      .geometry=group::atom, .xray_coefficients=ff::Fe,              .neutron_scattering_length=b::Fe             },
+            {.type=form_factor_t::Co,              .name="Co",  .element=atom_t::Co,      .geometry=group::atom, .xray_coefficients=ff::Co,              .neutron_scattering_length=b::Co             },
+            {.type=form_factor_t::Ni,              .name="Ni",  .element=atom_t::Ni,      .geometry=group::atom, .xray_coefficients=ff::Ni,              .neutron_scattering_length=b::Ni             },
+            {.type=form_factor_t::Cu,              .name="Cu",  .element=atom_t::Cu,      .geometry=group::atom, .xray_coefficients=ff::Cu,              .neutron_scattering_length=b::Cu             },
+            {.type=form_factor_t::Zn,              .name="Zn",  .element=atom_t::Zn,      .geometry=group::atom, .xray_coefficients=ff::Zn,              .neutron_scattering_length=b::Zn             },
+            {.type=form_factor_t::Se,              .name="Se",  .element=atom_t::Se,      .geometry=group::atom, .xray_coefficients=ff::Se,              .neutron_scattering_length=b::Se             },
+            {.type=form_factor_t::Br,              .name="Br",  .element=atom_t::Br,      .geometry=group::atom, .xray_coefficients=ff::Br,              .neutron_scattering_length=b::Br             },
+            {.type=form_factor_t::I,               .name="I",   .element=atom_t::I,       .geometry=group::atom, .xray_coefficients=ff::I,               .neutron_scattering_length=b::I              },
+            {.type=form_factor_t::OTHER,           .name="OTH", .element=atom_t::Ar,      .geometry=group::atom, .xray_coefficients=ff::other,           .neutron_scattering_length=b::other          },
         }};
 
         constexpr bool ff_info_table_is_ordered() {
@@ -80,13 +80,6 @@ namespace ausaxs::form_factor {
         }
         static_assert(ff_info_table_is_ordered(), "form_factor::detail::ff_info_table must be ordered by form_factor_t.");
 
-        constexpr bool ff_info_table_hydrogens_agree() {
-            return std::ranges::all_of(ff_info_table, [](const auto& info) {
-                return info.neutron_coefficients.hydrogens == info.hydrogens;
-            });
-        }
-        static_assert(ff_info_table_hydrogens_agree(), "form_factor::detail::ff_info_table: the neutron coefficients of each row must have the same number of hydrogens as the row.");
-
         /**
          * @brief Map from an element to the form factor type of the bare element. Elements without their own type map to OTHER.
          */
@@ -95,7 +88,7 @@ namespace ausaxs::form_factor {
             table.fill(form_factor_t::OTHER);
             for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
                 const auto& info = ff_info_table[i];
-                if (info.hydrogens == 0 && info.element != atom_t::unknown) {table[static_cast<int>(info.element)] = info.type;}
+                if (info.geometry.hydrogens == 0 && info.element != atom_t::unknown) {table[static_cast<int>(info.element)] = info.type;}
             }
             return table;
         }();
@@ -115,7 +108,7 @@ namespace ausaxs::form_factor {
      * @brief Check if a form factor type represents an atomic group, i.e. already includes the hydrogens bound to the element.
      */
     constexpr bool has_implicit_hydrogens(form_factor_t type) {
-        return get_info(type).hydrogens != 0;
+        return get_info(type).geometry.hydrogens != 0;
     }
 
     [[maybe_unused]] static std::string to_string(form_factor_t type) {
@@ -178,7 +171,7 @@ namespace ausaxs::constants::mass {
         using ausaxs::form_factor::form_factor_t;
         if (type == form_factor_t::COUNT || type == form_factor_t::EXCLUDED_VOLUME) {return 0;}
         const auto& info = ausaxs::form_factor::get_info(type);
-        return get_mass(info.element) + info.hydrogens*get_mass(atom_t::H);
+        return get_mass(info.element) + info.geometry.hydrogens*get_mass(atom_t::H);
     }
 }
 
@@ -200,7 +193,7 @@ namespace ausaxs::constants::charge::nuclear {
     constexpr int get_charge(ausaxs::form_factor::form_factor_t type) {
         if (type == ausaxs::form_factor::form_factor_t::EXCLUDED_VOLUME) {return 0;}
         const auto& info = ausaxs::form_factor::get_info(type);
-        return get_charge(info.element) + info.hydrogens;
+        return get_charge(info.element) + info.geometry.hydrogens;
     }
 }
 

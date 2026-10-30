@@ -296,10 +296,9 @@ TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
 
     SECTION("xray") {
         const auto* tables = manager::get_active_product_tables();
-        CHECK_THAT(manager::evaluate_amplitude(form_factor_t::CH2)[q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::CH2).evaluate(q), 1e-12));
-
-        // the electron cloud is spherically symmetric, so the self-correlation is the squared amplitude
-        CHECK_THAT(tables->raw_self_table[CH2][q_index], Catch::Matchers::WithinAbs(tables->raw_atomic_table.index(CH2, CH2).evaluate(q_index), 1e-12));
+        const auto& ff = xray::raw::get(form_factor_t::CH2);
+        CHECK_THAT(manager::evaluate_amplitude(form_factor_t::CH2)[q_index], Catch::Matchers::WithinAbs(ff.evaluate(q), 1e-12));
+        CHECK_THAT(tables->raw_self_table[CH2][q_index], Catch::Matchers::WithinAbs(ff.evaluate_self(q), 1e-12));
     }
 
     SECTION("neutron") {
@@ -319,7 +318,7 @@ TEST_CASE("form_factor_manager: radiation selects the form factor tables") {
         CHECK_THAT(constants::charge::get_ff_charge(form_factor_t::CH2), Catch::Matchers::WithinAbs(ff.I0(), 1e-12));
         settings::scattering::radiation = settings::scattering::Radiation::XRay;
         const auto* xray_tables = manager::get_active_product_tables();
-        CHECK_THAT(xray_tables->raw_self_table[CH2][q_index], Catch::Matchers::WithinAbs(xray_tables->raw_atomic_table.index(CH2, CH2).evaluate(q_index), 1e-12));
+        CHECK_THAT(xray_tables->raw_self_table[CH2][q_index], Catch::Matchers::WithinAbs(xray::raw::get(form_factor_t::CH2).evaluate_self(q), 1e-12));
     }
 }
 

@@ -9,40 +9,6 @@ using namespace ausaxs;
 using namespace form_factor;
 using Catch::Matchers::WithinAbs;
 
-TEST_CASE("NeutronFormFactor::evaluate") {
-    // CH2 with protium
-    double bc = 6.646, bh = -3.739, dxh = 1.083, dhh = 1.768;
-    neutron::FormFactor ff({.b_heavy = bc, .hydrogens = 2, .d_xh = dxh, .d_hh = dhh});
-    auto sinc = [] (double x) {return std::sin(x)/x;};
-
-    SECTION("at q = 0") {
-        CHECK_THAT(ff.evaluate(0), WithinAbs(bc + 2*bh, 1e-12));
-        CHECK_THAT(ff.I0(), WithinAbs(bc + 2*bh, 1e-12));
-    }
-
-    SECTION("at non-zero q") {
-        CHECK_THAT(ff.evaluate(1), WithinAbs(bc + 2*bh*sinc(dxh), 1e-12));
-    }
-
-    SECTION("self-term equals the squared amplitude at q = 0") {
-        CHECK_THAT(ff.evaluate_self(0), WithinAbs(ff.I0()*ff.I0(), 1e-12));
-    }
-
-    SECTION("self-term at non-zero q") {
-        double expected = bc*bc + 2*bh*bh + 4*bc*bh*sinc(dxh) + 2*bh*bh*sinc(dhh);
-        CHECK_THAT(ff.evaluate_self(1), WithinAbs(expected, 1e-12));
-        CHECK(ff.evaluate_self(1) > 10*std::pow(ff.evaluate(1), 2));
-    }
-
-    SECTION("compile-time evaluation matches run-time evaluation") {
-        constexpr neutron::FormFactor cff({.b_heavy = 6.646, .hydrogens = 2, .d_xh = 1.083, .d_hh = 1.768});
-        constexpr double val = cff.evaluate(0.5);
-        constexpr double val_self = cff.evaluate_self(0.5);
-        CHECK_THAT(val, WithinAbs(ff.evaluate(0.5), 1e-12));
-        CHECK_THAT(val_self, WithinAbs(ff.evaluate_self(0.5), 1e-12));
-    }
-}
-
 TEST_CASE("NeutronFormFactor::get") {
     using namespace neutron;
 
@@ -80,6 +46,11 @@ TEST_CASE("NeutronFormFactor::get") {
                 CHECK(get(static_cast<form_factor_t>(i)).evaluate_self(q) >= 0);
             }
         }
+    }
+
+    SECTION("groups place their hydrogens at the nuclear X-H distance") {
+        auto sinc = [] (double x) {return std::sin(x)/x;};
+        CHECK_THAT(get(form_factor_t::CH3).evaluate(1), WithinAbs(6.646 - 3*3.739*sinc(group::bond::CH), 1e-12));
     }
 
     SECTION("excluded volume is not defined") {
