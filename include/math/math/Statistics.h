@@ -96,6 +96,7 @@ namespace ausaxs::stats {
                     max_count = count;
                     mode = v_copy[i-1];
                 }
+                count = 1;
             }
         }
 

@@ -60,7 +60,16 @@ TEST_CASE("stats::mode") {
         CHECK(stats::mode(std::vector{10, 3, 5, 6, 6}) == 6);
         CHECK(stats::mode(std::vector{12, 14, 15, 15, 14, 17, 15}) == 15);
         CHECK(stats::mode(std::vector{54, 66, 78, 80, 82, 84, 84, 90, 93}) == 84);
-        CHECK(stats::mode(std::vector{8, 1, 3, 5, 8, 6, 3, 7, 8, 9, 3, 2, 1}) == 8);
+
+        // 3 and 8 both occur three times; ties go to the smallest value
+        CHECK(stats::mode(std::vector{8, 1, 3, 5, 8, 6, 3, 7, 8, 9, 3, 2, 1}) == 3);
+    }
+
+    SECTION("the mode is not the last repeated value") {
+        CHECK(stats::mode(std::vector{1, 1, 1, 2, 2, 3, 3}) == 1);
+        CHECK(stats::mode(std::vector{3, 3, 2, 2, 1, 1, 1}) == 1);
+        CHECK(stats::mode(std::vector{4, 4, 4, 4, 5, 5, 6, 6, 7, 7}) == 4);
+        CHECK(stats::mode(std::vector{5, 4, 5, 4, 5, 4, 5, 6, 7, 6, 7}) == 5);
     }
 
     SECTION("single element") {
