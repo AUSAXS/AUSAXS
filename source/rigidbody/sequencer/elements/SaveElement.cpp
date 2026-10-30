@@ -10,20 +10,25 @@
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/controller/IController.h>
+#include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <settings/GeneralSettings.h>
 
+#include <cassert>
 #include <unordered_map>
 #include <utility>
 
 using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
-    int pdb_counter = 0;
-    int fit_counter = 0;
-    int txt_counter = 0;
-    int png_counter = 0;
+    // one '%' counter per path template, so "every_%.pdb" and "best_%.pdb" are numbered independently, while two
+    // elements saving to the same template continue one series instead of overwriting each other's files
+    std::unordered_map<std::string, int> counters;
     std::unordered_map<std::string, ausaxs::io::detail::xyz::XYZWriter> writers;
+
+    bool is_supported_format(const std::string& ext) {
+        return ext == ".pdb" || ext == ".fit" || ext == ".txt" || ext == ".png" || ext == ".xyz";
+    }
 }
 
 SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, io::File path) 
@@ -35,18 +40,15 @@ SaveElement::~SaveElement() {
 }
 
 void SaveElement::reset_statics() {
-    pdb_counter = 0;
-    fit_counter = 0;
-    txt_counter = 0;
-    png_counter = 0;
+    counters.clear();
     writers.clear();
 }
 
 void SaveElement::run() {
     // find and replace '%' with the current counter value
-    auto insert_counter = [] (io::File file, int& count) {
+    auto insert_counter = [this] (io::File file) {
         if (auto pos = file.stem().find('%'); pos != std::string::npos) {
-            file.stem().replace(pos, 1, std::to_string(++count));
+            file.stem().replace(pos, 1, std::to_string(++counters[path.path()]));
         }
         return file;
     };
@@ -60,7 +62,7 @@ void SaveElement::run() {
 
     // PDB
     if (const auto& ext = path.extension(); ext == ".pdb") {
-        owner->_get_molecule()->save(insert_counter(path, pdb_counter));
+        owner->_get_molecule()->save(insert_counter(path));
     }
 
     // FIT
@@ -68,7 +70,7 @@ void SaveElement::run() {
         // the same file the fitting CLIs write: all named columns, residuals included
         auto result = fit_current_state();
         result->curves.save(
-            insert_counter(path, fit_counter),
+            insert_counter(path),
             "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof)
         );
     }
@@ -76,7 +78,7 @@ void SaveElement::run() {
     // TXT - the fit report
     else if (ext == ".txt") {
         auto result = fit_current_state();
-        fitter::FitReporter::save(result.get(), insert_counter(path, txt_counter));
+        fitter::FitReporter::save(result.get(), insert_counter(path));
     }
 
     // PNG
@@ -93,7 +95,7 @@ void SaveElement::run() {
                 }
             )
         );
-        plot.save(insert_counter(path, png_counter));
+        plot.save(insert_counter(path));
     }
 
     // XYZ
@@ -104,7 +106,7 @@ void SaveElement::run() {
         }
         writers.at(p).write_frame(owner->_get_molecule());
     } else {
-        throw ausaxs::except::runtime_error("SaveElement::run: Unknown file format: \"" + ext + "\". Valid formats are .pdb, .fit, .txt, .png and .xyz.");
+        assert(false && "SaveElement::run: unreachable, the format is checked when parsed.");
     }
 }
 
@@ -118,5 +120,9 @@ InlineSignature SaveElement::_valid_inline_arguments() {
 
 // save [path] - resolved relative to the output folder
 std::unique_ptr<GenericElement> SaveElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
-    return std::make_unique<SaveElement>(owner, settings::general::output + args.inlined[0]);
+    io::File path = settings::general::output + args.inlined[0];
+    if (!is_supported_format(path.extension())) { // checked here, since at run time the whole optimization has already been done
+        throw except::parse_error("save", args.inlined, "Unknown file format \"" + path.extension() + "\". Valid formats are .pdb, .fit, .txt, .png and .xyz.");
+    }
+    return std::make_unique<SaveElement>(owner, std::move(path));
 }
