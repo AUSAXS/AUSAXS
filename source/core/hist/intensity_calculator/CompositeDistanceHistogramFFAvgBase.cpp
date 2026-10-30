@@ -25,16 +25,10 @@ const std::vector<form_factor::manager::detail::profile_t>& CompositeDistanceHis
 }
 
 template<typename FormFactorTableType>
-CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(const CompositeDistanceHistogramFFAvgBase&) = default;
-
-template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(CompositeDistanceHistogramFFAvgBase&&) noexcept = default;
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::operator=(CompositeDistanceHistogramFFAvgBase&&) noexcept = default;
-
-template<typename FormFactorTableType>
-CompositeDistanceHistogramFFAvgBase<FormFactorTableType>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::operator=(const CompositeDistanceHistogramFFAvgBase&) = default;
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(

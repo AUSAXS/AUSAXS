@@ -14,17 +14,15 @@ namespace ausaxs::table {
     class DebyeTableManager {
         public:
             DebyeTableManager();
-            DebyeTableManager(const DebyeTableManager& /*table*/);
+            DebyeTableManager(const DebyeTableManager&) = delete;
             DebyeTableManager(DebyeTableManager&&) noexcept;
-            DebyeTableManager& operator=(const DebyeTableManager& /*table*/);
+            DebyeTableManager& operator=(const DebyeTableManager&) = delete;
             DebyeTableManager& operator=(DebyeTableManager&&) noexcept;
 
             /**
              * @brief Get the sinc(x) lookup table for the Debye transform.
              */
             observer_ptr<const table::DebyeTable> get_sinc_table() const;
-
-            void reset_to_default();
 
             /**
              * @brief Set the q-axis of the table.

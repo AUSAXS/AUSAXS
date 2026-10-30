@@ -18,10 +18,8 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 
 DistanceHistogram::DistanceHistogram() = default;
-DistanceHistogram::DistanceHistogram(const DistanceHistogram&) = default;
 DistanceHistogram::DistanceHistogram(DistanceHistogram&&) noexcept = default;
 DistanceHistogram& DistanceHistogram::operator=(DistanceHistogram&&) noexcept = default;
-DistanceHistogram& DistanceHistogram::operator=(const DistanceHistogram&) = default;
 
 DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot) : Histogram( // NOLINT - consumed piecewise below
     std::move(p_tot.get_data()), 

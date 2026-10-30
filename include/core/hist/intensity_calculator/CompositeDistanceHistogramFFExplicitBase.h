@@ -20,10 +20,10 @@ namespace ausaxs::hist {
     class CompositeDistanceHistogramFFExplicitBase : public CompositeDistanceHistogramFFAvgBase<AAFormFactorTableType> {
         public: 
             CompositeDistanceHistogramFFExplicitBase();
-            CompositeDistanceHistogramFFExplicitBase(const CompositeDistanceHistogramFFExplicitBase&);
+            CompositeDistanceHistogramFFExplicitBase(const CompositeDistanceHistogramFFExplicitBase&) = delete;
             CompositeDistanceHistogramFFExplicitBase(CompositeDistanceHistogramFFExplicitBase&&) noexcept;
             CompositeDistanceHistogramFFExplicitBase& operator=(CompositeDistanceHistogramFFExplicitBase&&) noexcept;
-            CompositeDistanceHistogramFFExplicitBase& operator=(const CompositeDistanceHistogramFFExplicitBase&);
+            CompositeDistanceHistogramFFExplicitBase& operator=(const CompositeDistanceHistogramFFExplicitBase&) = delete;
             ~CompositeDistanceHistogramFFExplicitBase() override;
 
             /**

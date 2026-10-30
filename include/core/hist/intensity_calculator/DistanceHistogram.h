@@ -26,9 +26,9 @@ namespace ausaxs::hist {
     class DistanceHistogram : protected Histogram {
         public: 
             DistanceHistogram();
-            DistanceHistogram(const DistanceHistogram& other);
+            DistanceHistogram(const DistanceHistogram&) = delete;
             DistanceHistogram(DistanceHistogram&& other) noexcept;
-            DistanceHistogram& operator=(const DistanceHistogram& other);
+            DistanceHistogram& operator=(const DistanceHistogram&) = delete;
             DistanceHistogram& operator=(DistanceHistogram&& other) noexcept;
 
             /**

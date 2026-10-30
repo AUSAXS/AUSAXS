@@ -25,9 +25,9 @@ namespace ausaxs::hist {
         public:
             using hist::DistanceHistogram::DistanceHistogram;
             ICompositeDistanceHistogram() = default;
-            ICompositeDistanceHistogram(const ICompositeDistanceHistogram&) = default;
+            ICompositeDistanceHistogram(const ICompositeDistanceHistogram&) = delete;
             ICompositeDistanceHistogram(ICompositeDistanceHistogram&&) noexcept = default;
-            ICompositeDistanceHistogram& operator=(const ICompositeDistanceHistogram&) = default;
+            ICompositeDistanceHistogram& operator=(const ICompositeDistanceHistogram&) = delete;
             ICompositeDistanceHistogram& operator=(ICompositeDistanceHistogram&&) noexcept = default;
             ~ICompositeDistanceHistogram() override = default;
 

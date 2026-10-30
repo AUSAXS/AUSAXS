@@ -12,19 +12,8 @@ using namespace ausaxs;
 using namespace ausaxs::table;
 
 DebyeTableManager::DebyeTableManager() = default;
-DebyeTableManager::DebyeTableManager(const DebyeTableManager& table) {*this = table;}
 DebyeTableManager::DebyeTableManager(DebyeTableManager&&) noexcept = default; 
 DebyeTableManager& DebyeTableManager::operator=(DebyeTableManager&&) noexcept = default;
-DebyeTableManager& DebyeTableManager::operator=(const DebyeTableManager& table) {
-    if (this == &table) {return *this;}
-    q = table.q;
-    d = table.d;
-    use_custom_table = table.use_custom_table;
-    if (table.custom_sinc_table) {
-        custom_sinc_table = std::make_unique<table::VectorDebyeTable>(d.axis, q.axis);
-    }
-    return *this;
-}
 
 observer_ptr<const table::DebyeTable> DebyeTableManager::get_sinc_table() const {
     if (use_custom_table) {
@@ -45,12 +34,6 @@ observer_ptr<const table::DebyeTable> DebyeTableManager::get_sinc_table() const 
         return custom_sinc_table.get();
     }
     return &ArrayDebyeTable::get_default_table();
-}
-
-void DebyeTableManager::reset_to_default() {
-    q.defaulted = true;
-    d.defaulted = true;
-    use_custom_table = false;
 }
 
 template<typename T>

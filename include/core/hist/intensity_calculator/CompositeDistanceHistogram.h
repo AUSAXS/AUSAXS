@@ -16,7 +16,7 @@ namespace ausaxs::hist {
      */
     class CompositeDistanceHistogram : public ICompositeDistanceHistogram {
         public: 
-            CompositeDistanceHistogram(const CompositeDistanceHistogram&);
+            CompositeDistanceHistogram(const CompositeDistanceHistogram&) = delete;
             CompositeDistanceHistogram(CompositeDistanceHistogram&&) noexcept;
             CompositeDistanceHistogram& operator=(CompositeDistanceHistogram&&) noexcept;
             ~CompositeDistanceHistogram() override;
