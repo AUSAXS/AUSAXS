@@ -411,7 +411,7 @@ TEST_CASE("Molecule::get_excess_mass_density", "[files]") {
     double V = protein.get_volume_grid();
     REQUIRE(protein.size_water() != 0);
 
-    auto to_gcm3 = [] (double rho_Da_A3) {return rho_Da_A3*constants::unit::gm/constants::unit::mL;};
+    auto to_gcm3 = [] (double rho_Da_A3) {return rho_Da_A3*constants::unit::external::gm/constants::unit::external::mL;};
 
     // definition: the mass must be dry to match the volume
     double m_water = constants::mass::density::water*V;

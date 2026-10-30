@@ -270,7 +270,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         console::print_info("\nExtra informaton");
         console::print_text("Volume:");
         // the grid volume is dry, so the mass must be dry too
-        double rhoM = molecule.get_absolute_mass(false)/molecule.get_volume_grid()*constants::unit::gm/constants::unit::mL;
+        double rhoM = molecule.get_absolute_mass(false)/molecule.get_volume_grid()*constants::unit::external::gm/constants::unit::external::mL;
         double exv_vol = molecule.get_volume_grid();
         double mol_charge = molecule.get_total_atomic_charge();
         console::print_text("\tvan der Waals:   " + std::to_string((int) std::round(molecule.get_volume_vdw()))  + " A^3");

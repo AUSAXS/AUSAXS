@@ -9,7 +9,7 @@
  * This namespace contains all the absolute unit conversion constants. 
  * Each constant is the factor that takes a value *to* SI, not a value that is already in SI:
  * SI::length::A is "one Ångström, expressed in metres", so a length in Å becomes metres by
- * multiplication. See constants::unit for the conversions out of the internal unit system.
+ * multiplication. See constants::unit for the conversions in and out of the internal unit system.
  */
 namespace ausaxs::constants::SI {
     namespace mass {
