@@ -49,6 +49,8 @@ template<> std::string settings::io::detail::SettingRef<settings::scattering::Ra
     }
 }
 
+template<> std::string settings::io::detail::SettingRef<settings::scattering::Radiation>::type() const {return "string";}
+
 template<> void settings::io::detail::SettingRef<settings::scattering::Radiation>::set(const std::vector<std::string>& val) {
     auto str = utility::to_lowercase(val[0]);
     if (     str == "xray" || str == "x-ray") {settingref = settings::scattering::Radiation::XRay;}
