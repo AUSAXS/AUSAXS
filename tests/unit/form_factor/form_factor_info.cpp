@@ -21,16 +21,15 @@ TEST_CASE("form_factor::to_string") {
 }
 
 TEST_CASE("form_factor::get_info") {
-    SECTION("the vacuum form factor of a bare element at q=0 matches the number of electrons") {
+    SECTION("the vacuum form factor of the element at q=0 matches its number of electrons") {
         for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
             auto type = static_cast<form_factor_t>(i);
             const auto& info = get_info(type);
-            if (info.hydrogens != 0) {continue;}
             const auto& c = info.xray_coefficients;
             double f0 = c.c;
             for (double a : c.a) {f0 += a;}
             INFO("form factor " << to_string(type));
-            CHECK_THAT(f0, Catch::Matchers::WithinRel(constants::charge::nuclear::get_charge(type), 1e-3));
+            CHECK_THAT(f0, Catch::Matchers::WithinRel(constants::charge::nuclear::get_charge(info.element), 1e-3));
         }
     }
 
@@ -45,7 +44,7 @@ TEST_CASE("form_factor::get_type") {
         for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
             auto type = static_cast<form_factor_t>(i);
             const auto& info = get_info(type);
-            if (type == form_factor_t::OTHER || info.hydrogens != 0) {continue;}
+            if (type == form_factor_t::OTHER || info.geometry.hydrogens != 0) {continue;}
             CHECK(get_type(info.element) == type);
         }
     }
