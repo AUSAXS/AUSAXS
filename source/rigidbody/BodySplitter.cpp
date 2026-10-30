@@ -107,13 +107,13 @@ Molecule BodySplitter::split(const io::File& input, const std::vector<int>& spli
 data::Molecule BodySplitter::split(const io::File& input) {
     io::pdb::PDBStructure data = io::Reader::read(input);
     const std::vector<PDBAtom>& atoms = data.atoms;
-    auto reduced = data.reduced_representation();
+    Body whole(data);
 
     // one body per chain; the waters of the structure are discarded
     std::vector<Body> bodies;
     auto add_body = [&] (std::ptrdiff_t begin, std::ptrdiff_t end) {
-        bodies.emplace_back(std::vector<AtomFF>(reduced.atoms.begin() + begin, reduced.atoms.begin() + end), std::vector<Water>{});
-        if (reduced.metadata) {bodies.back().set_metadata(reduced.metadata->subrange(begin, end));}
+        bodies.emplace_back(std::vector<AtomFF>(whole.get_atoms().begin() + begin, whole.get_atoms().begin() + end), std::vector<Water>{});
+        bodies.back().set_metadata(whole.get_metadata()->subrange(begin, end));
     };
 
     std::ptrdiff_t begin = 0;

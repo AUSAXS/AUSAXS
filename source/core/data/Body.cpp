@@ -8,10 +8,12 @@
 #include <hydrate/ExplicitHydration.h>
 #include <hydrate/ImplicitHydration.h>
 #include <io/Reader.h>
+#include <io/pdb/PDBStructure.h>
 #include <math/Matrix.h>
 #include <math/Vector3.h>
 
 #include <algorithm>
+#include <cassert>
 #include <functional>
 #include <numbers>
 #include <numeric>
@@ -26,9 +28,10 @@ Body::Body(const Body& body) : atoms(body.atoms), metadata(body.metadata), hydra
 Body::Body(Body&& body) noexcept : atoms(std::move(body.atoms)), metadata(std::move(body.metadata)), hydration(std::move(body.hydration)), symmetries(std::move(body.symmetries)), uid(body.uid) {initialize();}
 Body::~Body() = default;
 
-Body::Body(const io::File& path) : uid(uid_counter++) {
-    auto file = io::Reader::read(path);
-    auto data = file.reduced_representation();
+Body::Body(const io::File& path) : Body(io::Reader::read(path)) {}
+
+Body::Body(const io::pdb::PDBStructure& structure) : uid(uid_counter++) {
+    auto data = structure.reduced_representation();
     atoms = std::move(data.atoms);
     metadata = std::move(data.metadata);
     if (data.waters.empty()) {
@@ -37,6 +40,8 @@ Body::Body(const io::File& path) : uid(uid_counter++) {
         hydration = hydrate::Hydration::create(std::move(data.waters));
     }
     symmetries = std::make_unique<symmetry::SymmetryStorage>();
+    [[maybe_unused]] bool derived = refresh_weights();
+    assert(derived && "Body::Body: a parsed structure must carry the metadata needed to derive its weights.");
     initialize();
 }
 
@@ -154,6 +159,26 @@ void Body::rotate(const Matrix<double>& R) {
             atom.coordinates().rotate(R);
         }
     }
+}
+
+bool Body::refresh_weights() {
+    // a water is always a plain water, so its weight is fully determined by the probe
+    if (auto* h = dynamic_cast<hydrate::ExplicitHydration*>(hydration.get()); h) {
+        double w = constants::charge::get_ff_charge(Water::form_factor_type());
+        std::ranges::for_each(h->waters, [w] (data::Water& water) {water.weight() = w;});
+    }
+
+    // the atom weights fold in the occupancy and the implicit hydrogens, so they can only be rebuilt where the metadata recorded both
+    if (atoms.empty()) {return true;}
+    if (!metadata || !metadata->element || !metadata->occupancy || !metadata->implicit_h) {return false;}
+    assert(metadata->size() == atoms.size() && "Body::refresh_weights: metadata is not parallel-indexed to the atoms.");
+
+    double hydrogen_charge = constants::charge::get_ff_charge(form_factor::form_factor_t::H);
+    for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
+        double charge = constants::charge::get_ff_charge(atoms[i].form_factor_type(), (*metadata->element)[i]) + (*metadata->implicit_h)[i]*hydrogen_charge;
+        atoms[i].weight() = charge*(*metadata->occupancy)[i];
+    }
+    return true;
 }
 
 double Body::get_total_atomic_charge() const {

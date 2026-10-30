@@ -176,8 +176,7 @@ int pdb_debye_fit(
     int* status
 ) {return execute_with_catch([&]() {
     auto& pdb = api::ObjectStorage::get<io::pdb::PDBStructure>(pdb_id, "pdb");
-    auto data = pdb.reduced_representation();
-    auto molecule = data.waters.empty() ? Molecule({Body{std::move(data.atoms)}}) : Molecule({Body{std::move(data.atoms), std::move(data.waters)}});
+    auto molecule = Molecule({Body(pdb)});
     molecule.reset_histogram_manager();
     auto& dataset = api::ObjectStorage::get<SimpleDataset>(data_id, "dataset");
     auto fitter = fitter::SmartFitter(dataset, molecule.get_histogram());

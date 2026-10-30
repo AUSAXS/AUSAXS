@@ -3,6 +3,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <support/exact_grid.h>
+#include <support/hist_test_helper.h>
 
 #include <constants/Constants.h>
 #include <data/Body.h>
@@ -57,20 +58,6 @@ struct fixture {
     std::vector<AtomFF> b4 = {a7, a8};
     std::vector<Body> bodies = {Body(b1, std::vector{w1, w2}), Body(b2), Body(b3), Body(b4)};
 };
-
-/**
- * @brief Compare two histograms. 
- *        Only indices [0, p1.size()] are checked.
- */
-static bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    for (int i = 0; i < p1.size(); i++) {
-        if (!utility::approx(p1[i], p2[i])) {
-            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-            return false;
-        }
-    }
-    return true;
-}
 
 TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
     settings::general::verbose = false;
@@ -830,8 +817,7 @@ TEST_CASE("Molecule: implicit hydrogens") {
     SECTION("enabled") {
         settings::molecule::implicit_hydrogens = true;
         auto file = generate_molecule();
-        auto res = file.reduced_representation();
-        Molecule protein({Body{res.atoms, res.waters}});
+        Molecule protein({Body(file)});
         auto atoms = protein.get_atoms();
 
         // Weight is I0 of the grouped form factor, which already includes its hydrogens
@@ -866,8 +852,7 @@ TEST_CASE("Molecule: implicit hydrogens") {
     SECTION("disabled") {
         settings::molecule::implicit_hydrogens = false;
         auto file = generate_molecule();
-        auto res = file.reduced_representation();
-        Molecule protein({Body{res.atoms, res.waters}});
+        Molecule protein({Body(file)});
 
         for (auto a : protein.get_atoms()) {
             CHECK_THAT(a.weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(a.form_factor_type()), 1e-12));
@@ -1049,4 +1034,46 @@ TEST_CASE("Molecule::uses_weighted_bins") {
         ordered.reset_histogram_manager();
         CHECK(dynamic_cast<hist::HistogramManagerMT<true>*>(ordered.get_histogram_manager()) != nullptr);
     }
+}
+
+// The weights are derived from the active probe when a structure is read, so a later probe change must reach them (BL-188).
+TEST_CASE("Molecule: the weights follow the scattering probe", "[files]") {
+    settings::general::verbose = false;
+    auto probe = GENERATE(settings::scattering::Radiation::XRay, settings::scattering::Radiation::Neutron);
+    auto other = probe == settings::scattering::Radiation::XRay ? settings::scattering::Radiation::Neutron : settings::scattering::Radiation::XRay;
+
+    auto weights = [] (const data::Molecule& m) {
+        std::vector<double> w;
+        for (const auto& a : m.iterate_atoms()) {w.emplace_back(a.weight());}
+        for (const auto& a : m.iterate_waters()) {w.emplace_back(a.weight());}
+        return w;
+    };
+
+    // a molecule loaded under one probe and then switched to the other ...
+    random::set_seed(1);
+    settings::scattering::radiation = probe;
+    data::Molecule switched("tests/files/2epe.pdb");
+    switched.generate_new_hydration();
+    settings::scattering::radiation = other;
+    [[maybe_unused]] auto refresh = switched.get_total_atomic_charge();
+
+    // ... must be indistinguishable from one loaded under the other probe to begin with
+    random::set_seed(1);
+    data::Molecule loaded("tests/files/2epe.pdb");
+    loaded.generate_new_hydration();
+
+    REQUIRE(weights(switched).size() == weights(loaded).size());
+    CHECK(weights(switched) == weights(loaded));
+    CHECK(switched.get_total_atomic_charge() == loaded.get_total_atomic_charge());
+    CHECK(compare_hist_approx(switched.get_histogram()->get_weighted_counts(), loaded.get_histogram()->get_weighted_counts()));
+
+    // and switching back must restore the original weights exactly
+    settings::scattering::radiation = probe;
+    data::Molecule original("tests/files/2epe.pdb");
+    random::set_seed(1);
+    original.generate_new_hydration();
+    refresh = switched.get_total_atomic_charge();
+    CHECK(weights(switched) == weights(original));
+
+    settings::scattering::radiation = settings::scattering::Radiation::XRay;
 }

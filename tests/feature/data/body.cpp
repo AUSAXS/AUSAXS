@@ -273,3 +273,30 @@ TEST_CASE_METHOD(fixture, "Body::atom_size") {
     CHECK(body.size_atom() == 8);
     CHECK(Body().size_atom() == 0);
 }
+TEST_CASE("Body::refresh_weights") {
+    settings::general::verbose = false;
+    SECTION("rebuilds the atom weights from the metadata") {
+        settings::scattering::radiation = settings::scattering::Radiation::XRay;
+        Body body("tests/files/2epe.pdb");
+        auto xray = body.get_atoms();
+
+        settings::scattering::radiation = settings::scattering::Radiation::Neutron;
+        REQUIRE(body.refresh_weights());
+        Body neutron("tests/files/2epe.pdb");
+        REQUIRE(body.size_atom() == neutron.size_atom());
+        for (int i = 0; i < body.size_atom(); ++i) {
+            CHECK(body.get_atom(i).weight() == neutron.get_atom(i).weight());
+            CHECK(body.get_atom(i).weight() != xray[i].weight());
+        }
+        settings::scattering::radiation = settings::scattering::Radiation::XRay;
+    }
+
+    SECTION("leaves weights it cannot derive untouched") {
+        // a body built from bare atoms carries no metadata, so its weights are the user's and must not be guessed at
+        Body body(std::vector<AtomFF>{AtomFF({0, 0, 0}, form_factor::form_factor_t::C, 42)});
+        settings::scattering::radiation = settings::scattering::Radiation::Neutron;
+        CHECK_FALSE(body.refresh_weights());
+        CHECK(body.get_atom(0).weight() == 42);
+        settings::scattering::radiation = settings::scattering::Radiation::XRay;
+    }
+}

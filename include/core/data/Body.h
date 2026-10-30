@@ -13,6 +13,7 @@
 #include <grid/GridFwd.h>
 #include <hydrate/HydrationFwd.h>
 #include <io/IOFwd.h>
+#include <io/pdb/PDBFwd.h>
 #include <math/MathFwd.h>
 
 #include <memory>
@@ -36,6 +37,12 @@ namespace ausaxs::data {
 			 * @param signaller a signalling object to signal changes of state
 			 */
 			Body(const io::File& path);
+
+			/**
+			 * @brief Create a new body from an already parsed structure. 
+			 * 		  The atom weights are derived from its metadata for the probe currently selected by settings::scattering::radiation.
+			 */
+			explicit Body(const io::pdb::PDBStructure& structure);
 
 			template<AtomVectorFF T>
 			explicit Body(T&& atoms);
@@ -66,6 +73,12 @@ namespace ausaxs::data {
 			 * responsibility to clear or replace it if atoms are subsequently added or removed.
 			 */
 			void set_metadata(AtomMetadata metadata);
+
+			/**
+			 * @brief Recompute the atom and water weights for the probe currently selected by settings::scattering::radiation.
+			 * @return False if the atom weights could not follow the probe since the metadata needed to derive them is not present.
+			 */
+			bool refresh_weights();
 
 			//? we use std::optional here to explicitly inform the user that it may be empty
 			//? principially this is equivalent to returning a potentially zero pointer, but the optional is more explicit

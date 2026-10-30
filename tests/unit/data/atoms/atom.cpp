@@ -11,7 +11,7 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 TEST_CASE("Atom::Atom") {
-    SECTION("Vector3<precision_t>&, precision_t") {
+    SECTION("Vector3<double>&, double") {
         Vector3 coords = GENERATE(
             Vector3<double>{1, 2, 3},
             Vector3<double>{4, 5, 6},
@@ -111,7 +111,7 @@ TEST_CASE("AtomFF::AtomFF") {
         }
     }
 
-    SECTION("Vector3<precision_t>&, form_factor_t") {
+    SECTION("Vector3<double>&, form_factor_t") {
         Vector3 coords = GENERATE(
             Vector3<double>{1, 2, 3},
             Vector3<double>{4, 5, 6},
@@ -128,7 +128,7 @@ TEST_CASE("AtomFF::AtomFF") {
         CHECK(atom.weight() == constants::charge::get_ff_charge(ff));
     }
 
-    SECTION("Vector3<precision_t>&, form_factor_t, double") {
+    SECTION("Vector3<double>&, form_factor_t, double") {
         {
             AtomFF atom({1, 2, 3}, form_factor::form_factor_t::C, 0.5);
             CHECK(atom.coordinates() == Vector3<double>{1, 2, 3});
@@ -185,7 +185,7 @@ TEST_CASE("AtomFF::equality") {
 }
 
 TEST_CASE("Water::Water") {
-    SECTION("Vector3<precision_t>&") {
+    SECTION("Vector3<double>&") {
         Vector3 coords = GENERATE(
             Vector3<double>{1, 2, 3},
             Vector3<double>{4, 5, 6},

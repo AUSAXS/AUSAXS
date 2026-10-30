@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <data/Body.h>
 #include <data/Molecule.h>
 #include <io/detail/structure/XYZReader.h>
 #include <settings/All.h>
@@ -43,15 +44,15 @@ TEST_CASE("XYZReader::read") {
         REQUIRE(structure.atoms[3].coordinates().y() == 3.4);
         REQUIRE(structure.atoms[3].coordinates().z() == 5.6);
 
-        auto reduced = structure.reduced_representation();
-        for (int i = 0; i < static_cast<int>(reduced.atoms.size()); ++i) {
+        data::Body body(structure);
+        for (int i = 0; i < body.size_atom(); ++i) {
             REQUIRE_THAT(
-                static_cast<double>(reduced.atoms[i].weight()),
-                Catch::Matchers::WithinRel(constants::charge::get_ff_charge(reduced.atoms[i].form_factor_type(), structure.atoms[i].element), 1e-6)
+                static_cast<double>(body.get_atom(i).weight()),
+                Catch::Matchers::WithinRel(constants::charge::get_ff_charge(body.get_atom(i).form_factor_type(), structure.atoms[i].element), 1e-6)
             );
         }
         // gold must not be weighted as an unknown form factor would be
-        REQUIRE(reduced.atoms[3].weight() > 70);
+        REQUIRE(body.get_atom(3).weight() > 70);
     }
 
     SECTION("real file") {

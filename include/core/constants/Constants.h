@@ -4,7 +4,6 @@
 #pragma once
 
 #include <constants/ConstantsAxes.h>
-#include <constants/ConstantsCoordinates.h>
 #include <constants/ConstantsFitParameters.h>
 #include <constants/ConstantsFwd.h>
 #include <constants/ConstantsProperties.h>
