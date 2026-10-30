@@ -9,11 +9,14 @@
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
 
-RecordType Record::get_type(const std::string& s) {
+std::optional<RecordType> Record::find_type(const std::string& s) {
     auto str = utility::remove_all(s, " \r"); // remove any space or carriage returns, since programs are inconsistent with the spacing after e.g. END or TER
-    if (type_map.count(str) == 1) {
-        return type_map.at(str);
-    }
+    if (auto it = type_map.find(str); it != type_map.end()) {return it->second;}
+    return std::nullopt;
+}
+
+RecordType Record::get_type(const std::string& s) {
+    if (auto type = find_type(s)) {return *type;}
     throw except::parse_error("Record::get_type: Could not determine type \"" + s + "\"");
 }
 
