@@ -89,13 +89,11 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::SaveElement numbe
     );
     REQUIRE_NOTHROW(seq->execute());
 
-    // the counters used to be shared per file type, so the second series started where the first left off
     auto exists = [&] (const std::string& name) {return io::File(out_dir.path() + "/" + name).exists();};
     CHECK(exists("every_1.pdb"));
     CHECK(exists("every_2.pdb"));
     CHECK_FALSE(exists("every_3.pdb"));
 
-    // two elements saving to the same template continue one series
     CHECK(exists("first_1.pdb"));
     CHECK(exists("first_2.pdb"));
     CHECK(exists("first_3.pdb"));
