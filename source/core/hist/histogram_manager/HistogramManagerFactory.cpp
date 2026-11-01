@@ -46,14 +46,22 @@ namespace {
         return std::make_unique<MANAGER<false, false>>(protein);
     }
 
+    bool is_partial(Choice choice) {
+        return choice == Choice::PartialHistogramManager || choice == Choice::PartialHistogramManagerMT || choice == Choice::PartialHistogramSymmetryManagerMT;
+    }
+
     /**
-     * @brief Whether @a exv_method resolves the atoms by form factor type, rather than weighting each of them.
+     * @brief Whether the manager @a choice resolves the atoms by form factor type for settings::exv::exv_method, rather than weighting each of them.
      */
-    bool uses_form_factors(ExvMethod exv_method) {
-        switch (exv_method) {
-            case ExvMethod::Simple:
+    bool uses_form_factors(Choice choice) {
+        switch (settings::exv::exv_method) {
             case ExvMethod::None:
                 return false;
+
+            // the plain managers subtract the displaced charge from the weights, which fixes it for the lifetime of the histogram. The partial
+            // managers keep their histograms across changes of the grid volume, so they resolve the types instead, see make_simple_histogram
+            case ExvMethod::Simple:
+                return is_partial(choice);
 
             // we explicitly write each case to ensure we will get a compiler warning for new models in the future
             case ExvMethod::Average:
@@ -66,8 +74,9 @@ namespace {
             case ExvMethod::Pepsi:
             case ExvMethod::WAXSiS:
                 return true;
+            default:
+                throw except::unexpected("hist::factory::uses_form_factors: Unknown ExvMethod. Did you forget to add it to the switch statement?");
         }
-        throw except::unexpected("hist::factory::uses_form_factors: Unknown ExvMethod. Did you forget to add it to the switch statement?");
     }
 
     /**
@@ -75,8 +84,7 @@ namespace {
      *        @a choice only decides what to warn about.
      */
     std::unique_ptr<hist::IHistogramManager> create_grid_manager(observer_ptr<const data::Molecule> protein, Choice choice) {
-        bool partial = choice == Choice::PartialHistogramManager || choice == Choice::PartialHistogramManagerMT || choice == Choice::PartialHistogramSymmetryManagerMT;
-        if (partial) {
+        if (is_partial(choice)) {
             console::print_warning(
                 "construct_histogram_manager: A partial histogram manager was requested, but the grid excluded volume models have no partial implementation. "
                 "Every update will recalculate the full histogram."
@@ -141,7 +149,7 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins
 ) {
-    bool ff = uses_form_factors(settings::exv::exv_method);
+    bool ff = uses_form_factors(choice);
 
     // only the form factor managers read the active tables, so only these have an opinion on which set should be active
     if (ff) {form_factor::manager::use_form_factors(*protein);}

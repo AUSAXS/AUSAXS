@@ -577,6 +577,7 @@ static auto test_random = [] (settings::hist::HistogramManagerChoice choice) {
 };
 
 TEST_CASE("SymmetryManager: random tests") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     SECTION("SymmetryManager") {
         test_random(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
     }

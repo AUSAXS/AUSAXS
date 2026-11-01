@@ -33,20 +33,20 @@ template<template<bool> class MANAGER> constexpr Request request_for();
 
 using Choice = settings::hist::HistogramManagerChoice;
 using Exv = settings::exv::ExvMethod;
-template<> constexpr Request request_for<hist::HistogramManager>() {return {.kind=Choice::HistogramManager, .exv=Exv::Simple};}
-template<> constexpr Request request_for<hist::HistogramManagerMT>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::Simple};}
+template<> constexpr Request request_for<hist::HistogramManager>() {return {.kind=Choice::HistogramManager, .exv=Exv::None};}
+template<> constexpr Request request_for<hist::HistogramManagerMT>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::None};}
 template<> constexpr Request request_for<hist::HistogramManagerMTFFAvg>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::Average};}
 template<> constexpr Request request_for<hist::HistogramManagerMTFFExplicit>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::Fraser};}
-template<> constexpr Request request_for<hist::SymmetryManagerMT>() {return {.kind=Choice::HistogramSymmetryManagerMT, .exv=Exv::Simple};}
-template<> constexpr Request request_for<hist::PartialHistogramManager>() {return {.kind=Choice::PartialHistogramManager, .exv=Exv::Simple};}
-template<> constexpr Request request_for<hist::PartialHistogramManagerMT>() {return {.kind=Choice::PartialHistogramManagerMT, .exv=Exv::Simple};}
-template<> constexpr Request request_for<hist::PartialSymmetryManagerMT>() {return {.kind=Choice::PartialHistogramSymmetryManagerMT, .exv=Exv::Simple};}
+template<> constexpr Request request_for<hist::SymmetryManagerMT>() {return {.kind=Choice::HistogramSymmetryManagerMT, .exv=Exv::None};}
+template<> constexpr Request request_for<hist::PartialHistogramManager>() {return {.kind=Choice::PartialHistogramManager, .exv=Exv::None};}
+template<> constexpr Request request_for<hist::PartialHistogramManagerMT>() {return {.kind=Choice::PartialHistogramManagerMT, .exv=Exv::None};}
+template<> constexpr Request request_for<hist::PartialSymmetryManagerMT>() {return {.kind=Choice::PartialHistogramSymmetryManagerMT, .exv=Exv::None};}
 template<> constexpr Request request_for<hist::HistogramManagerMTFFGrid>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::Grid};}
 template<> constexpr Request request_for<hist::HistogramManagerMTFFGridSurface>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::GridSurface};}
 template<> constexpr Request request_for<hist::HistogramManagerMTFFGridScalableExv>() {return {.kind=Choice::HistogramManagerMT, .exv=Exv::GridScalable};}
 
 TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") {
-    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+    settings::exv::exv_method = settings::exv::ExvMethod::None;
     settings::general::threads = 4;
     settings::hist::weighted_bins = true;
 
@@ -93,6 +93,21 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
         settings::internal_state::prefer_partial_manager = false;
         settings::exv::exv_method = settings::exv::ExvMethod::Average;
         CHECK(dynamic_cast<hist::HistogramManagerMTFFAvg<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+    }
+
+    SECTION("the simple model folds into the weights unless the histograms outlive the grid volume") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+
+        settings::internal_state::prefer_partial_manager = false;
+        CHECK(dynamic_cast<hist::HistogramManagerMT<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::SymmetryManagerMT<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+
+        // a partial manager keeps its histograms across changes of the grid volume
+        settings::internal_state::prefer_partial_manager = true;
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialSymmetryManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+        settings::general::threads = 1;
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
     }
 
     SECTION("preference is dropped when the excluded volume model has no partial implementation") {

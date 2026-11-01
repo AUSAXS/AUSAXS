@@ -7,7 +7,6 @@ target_sources(ausaxs_core PRIVATE
 	"detail/CompactCoordinatesFactory.cpp"
 	"detail/GridExvFFT.cpp"
 	"detail/MasterHistogram.cpp"
-	"detail/SimpleExvModel.cpp"
 
 	"histogram_manager/HistogramManager.cpp"
 	"histogram_manager/HistogramManagerFactory.cpp"
@@ -26,6 +25,7 @@ target_sources(ausaxs_core PRIVATE
 	"histogram_manager/detail/PartialBinEstimate.cpp"
 	"histogram_manager/detail/GridExvHelpers.cpp"
 	"histogram_manager/detail/ManagerResults.cpp"
+	"histogram_manager/detail/SimpleExvHelpers.cpp"
 
 	"distribution/Distribution1D.cpp"
 	"distribution/Distribution2D.cpp"

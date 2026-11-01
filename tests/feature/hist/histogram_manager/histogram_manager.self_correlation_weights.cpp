@@ -57,6 +57,7 @@ namespace {
 }
 
 TEST_CASE("HistogramManager: self-correlation weights exclude coincident distinct points") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // a form factor model, so every manager returns a form factor composite
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
