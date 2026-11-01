@@ -95,3 +95,25 @@ TEST_CASE("PDBReader: can_parse_hydrogens") {
     REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.760, 1e-6));
     REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-13.992, 1e-6));
 }
+
+TEST_CASE("PDBReader: unrecognized records") {
+    settings::general::verbose = false;
+
+    SECTION("are skipped") {
+        std::string content =
+            "FOOBAR some program's own record\n"
+            "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C \n"
+            "FOOBAZ    1  CB  ARG A 129       0.010   0.010   0.010  0.00  0.00           C \n"
+            "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C \n"
+            "END\n";
+        test::TempFile path(".pdb", content);
+        auto protein = io::detail::pdb::read(path);
+        REQUIRE(protein.atoms.size() == 2);
+        CHECK(protein.atoms[1].coords.x() == 3.2);
+    }
+
+    SECTION("without any atoms are refused") {
+        test::TempFile path(".pdb", "this is not\na PDB file\n");
+        CHECK_THROWS(io::detail::pdb::read(path));
+    }
+}

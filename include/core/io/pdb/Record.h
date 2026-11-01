@@ -5,6 +5,7 @@
 
 #include <io/pdb/RecordType.h>
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -17,7 +18,15 @@ namespace ausaxs::io::pdb {
             virtual RecordType get_type() const = 0;
             virtual std::string as_pdb() const = 0;
 
+            /**
+             * @brief Get the type of a record name. Throws a parse_error if the name is not recognized.
+             */
             static RecordType get_type(const std::string& s);
+
+            /**
+             * @brief Get the type of a record name, or nothing if the name is not recognized.
+             */
+            static std::optional<RecordType> find_type(const std::string& s);
 
             bool operator==(const Record&  /*rhs*/) const = default;
 

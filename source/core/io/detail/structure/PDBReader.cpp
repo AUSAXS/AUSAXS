@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <set>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
@@ -26,11 +27,17 @@ namespace {
         if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + file.str() + "\"");}
 
         int hydrogens_found = 0;
+        std::set<std::string> unknown_records;
         std::string line;
         while(getline(input, line)) {
             if (utility::remove_all(line, " \n\r").empty()) {continue;}
             std::string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
-            switch(Record::get_type(type)) {
+            auto record_type = Record::find_type(type);
+
+            // programs add their own record types; skip them rather than refusing the whole file, and report them once at the end
+            if (!record_type) {unknown_records.insert(type); continue;}
+
+            switch(*record_type) {
                 case RecordType::ATOM: {
                     // first just parse it as an atom; we can reuse it anyway even if it is a water molecule
                     PDBAtom atom;
@@ -65,6 +72,16 @@ namespace {
             };
         }
         input.close();
+
+        if (!unknown_records.empty()) {
+            // a file of nothing but unrecognized records is most likely not a PDB file at all
+            if (collection.atoms.empty() && collection.waters.empty()) {
+                throw except::parse_error("PDBReader::read: No atoms found in \"" + file.str() + "\". Is this a PDB file?");
+            }
+            std::string names;
+            for (const auto& name : unknown_records) {names += " \"" + name + "\"";}
+            console::print_warning("PDBReader::read: Skipped lines of unrecognized record types" + names + ".");
+        }
 
         // ensure that the occupancy column is not zeroed out, CHARMM likes to do this
         if (!collection.atoms.empty() && std::ranges::all_of(collection.atoms, [] (const auto& a) {return a.occupancy == 0;})) {
