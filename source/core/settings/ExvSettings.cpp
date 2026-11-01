@@ -31,6 +31,9 @@ namespace {
     });
 }
 
+// both are written by name, so they read back as strings (the Python wrapper casts by type())
+template<> std::string settings::io::detail::SettingRef<settings::exv::ExvMethod>::type() const {return "string";}
+template<> std::string settings::io::detail::SettingRef<settings::exv::ExvSet>::type() const {return "string";}
 template<> std::string settings::io::detail::SettingRef<settings::exv::ExvMethod>::get() const {
     switch (settingref) {
         case settings::exv::ExvMethod::Simple:      return "simple";

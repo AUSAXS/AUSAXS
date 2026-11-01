@@ -32,6 +32,8 @@ settings::Setting<settings::hydrate::HydrationStrategy> settings::hydrate::hydra
 settings::Setting<settings::hydrate::CullingStrategy> settings::hydrate::culling_strategy{CullingStrategy::NoStrategy};
 settings::Setting<double> settings::hydrate::shell_correction{-0.35};
 
+// get() writes the strategy by name, so it reads back as a string (the Python wrapper casts by type())
+template<> std::string settings::io::detail::SettingRef<settings::hydrate::HydrationStrategy>::type() const {return "string";}
 template<> std::string settings::io::detail::SettingRef<settings::hydrate::HydrationStrategy>::get() const {
     switch (settingref) {
         case settings::hydrate::HydrationStrategy::RadialStrategy: return "radial";
@@ -56,6 +58,7 @@ template<> void settings::io::detail::SettingRef<settings::hydrate::HydrationStr
     }
 }
 
+template<> std::string settings::io::detail::SettingRef<settings::hydrate::CullingStrategy>::type() const {return "int";}
 template<> std::string settings::io::detail::SettingRef<settings::hydrate::CullingStrategy>::get() const {return std::to_string(static_cast<int>(settingref));}
 template<> void settings::io::detail::SettingRef<settings::hydrate::CullingStrategy>::set(const std::vector<std::string>& val) {
     settingref = static_cast<settings::hydrate::CullingStrategy>(std::stoi(val[0]));
