@@ -133,8 +133,16 @@ namespace ausaxs::hist::detail {
 	);
 
 	/**
-	 * @brief The composite histogram of @a distributions. Weighted ones get the simple model.
-	 *        Form factor-resolved ones get the average excluded volume model if settings::exv::exv_method is ExvMethod::Average,
+	 * @brief The plain composite histogram of the simple excluded volume model.
+	 */
+	template<bool weighted_bins>
+	std::unique_ptr<ICompositeDistanceHistogram> make_simple_histogram(
+		ManagerDistributions<weighted_bins, true>&& distributions, observer_ptr<const data::Molecule> protein
+	);
+
+	/**
+	 * @brief The composite histogram of @a distributions. Weighted ones carry any excluded volume in their weights already.
+	 *        Form factor-resolved ones get make_simple_histogram or make_average_histogram for ExvMethod::Simple and ExvMethod::Average,
 	 *        and an explicit model otherwise, see make_explicit_histogram.
 	 */
 	template<bool weighted_bins, bool form_factors>

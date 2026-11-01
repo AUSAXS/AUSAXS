@@ -60,6 +60,7 @@ static auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoic
 };
 
 TEST_CASE("SymmetryManager: PolyhedralSymmetry") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_polyhedral_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);

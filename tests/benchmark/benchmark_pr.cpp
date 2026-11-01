@@ -19,6 +19,7 @@
 #include <data/Molecule.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/intensity_calculator/DebyeGradient.h>
@@ -303,5 +304,66 @@ TEST_CASE("Gradient benchmark: debye_raw_vjp, large molecule", "[.][benchmark][g
 
         BENCHMARK("forward (histogram + debye)") {return forward();};
         BENCHMARK("debye_raw_vjp") {return hist::debye_raw_vjp(mol, q, v);};
+    }
+}
+
+struct BenchFFAvg : public hist::CompositeDistanceHistogramFFAvg {
+    BenchFFAvg(hist::CompositeDistanceHistogramFFAvg&& o)
+        : hist::CompositeDistanceHistogramFFAvg(std::move(o)) {}
+    void invalidate_sinqd() { cache.sinqd.valid = false; }
+};
+
+// Simple (plain managers, exv folded into the weights) against Average (form factor managers, exv applied by the
+// composite): what would it cost to run Simple through the form factor path? Run one variant per process:
+//     ./build/tests/benchmark/bin/benchmark_pr "[exv_path]" -c "SASDJG5" -c "Average"
+TEST_CASE("Simple vs Average exv path", "[.][benchmark][exv_path]") {
+    bench_settings();
+    const auto& spec = GENERATE(
+        MolSpec{.pdb="tests/files/2epe.pdb",       .label="2epe"},
+        MolSpec{.pdb="tests/files/SASDJG5.pdb",    .label="SASDJG5"},
+        MolSpec{.pdb="tests/files/A2M_native.pdb", .label="A2M_native"}
+    );
+
+    SECTION(spec.label) {
+        SECTION("Simple") {
+            settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+            data::Molecule mol(spec.pdb);
+            mol.generate_new_hydration();
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+            BENCHMARK("histogram") {return mol.get_histogram();};
+
+            auto hist = mol.get_histogram();
+            BENCHMARK("debye cold") {return hist->debye_transform();}; // no sinqd cache: every call is the full sum
+            double cw = 1;
+            BENCHMARK("debye after cw change") {
+                cw = 3 - cw;
+                hist->apply_water_scaling_factor(cw);
+                return hist->debye_transform();
+            };
+        }
+
+        SECTION("Average") {
+            settings::exv::exv_method = settings::exv::ExvMethod::Average;
+            data::Molecule mol(spec.pdb);
+            mol.generate_new_hydration();
+            mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+            BENCHMARK("histogram") {return mol.get_histogram();};
+
+            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFAvg>(
+                dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(mol.get_histogram().release()));
+            REQUIRE(ptr != nullptr);
+            BenchFFAvg bench(std::move(*ptr));
+            bench.debye_transform(); // prime: allocate containers
+            BENCHMARK("debye cold") {
+                bench.invalidate_sinqd();
+                return bench.debye_transform();
+            };
+            double cw = 1;
+            BENCHMARK("debye after cw change") {
+                cw = 3 - cw;
+                bench.apply_water_scaling_factor(cw);
+                return bench.debye_transform();
+            };
+        }
     }
 }

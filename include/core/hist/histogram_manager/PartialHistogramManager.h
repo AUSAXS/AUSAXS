@@ -7,7 +7,6 @@
 #include <container/Container2D.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/detail/MasterHistogram.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 
 namespace ausaxs::hist {

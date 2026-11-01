@@ -8,14 +8,12 @@
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <settings/ExvSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
@@ -56,22 +54,16 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMTBase<weighted_bins, 
     }
     distance_calculator::Calculator<weighted_bins, form_factors> calculator(*store);
 
-    // the exv volume comes from the molecule's grid, which is built lazily and is not thread-safe, so it is resolved before any task is submitted
-    double exv_volume = 0;
-    if constexpr (!form_factors) {
-        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {exv_volume = hist::detail::SimpleExvModel::get_volume_per_atom(this->protein);}
-    }
-
     for (int i = 0; i < this->body_size; ++i) {
         // the self-correlation is calculated when the body is first seen, and again whenever its internal state was modified
         if (!initialized || internally_modified[i]) {
-            calc_self_correlation(&calculator, i, exv_volume);
+            calc_self_correlation(&calculator, i);
         }
 
         // if only the external state was modified, we have to update the coordinate representations for later calculations (implicitly done in calc_self_correlation)
         else if (externally_modified[i]) {
             pool->detach_task(
-                [this, i, exv_volume] () {update_compact_representation_body(i, exv_volume);}
+                [this, i] () {update_compact_representation_body(i);}
             );
         }
     }
@@ -125,14 +117,9 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMTBase<weighted_bins, 
 }
 
 template<bool weighted_bins, bool form_factors>
-void PartialHistogramManagerMTBase<weighted_bins, form_factors>::update_compact_representation_body(int index, double exv_volume) {
+void PartialHistogramManagerMTBase<weighted_bins, form_factors>::update_compact_representation_body(int index) {
     const auto& atoms = this->protein->get_body(index).get_atoms();
     this->coords_a[index] = hist::detail::factory::construct<form_factors>(atoms);
-    if constexpr (!form_factors) {
-        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
-            hist::detail::SimpleExvModel::apply_simple_excluded_volume(this->coords_a[index], exv_volume);
-        }
-    }
 }
 
 template<bool weighted_bins, bool form_factors>
@@ -196,8 +183,8 @@ void PartialHistogramManagerMTBase<weighted_bins, form_factors>::recalculate(int
 }
 
 template<bool weighted_bins, bool form_factors>
-void PartialHistogramManagerMTBase<weighted_bins, form_factors>::calc_self_correlation(calculator_t calculator, int index, double exv_volume) {
-    update_compact_representation_body(index, exv_volume);
+void PartialHistogramManagerMTBase<weighted_bins, form_factors>::calc_self_correlation(calculator_t calculator, int index) {
+    update_compact_representation_body(index);
     recalculate(id.aa(index, index));
     calculator->enqueue_calculate_self(this->coords_a[index], id.aa(index, index));
 }

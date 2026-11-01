@@ -1026,9 +1026,9 @@ TEST_CASE("Molecule::uses_weighted_bins") {
         settings::hist::weighted_bins = settings::hist::WeightedBins::Value::Auto;
         data::Molecule ordered("tests/files/c60.pdb");
         ordered.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
-        CHECK(dynamic_cast<hist::PartialHistogramManagerMTBase<false, false>*>(ordered.get_histogram_manager()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTBase<false, true>*>(ordered.get_histogram_manager()) != nullptr);
         (void) ordered.get_histogram();
-        CHECK(dynamic_cast<hist::PartialHistogramManagerMTBase<true, false>*>(ordered.get_histogram_manager()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTBase<true, true>*>(ordered.get_histogram_manager()) != nullptr);
 
         ordered.reset_histogram_manager();
         CHECK(dynamic_cast<hist::HistogramManagerMT<true>*>(ordered.get_histogram_manager()) != nullptr);

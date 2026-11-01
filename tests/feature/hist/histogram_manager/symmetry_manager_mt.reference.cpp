@@ -66,6 +66,7 @@ static auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice
 };
 
 TEST_CASE("SymmetryManager: ReferenceSymmetry") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_reference_symmetry(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
@@ -114,6 +115,7 @@ static auto test_reference_symmetry_dihedral = [] (settings::hist::HistogramMana
 };
 
 TEST_CASE("SymmetryManager: ReferenceSymmetry with dihedral base") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         test_reference_symmetry_dihedral(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);

@@ -7,10 +7,10 @@
 #include <data/Molecule.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/detail/BinEstimate.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
+#include <hist/histogram_manager/detail/SimpleExvHelpers.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/ExvSettings.h>
@@ -50,10 +50,10 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<w
     auto[data, data_w] = generate_transformed_data<form_factors>(*protein);
     if constexpr (!form_factors) {
         if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
-            double exv_volume = hist::detail::SimpleExvModel::get_volume_per_atom(protein);
+            double exv_volume = hist::detail::simple_exv::get_volume_per_atom(protein);
             for (auto& body : data) {
                 for (auto& copies : body.atomic) {
-                    for (auto& copy : copies) {hist::detail::SimpleExvModel::apply_simple_excluded_volume(copy, exv_volume);}
+                    for (auto& copy : copies) {hist::detail::simple_exv::apply(copy, exv_volume);}
                 }
             }
         }

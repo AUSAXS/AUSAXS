@@ -4,6 +4,7 @@
 #include <hist/histogram_manager/detail/ManagerResults.h>
 
 #include <data/Molecule.h>
+#include <form_factor/FormFactorInfo.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/detail/BinEstimate.h>
@@ -11,6 +12,7 @@
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
+#include <hist/histogram_manager/detail/SimpleExvHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
@@ -119,6 +121,41 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogra
     );
 }
 
+template<bool wb>
+std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_simple_histogram(
+    ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
+) {
+    // the plain managers weigh each atom by its charge less the displaced charge per atom. All atoms of a type share both, so the same
+    // weights can be applied to the histogram of each type instead
+    double displaced_charge = settings::internal_state::solvent_density()*simple_exv::get_volume_per_atom(protein);
+    const auto& ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
+    int n_ff = form_factor::get_active_count();
+    std::vector<double> w(n_ff);
+    for (int ff = form_factor::start_index_for_explicit_exv(); ff < n_ff; ++ff) {
+        w[ff] = constants::charge::get_ff_charge(static_cast<form_factor::form_factor_t>(ff_indices[ff])) - displaced_charge;
+    }
+    double w_water = constants::charge::get_ff_charge(static_cast<form_factor::form_factor_t>(ff_indices[form_factor::water_bin]));
+
+    Distribution3D<hist::Shape::Triangular> p_aa_ff(std::move(d.p_aa));
+    Distribution2D p_aw_ff(std::move(d.p_aw));
+    int bins = static_cast<int>(d.p_tot.size());
+    Distribution1D p_aa(bins), p_aw(bins), p_ww(std::move(d.p_ww));
+    for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < n_ff; ++ff1) {
+        for (int ff2 = ff1; ff2 < n_ff; ++ff2) {
+            for (int i = 0; i < bins; ++i) {p_aa.index(i) += w[ff1]*w[ff2]*p_aa_ff.index(ff1, ff2, i);}
+        }
+
+        // the form factor histograms count each atom-water pair once, the plain ones in both orders
+        for (int i = 0; i < bins; ++i) {p_aw.index(i) += 2*w[ff1]*w_water*p_aw_ff.index(ff1, i);}
+    }
+    for (int i = 0; i < bins; ++i) {p_ww.index(i) *= w_water*w_water;}
+
+    // the total of the form factor managers is a count; it only lends its axis and bin centres, and the values are rebuilt from the parts
+    auto h = std::make_unique<CompositeDistanceHistogram>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(d.p_tot));
+    h->apply_water_scaling_factor(1);
+    return h;
+}
+
 template<bool wb, bool ff>
 std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram(
     ManagerDistributions<wb, ff>&& d, observer_ptr<const data::Molecule> protein // NOLINT
@@ -131,6 +168,7 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram(
             std::move(d.p_tot)
         );
     } else {
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {return make_simple_histogram<wb>(std::move(d), protein);}
         if (settings::exv::exv_method == settings::exv::ExvMethod::Average) {return make_average_histogram<wb>(std::move(d), protein);}
         return make_explicit_histogram<wb>(std::move(d), protein);
     }
@@ -148,3 +186,5 @@ template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explici
 template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
 template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
 template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_simple_histogram<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_simple_histogram<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);

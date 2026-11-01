@@ -7,10 +7,10 @@
 #include <hist/detail/AtomOrdering.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
-#include <hist/detail/SimpleExvModel.h>
 #include <hist/detail/data/BinWidth.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/distribution/GenericDistribution1D.h>
+#include <hist/histogram_manager/detail/SimpleExvHelpers.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <settings/ExvSettings.h>
@@ -43,7 +43,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins>::ca
     int data_a_size = data_a.size();
     int data_w_size = data_w.size();
     if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
-        hist::detail::SimpleExvModel::apply_simple_excluded_volume(data_a, hist::detail::SimpleExvModel::get_volume_per_atom(protein));
+        hist::detail::simple_exv::apply(data_a, hist::detail::simple_exv::get_volume_per_atom(protein));
     }
     int bin_count = hist::detail::required_bin_count(data_a, data_w);
     hist::detail::decorrelate_order<weighted_bins>(bin_count, data_a, data_w);

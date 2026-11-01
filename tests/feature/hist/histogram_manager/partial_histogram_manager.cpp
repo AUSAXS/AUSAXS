@@ -19,6 +19,7 @@ using namespace ausaxs::data;
 
 // Test that the first calculation is correct
 TEST_CASE("PartialHistogramManager: initial calculation") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -135,6 +136,7 @@ static auto test_random = [] (data::Molecule& protein, auto&& phm) {
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialHistogramManager: subsequent calculations") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     data::Molecule protein({
@@ -177,6 +179,7 @@ TEST_CASE("PartialHistogramManager: grows its axis when the structure outgrows i
 }
 
 TEST_CASE("PartialHistogramManager: a total-only calculation does not leave stale partials behind") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     auto choice = GENERATE(
@@ -200,4 +203,43 @@ TEST_CASE("PartialHistogramManager: a total-only calculation does not leave stal
     CHECK(compare_hist_approx(h->get_aa_counts(), ref->get_aa_counts()));
     CHECK(compare_hist_approx(h->get_aw_counts(), ref->get_aw_counts()));
     CHECK(compare_hist_approx(h->get_ww_counts(), ref->get_ww_counts()));
+}
+
+TEST_CASE("PartialHistogramManager: the simple excluded volume follows the current geometry") {
+    settings::general::verbose = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Simple;
+    auto choice = GENERATE(
+        settings::hist::HistogramManagerChoice::PartialHistogramManager,
+        settings::hist::HistogramManagerChoice::PartialHistogramManagerMT,
+        settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT
+    );
+
+    // the first two bodies overlap, so pulling one away changes the grid volume and with it the displaced charge per atom
+    Molecule protein({Body("tests/files/2epe.pdb"), Body("tests/files/2epe.pdb"), Body("tests/files/6lyz.pdb")});
+    protein.get_body(1).translate({5, 0, 0});
+    protein.get_body(2).translate({60, 0, 0});
+    protein.set_histogram_manager(choice);
+    auto I = [&] () {return protein.get_histogram()->debye_transform().get_intensity();};
+    auto I0 = I();
+    double V0 = protein.get_volume_grid();
+
+    protein.get_body(0).translate({30, 0, 0});
+    protein.clear_grid();
+    (void) I();
+    REQUIRE(protein.get_volume_grid() != V0);
+
+    // body 2 is rebuilt while the volume differs. Once everything is back in place, the result must not depend on that
+    protein.get_body(2).translate({5, 0, 0});
+    (void) I();
+    protein.get_body(2).translate({-5, 0, 0});
+    (void) I();
+    protein.get_body(0).translate({-30, 0, 0});
+    protein.clear_grid();
+    REQUIRE(protein.get_volume_grid() == V0);
+
+    auto I1 = I();
+    REQUIRE(I1.size() == I0.size());
+    for (unsigned int i = 0; i < I0.size(); ++i) {
+        CHECK_THAT(I1[i], Catch::Matchers::WithinRel(I0[i], 1e-5));
+    }
 }

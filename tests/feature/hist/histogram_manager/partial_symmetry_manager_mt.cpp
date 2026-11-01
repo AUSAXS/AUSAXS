@@ -128,6 +128,7 @@ static auto test_random = [] (data::Molecule& protein) {
 
 // Test that subsequent calculations are correct
 TEST_CASE("PartialSymmetryManagerMT: subsequent calculations") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -299,6 +300,7 @@ static auto test_point_random = [] (data::Molecule& protein) {
 
 // Test that PartialSymmetryManagerMT correctly handles PointSymmetry updates
 TEST_CASE("PartialSymmetryManagerMT: PointSymmetry subsequent calculations") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -404,6 +406,7 @@ static auto test_reference = [] (data::Molecule& protein) {
 
 // Test that PartialSymmetryManagerMT correctly handles a ReferenceSymmetry shared across bodies
 TEST_CASE("PartialSymmetryManagerMT: ReferenceSymmetry subsequent calculations") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;

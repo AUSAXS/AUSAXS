@@ -124,6 +124,7 @@ namespace {
 }
 
 TEST_CASE("SymmetryManager: random mixed-symmetry fuzz") {
+    settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
         run_fuzz(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
