@@ -16,7 +16,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -28,7 +28,7 @@ TEST_CASE("histogram: distance calculation throughput", "[bench]") {
     data::Molecule mol("tests/files/6lyz.pdb");
 
     BENCHMARK_ADVANCED("get_histogram")(Catch::Benchmark::Chronometer meter) {
-        std::unique_ptr<hist::ICompositeDistanceHistogram> hist;
+        std::unique_ptr<hist::IScatteringModel> hist;
         meter.measure([&] {
             hist = mol.get_histogram();
         });

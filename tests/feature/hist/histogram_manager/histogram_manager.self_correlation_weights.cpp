@@ -11,7 +11,7 @@
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
+#include <hist/scattering_model/ScatteringModelExvBase.h>
 #include <settings/All.h>
 
 #include <memory>
@@ -21,7 +21,7 @@ using namespace ausaxs::data;
 using ff_t = form_factor::form_factor_t;
 
 namespace {
-    using FFHistogram = hist::CompositeDistanceHistogramFFAvgBase<form_factor::lookup::table_t>;
+    using FFHistogram = hist::ScatteringModelExvBase<form_factor::lookup::table_t>;
 
     // two coincident C atoms and two coincident waters, whose distinct pairs share the first bin with the self-correlations
     Molecule make_molecule() {
@@ -40,7 +40,7 @@ namespace {
         double self_ww, bin0_ww; // the same for the waters
     };
 
-    void check(std::unique_ptr<hist::ICompositeDistanceHistogram> result, const Expected& expected) {
+    void check(std::unique_ptr<hist::IScatteringModel> result, const Expected& expected) {
         auto* ff = dynamic_cast<FFHistogram*>(result.get());
         REQUIRE(ff != nullptr);
         auto map = form_factor::manager::get_active_mapping();
@@ -57,7 +57,7 @@ namespace {
 }
 
 TEST_CASE("HistogramManager: self-correlation weights exclude coincident distinct points") {
-    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // a form factor model, so every manager returns a form factor composite
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // a form factor model, so every manager returns a form factor scattering model
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;

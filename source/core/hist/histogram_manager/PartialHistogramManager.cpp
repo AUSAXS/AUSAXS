@@ -10,8 +10,8 @@
 #include <hist/detail/data/BinWidth.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/ScatteringModelSimple.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 
@@ -133,7 +133,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<weighted_bins>::calcu
 }
 
 template<bool weighted_bins> 
-std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bins>::calculate_all() {
+std::unique_ptr<IScatteringModel> PartialHistogramManager<weighted_bins>::calculate_all() {
     logging::log("PartialHistogramManager::calculate_all: starting calculation");
     if (
         !this->statemanager->is_modified() 
@@ -145,7 +145,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bi
         auto p_aa = cache.p_aa;
         auto p_aw = cache.p_aw;
         auto p_ww = cache.p_ww;
-        return std::make_unique<CompositeDistanceHistogram>(
+        return std::make_unique<ScatteringModelSimple>(
             std::move(p_aa), 
             std::move(p_aw), 
             std::move(p_ww), 
@@ -198,7 +198,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<weighted_bi
     cache.p_ww = p_ww;
     cache.p_tot = p_tot;
 
-    return std::make_unique<CompositeDistanceHistogram>(
+    return std::make_unique<ScatteringModelSimple>(
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 

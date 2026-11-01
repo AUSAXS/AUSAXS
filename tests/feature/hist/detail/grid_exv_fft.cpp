@@ -11,7 +11,7 @@
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/GridExvFFT.h>
 #include <hist/distribution/WeightedDistribution1D.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>
@@ -22,7 +22,7 @@ using namespace ausaxs::hist;
 
 namespace {
     // the distance histogram of unit-weight atoms placed on the given points, evaluated by the regular pair-loop manager
-    std::unique_ptr<ICompositeDistanceHistogram> pair_histogram(const std::vector<Vector3<double>>& points) {
+    std::unique_ptr<IScatteringModel> pair_histogram(const std::vector<Vector3<double>>& points) {
         std::vector<AtomFF> atoms(points.size());
         std::ranges::transform(points, atoms.begin(), [] (const Vector3<double>& p) {
             return AtomFF{p, form_factor::form_factor_t::C};
@@ -34,14 +34,14 @@ namespace {
     }
 
     // the pair counts of a histogram, leaving out the self-pairs the transform does not count
-    std::vector<double> pair_counts(const ICompositeDistanceHistogram& h, int self_pairs) {
+    std::vector<double> pair_counts(const IScatteringModel& h, int self_pairs) {
         auto counts = h.get_aa_counts().as_vector();
         counts[0] -= self_pairs;
         return counts;
     }
 
     // a pair crossing a bin edge moves the weighted centres of both bins, but keeps each within its bin
-    void compare_axes(const ICompositeDistanceHistogram& expected, const WeightedDistribution1D& actual) {
+    void compare_axes(const IScatteringModel& expected, const WeightedDistribution1D& actual) {
         REQUIRE(compare_hist(expected.get_d_axis(), actual.get_weighted_axis(), settings::axes::bin_width, 0));
     }
 

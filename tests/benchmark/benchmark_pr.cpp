@@ -19,12 +19,12 @@
 #include <data/Molecule.h>
 #include <data/symmetry/PointSymmetry.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <hist/intensity_calculator/DebyeGradient.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/DebyeGradient.h>
+#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/ScatteringModelAverage.h>
+#include <hist/scattering_model/ScatteringModelFraser.h>
+#include <hist/scattering_model/ScatteringModelGrid.h>
 #include <io/File.h>
 #include <math/Vector3.h>
 #include <rigidbody/BodySplitter.h>
@@ -37,15 +37,15 @@
 using namespace ausaxs;
 
 // Expose cache.sinqd.valid for Fraser and Grid intensity calculators.
-struct BenchFFExplicit : public hist::CompositeDistanceHistogramFFExplicit {
-    BenchFFExplicit(hist::CompositeDistanceHistogramFFExplicit&& o)
-        : hist::CompositeDistanceHistogramFFExplicit(std::move(o)) {}
+struct BenchFFExplicit : public hist::ScatteringModelFraser {
+    BenchFFExplicit(hist::ScatteringModelFraser&& o)
+        : hist::ScatteringModelFraser(std::move(o)) {}
     void invalidate_sinqd() { cache.sinqd.valid = false; }
 };
 
-struct BenchFFGrid : public hist::CompositeDistanceHistogramFFGrid {
-    BenchFFGrid(hist::CompositeDistanceHistogramFFGrid&& o)
-        : hist::CompositeDistanceHistogramFFGrid(std::move(o)) {}
+struct BenchFFGrid : public hist::ScatteringModelGrid {
+    BenchFFGrid(hist::ScatteringModelGrid&& o)
+        : hist::ScatteringModelGrid(std::move(o)) {}
     void invalidate_sinqd() { cache.sinqd.valid = false; }
 };
 
@@ -117,8 +117,8 @@ static void intensity_benchmarks(const MolSpec& spec) {
             settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
             data::Molecule mol(spec.pdb);
             mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
-            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFExplicit>(
-                dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(mol.get_histogram().release()));
+            auto ptr = std::unique_ptr<hist::ScatteringModelFraser>(
+                dynamic_cast<hist::ScatteringModelFraser*>(mol.get_histogram().release()));
             BenchFFExplicit bench(std::move(*ptr));
             bench.debye_transform(); // prime: allocate containers and fill sinqd cache
             meter.measure([&] { return bench.debye_transform(); });
@@ -129,8 +129,8 @@ static void intensity_benchmarks(const MolSpec& spec) {
             settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
             data::Molecule mol(spec.pdb);
             mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
-            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFExplicit>(
-                dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(mol.get_histogram().release()));
+            auto ptr = std::unique_ptr<hist::ScatteringModelFraser>(
+                dynamic_cast<hist::ScatteringModelFraser*>(mol.get_histogram().release()));
             BenchFFExplicit bench(std::move(*ptr));
             bench.debye_transform(); // prime: allocate containers
             meter.measure([&] {
@@ -144,8 +144,8 @@ static void intensity_benchmarks(const MolSpec& spec) {
             settings::exv::exv_method = settings::exv::ExvMethod::Grid;
             data::Molecule mol(spec.pdb);
             mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
-            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFGrid>(
-                dynamic_cast<hist::CompositeDistanceHistogramFFGrid*>(mol.get_histogram().release()));
+            auto ptr = std::unique_ptr<hist::ScatteringModelGrid>(
+                dynamic_cast<hist::ScatteringModelGrid*>(mol.get_histogram().release()));
             BenchFFGrid bench(std::move(*ptr));
             bench.debye_transform(); // prime
             meter.measure([&] { return bench.debye_transform(); });
@@ -156,8 +156,8 @@ static void intensity_benchmarks(const MolSpec& spec) {
             settings::exv::exv_method = settings::exv::ExvMethod::Grid;
             data::Molecule mol(spec.pdb);
             mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
-            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFGrid>(
-                dynamic_cast<hist::CompositeDistanceHistogramFFGrid*>(mol.get_histogram().release()));
+            auto ptr = std::unique_ptr<hist::ScatteringModelGrid>(
+                dynamic_cast<hist::ScatteringModelGrid*>(mol.get_histogram().release()));
             BenchFFGrid bench(std::move(*ptr));
             bench.debye_transform(); // prime
             meter.measure([&] {
@@ -307,9 +307,9 @@ TEST_CASE("Gradient benchmark: debye_raw_vjp, large molecule", "[.][benchmark][g
     }
 }
 
-struct BenchFFAvg : public hist::CompositeDistanceHistogramFFAvg {
-    BenchFFAvg(hist::CompositeDistanceHistogramFFAvg&& o)
-        : hist::CompositeDistanceHistogramFFAvg(std::move(o)) {}
+struct BenchFFAvg : public hist::ScatteringModelAverage {
+    BenchFFAvg(hist::ScatteringModelAverage&& o)
+        : hist::ScatteringModelAverage(std::move(o)) {}
     void invalidate_sinqd() { cache.sinqd.valid = false; }
 };
 
@@ -349,8 +349,8 @@ TEST_CASE("Simple vs Average exv path", "[.][benchmark][exv_path]") {
             mol.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
             BENCHMARK("histogram") {return mol.get_histogram();};
 
-            auto ptr = std::unique_ptr<hist::CompositeDistanceHistogramFFAvg>(
-                dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(mol.get_histogram().release()));
+            auto ptr = std::unique_ptr<hist::ScatteringModelAverage>(
+                dynamic_cast<hist::ScatteringModelAverage*>(mol.get_histogram().release()));
             REQUIRE(ptr != nullptr);
             BenchFFAvg bench(std::move(*ptr));
             bench.debye_transform(); // prime: allocate containers

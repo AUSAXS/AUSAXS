@@ -26,7 +26,7 @@ namespace ausaxs::hist {
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() = 0;
+			virtual std::unique_ptr<IScatteringModel> calculate_all() = 0;
 
 			/**
 			 * @brief The type of this manager, such that the factory can construct another one like it. 

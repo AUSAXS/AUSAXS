@@ -4,8 +4,8 @@
 #pragma once
 
 namespace ausaxs::hist {
-    class ICompositeDistanceHistogram;
-    class ICompositeDistanceHistogramExv;
+    class IScatteringModel;
+    class IScatteringModelExv;
     class IHistogramManager;
     class DistanceHistogram;
     class Histogram;

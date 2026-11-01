@@ -9,7 +9,7 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/detail/Configuration.h>
 #include <rigidbody/Rigidbody.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <data/Molecule.h>
 #include <grid/Grid.h>
 

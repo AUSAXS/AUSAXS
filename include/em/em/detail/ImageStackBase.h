@@ -61,7 +61,7 @@ namespace ausaxs::em {
             /**
              * @brief Prepare a ScatteringHistogram based on this object. 
              */
-            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(double cutoff) const;
+            std::unique_ptr<hist::IScatteringModel> get_histogram(double cutoff) const;
 
             /**
              * @brief Count the number of voxels for a given cutoff.
@@ -73,7 +73,7 @@ namespace ausaxs::em {
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(const std::shared_ptr<fitter::EMFitResult>& res) const;
+            std::unique_ptr<hist::IScatteringModel> get_histogram(const std::shared_ptr<fitter::EMFitResult>& res) const;
 
             /**
              * @brief Get the protein generated with the chosen cutoff value.

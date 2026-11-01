@@ -8,7 +8,7 @@
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
 #include <fitter/FitReporter.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <plots/PlotDistance.h>
 #include <plots/PlotProfiles.h>
 #include <settings/All.h>

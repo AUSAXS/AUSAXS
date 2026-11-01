@@ -13,12 +13,12 @@
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
-#include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
-#include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
-#include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
+#include <hist/scattering_model/ScatteringModelAverage.h>
+#include <hist/scattering_model/ScatteringModelFraser.h>
+#include <hist/scattering_model/ScatteringModelSimple.h>
+#include <hist/scattering_model/crysol/ScatteringModelCrysol.h>
+#include <hist/scattering_model/foxs/ScatteringModelFoXS.h>
+#include <hist/scattering_model/pepsi/ScatteringModelPepsi.h>
 #include <settings/ExvSettings.h>
 #include <settings/InternalState.h>
 
@@ -60,12 +60,12 @@ ManagerDistributions<wb, ff> hist::detail::export_distributions(distance_calcula
 }
 
 template<bool wb>
-std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram(
+std::unique_ptr<IScatteringModel> hist::detail::make_explicit_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     switch (settings::exv::exv_method) {
         case settings::exv::ExvMethod::FoXS:
-            return std::make_unique<CompositeDistanceHistogramFoXS>(
+            return std::make_unique<ScatteringModelFoXS>(
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),
                 Distribution1D(std::move(d.p_ww)),
@@ -74,7 +74,7 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
                 std::move(d.p_tot)
             );
         case settings::exv::ExvMethod::Pepsi:
-            return std::make_unique<CompositeDistanceHistogramPepsi>(
+            return std::make_unique<ScatteringModelPepsi>(
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),
                 Distribution1D(std::move(d.p_ww)),
@@ -84,7 +84,7 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
                 protein
             );
         case settings::exv::ExvMethod::CRYSOL:
-            return std::make_unique<CompositeDistanceHistogramCrysol>(
+            return std::make_unique<ScatteringModelCrysol>(
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),
                 Distribution1D(std::move(d.p_ww)),
@@ -94,7 +94,7 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
                 protein
             );
         default:
-            return std::make_unique<CompositeDistanceHistogramFFExplicit>(
+            return std::make_unique<ScatteringModelFraser>(
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),
                 Distribution1D(std::move(d.p_ww)),
@@ -106,11 +106,11 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogr
 }
 
 template<bool wb>
-std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram(
+std::unique_ptr<IScatteringModel> hist::detail::make_average_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     double Z_exv_avg = protein->size_atom() == 0 ? 0 : protein->get_volume_grid()*settings::internal_state::solvent_density()/protein->size_atom();
-    return std::make_unique<CompositeDistanceHistogramFFAvg>(
+    return std::make_unique<ScatteringModelAverage>(
         Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
         Distribution2D(std::move(d.p_aw)),
         Distribution1D(std::move(d.p_ww)),
@@ -122,7 +122,7 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogra
 }
 
 template<bool wb>
-std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_simple_histogram(
+std::unique_ptr<IScatteringModel> hist::detail::make_simple_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     // the plain managers weigh each atom by its charge less the displaced charge per atom. All atoms of a type share both, so the same
@@ -151,26 +151,26 @@ std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_simple_histogram
     for (int i = 0; i < bins; ++i) {p_ww.index(i) *= w_water*w_water;}
 
     // the total of the form factor managers is a count; it only lends its axis and bin centres, and the values are rebuilt from the parts
-    auto h = std::make_unique<CompositeDistanceHistogram>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(d.p_tot));
+    auto h = std::make_unique<ScatteringModelSimple>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(d.p_tot));
     h->apply_water_scaling_factor(1);
     return h;
 }
 
 template<bool wb, bool ff>
-std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram(
+std::unique_ptr<IScatteringModel> hist::detail::make_model(
     ManagerDistributions<wb, ff>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     if constexpr (!ff) {
-        return std::make_unique<CompositeDistanceHistogram>(
+        return std::make_unique<ScatteringModelSimple>(
             Distribution1D(std::move(d.p_aa)),
             Distribution1D(std::move(d.p_aw)),
             Distribution1D(std::move(d.p_ww)),
             std::move(d.p_tot)
         );
     } else {
-        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {return make_simple_histogram<wb>(std::move(d), protein);}
-        if (settings::exv::exv_method == settings::exv::ExvMethod::Average) {return make_average_histogram<wb>(std::move(d), protein);}
-        return make_explicit_histogram<wb>(std::move(d), protein);
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {return make_simple_model<wb>(std::move(d), protein);}
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Average) {return make_average_model<wb>(std::move(d), protein);}
+        return make_explicit_model<wb>(std::move(d), protein);
     }
 }
 
@@ -178,13 +178,13 @@ template ManagerDistributions<false, false> hist::detail::export_distributions<f
 template ManagerDistributions<false, true> hist::detail::export_distributions<false, true>(distance_calculator::HistogramStore<false>&, int, int, int);
 template ManagerDistributions<true, false> hist::detail::export_distributions<true, false>(distance_calculator::HistogramStore<true>&, int, int, int);
 template ManagerDistributions<true, true> hist::detail::export_distributions<true, true>(distance_calculator::HistogramStore<true>&, int, int, int);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<false, false>(ManagerDistributions<false, false>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<false, true>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<true, false>(ManagerDistributions<true, false>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_histogram<true, true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_explicit_histogram<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_average_histogram<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_simple_histogram<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
-template std::unique_ptr<ICompositeDistanceHistogram> hist::detail::make_simple_histogram<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_model<false, false>(ManagerDistributions<false, false>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_model<false, true>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_model<true, false>(ManagerDistributions<true, false>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_model<true, true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_explicit_model<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_explicit_model<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_average_model<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_average_model<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_simple_model<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
+template std::unique_ptr<IScatteringModel> hist::detail::make_simple_model<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);

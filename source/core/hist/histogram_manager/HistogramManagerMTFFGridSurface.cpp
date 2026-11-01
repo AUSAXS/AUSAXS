@@ -12,9 +12,9 @@
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/GridExvHelpers.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/ScatteringModelAverage.h>
+#include <hist/scattering_model/ScatteringModelGridSurface.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
@@ -30,11 +30,11 @@ grid::exv::GridExcludedVolume HistogramManagerMTFFGridSurface::get_exv() const {
     return grid::exv::RawGridWithSurfaceExv::create(this->protein->get_grid());
 }
 
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::calculate_all() {
+std::unique_ptr<IScatteringModel> HistogramManagerMTFFGridSurface::calculate_all() {
     logging::log("HistogramManagerMTFFGridSurface::calculate: starting calculation");
-    using XXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::XXContainer;
-    using AXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::AXContainer;
-    using WXContainer = typename hist::CompositeDistanceHistogramFFGridSurface::WXContainer;
+    using XXContainer = typename hist::ScatteringModelGridSurface::XXContainer;
+    using AXContainer = typename hist::ScatteringModelGridSurface::AXContainer;
+    using WXContainer = typename hist::ScatteringModelGridSurface::WXContainer;
 
     auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
     auto exv = get_exv();
@@ -91,7 +91,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
     p_wx.surface  = store.export_1d(wx_s);
 
     // the excluded volume may reach further than the atoms, in which case the atomic distributions are grown to match
-    auto atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<CompositeDistanceHistogramFFAvg&>(*base_res));
+    auto atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<ScatteringModelAverage&>(*base_res));
     int max_bin = atomic.grow(hist::detail::trimmed_bin_count(p_xx.surface, p_xx.interior, p_wx.surface, p_wx.interior));
     auto& [p_aa, p_aw, p_ww, self_aa, self_ww, p_tot] = atomic;
 
@@ -125,7 +125,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGridSurface::ca
         std::for_each(p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), p_aa.end(form_factor::exv_bin, form_factor::exv_bin), [](auto& x) {x = 0;});
     }
 
-    return std::make_unique<CompositeDistanceHistogramFFGridSurface>(
+    return std::make_unique<ScatteringModelGridSurface>(
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 

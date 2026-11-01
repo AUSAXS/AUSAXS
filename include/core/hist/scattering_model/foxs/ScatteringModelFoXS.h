@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Author: Kristian Lytje
+
+#pragma once
+
+#include <hist/scattering_model/ScatteringModelFraserBase.h>
+#include <hist/scattering_model/foxs/FormFactorFoXS.h>
+
+namespace ausaxs::hist {
+    /**
+     * @brief An alternative to ScatteringModelFraser that uses the same form factors as FoXS. 
+     */
+    class ScatteringModelFoXS : public ScatteringModelFraserBase<form_factor::lookup::table_t, form_factor::lookup::table_t, form_factor::lookup::table_t> {
+        public: 
+            using ScatteringModelFraserBase::ScatteringModelFraserBase;
+            ~ScatteringModelFoXS() override = default;
+
+            Limit get_excluded_volume_scaling_factor_limits() const override;
+
+            const form_factor::lookup::table_t& get_ff_table() const override {
+                return ff_aa_table;
+            }
+
+            const std::vector<form_factor::manager::detail::profile_t>& get_ff_self_table() const override {
+                return ff_self_table;
+            }
+
+            const form_factor::lookup::table_t& get_ffax_table() const override {
+                return ff_ax_table;
+            }
+
+            const form_factor::lookup::table_t& get_ffxx_table() const override {
+                return ff_xx_table;
+            }
+
+            /**
+             * @brief Get the excluded volume scaling factor.
+             *
+             * @param cx The scaling factor for the excluded volume.
+             * @param q The scattering vector.
+             */
+            static double exv_factor(double q, double cx);
+
+        protected:
+            double exv_factor(double q) const override;
+            form_factor::lookup::table_t ff_aa_table = form_factor::foxs::storage::atomic::generate_table();
+            form_factor::lookup::table_t ff_ax_table  = form_factor::foxs::storage::cross::generate_table();
+            form_factor::lookup::table_t ff_xx_table    = form_factor::foxs::storage::exv::generate_table();
+            std::vector<form_factor::manager::detail::profile_t> ff_self_table = form_factor::foxs::storage::atomic::generate_self_table();
+    };
+}

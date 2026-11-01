@@ -59,7 +59,7 @@ namespace {
                 return false;
 
             // the plain managers subtract the displaced charge from the weights, which fixes it for the lifetime of the histogram. The partial
-            // managers keep their histograms across changes of the grid volume, so they resolve the types instead, see make_simple_histogram
+            // managers keep their histograms across changes of the grid volume, so they resolve the types instead, see make_simple_model
             case ExvMethod::Simple:
                 return is_partial(choice);
 

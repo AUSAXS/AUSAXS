@@ -12,8 +12,8 @@
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <io/Writer.h>
 #include <settings/All.h>
@@ -80,7 +80,7 @@ namespace {
 
     // whether unweighted bins would distort the profile of a molecule. Ordering must be measured from the atom-atom component:
     // hydration can hide sharp peaks in the total p(r).
-    bool is_ordered(const hist::ICompositeDistanceHistogram& histogram) {
+    bool is_ordered(const hist::IScatteringModel& histogram) {
         return hist::DistanceHistogram::is_highly_ordered(histogram.get_aa_counts().get_content());
     }
 }
@@ -288,7 +288,7 @@ void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrateg
     hydration_strategy = std::move(manager);
 }
 
-std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
+std::unique_ptr<hist::IScatteringModel> Molecule::get_histogram() const {
     auto histogram = get_histogram_manager()->calculate_all();
     if (!auto_bins() || auto_weighted_bins) {return histogram;}
 

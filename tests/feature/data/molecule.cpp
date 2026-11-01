@@ -15,8 +15,8 @@
 #include <hist/histogram_manager/HistogramManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>  // IWYU pragma: keep
-#include <hist/intensity_calculator/ExactDebyeCalculator.h>
+#include <hist/scattering_model/ExactDebyeCalculator.h>
+#include <hist/scattering_model/ScatteringModelSimple.h>  // IWYU pragma: keep
 #include <hydrate/generation/RadialHydration.h>
 #include <io/pdb/PDBStructure.h>
 #include <rigidbody/BodySplitter.h>

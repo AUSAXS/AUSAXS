@@ -5,7 +5,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <hist/intensity_calculator/ExactDebyeCalculator.h>
+#include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>

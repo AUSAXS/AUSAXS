@@ -11,8 +11,8 @@
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/ScatteringModelSimple.h>
 #include <settings/ExvSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
@@ -33,7 +33,7 @@ template<bool weighted_bins>
 std::unique_ptr<DistanceHistogram> HistogramManager<weighted_bins>::calculate() {return calculate_all();}
 
 template<bool weighted_bins>
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins>::calculate_all() {
+std::unique_ptr<IScatteringModel> HistogramManager<weighted_bins>::calculate_all() {
     logging::log("HistogramManager::calculate: starting calculation");
 
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
@@ -151,14 +151,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<weighted_bins>::ca
     p_tot.resize(max_bin);
 
     if constexpr (weighted_bins) {
-        return std::make_unique<CompositeDistanceHistogram>(
+        return std::make_unique<ScatteringModelSimple>(
             std::move(Distribution1D(std::move(p_aa))), 
             std::move(Distribution1D(std::move(p_aw))), 
             std::move(Distribution1D(std::move(p_ww))), 
             std::move(p_tot)
         );
     } else {
-        return std::make_unique<CompositeDistanceHistogram>(
+        return std::make_unique<ScatteringModelSimple>(
             std::move(p_aa), 
             std::move(p_aw), 
             std::move(p_ww), 

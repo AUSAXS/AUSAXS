@@ -7,11 +7,11 @@
 #include <form_factor/lookup/ExvTableManager.h>
 #include <grid/exv/RawGridExv.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <hist/intensity_calculator/crysol/CompositeDistanceHistogramCrysol.h>
-#include <hist/intensity_calculator/foxs/CompositeDistanceHistogramFoXS.h>
-#include <hist/intensity_calculator/pepsi/CompositeDistanceHistogramPepsi.h>
+#include <hist/scattering_model/ScatteringModelFraser.h>
+#include <hist/scattering_model/ScatteringModelGridSurface.h>
+#include <hist/scattering_model/crysol/ScatteringModelCrysol.h>
+#include <hist/scattering_model/foxs/ScatteringModelFoXS.h>
+#include <hist/scattering_model/pepsi/ScatteringModelPepsi.h>
 #include <settings/ExvSettings.h>
 #include <settings/GridSettings.h>
 #include <utility/observer_ptr.h>
@@ -29,7 +29,7 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
             return m->get_volume_grid();
         
         case settings::exv::ExvMethod::Fraser:
-            return fraser_helper()*hist::CompositeDistanceHistogramFFExplicit::exv_factor(0, d);
+            return fraser_helper()*hist::ScatteringModelFraser::exv_factor(0, d);
 
         case settings::exv::ExvMethod::Grid: 
         case settings::exv::ExvMethod::WAXSiS: {
@@ -52,22 +52,22 @@ double ausaxs::grid::exv::get_volume_exv(observer_ptr<const data::Molecule> m, d
             int interior_atoms = static_cast<int>(exv.interior.size());
             int exterior_atoms = static_cast<int>(exv.surface.size());
             double interior_vol = std::pow(settings::grid::cell_width, 3);
-            double exterior_vol = std::pow(settings::grid::cell_width, 3)*hist::CompositeDistanceHistogramFFGridSurface::exv_factor(0, d);
+            double exterior_vol = std::pow(settings::grid::cell_width, 3)*hist::ScatteringModelGridSurface::exv_factor(0, d);
             return interior_atoms*interior_vol + exterior_atoms*exterior_vol;
         }
 
         case settings::exv::ExvMethod::CRYSOL: {
             assert(m->size_atom() != 0 && "ExvVolume::get_volume_exv: Division by zero. The molecule has no atoms.");
             double V = fraser_helper();
-            return V*hist::CompositeDistanceHistogramCrysol::exv_factor(0, d, V/static_cast<double>(m->size_atom()));
+            return V*hist::ScatteringModelCrysol::exv_factor(0, d, V/static_cast<double>(m->size_atom()));
         }
 
         case settings::exv::ExvMethod::FoXS: {
-            return fraser_helper()*hist::CompositeDistanceHistogramFoXS::exv_factor(0, d);
+            return fraser_helper()*hist::ScatteringModelFoXS::exv_factor(0, d);
         }
 
         case settings::exv::ExvMethod::Pepsi: {
-            return fraser_helper()*hist::CompositeDistanceHistogramPepsi::exv_factor(0, d);
+            return fraser_helper()*hist::ScatteringModelPepsi::exv_factor(0, d);
         }
 
         default:

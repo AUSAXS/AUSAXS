@@ -10,11 +10,11 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGrid.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridScalableExv.h>
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridBase.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridScalableExv.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGridSurface.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/ScatteringModelGrid.h>
+#include <hist/scattering_model/ScatteringModelGridBase.h>
+#include <hist/scattering_model/ScatteringModelGridScalable.h>
+#include <hist/scattering_model/ScatteringModelGridSurface.h>
 #include <settings/All.h>
 
 #include <support/grid_debug.h>
@@ -26,7 +26,7 @@ using namespace ausaxs::data;
 
 // Test that compares FFGrid histograms against a simple HistogramManager using normalized (raw) counts.
 // This validates the histogram binning is correct for the excluded volume grid representation.
-static auto test_normalized = [] (Molecule& protein, const std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)>& calculate) {
+static auto test_normalized = [] (Molecule& protein, const std::function<std::unique_ptr<IScatteringModel>(const Molecule&)>& calculate) {
     form_factor::manager::use_form_factors(protein); // calculate constructs the manager directly, bypassing the factory which normally selects these
     auto h = calculate(protein);
 
@@ -44,7 +44,7 @@ static auto test_normalized = [] (Molecule& protein, const std::function<std::un
     set_unity_charge(exv);
 
     // calculate the xx, ax, aa distributions from FFGrid (raw counts)
-    auto* h_cast = static_cast<CompositeDistanceHistogramFFGridBase*>(h.get());
+    auto* h_cast = static_cast<ScatteringModelGridBase*>(h.get());
     hist::Distribution1D xx1, ax1, aa1;
     {
         auto aa = h_cast->get_raw_aa_counts_by_ff();
@@ -90,12 +90,12 @@ static auto test_normalized = [] (Molecule& protein, const std::function<std::un
 
 // Test that compares atom-atom histograms on absolute scale (with form factor weighting).
 // This validates that the form factor weighting is correct, without the complexity of the excluded volume.
-static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::unique_ptr<ICompositeDistanceHistogram>(const Molecule&)>& calculate) {
+static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::unique_ptr<IScatteringModel>(const Molecule&)>& calculate) {
     form_factor::manager::use_form_factors(protein); // calculate constructs the manager directly, bypassing the factory which normally selects these
     auto h = calculate(protein);
 
     // Get atom-atom histogram from FFGrid with form factor weighting
-    auto* h_cast = static_cast<CompositeDistanceHistogramFFGridBase*>(h.get());
+    auto* h_cast = static_cast<ScatteringModelGridBase*>(h.get());
     auto aa_by_ff = h_cast->get_aa_counts_by_ff();
     
     // Sum all form factor contributions
@@ -202,7 +202,7 @@ static auto test_derived = [] () {
         auto h_grid  = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
         auto h_grids = H(&protein).calculate_all();
 
-        auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
+        auto* h_grid_cast = static_cast<ScatteringModelGrid*>(h_grid.get());
         auto aa1 = h_grid_cast->get_raw_aa_counts_by_ff();
         auto ax1 = h_grid_cast->get_raw_aw_counts_by_ff();
         auto xx1 = h_grid_cast->get_raw_ww_counts_by_ff();
@@ -237,11 +237,11 @@ static auto test_derived = [] () {
 
 // Check that the GridSurface histograms are correct
 TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
-    test_derived<HistogramManagerMTFFGridSurface, CompositeDistanceHistogramFFGridSurface>();
+    test_derived<HistogramManagerMTFFGridSurface, ScatteringModelGridSurface>();
 }
 
 TEST_CASE("HistogramManagerMTFFGridScalableExv::calculate", "[files]") {
-    test_derived<HistogramManagerMTFFGridScalableExv, CompositeDistanceHistogramFFGridScalableExv>();
+    test_derived<HistogramManagerMTFFGridScalableExv, ScatteringModelGridScalable>();
 }
 
 // Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
@@ -276,9 +276,9 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         auto h_exv   = hist::HistogramManagerMT<true>(&exv).calculate_all();
         auto h_atom  = hist::HistogramManagerMT<true>(&protein).calculate_all();
 
-        auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-        auto* h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grids.get());
-        auto* h_gridsx_cast = static_cast<CompositeDistanceHistogramFFGridScalableExv*>(h_gridsx.get());
+        auto* h_grid_cast = static_cast<ScatteringModelGrid*>(h_grid.get());
+        auto* h_grids_cast = static_cast<ScatteringModelGridSurface*>(h_grids.get());
+        auto* h_gridsx_cast = static_cast<ScatteringModelGridScalable*>(h_gridsx.get());
 
         CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
         CHECK(compare_hist(h_grids_cast->get_d_axis(),  h_atom->get_d_axis()));
@@ -299,7 +299,7 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         GridDebug::generate_debug_grid(protein); // overrides exv generation
         form_factor::manager::use_form_factors(protein);
         auto h = DebugHistogramManagerMTFFGrid(&protein).calculate_all();
-        auto* h_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h.get());
+        auto* h_cast = static_cast<ScatteringModelGrid*>(h.get());
 
         // check the distance axes
         REQUIRE(SimpleCube::check_exact(h_cast->get_d_axis()));
@@ -323,9 +323,9 @@ TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
         auto h_exv   = hist::HistogramManagerMT<true>(&exv).calculate_all();
         auto h_atom  = hist::HistogramManagerMT<true>(&protein).calculate_all();
 
-        auto* h_grid_cast = static_cast<CompositeDistanceHistogramFFGrid*>(h_grid.get());
-        auto* h_grids_cast = static_cast<CompositeDistanceHistogramFFGridSurface*>(h_grid.get());
-        auto* h_gridsx_cast = static_cast<CompositeDistanceHistogramFFGridScalableExv*>(h_grid.get());
+        auto* h_grid_cast = static_cast<ScatteringModelGrid*>(h_grid.get());
+        auto* h_grids_cast = static_cast<ScatteringModelGridSurface*>(h_grid.get());
+        auto* h_gridsx_cast = static_cast<ScatteringModelGridScalable*>(h_grid.get());
 
         CHECK(compare_hist(h_grid_cast->get_d_axis(),   h_atom->get_d_axis()));
         CHECK(compare_hist(h_grids_cast->get_d_axis(),  h_atom->get_d_axis()));

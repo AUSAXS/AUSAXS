@@ -178,12 +178,12 @@ struct SimpleCube {
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/histogram_manager/SymmetryManagerMT.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/scattering_model/IScatteringModelExv.h>
 #include <numbers>
 
-inline auto get_raw_counts(hist::ICompositeDistanceHistogram* h) {
+inline auto get_raw_counts(hist::IScatteringModel* h) {
     assert(h != nullptr && "get_raw_counts: the histogram must exist.");
-    auto* exv_hist = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h);
+    auto* exv_hist = dynamic_cast<hist::IScatteringModelExv*>(h);
     if (exv_hist != nullptr) {
         return exv_hist->get_total_raw_counts();
     }

@@ -12,7 +12,7 @@
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/ExvSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
@@ -34,7 +34,7 @@ std::unique_ptr<hist::DistanceHistogram> hist::SymmetryManagerMTBase<weighted_bi
 }
 
 template<bool weighted_bins, bool form_factors>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<weighted_bins, form_factors>::calculate_all() {
+std::unique_ptr<hist::IScatteringModel> hist::SymmetryManagerMTBase<weighted_bins, form_factors>::calculate_all() {
     if (protein->size_water() == 0) {
         return calculate<false>();
     }
@@ -42,7 +42,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<w
 }
 
 template<bool weighted_bins, bool form_factors> template <bool contains_waters>
-std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<weighted_bins, form_factors>::calculate() {
+std::unique_ptr<hist::IScatteringModel> hist::SymmetryManagerMTBase<weighted_bins, form_factors>::calculate() {
     logging::log("SymmetryManagerMT::calculate: starting calculation");
 
     // start by generating the transformed data
@@ -166,7 +166,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> hist::SymmetryManagerMTBase<w
     calculator.run();
 
     // without waters, aw and ww were never named, and are still zero
-    return hist::detail::make_histogram(hist::detail::export_distributions<weighted_bins, form_factors>(store, aa, aw, ww), protein);
+    return hist::detail::make_model(hist::detail::export_distributions<weighted_bins, form_factors>(store, aa, aw, ww), protein);
 }
 
 template<bool weighted_bins, bool form_factors>
