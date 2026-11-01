@@ -106,3 +106,18 @@ TEST_CASE("XVGReader::construct") {
         }
     }
 }
+
+TEST_CASE("XVGReader::construct: user-specified q unit") {
+    settings::general::verbose = false;
+    settings::general::input_q_unit = settings::general::QUnit::USER_A;
+
+    std::string test_file_contents =
+        "x y z\n"
+        "0.1 1 10\n"
+        "0.2 2 20\n"
+        "0.3 3 30\n";
+
+    test::TempFile test_file(".dat", test_file_contents);
+    auto data = detail::XVGReader().construct(test_file, 0);
+    vec_approx(data->col(0), std::vector<double>({0.1, 0.2, 0.3}));
+}
