@@ -26,14 +26,6 @@ extern "C" API int rigidbody_get_preview_structure(
     int* status
 );
 
-// Latest structure published by an `update structure` element during a run.
-//! Deprecated!
-extern "C" API int rigidbody_get_live_structure(
-    double** x, double** y, double** z,
-    int* n_atoms, int* version,
-    int* status
-);
-
 // Create a live-structure poller. The returned id owns the buffers that rigidbody_poll_live_structure
 // writes into, and must be deallocated once when the consumer is done polling.
 extern "C" API int rigidbody_create_live_poller(

@@ -4,15 +4,10 @@
 #include <api/pyausaxs/api_pdb.h>
 
 #include <api/ObjectStorage.h>
-#include <data/Body.h>
-#include <data/Molecule.h>
 #include <data/symmetry/PredefinedSymmetries.h>
-#include <fitter/SmartFitter.h>
-#include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <io/Reader.h>
 #include <io/pdb/PDBStructure.h>
 #include <rigidbody/sequencer/detail/SymmetryFit.h>
-#include <settings/All.h>
 
 #include <string>
 #include <unordered_map>
@@ -20,7 +15,6 @@
 #include <vector>
 
 using namespace ausaxs;
-using namespace ausaxs::data;
 
 int pdb_read(
     const char* filename,
@@ -169,17 +163,4 @@ int pdb_decompose_symmetry(
     *n_atoms_out = static_cast<int>(ref->x.size());
     *status = 0;
     return data_id;
-}, status);}
-
-int pdb_debye_fit(
-    int pdb_id, int data_id,
-    int* status
-) {return execute_with_catch([&]() {
-    auto& pdb = api::ObjectStorage::get<io::pdb::PDBStructure>(pdb_id, "pdb");
-    auto molecule = Molecule({Body(pdb)});
-    molecule.reset_histogram_manager();
-    auto& dataset = api::ObjectStorage::get<SimpleDataset>(data_id, "dataset");
-    auto fitter = fitter::SmartFitter(dataset, molecule.get_histogram());
-    int fit_result_id = api::ObjectStorage::register_object(fitter.fit());
-    return fit_result_id;
 }, status);}
