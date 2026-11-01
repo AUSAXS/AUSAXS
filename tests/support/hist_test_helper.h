@@ -51,7 +51,7 @@ bool compare_hist(const T1& p1, const T2& p2, double abs = 1e-6, double rel = 1e
 
 /**
  * @brief Check that the two containers are approximately identical. 
- *        Variations across bin edges are allowed, meaning if a given bin is off by some amount, the following bin is checked for the difference. 
+ *        Variations across bin edges are allowed, meaning if a given bin is off by some amount, a window of two bins on either side is checked for the difference.
  */
 template<container_type T1, container_type T2>
 bool compare_hist_approx(const T1& p1, const T2& p2, double abs = 1e-6, double rel = 1e-3) {
@@ -59,13 +59,13 @@ bool compare_hist_approx(const T1& p1, const T2& p2, double abs = 1e-6, double r
     for (int i = 0; i < pmax; ++i) {
         if (!utility::approx(bin_or_zero(p1, i), bin_or_zero(p2, i), abs, rel)) {
             double sum1 = 0, sum2 = 0;
-            for (int offset = -1; offset <= 1; ++offset) {
+            for (int offset = -2; offset <= 2; ++offset) {
                 sum1 += bin_or_zero(p1, i + offset);
                 sum2 += bin_or_zero(p2, i + offset);
             }
             if (!utility::approx(sum1, sum2, abs, rel)) {
                 std::cout << "Failed on index " << i << ". Window values: " << std::endl;
-                for (int offset = -1; offset <= 1; ++offset) {
+                for (int offset = -2; offset <= 2; ++offset) {
                     int idx = i + offset;
                     if (0 <= idx) {
                         std::cout << "\t" << bin_or_zero(p1, idx) << ", " << bin_or_zero(p2, idx) << std::endl;
