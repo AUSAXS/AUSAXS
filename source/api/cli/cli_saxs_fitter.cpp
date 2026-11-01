@@ -29,8 +29,8 @@
 
 using namespace ausaxs;
 
-int cli_saxs_fitter(int argc, char const *argv[]) {
-    std::ios_base::sync_with_stdio(false);
+namespace {
+int run(int argc, char const *argv[]) {
     io::ExistingFile pdb, mfile, exv_ref_file, settings;
     bool keep_hydration = false, save_settings = false, save_grid = false, save_exv = false;
 
@@ -39,8 +39,8 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     auto* input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
     auto* input_m = app.add_option("input_measurement", mfile, "Path to the measured SAXS data.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output.value, "Output folder to write the results to.")->default_val("output/saxs_fitter/")->group("General options");
-    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
-    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
+    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); throw CLI::Success();}, "Print the licence.");
+    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
     app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms.value, 
         "Allow processing files with unknown atoms. Use only if you understand the implications.")
         ->default_val(settings::molecule::allow_unknown_atoms.value);
@@ -152,14 +152,14 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
             settings::write("settings.txt");
             console::print_info("Settings saved to settings.txt in current directory.");
             if (!input_s->count() || !input_m->count()) { // gracefully exit if no input files are provided
-                exit(0);
+                throw CLI::Success();
             }
         }
 
         // required args (not marked ->required() since that interferes with the help flag for subcommands)
         if (!input_s->count()) {
             console::print_warning("Error: input_structure is required.");
-            exit(1);
+            throw CLI::RuntimeError(1);
         }
 
         // adjust grid width to support user-specified excluded volume width
@@ -298,4 +298,12 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         return 1;
     }
     return 0;
+}
+}
+
+int cli_saxs_fitter(int argc, char const *argv[]) {
+    // exported: pyAUSAXS and its GUI call this in-process, so nothing may escape it, including what the option callbacks throw during parsing
+    int status;
+    int rc = execute_with_catch([&] () {return run(argc, argv);}, &status);
+    return status == 0 ? rc : 1;
 }

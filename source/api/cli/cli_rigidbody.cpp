@@ -20,7 +20,8 @@
 
 using namespace ausaxs;
 
-int cli_rigidbody(int argc, char const *argv[]) {
+namespace {
+int run(int argc, char const *argv[]) {
     settings::grid::scaling = 2;
     settings::grid::cubic = true;
     settings::general::verbose = true;
@@ -31,8 +32,8 @@ int cli_rigidbody(int argc, char const *argv[]) {
     CLI::App app{"Perform rigid-body optimization."};
     app.fallthrough();
     auto* p_script = app.add_option("input_script", script, "Path to the rigid-body configuration script.")->check(CLI::ExistingFile);
-    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
-    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
+    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); throw CLI::Success();}, "Print the licence.");
+    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
     app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms.value, 
         "Allow processing files with unknown atoms. Use only if you understand the implications.")
         ->default_val(settings::molecule::allow_unknown_atoms.value);
@@ -127,4 +128,12 @@ int cli_rigidbody(int argc, char const *argv[]) {
         return 1;
     }
     return 0;
+}
+}
+
+int cli_rigidbody(int argc, char const *argv[]) {
+    // exported: pyAUSAXS and its GUI call this in-process, so nothing may escape it, including what the option callbacks throw during parsing
+    int status;
+    int rc = execute_with_catch([&] () {return run(argc, argv);}, &status);
+    return status == 0 ? rc : 1;
 }

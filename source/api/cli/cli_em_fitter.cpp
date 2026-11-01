@@ -20,8 +20,8 @@
 
 using namespace ausaxs;
 
-int cli_em_fitter(int argc, char const *argv[]) {
-    std::ios_base::sync_with_stdio(false);
+namespace {
+int run(int argc, char const *argv[]) {
     settings::fit::verbose = true;
     settings::general::supplementary_plots = false;
     bool save_settings = false;
@@ -31,8 +31,8 @@ int cli_em_fitter(int argc, char const *argv[]) {
     auto* input_map = app.add_option("input-map", mapfile, "Path to the EM map.")->check(CLI::ExistingFile);
     auto* input_saxs = app.add_option("input-saxs", mfile, "Path to the SAXS measurement.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output.value, "Output folder to write the results to.")->default_val("output/em_fitter/");
-    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); exit(0);}, "Print the licence.");
-    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
+    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); throw CLI::Success();}, "Print the licence.");
+    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
     app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);
     app.add_flag("--gpu", settings::general::gpu.value, "Use GPU acceleration if available.")->default_val(settings::general::gpu.value);
 
@@ -82,19 +82,19 @@ int cli_em_fitter(int argc, char const *argv[]) {
             settings::write("settings.txt");
             console::print_info("Settings saved to settings.txt in current directory.");
             if (!input_map->count() || !input_saxs->count()) { // gracefully exit if no input files are provided
-                exit(0);
+                throw CLI::Success();
             }
         }
 
         // required args (not marked ->required() since that interferes with the help flag for subcommands)
         if (!input_map->count()) {
             console::print_warning("Error: An input EM map is required.");
-            exit(1);
+            throw CLI::RuntimeError(1);
         }
         // the SAXS measurement is optional: if omitted, a raw profile is computed at the cutoff given by 'em --level'
         if (!input_saxs->count() && !levelmin->count()) {
             console::print_warning("Error: Provide either a SAXS measurement to fit against, or 'em --level <σ>' to output a raw scattering profile.");
-            exit(1);
+            throw CLI::RuntimeError(1);
         }
     });
 
@@ -173,4 +173,12 @@ int cli_em_fitter(int argc, char const *argv[]) {
         return 1;
     }
     return 0;
+}
+}
+
+int cli_em_fitter(int argc, char const *argv[]) {
+    // exported: pyAUSAXS and its GUI call this in-process, so nothing may escape it, including what the option callbacks throw during parsing
+    int status;
+    int rc = execute_with_catch([&] () {return run(argc, argv);}, &status);
+    return status == 0 ? rc : 1;
 }

@@ -7,6 +7,7 @@
 #include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
+#include <iostream>
 #include <unordered_map>
 
 using namespace ausaxs;
@@ -23,6 +24,8 @@ namespace {
 }
 
 int main(int argc, char const *argv[]) {
+    // process-wide, so only the executable may set it: the cli_* functions also run inside pyAUSAXS and its GUI
+    std::ios_base::sync_with_stdio(false);
     auto print_help = [&] () {
         console::print_text(
             "\nUsage: ausaxs <tool> [options]"
