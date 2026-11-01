@@ -121,7 +121,7 @@ InlineSignature SaveElement::_valid_inline_arguments() {
 // save [path] - resolved relative to the output folder
 std::unique_ptr<GenericElement> SaveElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     io::File path = settings::general::output + args.inlined[0];
-    if (!is_supported_format(path.extension())) { // checked here, since at run time the whole optimization has already been done
+    if (!is_supported_format(path.extension())) {
         throw except::parse_error("save", args.inlined, "Unknown file format \"" + path.extension() + "\". Valid formats are .pdb, .fit, .txt, .png and .xyz.");
     }
     return std::make_unique<SaveElement>(owner, std::move(path));
