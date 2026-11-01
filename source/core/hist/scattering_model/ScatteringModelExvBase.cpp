@@ -443,6 +443,12 @@ void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_distance_profile
 }
 
 template<typename FormFactorTableType>
+void ScatteringModelExvBase<FormFactorTableType>::expand_q_range(const std::vector<double>& q) const {
+    DistanceHistogram::expand_q_range(q);
+    cache.sinqd.valid = false; // the sinqd and intensity caches are sized by the q range, so all of them are rebuilt
+}
+
+template<typename FormFactorTableType>
 void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_sinqd() const {
     // both halves only submit their jobs, so the atomic and excluded volume work overlaps in the pool
     cache_refresh_sinqd_atomic();
@@ -459,7 +465,7 @@ void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_sinqd_atomic() c
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
 
-    if (cache.sinqd.aa.empty()) {
+    if (cache.sinqd.ww.size() != debye_axis.bins) {
         cache.sinqd.aa = container::TriangularContainer3D<double>(form_factor::get_active_count(), form_factor::get_active_count(), debye_axis.bins);
         cache.sinqd.aw = container::Container2D<double>(form_factor::get_active_count(), debye_axis.bins);
         cache.sinqd.ww = container::Container1D<double>(debye_axis.bins);
