@@ -104,18 +104,6 @@ namespace ausaxs::hist {
             void set_count(const std::vector<double>& counts);
 
             /**
-             * @brief Bin a value.
-             *        The bin containing the value will be incremented by 1.
-             */
-            void bin(double value);
-
-            /**
-             * @brief Bin a list of values.
-             *        The bin containing each value will be incremented by 1.
-             */
-            void bin(const std::vector<double>& values);
-
-            /**
              * @brief Get the count at a specific bin.
              */
             double& get_count(int i);

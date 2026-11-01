@@ -73,11 +73,6 @@ namespace ausaxs::hist {
             void increment_linear_index(int32_t xy, int32_t i, float distance) {
                 linear_index(xy, i).template increment<N>(distance);
             }
-            
-            /**
-             * @brief Extract the weights from this distribution.
-             */
-            std::vector<double> get_weights() const;
     };
     static_assert(supports_nothrow_move_v<WeightedDistribution3D<Shape::Square>>, "WeightedDistribution3D should support nothrow move semantics.");
     static_assert(supports_nothrow_move_v<WeightedDistribution3D<Shape::Triangular>>, "WeightedDistribution3D should support nothrow move semantics.");

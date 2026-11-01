@@ -88,11 +88,13 @@ TEST_CASE("Distribution3D: triangular") {
     CHECK(std::distance(tri.begin(), tri.end()) == 10*3);
     CHECK(&tri.index(3, 1, 2) == &tri.index(1, 3, 2));
     for (int i = 0; i < 4; ++i) {for (int j = 0; j < 4; ++j) {for (int k = 0; k < 3; ++k) {
-        CHECK(tri.index(i, j, k).value == square.index(std::min(i, j), std::max(i, j), k).value);
+        // a square distribution filled on one half only is what the managers produced before, so the two must agree
+        const auto& t = tri.index(i, j, k);
+        const auto& s = square.index(std::min(i, j), std::max(i, j), k);
+        CHECK(t.value == s.value);
+        CHECK(t.count == s.count);
+        CHECK(t.bin_center == s.bin_center);
     }}}
-
-    // a square distribution filled on one half only is what the managers produced before, so the two must agree
-    CHECK(tri.get_weights() == square.get_weights());
     hist::Distribution3D<Tri> plain(tri);
     plain.resize(2);
     CHECK(std::distance(plain.begin(), plain.end()) == 10*2);

@@ -145,14 +145,6 @@ void Histogram::set_count(const std::vector<double>& counts) {
     p = counts;
 }
 
-void Histogram::bin(double value) {
-    p[std::min<int>(axis.get_bin(value), p.size()-1)]++;
-}
-
-void Histogram::bin(const std::vector<double>& values) {
-    std::ranges::for_each(values, [this] (double v) {bin(v);});
-}
-
 Limit Histogram::span_y() const noexcept {
     if (p.empty()) {return {0, 0};}
     auto[min, max] = std::ranges::minmax_element(p);

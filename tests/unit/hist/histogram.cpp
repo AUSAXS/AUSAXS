@@ -176,35 +176,6 @@ TEST_CASE("Histogram::set_count") {
     }
 }
 
-TEST_CASE("Histogram::bin") {
-    SECTION("simple") {
-        std::vector<double> data{1, 2, 3, 4, 5};
-        hist::Histogram hist(Axis({1, 6}, 5));
-        hist.bin(data);
-        CHECK(hist.get_counts() == std::vector<double>{1, 1, 1, 1, 1});
-    }
-
-    SECTION("single value") {
-        hist::Histogram hist(Axis({0, 10}, 10));
-        hist.bin(5);
-        CHECK(hist.get_count(5) == 1);
-    }
-
-    SECTION("complex") {
-        hist::Histogram hist2(Axis({0, 10}, 10));
-
-        std::vector<double> data;
-        for (int i = 0; i < 100; ++i) {
-            data.push_back(i % 10);
-            hist2.bin(i % 10);
-        }
-        hist::Histogram hist(Axis({0, 10}, 10));
-        hist.bin(data);
-        CHECK(hist.get_counts() == std::vector<double>{10, 10, 10, 10, 10, 10, 10, 10, 10, 10});        
-        CHECK(hist == hist2);
-    }
-}
-
 TEST_CASE("Histogram::as_dataset") {
     SECTION("empty") {
         hist::Histogram hist;

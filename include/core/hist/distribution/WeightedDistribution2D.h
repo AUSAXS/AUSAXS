@@ -65,11 +65,6 @@ namespace ausaxs::hist {
             void increment_linear_index(int32_t i, float distance) {
                 linear_index(i).increment<N>(distance);
             }
-            
-            /**
-             * @brief Extract the weights from this distribution.
-             */
-            std::vector<double> get_weighted_axis() const;
     };
     static_assert(supports_nothrow_move_v<WeightedDistribution2D>, "WeightedDistribution2D should support nothrow move semantics.");
 }
