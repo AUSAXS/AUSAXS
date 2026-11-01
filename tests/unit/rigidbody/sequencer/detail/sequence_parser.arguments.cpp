@@ -7,9 +7,11 @@
 #include <io/ExistingFile.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/sequencer/Sequencer.h>
+#include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/ValidElements.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/elements/LoopElement.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>
@@ -276,5 +278,88 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: overlap_strength sets the
     SECTION("malformed values are rejected") {
         CHECK_THROWS_AS(parse(load() + "overlap_strength\n"), sequencer::except::parse_error);
         CHECK_THROWS_AS(parse(load() + "overlap_strength x\n"), sequencer::except::parse_error);
+        CHECK_THROWS(parse(load() + "overlap_strength nan\n"));
+        CHECK_THROWS(parse(load() + "overlap_strength 2 5abc\n"));
+    }
+}
+
+TEST_CASE("SequenceParser: script numbers are parsed strictly") {
+    using search::parse_int, search::parse_double;
+    CHECK(parse_int("12") == 12);
+    CHECK(parse_int("+12") == 12);
+    CHECK(parse_int("-3") == -3);
+    CHECK(parse_double("2.5") == 2.5);
+    CHECK(parse_double("1e3") == 1000);
+    CHECK(parse_double("-.5") == -0.5);
+
+    // std::stoi read these as 1, 2 and 3, and std::stod accepted nan and inf
+    for (auto bad : {"1e3", "2.5", "3abc", "", "+", "99999999999999999999"}) {
+        INFO(bad);
+        CHECK_THROWS(parse_int(bad));
+    }
+    for (auto bad : {"nan", "inf", "-inf", "+nan", "1e999", "1.5x", ""}) {
+        INFO(bad);
+        CHECK_THROWS(parse_double(bad));
+    }
+}
+
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: numeric arguments are checked", "[files]") {
+    auto parameter = [] (const std::string& body) {return "parameters {\n" + body + "}\n";};
+    std::string P = parameter("    iterations 4\n    translate 1\n    rotate 1\n");
+
+    SECTION("loop counts are positive integers") {
+        auto loop_iterations = [&] (const std::string& line) {
+            auto seq = parse(load() + P + line + "\n    optimize_once\n    end\nend\n");
+            auto* loop = dynamic_cast<LoopElement*>(seq->_get_elements().back().get());
+            REQUIRE(loop != nullptr);
+            return loop->_get_loop_iterations();
+        };
+        CHECK(loop_iterations("loop 3") == 3);
+        CHECK(loop_iterations("loop") == 4);
+        CHECK(loop_iterations("loop outer") == 4);
+        CHECK(loop_iterations("loop outer 7") == 7);
+
+        // these ran 1, 2, 3, 0 and 0 steps
+        for (std::string bad : {"loop 1e3", "loop 2.5", "loop 3abc", "loop -3", "loop 0", "loop outer 2.5", "loop outer -1"}) {
+            INFO(bad);
+            CHECK_THROWS_AS(parse(load() + P + bad + "\n    optimize_once\n    end\nend\n"), sequencer::except::parse_error);
+        }
+    }
+
+    SECTION("a duplicate loop name is reported as such") {
+        try {
+            parse(load() + P + "loop a 2\n    optimize_once\n    end\nend\nloop a 2\n    optimize_once\n    end\nend\n");
+            FAIL("expected a parse_error");
+        } catch (const sequencer::except::parse_error& e) {
+            CHECK(std::string(e.what()).find("already exists") != std::string::npos);
+        }
+    }
+
+    SECTION("every takes a positive step count") {
+        CHECK_NOTHROW(parse(load() + P + "loop 4\n    every 2\n        optimize_once\n        end\n    end\nend\n"));
+        // every 0 was a SIGFPE in the step count and in run()
+        for (std::string bad : {"every 0", "every -1", "every 1.5"}) {
+            INFO(bad);
+            CHECK_THROWS(parse(load() + P + "loop 4\n    " + bad + "\n        optimize_once\n        end\n    end\nend\n"));
+        }
+    }
+
+    SECTION("parameter iterations and amplitudes") {
+        for (std::string bad : {
+            "    iterations 0\n    translate 1\n",
+            "    iterations -2\n    translate 1\n",
+            "    iterations 1e3\n    translate 1\n",
+            "    iterations 4\n    translate nan\n",
+            "    iterations 4\n    rotate inf\n",
+            "    iterations 4\n    translate -1\n"
+        }) {
+            INFO(bad);
+            CHECK_THROWS(parse(load() + parameter(bad)));
+        }
+    }
+
+    SECTION("seeds and split indices are whole integers") {
+        CHECK_THROWS_AS(parse("seed 1e3\n" + load()), sequencer::except::parse_error);
+        CHECK_THROWS_AS(parse(load() + "split b1 9.5\n"), sequencer::except::parse_error);
     }
 }

@@ -154,7 +154,7 @@ std::unique_ptr<GenericElement> SplitElement::_parse(observer_ptr<LoopElement> o
     for (int i = 1; i < static_cast<int>(args.inlined.size()); ++i) {
         const auto& tok = args.inlined[i];
         if (!utility::isinteger(tok)) {throw except::parse_error("split", "Invalid split index \"" + tok + "\"; expected an integer residue sequence id.");}
-        splits.push_back(std::stoi(tok));
+        splits.push_back(search::parse_int(tok));
     }
     return std::make_unique<SplitElement>(owner->_get_sequencer(), body_name, std::move(splits));
 }

@@ -78,6 +78,7 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
     auto decay_strategy = args.get<std::string>(args_map[Args::decay_strategy], "linear");
 
     if (!iterations.found) {throw except::parse_error("parameters", "Missing required argument \"iterations\".");}
+    if (iterations.value <= 0) {throw except::parse_error("parameters", "\"iterations\" must be positive, but got " + std::to_string(iterations.value) + ".");}
 
     // a component is optimised exactly when its amplitude is non-zero, so the amplitudes are the whole configuration
     parameter::ParameterAmplitudes amplitudes = {
@@ -86,6 +87,11 @@ std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElemen
         .symmetry_translation = args.get<double>(args_map[Args::sym_translate], 0).value,
         .symmetry_rotation = args.get<double>(args_map[Args::sym_rotate], 0).value
     };
+
+    // an amplitude is a maximum step size: get_arg already refuses nan/inf, which would reach matrix::euler_angles as an assert
+    for (double amplitude : {amplitudes.translation, amplitudes.rotation, amplitudes.symmetry_translation, amplitudes.symmetry_rotation}) {
+        if (amplitude < 0) {throw except::parse_error("parameters", "Step amplitudes must be non-negative, but got " + std::to_string(amplitude) + ".");}
+    }
 
     // the axes restrict the body moves to a subspace of the frame the structure was loaded in, e.g. "translate_axes xy" keeps
     // every unconstrained body centred in its initial xy-plane while it remains free to rotate

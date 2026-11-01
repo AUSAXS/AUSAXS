@@ -6,9 +6,13 @@
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <utility/StringUtils.h>
 
+#include <cassert>
+
 using namespace ausaxs::rigidbody::sequencer;
 
-EveryNStepElement::EveryNStepElement(observer_ptr<LoopElement> owner, int n) : LoopElement(owner, 1), n(n) {}
+EveryNStepElement::EveryNStepElement(observer_ptr<LoopElement> owner, int n) : LoopElement(owner, 1), n(n) {
+    assert(0 < n && "EveryNStepElement: n must be positive; run() and the step count both divide by it.");
+}
 
 EveryNStepElement::~EveryNStepElement() = default;
 
@@ -35,5 +39,7 @@ InlineSignature EveryNStepElement::_valid_inline_arguments() {
 // every [steps] - opens a block run once every [steps] iterations
 std::unique_ptr<GenericElement> EveryNStepElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
     if (!utility::isinteger(args.inlined[0])) {throw except::parse_error("every_n_step", "Expected an integer value for the number of steps, but got \"" + args.inlined[0] + "\".");}
-    return std::make_unique<EveryNStepElement>(owner, std::stoi(args.inlined[0]));
+    int n = search::parse_int(args.inlined[0]);
+    if (n <= 0) {throw except::parse_error("every_n_step", "The number of steps must be positive, but got " + args.inlined[0] + ".");} // run() takes it modulo
+    return std::make_unique<EveryNStepElement>(owner, n);
 }

@@ -201,7 +201,7 @@ std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> ow
             if (!utility::isinteger(s)) {
                 throw except::parse_error("load", R"(Invalid argument for "split": ")" + s + R"(". Expected "chain" or a list of positive integers.)");
             }
-            splits.push_back(std::stoi(s));
+            splits.push_back(search::parse_int(s));
         }
         return std::make_unique<LoadElement>(owner->_get_sequencer(), pdb.value[0], splits, names.value);       
     }

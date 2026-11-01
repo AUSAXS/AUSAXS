@@ -12,8 +12,10 @@
 #include <rigidbody/sequencer/elements/EveryNStepElement.h>
 #include <rigidbody/sequencer/elements/OptimizeStepElement.h>
 #include <rigidbody/sequencer/elements/ParameterElement.h>
+#include <utility/StringUtils.h>
 
 #include <cassert>
+#include <cctype>
 #include <ranges>
 
 using namespace ausaxs;
@@ -198,26 +200,37 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
         return std::make_unique<LoopElement>(owner, deduce_iteration_count());
     }
 
+    // an iteration count must be a positive integer; parsed strictly, since std::stoi read "1e3" as 1 and "-3" as zero steps
+    auto parse_count = [&] (const std::string& token) {
+        if (!utility::isinteger(token)) {throw except::parse_error("loop", args.inlined, "\"" + token + "\" is not a valid number of iterations; expected a positive integer.");}
+        int iterations = search::parse_int(token);
+        if (iterations <= 0) {throw except::parse_error("loop", args.inlined, "The number of iterations must be positive, but got " + token + ".");}
+        return iterations;
+    };
+
+    // a token that starts like a number is always meant as a count, never as a loop name
+    auto looks_numeric = [] (std::string_view token) {
+        return !token.empty() && (std::isdigit(static_cast<unsigned char>(token[0])) || token[0] == '-' || token[0] == '+' || token[0] == '.');
+    };
+
     if (args.inlined.size() == 1) {
-        try { // pattern 2: [iterations]
-            int iterations = std::stoi(args.inlined[0]);
-            return std::make_unique<LoopElement>(owner, iterations);
-        } catch (std::exception&) {
-            const auto& name = args.inlined[0];
+        const auto& name = args.inlined[0];
 
-            // pattern 3: [duplicate|copy] - repeats the most recently named loop
-            if (name == "duplicate" || name == "copy") {
-                if (loop_names.empty()) {throw except::parse_error("loop", args.inlined, "No previous loop found to duplicate.");}
-                return std::make_unique<CopyLoopElement>(owner, last_loop_element);
-            }
+        // pattern 2: [iterations]
+        if (looks_numeric(name)) {return std::make_unique<LoopElement>(owner, parse_count(name));}
 
-            // pattern 4: [name] - iteration count deduced as in pattern 1
-            if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
-            auto loop = std::make_unique<LoopElement>(owner, deduce_iteration_count());
-            loop_names[name] = loop.get();
-            last_loop_element = loop.get();
-            return loop;
+        // pattern 3: [duplicate|copy] - repeats the most recently named loop
+        if (name == "duplicate" || name == "copy") {
+            if (loop_names.empty()) {throw except::parse_error("loop", args.inlined, "No previous loop found to duplicate.");}
+            return std::make_unique<CopyLoopElement>(owner, last_loop_element);
         }
+
+        // pattern 4: [name] - iteration count deduced as in pattern 1
+        if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
+        auto loop = std::make_unique<LoopElement>(owner, deduce_iteration_count());
+        loop_names[name] = loop.get();
+        last_loop_element = loop.get();
+        return loop;
     } else {
         // pattern 5: [duplicate|copy] [name] - repeats the named loop
         if (args.inlined[0] == "duplicate" || args.inlined[0] == "copy") {
@@ -227,12 +240,7 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
         }
 
         // pattern 6: [name] [iterations]
-        int iterations;
-        try {
-            iterations = std::stoi(args.inlined[1]);
-        } catch (std::exception&) {
-            throw except::parse_error("loop", args.inlined, "Could not determine number of iterations.");
-        }
+        int iterations = parse_count(args.inlined[1]);
         const auto& name = args.inlined[0];
         if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
         auto loop = std::make_unique<LoopElement>(owner, iterations);
