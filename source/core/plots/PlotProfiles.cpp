@@ -4,8 +4,8 @@
 #include <plots/PlotProfiles.h>
 
 #include <hist/ScatteringProfile.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/IScatteringModelExv.h>
 #include <io/File.h>
 
 using namespace ausaxs::plots;
@@ -19,7 +19,7 @@ PlotProfiles::~PlotProfiles() = default;
 void PlotProfiles::quick_plot(observer_ptr<hist::DistanceHistogram> data, const io::File& path) {
 	PlotHistogram plot;
 
-	if (auto* cast = dynamic_cast<hist::ICompositeDistanceHistogram*>(data)) {
+	if (auto* cast = dynamic_cast<hist::IScatteringModel*>(data)) {
 		plot.plot(cast->get_profile_aa(), plots::PlotOptions(
 			{{"color", style::color::orange}, {"legend", "aa"}, {"normalize", true}, {"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}})
 		);
@@ -29,7 +29,7 @@ void PlotProfiles::quick_plot(observer_ptr<hist::DistanceHistogram> data, const 
 		return;
 	}
 
-	if (const auto* cast = dynamic_cast<const hist::ICompositeDistanceHistogramExv*>(data)) {
+	if (const auto* cast = dynamic_cast<const hist::IScatteringModelExv*>(data)) {
 		plot.plot(cast->get_profile_ax(), plots::PlotOptions({{"color", style::color::red},    {"normalize", true}, {"legend", "ax"}}));
 		plot.plot(cast->get_profile_xx(), plots::PlotOptions({{"color", style::color::purple}, {"normalize", true}, {"legend", "xx"}}));
 		plot.plot(cast->get_profile_wx(), plots::PlotOptions({{"color", style::color::cyan},   {"normalize", true}, {"legend", "wx"}}));

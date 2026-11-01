@@ -9,7 +9,7 @@
 #include <em/detail/header/HeaderFactory.h>
 #include <em/detail/header/MapHeader.h>
 #include <em/manager/ProteinManagerFactory.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <mini/detail/FittedParameter.h>
 #include <settings/EMSettings.h>
 #include <settings/GridSettings.h>
@@ -75,11 +75,11 @@ int ImageStackBase::size() const {return size_z;}
 
 const std::vector<Image>& ImageStackBase::images() const {return data;}
 
-std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram(double cutoff) const {
+std::unique_ptr<hist::IScatteringModel> ImageStackBase::get_histogram(double cutoff) const {
     return get_protein_manager()->get_histogram(cutoff);
 }
 
-std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFitResult>& res) const {
+std::unique_ptr<hist::IScatteringModel> ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFitResult>& res) const {
     return get_histogram(res->get_parameter("cutoff").value);
 }
 

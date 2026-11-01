@@ -9,9 +9,9 @@
 #include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <fitter/SmartFitter.h>
 #include <hist/distribution/Distribution1D.h>
-#include <hist/intensity_calculator/DebyeGradient.h>
-#include <hist/intensity_calculator/ExactDebyeCalculator.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/DebyeGradient.h>
+#include <hist/scattering_model/ExactDebyeCalculator.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
 #include <utility/Exceptions.h>

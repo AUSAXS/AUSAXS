@@ -116,37 +116,37 @@ namespace ausaxs::hist::detail {
 	ManagerDistributions<weighted_bins, form_factors> export_distributions(distance_calculator::HistogramStore<weighted_bins>& store, int aa, int aw, int ww);
 
 	/**
-	 * @brief The composite histogram of the explicit excluded volume models: settings::exv::exv_method picks FoXS, Pepsi or CRYSOL,
+	 * @brief The scattering model of the explicit excluded volume models: settings::exv::exv_method picks FoXS, Pepsi or CRYSOL,
 	 *        and any other method gets the Fraser model.
 	 */
 	template<bool weighted_bins>
-	std::unique_ptr<ICompositeDistanceHistogram> make_explicit_histogram(
+	std::unique_ptr<IScatteringModel> make_explicit_model(
 		ManagerDistributions<weighted_bins, true>&& distributions, observer_ptr<const data::Molecule> protein
 	);
 
 	/**
-	 * @brief The composite histogram of the average excluded volume model, where every atom displaces the same volume.
+	 * @brief The scattering model of the average excluded volume model, where every atom displaces the same volume.
 	 */
 	template<bool weighted_bins>
-	std::unique_ptr<ICompositeDistanceHistogram> make_average_histogram(
+	std::unique_ptr<IScatteringModel> make_average_model(
 		ManagerDistributions<weighted_bins, true>&& distributions, observer_ptr<const data::Molecule> protein
 	);
 
 	/**
-	 * @brief The plain composite histogram of the simple excluded volume model.
+	 * @brief The plain scattering model of the simple excluded volume model.
 	 */
 	template<bool weighted_bins>
-	std::unique_ptr<ICompositeDistanceHistogram> make_simple_histogram(
+	std::unique_ptr<IScatteringModel> make_simple_model(
 		ManagerDistributions<weighted_bins, true>&& distributions, observer_ptr<const data::Molecule> protein
 	);
 
 	/**
-	 * @brief The composite histogram of @a distributions. Weighted ones carry any excluded volume in their weights already.
-	 *        Form factor-resolved ones get make_simple_histogram or make_average_histogram for ExvMethod::Simple and ExvMethod::Average,
-	 *        and an explicit model otherwise, see make_explicit_histogram.
+	 * @brief The scattering model of @a distributions. Weighted ones carry any excluded volume in their weights already.
+	 *        Form factor-resolved ones get make_simple_model or make_average_model for ExvMethod::Simple and ExvMethod::Average,
+	 *        and an explicit model otherwise, see make_explicit_model.
 	 */
 	template<bool weighted_bins, bool form_factors>
-	std::unique_ptr<ICompositeDistanceHistogram> make_histogram(
+	std::unique_ptr<IScatteringModel> make_model(
 		ManagerDistributions<weighted_bins, form_factors>&& distributions, observer_ptr<const data::Molecule> protein
 	);
 }

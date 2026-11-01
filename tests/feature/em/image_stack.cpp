@@ -7,7 +7,7 @@
 #include <em/detail/header/MRCHeader.h>
 #include <em/manager/SmartProteinManager.h>
 #include <hist/histogram_manager/HistogramManagerMT.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/All.h>
 
 #include <map>

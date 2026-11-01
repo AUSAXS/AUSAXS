@@ -9,7 +9,7 @@
 #include <em/detail/ExtendedLandscape.h>
 #include <em/manager/ProteinManager.h>
 #include <fitter/SmartFitter.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <hydrate/generation/RadialHydration.h>
 #include <math/PeakFinder.h>
 #include <math/Vector3.h>

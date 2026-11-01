@@ -7,7 +7,7 @@
 #include <em/ImageStack.h>
 #include <em/manager/SimpleProteinManager.h>
 #include <em/manager/SmartProteinManager.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <hydrate/generation/RadialHydration.h>
 #include <settings/All.h>
 

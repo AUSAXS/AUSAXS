@@ -6,7 +6,7 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <dataset/Dataset.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/All.h>
 
 

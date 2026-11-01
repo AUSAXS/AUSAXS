@@ -8,7 +8,7 @@
 #include <data/Molecule.h>
 #include <data/symmetry/PredefinedSymmetries.h>
 #include <fitter/SmartFitter.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <io/Reader.h>
 #include <io/pdb/PDBStructure.h>
 #include <rigidbody/sequencer/detail/SymmetryFit.h>

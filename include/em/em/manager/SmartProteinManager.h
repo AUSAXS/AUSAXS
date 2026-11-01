@@ -27,7 +27,7 @@ namespace ausaxs::em::managers {
              * @brief Evaluate and get the histogram for the given cutoff. 
              *        This will update the underlying Molecule to reflect the new cutoff value.
              */
-            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(double cutoff) override;
+            std::unique_ptr<hist::IScatteringModel> get_histogram(double cutoff) override;
 
             /**
              * @brief Get the current state of the underlying Molecule. 

@@ -29,11 +29,11 @@ namespace ausaxs::settings {
             // The grid cells share a single Gaussian spherical form factor, with a radius dependent on the cell volume.
             Grid,
 
-            // Similar to the Grid method, except the cell width can be stretched to fit the excluded volume. 
+            // Similar to the Grid method, except the occupied grid cells are marked as either interior or surface.
+            // The volume of only the surface cells can then be fitted in a similar manner to the Fraser method.
             GridSurface,
 
-            // Similar to the Grid method, except the occupied grid cells are marked as either interior or surface. 
-            // The volume of only the surface cells can then be fitted in a similar manner to the Fraser method.
+            // Similar to the Grid method, except the cell width can be stretched to fit the excluded volume.
             GridScalable,
 
             // Mimic of the CRYSOL Fraser implementation.

@@ -14,7 +14,7 @@
 #include <em/manager/SmartProteinManager.h>
 #include <hist/HistFwd.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/All.h>
 
 #include <memory>

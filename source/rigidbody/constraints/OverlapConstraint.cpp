@@ -4,8 +4,8 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
 
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 

@@ -6,7 +6,7 @@
 #include <api/ObjectStorage.h>
 #include <data/Molecule.h>
 #include <fitter/SmartFitter.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 
 #include <algorithm>
 #include <string>
@@ -20,7 +20,7 @@ struct _iterative_fit_state_obj {
     explicit _iterative_fit_state_obj(Molecule* protein) : protein(protein) {}
     Molecule* protein;
     std::vector<double> q, I;
-    std::unique_ptr<hist::ICompositeDistanceHistogram> hist; 
+    std::unique_ptr<hist::IScatteringModel> hist; 
     fitter::SmartFitter::EnabledFitParameters enabled_pars = fitter::SmartFitter::EnabledFitParameters::initialize_from_settings();
 };
 }

@@ -8,7 +8,7 @@
 #include <grid/detail/GridExcludedVolume.h>
 #include <hist/detail/GridExvFFT.h>
 #include <hist/distribution/WeightedDistribution1D.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/scattering_model/DistanceHistogram.h>
 #include <math/Vector3.h>
 #include <settings/InternalState.h>
 #include <utility/Exceptions.h>

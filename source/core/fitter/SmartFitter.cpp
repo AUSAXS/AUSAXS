@@ -6,7 +6,7 @@
 #include <constants/ConstantsFitParameters.h>
 #include <dataset/SimpleDataset.h>
 #include <fitter/FitResult.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/scattering_model/IScatteringModelExv.h>
 #include <math/CubicSpline.h>
 #include <mini/MinimizerFactory.h>
 #include <settings/FitSettings.h>
@@ -65,25 +65,25 @@ void SmartFitter::EnabledFitParameters::apply_pars(const std::vector<double>& pa
     );
 
     int index = 0;
-    if (hydration)           {static_cast<hist::ICompositeDistanceHistogram*>(model)->apply_water_scaling_factor(params[index++]);}
-    if (excluded_volume)     {static_cast<hist::ICompositeDistanceHistogramExv*>(model)->apply_excluded_volume_scaling_factor(params[index++]);}
-    if (solvent_density)     {static_cast<hist::ICompositeDistanceHistogramExv*>(model)->apply_solvent_density_scaling_factor(params[index++]);}
-    if (atomic_debye_waller) {static_cast<hist::ICompositeDistanceHistogramExv*>(model)->apply_atomic_debye_waller_factor(params[index++]);}
-    if (exv_debye_waller)    {static_cast<hist::ICompositeDistanceHistogramExv*>(model)->apply_exv_debye_waller_factor(params[index++]);}
+    if (hydration)           {static_cast<hist::IScatteringModel*>(model)->apply_water_scaling_factor(params[index++]);}
+    if (excluded_volume)     {static_cast<hist::IScatteringModelExv*>(model)->apply_excluded_volume_scaling_factor(params[index++]);}
+    if (solvent_density)     {static_cast<hist::IScatteringModelExv*>(model)->apply_solvent_density_scaling_factor(params[index++]);}
+    if (atomic_debye_waller) {static_cast<hist::IScatteringModelExv*>(model)->apply_atomic_debye_waller_factor(params[index++]);}
+    if (exv_debye_waller)    {static_cast<hist::IScatteringModelExv*>(model)->apply_exv_debye_waller_factor(params[index++]);}
 }
 
 void SmartFitter::EnabledFitParameters::validate_model(observer_ptr<hist::DistanceHistogram> h) {
     if (h == nullptr) {throw except::invalid_argument("SmartFitter::EnabledFitParameters::validate_model: Cannot fit without a model.");}
-    if (hydration && dynamic_cast<hist::ICompositeDistanceHistogram*>(h) == nullptr) {
+    if (hydration && dynamic_cast<hist::IScatteringModel*>(h) == nullptr) {
         console::print_warning("SmartFitter::EnabledFitParameters::validate_model: Hydration shell fitting is enabled, but the model does not support hydration shell operations. Disabling hydration shell fitting.");
         hydration = false;
     }
-    if ((excluded_volume || solvent_density) && dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h) == nullptr) {
+    if ((excluded_volume || solvent_density) && dynamic_cast<hist::IScatteringModelExv*>(h) == nullptr) {
         console::print_warning("SmartFitter::EnabledFitParameters::validate_model: Excluded volume fitting is enabled, but the model does not support excluded volume operations. Disabling excluded volume fitting.");
         excluded_volume = false;
         solvent_density = false;
     }
-    if ((atomic_debye_waller || exv_debye_waller) && dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h) == nullptr) {
+    if ((atomic_debye_waller || exv_debye_waller) && dynamic_cast<hist::IScatteringModelExv*>(h) == nullptr) {
         console::print_warning("SmartFitter::EnabledFitParameters::validate_model: Debye-Waller fitting is enabled, but the model does not support Debye-Waller operations. Disabling Debye-Waller fitting.");
         atomic_debye_waller = false;
         exv_debye_waller = false;
@@ -111,12 +111,12 @@ SmartFitter::SmartFitter(const SimpleDataset& data, std::unique_ptr<hist::Distan
 }
 
 namespace {
-    observer_ptr<hist::ICompositeDistanceHistogramExv> cast_exv(observer_ptr<hist::DistanceHistogram> hist) {
-        return static_cast<hist::ICompositeDistanceHistogramExv*>(hist);
+    observer_ptr<hist::IScatteringModelExv> cast_exv(observer_ptr<hist::DistanceHistogram> hist) {
+        return static_cast<hist::IScatteringModelExv*>(hist);
     }
 
-    observer_ptr<hist::ICompositeDistanceHistogram> cast_h(observer_ptr<hist::DistanceHistogram> hist) {
-        return static_cast<hist::ICompositeDistanceHistogram*>(hist);
+    observer_ptr<hist::IScatteringModel> cast_h(observer_ptr<hist::DistanceHistogram> hist) {
+        return static_cast<hist::IScatteringModel*>(hist);
     }
 }
 

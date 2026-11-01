@@ -7,7 +7,7 @@
 #include <data/Molecule.h>
 #include <em/detail/EMGrid.h>
 #include <em/detail/ImageStackBase.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/EMSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Console.h>
@@ -23,7 +23,7 @@ using namespace ausaxs::data;
 
 SmartProteinManager::~SmartProteinManager() = default;
 
-std::unique_ptr<hist::ICompositeDistanceHistogram> SmartProteinManager::get_histogram(double cutoff) {
+std::unique_ptr<hist::IScatteringModel> SmartProteinManager::get_histogram(double cutoff) {
     return get_protein(cutoff)->get_histogram();
 }
 

@@ -7,7 +7,7 @@
 #include <data/state/StateManager.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/histogram_manager/PartialHistogramManager.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/All.h>
 #include <utility/Random.h>
 

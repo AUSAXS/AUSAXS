@@ -3,7 +3,7 @@
 
 #include <hist/histogram_manager/HistogramManagerMT.h>
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <utility/Logging.h>
 
 using namespace ausaxs;
@@ -16,9 +16,9 @@ template<bool wb>
 std::unique_ptr<DistanceHistogram> HistogramManagerMT<wb>::calculate() {return calculate_all();}
 
 template<bool wb>
-std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<wb>::calculate_all() {
+std::unique_ptr<IScatteringModel> HistogramManagerMT<wb>::calculate_all() {
     logging::log("HistogramManagerMT::calculate: starting calculation");
-    return hist::detail::make_histogram(this->compute_distributions(), this->protein);
+    return hist::detail::make_model(this->compute_distributions(), this->protein);
 }
 
 template class hist::HistogramManagerMT<false>;

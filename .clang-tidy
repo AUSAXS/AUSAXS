@@ -108,8 +108,8 @@ Checks: >
 #       Renames a derived method whose name is within a small edit distance of a base
 #       class virtual with the same signature, assuming the near-match was a typo. The
 #       partial scattering profile accessors are deliberately one character apart --
-#       get_profile_aa/aw/ww on ICompositeDistanceHistogram and get_profile_ax/xx/wx on
-#       ICompositeDistanceHistogramExv, named for the pair of species whose interaction
+#       get_profile_aa/aw/ww on IScatteringModel and get_profile_ax/xx/wx on
+#       IScatteringModelExv, named for the pair of species whose interaction
 #       each one describes -- so every one of them is a "near miss" of the others.
 #       Whether a wrong rename lands is decided by an implementation detail: run with
 #       --fix, get_profile_ax is reported against both get_profile_aa and get_profile_aw,
@@ -364,7 +364,7 @@ CheckOptions:
   # no function body in the derived class to move anything in, so the report is not
   # actionable by any edit short of NOLINT; 11 of the 61 tree-wide hits were of this
   # shape, all on the histogram and io hierarchies that inherit their base constructors
-  # (ICompositeDistanceHistogram, CompositeDistanceHistogramFFGridBase, Distribution1D,
+  # (IScatteringModel, ScatteringModelGridBase, Distribution1D,
   # ExistingFile and friends). Suppressing unnamed parameters removes exactly those and
   # leaves every named-parameter report intact.
   cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreUnnamedParams: 'true'

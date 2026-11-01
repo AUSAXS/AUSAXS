@@ -6,7 +6,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h> // NOLINT
+#include <hist/scattering_model/IScatteringModel.h> // NOLINT
 #include <io/ExistingFile.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>

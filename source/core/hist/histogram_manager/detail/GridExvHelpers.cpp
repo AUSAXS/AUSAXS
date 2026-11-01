@@ -4,8 +4,8 @@
 #include <hist/histogram_manager/detail/GridExvHelpers.h>
 
 #include <form_factor/FormFactorType.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
+#include <hist/scattering_model/ScatteringModelAverage.h>
+#include <hist/scattering_model/ScatteringModelGrid.h>
 
 #include <algorithm>
 
@@ -13,7 +13,7 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail::grid_exv;
 
-AtomicDistributions AtomicDistributions::take(CompositeDistanceHistogramFFAvg& base) {
+AtomicDistributions AtomicDistributions::take(ScatteringModelAverage& base) {
     // the total is copied before anything is moved out, since it is derived from the rest
     WeightedDistribution1D p_tot = base.get_weighted_counts();
     p_tot.set_bin_centers(base.get_d_axis());
@@ -36,7 +36,7 @@ int AtomicDistributions::grow(int bins) {
     return bins;
 }
 
-std::unique_ptr<CompositeDistanceHistogramFFGrid> hist::detail::grid_exv::splice(
+std::unique_ptr<ScatteringModelGrid> hist::detail::grid_exv::splice(
     AtomicDistributions atomic, const WeightedDistribution2D& p_ax, const WeightedDistribution1D& p_wx, WeightedDistribution1D p_xx
 ) {
     int bins = atomic.p_tot.size();
@@ -62,7 +62,7 @@ std::unique_ptr<CompositeDistanceHistogramFFGrid> hist::detail::grid_exv::splice
     std::move(wx.begin(), wx.begin()+bins, atomic.p_aw.begin(form_factor::exv_bin));
     std::move(xx.begin(), xx.begin()+bins, atomic.p_aa.begin(form_factor::exv_bin, form_factor::exv_bin));
 
-    return std::make_unique<CompositeDistanceHistogramFFGrid>(
+    return std::make_unique<ScatteringModelGrid>(
         std::move(atomic.p_aa),
         std::move(atomic.p_aw),
         std::move(atomic.p_ww),

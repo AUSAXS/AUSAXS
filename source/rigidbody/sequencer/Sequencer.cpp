@@ -3,7 +3,7 @@
 
 #include <rigidbody/sequencer/Sequencer.h>
 
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>

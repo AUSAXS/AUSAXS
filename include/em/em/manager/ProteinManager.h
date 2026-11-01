@@ -35,7 +35,7 @@ namespace ausaxs::em::managers {
             /**
              * @brief Get the histogram for a given cutoff.
              */
-            virtual std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(double cutoff) = 0;
+            virtual std::unique_ptr<hist::IScatteringModel> get_histogram(double cutoff) = 0;
 
             /**
              * @brief Get the excluded volume mass of the managed molecule.

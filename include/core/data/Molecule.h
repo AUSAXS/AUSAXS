@@ -49,7 +49,7 @@ namespace ausaxs::data {
 			/**
 			 * @brief Get the distances between each atom.
 			 */
-			[[nodiscard]] std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram() const;
+			[[nodiscard]] std::unique_ptr<hist::IScatteringModel> get_histogram() const;
 
 			/**
 			 * @brief Get the total distance histogram only. 

@@ -15,8 +15,8 @@
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/histogram_manager/detail/SymmetryHelpers.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
@@ -209,7 +209,7 @@ void PartialSymmetryManagerMTBase<weighted_bins, form_factors>::update_compact_r
 }
 
 template<bool weighted_bins, bool form_factors>
-std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calculate_all() {
+std::unique_ptr<IScatteringModel> PartialSymmetryManagerMTBase<weighted_bins, form_factors>::calculate_all() {
     auto total = calculate();
     int bins = total->get_weighted_counts().size();
 
@@ -230,7 +230,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialSymmetryManagerMTBase<weight
         d.self_ww = store->get_self_1d(ww);
     }
     d.resize(bins);
-    return make_histogram(std::move(d), protein);
+    return make_model(std::move(d), protein);
 }
 
 template<bool weighted_bins, bool form_factors>

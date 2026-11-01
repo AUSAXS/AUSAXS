@@ -3,7 +3,7 @@
 
 #include <data/Molecule.h>
 #include <fitter/SmartFitter.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <rigidbody/BodySplitter.h>  // IWYU pragma: keep
 #include <settings/All.h>
 

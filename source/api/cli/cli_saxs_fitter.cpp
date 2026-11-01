@@ -14,7 +14,7 @@
 #include <fitter/FitReporter.h>
 #include <fitter/SmartFitter.h>
 #include <grid/Grid.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>  // IWYU pragma: keep
+#include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
 #include <plots/PlotDistance.h>
 #include <plots/PlotProfiles.h>

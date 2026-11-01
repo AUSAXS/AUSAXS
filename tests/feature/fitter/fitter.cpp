@@ -4,7 +4,7 @@
 
 #include <data/Molecule.h>
 #include <fitter/SmartFitter.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/scattering_model/IScatteringModelExv.h>
 #include <mini/detail/FittedParameter.h>
 #include <settings/All.h>
 
@@ -72,7 +72,7 @@ TEST_CASE("SmartFitter::fit") {
     protein.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
 
     SmartFitterDebug fitter({{}}, protein.get_histogram());
-    auto* h = static_cast<hist::ICompositeDistanceHistogramExv*>(fitter.get_model());
+    auto* h = static_cast<hist::IScatteringModelExv*>(fitter.get_model());
 
     SECTION("hydration shell") {
         settings::fit::fit_hydration = true;

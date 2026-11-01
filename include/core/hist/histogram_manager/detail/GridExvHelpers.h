@@ -13,8 +13,8 @@
 #include <vector>
 
 namespace ausaxs::hist {
-	class CompositeDistanceHistogramFFAvg;
-	class CompositeDistanceHistogramFFGrid;
+	class ScatteringModelAverage;
+	class ScatteringModelGrid;
 }
 
 namespace ausaxs::hist::detail::grid_exv {
@@ -32,7 +32,7 @@ namespace ausaxs::hist::detail::grid_exv {
 		/**
 		 * @brief Move the distributions out of @a base, which must not be used afterwards.
 		 */
-		static AtomicDistributions take(CompositeDistanceHistogramFFAvg& base);
+		static AtomicDistributions take(ScatteringModelAverage& base);
 
 		/**
 		 * @brief Grow every distribution to at least @a bins bins, and return the number of bins they then all have.
@@ -44,7 +44,7 @@ namespace ausaxs::hist::detail::grid_exv {
 	 * @brief Replace the excluded volume of the averaged model in @a atomic with the grid-based @a p_ax, @a p_wx, and @a p_xx.
 	 *        Each of these must span at least as many bins as @a atomic.
 	 */
-	std::unique_ptr<CompositeDistanceHistogramFFGrid> splice(
+	std::unique_ptr<ScatteringModelGrid> splice(
 		AtomicDistributions atomic, const WeightedDistribution2D& p_ax, const WeightedDistribution1D& p_wx, WeightedDistribution1D p_xx
 	);
 }

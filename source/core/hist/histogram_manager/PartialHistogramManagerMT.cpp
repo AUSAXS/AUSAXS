@@ -12,8 +12,8 @@
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
-#include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/IScatteringModel.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
@@ -128,7 +128,7 @@ void PartialHistogramManagerMTBase<weighted_bins, form_factors>::update_compact_
 }
 
 template<bool weighted_bins, bool form_factors>
-std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMTBase<weighted_bins, form_factors>::calculate_all() {
+std::unique_ptr<IScatteringModel> PartialHistogramManagerMTBase<weighted_bins, form_factors>::calculate_all() {
     logging::log("PartialHistogramManagerMT::calculate_all: starting calculation");
     auto total = calculate();
     int bins = total->get_weighted_counts().size();
@@ -146,7 +146,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMTBase<weigh
         d.self_ww = store->get_self_1d(id.ww);
     }
     d.resize(bins);
-    return hist::detail::make_histogram(std::move(d), protein);
+    return hist::detail::make_model(std::move(d), protein);
 }
 
 template<bool weighted_bins, bool form_factors>
