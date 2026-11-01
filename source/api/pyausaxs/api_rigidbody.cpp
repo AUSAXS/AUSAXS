@@ -139,36 +139,6 @@ int rigidbody_get_preview_structure(
 }, status);}
 
 namespace {
-    struct _rigidbody_live_structure_obj {
-        std::vector<double> x, y, z;
-    };
-}
-int rigidbody_get_live_structure(
-    double** x, double** y, double** z,
-    int* n_atoms, int* version,
-    int* status
-) {return execute_with_catch([&]() {
-    _rigidbody_live_structure_obj data;
-    int ver = 0;
-
-    rigidbody::sequencer::UpdateElement::lock();
-    data.x = rigidbody::sequencer::UpdateElement::x;
-    data.y = rigidbody::sequencer::UpdateElement::y;
-    data.z = rigidbody::sequencer::UpdateElement::z;
-    ver = rigidbody::sequencer::UpdateElement::version;
-    rigidbody::sequencer::UpdateElement::unlock();
-
-    int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto* ref = api::ObjectStorage::get_object<_rigidbody_live_structure_obj>(data_id);
-    *x = ref->x.data();
-    *y = ref->y.data();
-    *z = ref->z.data();
-    *n_atoms = static_cast<int>(ref->x.size());
-    *version = ver;
-    return data_id;
-}, status);}
-
-namespace {
     struct _rigidbody_live_poller_obj {
         std::vector<double> x, y, z;
     };

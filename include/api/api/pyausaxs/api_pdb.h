@@ -18,11 +18,6 @@ extern "C" API int pdb_get_data(
     int* n_atoms, int* status
 );
 
-extern "C" API int pdb_debye_fit(
-    int pdb_id, int data_id,
-    int* status
-);
-
 /**
  * @brief Fit the named symmetry to the chains of a PDB and return the symmetry-decomposed structure: the reference chain plus the fitted 
  *        symmetry copies, each atom tagged with its copy index (0 = reference chain, 1..N = generated copies). `rmsd` receives the residual 
