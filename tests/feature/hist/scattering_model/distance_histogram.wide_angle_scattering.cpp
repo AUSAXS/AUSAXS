@@ -2,7 +2,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <dataset/SimpleDataset.h>
+#include <dataset/Dataset.h>
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>
