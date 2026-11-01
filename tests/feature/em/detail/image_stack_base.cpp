@@ -13,6 +13,7 @@
 #include <hydrate/generation/RadialHydration.h>
 #include <settings/All.h>
 
+#include <support/em_debug.h>
 #include <support/hist_test_helper.h>
 
 #include <support/temp_file.h>
@@ -85,7 +86,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
 TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
     SECTION("single image") {
         settings::em::sample_frequency = 1;
-        em::ImageStackBase isb(images);
+        test::ImageStackBaseDebug isb(images);
         REQUIRE(isb.count_voxels(0) == 27);
         REQUIRE(isb.count_voxels(10) == 18);
         REQUIRE(isb.count_voxels(20) == 8);
@@ -96,7 +97,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
     SECTION("sampling frequency") {
         SECTION("dummy images") {
             settings::em::sample_frequency = 2;
-            em::ImageStackBase isb(images);
+            test::ImageStackBaseDebug isb(images);
 
             // x and y each stride 2 over a 3x3 image, so 4 of its 9 voxels are sampled, and z skips the middle image
             CHECK(isb.count_voxels(0) == 8);
@@ -137,7 +138,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
         header = std::make_unique<em::detail::header::MRCHeader>(std::move(header_data));
     }
 
-    em::ImageStackBase isb(images);
+    test::ImageStackBaseDebug isb(images);
     isb.set_header(std::move(header));
     auto* h = static_cast<em::detail::header::MapHeader<em::detail::header::MRCData>*>(isb.get_header())->get_data();
     CHECK(h->nx == 10);
@@ -151,30 +152,30 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::size") {
     SECTION("single image") {
-        em::ImageStackBase isb({dummy_image1});
+        test::ImageStackBaseDebug isb({dummy_image1});
         REQUIRE(isb.size() == 1);
     }
 
     SECTION("multiple images") {
-        em::ImageStackBase isb(images);
+        test::ImageStackBaseDebug isb(images);
         REQUIRE(isb.size() == 3);
     }
 }
 
 TEST_CASE("ImageStackBase::mean") {
     SECTION("single image") {
-        em::ImageStackBase isb({dummy_image1});
+        test::ImageStackBaseDebug isb({dummy_image1});
         REQUIRE(isb.mean() == 5);
     }
 
     SECTION("multiple images") {
-        em::ImageStackBase isb({dummy_image1, dummy_image2, dummy_image3});
+        test::ImageStackBaseDebug isb({dummy_image1, dummy_image2, dummy_image3});
         REQUIRE(isb.mean() == 14);
     }
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::minimum_volume") {
-    em::ImageStackBase isb(images);
+    test::ImageStackBaseDebug isb(images);
 
     auto val = GENERATE(1, 5, 9);
     auto vol = isb.minimum_volume(val);
@@ -185,31 +186,31 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::minimum_volume") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::from_level") {
-    em::ImageStackBase isb(images);
+    test::ImageStackBaseDebug isb(images);
     auto sigma = GENERATE(0.5, 1, 1.5, 2);
     REQUIRE(isb.from_level(sigma) == isb.rms()*sigma);
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::to_level") {
-    em::ImageStackBase isb(images);
+    test::ImageStackBaseDebug isb(images);
     auto sigma = GENERATE(0.5, 1, 1.5, 2);
     REQUIRE(isb.to_level(sigma) == sigma/isb.rms());
 }
 
 TEST_CASE("ImageStackBase::rms") {
     SECTION("single image") {
-        em::ImageStackBase isb({dummy_image1});
+        test::ImageStackBaseDebug isb({dummy_image1});
         REQUIRE_THAT(isb.rms(), Catch::Matchers::WithinAbs(5.62731434, 1e-3));
     }
 
     SECTION("multiple images") {
-        em::ImageStackBase isb({dummy_image1, dummy_image2, dummy_image3});
+        test::ImageStackBaseDebug isb({dummy_image1, dummy_image2, dummy_image3});
         REQUIRE_THAT(isb.rms(), Catch::Matchers::WithinAbs(16.0208198, 1e-3));
     }
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::set_minimum_bounds") {
-    em::ImageStackBase isb(images);
+    test::ImageStackBaseDebug isb(images);
 
     auto bound = GENERATE(1, 5, 9);
     isb.set_minimum_bounds(bound);

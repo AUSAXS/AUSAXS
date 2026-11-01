@@ -11,6 +11,7 @@
 #include <settings/All.h>
 
 #include <map>
+#include <support/em_debug.h>
 #include <support/exact_grid.h>
 
 using namespace ausaxs;
@@ -63,7 +64,7 @@ TEST_CASE("ImageStack: test with sphere", "[broken]") {
         images[k] = em::Image(data, header.get(), k);
     }
 
-    em::ImageStack stack(images);
+    test::ImageStackDebug stack(images);
     // auto[fit, landscape] = stack.cutoff_scan_fit(100, std::move(Iq));
     auto fit = stack.fit("temp/tests/em/sphere_Iq.dat");
     // plots::PlotLandscape::quick_plot(landscape, "temp/tests/em/sphere_landscape.png");
@@ -78,7 +79,7 @@ TEST_CASE("ImageStack::get_protein") {
             settings::em::fixed_weights = false;
             auto data  = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
             auto data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
-            em::ImageStack images({data, data2});
+            test::ImageStackDebug images({data, data2});
 
             std::unique_ptr header = std::make_unique<em::detail::header::MRCHeader>();
             std::unique_ptr header_data = std::make_unique<em::detail::header::MRCData>();
@@ -104,7 +105,7 @@ TEST_CASE("ImageStack::get_protein") {
             settings::em::fixed_weights = true;
             auto data  = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
             auto data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
-            em::ImageStack images({data, data2});
+            test::ImageStackDebug images({data, data2});
 
             std::unique_ptr header = std::make_unique<em::detail::header::MRCHeader>();
             std::unique_ptr header_data = std::make_unique<em::detail::header::MRCData>();

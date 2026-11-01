@@ -31,13 +31,6 @@ namespace ausaxs::em {
              */
             ImageStack(const io::ExistingFile& file);
 
-            /**
-             * @brief Create a new ImageStack from a list of images.
-             * 
-             * @param images The images for this stack.
-             */
-            ImageStack(const std::vector<Image>& images);
-
             ~ImageStack() override;
 
             /**
@@ -82,6 +75,17 @@ namespace ausaxs::em {
              * Typically this will be in the range [0, 2*max_iterations], though it can be higher for some datasets.
              */
             auto get_progress_observer() {return progress.make_observer();}
+
+        protected:
+            /**
+             * @brief Create a new ImageStack from a list of images.
+             *
+             * Deliberately not public, for the same reason as the base class constructor it forwards to: the resulting stack has no header.
+             * Tests that need a synthetic stack should derive from this class - see tests/support/em_debug.h.
+             *
+             * @param images The images for this stack.
+             */
+            ImageStack(const std::vector<Image>& images);
 
         private: 
             std::vector<mini::FittedParameter> water_factors;   // If hydration is enabled, the fitted water scaling factors will be recorded here.

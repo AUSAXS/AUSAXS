@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include <support/em_debug.h>
 #include <support/hist_test_helper.h>
 
 using namespace ausaxs;
@@ -103,7 +104,7 @@ TEST_CASE("managers: EM: em_partial_histogram_manager") {
         }
 
         Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
-        em::ImageStack images({data});
+        test::ImageStackDebug images({data});
         images.set_header(std::move(header));
 
         auto manager = em::factory::create_manager(&images);
@@ -137,7 +138,7 @@ TEST_CASE("managers: EM: em_partial_histogram_manager") {
             }
 
             Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
-            em::ImageStack images({data});
+            test::ImageStackDebug images({data});
             images.set_header(std::move(header));
 
             std::shared_ptr<em::managers::ProteinManager> manager1 = std::make_shared<em::managers::SimpleProteinManager>(&images);

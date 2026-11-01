@@ -9,6 +9,7 @@
 #include <utility/Axis3D.h>
 #include <utility/Exceptions.h>
 
+#include <support/em_debug.h>
 #include <support/temp_file.h>
 
 #include <array>
@@ -42,7 +43,7 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
         for (int i = 0; i < 10; ++i) {
             images.emplace_back(dummy_image1);
         }
-        em::ImageStackBase isb(images);
+        test::ImageStackBaseDebug isb(images);
         REQUIRE(isb.size() == 10);
     }
 }
@@ -56,7 +57,7 @@ TEST_CASE("ImageStackBase::image") {
     images[1].set_z(1);
     images[2].set_z(2);
 
-    em::ImageStackBase isb(images);
+    test::ImageStackBaseDebug isb(images);
     REQUIRE(isb.image(0) == images[0]);
     REQUIRE(isb.image(1) == images[1]);
     REQUIRE(isb.image(2) == images[2]);
@@ -71,7 +72,7 @@ TEST_CASE("ImageStackBase::images") {
     images[1].set_z(1);
     images[2].set_z(2);
 
-    em::ImageStackBase isb(images);
+    test::ImageStackBaseDebug isb(images);
     REQUIRE(isb.images() == images);
 }
 
@@ -81,7 +82,7 @@ TEST_CASE("ImageStackBase::size") {
     images.emplace_back(dummy_image2);
     images.emplace_back(dummy_image3);
 
-    em::ImageStackBase isb(images);
+    test::ImageStackBaseDebug isb(images);
     REQUIRE(isb.size() == 3);
 }
 

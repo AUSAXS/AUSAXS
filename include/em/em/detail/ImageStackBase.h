@@ -33,13 +33,6 @@ namespace ausaxs::em {
             ImageStackBase(const io::ExistingFile& file);
 
             /**
-             * @brief Constructor.
-             * 
-             * @param images The images for this stack.
-             */
-            ImageStackBase(const std::vector<Image>& images);
-
-            /**
              * @brief Destructor.
              */
             virtual ~ImageStackBase();
@@ -138,6 +131,18 @@ namespace ausaxs::em {
              * @param min_val The smallest possible value. Must be positive.
              */
             void set_minimum_bounds(double min_val);
+
+        protected:
+            /**
+             * @brief Construct a stack directly from a list of images.
+             *
+             * Deliberately not public: a stack built this way has no header, so every header-derived quantity (voxel size, axis order, the
+             * grid the backing molecule is generated on) is unavailable until set_header() is called. Every production entry point reads a
+             * map file instead. Tests that need a synthetic stack should derive from this class - see tests/support/em_debug.h.
+             *
+             * @param images The images for this stack.
+             */
+            ImageStackBase(const std::vector<Image>& images);
 
         private:
             std::unique_ptr<detail::header::IMapHeader> header; // The header of the input file.
