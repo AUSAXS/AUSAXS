@@ -4,9 +4,9 @@
 
 #include <data/Molecule.h>
 #include <dataset/Dataset.h>
+#include <hist/ScatteringProfile.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
-#include <hist/ScatteringProfile.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
