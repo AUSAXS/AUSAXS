@@ -6,6 +6,7 @@
 #include <dataset/Dataset.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
+#include <hist/ScatteringProfile.h>
 #include <settings/All.h>
 
 using namespace ausaxs;
@@ -130,5 +131,41 @@ TEST_CASE("DistanceHistogram: extended q-range") {
     for (int i = 0; i < I_dynamic.size(); ++i) {
         auto rel_error = std::abs(I_dynamic.y(i) - I_exact[i]) / I_exact[i];
         REQUIRE(rel_error < 0.03);
+    }
+}
+
+// a custom q range leaving qmin..qmax must still be evaluated with the full model: its form factors and excluded volume
+TEST_CASE("DistanceHistogram: custom q outside qmin..qmax keeps the model") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+    settings::hist::weighted_bins = true;
+    auto exv = GENERATE(
+        settings::exv::ExvMethod::None, settings::exv::ExvMethod::Simple, settings::exv::ExvMethod::Average,
+        settings::exv::ExvMethod::Fraser, settings::exv::ExvMethod::Grid, settings::exv::ExvMethod::FoXS
+    );
+    settings::exv::exv_method = exv;
+
+    auto protein = data::Molecule("tests/files/2epe.pdb");
+    protein.clear_hydration();
+
+    // reference: the model's own profile over the whole default q axis
+    settings::axes::qmin = constants::axes::q_axis.min;
+    settings::axes::qmax = constants::axes::q_axis.max;
+    auto reference = protein.get_histogram()->debye_transform().as_dataset();
+
+    settings::axes::qmax = 0.5;
+    auto hist = protein.get_histogram();
+    std::vector<double> q_inside = {0.01, 0.1, 0.3, 0.45};
+    std::vector<double> q = {constants::axes::q_axis.min, 0.05, 0.2, 0.45, 0.6, 0.8, 0.95, 1.0};
+    auto I_inside = hist->debye_transform(q_inside);
+    auto I = hist->debye_transform(q);
+    auto I_inside_after = hist->debye_transform(q_inside);
+    auto I_ref = reference.interpolate(q);
+
+    for (unsigned int i = 0; i < q.size(); ++i) {
+        CHECK_THAT(I.y(i), Catch::Matchers::WithinRel(I_ref.y(i), 1e-6));
+    }
+    for (unsigned int i = 0; i < q_inside.size(); ++i) {
+        CHECK_THAT(I_inside_after.y(i), Catch::Matchers::WithinRel(I_inside.y(i), 1e-6));
     }
 }

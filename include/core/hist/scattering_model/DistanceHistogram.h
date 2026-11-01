@@ -59,8 +59,9 @@ namespace ausaxs::hist {
 
             /**
              * @brief Perform the Fourier transform through the Debye equation.
-             *        If the given q-axis is within the range of the default q-axis, they will be interpolated for better efficiency.
-             *        If not, a size q*d sinc(x) lookup table will be calculated for every call to this function.
+             *        q values within the default q axis (constants::axes::q_axis) are interpolated from the profile of this histogram.
+             *        If settings::axes::qmin..qmax does not cover them, the q range is first expanded to do so; see expand_q_range.
+             *        Outside the default q axis, a size q*d sinc(x) lookup table is calculated for every call to this function.
              *
              * @param q The q values at which to evaluate the scattering.
              */
@@ -132,6 +133,12 @@ namespace ausaxs::hist {
              */
             template<bool form_factor>
             static ScatteringProfile debye_sum(std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table);
+
+            /**
+             * @brief Expand settings::axes::qmin..qmax to cover @a q, which must lie within the default q axis.
+             *        Subclasses caching anything sized by the q range must invalidate it.
+             */
+            virtual void expand_q_range(const std::vector<double>& q) const;
 
             std::vector<double> d_axis;                     // The distance axis.
             mutable table::DebyeTableManager sinc_table;    // The sinc(x) lookup table manager for the Debye transform.

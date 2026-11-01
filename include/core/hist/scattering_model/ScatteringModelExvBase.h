@@ -280,6 +280,8 @@ namespace ausaxs::hist {
              */
             virtual void cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const = 0;
 
+            void expand_q_range(const std::vector<double>& q) const override;
+
         private:
             // @copydoc cache_refresh_sinqd_exv
             void cache_refresh_sinqd_atomic() const;

@@ -10,6 +10,7 @@
 #include <settings/HistogramSettings.h>
 #include <utility/MultiThreading.h>
 
+#include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <utility>
@@ -82,6 +83,11 @@ ScatteringProfile DistanceHistogram::debye_sum(std::span<const double> counts, o
     return {debye_sum<form_factor>(counts, sinqd_table, q, q0), debye_axis};
 }
 
+void DistanceHistogram::expand_q_range(const std::vector<double>& q) const {
+    settings::axes::qmax = std::max<double>(settings::axes::qmax, q.back());
+    settings::axes::qmin = std::min<double>(settings::axes::qmin, q.front());
+}
+
 ScatteringProfile DistanceHistogram::debye_transform() const {
     return debye_sum<true>(p, sinc_table.get_sinc_table());
 }
@@ -98,11 +104,20 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
 
 template<bool form_factor>
 Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
-    // if the q values are within the evaluated default range, we can just interpolate them for better performance
+    // 1. q within the current range: interpolate the model
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     if (debye_axis.front() <= q.front() && q.back() <= debye_axis.back()) {
         return debye_transform<form_factor>().as_dataset().interpolate(q);
     }
+
+    // 2. q within the default axis: expand the q range to cover it and interpolate. 
+    // The settings keep the expanded range, so a fit calling this repeatedly pays for it only once.
+    if (constants::axes::q_axis.min <= q.front() && q.back() <= constants::axes::q_axis.max) {
+        if (q.front() < settings::axes::qmin || settings::axes::qmax < q.back()) {expand_q_range(q);}
+        return debye_transform<form_factor>().as_dataset().interpolate(q);
+    }
+
+    // 3. outside the default axis there are no precomputed form factors, so only the plain total histogram can be evaluated
     static table::DebyeTableManager sinc_table_extended;
     sinc_table_extended.set_q_axis(q);
     sinc_table_extended.set_d_axis(this->d_axis);
