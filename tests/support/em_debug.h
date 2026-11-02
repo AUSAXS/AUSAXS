@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <em/Image.h>
 #include <em/ImageStack.h>
 #include <em/detail/ImageStackBase.h>
-#include <em/Image.h>
 
 #include <vector>
 
