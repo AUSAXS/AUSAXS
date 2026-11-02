@@ -12,8 +12,7 @@
 
 using namespace ausaxs;
 
-// pyAUSAXS and its GUI call the exported CLI functions in-process, so every outcome must be a return code:
-// an exit() or an escaping exception here would take the test binary down with it.
+// the exported CLI functions must report every outcome as a return code: an exit() here would take the test binary down with it
 namespace {
     template<typename F>
     int call(F&& f, std::vector<const char*> argv) {
@@ -21,7 +20,7 @@ namespace {
     }
 }
 
-TEST_CASE("cli: exported entry points return instead of exiting or throwing") {
+TEST_CASE("cli: exported entry points return instead of exiting") {
     settings::general::verbose = false;
 
     SECTION("--version returns 0") {
@@ -34,9 +33,5 @@ TEST_CASE("cli: exported entry points return instead of exiting or throwing") {
         CHECK(call(cli_saxs_fitter, {"fit"}) == 1);
         CHECK(call(cli_em_fitter, {"em"}) == 1);
         CHECK(call(cli_rigidbody, {"rigidbody"}) == 1);
-    }
-
-    SECTION("an option callback that throws while parsing returns 1") {
-        CHECK(call(cli_saxs_fitter, {"fit", "tests/files/2epe.pdb", "tests/files/2epe.dat", "exv", "--model", "Foo"}) == 1);
     }
 }

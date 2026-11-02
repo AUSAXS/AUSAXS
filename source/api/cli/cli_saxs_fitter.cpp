@@ -23,14 +23,12 @@
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
-#include <iostream>
 #include <string>
 #include <vector>
 
 using namespace ausaxs;
 
-namespace {
-int run(int argc, char const *argv[]) {
+int cli_saxs_fitter(int argc, char const *argv[]) {
     io::ExistingFile pdb, mfile, exv_ref_file, settings;
     bool keep_hydration = false, save_settings = false, save_grid = false, save_exv = false;
 
@@ -298,12 +296,4 @@ int run(int argc, char const *argv[]) {
         return 1;
     }
     return 0;
-}
-}
-
-int cli_saxs_fitter(int argc, char const *argv[]) {
-    // exported: pyAUSAXS and its GUI call this in-process, so nothing may escape it, including what the option callbacks throw during parsing
-    int status;
-    int rc = execute_with_catch([&] () {return run(argc, argv);}, &status);
-    return status == 0 ? rc : 1;
 }

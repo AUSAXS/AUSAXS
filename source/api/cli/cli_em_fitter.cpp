@@ -16,12 +16,9 @@
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
 
-#include <iostream>
-
 using namespace ausaxs;
 
-namespace {
-int run(int argc, char const *argv[]) {
+int cli_em_fitter(int argc, char const *argv[]) {
     settings::fit::verbose = true;
     settings::general::supplementary_plots = false;
     bool save_settings = false;
@@ -173,12 +170,4 @@ int run(int argc, char const *argv[]) {
         return 1;
     }
     return 0;
-}
-}
-
-int cli_em_fitter(int argc, char const *argv[]) {
-    // exported: pyAUSAXS and its GUI call this in-process, so nothing may escape it, including what the option callbacks throw during parsing
-    int status;
-    int rc = execute_with_catch([&] () {return run(argc, argv);}, &status);
-    return status == 0 ? rc : 1;
 }

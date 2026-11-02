@@ -20,8 +20,7 @@
 
 using namespace ausaxs;
 
-namespace {
-int run(int argc, char const *argv[]) {
+int cli_rigidbody(int argc, char const *argv[]) {
     settings::grid::scaling = 2;
     settings::grid::cubic = true;
     settings::general::verbose = true;
@@ -128,12 +127,4 @@ int run(int argc, char const *argv[]) {
         return 1;
     }
     return 0;
-}
-}
-
-int cli_rigidbody(int argc, char const *argv[]) {
-    // exported: pyAUSAXS and its GUI call this in-process, so nothing may escape it, including what the option callbacks throw during parsing
-    int status;
-    int rc = execute_with_catch([&] () {return run(argc, argv);}, &status);
-    return status == 0 ? rc : 1;
 }

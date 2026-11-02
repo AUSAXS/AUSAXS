@@ -24,7 +24,6 @@ namespace {
 }
 
 int main(int argc, char const *argv[]) {
-    // process-wide, so only the executable may set it: the cli_* functions also run inside pyAUSAXS and its GUI
     std::ios_base::sync_with_stdio(false);
     auto print_help = [&] () {
         console::print_text(
