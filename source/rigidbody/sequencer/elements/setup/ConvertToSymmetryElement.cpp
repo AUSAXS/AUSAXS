@@ -305,8 +305,8 @@ std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<Lo
     double tolerance = ConvertToSymmetryElement::default_tolerance;
     if (tolerance_it != args.named.end()) {
         if (tolerance_it->second.size() != 1) {throw except::parse_error("convert_to_symmetry", "\"tolerance\" takes exactly one value.");}
-        try {tolerance = std::stod(std::string{tolerance_it->second[0].str});}
-        catch (const std::exception&) {throw except::parse_error("convert_to_symmetry", "\"tolerance\" must be a number.");}
+        try {tolerance = search::parse_double(tolerance_it->second[0].str);}
+        catch (const std::exception&) {throw except::parse_error("convert_to_symmetry", "\"tolerance\" must be a finite number.");}
     }
 
     std::string symmetry_name = type_it->second[0];

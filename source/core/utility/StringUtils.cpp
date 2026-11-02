@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <cmath>
 
 using namespace ausaxs;
@@ -228,7 +229,9 @@ bool utility::isnumeric(std::string_view s) {
 }
 
 bool utility::isinteger(std::string_view s) {
-    try {std::stoi(std::string(s));
-    } catch (std::exception&) {return false;}
-    return true;
+    // the whole string must be an integer: std::stoi would accept "1e3" as 1 and "2.5" as 2
+    if (s.starts_with('+')) {s.remove_prefix(1);}
+    int value{};
+    auto [end, ec] = std::from_chars(s.data(), s.data() + s.size(), value);
+    return !s.empty() && ec == std::errc() && end == s.data() + s.size();
 }

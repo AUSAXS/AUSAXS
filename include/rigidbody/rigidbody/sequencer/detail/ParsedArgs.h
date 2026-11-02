@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -54,6 +55,14 @@ namespace ausaxs::rigidbody::sequencer {
     namespace search {
         template<typename T>
         ArgResult<T> get_arg(std::vector<std::string>& names, const std::unordered_map<std::string, ParsedArgs::Args>& args, const T& default_value = T());
+
+        /**
+         * @brief Parse a script number strictly: the whole token must be consumed, and a decimal must be finite.
+         *        Unlike std::stoi/std::stod, "1e3" or "2.5" is not an integer, and "3abc", "nan" and "inf" are not numbers.
+         * @throws except::invalid_argument
+         */
+        int parse_int(std::string_view token);
+        double parse_double(std::string_view token); //< @copydoc parse_int
     }
 }
 

@@ -24,7 +24,7 @@ namespace {
 void detail::SeedElement::_parse(observer_ptr<LoopElement> /*unused*/, ParsedArgs&& args) { // NOLINT
     if (!utility::isinteger(args.inlined[0])) {throw except::parse_error("seed", "Expected an integer seed value, but got \"" + args.inlined[0] + "\".");}
 
-    int seed = std::stoi(args.inlined[0]);
+    int seed = search::parse_int(args.inlined[0]);
     random::set_seed(seed);
 }
 
@@ -47,10 +47,10 @@ void detail::OverlapStrengthElement::_parse(observer_ptr<LoopElement> /*unused*/
     // inlined variant: overlap_strength scaling [distance]
     if (!args.inlined.empty()) {
         if (!utility::isnumeric(args.inlined[0])) {throw except::parse_error("overlap_strength", "Expected a number for the scaling, but got \"" + args.inlined[0] + "\".");}
-        scaling = {.value=std::stod(args.inlined[0]), .found=true};
+        scaling = {.value=search::parse_double(args.inlined[0]), .found=true};
         if (args.inlined.size() == 2) {
             if (!utility::isnumeric(args.inlined[1])) {throw except::parse_error("overlap_strength", "Expected a number for the distance, but got \"" + args.inlined[1] + "\".");}
-            distance = {.value=std::stod(args.inlined[1]), .found=true};
+            distance = {.value=search::parse_double(args.inlined[1]), .found=true};
         }
     }
     if (!scaling.found && !distance.found) {throw except::parse_error("overlap_strength", "Expected a scaling, a distance, or both.");}
