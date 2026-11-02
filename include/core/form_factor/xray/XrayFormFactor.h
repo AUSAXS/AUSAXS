@@ -82,13 +82,20 @@ namespace ausaxs::form_factor::xray {
      */
     namespace raw {
         namespace detail {
-            // the free hydrogen atom, centred on its nucleus
-            constexpr AtomicFormFactor hydrogen(coefficients::H);
+            // the charge of a group is taken evenly from the electrons of its hydrogens, e.g. the three hydrogens of NH3+ carry two electrons in total
+            constexpr AtomicFormFactor bound_hydrogen(const form_factor::FormFactorInfo& info) {
+                constexpr AtomicFormFactor hydrogen(coefficients::H); // the free hydrogen atom, centred on its nucleus
+                if (info.charge == 0) {return hydrogen;}
+                auto [a, b, c] = coefficients::H;
+                double electrons = static_cast<double>(info.geometry.hydrogens - info.charge)/info.geometry.hydrogens;
+                for (auto& ai : a) {ai *= electrons;}
+                return {a, b, c*electrons};
+            }
 
             constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
                 return std::array<FormFactor, total_ff_count>{FormFactor(
-                    AtomicFormFactor(form_factor::detail::ff_info_table[I].xray_coefficients), 
-                    hydrogen, 
+                    AtomicFormFactor(form_factor::detail::ff_info_table[I].xray_coefficients),
+                    bound_hydrogen(form_factor::detail::ff_info_table[I]),
                     form_factor::detail::ff_info_table[I].geometry
                 )...};
             }(std::make_index_sequence<total_ff_count>{});
