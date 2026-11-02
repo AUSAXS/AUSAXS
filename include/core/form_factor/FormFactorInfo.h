@@ -11,6 +11,7 @@
 #include <settings/ScatteringSettings.h>
 #include <utility/Exceptions.h>
 
+#include <algorithm>
 #include <array>
 #include <string>
 #include <string_view>
@@ -26,6 +27,7 @@ namespace ausaxs::form_factor {
         group::Geometry geometry;                           // The implicit hydrogens bound to the element.
         xray::coefficients::FiveGaussian xray_coefficients; // The five-Gaussian approximation of the vacuum X-ray form factor of the element.
         double neutron_scattering_length;                   // The coherent neutron scattering length of the element in fm.
+        int charge = 0;                                     // The formal charge of the group. It changes the electrons, but not the nuclei, so it only affects the X-ray form factor.
     };
 
     namespace detail {
@@ -49,7 +51,7 @@ namespace ausaxs::form_factor {
             {.type=form_factor_t::N,               .name="N",   .element=atom_t::N,       .geometry=group::atom, .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
             {.type=form_factor_t::NH,              .name="NH",  .element=atom_t::N,       .geometry=group::NH,   .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
             {.type=form_factor_t::NH2,             .name="NH2", .element=atom_t::N,       .geometry=group::NH2,  .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
-            {.type=form_factor_t::NH3,             .name="NH3", .element=atom_t::N,       .geometry=group::NH3,  .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
+            {.type=form_factor_t::NH3,             .name="NH3", .element=atom_t::N,       .geometry=group::NH3,  .xray_coefficients=ff::N,               .neutron_scattering_length=b::N, .charge=1   }, // a nitrogen with three hydrogens and a heavy-atom neighbour is always a cation
             {.type=form_factor_t::O,               .name="O",   .element=atom_t::O,       .geometry=group::atom, .xray_coefficients=ff::O,               .neutron_scattering_length=b::O              },
             {.type=form_factor_t::S,               .name="S",   .element=atom_t::S,       .geometry=group::atom, .xray_coefficients=ff::S,               .neutron_scattering_length=b::S              },
             {.type=form_factor_t::SH,              .name="SH",  .element=atom_t::S,       .geometry=group::SH,   .xray_coefficients=ff::S,               .neutron_scattering_length=b::S              },
@@ -72,13 +74,24 @@ namespace ausaxs::form_factor {
             {.type=form_factor_t::OTHER,           .name="OTH", .element=atom_t::Ar,      .geometry=group::atom, .xray_coefficients=ff::other,           .neutron_scattering_length=b::other          },
         }};
 
-        constexpr bool ff_info_table_is_ordered() {
-            for (int i = 0; i < total_ff_count; ++i) {
-                if (static_cast<int>(ff_info_table[i].type) != i) {return false;}
-            }
-            return true;
-        }
-        static_assert(ff_info_table_is_ordered(), "form_factor::detail::ff_info_table must be ordered by form_factor_t.");
+        static_assert(
+            [] () {
+                for (int i = 0; i < total_ff_count; ++i) {
+                    if (static_cast<int>(ff_info_table[i].type) != i) {return false;}
+                }
+                return true;
+            }(),
+            "form_factor::detail::ff_info_table must be ordered by form_factor_t."
+        );
+
+        static_assert(
+            [] () {
+                return std::ranges::all_of(ff_info_table, [](const auto& info) {
+                    return info.charge == 0 || (0 < info.charge && info.charge < info.geometry.hydrogens);
+                });
+            }(),
+            "form_factor::detail::ff_info_table: a charge is taken from the hydrogens of a group, so a charge must be positive and smaller than the number of hydrogens of its group."
+        );
 
         /**
          * @brief Map from an element to the form factor type of the bare element. Elements without their own type map to OTHER.
