@@ -31,7 +31,7 @@ namespace {
     });
 }
 
-// both are written by name, so they read back as strings (the Python wrapper casts by type())
+// both are written by name, so they read back as strings
 template<> std::string settings::io::detail::SettingRef<settings::exv::ExvMethod>::type() const {return "string";}
 template<> std::string settings::io::detail::SettingRef<settings::exv::ExvSet>::type() const {return "string";}
 template<> std::string settings::io::detail::SettingRef<settings::exv::ExvMethod>::get() const {

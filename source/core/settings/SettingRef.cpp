@@ -8,7 +8,8 @@
 #include <utility/StringUtils.h>
 
 #include <algorithm>
-#include <cstdio>
+#include <array>
+#include <charconv>
 
 using namespace ausaxs;
 
@@ -20,13 +21,8 @@ std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRe
 namespace {
     // the shortest representation that reads back as the same double; std::to_string's fixed 6 decimals rounds 2.5e-7 to 0
     std::string to_exact_string(double value) {
-        char buf[32];
-        for (int precision = 6; precision < 17; ++precision) {
-            std::snprintf(buf, sizeof(buf), "%.*g", precision, value);
-            if (std::stod(buf) == value) {return buf;}
-        }
-        std::snprintf(buf, sizeof(buf), "%.17g", value);
-        return buf;
+        std::array<char, 32> buf;
+        return {buf.data(), std::to_chars(buf.data(), buf.data() + buf.size(), value).ptr};
     }
 }
 
