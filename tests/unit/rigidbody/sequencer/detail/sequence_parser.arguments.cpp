@@ -293,11 +293,11 @@ TEST_CASE("SequenceParser: script numbers are parsed strictly") {
     CHECK(parse_double("-.5") == -0.5);
 
     // std::stoi read these as 1, 2 and 3, and std::stod accepted nan and inf
-    for (auto bad : {"1e3", "2.5", "3abc", "", "+", "99999999999999999999"}) {
+    for (const auto* bad : {"1e3", "2.5", "3abc", "", "+", "99999999999999999999"}) {
         INFO(bad);
         CHECK_THROWS(parse_int(bad));
     }
-    for (auto bad : {"nan", "inf", "-inf", "+nan", "1e999", "1.5x", ""}) {
+    for (const auto* bad : {"nan", "inf", "-inf", "+nan", "1e999", "1.5x", ""}) {
         INFO(bad);
         CHECK_THROWS(parse_double(bad));
     }

@@ -15,7 +15,6 @@
 #include <utility/StringUtils.h>
 
 #include <cassert>
-#include <cctype>
 #include <ranges>
 
 using namespace ausaxs;
@@ -231,21 +230,21 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
         loop_names[name] = loop.get();
         last_loop_element = loop.get();
         return loop;
-    } else {
-        // pattern 5: [duplicate|copy] [name] - repeats the named loop
-        if (args.inlined[0] == "duplicate" || args.inlined[0] == "copy") {
-            const auto& name = args.inlined[1];
-            if (!loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Target loop name \"" + name + "\" does not exist.");}
-            return std::make_unique<CopyLoopElement>(owner, loop_names.at(name));
-        }
-
-        // pattern 6: [name] [iterations]
-        int iterations = parse_count(args.inlined[1]);
-        const auto& name = args.inlined[0];
-        if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
-        auto loop = std::make_unique<LoopElement>(owner, iterations);
-        loop_names[name] = loop.get();
-        last_loop_element = loop.get();
-        return loop;
     }
+
+    // pattern 5: [duplicate|copy] [name] - repeats the named loop
+    if (args.inlined[0] == "duplicate" || args.inlined[0] == "copy") {
+        const auto& name = args.inlined[1];
+        if (!loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Target loop name \"" + name + "\" does not exist.");}
+        return std::make_unique<CopyLoopElement>(owner, loop_names.at(name));
+    }
+
+    // pattern 6: [name] [iterations]
+    int iterations = parse_count(args.inlined[1]);
+    const auto& name = args.inlined[0];
+    if (loop_names.contains(name)) {throw except::parse_error("loop", args.inlined, "Loop name \"" + name + "\" already exists.");}
+    auto loop = std::make_unique<LoopElement>(owner, iterations);
+    loop_names[name] = loop.get();
+    last_loop_element = loop.get();
+    return loop;
 }

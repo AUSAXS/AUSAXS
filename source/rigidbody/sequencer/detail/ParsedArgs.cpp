@@ -6,7 +6,6 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
-#include <cctype>
 #include <charconv>
 
 using namespace ausaxs;
