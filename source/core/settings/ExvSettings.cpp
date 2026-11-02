@@ -64,7 +64,6 @@ template<> void settings::io::detail::SettingRef<settings::exv::ExvMethod>::set(
     else if (str == "pepsi") {settingref = settings::exv::ExvMethod::Pepsi;}
     else if (str == "waxsis") {settingref = settings::exv::ExvMethod::WAXSiS;}
     else if (str == "none") {settingref = settings::exv::ExvMethod::None;}
-    else if (!val[0].empty() && utility::isdigit(val[0][0])) {settingref = static_cast<settings::exv::ExvMethod>(std::stoi(val[0]));}
     else {
         throw except::io_error("settings: Unknown excluded volume method \"" + str + "\". Did you forget to add parsing support for it in ExvSettings.cpp?");
     }
@@ -78,6 +77,7 @@ template<> std::string settings::io::detail::SettingRef<settings::exv::ExvSet>::
         case settings::exv::ExvSet::MinimumFluctutation_implicit_H: return "minimum_fluctuation_implicit_h";
         case settings::exv::ExvSet::MinimumFluctutation_explicit_H: return "minimum_fluctuation_explicit_h";
         case settings::exv::ExvSet::vdw: return "vdw";
+        case settings::exv::ExvSet::Custom: return "custom";
         default: return std::to_string(static_cast<int>(settingref));
     }
 }
@@ -90,7 +90,9 @@ template<> void settings::io::detail::SettingRef<settings::exv::ExvSet>::set(con
     else if (str == "minimum_fluctuation_implicit_h" || str == "mf") {settingref = settings::exv::ExvSet::MinimumFluctutation_implicit_H;}
     else if (str == "minimum_fluctuation_explicit_h") {settingref = settings::exv::ExvSet::MinimumFluctutation_explicit_H;}
     else if (str == "vdw") {settingref = settings::exv::ExvSet::vdw;}
-    else if (!val[0].empty() && utility::isdigit(val[0][0])) {settingref = static_cast<settings::exv::ExvSet>(std::stoi(val[0]));}
+    else if (str == "custom") {
+        throw except::io_error("settings::molecule::displaced_volume_set: A custom DisplacedVolumeSet cannot be restored from a settings file. ");
+    }
     else {
         throw except::io_error("settings::molecule::displaced_volume_set: Unkown DisplacedVolumeSet \"" + str + "\". Did you forget to add parsing support for it in MoleculeSettings.cpp?");
     }

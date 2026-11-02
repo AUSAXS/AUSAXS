@@ -52,7 +52,6 @@ template<> void settings::io::detail::SettingRef<settings::hydrate::HydrationStr
     else if (str == "jan") {settingref = settings::hydrate::HydrationStrategy::JanStrategy;}
     else if (str == "pepsi") {settingref = settings::hydrate::HydrationStrategy::PepsiStrategy;}
     else if (str == "none") {settingref = settings::hydrate::HydrationStrategy::NoStrategy;}
-    else if (!val[0].empty() && utility::isdigit(val[0][0])) {settingref = static_cast<settings::hydrate::HydrationStrategy>(std::stoi(val[0]));}
     else {
         throw except::io_error("settings::hydrate::placement_strategy: Unkown HydrationStrategy \"" + str + "\". Did you forget to add parsing support for it in MoleculeSettings.cpp?");
     }

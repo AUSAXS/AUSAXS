@@ -92,15 +92,14 @@ int cli_rigidbody(int argc, char const *argv[]) {
         console::print_info("Settings saved to settings.txt in current directory.");
     }});
 
-    CLI11_PARSE(app, argc, argv);
-
-    console::print_info("Running AUSAXS " + std::string(constants::version));
-    logging::start("rigidbody");
-
     //###################//
     //### PARSE INPUT ###//
     //###################//
     try {
+        CLI11_PARSE(app, argc, argv);
+        console::print_info("Running AUSAXS " + std::string(constants::version));
+        logging::start("rigidbody");
+
         // rigid-body optimization is only available through the sequencer configuration format
         if (p_script->count() == 0) {
             throw except::missing_option("rigidbody: A configuration script must be supplied.");

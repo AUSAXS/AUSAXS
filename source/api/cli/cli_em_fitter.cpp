@@ -95,14 +95,13 @@ int cli_em_fitter(int argc, char const *argv[]) {
         }
     });
 
-    CLI11_PARSE(app, argc, argv);
-
-    console::print_info("Running AUSAXS " + std::string(constants::version));
-
     //###################//
     //### PARSE INPUT ###//
     //###################//
     try {
+        CLI11_PARSE(app, argc, argv);
+        console::print_info("Running AUSAXS " + std::string(constants::version));
+
         // if a settings file was provided
         if (p_settings->count() != 0) {
             settings::read(settings);        // read it
