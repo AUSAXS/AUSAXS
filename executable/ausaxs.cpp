@@ -7,6 +7,7 @@
 #include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
+#include <iostream>
 #include <unordered_map>
 
 using namespace ausaxs;
@@ -23,6 +24,7 @@ namespace {
 }
 
 int main(int argc, char const *argv[]) {
+    std::ios_base::sync_with_stdio(false);
     auto print_help = [&] () {
         console::print_text(
             "\nUsage: ausaxs <tool> [options]"
