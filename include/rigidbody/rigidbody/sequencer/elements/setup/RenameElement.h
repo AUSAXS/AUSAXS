@@ -8,6 +8,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -16,7 +17,7 @@
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
-    class RenameElement : public GenericElement {
+    class RenameElement : public GenericElement, public StructureRequiredGuard {
         public:
             /**
              * @brief Rename an existing body.

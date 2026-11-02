@@ -110,10 +110,17 @@ namespace ausaxs::rigidbody::sequencer {
              */
             const io::ExistingFile& _get_saxs_path() const;
 
+            /**
+             * @brief Get the phase the script has reached while it is being parsed.
+             *        This is only used to verify the order of the script elements.
+             */
+            detail::ScriptPhase& _script_phase();
+
         private:
             observer_ptr<Rigidbody> rigidbody;
             detail::BodyNameRegistry body_names;
             io::Folder config_folder;
             io::ExistingFile saxs_path;
+            detail::ScriptPhase script_phase;
     };
 }

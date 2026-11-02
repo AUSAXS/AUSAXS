@@ -9,12 +9,13 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
-    class CopyBodyElement : public GenericElement {
+    class CopyBodyElement : public GenericElement, public StructurePhaseGuard {
         public:
             /**
              * @brief Create a copy of an existing body. The new body will be shifted to avoid overlapping. 

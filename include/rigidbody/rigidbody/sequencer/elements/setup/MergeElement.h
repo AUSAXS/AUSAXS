@@ -8,6 +8,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -15,7 +16,7 @@
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
-    class MergeElement : public GenericElement {
+    class MergeElement : public GenericElement, public StructurePhaseGuard {
         public:
             /**
              * @brief Merge the atoms of one or more existing bodies into another, deleting the merged-away bodies.

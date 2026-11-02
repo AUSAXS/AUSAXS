@@ -9,6 +9,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -16,7 +17,7 @@
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
-    class LoadElement : public GenericElement {
+    class LoadElement : public GenericElement, public LoadPhaseGuard {
         public:
             /**
              * @brief Load multiple bodies from multiple files. One body is loaded from each file.

@@ -77,6 +77,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         ParsedArgs pargs;
         auto tokens = tokenize(line);
         if (tokens.empty()) {continue;}
+        int element_line = line_no; // the block below advances line_no past the arguments
 
         if (ends_with_opening_brace(tokens)) { // if the last token ends with an opening brace, read a multiline arg block
             // anything between the element name and the brace is an inline argument; capture it so that combining the two
@@ -176,6 +177,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             {ElementType::Seed,                detail::SeedElement::_parse},
         };
 
+        sequencer->_script_phase().parsing = {.element = tokens[0], .line = element_line}; // lets the phase guards say where an element is out of place
         if (element_parsers.contains(type)) {elements.emplace_back(element_parsers.at(type)(loop_stack.back(), std::move(pargs)));}
         else if (void_parsers.contains(type)) {void_parsers.at(type)(loop_stack.back(), std::move(pargs));}
         switch (type) { // additional work for elements that require it
@@ -200,5 +202,8 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         }
     }
     if (loop_stack.size() != 1) {throw parse_error("base", "Missing \"end\" statement.");}
+
+    // elements which only use the structure when they run may come before the "load", but there must be one
+    if (sequencer->_script_phase().current == Phase::Empty) {throw parse_error("base", "The script does not load a structure. Add a \"load\" element.");}
     return sequencer;
 }

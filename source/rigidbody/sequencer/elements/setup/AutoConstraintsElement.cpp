@@ -12,7 +12,7 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy) : owner(owner), strategy(strategy) {
+AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy) : ConstraintPhaseGuard(owner), owner(owner), strategy(strategy) {
     owner->_get_rigidbody()->constraints->generate_constraints(strategy);
 }
 

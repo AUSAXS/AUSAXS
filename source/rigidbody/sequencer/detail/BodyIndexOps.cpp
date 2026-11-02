@@ -9,7 +9,6 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/detail/parse_error.h>
 
 #include <algorithm>
 
@@ -31,15 +30,6 @@ namespace {
         }
         vec = std::move(kept);
     }
-}
-
-void ausaxs::rigidbody::sequencer::detail::require_mutable_structure(observer_ptr<Sequencer> owner, const std::string& element) {
-    const auto& constraints = *owner->_get_rigidbody()->constraints;
-    if (constraints.discoverable_constraints.empty()) {return;}
-    throw except::parse_error(element,
-        "The set of bodies cannot be changed after constraints have been declared, as both the constraints and the symmetry targets are indexed by body. "
-        "Move this element above the constraint declarations."
-    );
 }
 
 void ausaxs::rigidbody::sequencer::detail::erase_bodies(observer_ptr<Sequencer> owner, std::vector<int> indices) {

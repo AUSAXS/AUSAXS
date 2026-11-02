@@ -88,6 +88,10 @@ const io::ExistingFile& Sequencer::_get_saxs_path() const {
     return saxs_path;
 }
 
+sequencer::detail::ScriptPhase& Sequencer::_script_phase() {
+    return script_phase;
+}
+
 std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     _clear_stop_request(); // a stop requested while nothing was running must not immediately kill this run
     _reset_counters();     // a previous run must not leak into this one

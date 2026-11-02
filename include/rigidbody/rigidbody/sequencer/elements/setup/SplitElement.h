@@ -7,6 +7,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -20,7 +21,7 @@ namespace ausaxs::rigidbody::sequencer {
      * If the body carries one or more symmetries, each is turned into a ReferenceSymmetry shared by every resulting fragment with the first fragment becomes
      * the owning primary, and the rest hold non-owning views.
      */
-    class SplitElement : public GenericElement {
+    class SplitElement : public GenericElement, public StructurePhaseGuard {
         public:
             /**
              * @param owner       The owning sequencer.

@@ -8,12 +8,13 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
-    class BodySelectElement : public GenericElement {
+    class BodySelectElement : public GenericElement, public StructureRequiredGuard {
         public:
             BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy);
             ~BodySelectElement() override;

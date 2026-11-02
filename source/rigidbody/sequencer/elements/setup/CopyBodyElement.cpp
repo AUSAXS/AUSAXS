@@ -10,7 +10,6 @@
 #include <rigidbody/detail/SystemSpecification.h>
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <rigidbody/sequencer/Sequencer.h>
-#include <rigidbody/sequencer/detail/BodyIndexOps.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <utility/observer_ptr.h>
 
@@ -19,8 +18,6 @@ using namespace ausaxs::rigidbody::sequencer;
 
 namespace {
     void clone(observer_ptr<Sequencer> owner, std::string_view body_name, int index) {
-        ausaxs::rigidbody::sequencer::detail::require_mutable_structure(owner, "copy");
-
         // initial_conformation stores bodies centered at origin; the live molecule body stores absolute positions
         auto initial_body = owner->_get_rigidbody()->conformation->initial_conformation[index];
         auto body_pars = owner->_get_rigidbody()->conformation->absolute_parameters.parameters[index];
@@ -37,11 +34,11 @@ namespace {
     }
 }
 
-CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, std::string_view source_body_name) {
+CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, std::string_view source_body_name) : StructurePhaseGuard(owner) {
     clone(owner, body_name, owner->_get_body(source_body_name));
 }
 
-CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, int source_body_index) {
+CopyBodyElement::CopyBodyElement(observer_ptr<Sequencer> owner, std::string_view body_name, int source_body_index) : StructurePhaseGuard(owner) {
     clone(owner, body_name, source_body_index);
 }
 
@@ -59,6 +56,7 @@ InlineSignature CopyBodyElement::_valid_inline_arguments() {
 
 // copy [target name] [new name] - the two are swapped if the first does not name an existing body
 std::unique_ptr<GenericElement> CopyBodyElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    StructurePhaseGuard{owner};
     const auto& body_names = owner->_get_sequencer()->_body_name_registry();
     std::string source = args.inlined[0];
     std::string name = args.inlined[1];

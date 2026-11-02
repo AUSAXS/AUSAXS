@@ -7,7 +7,7 @@
 
 using namespace ausaxs::rigidbody::sequencer; 
 
-CopyLoopElement::CopyLoopElement(observer_ptr<LoopElement> owner, observer_ptr<LoopElement> target) : owner(owner), target(target) {}
+CopyLoopElement::CopyLoopElement(observer_ptr<LoopElement> owner, observer_ptr<LoopElement> target) : RunPhaseGuard(owner), owner(owner), target(target) {}
 
 CopyLoopElement::~CopyLoopElement() = default;
 

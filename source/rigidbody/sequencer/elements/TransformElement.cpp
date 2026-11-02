@@ -11,7 +11,7 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-TransformElement::TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) : owner(owner), strategy(std::move(strategy)) {}
+TransformElement::TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy) : StructureRequiredGuard(owner), owner(owner), strategy(std::move(strategy)) {}
 TransformElement::~TransformElement() = default;
 
 void TransformElement::run() {
@@ -28,6 +28,7 @@ InlineSignature TransformElement::_valid_inline_arguments() {
 
 // transform [strategy] - one of: rigid, single
 std::unique_ptr<GenericElement> TransformElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    StructureRequiredGuard{owner};
     static auto get_transform_strategy = [] (std::string_view line) {
         if (line == "rigid_transform" || line == "rigid") {return settings::rigidbody::TransformationStrategyChoice::RigidTransform;}
         if (line == "single_transform" || line == "single") {return settings::rigidbody::TransformationStrategyChoice::SingleTransform;}

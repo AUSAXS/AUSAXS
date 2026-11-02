@@ -9,12 +9,13 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
-    class ParameterElement : public GenericElement {
+    class ParameterElement : public GenericElement, public StructureRequiredGuard {
         public:
             ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::parameter::ParameterGenerationStrategy> strategy);
             ~ParameterElement() override;

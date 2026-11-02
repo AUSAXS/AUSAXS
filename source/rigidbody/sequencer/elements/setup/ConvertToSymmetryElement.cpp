@@ -65,7 +65,7 @@ namespace {
 }
 
 ConvertToSymmetryElement::ConvertToSymmetryElement(observer_ptr<Sequencer> owner, const std::vector<int>& bodies, const std::string& symmetry_name, double tolerance)
-    : owner(owner)
+    : StructurePhaseGuard(owner), owner(owner)
 {
     _convert(bodies, symmetry_name, tolerance);
 }
@@ -188,8 +188,6 @@ std::vector<std::vector<Vector3<double>>> ConvertToSymmetryElement::_gather_copi
 }
 
 void ConvertToSymmetryElement::_convert(const std::vector<int>& bodies, const std::string& symmetry_name, double tolerance) {
-    detail::require_mutable_structure(owner, "convert_to_symmetry");
-
     auto* molecule = owner->_get_molecule();
     auto* rigidbody = owner->_get_rigidbody();
 
@@ -283,6 +281,7 @@ InlineSignature ConvertToSymmetryElement::_valid_inline_arguments() {
 }
 
 std::unique_ptr<GenericElement> ConvertToSymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    StructurePhaseGuard{owner};
     auto* rigidbody = owner->_get_rigidbody();
     auto* sequencer = owner->_get_sequencer();
 

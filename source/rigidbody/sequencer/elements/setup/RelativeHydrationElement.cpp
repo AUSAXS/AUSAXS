@@ -41,7 +41,7 @@ namespace {
     }
 }
 
-RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::string& name, double ratio) : owner(owner) {
+RelativeHydrationElement::RelativeHydrationElement(observer_ptr<Sequencer> owner, const std::string& name, double ratio) : StructureRequiredGuard(owner), owner(owner) {
     const auto& body_names = owner->_body_name_registry();
     if (!body_names.contains(name)) {
         throw ausaxs::except::runtime_error("RelativeHydrationElement::RelativeHydrationElement: The body name \"" + name + "\" is not known.");
@@ -98,6 +98,7 @@ InlineSignature RelativeHydrationElement::_valid_inline_arguments() {
 
 // relative_hydration [body] [hydration level] - level is one of: min, low, normal, high, max
 std::unique_ptr<GenericElement> RelativeHydrationElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    StructureRequiredGuard{owner};
     static const std::unordered_map<std::string, Options> options = {
         {"max",     Options::Maximum},
         {"maximum", Options::Maximum},

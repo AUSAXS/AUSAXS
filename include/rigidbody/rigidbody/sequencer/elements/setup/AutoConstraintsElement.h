@@ -7,6 +7,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <settings/RigidBodySettings.h>
 #include <utility/observer_ptr.h>
 
@@ -15,7 +16,7 @@
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
-    class AutoConstraintsElement : public GenericElement {
+    class AutoConstraintsElement : public GenericElement, public ConstraintPhaseGuard {
         public:
             AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy);
             ~AutoConstraintsElement() override = default;

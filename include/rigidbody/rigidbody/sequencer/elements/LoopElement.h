@@ -11,6 +11,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <atomic>
@@ -20,8 +21,11 @@
 namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief A loop element is a sequence element that repeats whatever is inside it a number of times.
+     *
+     * Every loop-like element runs the optimization, so the first one closes the setup of the script.
+     * The root Sequencer is a loop element too, but as it has no owner it is not subject to this.
      */
-    class LoopElement : public GenericElement {
+    class LoopElement : public GenericElement, public RunPhaseGuard {
         friend class OptimizeStepElement;
         public:
             LoopElement(observer_ptr<LoopElement> owner, int repeats);

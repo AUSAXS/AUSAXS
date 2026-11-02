@@ -14,7 +14,7 @@ using namespace ausaxs;
 using namespace ausaxs::rigidbody;
 using namespace ausaxs::rigidbody::sequencer;
 
-ParameterElement::ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<parameter::ParameterGenerationStrategy> strategy) : owner(owner), strategy(std::move(strategy)) {}
+ParameterElement::ParameterElement(observer_ptr<LoopElement> owner, std::unique_ptr<parameter::ParameterGenerationStrategy> strategy) : StructureRequiredGuard(owner), owner(owner), strategy(std::move(strategy)) {}
 
 ParameterElement::~ParameterElement() = default;
 
@@ -67,6 +67,7 @@ InlineSignature ParameterElement::_valid_inline_arguments() {
 
 // parameters { iterations [n], and any of: translate, rotate, translate_axes, rotate_axes, sym_translate, sym_rotate, decay }
 std::unique_ptr<GenericElement> ParameterElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    StructureRequiredGuard{owner};
     static auto get_decay_strategy = [] (std::string_view line) {
         if (line == "linear") {return settings::rigidbody::DecayStrategyChoice::Linear;}
         if (line == "exponential") {return settings::rigidbody::DecayStrategyChoice::Exponential;}

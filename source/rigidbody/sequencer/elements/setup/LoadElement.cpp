@@ -20,7 +20,7 @@ using namespace ausaxs::rigidbody::sequencer;
 
 LoadElement::~LoadElement() = default;
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names) : owner(owner) {
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names) : LoadPhaseGuard(owner), owner(owner) {
     if (auto loc = paths[0].find('%'); loc != std::string::npos) {
         resolved_paths = load_wildcarded(paths[0]);
         rigidbody = std::make_unique<Rigidbody>(data::Molecule(resolved_paths));
@@ -44,7 +44,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::s
 }
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<int>& splits, const std::vector<std::string>& body_names) 
-    : owner(owner) 
+    : LoadPhaseGuard(owner), owner(owner) 
 {
     if (auto loc = path.find('%'); loc != std::string::npos) {
         resolved_paths = load_wildcarded(path);
@@ -67,7 +67,7 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
 }
 
-LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names) : owner(owner) {
+LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path, const std::vector<std::string>& body_names) : LoadPhaseGuard(owner), owner(owner) {
     resolved_paths = {lookup_file(path).first};
     rigidbody = std::make_unique<Rigidbody>(rigidbody::BodySplitter::split(resolved_paths[0]));
     if (rigidbody->molecule.size_body() <= 1) {

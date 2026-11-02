@@ -15,8 +15,7 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
-DeleteElement::DeleteElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names) {
-    detail::require_mutable_structure(owner, "delete");
+DeleteElement::DeleteElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names) : StructurePhaseGuard(owner) {
     std::vector<int> indices;
     indices.reserve(names.size());
     for (const auto& name : names) {
@@ -44,6 +43,7 @@ InlineSignature DeleteElement::_valid_inline_arguments() {
 
 // delete [body names...] - at least one body must remain
 std::unique_ptr<GenericElement> DeleteElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    StructurePhaseGuard{owner};
     const auto& body_names = owner->_get_sequencer()->_body_name_registry();
     std::vector<std::string> names;
     names.reserve(args.inlined.size());
