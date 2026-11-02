@@ -5,14 +5,13 @@
 
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <settings/RigidBodySettings.h>
 
 using namespace ausaxs::rigidbody::sequencer;
 
-AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy) : owner(owner), strategy(strategy) {
+AutoConstraintsElement::AutoConstraintsElement(observer_ptr<Sequencer> owner, settings::rigidbody::ConstraintGenerationStrategyChoice strategy) : ConstraintPhaseGuard(owner), owner(owner), strategy(strategy) {
     owner->_get_rigidbody()->constraints->generate_constraints(strategy);
 }
 

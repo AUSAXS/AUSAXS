@@ -12,7 +12,7 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-ConstraintElement::ConstraintElement(observer_ptr<Sequencer> owner, std::unique_ptr<rigidbody::constraints::Constraint> constraint) {
+ConstraintElement::ConstraintElement(observer_ptr<Sequencer> owner, std::unique_ptr<rigidbody::constraints::Constraint> constraint) : ConstraintPhaseGuard(owner) {
     owner->_get_rigidbody()->constraints->add_constraint(std::move(constraint));
 }
 
@@ -52,6 +52,7 @@ InlineSignature ConstraintElement::_valid_inline_arguments() {
 
 // constrain { first [body], second [body], type [type], plus whatever extra arguments that type requires }
 void ConstraintElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    ConstraintPhaseGuard{owner};
     auto body1 = args.get<std::string>(args_map[Args::body1]);
     auto body2 = args.get<std::string>(args_map[Args::body2]);
     auto type  = args.get<std::string>(args_map[Args::type]);

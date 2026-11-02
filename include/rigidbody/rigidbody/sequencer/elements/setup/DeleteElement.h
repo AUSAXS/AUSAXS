@@ -8,6 +8,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -15,7 +16,7 @@
 #include <vector>
 
 namespace ausaxs::rigidbody::sequencer {
-    class DeleteElement : public GenericElement {
+    class DeleteElement : public GenericElement, public StructurePhaseGuard {
         public:
             /**
              * @brief Delete one or more existing bodies.

@@ -59,6 +59,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/elements/MessageElement.cpp"
 	"sequencer/elements/OnImprovementElement.cpp"
 	"sequencer/elements/OptimizeStepElement.cpp"
+	"sequencer/elements/PhaseGuard.cpp"
 	"sequencer/elements/ParameterElement.cpp"
 	"sequencer/elements/SaveElement.cpp"
 	"sequencer/elements/TransformElement.cpp"

@@ -32,7 +32,7 @@ namespace {
 }
 
 SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<symmetry::type>& symmetry)
-    : owner(owner)
+    : StructurePhaseGuard(owner), owner(owner)
 {
     assert(names.size() == symmetry.size() && "SymmetryElement::SymmetryElement: The number of names and symmetries must be equal.");
     std::vector<std::unique_ptr<symmetry::ISymmetry>> symmetries;
@@ -42,7 +42,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 }
 
 SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<std::string>& symmetry_names)
-    : owner(owner)
+    : StructurePhaseGuard(owner), owner(owner)
 {
     assert(names.size() == symmetry_names.size() && "SymmetryElement::SymmetryElement: The number of names and symmetries must be equal.");
     std::vector<std::unique_ptr<symmetry::ISymmetry>> symmetries;
@@ -52,7 +52,7 @@ SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vecto
 }
 
 SymmetryElement::SymmetryElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& body_names, const std::string& reference_symmetry)
-    : owner(owner)
+    : StructurePhaseGuard(owner), owner(owner)
 {
     _add_reference(body_names, reference_symmetry);
 }
@@ -175,6 +175,7 @@ InlineSignature SymmetryElement::_valid_inline_arguments() {
 }
 
 std::unique_ptr<GenericElement> SymmetryElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    StructurePhaseGuard{owner};
     // usage pattern: [bodies...] [symmetry]. The trailing token is always the symmetry name; every token before it names a
     // body. To give several bodies a symmetry each, repeat the element - it does all its work on construction, so the
     // declarations accumulate.

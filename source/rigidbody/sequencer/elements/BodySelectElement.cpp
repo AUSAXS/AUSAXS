@@ -14,7 +14,7 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
-BodySelectElement::BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) : owner(owner), strategy(std::move(strategy)) {}
+BodySelectElement::BodySelectElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::selection::BodySelectStrategy> strategy) : StructureRequiredGuard(owner), owner(owner), strategy(std::move(strategy)) {}
 BodySelectElement::~BodySelectElement() = default;
 
 void BodySelectElement::run() {
@@ -50,6 +50,7 @@ namespace {
 }
 
 std::unique_ptr<GenericElement> BodySelectElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    StructureRequiredGuard{owner};
     // inlined usage patterns
     if (!args.inlined.empty()) {
         const std::string& token = args.inlined[0];

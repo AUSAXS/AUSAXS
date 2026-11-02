@@ -8,6 +8,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -26,7 +27,7 @@ namespace ausaxs::rigidbody::sequencer {
      * As a special case, a single body is taken to be the assembly itself rather than one copy of it, and is split into the required number of copies before
      * the fit (see @ref _split_into_copies). This is the common case for a structure whose copies share one chain, which cannot be separated by chain id.
      */
-    class ConvertToSymmetryElement : public GenericElement {
+    class ConvertToSymmetryElement : public GenericElement, public StructurePhaseGuard {
         public:
             // Default residual-RMSD threshold (Å) above which the fit is considered a mismatch.
             static constexpr double default_tolerance = 5.0;

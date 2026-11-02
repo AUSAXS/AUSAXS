@@ -8,6 +8,7 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -18,7 +19,7 @@ namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief Set a relative level of hydration molecules for each body.
      */
-    class RelativeHydrationElement : public GenericElement {
+    class RelativeHydrationElement : public GenericElement, public StructureRequiredGuard {
         public:
             /**
              * @brief Declare a hydration level for one body.

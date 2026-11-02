@@ -8,12 +8,13 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
-    class ConstraintElement : public GenericElement {
+    class ConstraintElement : public GenericElement, public ConstraintPhaseGuard {
         public:
             ConstraintElement(observer_ptr<Sequencer> owner, std::unique_ptr<rigidbody::constraints::Constraint> constraint);
 

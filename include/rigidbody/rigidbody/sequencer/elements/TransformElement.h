@@ -7,13 +7,14 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
 
 namespace ausaxs::rigidbody::sequencer {
-    class TransformElement : public GenericElement {
+    class TransformElement : public GenericElement, public StructureRequiredGuard {
         public:
             TransformElement(observer_ptr<LoopElement> owner, std::unique_ptr<rigidbody::transform::TransformStrategy> strategy);
             ~TransformElement() override;

@@ -8,13 +8,14 @@
 #include <rigidbody/sequencer/detail/InlineSignature.h>
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief Define a symmetry for a given body.
      */
-    class SymmetryElement : public GenericElement {
+    class SymmetryElement : public GenericElement, public StructurePhaseGuard {
         public:
             SymmetryElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& names, const std::vector<symmetry::type>& symmetry);
 

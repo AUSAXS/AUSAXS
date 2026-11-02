@@ -5,13 +5,14 @@
 
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
+#include <rigidbody/sequencer/elements/PhaseGuard.h>
 #include <utility/observer_ptr.h>
 
 namespace ausaxs::rigidbody::sequencer {
     /**
      * @brief A duplicate of a previous loop.
      */
-    class CopyLoopElement : public GenericElement {
+    class CopyLoopElement : public GenericElement, public RunPhaseGuard {
         public:
             CopyLoopElement(observer_ptr<LoopElement> owner, observer_ptr<LoopElement> target);
             ~CopyLoopElement() override;

@@ -20,7 +20,7 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
-SplitElement::SplitElement(observer_ptr<Sequencer> owner, const std::string& body_name, const std::vector<int>& splits) : owner(owner) {
+SplitElement::SplitElement(observer_ptr<Sequencer> owner, const std::string& body_name, const std::vector<int>& splits) : StructurePhaseGuard(owner), owner(owner) {
     _split(body_name, splits);
 }
 
@@ -29,8 +29,6 @@ SplitElement::~SplitElement() = default;
 void SplitElement::run() {}
 
 void SplitElement::_split(const std::string& body_name, const std::vector<int>& splits) {
-    detail::require_mutable_structure(owner, "split");
-
     auto* molecule = owner->_get_molecule();
     auto* rigidbody = owner->_get_rigidbody();
 

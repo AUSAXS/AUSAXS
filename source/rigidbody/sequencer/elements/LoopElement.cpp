@@ -25,7 +25,7 @@ namespace {
     observer_ptr<LoopElement> last_loop_element = nullptr;
 }
 
-LoopElement::LoopElement(observer_ptr<LoopElement> owner, int repeats) : iterations(repeats), owner(owner) {}
+LoopElement::LoopElement(observer_ptr<LoopElement> owner, int repeats) : RunPhaseGuard(owner), iterations(repeats), owner(owner) {}
 
 void LoopElement::_reset_counters() {
     total_loop_count = 0;
@@ -164,6 +164,7 @@ InlineSignature LoopElement::_valid_inline_arguments() {
 }
 
 std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> owner, ParsedArgs&& args) { // NOLINT
+    RunPhaseGuard{owner}; // checked up front, as the patterns below would otherwise catch a phase error and try the next pattern
     auto deduce_iteration_count = [&]() -> int {
         // find the last parameter element by traversing backwards and upwards through the owner chain
         auto find_last_parameter_element = [&]() -> observer_ptr<ParameterElement> {
