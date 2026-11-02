@@ -187,8 +187,8 @@ jobs:
 
           - os: ubuntu-22.04
             name: "Ubuntu 22.04 with GCC"
-            c_compiler: gcc-10
-            cpp_compiler: g++-10
+            c_compiler: gcc-11
+            cpp_compiler: g++-11
             full_build: false
 
           - os: ubuntu-24.04-arm
@@ -199,8 +199,8 @@ jobs:
 
           - os: ubuntu-22.04-arm
             name: "Ubuntu 22.04 ARM with GCC"
-            c_compiler: gcc-10
-            cpp_compiler: g++-10
+            c_compiler: gcc-11
+            cpp_compiler: g++-11
             full_build: false
 
     steps:
@@ -209,8 +209,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libcurl4-openssl-dev
-          if [ "${{ matrix.c_compiler }}" == "gcc-10" ]; then
-            sudo apt-get install gcc-10 g++-10
+          if [ "${{ matrix.c_compiler }}" == "gcc-11" ]; then
+            sudo apt-get install gcc-11 g++-11
           fi
 
       - name: Build the library (full build)

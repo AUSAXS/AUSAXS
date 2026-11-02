@@ -8,12 +8,22 @@
 #include <utility/StringUtils.h>
 
 #include <algorithm>
+#include <array>
+#include <charconv>
 
 using namespace ausaxs;
 
 std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRef>>& settings::io::detail::ISettingRef::get_stored_settings() {
     static std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRef>> stored_settings;
     return stored_settings;
+}
+
+namespace {
+    // the shortest representation that reads back as the same double; std::to_string's fixed 6 decimals rounds 2.5e-7 to 0
+    std::string to_exact_string(double value) {
+        std::array<char, 32> buf;
+        return {buf.data(), std::to_chars(buf.data(), buf.data() + buf.size(), value).ptr};
+    }
 }
 
 template<> std::string ausaxs::settings::io::detail::SettingRef<std::string>::type() const {return "string";}
@@ -30,7 +40,7 @@ template<> std::string ausaxs::settings::io::detail::SettingRef<ausaxs::Limit>::
 template<> bool ausaxs::settings::io::detail::SettingRef<std::string>::requires_quoting() const {return true;}
 
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const {return settingref;}
-template<> std::string settings::io::detail::SettingRef<double>::get() const {return std::to_string(settingref);}
+template<> std::string settings::io::detail::SettingRef<double>::get() const {return to_exact_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<int>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<bool>::get() const {return std::to_string(static_cast<int>(settingref));}
 template<> std::string settings::io::detail::SettingRef<settings::hist::WeightedBins>::get() const {
@@ -41,7 +51,7 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Weighted
     }
     throw except::parse_error("Settings::get_weighted_bins: invalid value.");
 }
-template<> std::string settings::io::detail::SettingRef<Limit>::get() const {return std::to_string(settingref.min) + " " + std::to_string(settingref.max);}
+template<> std::string settings::io::detail::SettingRef<Limit>::get() const {return to_exact_string(settingref.min) + " " + to_exact_string(settingref.max);}
 template<> std::string settings::io::detail::SettingRef<std::vector<std::string>>::get() const {
     std::string str;
     std::ranges::for_each(settingref, [&str] (const std::string& s) {str += s + " ";});
@@ -49,7 +59,7 @@ template<> std::string settings::io::detail::SettingRef<std::vector<std::string>
 }
 template<> std::string settings::io::detail::SettingRef<std::vector<double>>::get() const {
     std::string str;
-    std::ranges::for_each(settingref, [&str] (double s) {str += std::to_string(s) + " ";});
+    std::ranges::for_each(settingref, [&str] (double s) {str += to_exact_string(s) + " ";});
     return str;
 }
 template<> std::string settings::io::detail::SettingRef<std::vector<int>>::get() const {

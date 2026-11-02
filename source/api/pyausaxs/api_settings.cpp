@@ -8,6 +8,7 @@
 #include <settings/All.h>
 #include <settings/SettingRef.h>
 #include <settings/SettingsIO.h>
+#include <utility/StringUtils.h>
 
 using namespace ausaxs;
 
@@ -44,7 +45,11 @@ void set_setting(
 ) {execute_with_catch([&]() {
     const auto& map = settings::io::detail::ISettingRef::get_stored_settings();
     if (!map.contains(name)) {throw except::invalid_argument("Unknown setting: \"" + std::string(name) + "\"");}
-    map.at(name)->set({value});
+    // split a multi-valued setting ("1 2 3", "0.5 2") the way settings::read does; a string is one value that may contain spaces
+    const auto& setting = map.at(name);
+    auto tokens = setting->requires_quoting() ? std::vector<std::string>{value} : utility::split_quoted(value, " \t");
+    if (tokens.empty()) {tokens = {""};} // every set() may read its first value
+    setting->set(tokens);
 }, status);}
 
 void save_settings(

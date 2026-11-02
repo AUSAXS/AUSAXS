@@ -4,6 +4,8 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <settings/GeneralSettings.h>
+#include <settings/GridSettings.h>
+#include <settings/SettingRef.h>
 #include <settings/SettingsIO.h>
 
 #include <support/temp_file.h>
@@ -47,6 +49,26 @@ TEST_CASE_METHOD(SettingsIOFixture, "settings: an empty string value round-trips
     settings::general::output = "not/empty/";
     settings::read(file);
     CHECK(settings::general::output == "");
+}
+
+// a double was written with std::to_string's fixed 6 decimals, so 2.5e-7 read back as 0
+TEST_CASE("settings: doubles round-trip exactly through write/read") {
+    for (double value : {2.5e-7, 0.0123456789, 1.0/3}) {
+        settings::grid::water_scaling = value;
+        test::TempFile file(".txt");
+        settings::write(file);
+        settings::grid::water_scaling = 1;
+        settings::read(file);
+        CHECK(settings::grid::water_scaling == value);
+    }
+}
+
+// the Python wrapper casts get() by type(), so every registered setting must report one
+TEST_CASE("settings: every setting reports a type") {
+    for (const auto& [name, setting] : settings::io::detail::ISettingRef::get_stored_settings()) {
+        INFO(name);
+        CHECK_NOTHROW(setting->type());
+    }
 }
 
 TEST_CASE_METHOD(SettingsIOFixture, "settings: a hand-written quoted path is read as one value") {
