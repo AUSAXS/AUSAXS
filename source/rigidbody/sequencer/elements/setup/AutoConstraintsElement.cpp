@@ -5,7 +5,6 @@
 
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <settings/RigidBodySettings.h>
