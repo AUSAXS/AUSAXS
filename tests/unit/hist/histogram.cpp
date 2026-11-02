@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <hist/Histogram.h>
+#include <utility/Limit.h>
 
 #include <algorithm>
 #include <numeric>
