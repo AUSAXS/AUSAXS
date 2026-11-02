@@ -80,9 +80,6 @@ namespace ausaxs::em {
             /**
              * @brief Create a new ImageStack from a list of images.
              *
-             * Deliberately not public, for the same reason as the base class constructor it forwards to: the resulting stack has no header.
-             * Tests that need a synthetic stack should derive from this class - see tests/support/em_debug.h.
-             *
              * @param images The images for this stack.
              */
             ImageStack(const std::vector<Image>& images);

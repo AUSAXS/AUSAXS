@@ -167,9 +167,7 @@ float ImageStackBase::index(int x, int y, int z) const {
 }
 
 observer_ptr<em::detail::header::IMapHeader> ImageStackBase::get_header() const {
-    // a stack read from a file always has one; a stack built from a list of images does not until set_header() is called. The assert this
-    // replaces was compiled out in Release, leaving the sole caller (managers::SmartProteinManager) to dereference a null pointer.
-    if (header == nullptr) {throw except::nullptr_error("ImageStackBase::get_header: Header is not initialized.");}
+    assert(header != nullptr && "ImageStackBase::get_header: Header is not initialized.");
     return header.get();
 }
 
