@@ -11,7 +11,7 @@
 using namespace ausaxs::rigidbody::sequencer;
 
 EveryNStepElement::EveryNStepElement(observer_ptr<LoopElement> owner, int n) : LoopElement(owner, 1), n(n) {
-    assert(0 < n && "EveryNStepElement: n must be positive; run() and the step count both divide by it.");
+    assert(0 < n && "EveryNStepElement: n must be positive.");
 }
 
 EveryNStepElement::~EveryNStepElement() = default;

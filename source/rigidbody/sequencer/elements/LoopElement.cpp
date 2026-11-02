@@ -210,7 +210,7 @@ std::unique_ptr<GenericElement> LoopElement::_parse(observer_ptr<LoopElement> ow
 
     // a token that starts like a number is always meant as a count, never as a loop name
     auto looks_numeric = [] (std::string_view token) {
-        return !token.empty() && (std::isdigit(static_cast<unsigned char>(token[0])) || token[0] == '-' || token[0] == '+' || token[0] == '.');
+        return !token.empty() && (utility::isdigit(token[0]) || token[0] == '-' || token[0] == '+' || token[0] == '.');
     };
 
     if (args.inlined.size() == 1) {

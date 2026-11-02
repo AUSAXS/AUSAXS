@@ -4,6 +4,7 @@
 #include <rigidbody/sequencer/detail/ParsedArgs.h>
 
 #include <utility/Exceptions.h>
+#include <utility/StringUtils.h>
 
 #include <cctype>
 #include <charconv>
@@ -13,7 +14,7 @@ using namespace ausaxs::rigidbody::sequencer;
 
 int search::parse_int(std::string_view token) {
     std::string_view s = token.starts_with('+') ? token.substr(1) : token;
-    int value{};
+    int value;
     auto [end, ec] = std::from_chars(s.data(), s.data() + s.size(), value);
     if (s.empty() || ec != std::errc() || end != s.data() + s.size()) {
         throw except::invalid_argument("SequenceParser: \"" + std::string(token) + "\" cannot be interpreted as an integer.");
@@ -23,13 +24,10 @@ int search::parse_int(std::string_view token) {
 
 double search::parse_double(std::string_view token) {
     std::string_view s = token.starts_with('+') ? token.substr(1) : token;
-
-    // nan and inf are refused by their spelling, since floating-point classification is unreliable under fast-math;
-    // from_chars itself refuses a value too large to be finite
     std::string_view digits = s.starts_with('-') ? s.substr(1) : s;
-    bool spelled_finite = !digits.empty() && (std::isdigit(static_cast<unsigned char>(digits[0])) || digits[0] == '.');
+    bool spelled_finite = !digits.empty() && (utility::isdigit(digits[0]) || digits[0] == '.');
 
-    double value{};
+    double value;
     auto [end, ec] = std::from_chars(s.data(), s.data() + s.size(), value);
     if (!spelled_finite || ec != std::errc() || end != s.data() + s.size()) {
         throw except::invalid_argument("SequenceParser: \"" + std::string(token) + "\" cannot be interpreted as a finite decimal value.");
