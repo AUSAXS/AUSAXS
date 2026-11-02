@@ -85,10 +85,13 @@ namespace {
             throw except::io_error("XVGReader::parse_data: No data could be read from the file.");
         }
 
-        // unit conversion
-        console::print_text("Assuming q is given in units of [nm].");
-        for (int i = 0; i < dataset->size_rows(); i++) {
-            dataset->index(i, 0) /= 10;
+        // unit conversion: .xvg files are written in [nm] unless the user says otherwise
+        settings::general::QUnit unit = settings::general::input_q_unit;
+        if (!settings::general::helper::is_user_defined(unit) || settings::general::helper::is_nanometers(unit)) {
+            console::print_text("Assuming q is given in units of [nm].");
+            for (int i = 0; i < dataset->size_rows(); i++) {
+                dataset->index(i, 0) /= 10;
+            }
         }
         
         // remove all rows outside the specified q-range
