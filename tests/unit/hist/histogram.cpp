@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <dataset/Dataset.h>
 #include <hist/Histogram.h>
 #include <utility/Limit.h>
 
