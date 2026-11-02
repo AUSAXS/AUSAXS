@@ -4,9 +4,6 @@
 #include <hist/distribution/WeightedDistribution2D.h>
 
 #include <hist/distribution/Distribution2D.h>
-#include <settings/HistogramSettings.h>
-
-#include <cstdint>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -17,19 +14,4 @@ WeightedDistribution2D::WeightedDistribution2D(const Distribution2D& other) : Co
             index(x, y).value = other.index(x, y);
         }
     }
-}
-
-std::vector<double> WeightedDistribution2D::get_weighted_axis() const {
-    auto d_vals = Axis(0, size_y()*settings::axes::bin_width, size_y()).as_vector();
-    std::vector<double> weights(size_y());
-    for (int y = 0; y < size_y(); y++) {
-        std::int64_t count = 0;
-        for (int x = 0; x < size_x(); x++) {
-            weights[y] += index(x, y).bin_center;
-            count += index(x, y).count;
-        }
-        // NOLINTNEXTLINE - this is a small optimization to both avoid dividing by zero and correctly handle the case where count is zero
-        weights[y] = !weights[y]*d_vals[y] + weights[y]/(!count + count);
-    }
-    return weights;
 }
