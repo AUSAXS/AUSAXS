@@ -22,7 +22,6 @@
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
-#include <utility/StringUtils.h>
 
 #include <iostream>
 #include <string>
@@ -34,12 +33,6 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
     io::ExistingFile pdb, mfile, exv_ref_file, settings;
     bool keep_hydration = false, save_settings = false, save_grid = false, save_exv = false;
-
-    // an enum setting reads a bare index back from a settings file, but on the command line a value must be given by name
-    CLI::Validator named_value([] (const std::string& s) -> std::string {
-        if (!s.empty() && utility::isdigit(s[0])) {return "Expected a name, but got the number \"" + s + "\".";}
-        return "";
-    }, "NAME");
 
     CLI::App app{"Perform SAXS fitting for a given structure and measurement."};
     app.fallthrough();
@@ -96,14 +89,14 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     auto* sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");
     sub_exv->add_option_function<std::string>("--model,-m", [] (const std::string& s) 
         {settings::detail::parse_option("exv_model", {s});}, 
-        "The excluded volume model to use. Options: Simple, Fraser, Grid.")->check(named_value);
+        "The excluded volume model to use. Options: Simple, Fraser, Grid.");
     sub_exv->add_flag("--fit", settings::fit::fit_excluded_volume.value, 
         "Fit the excluded volume.")->default_val(settings::fit::fit_excluded_volume.value);
     sub_exv->add_flag("--fit-density", settings::fit::fit_solvent_density.value, 
         "Fit the solvent density for the excluded volume.")->default_val(settings::fit::fit_solvent_density.value);
     sub_exv->add_option_function<std::string>("--table", [] (const std::string& s) {settings::detail::parse_option("exv_volume", {s});}, 
         "The set of displaced volume tables to use. Options: Traube, vdw, Voronoi, Minimum fluctuation (mf)."
-    )->check(named_value);
+    );
     sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness.value, 
         "The thickness of the surface layer in Ångström."
     )->default_val(settings::grid::exv::surface_thickness.value)->group("");
@@ -120,7 +113,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
     // solvation subcommands
     auto* sub_water = app.add_subcommand("solv", "See and set additional options for the solvation calculations.");
     sub_water->add_option_function<std::string>("--model,-m", [] (const std::string& s) {settings::detail::parse_option("hydration_strategy", {s});}, 
-        "The hydration model to use. Options: Radial, Axes, None.")->check(named_value);
+        "The hydration model to use. Options: Radial, Axes, None.");
     sub_water->add_flag("--keep,!--discard", keep_hydration, 
         "Keep or discard water molecules from the structure file. "
         "If they are discarded, a new solvation shell is generated."
@@ -180,13 +173,13 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         }
     });
 
-    CLI11_PARSE(app, argc, argv);
-    console::print_info("Running AUSAXS " + std::string(constants::version));
-
     //###################//
     //### PARSE INPUT ###//
     //###################//
     try {
+        CLI11_PARSE(app, argc, argv);
+        console::print_info("Running AUSAXS " + std::string(constants::version));
+
         // if a settings file was provided
         if (p_settings->count() != 0) {
             settings::read(settings);       // read it
