@@ -33,13 +33,6 @@ namespace ausaxs::em {
             ImageStackBase(const io::ExistingFile& file);
 
             /**
-             * @brief Constructor.
-             * 
-             * @param images The images for this stack.
-             */
-            ImageStackBase(const std::vector<Image>& images);
-
-            /**
              * @brief Destructor.
              */
             virtual ~ImageStackBase();
@@ -138,6 +131,14 @@ namespace ausaxs::em {
              * @param min_val The smallest possible value. Must be positive.
              */
             void set_minimum_bounds(double min_val);
+
+        protected:
+            /**
+             * @brief Construct a stack directly from a list of images.
+             *
+             * @param images The images for this stack.
+             */
+            ImageStackBase(const std::vector<Image>& images);
 
         private:
             std::unique_ptr<detail::header::IMapHeader> header; // The header of the input file.
