@@ -85,6 +85,30 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
                 CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/12},
                 11
             );
+        case type::c13:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/13},
+                12
+            );
+        case type::c14:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/14},
+                13
+            );
+        case type::c15:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/15},
+                14
+            );
+        case type::c16:
+            return std::make_unique<CyclicSymmetry>(
+                CyclicSymmetry::Relation{{0, 0, 0}},
+                CyclicSymmetry::Repeat{{0, 0, 1}, 2*std::numbers::pi/16},
+                15
+            );
         case type::p2:
             return std::make_unique<PointSymmetry>(
                 Vector3<double>{0, 0, 0},
@@ -107,6 +131,10 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
         case type::d10: return std::make_unique<DihedralSymmetry<10>>();
         case type::d11: return std::make_unique<DihedralSymmetry<11>>();
         case type::d12: return std::make_unique<DihedralSymmetry<12>>();
+        case type::d13: return std::make_unique<DihedralSymmetry<13>>();
+        case type::d14: return std::make_unique<DihedralSymmetry<14>>();
+        case type::d15: return std::make_unique<DihedralSymmetry<15>>();
+        case type::d16: return std::make_unique<DihedralSymmetry<16>>();
         case type::dp2:  return std::make_unique<PlanarDihedralSymmetry<2>>();
         case type::dp3:  return std::make_unique<PlanarDihedralSymmetry<3>>();
         case type::dp4:  return std::make_unique<PlanarDihedralSymmetry<4>>();
@@ -118,6 +146,10 @@ std::unique_ptr<ausaxs::symmetry::ISymmetry> ausaxs::symmetry::get(type t) {
         case type::dp10: return std::make_unique<PlanarDihedralSymmetry<10>>();
         case type::dp11: return std::make_unique<PlanarDihedralSymmetry<11>>();
         case type::dp12: return std::make_unique<PlanarDihedralSymmetry<12>>();
+        case type::dp13: return std::make_unique<PlanarDihedralSymmetry<13>>();
+        case type::dp14: return std::make_unique<PlanarDihedralSymmetry<14>>();
+        case type::dp15: return std::make_unique<PlanarDihedralSymmetry<15>>();
+        case type::dp16: return std::make_unique<PlanarDihedralSymmetry<16>>();
         default:
             throw except::runtime_error("Unknown symmetry type \"" + std::to_string(static_cast<int>(t)) + "\".");
     }
@@ -136,6 +168,10 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "c10") {return type::c10;}
     if (name == "c11") {return type::c11;}
     if (name == "c12") {return type::c12;}
+    if (name == "c13") {return type::c13;}
+    if (name == "c14") {return type::c14;}
+    if (name == "c15") {return type::c15;}
+    if (name == "c16") {return type::c16;}
     if (name == "p2") {return type::p2;}
     if (name == "t" || name == "tetrahedral") {return type::tetrahedral;}
     if (name == "o" || name == "octahedral")  {return type::octahedral;}
@@ -151,6 +187,10 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "d10") {return type::d10;}
     if (name == "d11") {return type::d11;}
     if (name == "d12") {return type::d12;}
+    if (name == "d13") {return type::d13;}
+    if (name == "d14") {return type::d14;}
+    if (name == "d15") {return type::d15;}
+    if (name == "d16") {return type::d16;}
     if (name == "dp2")  {return type::dp2;}
     if (name == "dp3")  {return type::dp3;}
     if (name == "dp4")  {return type::dp4;}
@@ -162,6 +202,10 @@ ausaxs::symmetry::type ausaxs::symmetry::get(std::string_view name) {
     if (name == "dp10") {return type::dp10;}
     if (name == "dp11") {return type::dp11;}
     if (name == "dp12") {return type::dp12;}
+    if (name == "dp13") {return type::dp13;}
+    if (name == "dp14") {return type::dp14;}
+    if (name == "dp15") {return type::dp15;}
+    if (name == "dp16") {return type::dp16;}
     throw except::runtime_error("symmetry::get: Unknown symmetry name \"" + std::string(name) + "\".");
 }
 

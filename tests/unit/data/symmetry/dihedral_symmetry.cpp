@@ -60,7 +60,7 @@ namespace {
 }
 
 TEST_CASE("DihedralSymmetry: group order is 2n") {
-    for (int n = 2; n <= 12; ++n) {
+    for (int n = 2; n <= 16; ++n) {
         auto s = make_dihedral(n);
         CHECK(s->repetitions() == static_cast<int>(2*n) - 1); // 2n copies including the original
     }
@@ -146,6 +146,7 @@ TEST_CASE("DihedralSymmetry: name parsing") {
     CHECK(get("d3") == type::d3);
     CHECK(dynamic_cast<DihedralSymmetry<3>*>(create("d3").get())   != nullptr);
     CHECK(dynamic_cast<DihedralSymmetry<12>*>(create("d12").get()) != nullptr);
+    CHECK(dynamic_cast<DihedralSymmetry<16>*>(create("d16").get()) != nullptr);
     CHECK(create("d3")->repetitions() == 5); // D3: six copies
 
     // hyphenated names are always generic composites; the dihedral groups are reached only through

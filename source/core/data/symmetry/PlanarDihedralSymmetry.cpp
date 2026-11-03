@@ -36,3 +36,7 @@ template class ausaxs::symmetry::PlanarDihedralSymmetry<9>;
 template class ausaxs::symmetry::PlanarDihedralSymmetry<10>;
 template class ausaxs::symmetry::PlanarDihedralSymmetry<11>;
 template class ausaxs::symmetry::PlanarDihedralSymmetry<12>;
+template class ausaxs::symmetry::PlanarDihedralSymmetry<13>;
+template class ausaxs::symmetry::PlanarDihedralSymmetry<14>;
+template class ausaxs::symmetry::PlanarDihedralSymmetry<15>;
+template class ausaxs::symmetry::PlanarDihedralSymmetry<16>;

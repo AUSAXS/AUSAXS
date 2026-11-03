@@ -112,6 +112,7 @@ TEST_CASE("PlanarDihedralSymmetry: name parsing") {
     CHECK(get("dp3") == type::dp3);
     CHECK(dynamic_cast<PlanarDihedralSymmetry<3>*>(create("dp3").get()) != nullptr);
     CHECK(dynamic_cast<PlanarDihedralSymmetry<2>*>(create("dp2").get()) != nullptr);
+    CHECK(dynamic_cast<PlanarDihedralSymmetry<16>*>(create("dp16").get()) != nullptr);
     // the plain dihedral name stays the general (non-planar) group
     CHECK(dynamic_cast<PlanarDihedralSymmetry<3>*>(create("d3").get()) == nullptr);
 }

@@ -40,3 +40,7 @@ template class ausaxs::symmetry::DihedralSymmetry<9>;
 template class ausaxs::symmetry::DihedralSymmetry<10>;
 template class ausaxs::symmetry::DihedralSymmetry<11>;
 template class ausaxs::symmetry::DihedralSymmetry<12>;
+template class ausaxs::symmetry::DihedralSymmetry<13>;
+template class ausaxs::symmetry::DihedralSymmetry<14>;
+template class ausaxs::symmetry::DihedralSymmetry<15>;
+template class ausaxs::symmetry::DihedralSymmetry<16>;
