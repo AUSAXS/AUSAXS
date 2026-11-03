@@ -23,16 +23,19 @@ namespace {
         settings::exv::ExvMethod exv_method = settings::exv::exv_method;
         bool implicit_hydrogens = settings::molecule::implicit_hydrogens;
         double qmax = settings::axes::qmax;
+        settings::hist::WeightedBins weighted_bins = settings::hist::weighted_bins;
 
         RawDebyeScope() {
             settings::exv::exv_method = settings::exv::ExvMethod::None; // simple histogram manager, no solvent charge subtracted from the atoms
             settings::molecule::implicit_hydrogens = false;             // do not add the charge of bound hydrogens
             settings::axes::qmax = 1;                                   // as high as it can go
+            settings::hist::weighted_bins = true;                       // the caller's q may go far beyond the range auto judges unweighted bins by
         }
         ~RawDebyeScope() {
             settings::exv::exv_method = exv_method;
             settings::molecule::implicit_hydrogens = implicit_hydrogens;
             settings::axes::qmax = qmax;
+            settings::hist::weighted_bins = weighted_bins;
         }
     };
 }

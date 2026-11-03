@@ -152,14 +152,19 @@ int molecule_distance_histogram(
 }, status);}
 
 namespace {
-// Selects the excluded volume model None for one scope and then restores the one it found, also on a throw, so a raw
+// Selects the settings of a raw calculation for one scope and then restores the ones it found, also on a throw, so a raw
 // calculation never changes the result of a later non-raw one.
-struct NoExvScope {
-    settings::exv::ExvMethod old = settings::exv::exv_method;
-    NoExvScope() {settings::exv::exv_method = settings::exv::ExvMethod::None;}
-    ~NoExvScope() {settings::exv::exv_method = old;}
-    NoExvScope(const NoExvScope&) = delete;
-    NoExvScope& operator=(const NoExvScope&) = delete;
+struct RawScope {
+    settings::exv::ExvMethod old_exv = settings::exv::exv_method;
+    settings::hist::WeightedBins old_weighted_bins = settings::hist::weighted_bins;
+    RawScope() {
+        settings::exv::exv_method = settings::exv::ExvMethod::None; // point scatterers with their weights, without any excluded volume
+        settings::hist::weighted_bins = true;                       // raw profiles must hold at any q, far beyond the range auto judges unweighted bins by
+    }
+    ~RawScope() {
+        settings::exv::exv_method = old_exv;
+        settings::hist::weighted_bins = old_weighted_bins;
+    }
 };
 
 struct _molecule_distance_histogram_raw_obj {
@@ -172,10 +177,10 @@ int molecule_distance_histogram_raw(
     double** counts, double** axis, int* n_bins,
     int* status
 ) {return execute_with_catch([&]() {
-    NoExvScope no_exv; // raw histogram: point scatterers with their weights, without any excluded volume
+    RawScope raw;
 
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    molecule.reset_histogram_manager(); // rebuilt without excluded volume
+    molecule.reset_histogram_manager(); // rebuilt with the raw settings
     auto hist = molecule.get_total_histogram();
     const auto& p_tot = hist->get_weighted_counts();
     const auto& d_axis = hist->get_d_axis();
@@ -246,10 +251,10 @@ int molecule_debye_raw(
     double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    NoExvScope no_exv; // raw profile: point scatterers with their weights, without any excluded volume
+    RawScope raw;
 
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    molecule.reset_histogram_manager(); // rebuilt without excluded volume
+    molecule.reset_histogram_manager(); // rebuilt with the raw settings
     auto hist = molecule.get_histogram();
     auto debye_I = hist->debye_transform<false>();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
@@ -272,11 +277,11 @@ void molecule_debye_raw_userq(
     double* q, double* I, int n_points,
     int* status
 ) {execute_with_catch([&]() {
-    NoExvScope no_exv; // raw profile: point scatterers with their weights, without any excluded volume
+    RawScope raw;
 
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     std::vector<double> q_vals(q, q + n_points);
-    molecule.reset_histogram_manager(); // rebuilt without excluded volume
+    molecule.reset_histogram_manager(); // rebuilt with the raw settings
     auto hist = molecule.get_histogram();
     auto debye_I = hist->debye_transform<false>(q_vals);
     if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}

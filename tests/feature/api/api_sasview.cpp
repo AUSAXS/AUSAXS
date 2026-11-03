@@ -2,28 +2,27 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <api/api_sasview.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <settings/ExvSettings.h>
 #include <settings/HistogramSettings.h>
 #include <settings/MoleculeSettings.h>
 #include <utility/Random.h>
 
 #include <cmath>
+#include <random>
 #include <vector>
 
 using namespace ausaxs;
 
-// the plain weighted Debye sum, evaluated directly
+// the built-in exact Debye sum over the same weighted points, without the unit form factor it applies
 static std::vector<double> debye_exact(const std::vector<double>& q, const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& z, const std::vector<double>& w) {
-    std::vector<double> I(q.size(), 0);
-    for (unsigned int k = 0; k < q.size(); ++k) {
-        for (unsigned int i = 0; i < x.size(); ++i) {
-            for (unsigned int j = 0; j < x.size(); ++j) {
-                double r = std::sqrt(std::pow(x[i]-x[j], 2) + std::pow(y[i]-y[j], 2) + std::pow(z[i]-z[j], 2));
-                double qr = q[k]*r;
-                I[k] += w[i]*w[j]*(qr < 1e-12 ? 1 : std::sin(qr)/qr);
-            }
-        }
-    }
+    std::vector<data::Atom> atoms;
+    atoms.reserve(x.size());
+    for (unsigned int i = 0; i < x.size(); ++i) {atoms.emplace_back(Vector3<double>{x[i], y[i], z[i]}, w[i]);}
+    auto I = hist::exact_debye_transform(data::Molecule({data::Body{atoms}}), q);
+    for (unsigned int k = 0; k < q.size(); ++k) {I[k] *= std::exp(q[k]*q[k]);}
     return I;
 }
 
@@ -45,11 +44,37 @@ TEST_CASE("debye_no_ff: matches the direct Debye sum") {
     }
 }
 
+// SasView's own check of this function: a protein with random weights, compared with the direct sum up to q = 10. Proteins are disordered
+// enough for unweighted bins in the SAXS range, but not this far beyond it.
+TEST_CASE("debye_no_ff: accurate at high q") {
+    settings::hist::weighted_bins = settings::hist::WeightedBins::Value::Auto;
+
+    data::Molecule protein("tests/files/2epe.pdb");
+    auto& rng = random::generator();
+    std::uniform_real_distribution<double> weight(0, 1);
+    std::vector<double> x, y, z, w;
+    for (const auto& atom : protein.iterate_atoms()) {
+        x.emplace_back(atom.coordinates().x()); y.emplace_back(atom.coordinates().y()); z.emplace_back(atom.coordinates().z());
+        w.emplace_back(weight(rng));
+    }
+    std::vector<double> q(100), I(q.size());
+    for (unsigned int k = 0; k < q.size(); ++k) {q[k] = 0.1 + 0.1*k;}
+
+    int status = -1;
+    debye_no_ff(q.data(), x.data(), y.data(), z.data(), w.data(), static_cast<int>(q.size()), static_cast<int>(x.size()), I.data(), &status);
+    REQUIRE(status == 0);
+    auto expected = debye_exact(q, x, y, z, w);
+    for (unsigned int k = 0; k < q.size(); ++k) {
+        CHECK_THAT(I[k], Catch::Matchers::WithinRel(expected[k], 0.03)); // the tolerance of SasView's own comparison
+    }
+}
+
 // a SasView call must not change the settings of later, unrelated calculations in the same process
 TEST_CASE("debye_no_ff: leaves the caller's settings untouched") {
     settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
     settings::molecule::implicit_hydrogens = true;
     settings::axes::qmax = 0.4;
+    settings::hist::weighted_bins = settings::hist::WeightedBins::Value::Auto;
 
     std::vector<double> x = {0, 0}, y = {0, 0}, z = {0, 5}, w = {1, 1}, q = {0, 0.1, 0.3}, I(q.size());
     int status = -1;
@@ -60,4 +85,5 @@ TEST_CASE("debye_no_ff: leaves the caller's settings untouched") {
     CHECK(settings::exv::exv_method == settings::exv::ExvMethod::Fraser);
     CHECK(settings::molecule::implicit_hydrogens == true);
     CHECK(settings::axes::qmax == 0.4);
+    CHECK(settings::hist::weighted_bins->is_auto());
 }
