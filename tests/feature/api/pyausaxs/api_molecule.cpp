@@ -4,6 +4,7 @@
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
 #include <settings/HistogramSettings.h>
+#include <utility/Random.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -11,6 +12,7 @@
 
 #include <array>
 #include <cmath>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -133,6 +135,42 @@ TEST_CASE("molecule_distance_histogram_raw: weight products without excluded vol
     for (int i = 0; i < n_bins; ++i) {total += counts[i];}
     CHECK_THAT(total, Catch::Matchers::WithinRel(w_sum*w_sum, 1e-6)); // the histogram kernels take the weights in single precision
     CHECK(axis[0] == 0);
+}
+
+// raw profiles must hold at any q: a protein with random weights, compared with the direct sum up to q = 10. Proteins are disordered
+// enough for unweighted bins in the SAXS range, but not this far beyond it.
+TEST_CASE("molecule_debye_raw_userq: accurate at high q") {
+    int status = 1;
+    int pdb = pdb_read("tests/files/2epe.pdb", &status);
+    REQUIRE(status == 0);
+    int *serial, *res_seq;
+    const char **name, **alt_name, **res_name, **i_code, **element, **charge;
+    const char* chain_id;
+    double *px, *py, *pz, *occupancy, *b_factor;
+    int n_atoms = 0;
+    pdb_get_data(pdb, &serial, &name, &alt_name, &res_name, &chain_id, &res_seq, &i_code, &px, &py, &pz, &occupancy, &b_factor, &element, &charge, &n_atoms, &status);
+    REQUIRE(status == 0);
+
+    auto& rng = random::generator();
+    std::uniform_real_distribution<double> weight(0, 1);
+    std::vector<double> x(px, px + n_atoms), y(py, py + n_atoms), z(pz, pz + n_atoms), w(n_atoms);
+    for (auto& wi : w) {wi = weight(rng);}
+    int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), n_atoms, &status);
+    REQUIRE(status == 0);
+    settings::hist::weighted_bins = settings::hist::WeightedBins::Value::Auto;
+
+    std::vector<double> q(100), I(q.size());
+    for (unsigned int k = 0; k < q.size(); ++k) {q[k] = 0.1 + 0.1*k;}
+    molecule_debye_raw_userq(mol, q.data(), I.data(), static_cast<int>(q.size()), &status);
+    REQUIRE(status == 0);
+    CHECK(settings::hist::weighted_bins->is_auto());
+
+    std::vector<double> expected(q.size());
+    molecule_debye_exact_userq(mol, q.data(), expected.data(), static_cast<int>(q.size()), &status);
+    REQUIRE(status == 0);
+    for (unsigned int k = 0; k < q.size(); ++k) {
+        CHECK_THAT(I[k], Catch::Matchers::WithinRel(expected[k], 0.03)); // the tolerance of SasView's own comparison
+    }
 }
 
 TEST_CASE("object ids: an object of the wrong type is refused") {
