@@ -78,7 +78,6 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
         ParsedArgs pargs;
         auto tokens = tokenize(line);
         if (tokens.empty()) {continue;}
-        int element_line = line_no; // the block below advances line_no past the arguments
 
         if (ends_with_opening_brace(tokens)) { // if the last token ends with an opening brace, read a multiline arg block
             // anything between the element name and the brace is an inline argument; capture it so that combining the two
