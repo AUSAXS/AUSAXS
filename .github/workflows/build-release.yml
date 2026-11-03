@@ -248,3 +248,38 @@ jobs:
           path: |
             build/lib/*
             build/bin/*
+  github-release:
+    name: "Create GitHub release"
+    needs: [build-win, build-mac, build-ubuntu]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      # zip each artifact with lib/ and bin/ at the root, matching the names and layout downstream consumers (e.g. pyAUSAXS) expect
+      - name: Package release assets
+        shell: bash
+        run: |
+          mkdir release
+          for dir in artifacts/*/; do
+            name=$(basename "$dir")
+            chmod +x "$dir"bin/* "$dir"lib/*
+            (cd "$dir" && zip -rD "../../release/$name.zip" .)
+          done
+          ls -la release/
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          VERSION=$(sed -n -E 's/.*version\s*=\s*"([^"]+)".*/\1/p' include/core/constants/Version.h)
+          gh release create "$VERSION" release/*.zip \
+            --title "$VERSION" \
+            --target "$GITHUB_SHA" \
+            --generate-notes
