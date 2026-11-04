@@ -19,6 +19,7 @@
 
 #include <rigidbody/sequencer/elements/BodySelectElement.h>
 #include <rigidbody/sequencer/elements/CopyLoopElement.h>
+#include <rigidbody/sequencer/elements/DebugCounterElement.h>
 #include <rigidbody/sequencer/elements/EveryNStepElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/sequencer/elements/MessageElement.h>

@@ -33,6 +33,7 @@ namespace {
             {ElementType::Constraint, {"constrain", "constraint"}},
             {ElementType::ConvertToSymmetry, {"convert_to_symmetry"}},
             {ElementType::Copy, {"copy", "copy_body"}},
+            {ElementType::DebugCounter, {"debug_counter"}}, // test-only, deliberately undocumented
             {ElementType::Delete, {"delete"}},
             {ElementType::EveryNStep, {"every"}},
             {ElementType::LoadElement, {"load", "open"}},
@@ -81,6 +82,7 @@ std::vector<std::string> ausaxs::rigidbody::sequencer::detail::valid_arguments(E
         case ElementType::Constraint:          return ConstraintElement::_valid_arguments();
         case ElementType::ConvertToSymmetry:   return ConvertToSymmetryElement::_valid_arguments();
         case ElementType::Copy:                return CopyBodyElement::_valid_arguments();
+        case ElementType::DebugCounter:        return DebugCounterElement::_valid_arguments();
         case ElementType::Delete:              return DeleteElement::_valid_arguments();
         case ElementType::EveryNStep:          return EveryNStepElement::_valid_arguments();
         case ElementType::LoadElement:         return LoadElement::_valid_arguments();
@@ -114,6 +116,7 @@ ausaxs::rigidbody::sequencer::InlineSignature ausaxs::rigidbody::sequencer::deta
         case ElementType::Constraint:          return ConstraintElement::_valid_inline_arguments();
         case ElementType::ConvertToSymmetry:   return ConvertToSymmetryElement::_valid_inline_arguments();
         case ElementType::Copy:                return CopyBodyElement::_valid_inline_arguments();
+        case ElementType::DebugCounter:        return DebugCounterElement::_valid_inline_arguments();
         case ElementType::Delete:              return DeleteElement::_valid_inline_arguments();
         case ElementType::EveryNStep:          return EveryNStepElement::_valid_inline_arguments();
         case ElementType::LoadElement:         return LoadElement::_valid_inline_arguments();

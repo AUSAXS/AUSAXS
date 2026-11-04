@@ -150,6 +150,7 @@ std::unique_ptr<Sequencer> SequenceParser::parse(std::istream& in, const std::st
             {ElementType::BodySelect,          BodySelectElement::_parse},
             {ElementType::ConvertToSymmetry,   ConvertToSymmetryElement::_parse},
             {ElementType::Copy,                CopyBodyElement::_parse},
+            {ElementType::DebugCounter,        DebugCounterElement::_parse},
             {ElementType::Delete,              DeleteElement::_parse},
             {ElementType::EveryNStep,          EveryNStepElement::_parse},
             {ElementType::LoadElement,         LoadElement::_parse},

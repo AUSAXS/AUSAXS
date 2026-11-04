@@ -17,6 +17,7 @@ namespace ausaxs::rigidbody::sequencer::detail {
         Constraint,
         ConvertToSymmetry,
         Copy,
+        DebugCounter,
         Delete,
         EveryNStep,
         LoadElement,

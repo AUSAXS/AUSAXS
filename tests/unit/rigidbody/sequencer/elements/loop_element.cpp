@@ -7,6 +7,7 @@
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
+#include <rigidbody/sequencer/elements/DebugCounterElement.h>
 #include <rigidbody/sequencer/elements/GenericElement.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
 #include <rigidbody/sequencer/elements/ParameterElement.h>
@@ -38,15 +39,18 @@ namespace {
 
 TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement nested loops") {
     SECTION("Two nested loops") {
-        auto seq = parse_sequence(
+        auto seq = SequenceParser().parse_text(
             "load {\n"
             "    pdb tests/files/2epe.pdb\n"
             "    saxs tests/files/2epe.dat\n"
             "    split 40 80\n"
             "}\n"
             "loop 2\n"
+            "    debug_counter outer\n"
             "    loop 2\n"
             "        optimize_once\n"
+            "        end\n"
+            "        debug_counter inner\n"
             "    end\n"
             "end\n"
         );
@@ -55,6 +59,18 @@ TEST_CASE_METHOD(SequencerElementsFixture, "SequencerElements::LoopElement neste
         auto result = seq->execute();
         REQUIRE(result != nullptr);
         CHECK(result->fval > 0);
+
+        // the outer counter runs before each pass of the inner loop, the inner one after each optimization step
+        auto* outer_loop = dynamic_cast<LoopElement*>(seq->_get_elements().back().get());
+        REQUIRE(outer_loop != nullptr);
+        auto* outer = dynamic_cast<DebugCounterElement*>(outer_loop->_get_elements().front().get());
+        auto* inner_loop = dynamic_cast<LoopElement*>(outer_loop->_get_elements().back().get());
+        REQUIRE(outer != nullptr);
+        REQUIRE(inner_loop != nullptr);
+        auto* inner = dynamic_cast<DebugCounterElement*>(inner_loop->_get_elements().back().get());
+        REQUIRE(inner != nullptr);
+        CHECK(outer->iterations() == std::vector<int>{0, 2});
+        CHECK(inner->iterations() == std::vector<int>{1, 2, 3, 4});
     }
 }
 
