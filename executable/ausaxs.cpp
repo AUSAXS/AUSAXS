@@ -4,6 +4,7 @@
 #include <api/cli/cli_em_fitter.h>
 #include <api/cli/cli_rigidbody.h>
 #include <api/cli/cli_saxs_fitter.h>
+#include <constants/Version.h>
 #include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
@@ -43,6 +44,14 @@ int main(int argc, char const *argv[]) {
     }
 
     std::string tool = argv[1];
+    if (tool == "-h" || tool == "--help") {
+        print_help();
+        return 0;
+    }
+    if (tool == "-v" || tool == "--version") {
+        console::print_text(constants::version);
+        return 0;
+    }
     if (!tool_map.contains(tool)) {
         console::print_warning("Unknown tool: " + tool);
         print_help();

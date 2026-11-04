@@ -78,7 +78,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
         "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy.value);
 
     // hydrogen subcommands
-    auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
+    auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydrogen atoms.");
     sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens.value, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens.value);
 
     // grid subcommands

@@ -120,7 +120,7 @@ int cli_saxs_fitter(int argc, char const *argv[]) {
         "Fit the hydration shell.")->default_val(settings::fit::fit_hydration.value);
 
     // hydrogen subcommands
-    auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydration atoms.");
+    auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydrogen atoms.");
     sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens.value, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens.value);
 
     // grid subcommands
