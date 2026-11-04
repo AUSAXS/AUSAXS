@@ -160,6 +160,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::Se: return vdw::Se;
         case atom_t::Br: return vdw::Br;
 
+        case atom_t::Kr: return vdw::Kr;
         case atom_t::Rb: return vdw::Rb;
         case atom_t::Sr: return vdw::Sr;
         case atom_t::Y:  return vdw::Y;
@@ -177,6 +178,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::Sb: return vdw::Sb;
         case atom_t::Te: return vdw::Te;
         case atom_t::I:  return vdw::I;
+        case atom_t::Xe: return vdw::Xe;
 
         case atom_t::Cs: return vdw::Cs;
         case atom_t::Ba: return vdw::Ba;
@@ -240,6 +242,7 @@ std::string ausaxs::constants::symbols::to_string(atom_t atom) {
         case atom_t::As: return "As";
         case atom_t::Se: return "Se";
         case atom_t::Br: return "Br";
+        case atom_t::Kr: return "Kr";
 
         case atom_t::Rb: return "Rb";
         case atom_t::Sr: return "Sr";

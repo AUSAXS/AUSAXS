@@ -21,7 +21,7 @@ double ausaxs::constants::charge::get_ff_charge(form_factor_t type) {
 
 template<Radiation radiation>
 double ausaxs::constants::charge::get_ff_charge(form_factor_t type, atom_t fallback_element) {
-    // neutron scattering lengths are only tabulated for the form factor types, so OTHER has no better fallback
+    // neutron scattering lengths are only tabulated for the form factor types, so OTHER (Po, M, dummy, ...) has no better fallback
     if constexpr (radiation == Radiation::XRay) {
         if (type == form_factor_t::OTHER) {return nuclear::get_charge(fallback_element);}
     }

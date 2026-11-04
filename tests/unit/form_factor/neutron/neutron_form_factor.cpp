@@ -51,6 +51,10 @@ TEST_CASE("NeutronFormFactor::get") {
         CHECK_THAT(get(form_factor_t::H).I0(),   WithinAbs(-3.739, 1e-12));
         CHECK_THAT(get(form_factor_t::CH2).I0(), WithinAbs(6.646 - 2*3.739, 1e-12));
         CHECK_THAT(get(form_factor_t::NH3).I0(), WithinAbs(9.36 - 3*3.739, 1e-12));
+        CHECK_THAT(get(form_factor_t::D).I0(),   WithinAbs(6.671, 1e-12));
+        CHECK_THAT(get(form_factor_t::Ag).I0(),  WithinAbs(5.922, 1e-12));
+        CHECK_THAT(get(form_factor_t::Ti).I0(),  WithinAbs(-3.438, 1e-12));
+        CHECK_THAT(get(form_factor_t::Au).I0(),  WithinAbs(7.63, 1e-12));
     }
 
     SECTION("types without hydrogens are q-independent") {

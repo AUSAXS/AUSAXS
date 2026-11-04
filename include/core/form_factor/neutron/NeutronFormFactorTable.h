@@ -37,6 +37,51 @@ namespace ausaxs::form_factor::neutron {
         constexpr double Se =  7.970;
         constexpr double Br =  6.795;
         constexpr double I  =  5.28;
+        constexpr double He =    3.26;
+        constexpr double Li =    -1.9;
+        constexpr double Be =    7.79;
+        constexpr double B  =     5.3;
+        constexpr double Ne =   4.566;
+        constexpr double Al =   3.449;
+        constexpr double Si =  4.1491;
+        constexpr double Sc =   12.29;
+        constexpr double Ti =  -3.438;
+        constexpr double V  = -0.3824;
+        constexpr double Cr =   3.635;
+        constexpr double Ga =   7.288;
+        constexpr double Ge =   8.185;
+        constexpr double As =    6.58;
+        constexpr double Kr =    7.81;
+        constexpr double Rb =    7.09;
+        constexpr double Sr =    7.02;
+        constexpr double Y  =    7.75;
+        constexpr double Zr =    7.16;
+        constexpr double Nb =   7.054;
+        constexpr double Mo =   6.715;
+        constexpr double Tc =     6.8;
+        constexpr double Ru =    7.03;
+        constexpr double Rh =    5.88;
+        constexpr double Pd =    5.91;
+        constexpr double Ag =   5.922;
+        constexpr double Cd =    4.87;
+        constexpr double In =   4.065;
+        constexpr double Sn =   6.225;
+        constexpr double Sb =    5.57;
+        constexpr double Te =     5.8;
+        constexpr double Xe =    4.92;
+        constexpr double Cs =    5.42;
+        constexpr double Ba =    5.07;
+        constexpr double Hf =     7.7;
+        constexpr double Ta =    6.91;
+        constexpr double W  =    4.86;
+        constexpr double Re =     9.2;
+        constexpr double Os =    10.7;
+        constexpr double Ir =    10.6;
+        constexpr double Pt =     9.6;
+        constexpr double Au =    7.63;
+        constexpr double Tl =   8.776;
+        constexpr double Pb =   9.405;
+        constexpr double Bi =   8.532;
     }
 
     namespace coefficients {
@@ -77,40 +122,15 @@ namespace ausaxs::form_factor::neutron {
             return 2*d_xh*math::sin(hh_angle*std::numbers::pi/360);
         }
 
+        // Only the atomic groups are defined here. A bare atom needs nothing but its scattering length, e.g. Group{.b_heavy = scattering_length::Ag}.
         namespace b = scattering_length;
-        constexpr Group H   {.b_heavy = b::H};
-        constexpr Group C   {.b_heavy = b::C};
         constexpr Group CH  {.b_heavy = b::C, .hydrogens = 1, .d_xh = bond::CH};
         constexpr Group CH2 {.b_heavy = b::C, .hydrogens = 2, .d_xh = bond::CH, .d_hh = hh_distance(bond::CH, angle::tetrahedral)};
         constexpr Group CH3 {.b_heavy = b::C, .hydrogens = 3, .d_xh = bond::CH, .d_hh = hh_distance(bond::CH, angle::tetrahedral)};
-        constexpr Group N   {.b_heavy = b::N};
         constexpr Group NH  {.b_heavy = b::N, .hydrogens = 1, .d_xh = bond::NH};
         constexpr Group NH2 {.b_heavy = b::N, .hydrogens = 2, .d_xh = bond::NH, .d_hh = hh_distance(bond::NH, angle::trigonal)}; // only the planar amide and guanidinium groups of proteins
         constexpr Group NH3 {.b_heavy = b::N, .hydrogens = 3, .d_xh = bond::NH, .d_hh = hh_distance(bond::NH, angle::tetrahedral)};
-        constexpr Group O   {.b_heavy = b::O};
         constexpr Group OH  {.b_heavy = b::O, .hydrogens = 1, .d_xh = bond::OH};
-        constexpr Group S   {.b_heavy = b::S};
         constexpr Group SH  {.b_heavy = b::S, .hydrogens = 1, .d_xh = bond::SH};
-        constexpr Group F   {.b_heavy = b::F};
-        constexpr Group Na  {.b_heavy = b::Na};
-        constexpr Group Mg  {.b_heavy = b::Mg};
-        constexpr Group P   {.b_heavy = b::P};
-        constexpr Group Cl  {.b_heavy = b::Cl};
-        constexpr Group Ar  {.b_heavy = b::Ar};
-        constexpr Group K   {.b_heavy = b::K};
-        constexpr Group Ca  {.b_heavy = b::Ca};
-        constexpr Group Mn  {.b_heavy = b::Mn};
-        constexpr Group Fe  {.b_heavy = b::Fe};
-        constexpr Group Co  {.b_heavy = b::Co};
-        constexpr Group Ni  {.b_heavy = b::Ni};
-        constexpr Group Cu  {.b_heavy = b::Cu};
-        constexpr Group Zn  {.b_heavy = b::Zn};
-        constexpr Group Se  {.b_heavy = b::Se};
-        constexpr Group Br  {.b_heavy = b::Br};
-        constexpr Group I   {.b_heavy = b::I};
-        constexpr Group other = Ar; // default form factor for unknown atoms
-
-        // the excluded volume has no scattering length
-        constexpr Group excluded_volume {};
     }
 }

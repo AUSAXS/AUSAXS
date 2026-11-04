@@ -30,7 +30,7 @@ TEST_CASE("form_factor::get_info") {
             double f0 = c.c;
             for (double a : c.a) {f0 += a;}
             INFO("form factor " << to_string(type));
-            CHECK_THAT(f0, Catch::Matchers::WithinAbs(constants::charge::nuclear::get_charge(type), 0.01));
+            CHECK_THAT(f0, Catch::Matchers::WithinRel(constants::charge::nuclear::get_charge(type), 1e-3));
         }
     }
 
@@ -50,9 +50,17 @@ TEST_CASE("form_factor::get_type") {
         }
     }
 
+    SECTION("every real element except polonium has its own type") {
+        for (int i = 0; i < static_cast<int>(constants::atom_t::M); ++i) {
+            auto element = static_cast<constants::atom_t>(i);
+            INFO("element " << constants::symbols::to_string(element));
+            CHECK((get_type(element) == form_factor_t::OTHER) == (element == constants::atom_t::Po));
+        }
+    }
+
     SECTION("elements without their own type map to OTHER") {
-        CHECK(get_type(constants::atom_t::Ar) == form_factor_t::OTHER);
-        CHECK(get_type(constants::atom_t::Au) == form_factor_t::OTHER);
+        CHECK(get_type(constants::atom_t::Po) == form_factor_t::OTHER);
+        CHECK(get_type(constants::atom_t::M) == form_factor_t::OTHER);
         CHECK(get_type(constants::atom_t::unknown) == form_factor_t::OTHER);
     }
 

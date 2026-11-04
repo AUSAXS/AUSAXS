@@ -12,6 +12,8 @@ namespace ausaxs::constants::radius::vdw {
     constexpr double He = 1.4;
     constexpr double Ne = 1.54;
     constexpr double Ar = 1.88;
+    constexpr double Kr = 2.02;
+    constexpr double Xe = 2.16;
 
     // Batsanov, 2001, equilibrium values
     constexpr double Li = 2.63;
