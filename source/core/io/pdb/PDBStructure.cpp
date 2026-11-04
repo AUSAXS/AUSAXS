@@ -246,7 +246,8 @@ namespace {
             } catch (const except::base&) {
                 throw except::invalid_argument(
                     "PDBStructure::reduced_representation: Unknown atom name \"" + a.name + "\" in residue \"" + a.resName + "\"" 
-                    "(element: " + constants::symbols::to_string(a.element) + ", serial: " + std::to_string(a.serial) + ")"
+                    "(element: " + constants::symbols::to_string(a.element) + ", serial: " + std::to_string(a.serial) + "). "
+                    "Use --allow-unknown-atoms to continue anyway, or disable implicit hydrogens with the 'hydrogens --keep' subcommand."
                 );
             }
         }
@@ -254,7 +255,7 @@ namespace {
         if (unknown_res_count != 0) {
             std::string msg = "PDBStructure::reduced_representation: Molecule contains " + std::to_string(unknown_res_count) + " atoms with unknown residues.";
             if (!settings::molecule::allow_unknown_residues) {
-                msg += " Disable implicit hydrogens with --no-implicit-hydrogens flag, or use --allow-unknown-residues to continue anyway.";
+                msg += " Disable implicit hydrogens with the 'hydrogens --keep' subcommand, or use --allow-unknown-residues to continue anyway.";
                 throw except::io_error(msg);
             }
             console::print_warning(msg + " Implicit hydrogens will be SKIPPED for these atoms.");

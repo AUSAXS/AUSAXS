@@ -82,6 +82,12 @@ namespace ausaxs::residue::detail {
             bool update_average = false;                            // whether the average needs to be updated
 
             /**
+             * @brief The number of bonds stored for @a key, or for the name the residue definitions know it by (e.g. CHARMM's
+             *        OT1 for OC1). nullptr if neither is present.
+             */
+            const int* find(const AtomKey& key) const;
+
+            /**
              * @brief Check if a key is present in the map. 
              */
             bool contains(const std::string& name, constants::atom_t atom) const;
