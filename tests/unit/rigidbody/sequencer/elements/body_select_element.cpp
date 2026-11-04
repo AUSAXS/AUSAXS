@@ -15,6 +15,7 @@
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/transform/TransformStrategy.h>  // IWYU pragma: keep
 #include <settings/All.h>
+#include <utility/Exceptions.h>
 
 #include <support/temp_file.h>
 
@@ -392,5 +393,33 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
 
     SECTION("an unknown mask name is rejected") {
         CHECK_THROWS_AS(mask_of("symmetry_sideways"), sequencer::except::parse_error);
+    }
+
+    SECTION("a mask whose components all have a zero amplitude is rejected") {
+        auto next_mask_with = [] (const std::string& amplitudes, const std::string& mask_name) {
+            auto seq = parse(
+                "load {\n"
+                "    pdb tests/files/2epe.pdb\n"
+                "    saxs tests/files/2epe.dat\n"
+                "}\n"
+                "symmetry c2\n"
+                "parameters {\n"
+                "    iterations 3\n" + amplitudes +
+                "}\n"
+                "select {\n"
+                "    parameters " + mask_name + "\n"
+                "}\n"
+            );
+            REQUIRE(seq != nullptr);
+            seq->execute();
+            return seq->_get_rigidbody()->body_selector->next_mask().mask;
+        };
+
+        // no amplitude named: only the symmetries are optimised
+        CHECK_THROWS_AS(next_mask_with("", "real"), ausaxs::except::invalid_argument);
+        CHECK_NOTHROW(next_mask_with("", "symmetry"));
+        CHECK_THROWS_AS(next_mask_with("    translate 2\n", "symmetry"), ausaxs::except::invalid_argument);
+        CHECK_THROWS_AS(next_mask_with("    sym_translate 2\n", "symmetry_axis"), ausaxs::except::invalid_argument);
+        CHECK_NOTHROW(next_mask_with("    translate 2\n", "real"));
     }
 }

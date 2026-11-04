@@ -5,6 +5,7 @@
 
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/selection/ParameterMaskStrategy.h>
 #include <rigidbody/selection/SymmetryTargets.h>
 #include <utility/Exceptions.h>
@@ -76,6 +77,17 @@ BodySelectStrategy::SelectionResult BodySelectStrategy::next_mask() {
         throw except::invalid_argument(
             "BodySelectStrategy::next_mask: The selected parameter mask optimizes symmetries only, but the molecule declares none that can be driven. "
             "Note that a symmetry shared between several bodies is only drivable through the body owning it."
+        );
+    }
+
+    // a mask whose every active component has a zero amplitude would hand the transform an empty step
+    const auto& amplitudes = rigidbody->parameter_generator->get_amplitudes();
+    bool moves = (mask.real_translation && amplitudes.translation != 0) || (mask.real_rotation && amplitudes.rotation != 0)
+        || (mask.sym_translation && amplitudes.symmetry_translation != 0) || (mask.sym_axis && amplitudes.symmetry_rotation != 0);
+    if (!moves) {
+        throw except::invalid_argument(
+            "BodySelectStrategy::next_mask: The parameter mask of the \"select\" element only allows components whose amplitude in the \"parameters\" element is zero, "
+            "so the step would move nothing. Give the masked components a non-zero amplitude, or select a mask that includes the components with one."
         );
     }
 
