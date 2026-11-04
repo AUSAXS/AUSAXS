@@ -52,6 +52,10 @@ int main(int argc, char const *argv[]) {
         console::print_text(constants::version);
         return 0;
     }
+    if (tool == "--licence") {
+        console::print_text(constants::licence);
+        return 0;
+    }
     if (!tool_map.contains(tool)) {
         console::print_warning("Unknown tool: " + tool);
         print_help();

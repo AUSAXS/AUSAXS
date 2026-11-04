@@ -9,12 +9,10 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
-#include <filesystem>
 #include <random>
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <system_error>
 #include <utility>
 
 namespace ausaxs::test {
@@ -74,43 +72,5 @@ namespace ausaxs::test {
 
         private:
             bool owns = true;
-    };
-
-    /**
-     * @brief A scratch directory under temp/, created on construction and deleted with everything inside it when it goes out of scope.
-     *
-     * A CLI tool is handed an output folder and decides itself what to put there, so a test driving one cannot name the files it must clean up. The
-     * random tag is there for the same reason as TempFile's: two parallel CTest processes of one binary must not share an output directory.
-     */
-    class TempFolder : public io::Folder {
-        public:
-            TempFolder() : io::Folder("temp/ausaxs_test_" + detail::unique_tag()) {create();}
-
-            // move-only, as TempFile: a copy would share one path between two owners.
-            TempFolder(const TempFolder&) = delete;
-            TempFolder& operator=(const TempFolder&) = delete;
-
-            // NOLINTNEXTLINE(bugprone-use-after-move) - owns is a member of TempFolder, not of the io::Folder base the mem-initialiser above moves from
-            TempFolder(TempFolder&& other) noexcept : io::Folder(std::move(other)), owns(std::exchange(other.owns, false)) {}
-            TempFolder& operator=(TempFolder&& other) noexcept {
-                if (this != &other) {
-                    if (owns) {discard();}
-                    bool other_owns = std::exchange(other.owns, false);
-                    io::Folder::operator=(std::move(other));
-                    owns = other_owns;
-                }
-                return *this;
-            }
-
-            ~TempFolder() {if (owns) {discard();}}
-
-        private:
-            bool owns = true;
-
-            // a destructor must not throw, and a folder the tool never wrote to is not an error
-            void discard() const noexcept {
-                std::error_code ec;
-                std::filesystem::remove_all(path(), ec);
-            }
     };
 }

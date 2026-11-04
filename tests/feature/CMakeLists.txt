@@ -16,12 +16,6 @@ foreach(test ${TEST_SRC})
 	target_compile_options("${name}" PRIVATE ${AUSAXS_TEST_FLAGS})
 	add_dependencies(feature_tests "${name}")
 
-	# the tests under cli/ drive the ausaxs executable as a subprocess, so they need it built and need to know where it ended up
-	if (test MATCHES "/cli/")
-		add_dependencies("${name}" ausaxs)
-		target_compile_definitions("${name}" PRIVATE AUSAXS_EXECUTABLE="$<TARGET_FILE:ausaxs>")
-	endif()
-
 	catch_discover_tests("${name}" 
 		TEST_SPEC "~[slow] ~[broken] ~[manual]" 
 		WORKING_DIRECTORY "${TEST_BIN_DIR}"
