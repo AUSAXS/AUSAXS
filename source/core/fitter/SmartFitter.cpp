@@ -11,9 +11,12 @@
 #include <mini/MinimizerFactory.h>
 #include <settings/FitSettings.h>
 #include <utility/Console.h>
+#include <utility/Exceptions.h>
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <string>
 #include <utility>
 
 using namespace ausaxs;
@@ -40,6 +43,18 @@ namespace {
         }
     }
     bool solvent_density_warned = false;
+
+    // the chi2 weights every residual by 1/Ierr, so a fit is undefined unless every uncertainty is positive and finite
+    void validate_uncertainties(const SimpleDataset& data) {
+        for (int i = 0; i < data.size_rows(); ++i) {
+            double err = data.yerr(i);
+            if (0 < err && std::isfinite(err)) {continue;}
+            throw except::invalid_argument(
+                "SmartFitter: The uncertainty of data point " + std::to_string(i) + " (q = " + std::to_string(data.x(i)) + ") is " + std::to_string(err) + ". "
+                "A fit weights every intensity by its uncertainty, so all uncertainties must be positive and finite."
+            );
+        }
+    }
 }
 
 SmartFitter::~SmartFitter() {solvent_density_warned = false;}
@@ -100,6 +115,7 @@ void SmartFitter::EnabledFitParameters::validate_model(observer_ptr<hist::Distan
 }
 
 SmartFitter::SmartFitter(SimpleDataset data) : data(std::move(data)) {
+    validate_uncertainties(this->data);
     enabled_fit_parameters = EnabledFitParameters::initialize_from_settings();
     solvent_density_warned = false;
 }

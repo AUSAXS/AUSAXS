@@ -6,6 +6,8 @@
 #include <mini/detail/Parameter.h>
 #include <utility/Exceptions.h>
 
+#include <limits>
+
 using namespace ausaxs;
 using namespace ausaxs::fitter;
 
@@ -72,4 +74,12 @@ TEST_CASE("SmartFitter::set_guess") {
         CHECK_THROWS_AS(probe.set_guess({mini::Parameter{"nonsense", 1}}), except::invalid_argument);
         CHECK_THROWS_AS(probe.set_guess({mini::Parameter{cw, 1}, mini::Parameter{cx, 2}}), except::invalid_argument);
     }
+}
+
+TEST_CASE("SmartFitter: rejects data without usable uncertainties") {
+    // a fit weights every residual by 1/Ierr, so a zero, negative or non-finite uncertainty anywhere makes it undefined
+    for (double bad : {0., -1., std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity()}) {
+        CHECK_THROWS_AS(SmartFitter(SimpleDataset({1, 2, 3}, {1, 1, 1}, {1, bad, 1})), except::invalid_argument);
+    }
+    CHECK_NOTHROW(SmartFitter(SimpleDataset({1, 2, 3}, {1, 1, 1}, {1, 1e-12, 1})));
 }
