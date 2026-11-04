@@ -15,7 +15,6 @@ foreach(test ${TEST_SRC})
 	)
 	target_compile_options("${name}" PRIVATE ${AUSAXS_TEST_FLAGS})
 	add_dependencies(feature_tests "${name}")
-
 	catch_discover_tests("${name}" 
 		TEST_SPEC "~[slow] ~[broken] ~[manual]" 
 		WORKING_DIRECTORY "${TEST_BIN_DIR}"
