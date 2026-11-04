@@ -41,3 +41,20 @@ TEST_CASE("ResidueMap::ResidueMap") {
         CHECK(residue_map.get_backing_map() == map);
     }
 }
+
+TEST_CASE("ResidueMap::get: CHARMM C-terminal oxygens") {
+    // CHARMM names the two C-terminal oxygens OT1/OT2, where the residue definitions carry the GROMACS names OC1/OC2
+    ResidueMap residue_map({
+        {AtomKey("OC1", constants::atom_t::O), 1},
+        {AtomKey("OC2", constants::atom_t::O), 0},
+        {AtomKey("O", constants::atom_t::O), 0}
+    });
+    CHECK(residue_map.get("OT1", constants::atom_t::O) == 1);
+    CHECK(residue_map.get("OT2", constants::atom_t::O) == 0);
+    CHECK(residue_map.get_atomic_group("OT1", constants::atom_t::O) == residue_map.get_atomic_group("OC1", constants::atom_t::O));
+    CHECK(residue_map.get_atomic_group("OT2", constants::atom_t::O) == residue_map.get_atomic_group("OC2", constants::atom_t::O));
+
+    // a name the definitions do carry is never replaced by its alias
+    residue_map.get_backing_map().emplace(AtomKey("OT1", constants::atom_t::O), 0);
+    CHECK(residue_map.get("OT1", constants::atom_t::O) == 0);
+}
