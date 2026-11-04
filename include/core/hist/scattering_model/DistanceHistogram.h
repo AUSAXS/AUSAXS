@@ -102,6 +102,21 @@ namespace ausaxs::hist {
             virtual const std::vector<double>& get_weighted_counts() const;
 
             /**
+             * @brief Get the radius of gyration of the scattering described by this histogram.
+             *
+             * This is the q -> 0 limit of the Guinier expansion of debye_transform(), ln I(q) = ln I(0) - q^2 Rg^2/3 + O(q^4),
+             * i.e. what a Guinier analysis of a perfect measurement of this model would return. Every scatterer therefore
+             * enters with its excess form factor and the currently applied free parameters: the excluded volume is
+             * subtracted, and the hydration shell counts with its contrast (cw), not with its raw electron count.
+             *
+             * The limit is extrapolated from the four lowest q-values of the transform. It is exact to 1e-4 A at the
+             * default qmin, and degrades as qmin*Rg grows.
+             *
+             * @return The radius of gyration in A, or NaN if it is undefined: no contrast (I <= 0), or a negative Rg^2.
+             */
+            double get_Rg() const;
+
+            /**
              * @brief Determine if the structure represented by this histogram is highly ordered.
              *        This is done by estimating the number of peaks in the histogram and comparing it to the number of bins.             
              */

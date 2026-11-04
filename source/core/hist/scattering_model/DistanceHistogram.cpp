@@ -11,7 +11,9 @@
 #include <utility/MultiThreading.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <limits>
 #include <numeric>
 #include <utility>
 
@@ -132,6 +134,27 @@ template ScatteringProfile DistanceHistogram::debye_transform<true>() const;
 template ScatteringProfile DistanceHistogram::debye_transform<false>() const;
 template Dataset DistanceHistogram::debye_transform<true>(const std::vector<double>&) const;
 template Dataset DistanceHistogram::debye_transform<false>(const std::vector<double>&) const;
+
+double DistanceHistogram::get_Rg() const {
+    constexpr int n = 4;
+    auto profile = debye_transform();
+    const auto& I = profile.get_intensity();
+    auto q = profile.get_axis().as_vector();
+    if (static_cast<int>(I.size()) < n) {return std::numeric_limits<double>::quiet_NaN();}
+
+    // Newton's divided differences of ln I in x = q^2: the slope of the interpolating cubic at x = 0 is -Rg^2/3
+    std::array<double, n> x{}, y{};
+    for (int i = 0; i < n; ++i) {
+        if (!(I[i] > 0)) {return std::numeric_limits<double>::quiet_NaN();}
+        x[i] = q[i]*q[i];
+        y[i] = std::log(I[i]);
+    }
+    for (int j = 1; j < n; ++j) {
+        for (int i = n-1; i >= j; --i) {y[i] = (y[i] - y[i-1])/(x[i] - x[i-j]);}
+    }
+    double slope = y[1] - y[2]*(x[0] + x[1]) + y[3]*(x[0]*x[1] + x[0]*x[2] + x[1]*x[2]);
+    return slope < 0 ? std::sqrt(-3*slope) : std::numeric_limits<double>::quiet_NaN();
+}
 
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 
