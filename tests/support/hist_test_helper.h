@@ -51,19 +51,30 @@ bool compare_hist(const T1& p1, const T2& p2, double abs = 1e-6, double rel = 1e
 
 /**
  * @brief Check that the two containers are approximately identical. 
- *        Variations across bin edges are allowed, meaning if a given bin is off by some amount, a window of two bins on either side is checked for the difference.
+ *        Variations across bin edges are allowed: a bin that is off by some amount passes if the sums over any window containing it,
+ *        reaching at most two bins to either side, agree. Windows narrower than the widest are needed, since a second variation may straddle its edge.
  */
 template<container_type T1, container_type T2>
 bool compare_hist_approx(const T1& p1, const T2& p2, double abs = 1e-6, double rel = 1e-3) {
+    auto window_matches = [&] (int lo, int hi) {
+        double sum1 = 0, sum2 = 0;
+        for (int idx = lo; idx <= hi; ++idx) {
+            sum1 += bin_or_zero(p1, idx);
+            sum2 += bin_or_zero(p2, idx);
+        }
+        return utility::approx(sum1, sum2, abs, rel);
+    };
+
     int pmax = std::max<int>(p1.size(), p2.size());
     for (int i = 0; i < pmax; ++i) {
         if (!utility::approx(bin_or_zero(p1, i), bin_or_zero(p2, i), abs, rel)) {
-            double sum1 = 0, sum2 = 0;
-            for (int offset = -2; offset <= 2; ++offset) {
-                sum1 += bin_or_zero(p1, i + offset);
-                sum2 += bin_or_zero(p2, i + offset);
+            bool matched = false;
+            for (int lo = i-2; lo <= i && !matched; ++lo) {
+                for (int hi = i; hi <= i+2 && !matched; ++hi) {
+                    matched = window_matches(lo, hi);
+                }
             }
-            if (!utility::approx(sum1, sum2, abs, rel)) {
+            if (!matched) {
                 std::cout << "Failed on index " << i << ". Window values: " << std::endl;
                 for (int offset = -2; offset <= 2; ++offset) {
                     int idx = i + offset;

@@ -137,6 +137,7 @@ TEST_CASE("DistanceHistogram: extended q-range") {
 // a custom q range leaving qmin..qmax must still be evaluated with the full model: its form factors and excluded volume
 TEST_CASE("DistanceHistogram: custom q outside qmin..qmax keeps the model") {
     settings::general::verbose = false;
+    settings::internal_state::allow_decorrelate_atom_order = false;
     settings::molecule::implicit_hydrogens = false;
     settings::hist::weighted_bins = true;
     auto exv = GENERATE(
