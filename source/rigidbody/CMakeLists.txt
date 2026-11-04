@@ -54,6 +54,7 @@ add_library(ausaxs_rigidbody OBJECT
 	"sequencer/detail/ValidElements.cpp"
 	"sequencer/elements/BodySelectElement.cpp"
 	"sequencer/elements/CopyLoopElement.cpp"
+	"sequencer/elements/DebugCounterElement.cpp"
 	"sequencer/elements/EveryNStepElement.cpp"
 	"sequencer/elements/LoopElement.cpp"
 	"sequencer/elements/MessageElement.cpp"
