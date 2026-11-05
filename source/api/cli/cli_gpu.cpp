@@ -20,17 +20,22 @@
 
 #ifdef _WIN32
     #include <io.h>
-    #define AUSAXS_ISATTY(fd) _isatty(fd)
-    #define AUSAXS_FILENO(f) _fileno(f)
 #else
     #include <unistd.h>
-    #define AUSAXS_ISATTY(fd) isatty(fd)
-    #define AUSAXS_FILENO(f) fileno(f)
 #endif
 
 using namespace ausaxs;
 
 namespace {
+    // whether stdin is an interactive terminal, i.e. whether there is anyone to answer a prompt
+    bool interactive() {
+        #ifdef _WIN32
+            return _isatty(_fileno(stdin)) != 0;
+        #else
+            return isatty(fileno(stdin)) != 0;
+        #endif
+    }
+
     /**
      * @brief Let the user pick one of the GPUs the backend found. Without a terminal to ask on, the first one is picked.
      */
@@ -40,7 +45,7 @@ namespace {
             console::print_text("  [" + std::to_string(i + 1) + "] " + devices[i]);
         }
         console::print_text("Integrated GPUs are often slower than the CPU, so choose a dedicated one if there is one.");
-        if (!AUSAXS_ISATTY(AUSAXS_FILENO(stdin))) {
+        if (!interactive()) {
             console::print_text("Not running in a terminal, so using [1]. Run \"ausaxs gpu install\" in a terminal to choose another.");
             return 0;
         }
