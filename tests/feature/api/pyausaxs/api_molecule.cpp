@@ -173,6 +173,53 @@ TEST_CASE("molecule_debye_raw_userq: accurate at high q") {
     }
 }
 
+TEST_CASE("molecule_debye_raw_ff: same q grid as molecule_debye_raw and any q for userq") {
+    int status = 1;
+    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
+    REQUIRE(status == 0);
+
+    double *q_raw, *I_raw, *q_ff, *I_ff;
+    int n_raw = 0, n_ff = 0;
+    molecule_debye_raw(mol, &q_raw, &I_raw, &n_raw, &status);
+    REQUIRE(status == 0);
+    molecule_debye_raw_ff(mol, &q_ff, &I_ff, &n_ff, &status);
+    REQUIRE(status == 0);
+    REQUIRE(n_ff == n_raw);
+    for (int i = 0; i < n_ff; ++i) {CHECK(q_ff[i] == q_raw[i]);}
+
+    // evaluated at the q values themselves, not interpolated, so userq reproduces the profile exactly; and it extends beyond the default axis
+    std::vector<double> q(q_ff, q_ff + n_ff);
+    q.push_back(2.5);
+    q.push_back(8);
+    std::vector<double> I(q.size());
+    molecule_debye_raw_ff_userq(mol, q.data(), I.data(), static_cast<int>(q.size()), &status);
+    REQUIRE(status == 0);
+    for (int i = 0; i < n_ff; ++i) {CHECK_THAT(I[i], Catch::Matchers::WithinRel(I_ff[i], 1e-12));}
+    CHECK(std::isfinite(I[n_ff]));
+    CHECK(std::isfinite(I[n_ff+1]));
+}
+
+TEST_CASE("molecule_debye_raw_ff: molecules without form factors are refused with a clear message") {
+    std::array x = {0.0, 1.0, 0.0};
+    std::array y = {0.0, 0.0, 1.0};
+    std::array z = {0.0, 0.0, 0.0};
+    std::array w = {1.0, 1.0, 1.0};
+    int status = 1;
+    int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), 3, &status);
+    REQUIRE(status == 0);
+
+    std::array q = {0.1, 0.2};
+    std::array<double, 2> I{};
+    molecule_debye_raw_ff_userq(mol, q.data(), I.data(), 2, &status);
+    REQUIRE(status != 0);
+
+    char* error_msg = nullptr;
+    int error_status = 1;
+    get_last_error_msg(&error_msg, &error_status);
+    REQUIRE(error_status == 0);
+    CHECK(std::string(error_msg).find("without form factor information") != std::string::npos);
+}
+
 TEST_CASE("object ids: an object of the wrong type is refused") {
     // an id is just an int from the caller, so it can name any stored object; reading it as the wrong type aborts or segfaults the host
     int status = 0;

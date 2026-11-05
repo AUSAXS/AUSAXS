@@ -11,6 +11,7 @@
 #include <hist/distribution/Distribution1D.h>
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
+#include <hist/scattering_model/FormFactorDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
 #include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
@@ -288,6 +289,35 @@ void molecule_debye_raw_userq(
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i);
     }
+}, status);}
+
+int molecule_debye_raw_ff(
+    int molecule_id,
+    double** q, double** I, int* n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
+    auto Iq = hist::form_factor_debye_transform(molecule, qv);
+    _molecule_debye_obj data(static_cast<int>(Iq.size()));
+    std::ranges::copy(qv, data.q.begin());
+    std::ranges::copy(Iq, data.I.begin());
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
+    *q = ref->q.data();
+    *I = ref->I.data();
+    *n_points = static_cast<int>(Iq.size());
+    return data_id;
+}, status);}
+
+void molecule_debye_raw_ff_userq(
+    int molecule_id,
+    double* q, double* I, int n_points,
+    int* status
+) {execute_with_catch([&]() {
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    auto Iq = hist::form_factor_debye_transform(molecule, std::vector<double>(q, q + n_points));
+    std::ranges::copy(Iq, I);
 }, status);}
 
 int molecule_debye_exact(
