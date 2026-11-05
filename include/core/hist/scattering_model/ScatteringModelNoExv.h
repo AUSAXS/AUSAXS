@@ -22,7 +22,10 @@ namespace ausaxs::hist {
             }
 
             void cache_refresh_sinqd_exv() const override {}
-            void cache_refresh_intensity_exv(const std::vector<double>&, bool, bool) const override {}
+            void cache_refresh_intensity_exv(const std::vector<double>& /* void */, bool /* void */, bool /* void */) const override {}
+
+            // without an excluded volume, the model holds at any q
+            std::vector<double> debye_transform_beyond_axis(const std::vector<double>& q) const override {return atomic_debye_transform(q);}
     };
     static_assert(supports_nothrow_move_v<ScatteringModelNoExv>, "ScatteringModelNoExv should support nothrow move semantics.");
 }

@@ -278,16 +278,6 @@ void debye_raw_userq(int molecule_id, double* q, double* I, int n_points) {
     RawScope raw(form_factor);
 
     std::vector<double> q_vals(q, q + n_points);
-    if constexpr (form_factor) {
-        // the atomic form factors are only tabulated on the default axis; beyond it, debye_transform falls back to the plain total histogram
-        if (n_points != 0 && (q_vals.front() < constants::axes::q_axis.min || constants::axes::q_axis.max < q_vals.back())) {
-            throw except::invalid_argument(
-                "molecule_debye_raw_ff_userq: The atomic form factors are only available for q in [" 
-                + std::to_string(constants::axes::q_axis.min) + ", " + std::to_string(constants::axes::q_axis.max) + "]."
-            );
-        }
-    }
-
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     molecule.reset_histogram_manager(); // rebuilt with the raw settings
     auto debye_I = molecule.get_histogram()->template debye_transform<form_factor>(q_vals);

@@ -95,7 +95,7 @@ extern "C" API int molecule_debye_raw_ff(
 );
 
 /**
- * As molecule_debye_raw_ff, but evaluated at the given q values. These must lie within the default q axis, where the form factors are tabulated.
+ * As molecule_debye_raw_ff, but evaluated at the given q values.
  */
 extern "C" API void molecule_debye_raw_ff_userq(
     int molecule_id,

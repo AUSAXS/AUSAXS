@@ -186,41 +186,71 @@ TEST_CASE("molecule_debye_raw_ff: agrees with the direct sum with atomic form fa
     constexpr std::array marks = {0, 1, 5, 12, 25, 27, 35};
     constexpr std::array types = {ff_t::C, ff_t::N, ff_t::O, ff_t::S, ff_t::Fe, ff_t::Zn, ff_t::I};
     std::vector<data::AtomFF> atoms;
+    
+    atoms.reserve(marks.size());
     for (unsigned int i = 0; i < marks.size(); ++i) {atoms.emplace_back(Vector3<double>{1.13*marks[i], 0.2*i, 0}, types[i]);}
     int mol = api::ObjectStorage::register_object(data::Molecule({data::Body{atoms}}));
 
-    int status = 1;
-    double *q, *I;
-    int n = 0;
-    molecule_debye_raw_ff(mol, &q, &I, &n, &status);
-    REQUIRE(status == 0);
-    REQUIRE(n > 0);
-
+    // returns the expected intensity and its scale (sum_i |f_i|)^2, against which the deviation is measured since the intensity crosses zero
     auto f = [] (ff_t t, double q) {return form_factor::xray::raw::get(t).evaluate(q);};
-    for (int k = 0; k < n; ++k) {
+    auto direct_sum = [&] (double q) {
         double expected = 0, scale = 0;
         for (unsigned int i = 0; i < atoms.size(); ++i) {
-            expected += form_factor::xray::raw::get(types[i]).evaluate_self(q[k]);
-            scale += std::abs(f(types[i], q[k]));
+            expected += form_factor::xray::raw::get(types[i]).evaluate_self(q);
+            scale += std::abs(f(types[i], q));
             for (unsigned int j = 0; j < atoms.size(); ++j) {
                 if (i == j) {continue;}
-                expected += f(types[i], q[k])*f(types[j], q[k])*math::sinc(q[k]*atoms[i].get_atom().coordinates().distance(atoms[j].get_atom().coordinates()));
+                expected += f(types[i], q)*f(types[j], q)*math::sinc(q*atoms[i].get_atom().coordinates().distance(atoms[j].get_atom().coordinates()));
             }
         }
-        CHECK_THAT(I[k], Catch::Matchers::WithinAbs(expected, 1e-5*scale*scale)); // the intensity crosses zero, so measure against its scale
-    }
+        return std::make_pair(expected, scale*scale);
+    };
 
-    SECTION("userq reproduces the profile, but refuses q beyond the default axis") {
-        std::vector<double> qv(q, q + n), Iv(n);
-        molecule_debye_raw_ff_userq(mol, qv.data(), Iv.data(), n, &status);
+    int status = 1;
+    SECTION("default q axis") {
+        double *q, *I;
+        int n = 0;
+        molecule_debye_raw_ff(mol, &q, &I, &n, &status);
         REQUIRE(status == 0);
-        for (int k = 0; k < n; ++k) {CHECK_THAT(Iv[k], Catch::Matchers::WithinRel(I[k], 1e-9));}
-
-        std::array q_high = {0.5, constants::axes::q_axis.max + 1};
-        std::array<double, 2> I_high{};
-        molecule_debye_raw_ff_userq(mol, q_high.data(), I_high.data(), 2, &status);
-        CHECK(status != 0);
+        REQUIRE(n > 0);
+        for (int k = 0; k < n; ++k) {
+            auto [expected, scale] = direct_sum(q[k]);
+            CHECK_THAT(I[k], Catch::Matchers::WithinAbs(expected, 1e-5*scale));
+        }
     }
+
+    // beyond the default axis, the form factors are evaluated at each q rather than taken from the tables
+    SECTION("userq far beyond the default q axis") {
+        std::vector<double> q(100), I(q.size());
+        for (unsigned int k = 0; k < q.size(); ++k) {q[k] = 0.1 + 0.1*k;}
+        molecule_debye_raw_ff_userq(mol, q.data(), I.data(), static_cast<int>(q.size()), &status);
+        REQUIRE(status == 0);
+        for (unsigned int k = 0; k < q.size(); ++k) {
+            auto [expected, scale] = direct_sum(q[k]);
+            CHECK_THAT(I[k], Catch::Matchers::WithinAbs(expected, 1e-5*scale));
+        }
+    }
+}
+
+// the excluded volume models are not meant for wide-angle scattering, and must say so rather than return the profile of another model
+TEST_CASE("molecule_debye_userq: excluded volume models refuse q beyond the default axis") {
+    int status = 1;
+    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
+    REQUIRE(status == 0);
+    std::string exv = GENERATE("average", "fraser");
+    set_setting("exv_model", exv.c_str(), &status);
+    REQUIRE(status == 0);
+
+    std::array q = {0.5, constants::axes::q_axis.max + 1};
+    std::array<double, 2> I{};
+    molecule_debye_userq(mol, q.data(), I.data(), 2, &status);
+    CHECK(status != 0);
+
+    char* error_msg = nullptr;
+    int error_status = 1;
+    get_last_error_msg(&error_msg, &error_status);
+    REQUIRE(error_status == 0);
+    CHECK(std::string(error_msg).find("not meant for wide-angle scattering") != std::string::npos);
 }
 
 TEST_CASE("molecule_debye_raw_ff: molecules without form factors are refused") {

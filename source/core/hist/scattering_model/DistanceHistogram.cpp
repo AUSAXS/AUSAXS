@@ -117,11 +117,20 @@ Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
         return debye_transform<form_factor>().as_dataset().interpolate(q);
     }
 
-    // 3. outside the default axis there are no precomputed form factors, so only the plain total histogram can be evaluated
+    // 3. outside the default axis there are no precomputed form factors, so each model evaluates its own at these q values
+    if constexpr (form_factor) {return {q, debye_transform_beyond_axis(q)};}
+    else {return {q, debye_sum<false>(p, sinc_table_for(q), q)};}
+}
+
+std::vector<double> DistanceHistogram::debye_transform_beyond_axis(const std::vector<double>& q) const {
+    return debye_sum<true>(p, sinc_table_for(q), q);
+}
+
+observer_ptr<const table::DebyeTable> DistanceHistogram::sinc_table_for(const std::vector<double>& q) const {
     static table::DebyeTableManager sinc_table_extended;
     sinc_table_extended.set_q_axis(q);
     sinc_table_extended.set_d_axis(this->d_axis);
-    return {q, debye_sum<form_factor>(p, sinc_table_extended.get_sinc_table(), q)};
+    return sinc_table_extended.get_sinc_table();
 }
 
 template std::vector<double> DistanceHistogram::debye_sum<true>(std::span<const double>, observer_ptr<const table::DebyeTable>, std::span<const double>, int);

@@ -7,6 +7,7 @@
 #include <form_factor/lookup/FormFactorLookupFwd.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <settings/HistogramSettings.h>
+#include <utility/Exceptions.h>
 #include <utility/MultiThreading.h>
 
 #include <algorithm>
@@ -323,6 +324,57 @@ std::tuple<const Distribution1D&, const Distribution1D&,const Distribution1D&>
 ScatteringModelExvBase<FormFactorTableType>::cache_get_distance_profiles() const {
     if (!cache.distance_profiles.valid) {cache_refresh_distance_profiles();}
     return std::forward_as_tuple(cache.distance_profiles.p_aa, cache.distance_profiles.p_aw, cache.distance_profiles.p_ww);
+}
+
+template<typename FormFactorTableType>
+std::vector<double> ScatteringModelExvBase<FormFactorTableType>::debye_transform_beyond_axis(const std::vector<double>&) const {
+    throw except::invalid_argument(
+        "ScatteringModelExvBase::debye_transform: The excluded volume models are only defined for q in [" + std::to_string(constants::axes::q_axis.min) 
+        + ", " + std::to_string(constants::axes::q_axis.max) + "]; they are not meant for wide-angle scattering."
+    );
+}
+
+template<typename FormFactorTableType>
+std::vector<double> ScatteringModelExvBase<FormFactorTableType>::atomic_debye_transform(const std::vector<double>& q) const {
+    auto sinqd_table = sinc_table_for(q);
+    const auto& ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
+    const int n_ff = form_factor::get_active_count();
+    constexpr int first = form_factor::start_index_for_explicit_exv();
+    constexpr int water = form_factor::water_bin;
+    const double cw = free_params.cw;
+
+    std::vector<double> I(q.size(), 0);
+    auto* pool = utility::multi_threading::get_global_pool();
+    pool->detach_blocks(0, static_cast<int>(q.size()), [&] (int start, int end) {
+        std::vector<double> f(n_ff), s(n_ff);
+        for (int k = start; k < end; ++k) {
+            const double* sinqd = sinqd_table->begin(k);
+            auto debye_sum = [sinqd] (auto begin, auto end) {return std::transform_reduce(begin, end, sinqd, 0.0);};
+            for (int ff = first; ff < n_ff; ++ff) {
+                auto type = static_cast<form_factor::form_factor_t>(ff_indices[ff]);
+                f[ff] = form_factor::manager::evaluate_amplitude_at(type, q[k]);
+                s[ff] = form_factor::manager::evaluate_self_at(type, q[k]);
+            }
+
+            // as in cache_refresh_intensity_profiles: the first bin of a diagonal partial also holds the self-correlations, which the 
+            // sums evaluate with the cross-correlation form factor at the distance of that bin, so they are swapped for the self-correlation one
+            double aa = 0, aw = 0, ww = 0;
+            for (int ff1 = first; ff1 < n_ff; ++ff1) {
+                for (int ff2 = ff1; ff2 < n_ff; ++ff2) {
+                    aa += f[ff1]*f[ff2]*debye_sum(distance_profiles.aa.begin(ff1, ff2), distance_profiles.aa.end(ff1, ff2));
+                }
+                aa += self_weights.aa[ff1]*(s[ff1] - sinqd[0]*f[ff1]*f[ff1]);
+                aw += 2*cw*f[ff1]*f[water]*debye_sum(distance_profiles.aw.begin(ff1), distance_profiles.aw.end(ff1));
+            }
+            ww += cw*cw*f[water]*f[water]*debye_sum(distance_profiles.ww.begin(), distance_profiles.ww.end());
+            ww += cw*cw*self_weights.ww*(s[water] - sinqd[0]*f[water]*f[water]);
+
+            double B = get_atomic_debye_waller_factor(q[k]);
+            I[k] = aa*B*B + aw*B + ww;
+        }
+    });
+    pool->wait();
+    return I;
 }
 
 template<typename FormFactorTableType>
