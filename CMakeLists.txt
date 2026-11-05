@@ -98,7 +98,7 @@ if (GPU_DOWNLOADER)
 		FetchContent_Declare(
 			miniz
 			GIT_REPOSITORY https://github.com/richgel999/miniz
-			GIT_TAG 77d0dce8627735138c51770d1799a1ef48f2117d # 3.1.2
+			GIT_TAG 3.1.2
 		)
 		# miniz takes our BUILD_TESTS option for its own, and would build its test suite along with ours
 		set(BUILD_TESTS OFF)
