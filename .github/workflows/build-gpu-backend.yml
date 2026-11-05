@@ -1001,6 +1001,49 @@ jobs:
       - name: Prune runtime package
         run: python3 .github/prune_gpu_package.py "$GPU_PACKAGE"
 
+      # The released ausaxs is signed with the hardened runtime (build-release.yml), whose library validation
+      # makes it refuse to dlopen anything not signed by the same team. So every Mach-O file in the package is
+      # signed with the same Developer ID. Last of the steps that change the package, since any later edit
+      # invalidates the signatures. Notarization is not needed: `ausaxs gpu install` downloads through libcurl,
+      # which sets no quarantine attribute, so Gatekeeper never assesses the unpacked files.
+      - name: Sign runtime package
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PWD: ${{ secrets.MACOS_P12_PASSWORD }}
+          KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          DEV_ID: ${{ secrets.MACOS_DEV_ID }}
+        run: |
+          set -euo pipefail
+          # secrets are withheld from pull requests opened from forks
+          if [ -z "$CERTIFICATE_BASE64" ] || [ -z "$DEV_ID" ]; then
+            echo "::warning::no signing certificate available; the package is unsigned, and the released ausaxs cannot load it"
+            exit 0
+          fi
+
+          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          echo -n "$CERTIFICATE_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" -P "$CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          rm -f "$CERTIFICATE_PATH"
+
+          signed=0
+          while IFS= read -r -d '' f; do
+            file -b "$f" | grep -q 'Mach-O' || continue
+            codesign --force --options runtime --timestamp --sign "$DEV_ID" "$f"
+            codesign --verify --strict --verbose=2 "$f"
+            echo "  signed ${f#"$GPU_PACKAGE"/}"
+            signed=$((signed + 1))
+          done < <(find "$GPU_PACKAGE" -type f -print0)
+          if [ "$signed" -eq 0 ]; then
+            echo "::error::found no Mach-O files to sign in $GPU_PACKAGE"
+            exit 1
+          fi
+
       - name: Load backend and query the ABI
         run: |
           set -euo pipefail
