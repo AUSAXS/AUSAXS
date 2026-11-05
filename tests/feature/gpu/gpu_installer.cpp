@@ -9,46 +9,48 @@
 
 #include <miniz.h>
 
-#include <filesystem>
-#include <fstream>
+#include <io/File.h>
+#include <io/Folder.h>
+
 #include <string>
 #include <vector>
 
 using namespace ausaxs;
-namespace fs = std::filesystem;
 
 namespace {
     // Points the cache, and with it the install folder, at a fresh temporary folder.
     struct TempCache {
         TempCache() : previous(settings::general::cache) {
-            fs::remove_all(root);
-            settings::general::cache = root.string() + "/";
+            root.remove();
+            settings::general::cache = root.path() + "/";
         }
         ~TempCache() {
             settings::general::cache = previous;
-            fs::remove_all(root);
+            root.remove();
         }
-        fs::path root = "temp/tests/gpu_installer";
-        fs::path folder = root/"gpu";
-        fs::path record = root/"gpu.record";
+
+        // a file or folder inside the install folder
+        io::File file(std::string_view relative) const {return folder.path() + "/" + std::string(relative);}
+        io::Folder dir(std::string_view relative) const {return folder.path() + "/" + std::string(relative);}
+
+        io::Folder root = "temp/tests/gpu_installer";
+        io::Folder folder = root.path() + "/gpu";
+        io::Folder staging = root.path() + "/gpu.staging";
+        io::File record = root.path() + "/gpu.record";
         std::string previous;
     };
 
-    void touch(const fs::path& file) {
-        fs::create_directories(file.parent_path());
-        std::ofstream(file) << "content";
-    }
-
-    void write_record(const fs::path& record, const std::vector<std::string>& entries) {
-        std::ofstream out(record);
-        for (const auto& entry : entries) {out << entry << "\n";}
+    void write_record(const io::File& record, const std::vector<std::string>& entries) {
+        std::string contents;
+        for (const auto& entry : entries) {contents += entry + "\n";}
+        record.create(contents);
     }
 
     // A zip shaped like a real backend package. The library is not a real one, so it always fails the load test.
-    fs::path make_backend_zip(const fs::path& zip) {
-        fs::create_directories(zip.parent_path());
+    io::File make_backend_zip(const io::File& zip) {
+        zip.directory().create();
         mz_zip_archive archive{};
-        REQUIRE(mz_zip_writer_init_file(&archive, zip.string().c_str(), 0));
+        REQUIRE(mz_zip_writer_init_file(&archive, zip.path().c_str(), 0));
         std::string content = "not a library";
         for (const std::string& name : {std::string(gpu::GPULoader::library_name()), std::string("hipSYCL/plugin.so")}) {
             REQUIRE(mz_zip_writer_add_mem(&archive, name.c_str(), content.data(), content.size(), MZ_DEFAULT_COMPRESSION));
@@ -61,10 +63,10 @@ namespace {
 
 TEST_CASE("installer::folder follows the cache") {
     TempCache temp;
-    CHECK(gpu::installer::folder().path() == temp.folder.string());
+    CHECK(gpu::installer::folder() == temp.folder);
 
-    settings::general::cache = (temp.root/"other").string();
-    CHECK(gpu::installer::folder().path() == (temp.root/"other"/"gpu").string());
+    settings::general::cache = temp.root.path() + "/other";
+    CHECK(gpu::installer::folder() == io::Folder(temp.root.path() + "/other/gpu"));
 }
 
 TEST_CASE("installer::asset_url") {
@@ -76,7 +78,7 @@ TEST_CASE("installer::asset_url") {
 
 TEST_CASE("installer::installed_library") {
     TempCache temp;
-    auto library = temp.folder/gpu::GPULoader::library_name();
+    auto library = temp.file(gpu::GPULoader::library_name());
 
     SECTION("nothing installed") {
         CHECK(gpu::installer::installed_library().empty());
@@ -84,14 +86,14 @@ TEST_CASE("installer::installed_library") {
     }
 
     SECTION("an unfinished installation is ignored") {
-        touch(library);
+        library.create();
         CHECK(gpu::installer::installed_library().empty());
     }
 
     SECTION("a finished installation is found") {
-        touch(library);
-        std::ofstream(temp.folder/"installed.txt") << "https://example.org/backend.zip\n";
-        CHECK(gpu::installer::installed_library().path() == library.string());
+        library.create();
+        temp.file("installed.txt").create("https://example.org/backend.zip\n");
+        CHECK(gpu::installer::installed_library().path() == library.path());
         CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
     }
 }
@@ -105,78 +107,78 @@ TEST_CASE("installer::remove") {
     }
 
     SECTION("an installation is removed, along with its record") {
-        touch(temp.folder/library);
-        touch(temp.folder/"hipSYCL"/"plugin.so");
+        temp.file(library).create();
+        temp.file("hipSYCL/plugin.so").create();
         write_record(temp.record, {library, "hipSYCL", "hipSYCL/plugin.so"});
         CHECK(gpu::installer::remove());
-        CHECK_FALSE(fs::exists(temp.folder));
-        CHECK_FALSE(fs::exists(temp.record));
+        CHECK_FALSE(temp.folder.exists());
+        CHECK_FALSE(temp.record.exists());
     }
 
     SECTION("files that were not installed are kept, along with the folders holding them") {
-        touch(temp.folder/library);
-        touch(temp.folder/"hipSYCL"/"plugin.so");
-        touch(temp.folder/"hipSYCL"/"mine.txt");
-        touch(temp.folder/"notes.txt");
+        temp.file(library).create();
+        temp.file("hipSYCL/plugin.so").create();
+        temp.file("hipSYCL/mine.txt").create();
+        temp.file("notes.txt").create();
         write_record(temp.record, {library, "hipSYCL", "hipSYCL/plugin.so"});
         CHECK(gpu::installer::remove());
-        CHECK_FALSE(fs::exists(temp.folder/library));
-        CHECK_FALSE(fs::exists(temp.folder/"hipSYCL"/"plugin.so"));
-        CHECK(fs::exists(temp.folder/"hipSYCL"/"mine.txt"));
-        CHECK(fs::exists(temp.folder/"notes.txt"));
+        CHECK_FALSE(temp.file(library).exists());
+        CHECK_FALSE(temp.file("hipSYCL/plugin.so").exists());
+        CHECK(temp.file("hipSYCL/mine.txt").exists());
+        CHECK(temp.file("notes.txt").exists());
     }
 
     SECTION("a folder without a record is left alone") {
-        touch(temp.folder/library);
+        temp.file(library).create();
         CHECK_THROWS(gpu::installer::remove());
-        CHECK(fs::exists(temp.folder/library));
+        CHECK(temp.file(library).exists());
     }
 
     SECTION("an empty folder without a record is tidied up") {
-        fs::create_directories(temp.folder);
+        temp.folder.create();
         CHECK_FALSE(gpu::installer::remove());
-        CHECK_FALSE(fs::exists(temp.folder));
+        CHECK_FALSE(temp.folder.exists());
     }
 }
 
 TEST_CASE("installer::install") {
     TempCache temp;
-    auto zip = make_backend_zip(temp.root/"downloads"/"backend.zip");
+    auto zip = make_backend_zip(temp.root.path() + "/downloads/backend.zip");
 
     SECTION("a file that is not a zip is rejected, and leaves nothing behind") {
-        auto archive = temp.root/"not_a.zip";
-        touch(archive);
-        CHECK_THROWS(gpu::installer::install(archive.string()));
-        CHECK_FALSE(fs::exists(temp.folder));
-        CHECK_FALSE(fs::exists(temp.root/"gpu.staging"));
-        CHECK_FALSE(fs::exists(temp.record));
+        io::File archive = temp.root.path() + "/not_a.zip";
+        archive.create();
+        CHECK_THROWS(gpu::installer::install(archive.path()));
+        CHECK_FALSE(temp.folder.exists());
+        CHECK_FALSE(temp.staging.exists());
+        CHECK_FALSE(temp.record.exists());
     }
 
     SECTION("an existing path that is not from an earlier installation is never replaced") {
-        touch(temp.folder/"hipSYCL"/"mine.txt");
-        CHECK_THROWS(gpu::installer::install(zip.string()));
-        CHECK(fs::exists(temp.folder/"hipSYCL"/"mine.txt"));
-        CHECK_FALSE(fs::exists(temp.folder/gpu::GPULoader::library_name()));
-        CHECK_FALSE(fs::exists(temp.root/"gpu.staging"));
+        temp.file("hipSYCL/mine.txt").create();
+        CHECK_THROWS(gpu::installer::install(zip.path()));
+        CHECK(temp.file("hipSYCL/mine.txt").exists());
+        CHECK_FALSE(temp.file(gpu::GPULoader::library_name()).exists());
+        CHECK_FALSE(temp.staging.exists());
     }
 
     SECTION("a backend that fails to load is removed again, and other files are kept") {
-        touch(temp.folder/"notes.txt");
-        CHECK_THROWS(gpu::installer::install(zip.string()));
-        CHECK(fs::exists(temp.folder/"notes.txt"));
-        CHECK_FALSE(fs::exists(temp.folder/gpu::GPULoader::library_name()));
-        CHECK_FALSE(fs::exists(temp.folder/"hipSYCL"));
-        CHECK_FALSE(fs::exists(temp.record));
-        CHECK_FALSE(fs::exists(temp.root/"gpu.staging"));
+        temp.file("notes.txt").create();
+        CHECK_THROWS(gpu::installer::install(zip.path()));
+        CHECK(temp.file("notes.txt").exists());
+        CHECK_FALSE(temp.file(gpu::GPULoader::library_name()).exists());
+        CHECK_FALSE(temp.dir("hipSYCL").exists());
+        CHECK_FALSE(temp.record.exists());
+        CHECK_FALSE(temp.staging.exists());
     }
 
     SECTION("an earlier installation is replaced") {
         std::string library(gpu::GPULoader::library_name());
-        touch(temp.folder/library);
-        touch(temp.folder/"old.so");
+        temp.file(library).create();
+        temp.file("old.so").create();
         write_record(temp.record, {library, "old.so"});
-        CHECK_THROWS(gpu::installer::install(zip.string())); // the fake library fails the load test
-        CHECK_FALSE(fs::exists(temp.folder/"old.so"));
-        CHECK_FALSE(fs::exists(temp.folder));
+        CHECK_THROWS(gpu::installer::install(zip.path())); // the fake library fails the load test
+        CHECK_FALSE(temp.file("old.so").exists());
+        CHECK_FALSE(temp.folder.exists());
     }
 }
