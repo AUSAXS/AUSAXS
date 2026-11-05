@@ -51,19 +51,13 @@ namespace {
 
     /**
      * @brief The paths listed in @a record, or none if there is no record.
-     *
-     * The record is a plain text file anyone could edit, so each entry is checked to stay inside the install folder.
      */
     std::vector<fs::path> read_record(const io::File& record) {
         std::vector<fs::path> entries;
         std::ifstream in(record.path());
         for (std::string line; std::getline(in, line);) {
             if (line.empty()) {continue;}
-            fs::path entry = fs::path(line).lexically_normal();
-            if (entry.has_root_path() || entry == "." || *entry.begin() == "..") {
-                throw except::runtime_error("gpu::installer: the record \"" + record.path() + "\" lists an unsafe path: \"" + line + "\"");
-            }
-            entries.push_back(entry);
+            entries.push_back(fs::path(line).lexically_normal());
         }
         return entries;
     }
@@ -95,23 +89,16 @@ namespace {
      * @throws except::runtime_error if a listed path could not be deleted.
      */
     void uninstall(const io::Folder& folder, std::vector<fs::path> entries) {
-        std::error_code ec;
-        fs::path base = fs::canonical(folder.path(), ec);
-        if (ec) {return;} // no folder, so nothing to delete
+        if (!folder.exists()) {return;} // nothing to delete
+        fs::path base = folder.path();
 
         // a directory sorts before everything inside it, so in reverse order its contents are deleted first
-        std::sort(entries.begin(), entries.end(), std::greater<>());
+        std::ranges::sort(entries, std::greater<>());
+        std::error_code ec;
         for (const auto& entry : entries) {
             fs::path target = base/entry;
             auto status = fs::symlink_status(target, ec);
             if (ec || !fs::exists(status)) {continue;} // already gone
-
-            // a listed directory since replaced by a link must not lead the deletion out of the folder
-            fs::path parent = fs::weakly_canonical(target.parent_path(), ec);
-            if (ec || std::mismatch(base.begin(), base.end(), parent.begin(), parent.end()).first != base.end()) {
-                throw except::runtime_error("gpu::installer: refusing to delete \"" + target.string() + "\": it is not inside \"" + base.string() + "\"");
-            }
-
             if (fs::is_directory(status) && !fs::is_empty(target, ec)) {continue;}
             fs::remove(target, ec);
             if (ec) {

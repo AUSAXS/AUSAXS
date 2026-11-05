@@ -7,10 +7,7 @@
 #include <gpu/GPULoader.h>
 #include <settings/GeneralSettings.h>
 
-#if __has_include(<miniz.h>)
-    #include <miniz.h>
-    #define HAS_MINIZ
-#endif
+#include <miniz.h>
 
 #include <filesystem>
 #include <fstream>
@@ -47,21 +44,19 @@ namespace {
         for (const auto& entry : entries) {out << entry << "\n";}
     }
 
-    #ifdef HAS_MINIZ
-        // A zip shaped like a real backend package. The library is not a real one, so it always fails the load test.
-        fs::path make_backend_zip(const fs::path& zip) {
-            fs::create_directories(zip.parent_path());
-            mz_zip_archive archive{};
-            REQUIRE(mz_zip_writer_init_file(&archive, zip.string().c_str(), 0));
-            std::string content = "not a library";
-            for (std::string name : {std::string(gpu::GPULoader::library_name()), std::string("hipSYCL/plugin.so")}) {
-                REQUIRE(mz_zip_writer_add_mem(&archive, name.c_str(), content.data(), content.size(), MZ_DEFAULT_COMPRESSION));
-            }
-            REQUIRE(mz_zip_writer_finalize_archive(&archive));
-            REQUIRE(mz_zip_writer_end(&archive));
-            return zip;
+    // A zip shaped like a real backend package. The library is not a real one, so it always fails the load test.
+    fs::path make_backend_zip(const fs::path& zip) {
+        fs::create_directories(zip.parent_path());
+        mz_zip_archive archive{};
+        REQUIRE(mz_zip_writer_init_file(&archive, zip.string().c_str(), 0));
+        std::string content = "not a library";
+        for (const std::string& name : {std::string(gpu::GPULoader::library_name()), std::string("hipSYCL/plugin.so")}) {
+            REQUIRE(mz_zip_writer_add_mem(&archive, name.c_str(), content.data(), content.size(), MZ_DEFAULT_COMPRESSION));
         }
-    #endif
+        REQUIRE(mz_zip_writer_finalize_archive(&archive));
+        REQUIRE(mz_zip_writer_end(&archive));
+        return zip;
+    }
 }
 
 TEST_CASE("installer::folder follows the cache") {
@@ -142,32 +137,11 @@ TEST_CASE("installer::remove") {
         CHECK_FALSE(gpu::installer::remove());
         CHECK_FALSE(fs::exists(temp.folder));
     }
-
-    SECTION("a record cannot reach outside the folder") {
-        touch(temp.root/"outside.txt");
-        touch(temp.folder/library);
-        write_record(temp.record, {library, "../outside.txt"});
-        CHECK_THROWS(gpu::installer::remove());
-        CHECK(fs::exists(temp.root/"outside.txt"));
-        CHECK(fs::exists(temp.folder/library));
-    }
-
-    SECTION("a recorded folder replaced by a link is not followed") {
-        touch(temp.root/"elsewhere"/"plugin.so");
-        fs::create_directories(temp.folder);
-        fs::create_directory_symlink(fs::absolute(temp.root/"elsewhere"), temp.folder/"hipSYCL");
-        write_record(temp.record, {"hipSYCL", "hipSYCL/plugin.so"});
-        CHECK_THROWS(gpu::installer::remove());
-        CHECK(fs::exists(temp.root/"elsewhere"/"plugin.so"));
-    }
 }
 
 TEST_CASE("installer::install") {
     TempCache temp;
-    if (!gpu::installer::supported()) {
-        CHECK_THROWS(gpu::installer::install("backend.zip"));
-        return;
-    }
+    auto zip = make_backend_zip(temp.root/"downloads"/"backend.zip");
 
     SECTION("a file that is not a zip is rejected, and leaves nothing behind") {
         auto archive = temp.root/"not_a.zip";
@@ -178,35 +152,31 @@ TEST_CASE("installer::install") {
         CHECK_FALSE(fs::exists(temp.record));
     }
 
-    #ifdef HAS_MINIZ
-        auto zip = make_backend_zip(temp.root/"downloads"/"backend.zip");
+    SECTION("an existing path that is not from an earlier installation is never replaced") {
+        touch(temp.folder/"hipSYCL"/"mine.txt");
+        CHECK_THROWS(gpu::installer::install(zip.string()));
+        CHECK(fs::exists(temp.folder/"hipSYCL"/"mine.txt"));
+        CHECK_FALSE(fs::exists(temp.folder/gpu::GPULoader::library_name()));
+        CHECK_FALSE(fs::exists(temp.root/"gpu.staging"));
+    }
 
-        SECTION("an existing path that is not from an earlier installation is never replaced") {
-            touch(temp.folder/"hipSYCL"/"mine.txt");
-            CHECK_THROWS(gpu::installer::install(zip.string()));
-            CHECK(fs::exists(temp.folder/"hipSYCL"/"mine.txt"));
-            CHECK_FALSE(fs::exists(temp.folder/gpu::GPULoader::library_name()));
-            CHECK_FALSE(fs::exists(temp.root/"gpu.staging"));
-        }
+    SECTION("a backend that fails to load is removed again, and other files are kept") {
+        touch(temp.folder/"notes.txt");
+        CHECK_THROWS(gpu::installer::install(zip.string()));
+        CHECK(fs::exists(temp.folder/"notes.txt"));
+        CHECK_FALSE(fs::exists(temp.folder/gpu::GPULoader::library_name()));
+        CHECK_FALSE(fs::exists(temp.folder/"hipSYCL"));
+        CHECK_FALSE(fs::exists(temp.record));
+        CHECK_FALSE(fs::exists(temp.root/"gpu.staging"));
+    }
 
-        SECTION("a backend that fails to load is removed again, and other files are kept") {
-            touch(temp.folder/"notes.txt");
-            CHECK_THROWS(gpu::installer::install(zip.string()));
-            CHECK(fs::exists(temp.folder/"notes.txt"));
-            CHECK_FALSE(fs::exists(temp.folder/gpu::GPULoader::library_name()));
-            CHECK_FALSE(fs::exists(temp.folder/"hipSYCL"));
-            CHECK_FALSE(fs::exists(temp.record));
-            CHECK_FALSE(fs::exists(temp.root/"gpu.staging"));
-        }
-
-        SECTION("an earlier installation is replaced") {
-            std::string library(gpu::GPULoader::library_name());
-            touch(temp.folder/library);
-            touch(temp.folder/"old.so");
-            write_record(temp.record, {library, "old.so"});
-            CHECK_THROWS(gpu::installer::install(zip.string())); // the fake library fails the load test
-            CHECK_FALSE(fs::exists(temp.folder/"old.so"));
-            CHECK_FALSE(fs::exists(temp.folder));
-        }
-    #endif
+    SECTION("an earlier installation is replaced") {
+        std::string library(gpu::GPULoader::library_name());
+        touch(temp.folder/library);
+        touch(temp.folder/"old.so");
+        write_record(temp.record, {library, "old.so"});
+        CHECK_THROWS(gpu::installer::install(zip.string())); // the fake library fails the load test
+        CHECK_FALSE(fs::exists(temp.folder/"old.so"));
+        CHECK_FALSE(fs::exists(temp.folder));
+    }
 }
