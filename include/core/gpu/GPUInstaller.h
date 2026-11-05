@@ -27,12 +27,15 @@ namespace ausaxs::gpu::installer {
     std::string asset_name();
 
     /**
-     * @brief The release a backend is downloaded from by default: the one matching this version of AUSAXS.
+     * @brief The release a backend is downloaded from by default: the latest one.
+     *
+     * Backends are only released when the ABI changes, not with every version of AUSAXS. A build older than the latest ABI must name an
+     * older release; the test load during install() rejects a backend of the wrong ABI.
      */
     std::string default_tag();
 
     /**
-     * @brief URL of the release asset for this platform from release @a tag.
+     * @brief URL of the release asset for this platform from release @a tag, or from the latest release if @a tag is "latest".
      */
     std::string asset_url(const std::string& tag);
 

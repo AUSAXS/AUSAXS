@@ -4,7 +4,6 @@
 #include <gpu/GPUInstaller.h>
 #include <gpu/GPULoader.h>
 
-#include <constants/Version.h>
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
@@ -23,7 +22,7 @@ using namespace ausaxs::gpu;
 namespace fs = std::filesystem;
 
 namespace {
-    constexpr const char* release_url = "https://github.com/AUSAXS/AUSAXS-GPU/releases/download/";
+    constexpr const char* release_url = "https://github.com/AUSAXS/AUSAXS-GPU/releases/";
 
     // Written last, once the backend has loaded. Its absence marks an installation that did not finish, which the loader then ignores.
     constexpr const char* marker_name = "installed.txt";
@@ -59,7 +58,7 @@ namespace {
          */
         void extract(const fs::path& zip, const fs::path& destination) {
             mz_zip_archive archive{};
-            if (!mz_zip_reader_init_file(&archive, zip.string().c_str(), 0)) {
+            if (!static_cast<bool>(mz_zip_reader_init_file(&archive, zip.string().c_str(), 0))) {
                 throw except::runtime_error("gpu::installer: \"" + zip.string() + "\" is not a readable zip archive: " + zip_error(archive));
             }
             std::unique_ptr<mz_zip_archive, mz_bool(*)(mz_zip_archive*)> guard(&archive, &mz_zip_reader_end);
@@ -67,7 +66,7 @@ namespace {
             mz_uint count = mz_zip_reader_get_num_files(&archive);
             for (mz_uint i = 0; i < count; ++i) {
                 mz_zip_archive_file_stat stat;
-                if (!mz_zip_reader_file_stat(&archive, i, &stat)) {
+                if (!static_cast<bool>(mz_zip_reader_file_stat(&archive, i, &stat))) {
                     throw except::runtime_error("gpu::installer: could not read entry " + std::to_string(i) + " of the archive: " + zip_error(archive));
                 }
 
@@ -77,7 +76,7 @@ namespace {
                     throw except::runtime_error("gpu::installer: the archive contains an unsafe path: \"" + std::string(stat.m_filename) + "\"");
                 }
                 fs::path target = destination/relative;
-                if (mz_zip_reader_is_file_a_directory(&archive, i)) {
+                if (static_cast<bool>(mz_zip_reader_is_file_a_directory(&archive, i))) {
                     fs::create_directories(target);
                     continue;
                 }
@@ -90,7 +89,7 @@ namespace {
                     out.write(static_cast<const char*>(buffer), static_cast<std::streamsize>(n));
                     return out ? n : 0;
                 };
-                if (!mz_zip_reader_extract_to_callback(&archive, i, write, &out, 0)) {
+                if (!static_cast<bool>(mz_zip_reader_extract_to_callback(&archive, i, write, &out, 0))) {
                     throw except::runtime_error("gpu::installer: could not unpack \"" + std::string(stat.m_filename) + "\": " + zip_error(archive));
                 }
                 out.close();
@@ -99,7 +98,7 @@ namespace {
                 #ifndef _WIN32
                     // the runtime runs the bundled LLVM tools to compile kernels, so their executable bits must survive
                     constexpr int unix_host = 3;
-                    if ((stat.m_version_made_by >> 8) == unix_host && ((stat.m_external_attr >> 16) & 0111)) {
+                    if ((stat.m_version_made_by >> 8) == unix_host && static_cast<bool>(((stat.m_external_attr >> 16) & 0111))) {
                         fs::permissions(target, fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec, fs::perm_options::add);
                     }
                 #endif
@@ -129,11 +128,13 @@ std::string installer::asset_name() {
 }
 
 std::string installer::default_tag() {
-    return std::string(constants::version);
+    return "latest";
 }
 
 std::string installer::asset_url(const std::string& tag) {
-    return release_url + tag + "/" + asset_name();
+    // GitHub redirects latest/download/ to the newest release, which saves a query of its API
+    if (tag == "latest") {return release_url + std::string("latest/download/") + asset_name();}
+    return release_url + std::string("download/") + tag + "/" + asset_name();
 }
 
 fs::path installer::folder() {
@@ -234,8 +235,8 @@ void installer::install([[maybe_unused]] const std::string& source) {
         if (probe.available) {console::print_success("Installed the GPU backend. Device: " + probe.device);}
         else {
             console::print_warning(
-                "Installed the GPU backend, but it found no usable device on this machine (" + probe.error + "). "
-                "It will be used on machines that have one."
+                "Installed the GPU backend, but it found no usable device on this machine" +
+                (probe.error.empty() ? std::string() : " (" + probe.error + ")") + ". It will be used on machines that have one."
             );
         }
     #endif

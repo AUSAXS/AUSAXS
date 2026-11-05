@@ -49,7 +49,10 @@ TEST_CASE("installer::asset_url") {
     if (gpu::installer::asset_name().empty()) {SKIP("no prebuilt backend for this platform");}
     auto url = gpu::installer::asset_url("v1.2.3");
     CHECK(url.starts_with("https://"));
-    CHECK(url.ends_with("/v1.2.3/" + gpu::installer::asset_name()));
+    CHECK(url.ends_with("/download/v1.2.3/" + gpu::installer::asset_name()));
+
+    auto latest = gpu::installer::asset_url(gpu::installer::default_tag());
+    CHECK(latest.ends_with("/latest/download/" + gpu::installer::asset_name()));
 }
 
 TEST_CASE("installer::installed_library") {

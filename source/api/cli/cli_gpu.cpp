@@ -46,12 +46,12 @@ int cli_gpu(int argc, char const *argv[]) {
     std::string from;
     CLI::App app{"Install, check, or remove the GPU backend."};
     app.require_subcommand(1);
-    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); exit(0);}, "Print the AUSAXS version.");
+    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
 
     auto* sub_install = app.add_subcommand("install", "Download and install the GPU backend for this platform, replacing any existing one.");
-    auto* p_tag = sub_install->add_option("--tag", tag, "The release to download the backend from.")->default_val(tag);
+    auto* p_tag = sub_install->add_option("--tag", tag, "The release to download the backend from, e.g. \"latest\" or a release tag.")->default_val(tag);
     sub_install->add_option("--from", from, "Install from this URL or already downloaded zip file instead.")->excludes(p_tag);
-    sub_install->add_flag("--offline", settings::general::offline, "Prevent any network requests. Only --from with a local file works.");
+    sub_install->add_flag("--offline", settings::general::offline.value, "Prevent any network requests. Only --from with a local file works.");
 
     auto* sub_status = app.add_subcommand("status", "Show the installed GPU backend and the device it finds.");
     auto* sub_remove = app.add_subcommand("remove", "Remove the installed GPU backend.");
