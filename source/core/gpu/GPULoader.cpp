@@ -36,7 +36,7 @@ namespace {
     #ifdef _WIN32
         constexpr const char* library_name = "ausaxs_gpu_sycl.dll";
 
-        using handle_t = HMODULE;
+        using library_handle = HMODULE;
         /**
          * @brief Open a library, looking for its dependencies beside it before anywhere else.
          *
@@ -44,7 +44,7 @@ namespace {
          * counterpart of the $ORIGIN RUNPATH a Linux package carries. A bare name, or a backend whose runtime only PATH can find, still gets 
          * the default search as a fallback.
          */
-        handle_t open_library(const std::string& path) {
+        library_handle open_library(const std::string& path) {
             if (std::filesystem::path file(path); file.has_parent_path()) {
                 // LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR is only accepted together with an absolute path
                 std::string absolute = std::filesystem::absolute(file).string();
@@ -54,7 +54,7 @@ namespace {
             }
             return LoadLibraryA(path.c_str());
         }
-        void* find_symbol(handle_t handle, const char* name) {
+        void* find_symbol(library_handle handle, const char* name) {
             return reinterpret_cast<void*>(GetProcAddress(handle, name));
         }
         std::string open_error() {return "error " + std::to_string(GetLastError());}
@@ -78,9 +78,9 @@ namespace {
             constexpr const char* library_name = "libausaxs_gpu_sycl.so";
         #endif
 
-        using handle_t = void*;
-        handle_t open_library(const std::string& path) {return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);}
-        void* find_symbol(handle_t handle, const char* name) {return dlsym(handle, name);}
+        using library_handle = void*;
+        library_handle open_library(const std::string& path) {return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);}
+        void* find_symbol(library_handle handle, const char* name) {return dlsym(handle, name);}
         std::string open_error() {
             const char* error = dlerror();
             return (error != nullptr) ? error : "unknown error";
@@ -118,7 +118,7 @@ namespace {
     /**
      * @brief Resolve every entry point, or none of them.
      */
-    bool resolve(handle_t handle, GPULoader::Backend& backend) {
+    bool resolve(library_handle handle, GPULoader::Backend& backend) {
         constexpr const char* not_a_backend = "the backend is missing one or more entry points; it is probably not a GPU backend";
         auto* abi_version = reinterpret_cast<abi::abi_version_fn>(find_symbol(handle, abi::symbol_abi_version));
         if (abi_version == nullptr) {
@@ -155,7 +155,7 @@ namespace {
         GPULoader::Backend backend;
         std::string attempts;
         for (const auto& path : candidate_paths()) {
-            handle_t handle = open_library(path);
+            library_handle handle = open_library(path);
             if (handle == nullptr) {
                 // the platform error already names the file it failed to open
                 attempts += "\n    " + open_error();
@@ -212,7 +212,7 @@ void GPULoader::report_failure(std::string_view action, abi::Status status) {
 
 GPULoader::Probe GPULoader::probe(const std::string& path) {
     Probe result;
-    handle_t handle = open_library(path);
+    library_handle handle = open_library(path);
     if (handle == nullptr) {
         result.error = open_error();
         return result;
