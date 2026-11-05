@@ -11,8 +11,9 @@
  * @brief Downloading and installing a prebuilt GPU backend.
  *
  * Backends are published as one zip per platform on the AUSAXS-GPU releases page, each holding the backend and the AdaptiveCpp runtime it
- * needs. An installation is unpacked into settings::general::gpu_folder, and marked complete only once it has been loaded successfully,
- * so the loader never picks up a half-written or broken one.
+ * needs. An installation is unpacked into the gpu/ subfolder of the cache (settings::general::helper::gpu_folder), and marked complete only
+ * once it has been loaded successfully, so the loader never picks up a half-written or broken one. Every path it unpacks is recorded beside
+ * that folder, and only recorded paths are ever replaced or deleted, so anything else in the folder is left alone.
  *
  * Unpacking needs miniz. Builds without it (GPU_DOWNLOADER=OFF) can still report on and remove an installation, but not make one.
  */
@@ -33,7 +34,7 @@ namespace ausaxs::gpu::installer {
     std::string asset_url();
 
     /**
-     * @brief The folder a backend is installed to, or empty if none is configured.
+     * @brief The folder a backend is installed to.
      */
     io::Folder folder();
 
@@ -54,15 +55,18 @@ namespace ausaxs::gpu::installer {
      * since it may be installed on one machine and used on another, e.g. a login and a compute node.
      *
      * @param source A URL, or the path of an already downloaded zip.
-     * @throws except::runtime_error if the backend could not be installed. Nothing is left behind in that case.
+     * @throws except::runtime_error if the backend could not be installed, or the folder holds something that is not from an earlier
+     *         installation. Nothing is left behind in that case.
      */
     void install(const std::string& source);
 
     /**
      * @brief Remove an installed backend.
      *
+     * Only the recorded paths are deleted. The folder itself is deleted only if nothing else is left in it.
+     *
      * @return False if there was nothing to remove.
-     * @throws except::runtime_error if the folder does not look like an installation, or could not be removed.
+     * @throws except::runtime_error if the folder exists but there is no record of an installation, or a recorded path could not be deleted.
      */
     bool remove();
 }

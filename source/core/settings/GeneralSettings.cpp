@@ -57,33 +57,11 @@ std::string settings::general::helper::residue_folder() {
     return path + "residues/";
 }
 
-// Not under the cache: clearing a cache must not silently take the GPU away.
-settings::Setting<std::string> settings::general::gpu_folder{[] () {
-    const char* env_p = nullptr;
-
-    #ifdef _WIN32
-        env_p = std::getenv("LOCALAPPDATA");
-        if (env_p) {
-            return std::string(env_p) + "/ausaxs/gpu/";
-        }
-    #elif defined(__APPLE__)
-        env_p = std::getenv("HOME");
-        if (env_p) {
-            return std::string(env_p) + "/Library/Application Support/ausaxs/gpu/";
-        }
-    #else
-        env_p = std::getenv("XDG_DATA_HOME");
-        if (env_p) {
-            return std::string(env_p) + "/ausaxs/gpu/";
-        }
-
-        env_p = std::getenv("HOME");
-        if (env_p) {
-            return std::string(env_p) + "/.local/share/ausaxs/gpu/";
-        }
-    #endif
-    return cache + "gpu/";
-}()};
+std::string settings::general::helper::gpu_folder() {
+    std::string path = cache;
+    if (!path.empty() && path.back() != '/' && path.back() != '\\') {path += '/';}
+    return path + "gpu/";
+}
 
 int ausaxs::settings::general::detail::get_job_size(int n) {
     constexpr int jobs_per_thread = 8; // aim for this many jobs per thread
@@ -107,8 +85,7 @@ namespace {
         settings::io::create(general::input_q_unit, {"unit"}),
         settings::io::create(general::offline, {"offline"}),
         settings::io::create(general::gpu, {"gpu"}),
-        settings::io::create(general::gpu_library, {"gpu_library"}),
-        settings::io::create(general::gpu_folder, {"gpu_folder"})
+        settings::io::create(general::gpu_library, {"gpu_library"})
     });
 }
 

@@ -14,9 +14,11 @@
     #include <miniz.h>
 #endif
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <vector>
 
 using namespace ausaxs;
 using namespace ausaxs::gpu;
@@ -36,30 +38,115 @@ namespace {
         return {folder.path() + "/" + std::string(GPULoader::library_name())};
     }
 
-    /**
-     * @brief Whether @a folder holds an installation, finished or not.
-     *
-     * The folder is the user's to configure, so nothing is ever replaced or deleted unless it passes this check.
-     */
-    bool looks_installed(const io::Folder& folder) {
-        return marker_file(folder).exists() || library_file(folder).exists();
-    }
-
-    io::Folder folder_or_throw() {
-        io::Folder folder = installer::folder();
-        if (folder.empty()) {throw except::runtime_error("gpu::installer: no install folder is configured (settings: gpu_folder)");}
-        return folder;
-    }
-
-    // Beside the install folder rather than inside it, so it can be moved into place in one rename.
+    // Beside the install folder rather than inside it, so it is never part of what it unpacks.
     io::Folder staging_folder(const io::Folder& folder) {
-        return io::Folder(folder.path() + ".staging");
+        return {folder.path() + ".staging"};
+    }
+
+    // Lists every path an installation put into the install folder, relative to it, one per line. Only what is listed is ever deleted, so
+    // anything else in the folder is left alone. It is kept beside the folder rather than inside it, so it is never part of what it lists.
+    io::File record_file(const io::Folder& folder) {
+        return {folder.path() + ".record"};
+    }
+
+    /**
+     * @brief The paths listed in @a record, or none if there is no record.
+     *
+     * The record is a plain text file anyone could edit, so each entry is checked to stay inside the install folder.
+     */
+    std::vector<fs::path> read_record(const io::File& record) {
+        std::vector<fs::path> entries;
+        std::ifstream in(record.path());
+        for (std::string line; std::getline(in, line);) {
+            if (line.empty()) {continue;}
+            fs::path entry = fs::path(line).lexically_normal();
+            if (entry.has_root_path() || entry == "." || *entry.begin() == "..") {
+                throw except::runtime_error("gpu::installer: the record \"" + record.path() + "\" lists an unsafe path: \"" + line + "\"");
+            }
+            entries.push_back(entry);
+        }
+        return entries;
+    }
+
+    void write_record(const io::File& record, const std::vector<fs::path>& entries) {
+        std::string contents;
+        for (const auto& entry : entries) {contents += entry.generic_string() + "\n";}
+        record.create(contents);
+    }
+
+    /**
+     * @brief Every path inside @a folder, relative to it. Symbolic links are listed, but not followed.
+     */
+    std::vector<fs::path> list_contents(const io::Folder& folder) {
+        std::vector<fs::path> entries;
+        fs::path base = folder.path();
+        for (const auto& entry : fs::recursive_directory_iterator(base)) {
+            entries.push_back(entry.path().lexically_relative(base));
+        }
+        return entries;
+    }
+
+    /**
+     * @brief Delete the paths @a entries lists from @a folder, and nothing else.
+     *
+     * A listed directory is deleted only once it is empty, so one the user has since added files to is kept, along with those files.
+     * The folder itself is always kept.
+     *
+     * @throws except::runtime_error if a listed path could not be deleted.
+     */
+    void uninstall(const io::Folder& folder, std::vector<fs::path> entries) {
+        std::error_code ec;
+        fs::path base = fs::canonical(folder.path(), ec);
+        if (ec) {return;} // no folder, so nothing to delete
+
+        // a directory sorts before everything inside it, so in reverse order its contents are deleted first
+        std::sort(entries.begin(), entries.end(), std::greater<>());
+        for (const auto& entry : entries) {
+            fs::path target = base/entry;
+            auto status = fs::symlink_status(target, ec);
+            if (ec || !fs::exists(status)) {continue;} // already gone
+
+            // a listed directory since replaced by a link must not lead the deletion out of the folder
+            fs::path parent = fs::weakly_canonical(target.parent_path(), ec);
+            if (ec || std::mismatch(base.begin(), base.end(), parent.begin(), parent.end()).first != base.end()) {
+                throw except::runtime_error("gpu::installer: refusing to delete \"" + target.string() + "\": it is not inside \"" + base.string() + "\"");
+            }
+
+            if (fs::is_directory(status) && !fs::is_empty(target, ec)) {continue;}
+            fs::remove(target, ec);
+            if (ec) {
+                throw except::runtime_error(
+                    "gpu::installer: could not delete \"" + target.string() + "\": " + ec.message() + ". Is another AUSAXS process using it?"
+                );
+            }
+        }
+    }
+
+    /**
+     * @brief Delete @a folder if it is empty.
+     *
+     * @return Whether it is gone.
+     */
+    bool remove_if_empty(const io::Folder& folder) {
+        if (!folder.exists()) {return true;}
+        std::error_code ec;
+        if (!fs::is_empty(folder.path(), ec) || ec) {return false;}
+        return fs::remove(folder.path(), ec);
     }
 
     // Best effort, for cleaning up after a failure that is already being reported.
     template<typename T>
     void discard(const T& path) noexcept {
         try {path.remove();} catch (...) {}
+    }
+
+    // Best effort: delete an installation that failed, along with its record.
+    void discard_installation(const io::Folder& folder, const std::vector<fs::path>& entries, const io::File& record) noexcept {
+        try {
+            uninstall(folder, entries);
+            remove_if_empty(folder);
+            record.remove();
+        } catch (...) {}
     }
 
     #ifdef AUSAXS_GPU_DOWNLOADER
@@ -147,14 +234,11 @@ std::string installer::asset_url() {
 }
 
 io::Folder installer::folder() {
-    const std::string& setting = settings::general::gpu_folder;
-    if (setting.empty()) {return {};}
-    return io::Folder(setting);
+    return {settings::general::helper::gpu_folder()};
 }
 
 io::File installer::installed_library() {
     io::Folder folder = installer::folder();
-    if (folder.empty()) {return {};}
     io::File library = library_file(folder);
     if (!marker_file(folder).exists() || !library.exists()) {return {};}
     return library;
@@ -172,12 +256,9 @@ void installer::install([[maybe_unused]] const std::string& source) {
     #ifndef AUSAXS_GPU_DOWNLOADER
         throw except::runtime_error("gpu::installer: this build of AUSAXS cannot install GPU backends, since it was built without the downloader (GPU_DOWNLOADER=OFF)");
     #else
-        io::Folder folder = folder_or_throw();
-        if (folder.exists() && !(folder.files().empty() && folder.directories().empty()) && !looks_installed(folder)) {
-            throw except::runtime_error(
-                "gpu::installer: refusing to install into \"" + folder.path() + "\": it is not empty, and does not hold a GPU backend"
-            );
-        }
+        io::Folder folder = installer::folder();
+        io::File record = record_file(folder);
+        std::vector<fs::path> previous = read_record(record);
 
         io::File zip(source);
         bool downloaded = false;
@@ -193,6 +274,7 @@ void installer::install([[maybe_unused]] const std::string& source) {
         }
 
         io::Folder staging = staging_folder(folder);
+        std::vector<fs::path> entries;
         try {
             staging.remove(); // left behind by an interrupted install
             console::print_text("Unpacking into " + folder.path());
@@ -201,6 +283,20 @@ void installer::install([[maybe_unused]] const std::string& source) {
                 throw except::runtime_error(
                     "gpu::installer: the archive does not contain " + std::string(GPULoader::library_name()) + "; it is not a GPU backend for this platform"
                 );
+            }
+            entries = list_contents(staging);
+            entries.emplace_back(marker_name);
+
+            // Only what an earlier installation put there may be replaced. Checked before anything is changed, so a refusal changes nothing.
+            for (const auto& entry : entries) {
+                if (entry.has_parent_path() || std::find(previous.begin(), previous.end(), entry) != previous.end()) {continue;}
+                std::error_code ec;
+                if (fs::exists(fs::symlink_status(fs::path(folder.path())/entry, ec))) {
+                    throw except::runtime_error(
+                        "gpu::installer: refusing to install into \"" + folder.path() + "\": it already holds \"" + entry.string() + "\", "
+                        "which is not from an earlier installation"
+                    );
+                }
             }
         } catch (...) {
             discard(staging);
@@ -212,25 +308,33 @@ void installer::install([[maybe_unused]] const std::string& source) {
         // The new backend is tested where it will live, since a loaded library cannot be moved on Windows. That means the old installation
         // goes first, and a failed test leaves none at all.
         try {
-            folder.remove();
+            uninstall(folder, previous);
+        } catch (...) {
+            discard(staging);
+            throw;
+        }
+
+        // Recorded before anything is moved in, so an interrupted install can still be removed.
+        write_record(record, entries);
+        try {
+            folder.create();
+            for (const auto& entry : entries) {
+                if (entry.has_parent_path() || entry == marker_name) {continue;}
+                fs::rename(fs::path(staging.path())/entry, fs::path(folder.path())/entry);
+            }
         } catch (const fs::filesystem_error& e) {
             discard(staging);
             throw except::runtime_error(
-                "gpu::installer: could not remove the existing installation at \"" + folder.path() + "\": " + e.code().message() +
-                ". Is another AUSAXS process using it?"
+                "gpu::installer: could not move the backend into \"" + folder.path() + "\": " + e.code().message() +
+                ". If an earlier installation left files of yours behind, move them elsewhere and try again."
             );
         }
-        try {
-            staging.move(folder);
-        } catch (const fs::filesystem_error& e) {
-            discard(staging);
-            throw except::runtime_error("gpu::installer: could not move the backend into \"" + folder.path() + "\": " + e.code().message());
-        }
+        discard(staging);
 
         console::print_text("Testing the backend. This may take a while the first time, as the kernels are compiled.");
         auto probe = GPULoader::probe(library_file(folder).path());
         if (!probe.loaded) {
-            discard(folder);
+            discard_installation(folder, entries, record);
             throw except::runtime_error("gpu::installer: the GPU backend could not be loaded, and has been removed again: " + probe.error);
         }
         marker_file(folder).create(source + "\n");
@@ -246,18 +350,21 @@ void installer::install([[maybe_unused]] const std::string& source) {
 }
 
 bool installer::remove() {
-    io::Folder folder = folder_or_throw();
+    io::Folder folder = installer::folder();
+    io::File record = record_file(folder);
     discard(staging_folder(folder));
-    if (!folder.exists()) {return false;}
-    if (!looks_installed(folder)) {
-        throw except::runtime_error("gpu::installer: refusing to remove \"" + folder.path() + "\": it does not hold a GPU backend");
-    }
-    try {
-        folder.remove();
-    } catch (const fs::filesystem_error& e) {
+    if (!record.exists()) {
+        if (remove_if_empty(folder)) {return false;}
         throw except::runtime_error(
-            "gpu::installer: could not remove \"" + folder.path() + "\": " + e.code().message() + ". Is another AUSAXS process using it?"
+            "gpu::installer: refusing to remove \"" + folder.path() + "\": there is no record of what was installed there (\"" + record.path() +
+            "\"). Remove it by hand."
         );
+    }
+
+    uninstall(folder, read_record(record));
+    record.remove();
+    if (!remove_if_empty(folder)) {
+        console::print_warning("Kept \"" + folder.path() + "\", since it holds files that were not part of the GPU backend.");
     }
     return true;
 }

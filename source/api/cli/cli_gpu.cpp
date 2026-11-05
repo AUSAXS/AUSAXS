@@ -30,7 +30,7 @@ namespace {
             console::print_text("Installed from:  not installed");
         }
         if (!gpu::installer::supported()) {
-            console::print_text("Downloader:      not available in this build (GPU_DOWNLOADER=OFF)");
+            console::print_text("Downloader:      not available in this build");
         }
 
         // loading the backend reports the device it found, or why there is none
