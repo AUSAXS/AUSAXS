@@ -11,7 +11,6 @@
 #include <hist/distribution/Distribution1D.h>
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
-#include <hist/scattering_model/FormFactorDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
 #include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
@@ -155,15 +154,20 @@ int molecule_distance_histogram(
 namespace {
 // Selects the settings of a raw calculation for one scope and then restores the ones it found, also on a throw, so a raw
 // calculation never changes the result of a later non-raw one.
+// There is never any excluded volume. Without form_factor, the atoms are point scatterers with their weights; with it, they carry
+// their atomic form factors instead.
 struct RawScope {
     settings::exv::ExvMethod old_exv = settings::exv::exv_method;
     settings::hist::WeightedBins old_weighted_bins = settings::hist::weighted_bins;
-    RawScope() {
-        settings::exv::exv_method = settings::exv::ExvMethod::None; // point scatterers with their weights, without any excluded volume
-        settings::hist::weighted_bins = true;                       // raw profiles must hold at any q, far beyond the range auto judges unweighted bins by
+    bool old_explicit_ff = settings::internal_state::prefer_explicit_form_factors;
+    explicit RawScope(bool form_factor = false) {
+        settings::exv::exv_method = settings::exv::ExvMethod::None;
+        settings::internal_state::prefer_explicit_form_factors = form_factor;
+        settings::hist::weighted_bins = true; // raw profiles must hold at any q, far beyond the range auto judges unweighted bins by
     }
     ~RawScope() {
         settings::exv::exv_method = old_exv;
+        settings::internal_state::prefer_explicit_form_factors = old_explicit_ff;
         settings::hist::weighted_bins = old_weighted_bins;
     }
 };
@@ -247,17 +251,14 @@ void molecule_debye_userq(
     }
 }, status);}
 
-int molecule_debye_raw(
-    int molecule_id,
-    double** q, double** I, int* n_points,
-    int* status
-) {return execute_with_catch([&]() {
-    RawScope raw;
+namespace {
+template<bool form_factor>
+int debye_raw(int molecule_id, double** q, double** I, int* n_points) {
+    RawScope raw(form_factor);
 
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     molecule.reset_histogram_manager(); // rebuilt with the raw settings
-    auto hist = molecule.get_histogram();
-    auto debye_I = hist->debye_transform<false>();
+    auto debye_I = molecule.get_histogram()->template debye_transform<form_factor>();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
     for (int i = 0; i < debye_I.size(); ++i) {
@@ -269,56 +270,57 @@ int molecule_debye_raw(
     *q = ref->q.data();
     *I = ref->I.data();
     *n_points = debye_I.size();
-
     return data_id;
-}, status);}
+}
+
+template<bool form_factor>
+void debye_raw_userq(int molecule_id, double* q, double* I, int n_points) {
+    RawScope raw(form_factor);
+
+    std::vector<double> q_vals(q, q + n_points);
+    if constexpr (form_factor) {
+        // the atomic form factors are only tabulated on the default axis; beyond it, debye_transform falls back to the plain total histogram
+        if (n_points != 0 && (q_vals.front() < constants::axes::q_axis.min || constants::axes::q_axis.max < q_vals.back())) {
+            throw except::invalid_argument(
+                "molecule_debye_raw_ff_userq: The atomic form factors are only available for q in [" 
+                + std::to_string(constants::axes::q_axis.min) + ", " + std::to_string(constants::axes::q_axis.max) + "]."
+            );
+        }
+    }
+
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager(); // rebuilt with the raw settings
+    auto debye_I = molecule.get_histogram()->template debye_transform<form_factor>(q_vals);
+    if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
+    for (int i = 0; i < n_points; ++i) {
+        I[i] = debye_I.y(i);
+    }
+}
+}
+
+int molecule_debye_raw(
+    int molecule_id,
+    double** q, double** I, int* n_points,
+    int* status
+) {return execute_with_catch([&]() {return debye_raw<false>(molecule_id, q, I, n_points);}, status);}
 
 void molecule_debye_raw_userq(
     int molecule_id, 
     double* q, double* I, int n_points,
     int* status
-) {execute_with_catch([&]() {
-    RawScope raw;
-
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    std::vector<double> q_vals(q, q + n_points);
-    molecule.reset_histogram_manager(); // rebuilt with the raw settings
-    auto hist = molecule.get_histogram();
-    auto debye_I = hist->debye_transform<false>(q_vals);
-    if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
-    for (int i = 0; i < n_points; ++i) {
-        I[i] = debye_I.y(i);
-    }
-}, status);}
+) {execute_with_catch([&]() {debye_raw_userq<false>(molecule_id, q, I, n_points);}, status);}
 
 int molecule_debye_raw_ff(
     int molecule_id,
     double** q, double** I, int* n_points,
     int* status
-) {return execute_with_catch([&]() {
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
-    auto Iq = hist::form_factor_debye_transform(molecule, qv);
-    _molecule_debye_obj data(static_cast<int>(Iq.size()));
-    std::ranges::copy(qv, data.q.begin());
-    std::ranges::copy(Iq, data.I.begin());
-    int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
-    *q = ref->q.data();
-    *I = ref->I.data();
-    *n_points = static_cast<int>(Iq.size());
-    return data_id;
-}, status);}
+) {return execute_with_catch([&]() {return debye_raw<true>(molecule_id, q, I, n_points);}, status);}
 
 void molecule_debye_raw_ff_userq(
     int molecule_id,
     double* q, double* I, int n_points,
     int* status
-) {execute_with_catch([&]() {
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    auto Iq = hist::form_factor_debye_transform(molecule, std::vector<double>(q, q + n_points));
-    std::ranges::copy(Iq, I);
-}, status);}
+) {execute_with_catch([&]() {debye_raw_userq<true>(molecule_id, q, I, n_points);}, status);}
 
 int molecule_debye_exact(
     int molecule_id,

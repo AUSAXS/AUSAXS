@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Body.h>
 #include <data/Molecule.h>
@@ -16,6 +17,7 @@
 #include <hist/histogram_manager/PartialHistogramManagerMT.h>
 #include <hist/histogram_manager/PartialSymmetryManagerMT.h>
 #include <hist/histogram_manager/SymmetryManagerMT.h>
+#include <hist/scattering_model/ScatteringModelNoExv.h>
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>
@@ -93,6 +95,31 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
         settings::internal_state::prefer_partial_manager = false;
         settings::exv::exv_method = settings::exv::ExvMethod::Average;
         CHECK(dynamic_cast<hist::HistogramManagerMTFFAvg<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+    }
+
+    SECTION("no excluded volume with explicit form factors on request") {
+        settings::internal_state::prefer_explicit_form_factors = true;
+        auto model = [] (const Molecule& m) {return hist::factory::construct_histogram_manager(&m)->calculate_all();};
+        auto is_no_exv = [] (const auto& h) {return dynamic_cast<hist::ScatteringModelNoExv*>(h.get()) != nullptr;};
+
+        settings::internal_state::prefer_partial_manager = false;
+        CHECK(dynamic_cast<hist::HistogramManagerMTFFExplicit<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::SymmetryManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+        auto h = model(plain);
+        CHECK(is_no_exv(h));
+        CHECK(is_no_exv(model(symmetric)));
+
+        settings::internal_state::prefer_partial_manager = true;
+        CHECK(dynamic_cast<hist::PartialHistogramManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
+        CHECK(dynamic_cast<hist::PartialSymmetryManagerMTFF<true>*>(hist::factory::construct_histogram_manager(&symmetric).get()) != nullptr);
+        auto h_partial = model(plain);
+        CHECK(is_no_exv(h_partial));
+        CHECK(is_no_exv(model(symmetric)));
+
+        auto I = h->debye_transform();
+        auto I_partial = h_partial->debye_transform();
+        REQUIRE(I.size() == I_partial.size());
+        for (int i = 0; i < I.size(); ++i) {CHECK_THAT(I_partial[i], Catch::Matchers::WithinRel(I[i], 1e-9));}
     }
 
     SECTION("the simple model folds into the weights unless the histograms outlive the grid volume") {

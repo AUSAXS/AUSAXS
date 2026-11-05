@@ -116,8 +116,8 @@ namespace ausaxs::hist::detail {
 	ManagerDistributions<weighted_bins, form_factors> export_distributions(distance_calculator::HistogramStore<weighted_bins>& store, int aa, int aw, int ww);
 
 	/**
-	 * @brief The scattering model of the explicit excluded volume models: settings::exv::exv_method picks FoXS, Pepsi or CRYSOL,
-	 *        and any other method gets the Fraser model.
+	 * @brief The scattering model of the explicit form factors: settings::exv::exv_method picks FoXS, Pepsi, CRYSOL or the 
+	 *        model without excluded volume for ExvMethod::None, and any other method gets the Fraser model.
 	 */
 	template<bool weighted_bins>
 	std::unique_ptr<IScatteringModel> make_explicit_model(
@@ -143,7 +143,7 @@ namespace ausaxs::hist::detail {
 	/**
 	 * @brief The scattering model of @a distributions. Weighted ones carry any excluded volume in their weights already.
 	 *        Form factor-resolved ones get make_simple_model or make_average_model for ExvMethod::Simple and ExvMethod::Average,
-	 *        and an explicit model otherwise, see make_explicit_model.
+	 *        and an explicit model otherwise, including ExvMethod::None, see make_explicit_model.
 	 */
 	template<bool weighted_bins, bool form_factors>
 	std::unique_ptr<IScatteringModel> make_model(

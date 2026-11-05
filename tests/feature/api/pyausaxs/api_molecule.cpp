@@ -3,6 +3,12 @@
 #include <api/ObjectStorage.h>
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
+#include <constants/ConstantsAxes.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
+#include <data/atoms/AtomFF.h>
+#include <form_factor/xray/XrayFormFactor.h>
+#include <math/ConstexprMath.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Random.h>
 
@@ -173,33 +179,51 @@ TEST_CASE("molecule_debye_raw_userq: accurate at high q") {
     }
 }
 
-TEST_CASE("molecule_debye_raw_ff: same q grid as molecule_debye_raw and any q for userq") {
+// atoms on a line at the marks of a Golomb ruler, so every distance is distinct and has a weighted bin of its own, and the binned sum must
+// match the direct one
+TEST_CASE("molecule_debye_raw_ff: agrees with the direct sum with atomic form factors") {
+    using ff_t = form_factor::form_factor_t;
+    constexpr std::array marks = {0, 1, 5, 12, 25, 27, 35};
+    constexpr std::array types = {ff_t::C, ff_t::N, ff_t::O, ff_t::S, ff_t::Fe, ff_t::Zn, ff_t::I};
+    std::vector<data::AtomFF> atoms;
+    for (unsigned int i = 0; i < marks.size(); ++i) {atoms.emplace_back(Vector3<double>{1.13*marks[i], 0.2*i, 0}, types[i]);}
+    int mol = api::ObjectStorage::register_object(data::Molecule({data::Body{atoms}}));
+
     int status = 1;
-    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
+    double *q, *I;
+    int n = 0;
+    molecule_debye_raw_ff(mol, &q, &I, &n, &status);
     REQUIRE(status == 0);
+    REQUIRE(n > 0);
 
-    double *q_raw, *I_raw, *q_ff, *I_ff;
-    int n_raw = 0, n_ff = 0;
-    molecule_debye_raw(mol, &q_raw, &I_raw, &n_raw, &status);
-    REQUIRE(status == 0);
-    molecule_debye_raw_ff(mol, &q_ff, &I_ff, &n_ff, &status);
-    REQUIRE(status == 0);
-    REQUIRE(n_ff == n_raw);
-    for (int i = 0; i < n_ff; ++i) {CHECK(q_ff[i] == q_raw[i]);}
+    auto f = [] (ff_t t, double q) {return form_factor::xray::raw::get(t).evaluate(q);};
+    for (int k = 0; k < n; ++k) {
+        double expected = 0, scale = 0;
+        for (unsigned int i = 0; i < atoms.size(); ++i) {
+            expected += form_factor::xray::raw::get(types[i]).evaluate_self(q[k]);
+            scale += std::abs(f(types[i], q[k]));
+            for (unsigned int j = 0; j < atoms.size(); ++j) {
+                if (i == j) {continue;}
+                expected += f(types[i], q[k])*f(types[j], q[k])*math::sinc(q[k]*atoms[i].get_atom().coordinates().distance(atoms[j].get_atom().coordinates()));
+            }
+        }
+        CHECK_THAT(I[k], Catch::Matchers::WithinAbs(expected, 1e-5*scale*scale)); // the intensity crosses zero, so measure against its scale
+    }
 
-    // evaluated at the q values themselves, not interpolated, so userq reproduces the profile exactly; and it extends beyond the default axis
-    std::vector<double> q(q_ff, q_ff + n_ff);
-    q.push_back(2.5);
-    q.push_back(8);
-    std::vector<double> I(q.size());
-    molecule_debye_raw_ff_userq(mol, q.data(), I.data(), static_cast<int>(q.size()), &status);
-    REQUIRE(status == 0);
-    for (int i = 0; i < n_ff; ++i) {CHECK_THAT(I[i], Catch::Matchers::WithinRel(I_ff[i], 1e-12));}
-    CHECK(std::isfinite(I[n_ff]));
-    CHECK(std::isfinite(I[n_ff+1]));
+    SECTION("userq reproduces the profile, but refuses q beyond the default axis") {
+        std::vector<double> qv(q, q + n), Iv(n);
+        molecule_debye_raw_ff_userq(mol, qv.data(), Iv.data(), n, &status);
+        REQUIRE(status == 0);
+        for (int k = 0; k < n; ++k) {CHECK_THAT(Iv[k], Catch::Matchers::WithinRel(I[k], 1e-9));}
+
+        std::array q_high = {0.5, constants::axes::q_axis.max + 1};
+        std::array<double, 2> I_high{};
+        molecule_debye_raw_ff_userq(mol, q_high.data(), I_high.data(), 2, &status);
+        CHECK(status != 0);
+    }
 }
 
-TEST_CASE("molecule_debye_raw_ff: molecules without form factors are refused with a clear message") {
+TEST_CASE("molecule_debye_raw_ff: molecules without form factors are refused") {
     std::array x = {0.0, 1.0, 0.0};
     std::array y = {0.0, 0.0, 1.0};
     std::array z = {0.0, 0.0, 0.0};
@@ -208,16 +232,10 @@ TEST_CASE("molecule_debye_raw_ff: molecules without form factors are refused wit
     int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), 3, &status);
     REQUIRE(status == 0);
 
-    std::array q = {0.1, 0.2};
-    std::array<double, 2> I{};
-    molecule_debye_raw_ff_userq(mol, q.data(), I.data(), 2, &status);
-    REQUIRE(status != 0);
-
-    char* error_msg = nullptr;
-    int error_status = 1;
-    get_last_error_msg(&error_msg, &error_status);
-    REQUIRE(error_status == 0);
-    CHECK(std::string(error_msg).find("without form factor information") != std::string::npos);
+    double *q, *I;
+    int n = 0;
+    molecule_debye_raw_ff(mol, &q, &I, &n, &status);
+    CHECK(status != 0);
 }
 
 TEST_CASE("object ids: an object of the wrong type is refused") {

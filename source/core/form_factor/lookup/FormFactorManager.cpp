@@ -46,45 +46,24 @@ namespace {
     using profile_set_t = std::vector<manager::detail::profile_t>; // One profile per active form factor slot.
 
     /**
-     * @brief Call @a visit with the form factor of @a type for the current probe.
-     *        The excluded volume form factor is a normalized shape rather than a scattering length, so it is the same for both probes.
-     *
-     * @param visit Called with a form factor of either probe.
-     */
-    template<typename F>
-    void visit_form_factor(form_factor_t type, F&& visit) {
-        if (type == form_factor_t::EXCLUDED_VOLUME) {visit(xray::raw::get(type)); return;}
-        switch (settings::scattering::radiation.value) {
-            case settings::scattering::Radiation::XRay:     visit(xray::raw::get(type)); return;
-            case settings::scattering::Radiation::Neutron:  visit(neutron::get(type)); return;
-        }
-        throw except::unexpected("form_factor::manager: Unknown radiation type. Did you forget to add it to the switch statement?");
-    }
-
-    /**
      * @brief Evaluate a single form factor over the default q axis, for the current probe.
+     *        The excluded volume form factor is a normalized shape rather than a scattering length, so it is the same for both probes.
      *
      * @param eval Evaluates a form factor of either probe at a given q value.
      */
     template<typename F>
     manager::detail::profile_t evaluate_profile(form_factor_t type, F&& eval) {
         manager::detail::profile_t profile;
-        visit_form_factor(type, [&profile, &eval] (const auto& ff) {
+        auto fill = [&profile, &eval] (const auto& ff) {
             for (int q = 0; q < static_cast<int>(profile.size()); ++q) {profile[q] = eval(ff, constants::axes::q_vals[q]);}
-        });
-        return profile;
-    }
+        };
 
-    /**
-     * @brief Evaluate a single form factor at a single q value, for the current probe.
-     *
-     * @param eval Evaluates a form factor of either probe at a given q value.
-     */
-    template<typename F>
-    double evaluate_at(form_factor_t type, double q, F&& eval) {
-        double value = 0;
-        visit_form_factor(type, [&value, &eval, q] (const auto& ff) {value = eval(ff, q);});
-        return value;
+        if (type == form_factor_t::EXCLUDED_VOLUME) {fill(xray::raw::get(type)); return profile;}
+        switch (settings::scattering::radiation.value) {
+            case settings::scattering::Radiation::XRay:     fill(xray::raw::get(type)); break;
+            case settings::scattering::Radiation::Neutron:  fill(neutron::get(type)); break;
+        }
+        return profile;
     }
 
     /**
@@ -237,14 +216,6 @@ manager::detail::profile_t manager::evaluate_amplitude(form_factor_t type) {
 
 manager::detail::profile_t manager::evaluate_self(form_factor_t type) {
     return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
-}
-
-double manager::evaluate_amplitude_at(form_factor_t type, double q) {
-    return evaluate_at(type, q, [] (const auto& ff, double q) {return ff.evaluate(q);});
-}
-
-double manager::evaluate_self_at(form_factor_t type, double q) {
-    return evaluate_at(type, q, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() {

@@ -85,10 +85,8 @@ extern "C" API void molecule_debye_raw_userq(
 );
 
 /**
- * As molecule_debye_raw, but every atom and water scatters with the atomic form factor of its type rather than as a point with its weight.
- * There is still no excluded volume. Every form factor type in the molecule is resolved, so rare elements such as a single metal ion keep their own
- * form factor. The weights of the atoms are not used.
- * Fails for molecules without form factor information, such as those from molecule_from_arrays, and for molecules with symmetries.
+ * As molecule_debye_raw, but the atoms and any waters carry their atomic form factors instead of their weights. There is still no excluded volume.
+ * Fails for molecules without form factor information, such as those from molecule_from_arrays.
  */
 extern "C" API int molecule_debye_raw_ff(
     int molecule_id,
@@ -97,7 +95,7 @@ extern "C" API int molecule_debye_raw_ff(
 );
 
 /**
- * As molecule_debye_raw_ff, but evaluated at the given q values. The form factors are evaluated at each q, so this also holds beyond the default q axis.
+ * As molecule_debye_raw_ff, but evaluated at the given q values. These must lie within the default q axis, where the form factors are tabulated.
  */
 extern "C" API void molecule_debye_raw_ff_userq(
     int molecule_id,
