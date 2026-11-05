@@ -364,9 +364,6 @@ void installer::install([[maybe_unused]] const std::string& source, [[maybe_unus
         discard(staging);
 
         console::print_text("Testing the backend. This may take a few seconds while the kernel is compiled.");
-        // The chooser is only asked once the backend has loaded and listed its GPUs. From then on the installation is kept without a chosen
-        // GPU, even if no choice is made because the chooser throws or the process is interrupted at a prompt, so choosing one later does
-        // not need it downloaded again.
         GPULoader::DeviceChooser keep_then_choose;
         if (choose) {
             keep_then_choose = [&] (const std::vector<std::string>& devices) {

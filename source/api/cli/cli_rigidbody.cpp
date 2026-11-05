@@ -45,7 +45,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);    
     settings::general::gpu = gpu::installer::enabled(); // choosing a GPU with "ausaxs gpu install" is the opt-in
     app.add_flag("--gpu,!--no-gpu", settings::general::gpu.value, 
-        "Use GPU acceleration if available. On by default once a GPU is chosen with \"ausaxs gpu install\", unless turned off with \"ausaxs gpu disable\".")
+        R"(Use GPU acceleration if available. On by default once a GPU is chosen with "ausaxs gpu install", unless turned off with "ausaxs gpu disable".)")
         ->default_val(settings::general::gpu.value);
 
     // config subcommands
