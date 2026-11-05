@@ -9,8 +9,9 @@ namespace ausaxs::form_factor {
     enum class form_factor_t : int {
         EXCLUDED_VOLUME,    // excluded volume
         WATER,              // water
-        OH = WATER,         // neutral oxygen with hydrogen
-        H,                  // neutral hydrogen
+        OH = WATER,         // neutral oxygen with hydrogen. Must directly follow WATER, since the enumerators after it count on from its value
+
+        // BIOMOLECULAR FORM FACTORS
         C,                  // neutral carbon
         CH,                 // neutral carbon with hydrogen
         CH2,                // neutral carbon with two hydrogens
@@ -22,22 +23,72 @@ namespace ausaxs::form_factor {
         O,                  // neutral oxygen
         S,                  // neutral sulfur
         SH,                 // neutral sulfur with hydrogen
+
+        // ATOMIC FORM FACTORS
+        H,                  // neutral hydrogen
+        D,                  // neutral deuterium
+        He,                 // neutral helium
+        Li,                 // neutral lithium
+        Be,                 // neutral beryllium
+        B,                  // neutral boron
         F,                  // neutral fluorine
+        Ne,                 // neutral neon
         Na,                 // neutral sodium
         Mg,                 // neutral magnesium
+        Al,                 // neutral aluminum
+        Si,                 // neutral silicon
         P,                  // neutral phosphorus
         Cl,                 // neutral chlorine
+        Ar,                 // neutral argon
         K,                  // neutral potassium
         Ca,                 // neutral calcium
+        Sc,                 // neutral scandium
+        Ti,                 // neutral titanium
+        V,                  // neutral vanadium
+        Cr,                 // neutral chromium
         Mn,                 // neutral manganese
         Fe,                 // neutral iron
         Co,                 // neutral cobalt
         Ni,                 // neutral nickel
         Cu,                 // neutral copper
         Zn,                 // neutral zinc
+        Ga,                 // neutral gallium
+        Ge,                 // neutral germanium
+        As,                 // neutral arsenic
         Se,                 // neutral selenium
         Br,                 // neutral bromine
+        Kr,                 // neutral krypton
+        Rb,                 // neutral rubidium
+        Sr,                 // neutral strontium
+        Y,                  // neutral yttrium
+        Zr,                 // neutral zirconium
+        Nb,                 // neutral niobium
+        Mo,                 // neutral molybdenum
+        Tc,                 // neutral technetium
+        Ru,                 // neutral ruthenium
+        Rh,                 // neutral rhodium
+        Pd,                 // neutral palladium
+        Ag,                 // neutral silver
+        Cd,                 // neutral cadmium
+        In,                 // neutral indium
+        Sn,                 // neutral tin
+        Sb,                 // neutral antimony
+        Te,                 // neutral tellurium
         I,                  // neutral iodine
+        Xe,                 // neutral xenon
+        Cs,                 // neutral cesium
+        Ba,                 // neutral barium
+        Hf,                 // neutral hafnium
+        Ta,                 // neutral tantalum
+        W,                  // neutral tungsten
+        Re,                 // neutral rhenium
+        Os,                 // neutral osmium
+        Ir,                 // neutral iridium
+        Pt,                 // neutral platinum
+        Au,                 // neutral gold
+        Tl,                 // neutral thallium
+        Pb,                 // neutral lead
+        Bi,                 // neutral bismuth
         OTHER,              // all other atoms
         COUNT,              // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
         UNKNOWN,            // this is used to indicate that the form factor is unknown

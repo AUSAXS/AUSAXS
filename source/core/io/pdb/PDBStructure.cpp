@@ -87,7 +87,7 @@ namespace {
             std::string resName = (rname && !(*rname)[midx].empty()) ? (*rname)[midx].substr(0, 3) : "UNK"; // truncate to 3 chars
             double occupancy = occ ? (*occ)[midx] : 1;
 
-            // every element outside {H, C, N, O, S} shares the OTHER form factor type, which maps back to argon, so the source element must be preferred
+            // elements without a form factor type of their own (Po, M, dummy, ...) share OTHER, which maps back to argon, so the source element must be preferred
             constants::atom_t element = (elem && (*elem)[midx] != constants::atom_t::unknown) ? (*elem)[midx] : form_factor::to_atom_type(a.form_factor_type());
 
             atoms.emplace_back(
