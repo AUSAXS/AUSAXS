@@ -1001,11 +1001,6 @@ jobs:
       - name: Prune runtime package
         run: python3 .github/prune_gpu_package.py "$GPU_PACKAGE"
 
-      # The released ausaxs is signed with the hardened runtime (build-release.yml), whose library validation
-      # makes it refuse to dlopen anything not signed by the same team. So every Mach-O file in the package is
-      # signed with the same Developer ID. Last of the steps that change the package, since any later edit
-      # invalidates the signatures. Notarization is not needed: `ausaxs gpu install` downloads through libcurl,
-      # which sets no quarantine attribute, so Gatekeeper never assesses the unpacked files.
       - name: Sign runtime package
         env:
           CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
