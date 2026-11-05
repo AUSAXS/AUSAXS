@@ -14,7 +14,10 @@ namespace ausaxs::gpu {
      */
     class GPULoader {
         public:
-            // @brief A backend, if one is loaded. 
+            // @brief Where the common fixes for a GPU that is not used are listed, for every message that reports one.
+            static constexpr std::string_view troubleshooting_url = "https://github.com/AUSAXS/AUSAXS/wiki/Troubleshooting";
+
+            // @brief A backend, if one is loaded.
             struct Backend {
                 abi::available_fn available = nullptr;
                 abi::device_name_fn device_name = nullptr;
@@ -55,5 +58,31 @@ namespace ausaxs::gpu {
              * @brief Name of the device in use, or a short description of why there is none.
              */
             static std::string device_name();
+
+            /**
+             * @brief Path of the loaded backend, or empty if none is loaded.
+             */
+            static std::string path();
+
+            /**
+             * @brief File name of the backend library on this platform.
+             */
+            static std::string_view library_name();
+
+            // @brief The outcome of probe().
+            struct Probe {
+                bool loaded = false;    // the library opened and implements this library's ABI
+                bool available = false; // and it reports a usable device
+                std::string device;     // the device's name, if available
+                std::string error;      // why not, otherwise
+            };
+
+            /**
+             * @brief Open the backend at @a path and ask it for a device, without making it the backend in use.
+             *
+             * For checking an installation. Note that a broken AdaptiveCpp runtime may terminate the process from inside this call, which cannot 
+             * be caught; a caller that records an installation as good should only do so once this has returned. 
+             */
+            static Probe probe(const std::string& path);
     };
 }

@@ -5,22 +5,42 @@
     #pragma warning(disable:4996) // disable fopen deprecation warning on MSVC
 #endif
 
+#include <utility/Curl.h>
+
+#include <constants/Version.h>
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
-#include <utility/Curl.h>
 #include <utility/Exceptions.h>
-
-#include <curl/curl.h>
 
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
+#include <string_view>
+
+#include <curl/curl.h>
 
 using namespace ausaxs;
 
-bool curl::download(const std::string& url, const io::File& path) {
+namespace {
+    struct Progress {
+        int last_step = -1;
+    };
+
+    // reported in steps of 10%, as whole lines, so the progress reads the same in a terminal and in a log
+    int report_progress(void* data, curl_off_t total, curl_off_t now, curl_off_t /* void */, curl_off_t /* void */) {
+        if (total <= 0) {return 0;} // size not known yet
+        auto* progress = static_cast<Progress*>(data);
+        int step = static_cast<int>(10*now/total);
+        if (step == progress->last_step) {return 0;}
+        progress->last_step = step;
+        console::print_text(std::to_string(now/1'000'000) + " / " + std::to_string(total/1'000'000) + " MB (" + std::to_string(10*step) + "%)");
+        return 0;
+    }
+}
+
+bool curl::download(const std::string& url, const io::File& path, bool show_progress) {
     if (settings::general::offline) {
         console::print_warning("curl::download: Offline mode is enabled. Skipping download of \"" + url + "\".");
         return false;
@@ -40,35 +60,57 @@ bool curl::download(const std::string& url, const io::File& path) {
         return false;
     }
     std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> curl_ptr(raw_curl, &curl_easy_cleanup);
-    // download to a temporary file and only move it into place once the transfer succeeded, so that a failed or
-    // truncated transfer can never leave a file behind at the destination (or overwrite a good one)
-    io::File tmp(path.path() + ".part");
 
+    // written under a temporary name and only moved into place once the transfer succeeded, so that a failed or
+    // truncated transfer can never leave a file behind at the destination (or overwrite a good one)
+    io::File partial = path.append(".part");
     {
-        FILE* raw_fp = fopen(tmp.path().c_str(), "wb");
-        if (raw_fp == nullptr) {throw ausaxs::except::runtime_error("curl::download: Failed to open destination file: \"" + tmp.path() + "\"");}
+        FILE* raw_fp = fopen(partial.path().c_str(), "wb");
+        if (raw_fp == nullptr) {throw ausaxs::except::runtime_error("curl::download: Failed to open destination file: \"" + partial.path() + "\"");}
         std::unique_ptr<FILE, int(*)(FILE*)> fp(raw_fp, &fclose);
 
-        CURLcode res = curl_easy_setopt(raw_curl, CURLOPT_URL, url.c_str());
-        if (res != CURLE_OK) {fp.reset(); tmp.remove(); throw ausaxs::except::runtime_error("curl::download: Failed to set URL: \"" + url + "\".");}
+        std::string user_agent = "ausaxs/" + std::string(constants::version);
+        Progress progress;
+        auto set = [&] (CURLoption option, auto value, std::string_view what) {
+            if (curl_easy_setopt(raw_curl, option, value) != CURLE_OK) {
+                fp.reset();
+                partial.remove();
+                throw ausaxs::except::runtime_error("curl::download: Failed to set " + std::string(what) + " for \"" + url + "\".");
+            }
+        };
+        set(CURLOPT_URL, url.c_str(), "URL");
+        set(CURLOPT_WRITEDATA, fp.get(), "write data");
+        set(CURLOPT_USERAGENT, user_agent.c_str(), "user agent");
+        set(CURLOPT_FOLLOWLOCATION, 1L, "redirect following"); // e.g. GitHub release assets redirect to a CDN
+        set(CURLOPT_MAXREDIRS, 10L, "redirect limit");
+        set(CURLOPT_FAILONERROR, 1L, "error handling");        // otherwise an HTTP error page (e.g. a 404) is saved as if it were the file
+        set(CURLOPT_CONNECTTIMEOUT, 30L, "connection timeout");
+        set(CURLOPT_LOW_SPEED_LIMIT, 1024L, "stall limit");    // give up on a transfer that has stalled, but never on one that is merely slow
+        set(CURLOPT_LOW_SPEED_TIME, 60L, "stall time");
+        if (show_progress) {
+            set(CURLOPT_XFERINFOFUNCTION, &report_progress, "progress function");
+            set(CURLOPT_XFERINFODATA, static_cast<void*>(&progress), "progress data");
+            set(CURLOPT_NOPROGRESS, 0L, "progress reporting");
+        }
 
-        res = curl_easy_setopt(raw_curl, CURLOPT_WRITEDATA, fp.get());
-        if (res != CURLE_OK) {fp.reset(); tmp.remove(); throw ausaxs::except::runtime_error("curl::download: Failed to set write data: \"" + path.path() + "\".");}
-
-        // treat HTTP errors (e.g. a 404 page) as failures instead of saving the error page as the file
-        res = curl_easy_setopt(raw_curl, CURLOPT_FAILONERROR, 1L);
-        if (res != CURLE_OK) {fp.reset(); tmp.remove(); throw ausaxs::except::runtime_error("curl::download: Failed to set fail-on-error.");}
-
-        res = curl_easy_perform(raw_curl);
+        if (show_progress) {console::indent();}
+        CURLcode res = curl_easy_perform(raw_curl);
+        if (show_progress) {console::unindent();}
         bool closed = fclose(fp.release()) == 0; // a failed close means the data may not be on disk
         if (res != CURLE_OK || !closed) {
-            tmp.remove();
+            partial.remove();
             console::print_warning(std::string("curl::download: Failed to download \"") + url + "\": " + (res != CURLE_OK ? curl_easy_strerror(res) : "could not write the file"));
             return false;
         }
     }
 
-    std::filesystem::rename(tmp.path(), path.path());
+    try {
+        partial.rename(path.stem());
+    } catch (const std::filesystem::filesystem_error& e) {
+        console::print_warning("curl::download: Failed to move the download into place at \"" + path.path() + "\": " + e.code().message());
+        partial.remove();
+        return false;
+    }
     if (settings::general::verbose) {console::print_success("Successfully downloaded " + url + " to " + path.str());}
     return true;
 }

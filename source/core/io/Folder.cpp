@@ -14,11 +14,9 @@ Folder::Folder(std::string_view path) {*this = path;}
 
 Folder& Folder::operator=(std::string_view path) {
     if (path.empty()) {dir = "."; return *this;}
-    if (path.back() == '/') {
-        dir = path.substr(0, path.size() - 1);
-    } else {
-        dir = path;
-    }
+    auto is_separator = [] (char c) {return c == std::filesystem::path::preferred_separator;};
+    while (1 < path.size() && is_separator(path.back())) {path.remove_suffix(1);} // keep the root folder intact
+    dir = path;
     return *this;
 }
 
@@ -32,7 +30,8 @@ bool Folder::empty() const noexcept {return dir.empty();}
 
 bool Folder::exists() const noexcept {
     if (dir.empty()) {return false;}
-    return std::filesystem::is_directory(dir);
+    std::error_code ec;
+    return std::filesystem::is_directory(dir, ec);
 }
 
 std::vector<io::File> Folder::files() const {
@@ -54,6 +53,16 @@ std::vector<io::Folder> Folder::directories() const {
 void Folder::create() const {
     if (exists()) {return;}
     std::filesystem::create_directories(dir);
+}
+
+void Folder::remove() const {
+    if (dir.empty()) {return;}
+    std::filesystem::remove_all(dir);
+}
+
+io::Folder Folder::move(const io::Folder& destination) const {
+    std::filesystem::rename(dir, destination.path());
+    return destination;
 }
 
 template Folder::Folder(const char* const&);

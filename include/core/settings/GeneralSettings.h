@@ -47,6 +47,12 @@ namespace ausaxs::settings {
              *        It is derived at each call, so a changed cache setting moves it too.
              */
             static std::string residue_folder();
+
+            /**
+             * @brief The install location for a downloaded GPU backend: the gpu/ subfolder of the current cache directory.
+             *        It is derived at each call, so a changed cache setting moves it too.
+             */
+            static std::string gpu_folder();
         };
     };
 }

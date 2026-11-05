@@ -119,7 +119,8 @@ bool File::empty() const noexcept {
 }
 
 bool File::exists() const noexcept {
-    return std::filesystem::is_regular_file(path());
+    std::error_code ec;
+    return std::filesystem::is_regular_file(path(), ec);
 }
 
 std::ostream& operator<<(std::ostream& os, const io::File& file) {

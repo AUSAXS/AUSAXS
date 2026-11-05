@@ -3,6 +3,7 @@
 #include <io/Folder.h>
 
 #include <filesystem>
+#include <fstream>
 
 using namespace ausaxs;
 
@@ -30,6 +31,17 @@ TEST_CASE("Folder::Folder") {
     SECTION("nested with trailing slash") {
         io::Folder folder("tests/folder/");
         CHECK(folder.path() == "tests/folder");
+    }
+
+    SECTION("repeated trailing slashes") {
+        io::Folder folder("tests/folder//");
+        CHECK(folder.path() == "tests/folder");
+    }
+
+    SECTION("root") {
+        io::Folder folder("/");
+        CHECK(folder.path() == "/");
+        CHECK_FALSE(folder.empty());
     }
 }
 
@@ -92,4 +104,43 @@ TEST_CASE("Folder::operator==") {
     io::Folder f3("other");
     CHECK(f1 == f2);
     CHECK_FALSE(f1 == f3);
+}
+
+TEST_CASE("Folder::remove") {
+    std::filesystem::path root = "temp/tests/folder_remove";
+    std::filesystem::remove_all(root);
+
+    SECTION("with contents") {
+        io::Folder folder((root/"a").string());
+        io::Folder((root/"a"/"b").string()).create();
+        std::ofstream((root/"a"/"b"/"file.txt").string()) << "content";
+        folder.remove();
+        CHECK_FALSE(folder.exists());
+        CHECK(io::Folder(root.string()).exists());
+    }
+
+    SECTION("missing") {
+        io::Folder folder((root/"missing").string());
+        CHECK_NOTHROW(folder.remove());
+    }
+
+    SECTION("uninitialized") {
+        CHECK_NOTHROW(io::Folder().remove());
+    }
+    std::filesystem::remove_all(root);
+}
+
+TEST_CASE("Folder::move") {
+    std::filesystem::path root = "temp/tests/folder_move";
+    std::filesystem::remove_all(root);
+
+    io::Folder from((root/"from").string());
+    io::Folder((root/"from"/"nested").string()).create();
+    io::Folder to((root/"to").string());
+
+    auto moved = from.move(to);
+    CHECK(moved == to);
+    CHECK_FALSE(from.exists());
+    CHECK(io::Folder((root/"to"/"nested").string()).exists());
+    std::filesystem::remove_all(root);
 }

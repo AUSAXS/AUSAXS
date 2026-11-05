@@ -1,5 +1,3 @@
-#if defined(POCKETFFT_AVAILABLE)
-
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 
@@ -149,5 +147,3 @@ TEST_CASE("lattice::self_correlation: counts a small cube") {
     CHECK(lattice.index(0).count == 0);
     CHECK(lattice.index(1).count == 0);
 }
-
-#endif

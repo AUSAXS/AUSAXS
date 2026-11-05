@@ -13,6 +13,8 @@ option(USE_SYSTEM_CLI11 "Use system provided CLI11" OFF)
 option(USE_SYSTEM_THREADPOOL "Use system provided thread-pool" OFF)
 option(USE_SYSTEM_POCKETFFT "Use system provided pocketfft" OFF)
 option(USE_SYSTEM_CATCH "Use system provided Catch" OFF)
+option(GPU_DOWNLOADER "Build the downloader for prebuilt GPU backends (ausaxs gpu install). Needs miniz." ON)
+option(USE_SYSTEM_MINIZ "Use system provided miniz" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -87,6 +89,23 @@ else()
 	)
 	FetchContent_MakeAvailable(GCEM)
 	set(GCEM_INCLUDE_DIR ${gcem_SOURCE_DIR}/include)
+endif()
+
+if (GPU_DOWNLOADER)
+	if (USE_SYSTEM_MINIZ)
+		find_package(miniz CONFIG REQUIRED)
+	else()
+		FetchContent_Declare(
+			miniz
+			GIT_REPOSITORY https://github.com/richgel999/miniz
+			GIT_TAG 3.1.2
+		)
+		# miniz takes our BUILD_TESTS option for its own, and would build its test suite along with ours
+		set(BUILD_TESTS OFF)
+		FetchContent_MakeAvailable(miniz)
+		unset(BUILD_TESTS)
+		add_library(miniz::miniz ALIAS miniz)
+	endif()
 endif()
 
 set_property(

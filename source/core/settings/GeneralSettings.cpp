@@ -57,6 +57,12 @@ std::string settings::general::helper::residue_folder() {
     return path + "residues/";
 }
 
+std::string settings::general::helper::gpu_folder() {
+    std::string path = cache;
+    if (!path.empty() && path.back() != '/' && path.back() != '\\') {path += '/';}
+    return path + "gpu/";
+}
+
 int ausaxs::settings::general::detail::get_job_size(int n) {
     constexpr int jobs_per_thread = 8; // aim for this many jobs per thread
     constexpr int min_job_size = 64; // but never go below this to avoid excessive overhead from too many small jobs

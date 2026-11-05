@@ -3,6 +3,7 @@
 
 #include <gpu/GPULoader.h>
 
+#include <gpu/GPUInstaller.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
@@ -23,6 +24,11 @@ using namespace ausaxs::gpu;
 
 namespace {
     std::string load_error;
+    std::string loaded_path;
+
+    std::string see_troubleshooting() {
+        return "\nSee " + std::string(GPULoader::troubleshooting_url) + " for common fixes.";
+    }
 
     // set by report_failure() and never cleared, so a device that has failed once is not used again
     bool device_failed = false;
@@ -30,9 +36,25 @@ namespace {
     #ifdef _WIN32
         constexpr const char* library_name = "ausaxs_gpu_sycl.dll";
 
-        using handle_t = HMODULE;
-        handle_t open_library(const std::string& path) {return LoadLibraryA(path.c_str());}
-        void* find_symbol(handle_t handle, const char* name) {
+        using library_handle = HMODULE;
+        /**
+         * @brief Open a library, looking for its dependencies beside it before anywhere else.
+         *
+         * A packaged backend carries its runtime in its own directory, which LoadLibraryA would only search if it were on PATH. This is the 
+         * counterpart of the $ORIGIN RUNPATH a Linux package carries. A bare name, or a backend whose runtime only PATH can find, still gets 
+         * the default search as a fallback.
+         */
+        library_handle open_library(const std::string& path) {
+            if (std::filesystem::path file(path); file.has_parent_path()) {
+                // LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR is only accepted together with an absolute path
+                std::string absolute = std::filesystem::absolute(file).string();
+                if (auto handle = LoadLibraryExA(absolute.c_str(), nullptr, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)) {
+                    return handle;
+                }
+            }
+            return LoadLibraryA(path.c_str());
+        }
+        void* find_symbol(library_handle handle, const char* name) {
             return reinterpret_cast<void*>(GetProcAddress(handle, name));
         }
         std::string open_error() {return "error " + std::to_string(GetLastError());}
@@ -56,9 +78,9 @@ namespace {
             constexpr const char* library_name = "libausaxs_gpu_sycl.so";
         #endif
 
-        using handle_t = void*;
-        handle_t open_library(const std::string& path) {return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);}
-        void* find_symbol(handle_t handle, const char* name) {return dlsym(handle, name);}
+        using library_handle = void*;
+        library_handle open_library(const std::string& path) {return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);}
+        void* find_symbol(library_handle handle, const char* name) {return dlsym(handle, name);}
         std::string open_error() {
             const char* error = dlerror();
             return (error != nullptr) ? error : "unknown error";
@@ -75,8 +97,9 @@ namespace {
      * @brief The paths to try, in order.
      *
      * An explicitly configured path is used alone: if the user named a backend, silently using a different one is worse than not using the 
-     * GPU at all. Otherwise the backend is looked for beside the library, which is where a packaged installation puts it, and then left to 
-     * the platform loader, which covers a development build and a system-wide installation.
+     * GPU at all. Otherwise the backend is looked for beside the library, which is where a packaged installation puts it, then in the folder 
+     * `ausaxs gpu install` downloads it to, and is finally left to the platform loader, which covers a development build and a system-wide 
+     * installation.
      */
     std::vector<std::string> candidate_paths() {
         if (!settings::general::gpu_library->empty()) {return {settings::general::gpu_library};}
@@ -85,6 +108,9 @@ namespace {
         if (auto directory = own_directory(); !directory.empty()) {
             candidates.push_back((directory/library_name).string());
         }
+        if (auto installed = installer::installed_library(); !installed.empty()) {
+            candidates.push_back(installed.path());
+        }
         candidates.emplace_back(library_name);
         return candidates;
     }
@@ -92,7 +118,7 @@ namespace {
     /**
      * @brief Resolve every entry point, or none of them.
      */
-    bool resolve(handle_t handle, GPULoader::Backend& backend) {
+    bool resolve(library_handle handle, GPULoader::Backend& backend) {
         constexpr const char* not_a_backend = "the backend is missing one or more entry points; it is probably not a GPU backend";
         auto* abi_version = reinterpret_cast<abi::abi_version_fn>(find_symbol(handle, abi::symbol_abi_version));
         if (abi_version == nullptr) {
@@ -129,7 +155,7 @@ namespace {
         GPULoader::Backend backend;
         std::string attempts;
         for (const auto& path : candidate_paths()) {
-            handle_t handle = open_library(path);
+            library_handle handle = open_library(path);
             if (handle == nullptr) {
                 // the platform error already names the file it failed to open
                 attempts += "\n    " + open_error();
@@ -137,7 +163,10 @@ namespace {
             }
 
             logging::log("GPULoader: found GPU backend at " + path + ", attempting load");
-            if (resolve(handle, backend)) {return backend;}
+            if (resolve(handle, backend)) {
+                loaded_path = path;
+                return backend;
+            }
             logging::log("GPULoader: " + load_error);
             return {}; // note: intentionally leaks the handle
         }
@@ -151,11 +180,11 @@ namespace {
 const GPULoader::Backend& GPULoader::get() {
     static const Backend backend = [] {
         Backend result = open();
-        if (!result) {console::print_warning("no usable GPU backend: " + load_error);}
+        if (!result) {console::print_warning("no usable GPU backend: " + load_error + see_troubleshooting());}
         else {
             // resolve() only keeps a Backend whose every entry point resolved, and zeroes it otherwise, so a truthy one has them all
             assert(result.available != nullptr && result.device_name != nullptr && "GPULoader: an opened backend resolves every entry point.");
-            if (!result.available()) {console::print_warning("no usable GPU backend: no usable device");}
+            if (!result.available()) {console::print_warning("no usable GPU backend: no usable device" + see_troubleshooting());}
             else {console::print_info("Using GPU backend: " + std::string(result.device_name()));}
         }
         return result;
@@ -177,8 +206,37 @@ void GPULoader::report_failure(std::string_view action, abi::Status status) {
     std::string reason = backend ? backend.last_error() : "no backend loaded";
     console::print_warning(
         "the GPU backend failed while trying to " + std::string(action) + " (status " + std::to_string(static_cast<int>(status)) + "): " 
-        + reason + ". The GPU is not used again in this run."
+        + reason + ". The GPU is not used again in this run." + see_troubleshooting()
     );
+}
+
+GPULoader::Probe GPULoader::probe(const std::string& path) {
+    Probe result;
+    library_handle handle = open_library(path);
+    if (handle == nullptr) {
+        result.error = open_error();
+        return result;
+    }
+
+    Backend backend;
+    if (!resolve(handle, backend)) {
+        result.error = load_error;
+        return result; // note: intentionally leaks the handle, as open() does
+    }
+    result.loaded = true;
+    result.available = backend.available();
+    if (result.available) {result.device = backend.device_name();}
+    else {result.error = backend.last_error();}
+    return result;
+}
+
+std::string GPULoader::path() {
+    get();
+    return loaded_path;
+}
+
+std::string_view GPULoader::library_name() {
+    return ::library_name;
 }
 
 std::string GPULoader::device_name() {
