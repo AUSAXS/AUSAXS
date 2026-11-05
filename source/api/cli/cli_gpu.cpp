@@ -8,6 +8,7 @@
 #include <constants/Version.h>
 #include <gpu/GPUInstaller.h>
 #include <gpu/GPULoader.h>
+#include <io/File.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
@@ -20,10 +21,10 @@ namespace {
     // the exit status: 0 if a backend is loaded and has a usable device, 1 otherwise
     int status() {
         auto folder = gpu::installer::folder();
-        console::print_text("Install folder:  " + folder.string());
+        console::print_text("Install folder:  " + folder.path());
         if (auto source = gpu::installer::installed_source(); !source.empty()) {
             console::print_text("Installed from:  " + source);
-        } else if (std::filesystem::exists(folder/gpu::GPULoader::library_name())) {
+        } else if (!folder.empty() && io::File(folder.path() + "/" + std::string(gpu::GPULoader::library_name())).exists()) {
             console::print_text("Installed from:  incomplete installation; run \"ausaxs gpu install\" again");
         } else {
             console::print_text("Installed from:  not installed");
@@ -42,15 +43,13 @@ namespace {
 int cli_gpu(int argc, char const *argv[]) {
     settings::general::verbose = true;
 
-    std::string tag = gpu::installer::default_tag();
     std::string from;
     CLI::App app{"Install, check, or remove the GPU backend."};
     app.require_subcommand(1);
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
 
     auto* sub_install = app.add_subcommand("install", "Download and install the GPU backend for this platform, replacing any existing one.");
-    auto* p_tag = sub_install->add_option("--tag", tag, "The release to download the backend from, e.g. \"latest\" or a release tag.")->default_val(tag);
-    sub_install->add_option("--from", from, "Install from this URL or already downloaded zip file instead.")->excludes(p_tag);
+    sub_install->add_option("--from", from, "Install from this URL or already downloaded zip file instead of the latest release.");
     sub_install->add_flag("--offline", settings::general::offline.value, "Prevent any network requests. Only --from with a local file works.");
 
     auto* sub_status = app.add_subcommand("status", "Show the installed GPU backend and the device it finds.");
@@ -64,7 +63,7 @@ int cli_gpu(int argc, char const *argv[]) {
                     console::print_warning("No prebuilt GPU backend exists for this platform.");
                     return 1;
                 }
-                from = gpu::installer::asset_url(tag);
+                from = gpu::installer::asset_url();
             }
             gpu::installer::install(from);
             return 0;
@@ -73,8 +72,8 @@ int cli_gpu(int argc, char const *argv[]) {
             return status();
         }
         if (*sub_remove) {
-            if (gpu::installer::remove()) {console::print_success("Removed the GPU backend from " + gpu::installer::folder().string());}
-            else {console::print_text("No GPU backend is installed in " + gpu::installer::folder().string());}
+            if (gpu::installer::remove()) {console::print_success("Removed the GPU backend from " + gpu::installer::folder().path());}
+            else {console::print_text("No GPU backend is installed in " + gpu::installer::folder().path());}
             return 0;
         }
     } catch (const except::base&) {

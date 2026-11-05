@@ -2,8 +2,8 @@
 // Author: Kristian Lytje
 
 #include <gpu/GPULoader.h>
-#include <gpu/GPUInstaller.h>
 
+#include <gpu/GPUInstaller.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
@@ -105,7 +105,7 @@ namespace {
             candidates.push_back((directory/library_name).string());
         }
         if (auto installed = installer::installed_library(); !installed.empty()) {
-            candidates.push_back(installed.string());
+            candidates.push_back(installed.path());
         }
         candidates.emplace_back(library_name);
         return candidates;

@@ -23,7 +23,7 @@ namespace ausaxs::io {
             Folder(std::string_view path);
 
             /**
-             * @brief Get the non-'/' terminated path of this folder.
+             * @brief Get the path of this folder, without trailing separators.
              */
             [[nodiscard]] std::string path() const;
             [[nodiscard]] std::string str() const; //< @copydoc path
@@ -59,6 +59,23 @@ namespace ausaxs::io {
              * @brief Create this directory and all its parents.
              */
             void create() const;
+
+            /**
+             * @brief Delete this directory and everything inside it. Does nothing if it does not exist.
+             *
+             * @throws std::filesystem::filesystem_error if it could not be removed.
+             */
+            void remove() const;
+
+            /**
+             * @brief Move this directory on disk, such that it becomes @a destination.
+             *        A file is moved into a folder, but a folder is itself a location, so @a destination is where it ends up rather than what it
+             *        is placed inside. @a destination must not already exist.
+             *
+             * @return The moved directory.
+             * @throws std::filesystem::filesystem_error if it could not be moved.
+             */
+            io::Folder move(const io::Folder& destination) const;
 
         private:
             std::string dir;

@@ -35,10 +35,10 @@ namespace {
 
 TEST_CASE("installer::folder") {
     TempFolder temp;
-    CHECK(gpu::installer::folder() == temp.root/"gpu");
+    CHECK(gpu::installer::folder().path() == (temp.root/"gpu").string());
 
     settings::general::gpu_folder = (temp.root/"gpu").string();
-    CHECK(gpu::installer::folder() == temp.root/"gpu");
+    CHECK(gpu::installer::folder().path() == (temp.root/"gpu").string());
 
     settings::general::gpu_folder = "";
     CHECK(gpu::installer::folder().empty());
@@ -47,17 +47,14 @@ TEST_CASE("installer::folder") {
 
 TEST_CASE("installer::asset_url") {
     if (gpu::installer::asset_name().empty()) {SKIP("no prebuilt backend for this platform");}
-    auto url = gpu::installer::asset_url("v1.2.3");
+    auto url = gpu::installer::asset_url();
     CHECK(url.starts_with("https://"));
-    CHECK(url.ends_with("/download/v1.2.3/" + gpu::installer::asset_name()));
-
-    auto latest = gpu::installer::asset_url(gpu::installer::default_tag());
-    CHECK(latest.ends_with("/latest/download/" + gpu::installer::asset_name()));
+    CHECK(url.ends_with("/latest/download/" + gpu::installer::asset_name()));
 }
 
 TEST_CASE("installer::installed_library") {
     TempFolder temp;
-    auto folder = gpu::installer::folder();
+    fs::path folder = gpu::installer::folder().path();
     auto library = folder/gpu::GPULoader::library_name();
 
     SECTION("nothing installed") {
@@ -73,14 +70,14 @@ TEST_CASE("installer::installed_library") {
     SECTION("a finished installation is found") {
         touch(library);
         std::ofstream(folder/"installed.txt") << "https://example.org/backend.zip\n";
-        CHECK(gpu::installer::installed_library() == library);
+        CHECK(gpu::installer::installed_library().path() == library.string());
         CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
     }
 }
 
 TEST_CASE("installer::remove") {
     TempFolder temp;
-    auto folder = gpu::installer::folder();
+    fs::path folder = gpu::installer::folder().path();
 
     SECTION("nothing to remove") {
         CHECK_FALSE(gpu::installer::remove());
@@ -102,7 +99,7 @@ TEST_CASE("installer::remove") {
 
 TEST_CASE("installer::install") {
     TempFolder temp;
-    auto folder = gpu::installer::folder();
+    fs::path folder = gpu::installer::folder().path();
     if (!gpu::installer::supported()) {
         CHECK_THROWS(gpu::installer::install("backend.zip"));
         return;

@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <filesystem>
+#include <io/File.h>
+
 #include <string>
 
 /**
@@ -27,27 +28,19 @@ namespace ausaxs::gpu::installer {
     std::string asset_name();
 
     /**
-     * @brief The release a backend is downloaded from by default: the latest one.
-     *
-     * Backends are only released when the ABI changes, not with every version of AUSAXS. A build older than the latest ABI must name an
-     * older release; the test load during install() rejects a backend of the wrong ABI.
+     * @brief URL of the release asset for this platform from the latest release.
      */
-    std::string default_tag();
+    std::string asset_url();
 
     /**
-     * @brief URL of the release asset for this platform from release @a tag, or from the latest release if @a tag is "latest".
+     * @brief The folder a backend is installed to, or empty if none is configured.
      */
-    std::string asset_url(const std::string& tag);
+    io::Folder folder();
 
     /**
-     * @brief The folder a backend is installed to.
+     * @brief The installed backend library, or empty if there is no complete installation.
      */
-    std::filesystem::path folder();
-
-    /**
-     * @brief Path of the installed backend library, or empty if there is no complete installation.
-     */
-    std::filesystem::path installed_library();
+    io::File installed_library();
 
     /**
      * @brief Where the installed backend came from, or empty if there is no complete installation.
