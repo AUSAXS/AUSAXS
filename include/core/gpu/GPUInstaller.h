@@ -57,29 +57,21 @@ namespace ausaxs::gpu::installer {
     /**
      * @brief Download and install a backend, replacing any existing installation.
      *
-     * The backend is test-loaded before the installation is marked complete. A backend that loads but finds no device is still installed,
-     * since it may be installed on one machine and used on another, e.g. a login and a compute node. If it finds a GPU, the one tested is
-     * recorded as the one to use from then on.
+     * The backend is test-loaded before the installation is marked complete. A backend that loads but finds no device is still installed, since it may be 
+     * installed on one machine and used on another, e.g. a login and a compute node. If it finds a GPU, the one tested is recorded as the one to use from 
+     * then on.
      *
      * @param source A URL, or the path of an already downloaded zip.
-     * @param choose Asked to pick a GPU whenever the backend finds one. Only a GPU it picks is recorded, and only if that GPU is usable is it
-     *               used by default, as by set_enabled(true); the first may well be integrated graphics, which is slower than the CPU. Without
-     *               it, or if it makes no choice, the backend is still installed, just not used by default. The same happens if it picks
-     *               GPULoader::no_device, in which case nothing is tested, if it throws, in which case the exception is rethrown, or if the
-     *               process is interrupted while it is asked.
-     * @throws except::runtime_error if the backend could not be installed, or the folder holds something that is not from an earlier
-     *         installation. Nothing is left behind in that case.
+     * @param choose Asked to pick a GPU whenever the backend finds one. 
+     * @throws except::runtime_error if the backend could not be installed, or the folder holds something that is not from an earlier installation.
      */
     void install(const std::string& source, const GPULoader::DeviceChooser& choose = {});
 
     /**
      * @brief Choose the GPU the installed backend uses, testing it like install() does.
      *
-     * @param choose As for install(). If it makes no choice or throws, the installation is left as it was. If it picks
-     *               GPULoader::no_device, the GPU chosen earlier is forgotten and the GPU is no longer used by default, like remove(), except
-     *               that the backend is kept, so a GPU can be chosen again without downloading it.
-     * @return False, with nothing changed, if there is no installation or it cannot be loaded, e.g. because it is from a release that
-     *         implements a different ABI version. A fresh installation is needed then.
+     * @param choose As for install().
+     * @return False, with nothing changed, if there is no installation or it cannot be loaded.
      */
     bool select_device(const GPULoader::DeviceChooser& choose = {});
 
