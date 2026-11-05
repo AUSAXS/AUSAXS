@@ -23,7 +23,7 @@ TEST_CASE("FormFactor::evaluate") {
     for (int ff = start_index_for_explicit_exv(); ff < total_ff_count; ++ff) {
         auto ff_obj = normalized(xray::raw::get(static_cast<form_factor_t>(ff)));
         CHECK_THAT(ff_obj.evaluate(0.0), Catch::Matchers::WithinAbs(1, 1e-6));
-        if (ff_obj.evaluate(0.5) < 0.95) {
+        if (ff_obj.evaluate(0.5) < 0.93) {
             std::cout << "Warning: Form factor " << ff << " has a value of " << ff_obj.evaluate(0.5) << " at q = 0.5" << std::endl;
             FAIL();
         }

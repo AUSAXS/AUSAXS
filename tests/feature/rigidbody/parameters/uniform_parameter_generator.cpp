@@ -321,7 +321,7 @@ TEST_CASE("UniformParameterGenerator::next respects a planar symmetry's reduced 
         &rb, std::make_unique<rigidbody::parameter::decay::NoDecay>(), rigidbody::parameter::ParameterAmplitudes{.symmetry_translation = 4}
     );
 
-    double longest = 0;
+    double total = 0;
     for (int i = 0; i < 2000; ++i) {
         auto p = gen.next(0);
         auto t = p.symmetry_pars.value()[0]->span_translation();
@@ -331,9 +331,12 @@ TEST_CASE("UniformParameterGenerator::next respects a planar symmetry's reduced 
         // the direction is drawn within the plane the symmetry actually exposes, so the amplitude bounds the step there too.
         // projecting a three-dimensional direction onto the plane would instead shorten it by a factor of sin(polar angle).
         REQUIRE(magnitude <= 4);
-        longest = std::max(longest, magnitude);
+        total += magnitude;
     }
-    CHECK(3.99 < longest);
+
+    // a step has length 4|u| with u uniform on [-1, 1], so its mean is 2 with a standard error of 0.026 over 2000 draws.
+    // the projection would shrink the mean by E[sin(polar angle)] = π/4, to 1.57. The bound sits more than 7 standard errors from either.
+    CHECK(1.8 < total/2000);
 }
 
 TEST_CASE("UniformParameterGenerator: a rejected step does not corrupt the next delta") {
