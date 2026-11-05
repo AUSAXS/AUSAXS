@@ -148,7 +148,7 @@ jobs:
 
   backend:
     name: "SYCL backend (Linux x86_64)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: gate
     if: needs.gate.outputs.build-linux == 'true'
     env:
