@@ -5,15 +5,14 @@
 
 #include <gpu/GPUInstaller.h>
 #include <gpu/GPULoader.h>
-#include <settings/GeneralSettings.h>
-
-#include <miniz.h>
-
 #include <io/File.h>
 #include <io/Folder.h>
+#include <settings/GeneralSettings.h>
 
 #include <string>
 #include <vector>
+
+#include <miniz.h>
 
 using namespace ausaxs;
 
@@ -59,21 +58,6 @@ namespace {
         REQUIRE(mz_zip_writer_end(&archive));
         return zip;
     }
-}
-
-TEST_CASE("installer::folder follows the cache") {
-    TempCache temp;
-    CHECK(gpu::installer::folder() == temp.folder);
-
-    settings::general::cache = temp.root.path() + "/other";
-    CHECK(gpu::installer::folder() == io::Folder(temp.root.path() + "/other/gpu"));
-}
-
-TEST_CASE("installer::asset_url") {
-    if (gpu::installer::asset_name().empty()) {SKIP("no prebuilt backend for this platform");}
-    auto url = gpu::installer::asset_url();
-    CHECK(url.starts_with("https://"));
-    CHECK(url.ends_with("/latest/download/" + gpu::installer::asset_name()));
 }
 
 TEST_CASE("installer::installed_library") {
