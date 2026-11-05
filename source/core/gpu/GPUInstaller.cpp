@@ -103,7 +103,7 @@ namespace {
             fs::remove(target, ec);
             if (ec) {
                 throw except::runtime_error(
-                    "gpu::installer: could not delete \"" + target.string() + "\": " + ec.message() + ". Is another AUSAXS process using it?"
+                    "gpu::installer: could not delete \"" + target.string() + "\": " + ec.message() + "."
                 );
             }
         }

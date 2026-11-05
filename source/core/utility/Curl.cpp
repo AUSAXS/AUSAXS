@@ -5,39 +5,37 @@
     #pragma warning(disable:4996) // disable fopen deprecation warning on MSVC
 #endif
 
+#include <utility/Curl.h>
+
 #include <constants/Version.h>
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
-#include <utility/Curl.h>
 #include <utility/Exceptions.h>
-
-#include <curl/curl.h>
 
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
-#include <iostream>
 #include <memory>
 #include <string_view>
+
+#include <curl/curl.h>
 
 using namespace ausaxs;
 
 namespace {
     struct Progress {
-        int last_percent = -1;
+        int last_step = -1;
     };
 
-    int report_progress(void* data, curl_off_t total, curl_off_t now, curl_off_t, curl_off_t) {
+    // reported in steps of 10%, as whole lines, so the progress reads the same in a terminal and in a log
+    int report_progress(void* data, curl_off_t total, curl_off_t now, curl_off_t /* void */, curl_off_t /* void */) {
         if (total <= 0) {return 0;} // size not known yet
         auto* progress = static_cast<Progress*>(data);
-        int percent = static_cast<int>(100*now/total);
-        if (percent == progress->last_percent) {return 0;}
-        progress->last_percent = percent;
-
-        char line[64];
-        std::snprintf(line, sizeof(line), "\r    %.1f / %.1f MB (%d%%)", static_cast<double>(now)/1e6, static_cast<double>(total)/1e6, percent);
-        std::cout << line << std::flush;
+        int step = static_cast<int>(10*now/total);
+        if (step == progress->last_step) {return 0;}
+        progress->last_step = step;
+        console::print_text(std::to_string(now/1'000'000) + " / " + std::to_string(total/1'000'000) + " MB (" + std::to_string(10*step) + "%)");
         return 0;
     }
 }
@@ -65,11 +63,10 @@ bool curl::download(const std::string& url, const io::File& path, bool show_prog
 
     // written under a temporary name and only moved into place once the transfer succeeded, so that a failed or
     // truncated transfer can never leave a file behind at the destination (or overwrite a good one)
-    std::string partial = path.path() + ".part";
-    std::error_code ec;
+    io::File partial = path.append(".part");
     {
-        FILE* raw_fp = fopen(partial.c_str(), "wb");
-        if (raw_fp == nullptr) {throw ausaxs::except::runtime_error("curl::download: Failed to open destination file: \"" + partial + "\"");}
+        FILE* raw_fp = fopen(partial.path().c_str(), "wb");
+        if (raw_fp == nullptr) {throw ausaxs::except::runtime_error("curl::download: Failed to open destination file: \"" + partial.path() + "\"");}
         std::unique_ptr<FILE, int(*)(FILE*)> fp(raw_fp, &fclose);
 
         std::string user_agent = "ausaxs/" + std::string(constants::version);
@@ -77,7 +74,7 @@ bool curl::download(const std::string& url, const io::File& path, bool show_prog
         auto set = [&] (CURLoption option, auto value, std::string_view what) {
             if (curl_easy_setopt(raw_curl, option, value) != CURLE_OK) {
                 fp.reset();
-                std::filesystem::remove(partial, ec);
+                partial.remove();
                 throw ausaxs::except::runtime_error("curl::download: Failed to set " + std::string(what) + " for \"" + url + "\".");
             }
         };
@@ -96,20 +93,22 @@ bool curl::download(const std::string& url, const io::File& path, bool show_prog
             set(CURLOPT_NOPROGRESS, 0L, "progress reporting");
         }
 
+        if (show_progress) {console::indent();}
         CURLcode res = curl_easy_perform(raw_curl);
-        if (show_progress && progress.last_percent >= 0) {std::cout << std::endl;}
+        if (show_progress) {console::unindent();}
         bool closed = fclose(fp.release()) == 0; // a failed close means the data may not be on disk
         if (res != CURLE_OK || !closed) {
-            std::filesystem::remove(partial, ec);
+            partial.remove();
             console::print_warning(std::string("curl::download: Failed to download \"") + url + "\": " + (res != CURLE_OK ? curl_easy_strerror(res) : "could not write the file"));
             return false;
         }
     }
 
-    std::filesystem::rename(partial, path.path(), ec);
-    if (ec) {
-        console::print_warning("curl::download: Failed to move the download into place at \"" + path.path() + "\": " + ec.message());
-        std::filesystem::remove(partial, ec);
+    try {
+        partial.rename(path.stem());
+    } catch (const std::filesystem::filesystem_error& e) {
+        console::print_warning("curl::download: Failed to move the download into place at \"" + path.path() + "\": " + e.code().message());
+        partial.remove();
         return false;
     }
     if (settings::general::verbose) {console::print_success("Successfully downloaded " + url + " to " + path.str());}
