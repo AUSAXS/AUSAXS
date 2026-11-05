@@ -14,7 +14,10 @@ namespace ausaxs::gpu {
      */
     class GPULoader {
         public:
-            // @brief A backend, if one is loaded. 
+            // @brief Where the common fixes for a GPU that is not used are listed, for every message that reports one.
+            static constexpr std::string_view troubleshooting_url = "https://github.com/AUSAXS/AUSAXS/wiki/Troubleshooting";
+
+            // @brief A backend, if one is loaded.
             struct Backend {
                 abi::available_fn available = nullptr;
                 abi::device_name_fn device_name = nullptr;

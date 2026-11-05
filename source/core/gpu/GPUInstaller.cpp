@@ -318,11 +318,14 @@ void installer::install([[maybe_unused]] const std::string& source) {
         }
         discard(staging);
 
-        console::print_text("Testing the backend. This may take a while the first time, as the kernels are compiled.");
+        console::print_text("Testing the backend. This may take a few seconds while the kernel is compiled.");
         auto probe = GPULoader::probe(library_file(folder).path());
         if (!probe.loaded) {
             discard_installation(folder, entries, record);
-            throw except::runtime_error("gpu::installer: the GPU backend could not be loaded, and has been removed again: " + probe.error);
+            throw except::runtime_error(
+                "gpu::installer: the GPU backend could not be loaded, and has been removed again: " + probe.error +
+                "\nSee " + std::string(GPULoader::troubleshooting_url) + " for common fixes."
+            );
         }
         marker_file(folder).create(source + "\n");
 
@@ -330,7 +333,8 @@ void installer::install([[maybe_unused]] const std::string& source) {
         else {
             console::print_warning(
                 "Installed the GPU backend, but it found no usable device on this machine" +
-                (probe.error.empty() ? std::string() : " (" + probe.error + ")") + ". It will be used on machines that have one."
+                (probe.error.empty() ? std::string() : " (" + probe.error + ")") + ". It will be used on machines that have one.\n"
+                "If this machine has a GPU, it is usually missing a driver. See " + std::string(GPULoader::troubleshooting_url) + " for common fixes."
             );
         }
     #endif

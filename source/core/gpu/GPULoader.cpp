@@ -26,6 +26,10 @@ namespace {
     std::string load_error;
     std::string loaded_path;
 
+    std::string see_troubleshooting() {
+        return "\nSee " + std::string(GPULoader::troubleshooting_url) + " for common fixes.";
+    }
+
     // set by report_failure() and never cleared, so a device that has failed once is not used again
     bool device_failed = false;
 
@@ -176,11 +180,11 @@ namespace {
 const GPULoader::Backend& GPULoader::get() {
     static const Backend backend = [] {
         Backend result = open();
-        if (!result) {console::print_warning("no usable GPU backend: " + load_error);}
+        if (!result) {console::print_warning("no usable GPU backend: " + load_error + see_troubleshooting());}
         else {
             // resolve() only keeps a Backend whose every entry point resolved, and zeroes it otherwise, so a truthy one has them all
             assert(result.available != nullptr && result.device_name != nullptr && "GPULoader: an opened backend resolves every entry point.");
-            if (!result.available()) {console::print_warning("no usable GPU backend: no usable device");}
+            if (!result.available()) {console::print_warning("no usable GPU backend: no usable device" + see_troubleshooting());}
             else {console::print_info("Using GPU backend: " + std::string(result.device_name()));}
         }
         return result;
@@ -202,7 +206,7 @@ void GPULoader::report_failure(std::string_view action, abi::Status status) {
     std::string reason = backend ? backend.last_error() : "no backend loaded";
     console::print_warning(
         "the GPU backend failed while trying to " + std::string(action) + " (status " + std::to_string(static_cast<int>(status)) + "): " 
-        + reason + ". The GPU is not used again in this run."
+        + reason + ". The GPU is not used again in this run." + see_troubleshooting()
     );
 }
 
