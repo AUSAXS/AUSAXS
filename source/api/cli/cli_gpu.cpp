@@ -13,6 +13,7 @@
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -40,8 +41,14 @@ namespace {
 
     /**
      * @brief Let the user pick one of the GPUs the backend found, or none of them. Without a terminal to ask on, no choice is made.
+     *
+     * The default answer is the GPU chosen earlier, if it is still present, and otherwise none, so pressing enter never picks a GPU nobody chose.
      */
     std::optional<std::size_t> choose_device(const std::vector<std::string>& devices) {
+        int current = 0;
+        auto found = std::ranges::find(devices, gpu::installer::installed_device());
+        if (found != devices.end()) {current = static_cast<int>(found - devices.begin()) + 1;}
+
         console::print_text("");
         console::print_text("");
         if (devices.size() == 1) {console::print_text("Found 1 GPU:");}
@@ -56,10 +63,10 @@ namespace {
             return std::nullopt;
         }
 
-        std::cout << "Please pick a dedicated GPU from the list [1]: " << std::flush;
+        console::print_text("Please pick a dedicated GPU from the list [" + std::to_string(current) + "]: ");
         std::string answer;
         if (!std::getline(std::cin, answer)) {return std::nullopt;}
-        if (answer.empty()) {return 0;}
+        if (answer.empty()) {answer = std::to_string(current);}
         if (answer == "0") {return gpu::GPULoader::no_device;} // checked by hand, since atoi also gives 0 for anything that is not a number
         int choice = std::atoi(answer.c_str());
         if (choice < 1 || static_cast<int>(devices.size()) < choice) {

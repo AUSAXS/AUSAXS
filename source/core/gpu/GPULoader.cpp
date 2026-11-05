@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <vector>
 
@@ -34,6 +35,22 @@ namespace {
     // set by report_failure() and never cleared, so a device that has failed once is not used again
     bool device_failed = false;
 
+    /**
+     * @brief Limit the AdaptiveCpp runtime to reporting errors, unless the user asked for something else.
+     *
+     * Its warnings are aimed at developers. Every user without an NVIDIA driver would e.g. be told that its CUDA plugin could not be loaded,
+     * since it finds devices by loading the plugin for every backend, and the CUDA one needs the driver's own library. Must be called before
+     * the backend is loaded, since the runtime reads it when it starts.
+     */
+    void quiet_runtime() {
+        if (std::getenv("ACPP_DEBUG_LEVEL") != nullptr || std::getenv("HIPSYCL_DEBUG_LEVEL") != nullptr) {return;}
+        #ifdef _WIN32
+            _putenv_s("ACPP_DEBUG_LEVEL", "1");
+        #else
+            setenv("ACPP_DEBUG_LEVEL", "1", 0);
+        #endif
+    }
+
     #ifdef _WIN32
         constexpr const char* library_name = "ausaxs_gpu_sycl.dll";
 
@@ -46,6 +63,7 @@ namespace {
          * the default search as a fallback.
          */
         library_handle open_library(const std::string& path) {
+            quiet_runtime();
             if (std::filesystem::path file(path); file.has_parent_path()) {
                 // LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR is only accepted together with an absolute path
                 std::string absolute = std::filesystem::absolute(file).string();
@@ -81,7 +99,10 @@ namespace {
         #endif
 
         using library_handle = void*;
-        library_handle open_library(const std::string& path) {return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);}
+        library_handle open_library(const std::string& path) {
+            quiet_runtime();
+            return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+        }
         void* find_symbol(library_handle handle, const char* name) {return dlsym(handle, name);}
         void close_library(library_handle handle) {dlclose(handle);}
         std::string open_error() {
