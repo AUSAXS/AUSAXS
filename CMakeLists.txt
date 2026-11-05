@@ -32,9 +32,6 @@ setup_compile_commands()
 ############################################
 include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-if (POLICY CMP0135)
-	cmake_policy(SET CMP0135 NEW) # URL downloads get the time of extraction as their timestamp
-endif()
 get_property(
     compile_options
     DIRECTORY
@@ -98,16 +95,15 @@ if (GPU_DOWNLOADER)
 	if (USE_SYSTEM_MINIZ)
 		find_package(miniz CONFIG REQUIRED)
 	else()
-		# the release archive holds the amalgamated miniz.c/miniz.h, which build without miniz's own CMake configuration
 		FetchContent_Declare(
 			miniz
-			URL https://github.com/richgel999/miniz/releases/download/3.1.2/miniz-3.1.2.zip
-			URL_HASH SHA256=f0446d863f9c19926ad9483c523fdc42e42b8d4a6a431d27e09d49c79a140d9a
+			GIT_REPOSITORY https://github.com/richgel999/miniz
+			GIT_TAG 77d0dce8627735138c51770d1799a1ef48f2117d # 3.1.2
 		)
+		# miniz takes our BUILD_TESTS option for its own, and would build its test suite along with ours
+		set(BUILD_TESTS OFF)
 		FetchContent_MakeAvailable(miniz)
-		add_library(miniz STATIC "${miniz_SOURCE_DIR}/miniz.c")
-		target_include_directories(miniz SYSTEM PUBLIC "${miniz_SOURCE_DIR}")
-		set_target_properties(miniz PROPERTIES POSITION_INDEPENDENT_CODE ON)
+		unset(BUILD_TESTS)
 		add_library(miniz::miniz ALIAS miniz)
 	endif()
 endif()
