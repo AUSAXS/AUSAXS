@@ -138,6 +138,65 @@ TEST_CASE("installer::remove") {
     }
 }
 
+TEST_CASE("installer::enabled") {
+    TempCache temp;
+    io::File toggle = temp.root.path() + "/.autotoggle_gpu";
+
+    SECTION("cannot be turned on without an installation") {
+        CHECK_THROWS(gpu::installer::set_enabled(true));
+        CHECK_FALSE(gpu::installer::enabled());
+    }
+
+    SECTION("a leftover toggle without an installation does nothing") {
+        toggle.create();
+        CHECK_FALSE(gpu::installer::enabled());
+    }
+
+    SECTION("turned on and off, leaving the installation alone") {
+        std::string library(gpu::GPULoader::library_name());
+        temp.file(library).create();
+        temp.file("installed.txt").create("https://example.org/backend.zip\n\n");
+        write_record(temp.record, {library, "installed.txt"});
+        CHECK_FALSE(gpu::installer::enabled());
+        CHECK_THROWS(gpu::installer::set_enabled(true)); // no GPU has been chosen
+        CHECK_FALSE(gpu::installer::enabled());
+
+        temp.file("installed.txt").create("https://example.org/backend.zip\ncuda: NVIDIA GeForce RTX 3050\n");
+
+        gpu::installer::set_enabled(true);
+        CHECK(gpu::installer::enabled());
+        CHECK_FALSE(gpu::installer::select_device()); // the fake library cannot be loaded, so nothing changes
+        CHECK(gpu::installer::enabled());
+
+        gpu::installer::set_enabled(false);
+        CHECK_FALSE(gpu::installer::enabled());
+        CHECK(temp.file(library).exists());
+
+        gpu::installer::set_enabled(true);
+        CHECK(gpu::installer::remove());
+        CHECK_FALSE(toggle.exists());
+    }
+}
+
+TEST_CASE("installer::select_device") {
+    TempCache temp;
+
+    SECTION("nothing installed") {
+        CHECK_FALSE(gpu::installer::select_device());
+    }
+
+    SECTION("an installation that cannot be loaded is left as it was") {
+        std::string library(gpu::GPULoader::library_name());
+        temp.file(library).create();
+        temp.file("installed.txt").create("https://example.org/backend.zip\ncuda: NVIDIA GeForce RTX 3050\n");
+        write_record(temp.record, {library, "installed.txt"});
+        CHECK_FALSE(gpu::installer::select_device());
+        CHECK(temp.file(library).exists());
+        CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
+        CHECK(gpu::installer::installed_device() == "cuda: NVIDIA GeForce RTX 3050");
+    }
+}
+
 TEST_CASE("installer::install") {
     TempCache temp;
     auto zip = make_backend_zip(temp.root.path() + "/downloads/backend.zip");

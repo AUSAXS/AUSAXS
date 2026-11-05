@@ -14,7 +14,9 @@
 #include <utility/Exceptions.h>
 
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -37,30 +39,35 @@ namespace {
     }
 
     /**
-     * @brief Let the user pick one of the GPUs the backend found. Without a terminal to ask on, the first one is picked.
+     * @brief Let the user pick one of the GPUs the backend found, or none of them. Without a terminal to ask on, no choice is made.
      */
-    std::size_t choose_device(const std::vector<std::string>& devices) {
-        console::print_text("Found " + std::to_string(devices.size()) + " GPUs, listed with the one most likely to be a dedicated GPU first:");
-        for (std::size_t i = 0; i < devices.size(); ++i) {
+    std::optional<std::size_t> choose_device(const std::vector<std::string>& devices) {
+        console::print_text("");
+        console::print_text("");
+        if (devices.size() == 1) {console::print_text("Found 1 GPU:");}
+        else {console::print_text("Found " + std::to_string(devices.size()) + " GPUs, the one most likely to be dedicated first:");}
+        for (int i = 0; i < static_cast<int>(devices.size()); ++i) {
             console::print_text("  [" + std::to_string(i + 1) + "] " + devices[i]);
         }
-        console::print_text("Integrated GPUs are often slower than the CPU, so choose a dedicated one if there is one.");
+        console::print_text("  [0] None, use the CPU");
+        console::print_text("");
         if (!interactive()) {
-            console::print_text("Not running in a terminal, so using [1]. Run \"ausaxs gpu install\" in a terminal to choose another.");
-            return 0;
+            console::print_text("Not running in a terminal, so none is chosen.");
+            return std::nullopt;
         }
 
-        while (true) {
-            std::cout << "Which GPU should AUSAXS use? [1]: " << std::flush;
-            std::string answer;
-            if (!std::getline(std::cin, answer) || answer.empty()) {return 0;}
-            try {
-                std::size_t used = 0;
-                auto choice = std::stoul(answer, &used);
-                if (used == answer.size() && 1 <= choice && choice <= devices.size()) {return choice - 1;}
-            } catch (const std::exception&) {}
-            console::print_text("Please enter a number between 1 and " + std::to_string(devices.size()) + ".");
+        std::cout << "Please pick a dedicated GPU from the list [1]: " << std::flush;
+        std::string answer;
+        if (!std::getline(std::cin, answer)) {return std::nullopt;}
+        if (answer.empty()) {return 0;}
+        if (answer == "0") {return gpu::GPULoader::no_device;} // checked by hand, since atoi also gives 0 for anything that is not a number
+        int choice = std::atoi(answer.c_str());
+        if (choice < 1 || static_cast<int>(devices.size()) < choice) {
+            throw except::invalid_argument(
+                "\"" + answer + "\" is not a number between 0 and " + std::to_string(devices.size()) + ". Run \"ausaxs gpu install\" again to choose one."
+            );
         }
+        return choice - 1;
     }
 
     // the exit status: 0 if a backend is loaded and has a usable device, 1 otherwise
@@ -76,6 +83,9 @@ namespace {
         }
         if (auto device = gpu::installer::installed_device(); !device.empty()) {
             console::print_text("Chosen GPU:      " + device);
+        }
+        if (!gpu::installer::installed_library().empty()) {
+            console::print_text(std::string("Used by default: ") + (gpu::installer::enabled() ? "yes; turn off with \"ausaxs gpu disable\"" : "no; turn on with \"ausaxs gpu enable\""));
         }
         if (!gpu::installer::supported()) {
             console::print_text("Downloader:      not available in this build");
@@ -96,17 +106,20 @@ int cli_gpu(int argc, char const *argv[]) {
     app.require_subcommand(1);
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
 
-    auto* sub_install = app.add_subcommand("install", "Download and install the GPU backend for this platform, replacing any existing one. If there are several GPUs, asks which one to use.");
-    sub_install->add_option("--from", from, "Install from this URL or already downloaded zip file instead of the latest release.");
+    auto* sub_install = app.add_subcommand("install", "Install the GPU backend for this platform, unless a compatible one is already installed. If there are several GPUs, asks which one to use, so run it again to choose another.");
+    sub_install->add_option("--from", from, "Install from this URL or already downloaded zip file instead of the latest release, replacing any existing installation.");
     sub_install->add_flag("--offline", settings::general::offline.value, "Prevent any network requests. Only --from with a local file works.");
 
     auto* sub_status = app.add_subcommand("status", "Show the installed GPU backend and the device it finds.");
     auto* sub_remove = app.add_subcommand("remove", "Remove the installed GPU backend.");
+    auto* sub_enable = app.add_subcommand("enable", "Use the installed GPU backend by default. Choosing a usable GPU with \"ausaxs gpu install\" already does this.");
+    auto* sub_disable = app.add_subcommand("disable", "Stop using the installed GPU backend by default, without removing it. It can still be used with --gpu.");
     CLI11_PARSE(app, argc, argv);
 
     try {
         if (*sub_install) {
             if (from.empty()) {
+                if (gpu::installer::select_device(choose_device)) {return 0;}
                 if (gpu::installer::asset_name().empty()) {
                     console::print_warning("No prebuilt GPU backend exists for this platform.");
                     return 1;
@@ -118,6 +131,12 @@ int cli_gpu(int argc, char const *argv[]) {
         }
         if (*sub_status) {
             return status();
+        }
+        if (*sub_enable || *sub_disable) {
+            bool enable = sub_enable->parsed();
+            gpu::installer::set_enabled(enable);
+            console::print_success(std::string("The GPU is now ") + (enable ? "used by default." : "only used when asked for with --gpu."));
+            return 0;
         }
         if (*sub_remove) {
             if (gpu::installer::remove()) {console::print_success("Removed the GPU backend from " + gpu::installer::folder().path());}

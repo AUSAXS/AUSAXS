@@ -32,9 +32,9 @@ int cli_em_fitter(int argc, char const *argv[]) {
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); throw CLI::Success();}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
     app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);
-    settings::general::gpu = !gpu::installer::installed_library().empty(); // installing a backend is the opt-in
+    settings::general::gpu = gpu::installer::enabled(); // choosing a GPU with "ausaxs gpu install" is the opt-in
     app.add_flag("--gpu,!--no-gpu", settings::general::gpu.value, 
-        "Use GPU acceleration if available. On by default once a GPU backend is installed with \"ausaxs gpu install\".")
+        "Use GPU acceleration if available. On by default once a GPU is chosen with \"ausaxs gpu install\", unless turned off with \"ausaxs gpu disable\".")
         ->default_val(settings::general::gpu.value);
 
     // config subcommands

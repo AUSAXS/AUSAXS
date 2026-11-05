@@ -58,6 +58,7 @@ namespace {
         void* find_symbol(library_handle handle, const char* name) {
             return reinterpret_cast<void*>(GetProcAddress(handle, name));
         }
+        void close_library(library_handle handle) {FreeLibrary(handle);}
         std::string open_error() {return "error " + std::to_string(GetLastError());}
 
         /// @brief Directory of the binary this code is part of.
@@ -82,6 +83,7 @@ namespace {
         using library_handle = void*;
         library_handle open_library(const std::string& path) {return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);}
         void* find_symbol(library_handle handle, const char* name) {return dlsym(handle, name);}
+        void close_library(library_handle handle) {dlclose(handle);}
         std::string open_error() {
             const char* error = dlerror();
             return (error != nullptr) ? error : "unknown error";
@@ -260,15 +262,21 @@ GPULoader::Probe GPULoader::probe(const std::string& path, const DeviceChooser& 
 
     Backend backend;
     if (!resolve(handle, backend)) {
+        close_library(handle);
         result.error = load_error;
-        return result; // note: intentionally leaks the handle, as open() does
+        return result;
     }
     result.loaded = true;
 
     result.devices = list_devices(backend);
     if (!result.devices.empty()) {
-        std::size_t index = (choose && result.devices.size() > 1) ? choose(result.devices) : 0;
-        assert(index < result.devices.size() && "GPULoader::probe: the chooser must return the index of one of the devices.");
+        std::size_t index = 0;
+        if (auto choice = choose ? choose(result.devices) : std::nullopt) {
+            result.chosen = true;
+            if (*choice == no_device) {return result;}
+            assert(*choice < result.devices.size() && "GPULoader::probe: the chooser must return the index of one of the devices.");
+            index = *choice;
+        }
         result.selected = result.devices[index];
         if (backend.select_device(result.selected.c_str()) != abi::Status::ok) {
             result.error = backend.last_error();

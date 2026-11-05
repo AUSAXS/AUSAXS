@@ -44,6 +44,12 @@ namespace {
         return {folder.path() + ".staging"};
     }
 
+    // Its presence turns the GPU on by default. Created once a usable GPU has been chosen, and kept in the cache rather than the install folder
+    // so turning the GPU off and on never touches the installation itself.
+    io::File toggle_file(const io::Folder& folder) {
+        return {(fs::path(folder.path()).parent_path()/".autotoggle_gpu").string()};
+    }
+
     // Lists every path an installation put into the install folder, relative to it, one per line. Only what is listed is ever deleted, so
     // anything else in the folder is left alone. It is kept beside the folder rather than inside it, so it is never part of what it lists.
     io::File record_file(const io::Folder& folder) {
@@ -233,6 +239,30 @@ io::File installer::installed_library() {
 }
 
 namespace {
+    // Marks the installation in @a folder complete, which must only be done once its backend has loaded.
+    void write_marker(const io::Folder& folder, const std::string& source, const std::string& device) {
+        marker_file(folder).create(source + "\n" + device + "\n");
+    }
+
+    // Report the outcome of testing a backend that loaded. @a what starts the message, e.g. "Installed the GPU backend".
+    void report(const std::string& what, const GPULoader::Probe& probe) {
+        if (probe.chosen && probe.selected.empty()) {
+            console::print_text("No GPU will be used. The backend is kept, so run \"ausaxs gpu install\" again if you change your mind.");
+            return;
+        }
+        if (probe.available) {console::print_success(what + ". Device: " + probe.device);}
+        else {
+            console::print_warning(
+                what + ", but the backend found no usable device on this machine" +
+                (probe.error.empty() ? std::string() : " (" + probe.error + ")") + ".\n"
+                "If this machine has a GPU, it is usually missing a driver. See " + std::string(GPULoader::troubleshooting_url) + " for common fixes."
+            );
+        }
+        if (!installer::enabled()) {
+            console::print_text("The GPU is not used by default. Choose a usable one with \"ausaxs gpu install\" in a terminal, or pass --gpu.");
+        }
+    }
+
     // Line @a index of the marker of a complete installation, or empty if there is none.
     std::string marker_line(int index) {
         if (installer::installed_library().empty()) {return {};}
@@ -314,6 +344,7 @@ void installer::install([[maybe_unused]] const std::string& source, [[maybe_unus
             discard(staging);
             throw;
         }
+        discard(toggle_file(folder)); // the GPU chosen for the old installation no longer applies
 
         // Recorded before anything is moved in, so an interrupted install can still be removed.
         write_record(record, entries);
@@ -333,7 +364,17 @@ void installer::install([[maybe_unused]] const std::string& source, [[maybe_unus
         discard(staging);
 
         console::print_text("Testing the backend. This may take a few seconds while the kernel is compiled.");
-        auto probe = GPULoader::probe(library_file(folder).path(), choose);
+        // The chooser is only asked once the backend has loaded and listed its GPUs. From then on the installation is kept without a chosen
+        // GPU, even if no choice is made because the chooser throws or the process is interrupted at a prompt, so choosing one later does
+        // not need it downloaded again.
+        GPULoader::DeviceChooser keep_then_choose;
+        if (choose) {
+            keep_then_choose = [&] (const std::vector<std::string>& devices) {
+                write_marker(folder, source, "");
+                return choose(devices);
+            };
+        }
+        auto probe = GPULoader::probe(library_file(folder).path(), keep_then_choose);
         if (!probe.loaded) {
             discard_installation(folder, entries, record);
             throw except::runtime_error(
@@ -341,23 +382,53 @@ void installer::install([[maybe_unused]] const std::string& source, [[maybe_unus
                 "\nSee " + std::string(GPULoader::troubleshooting_url) + " for common fixes."
             );
         }
-        marker_file(folder).create(source + "\n" + probe.selected + "\n");
-
-        if (probe.available) {console::print_success("Installed the GPU backend. Device: " + probe.device);}
-        else {
-            console::print_warning(
-                "Installed the GPU backend, but it found no usable device on this machine" +
-                (probe.error.empty() ? std::string() : " (" + probe.error + ")") + ". It will be used on machines that have one.\n"
-                "If this machine has a GPU, it is usually missing a driver. See " + std::string(GPULoader::troubleshooting_url) + " for common fixes."
-            );
-        }
+        write_marker(folder, source, probe.chosen ? probe.selected : "");
+        set_enabled(probe.chosen && probe.available); // only a GPU someone chose, since the first may be integrated graphics
+        report("Installed the GPU backend", probe);
     #endif
+}
+
+bool installer::select_device(const GPULoader::DeviceChooser& choose) {
+    io::File library = installed_library();
+    if (library.empty()) {return false;}
+    std::string source = installed_source();
+
+    console::print_text("Testing the installed backend. This may take a few seconds while the kernel is compiled.");
+    auto probe = GPULoader::probe(library.path(), choose); // a throwing chooser leaves the installation as it was
+    if (!probe.loaded) {
+        console::print_text("The installed GPU backend cannot be used: " + probe.error);
+        return false;
+    }
+    if (probe.chosen) { // otherwise the earlier choice stands
+        write_marker(folder(), source, probe.selected); // empty if none was chosen
+        set_enabled(probe.available);
+    }
+    report(probe.chosen ? "Chose the GPU" : "Tested the installed GPU backend", probe);
+    return true;
+}
+
+bool installer::enabled() {
+    return toggle_file(folder()).exists() && !installed_library().empty();
+}
+
+void installer::set_enabled(bool enable) {
+    io::File toggle = toggle_file(folder());
+    if (!enable) {
+        if (toggle.exists()) {toggle.remove();}
+        return;
+    }
+    if (installed_library().empty()) {throw except::runtime_error("gpu::installer: cannot turn the GPU on, since no GPU backend is installed");}
+    if (installed_device().empty()) {
+        throw except::runtime_error("gpu::installer: cannot turn the GPU on, since no GPU has been chosen; choose one with \"ausaxs gpu install\"");
+    }
+    toggle.create();
 }
 
 bool installer::remove() {
     io::Folder folder = installer::folder();
     io::File record = record_file(folder);
     discard(staging_folder(folder));
+    discard(toggle_file(folder));
     if (!record.exists()) {
         if (remove_if_empty(folder)) {return false;}
         throw except::runtime_error(

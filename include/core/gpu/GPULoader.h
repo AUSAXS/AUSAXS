@@ -7,6 +7,8 @@
 
 #include <cstddef>
 #include <functional>
+#include <limits>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -84,19 +86,26 @@ namespace ausaxs::gpu {
                 bool available = false;             // and it reports a usable device
                 std::vector<std::string> devices;   // identifiers of every GPU the backend found, in its ranked order
                 std::string selected;               // the identifier of the one that was tested, if any
+                bool chosen = false;                // whether the chooser picked it, rather than it being the first by default; selected is
+                                                    // empty if it chose no_device, in which case nothing was tested
                 std::string device;                 // the device's name, if available
                 std::string error;                  // why not, otherwise
             };
 
             /**
-             * @brief Picks one of several GPUs, given their identifiers in the backend's ranked order. Returns the index of the chosen one.
+             * @brief Picks one of the GPUs, given their identifiers in the backend's ranked order. Returns the index of the chosen one, or nothing
+             *        if no choice was made.
              */
-            using DeviceChooser = std::function<std::size_t(const std::vector<std::string>& devices)>;
+            using DeviceChooser = std::function<std::optional<std::size_t>(const std::vector<std::string>& devices)>;
+
+            // @brief Returned by a DeviceChooser to use none of the GPUs.
+            static constexpr std::size_t no_device = std::numeric_limits<std::size_t>::max();
 
             /**
              * @brief Open the backend at @a path and ask it for a device, without making it the backend in use.
              *
-             * @param choose Asked to pick the device to test when the backend finds more than one. Without it, the first one is tested.
+             * @param choose Asked to pick the device to test whenever the backend finds one, even if it is the only one. Without it, or if it
+             *               makes no choice, the first one is tested.
              *
              * For checking an installation. Note that a broken AdaptiveCpp runtime may terminate the process from inside this call, which cannot 
              * be caught; a caller that records an installation as good should only do so once this has returned. 
