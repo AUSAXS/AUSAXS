@@ -81,3 +81,12 @@ int fit_get_fit_curves(
     *n_points = static_cast<int>(ref->size());
     return data_id;
 }, status);}
+void fit_get_Rg(
+    int fit_id,
+    double* Rg,
+    int* status
+) {execute_with_catch([&]() {
+    auto* fit_result = api::ObjectStorage::get_object<fitter::FitResult>(fit_id);
+    if (!fit_result) {throw except::invalid_argument("Invalid fit result id: \"" + std::to_string(fit_id) + "\"");}
+    *Rg = fit_result->Rg;
+}, status);}

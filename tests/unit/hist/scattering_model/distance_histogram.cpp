@@ -1,7 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/distribution/Distribution1D.h>
 #include <hist/scattering_model/DistanceHistogram.h>
+
+#include <cmath>
 
 using namespace ausaxs;
 
@@ -56,5 +60,24 @@ TEST_CASE("DistanceHistogram::get_d_axis const-correctness") {
         
         const auto& axis = dhist.get_d_axis();
         CHECK(axis.size() == 3);
+    }
+}
+
+TEST_CASE("DistanceHistogram::get_Rg") {
+    SECTION("two point scatterers") {
+        // two unit scatterers a distance d apart: p(0) = 2 (self terms), p(d) = 2. The transform carries an exp(-q^2) form
+        // factor, i.e. a Gaussian of Rg^2 = 3 per scatterer, so Rg^2 = sum p r^2 / (2 sum p) + 3 = d^2/4 + 3
+        int k = GENERATE(20, 80, 300);
+        std::vector<double> counts(400, 0);
+        counts[0] = 2;
+        counts[k] = 2;
+        hist::DistanceHistogram dhist{hist::Distribution1D(counts)};
+        double d = dhist.get_d_axis()[k];
+        CHECK_THAT(dhist.get_Rg(), Catch::Matchers::WithinAbs(std::sqrt(d*d/4 + 3), 1e-4));
+    }
+
+    SECTION("no contrast") {
+        hist::DistanceHistogram dhist{hist::Distribution1D(std::vector<double>(100, 0))};
+        CHECK(std::isnan(dhist.get_Rg()));
     }
 }

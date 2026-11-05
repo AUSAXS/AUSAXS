@@ -10,6 +10,7 @@
 #include <mini/detail/Result.h>
 #include <utility/observer_ptr.h>
 
+#include <limits>
 #include <string>
 
 namespace ausaxs::fitter {
@@ -47,5 +48,6 @@ namespace ausaxs::fitter {
             NamedDataset curves; // | q | data | data_err | interpolated model | residuals |
             mini::Landscape evaluated_points;
             int dof;
+            double Rg = std::numeric_limits<double>::quiet_NaN(); // Guinier (q -> 0) radius of gyration of the fitted model, if known. See DistanceHistogram::get_Rg.
     };
 }

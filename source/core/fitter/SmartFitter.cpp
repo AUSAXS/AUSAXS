@@ -205,6 +205,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
         linear_fitter.get_residuals(linear_fit->get_parameter_values())     // residuals
     );
     fit_result->evaluated_points = std::move(evaluated_points);
+    fit_result->Rg = model->get_Rg();                                       // the model holds the optimal parameters here
     return fit_result;
 }
 

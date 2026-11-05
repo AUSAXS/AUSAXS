@@ -5,8 +5,10 @@
 
 #include <dataset/Dataset.h>
 #include <mini/detail/FittedParameter.h>
+#include <utility/StringUtils.h>
 #include <utility/Utility.h>
 
+#include <cmath>
 #include <sstream>
 
 using namespace ausaxs;
@@ -52,6 +54,10 @@ std::string FitResult::to_string() const noexcept {
         ss << "\n| " << utility::print_element(e.name, 8) << " | " << utility::print_element(e.value, 12) << " | " << utility::print_element(e.mean_error(), 12)  << " |                 |";
     }
     ss << "\n+----------------------------------------------------------+";
+    if (!std::isnan(Rg)) {
+        ss << "\n| Rg of the fitted model (q -> 0): " << utility::print_element(utility::round_double(Rg, 2) + " A", 23) << " |"
+           << "\n+----------------------------------------------------------+";
+    }
 
     return ss.str();
 }
