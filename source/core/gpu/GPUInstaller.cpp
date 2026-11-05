@@ -28,6 +28,7 @@ namespace {
     constexpr const char* release_url = "https://github.com/AUSAXS/AUSAXS-GPU/releases/";
 
     // Written last, once the backend has loaded. Its absence marks an installation that did not finish, which the loader then ignores.
+    // Holds the source on the first line, and the identifier of the chosen GPU on the second, which is empty if none was found.
     constexpr const char* marker_name = "installed.txt";
 
     io::File marker_file(const io::Folder& folder) {
@@ -231,15 +232,28 @@ io::File installer::installed_library() {
     return library;
 }
 
-std::string installer::installed_source() {
-    if (installed_library().empty()) {return {};}
-    std::ifstream in(marker_file(folder()).path());
-    std::string source;
-    std::getline(in, source);
-    return source;
+namespace {
+    // Line @a index of the marker of a complete installation, or empty if there is none.
+    std::string marker_line(int index) {
+        if (installer::installed_library().empty()) {return {};}
+        std::ifstream in(marker_file(installer::folder()).path());
+        std::string line;
+        for (int i = 0; i <= index; ++i) {
+            if (!std::getline(in, line)) {return {};}
+        }
+        return line;
+    }
 }
 
-void installer::install([[maybe_unused]] const std::string& source) {
+std::string installer::installed_source() {
+    return marker_line(0);
+}
+
+std::string installer::installed_device() {
+    return marker_line(1);
+}
+
+void installer::install([[maybe_unused]] const std::string& source, [[maybe_unused]] const GPULoader::DeviceChooser& choose) {
     #ifndef AUSAXS_GPU_DOWNLOADER
         throw except::runtime_error("gpu::installer: this build of AUSAXS cannot install GPU backends, since it was built without the downloader (GPU_DOWNLOADER=OFF)");
     #else
@@ -319,7 +333,7 @@ void installer::install([[maybe_unused]] const std::string& source) {
         discard(staging);
 
         console::print_text("Testing the backend. This may take a few seconds while the kernel is compiled.");
-        auto probe = GPULoader::probe(library_file(folder).path());
+        auto probe = GPULoader::probe(library_file(folder).path(), choose);
         if (!probe.loaded) {
             discard_installation(folder, entries, record);
             throw except::runtime_error(
@@ -327,7 +341,7 @@ void installer::install([[maybe_unused]] const std::string& source) {
                 "\nSee " + std::string(GPULoader::troubleshooting_url) + " for common fixes."
             );
         }
-        marker_file(folder).create(source + "\n");
+        marker_file(folder).create(source + "\n" + probe.selected + "\n");
 
         if (probe.available) {console::print_success("Installed the GPU backend. Device: " + probe.device);}
         else {

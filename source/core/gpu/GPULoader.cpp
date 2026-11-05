@@ -9,6 +9,7 @@
 #include <utility/Logging.h>
 
 #include <cassert>
+#include <cstdint>
 #include <filesystem>
 #include <vector>
 
@@ -135,12 +136,16 @@ namespace {
         backend.available = reinterpret_cast<abi::available_fn>(find_symbol(handle, abi::symbol_available));
         backend.device_name = reinterpret_cast<abi::device_name_fn>(find_symbol(handle, abi::symbol_device_name));
         backend.last_error = reinterpret_cast<abi::last_error_fn>(find_symbol(handle, abi::symbol_last_error));
+        backend.device_count = reinterpret_cast<abi::device_count_fn>(find_symbol(handle, abi::symbol_device_count));
+        backend.device_id = reinterpret_cast<abi::device_id_fn>(find_symbol(handle, abi::symbol_device_id));
+        backend.select_device = reinterpret_cast<abi::select_device_fn>(find_symbol(handle, abi::symbol_select_device));
         backend.begin = reinterpret_cast<abi::begin_fn>(find_symbol(handle, abi::symbol_begin));
         backend.submit = reinterpret_cast<abi::submit_fn>(find_symbol(handle, abi::symbol_submit));
         backend.finish_unweighted = reinterpret_cast<abi::finish_unweighted_fn>(find_symbol(handle, abi::symbol_finish_unweighted));
         backend.finish_weighted = reinterpret_cast<abi::finish_weighted_fn>(find_symbol(handle, abi::symbol_finish_weighted));
         if (
-            (backend.available != nullptr) && (backend.device_name != nullptr) && (backend.last_error != nullptr) && (backend.begin != nullptr) && 
+            (backend.available != nullptr) && (backend.device_name != nullptr) && (backend.last_error != nullptr) && 
+            (backend.device_count != nullptr) && (backend.device_id != nullptr) && (backend.select_device != nullptr) && (backend.begin != nullptr) && 
             (backend.submit != nullptr) && (backend.finish_unweighted != nullptr) && (backend.finish_weighted != nullptr)) 
         {
             return true;
@@ -175,13 +180,48 @@ namespace {
         logging::log("GPULoader: " + load_error);
         return backend;
     }
+
+    /**
+     * @brief Identifiers of every GPU @a backend found, in its ranked order.
+     */
+    std::vector<std::string> list_devices(const GPULoader::Backend& backend) {
+        std::vector<std::string> devices;
+        for (std::int32_t i = 0; i < backend.device_count(); ++i) {
+            if (const char* id = backend.device_id(i)) {devices.emplace_back(id);}
+        }
+        return devices;
+    }
+
+    /**
+     * @brief Point @a backend at the device chosen when it was installed, if it is the installed one and a device was chosen.
+     *
+     * @return False if the chosen device could not be selected, in which case a warning has been printed.
+     */
+    bool select_installed_device(const GPULoader::Backend& backend) {
+        auto installed = installer::installed_library();
+        if (installed.empty() || loaded_path != installed.path()) {return true;}
+        auto device = installer::installed_device();
+        if (device.empty()) {return true;}
+
+        if (backend.select_device(device.c_str()) == abi::Status::ok) {return true;}
+        std::string found;
+        for (const auto& id : list_devices(backend)) {found += "\n    " + id;}
+        console::print_warning(
+            "the GPU chosen when the backend was installed (" + device + ") is not present, so the GPU is not used. "
+            "Run \"ausaxs gpu install\" again to choose another. The GPUs present are:" + (found.empty() ? std::string(" none") : found) + 
+            see_troubleshooting()
+        );
+        return false;
+    }
 }
 
 const GPULoader::Backend& GPULoader::get() {
     static const Backend backend = [] {
         Backend result = open();
         if (!result) {console::print_warning("no usable GPU backend: " + load_error + see_troubleshooting());}
-        else {
+        else if (!select_installed_device(result)) {
+            device_failed = true; // the backend would otherwise go ahead on its own first choice
+        } else {
             // resolve() only keeps a Backend whose every entry point resolved, and zeroes it otherwise, so a truthy one has them all
             assert(result.available != nullptr && result.device_name != nullptr && "GPULoader: an opened backend resolves every entry point.");
             if (!result.available()) {console::print_warning("no usable GPU backend: no usable device" + see_troubleshooting());}
@@ -193,8 +233,8 @@ const GPULoader::Backend& GPULoader::get() {
 }
 
 bool GPULoader::available() {
+    const auto& backend = get(); // first, since opening the backend may itself take the device out of use
     if (device_failed) {return false;}
-    const auto& backend = get();
     return backend && backend.available();
 }
 
@@ -210,7 +250,7 @@ void GPULoader::report_failure(std::string_view action, abi::Status status) {
     );
 }
 
-GPULoader::Probe GPULoader::probe(const std::string& path) {
+GPULoader::Probe GPULoader::probe(const std::string& path, const DeviceChooser& choose) {
     Probe result;
     library_handle handle = open_library(path);
     if (handle == nullptr) {
@@ -224,6 +264,18 @@ GPULoader::Probe GPULoader::probe(const std::string& path) {
         return result; // note: intentionally leaks the handle, as open() does
     }
     result.loaded = true;
+
+    result.devices = list_devices(backend);
+    if (!result.devices.empty()) {
+        std::size_t index = (choose && result.devices.size() > 1) ? choose(result.devices) : 0;
+        assert(index < result.devices.size() && "GPULoader::probe: the chooser must return the index of one of the devices.");
+        result.selected = result.devices[index];
+        if (backend.select_device(result.selected.c_str()) != abi::Status::ok) {
+            result.error = backend.last_error();
+            return result;
+        }
+    }
+
     result.available = backend.available();
     if (result.available) {result.device = backend.device_name();}
     else {result.error = backend.last_error();}
@@ -242,6 +294,7 @@ std::string_view GPULoader::library_name() {
 std::string GPULoader::device_name() {
     const auto& backend = get();
     if (!backend) {return "none (no backend loaded)";}
+    if (device_failed) {return "none (the device is not in use)";}
     assert(backend.device_name != nullptr && "GPULoader: an opened backend resolves every entry point.");
     return backend.device_name();
 }

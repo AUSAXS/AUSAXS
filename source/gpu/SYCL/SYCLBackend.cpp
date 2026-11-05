@@ -18,6 +18,7 @@
 
 #include <sycl/sycl.hpp>
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -249,6 +250,85 @@ namespace {
             std::size_t slab = 0, used = 0;
     };
 
+    // A GPU the user may choose, with the identifier the ABI reports for it.
+    struct Candidate {
+        sycl::device device;
+        std::string id;
+    };
+
+    /**
+     * @brief Name of the API a device is reached through, as it appears in its identifier.
+     */
+    std::string api_name(sycl::backend backend) {
+        switch (backend) {
+            case sycl::backend::cuda:       return "cuda";
+            case sycl::backend::hip:        return "hip";
+            case sycl::backend::level_zero: return "level_zero";
+            case sycl::backend::ocl:        return "opencl";
+            default:                        return "other";
+        }
+    }
+
+    /**
+     * @brief How likely a device reached through @a backend is to be a dedicated GPU; lower is more likely.
+     *
+     * Nothing in SYCL says whether a GPU is integrated, so the API is used as a stand-in: CUDA and HIP only reach dedicated cards in practice,
+     * while integrated GPUs are only reached through Level Zero and OpenCL. Level Zero is preferred over OpenCL, as it is the one Intel's
+     * dedicated cards are meant to be used through.
+     */
+    int rank(sycl::backend backend) {
+        switch (backend) {
+            case sycl::backend::cuda:
+            case sycl::backend::hip:        return 0;
+            case sycl::backend::level_zero: return 1;
+            case sycl::backend::ocl:        return 2;
+            default:                        return 3;
+        }
+    }
+
+    /**
+     * @brief Every GPU the runtime can reach, ranked as described for device_count in the ABI header. Listed once, on first use.
+     */
+    const std::vector<Candidate>& candidates() {
+        static const std::vector<Candidate> list = [] {
+            std::vector<Candidate> result;
+            try {
+                for (const auto& device : sycl::device::get_devices(sycl::info::device_type::gpu)) {
+                    result.push_back(Candidate{
+                        .device=device,
+                        .id=api_name(device.get_backend()) + ": " + device.get_info<sycl::info::device::name>()
+                    });
+                }
+            } catch (...) {
+                return std::vector<Candidate>{};
+            }
+
+            // stable, so that devices of equal rank keep the order the runtime listed them in, and with it their suffixes below
+            std::ranges::stable_sort(result, [] (const Candidate& a, const Candidate& b) {
+                return rank(a.device.get_backend()) < rank(b.device.get_backend());
+            });
+
+            // tell identical devices apart; the suffix is derived from the plain id, so it is checked against those
+            std::vector<std::string> plain;
+            for (auto& candidate : result) {
+                const auto duplicates = std::ranges::count(plain, candidate.id);
+                plain.push_back(candidate.id);
+                if (duplicates != 0) {candidate.id += " #" + std::to_string(duplicates + 1);}
+            }
+            return result;
+        }();
+        return list;
+    }
+
+    // index into candidates() of the device to use, as chosen by select_device; the first one if never chosen
+    std::size_t chosen_device = 0;
+
+    // set as soon as the context is first asked for, after which the device can no longer be changed
+    bool device_fixed = false;
+
+    // why there is no context, if there is none
+    std::string context_error;
+
     /**
      * @brief The device and the buffers shared by all calculations.
      *
@@ -258,9 +338,19 @@ namespace {
         public:
             static Context* get() {
                 static std::unique_ptr<Context> instance = [] () -> std::unique_ptr<Context> {
+                    device_fixed = true;
                     try {
-                        return std::unique_ptr<Context>(new Context());
+                        const auto& list = candidates();
+                        if (list.empty()) {
+                            context_error = "no GPU was found";
+                            return nullptr;
+                        }
+                        return std::unique_ptr<Context>(new Context(list[chosen_device].device));
+                    } catch (const std::exception& e) {
+                        context_error = "could not use the GPU: " + std::string(e.what());
+                        return nullptr;
                     } catch (...) {
+                        context_error = "could not use the GPU";
                         return nullptr;
                     }
                 }();
@@ -324,8 +414,8 @@ namespace {
             }
 
         private:
-            Context() : queue(sycl::gpu_selector_v) {
-                name = queue.get_device().get_info<sycl::info::device::name>();
+            explicit Context(const sycl::device& device) : queue(device) {
+                name = device.get_info<sycl::info::device::name>();
                 local_mem = queue.get_device().get_info<sycl::info::device::local_mem_size>();
                 warmup();
             }
@@ -568,7 +658,7 @@ namespace {
         try {
             Context* context = Context::get();
             if (!context) {
-                error_message = "sycl_backend: no usable device";
+                error_message = "sycl_backend: no usable device (" + context_error + ")";
                 return Status::no_device;
             }
             work(*context);
@@ -629,6 +719,34 @@ const char* ausaxs::gpu::abi::ausaxs_gpu_device_name() {
 
 const char* ausaxs::gpu::abi::ausaxs_gpu_last_error() {
     return error_message.c_str();
+}
+
+std::int32_t ausaxs::gpu::abi::ausaxs_gpu_device_count() {
+    return static_cast<std::int32_t>(candidates().size());
+}
+
+const char* ausaxs::gpu::abi::ausaxs_gpu_device_id(std::int32_t index) {
+    const auto& list = candidates();
+    if (index < 0 || static_cast<std::size_t>(index) >= list.size()) {return nullptr;}
+    return list[index].id.c_str();
+}
+
+Status ausaxs::gpu::abi::ausaxs_gpu_select_device(const char* id) {
+    error_message.clear();
+    const auto& list = candidates();
+    const auto found = std::ranges::find_if(list, [id] (const Candidate& c) {return id != nullptr && c.id == id;});
+    if (found == list.end()) {
+        error_message = "sycl_backend: no device is called \"" + std::string(id != nullptr ? id : "") + "\"";
+        return Status::invalid_input;
+    }
+
+    const auto index = static_cast<std::size_t>(found - list.begin());
+    if (device_fixed && index != chosen_device) {
+        error_message = "sycl_backend: cannot switch to \"" + found->id + "\", since \"" + list[chosen_device].id + "\" is already in use";
+        return Status::invalid_input;
+    }
+    chosen_device = index;
+    return Status::ok;
 }
 
 Status ausaxs::gpu::abi::ausaxs_gpu_begin(std::int32_t bin_count, float inv_width, bool weighted) {

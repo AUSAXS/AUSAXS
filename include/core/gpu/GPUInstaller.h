@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <gpu/GPULoader.h>
 #include <io/File.h>
 
 #include <string>
@@ -49,16 +50,23 @@ namespace ausaxs::gpu::installer {
     std::string installed_source();
 
     /**
+     * @brief Identifier of the GPU chosen during the installation, or empty if there is no complete installation, or it found no GPU to choose.
+     */
+    std::string installed_device();
+
+    /**
      * @brief Download and install a backend, replacing any existing installation.
      *
      * The backend is test-loaded before the installation is marked complete. A backend that loads but finds no device is still installed,
-     * since it may be installed on one machine and used on another, e.g. a login and a compute node.
+     * since it may be installed on one machine and used on another, e.g. a login and a compute node. If it finds a GPU, the one tested is
+     * recorded as the one to use from then on.
      *
      * @param source A URL, or the path of an already downloaded zip.
+     * @param choose Asked to pick a GPU if the backend finds more than one. Without it, the one the backend ranks first is used.
      * @throws except::runtime_error if the backend could not be installed, or the folder holds something that is not from an earlier
      *         installation. Nothing is left behind in that case.
      */
-    void install(const std::string& source);
+    void install(const std::string& source, const GPULoader::DeviceChooser& choose = {});
 
     /**
      * @brief Remove an installed backend.
