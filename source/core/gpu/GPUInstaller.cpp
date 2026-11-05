@@ -11,7 +11,7 @@
 #include <utility/Exceptions.h>
 
 #ifdef AUSAXS_GPU_DOWNLOADER
-    #include <miniz.h>
+    #include <miniz.h> // NOLINT
 #endif
 
 #include <algorithm>
@@ -276,7 +276,7 @@ void installer::install([[maybe_unused]] const std::string& source) {
 
             // Only what an earlier installation put there may be replaced. Checked before anything is changed, so a refusal changes nothing.
             for (const auto& entry : entries) {
-                if (entry.has_parent_path() || std::find(previous.begin(), previous.end(), entry) != previous.end()) {continue;}
+                if (entry.has_parent_path() || std::ranges::find(previous, entry) != previous.end()) {continue;}
                 std::error_code ec;
                 if (fs::exists(fs::symlink_status(fs::path(folder.path())/entry, ec))) {
                     throw except::runtime_error(
