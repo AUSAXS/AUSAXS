@@ -77,7 +77,6 @@ int cli_ausaxs(int argc, char const *argv[]) {
         return 1;
     }
 
-    // the radiation type is global state, so set it explicitly for both tools in case of repeated in-process calls
     switch (tool_map.at(tool)) {
         case Tool::SAXS:
             settings::scattering::radiation = settings::scattering::Radiation::XRay;
