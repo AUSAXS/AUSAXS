@@ -17,9 +17,10 @@
 using namespace ausaxs;
 
 namespace {
-    // Points the cache, and with it the install folder, at a fresh temporary folder.
+    // Points the cache, and with it the install folder, at a fresh temporary folder. CTest runs each test case as its own process,
+    // in parallel with the others, so every test case needs a folder of its own.
     struct TempCache {
-        TempCache() : previous(settings::general::cache) {
+        explicit TempCache(std::string_view name) : root("temp/tests/gpu_installer/" + std::string(name)), previous(settings::general::cache) {
             root.remove();
             settings::general::cache = root.path() + "/";
         }
@@ -32,10 +33,12 @@ namespace {
         io::File file(std::string_view relative) const {return folder.path() + "/" + std::string(relative);}
         io::Folder dir(std::string_view relative) const {return folder.path() + "/" + std::string(relative);}
 
-        io::Folder root = "temp/tests/gpu_installer";
+        io::Folder root;
         io::Folder folder = root.path() + "/gpu";
         io::Folder staging = root.path() + "/gpu.staging";
         io::File record = root.path() + "/gpu.record";
+        io::File toggle = root.path() + "/.autotoggle_gpu";
+        std::string library{gpu::GPULoader::library_name()};
         std::string previous;
     };
 
@@ -61,145 +64,126 @@ namespace {
 }
 
 TEST_CASE("installer::installed_library") {
-    TempCache temp;
-    auto library = temp.file(gpu::GPULoader::library_name());
+    TempCache temp("installed_library");
 
-    SECTION("nothing installed") {
+    SECTION("an incomplete installation is ignored") {
         CHECK(gpu::installer::installed_library().empty());
         CHECK(gpu::installer::installed_source().empty());
-    }
 
-    SECTION("an unfinished installation is ignored") {
-        library.create();
+        // the library, but no marker: the installation did not finish
+        temp.file(temp.library).create();
         CHECK(gpu::installer::installed_library().empty());
-    }
+        CHECK(gpu::installer::installed_source().empty());
 
-    SECTION("a finished installation is found") {
-        library.create();
+        // a marker, but no library
+        temp.file(temp.library).remove();
         temp.file("installed.txt").create("https://example.org/backend.zip\ncuda: NVIDIA GeForce RTX 3050\n");
-        CHECK(gpu::installer::installed_library().path() == library.path());
-        CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
-        CHECK(gpu::installer::installed_device() == "cuda: NVIDIA GeForce RTX 3050");
-    }
-
-    SECTION("an installation that found no GPU, or predates choosing one, has no chosen device") {
-        library.create();
-        temp.file("installed.txt").create("https://example.org/backend.zip\n");
-        CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
+        CHECK(gpu::installer::installed_library().empty());
         CHECK(gpu::installer::installed_device().empty());
     }
 
-    SECTION("an unfinished installation has no chosen device") {
+    SECTION("a finished installation is found") {
+        temp.file(temp.library).create();
         temp.file("installed.txt").create("https://example.org/backend.zip\ncuda: NVIDIA GeForce RTX 3050\n");
+        CHECK(gpu::installer::installed_library().path() == temp.file(temp.library).path());
+        CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
+        CHECK(gpu::installer::installed_device() == "cuda: NVIDIA GeForce RTX 3050");
+
+        // one that found no GPU, or predates choosing one, has no chosen device
+        temp.file("installed.txt").create("https://example.org/backend.zip\n");
+        CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
         CHECK(gpu::installer::installed_device().empty());
     }
 }
 
 TEST_CASE("installer::remove") {
-    TempCache temp;
-    std::string library(gpu::GPULoader::library_name());
+    TempCache temp("remove");
 
-    SECTION("nothing to remove") {
+    SECTION("without a record, only an empty folder is removed") {
         CHECK_FALSE(gpu::installer::remove());
+
+        temp.folder.create();
+        CHECK_FALSE(gpu::installer::remove());
+        CHECK_FALSE(temp.folder.exists());
+
+        temp.file(temp.library).create();
+        CHECK_THROWS(gpu::installer::remove());
+        CHECK(temp.file(temp.library).exists());
     }
 
     SECTION("an installation is removed, along with its record") {
-        temp.file(library).create();
+        temp.file(temp.library).create();
         temp.file("hipSYCL/plugin.so").create();
-        write_record(temp.record, {library, "hipSYCL", "hipSYCL/plugin.so"});
+        write_record(temp.record, {temp.library, "hipSYCL", "hipSYCL/plugin.so"});
         CHECK(gpu::installer::remove());
         CHECK_FALSE(temp.folder.exists());
         CHECK_FALSE(temp.record.exists());
     }
 
     SECTION("files that were not installed are kept, along with the folders holding them") {
-        temp.file(library).create();
+        temp.file(temp.library).create();
         temp.file("hipSYCL/plugin.so").create();
         temp.file("hipSYCL/mine.txt").create();
         temp.file("notes.txt").create();
-        write_record(temp.record, {library, "hipSYCL", "hipSYCL/plugin.so"});
+        write_record(temp.record, {temp.library, "hipSYCL", "hipSYCL/plugin.so"});
         CHECK(gpu::installer::remove());
-        CHECK_FALSE(temp.file(library).exists());
+        CHECK_FALSE(temp.file(temp.library).exists());
         CHECK_FALSE(temp.file("hipSYCL/plugin.so").exists());
         CHECK(temp.file("hipSYCL/mine.txt").exists());
         CHECK(temp.file("notes.txt").exists());
-    }
-
-    SECTION("a folder without a record is left alone") {
-        temp.file(library).create();
-        CHECK_THROWS(gpu::installer::remove());
-        CHECK(temp.file(library).exists());
-    }
-
-    SECTION("an empty folder without a record is tidied up") {
-        temp.folder.create();
-        CHECK_FALSE(gpu::installer::remove());
-        CHECK_FALSE(temp.folder.exists());
+        CHECK_FALSE(temp.record.exists());
     }
 }
 
 TEST_CASE("installer::enabled") {
-    TempCache temp;
-    io::File toggle = temp.root.path() + "/.autotoggle_gpu";
+    TempCache temp("enabled");
 
-    SECTION("cannot be turned on without an installation") {
+    SECTION("cannot be turned on without an installation, and a leftover toggle does nothing") {
+        temp.toggle.create();
+        CHECK_FALSE(gpu::installer::enabled());
         CHECK_THROWS(gpu::installer::set_enabled(true));
-        CHECK_FALSE(gpu::installer::enabled());
-    }
-
-    SECTION("a leftover toggle without an installation does nothing") {
-        toggle.create();
-        CHECK_FALSE(gpu::installer::enabled());
     }
 
     SECTION("turned on and off, leaving the installation alone") {
-        std::string library(gpu::GPULoader::library_name());
-        temp.file(library).create();
+        temp.file(temp.library).create();
         temp.file("installed.txt").create("https://example.org/backend.zip\n\n");
-        write_record(temp.record, {library, "installed.txt"});
+        write_record(temp.record, {temp.library, "installed.txt"});
         CHECK_FALSE(gpu::installer::enabled());
         CHECK_THROWS(gpu::installer::set_enabled(true)); // no GPU has been chosen
         CHECK_FALSE(gpu::installer::enabled());
 
         temp.file("installed.txt").create("https://example.org/backend.zip\ncuda: NVIDIA GeForce RTX 3050\n");
-
         gpu::installer::set_enabled(true);
-        CHECK(gpu::installer::enabled());
-        CHECK_FALSE(gpu::installer::select_device()); // the fake library cannot be loaded, so nothing changes
         CHECK(gpu::installer::enabled());
 
         gpu::installer::set_enabled(false);
         CHECK_FALSE(gpu::installer::enabled());
-        CHECK(temp.file(library).exists());
+        CHECK(temp.file(temp.library).exists());
 
         gpu::installer::set_enabled(true);
         CHECK(gpu::installer::remove());
-        CHECK_FALSE(toggle.exists());
+        CHECK_FALSE(temp.toggle.exists());
     }
 }
 
 TEST_CASE("installer::select_device") {
-    TempCache temp;
+    TempCache temp("select_device");
+    CHECK_FALSE(gpu::installer::select_device()); // nothing installed
 
-    SECTION("nothing installed") {
-        CHECK_FALSE(gpu::installer::select_device());
-    }
-
-    SECTION("an installation that cannot be loaded is left as it was") {
-        std::string library(gpu::GPULoader::library_name());
-        temp.file(library).create();
-        temp.file("installed.txt").create("https://example.org/backend.zip\ncuda: NVIDIA GeForce RTX 3050\n");
-        write_record(temp.record, {library, "installed.txt"});
-        CHECK_FALSE(gpu::installer::select_device());
-        CHECK(temp.file(library).exists());
-        CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
-        CHECK(gpu::installer::installed_device() == "cuda: NVIDIA GeForce RTX 3050");
-    }
+    // an installation that cannot be loaded is left as it was
+    temp.file(temp.library).create();
+    temp.file("installed.txt").create("https://example.org/backend.zip\ncuda: NVIDIA GeForce RTX 3050\n");
+    write_record(temp.record, {temp.library, "installed.txt"});
+    gpu::installer::set_enabled(true);
+    CHECK_FALSE(gpu::installer::select_device());
+    CHECK(temp.file(temp.library).exists());
+    CHECK(gpu::installer::installed_source() == "https://example.org/backend.zip");
+    CHECK(gpu::installer::installed_device() == "cuda: NVIDIA GeForce RTX 3050");
+    CHECK(gpu::installer::enabled());
 }
 
 TEST_CASE("installer::install") {
-    TempCache temp;
-    auto zip = make_backend_zip(temp.root.path() + "/downloads/backend.zip");
+    TempCache temp("install");
 
     SECTION("a file that is not a zip is rejected, and leaves nothing behind") {
         io::File archive = temp.root.path() + "/not_a.zip";
@@ -211,30 +195,26 @@ TEST_CASE("installer::install") {
     }
 
     SECTION("an existing path that is not from an earlier installation is never replaced") {
+        auto zip = make_backend_zip(temp.root.path() + "/downloads/backend.zip");
         temp.file("hipSYCL/mine.txt").create();
         CHECK_THROWS(gpu::installer::install(zip.path()));
         CHECK(temp.file("hipSYCL/mine.txt").exists());
-        CHECK_FALSE(temp.file(gpu::GPULoader::library_name()).exists());
+        CHECK_FALSE(temp.file(temp.library).exists());
         CHECK_FALSE(temp.staging.exists());
     }
 
-    SECTION("a backend that fails to load is removed again, and other files are kept") {
-        temp.file("notes.txt").create();
-        CHECK_THROWS(gpu::installer::install(zip.path()));
-        CHECK(temp.file("notes.txt").exists());
-        CHECK_FALSE(temp.file(gpu::GPULoader::library_name()).exists());
-        CHECK_FALSE(temp.dir("hipSYCL").exists());
-        CHECK_FALSE(temp.record.exists());
-        CHECK_FALSE(temp.staging.exists());
-    }
-
-    SECTION("an earlier installation is replaced") {
-        std::string library(gpu::GPULoader::library_name());
-        temp.file(library).create();
+    SECTION("an earlier installation is replaced, and a backend that fails to load is removed again, keeping other files") {
+        auto zip = make_backend_zip(temp.root.path() + "/downloads/backend.zip");
+        temp.file(temp.library).create(); // also in the new backend, but recorded, so it may be replaced
         temp.file("old.so").create();
-        write_record(temp.record, {library, "old.so"});
+        temp.file("notes.txt").create();
+        write_record(temp.record, {temp.library, "old.so"});
         CHECK_THROWS(gpu::installer::install(zip.path())); // the fake library fails the load test
         CHECK_FALSE(temp.file("old.so").exists());
-        CHECK_FALSE(temp.folder.exists());
+        CHECK_FALSE(temp.file(temp.library).exists());
+        CHECK_FALSE(temp.dir("hipSYCL").exists());
+        CHECK(temp.file("notes.txt").exists());
+        CHECK_FALSE(temp.record.exists());
+        CHECK_FALSE(temp.staging.exists());
     }
 }
