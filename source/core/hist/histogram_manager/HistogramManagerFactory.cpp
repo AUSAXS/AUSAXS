@@ -18,7 +18,6 @@
 #include <hist/histogram_manager/SymmetryManagerMT.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
-#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 
@@ -56,9 +55,8 @@ namespace {
      */
     bool uses_form_factors(Choice choice) {
         switch (settings::exv::exv_method) {
-            // the weights unless explicitly asked otherwise, see ScatteringModelNoExv
             case ExvMethod::None:
-                return settings::internal_state::prefer_explicit_form_factors;
+                return false;
 
             // the plain managers subtract the displaced charge from the weights, which fixes it for the lifetime of the histogram. The partial
             // managers keep their histograms across changes of the grid volume, so they resolve the types instead, see make_simple_model
@@ -75,6 +73,7 @@ namespace {
             case ExvMethod::FoXS:
             case ExvMethod::Pepsi:
             case ExvMethod::WAXSiS:
+            case ExvMethod::Vacuum: // see ScatteringModelNoExv
                 return true;
             default:
                 throw except::unexpected("hist::factory::uses_form_factors: Unknown ExvMethod. Did you forget to add it to the switch statement?");

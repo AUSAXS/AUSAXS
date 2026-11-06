@@ -9,8 +9,8 @@
 
 namespace ausaxs::hist {
     /**
-     * @brief The atoms and waters with their atomic form factors, without any excluded volume. This is ExvMethod::None for the form factor-resolved
-     *        managers, see settings::internal_state::prefer_explicit_form_factors. The excluded volume profiles ax, xx and wx are always zero.
+     * @brief The atoms and waters with their atomic form factors, without any excluded volume. This is ExvMethod::Vacuum.
+     *        The excluded volume profiles ax, xx and wx are always zero.
      */
     class ScatteringModelNoExv : public ScatteringModelExvBase<form_factor::lookup::table_t> {
         public:

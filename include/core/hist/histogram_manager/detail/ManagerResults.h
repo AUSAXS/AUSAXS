@@ -117,7 +117,7 @@ namespace ausaxs::hist::detail {
 
 	/**
 	 * @brief The scattering model of the explicit form factors: settings::exv::exv_method picks FoXS, Pepsi, CRYSOL or the 
-	 *        model without excluded volume for ExvMethod::None, and any other method gets the Fraser model.
+	 *        model without excluded volume for ExvMethod::Vacuum, and any other method gets the Fraser model.
 	 */
 	template<bool weighted_bins>
 	std::unique_ptr<IScatteringModel> make_explicit_model(
@@ -143,7 +143,7 @@ namespace ausaxs::hist::detail {
 	/**
 	 * @brief The scattering model of @a distributions. Weighted ones carry any excluded volume in their weights already.
 	 *        Form factor-resolved ones get make_simple_model or make_average_model for ExvMethod::Simple and ExvMethod::Average,
-	 *        and an explicit model otherwise, including ExvMethod::None, see make_explicit_model.
+	 *        and an explicit model otherwise, including ExvMethod::Vacuum, see make_explicit_model.
 	 */
 	template<bool weighted_bins, bool form_factors>
 	std::unique_ptr<IScatteringModel> make_model(

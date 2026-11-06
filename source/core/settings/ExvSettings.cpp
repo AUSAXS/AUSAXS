@@ -47,6 +47,7 @@ template<> std::string settings::io::detail::SettingRef<settings::exv::ExvMethod
         case settings::exv::ExvMethod::Pepsi:       return "pepsi";
         case settings::exv::ExvMethod::WAXSiS:      return "waxsis";
         case settings::exv::ExvMethod::None:        return "none";
+        case settings::exv::ExvMethod::Vacuum:      return "vacuum";
         default: return std::to_string(static_cast<int>(settingref));
     }
 }
@@ -64,6 +65,7 @@ template<> void settings::io::detail::SettingRef<settings::exv::ExvMethod>::set(
     else if (str == "pepsi") {settingref = settings::exv::ExvMethod::Pepsi;}
     else if (str == "waxsis") {settingref = settings::exv::ExvMethod::WAXSiS;}
     else if (str == "none") {settingref = settings::exv::ExvMethod::None;}
+    else if (str == "vacuum") {settingref = settings::exv::ExvMethod::Vacuum;}
     else {
         throw except::io_error("settings: Unknown excluded volume method \"" + str + "\". Did you forget to add parsing support for it in ExvSettings.cpp?");
     }

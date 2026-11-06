@@ -180,8 +180,8 @@ TEST_CASE("molecule_debye_raw_userq: accurate at high q") {
 }
 
 // atoms on a line at the marks of a Golomb ruler, so every distance is distinct and has a weighted bin of its own, and the binned sum must
-// match the direct one
-TEST_CASE("molecule_debye_raw_ff: agrees with the direct sum with atomic form factors") {
+// match the direct one. The weighted bins are left on auto, which must give them to the vacuum model.
+TEST_CASE("molecule_debye: the vacuum model agrees with the direct sum with atomic form factors") {
     using ff_t = form_factor::form_factor_t;
     constexpr std::array marks = {0, 1, 5, 12, 25, 27, 35};
     constexpr std::array types = {ff_t::C, ff_t::N, ff_t::O, ff_t::S, ff_t::Fe, ff_t::Zn, ff_t::I};
@@ -207,10 +207,14 @@ TEST_CASE("molecule_debye_raw_ff: agrees with the direct sum with atomic form fa
     };
 
     int status = 1;
+    set_setting("exv_model", "vacuum", &status);
+    REQUIRE(status == 0);
+    REQUIRE(settings::hist::weighted_bins->is_auto());
+
     SECTION("default q axis") {
         double *q, *I;
         int n = 0;
-        molecule_debye_raw_ff(mol, &q, &I, &n, &status);
+        molecule_debye(mol, &q, &I, &n, &status);
         REQUIRE(status == 0);
         REQUIRE(n > 0);
         for (int k = 0; k < n; ++k) {
@@ -223,7 +227,7 @@ TEST_CASE("molecule_debye_raw_ff: agrees with the direct sum with atomic form fa
     SECTION("userq far beyond the default q axis") {
         std::vector<double> q(100), I(q.size());
         for (unsigned int k = 0; k < q.size(); ++k) {q[k] = 0.1 + 0.1*k;}
-        molecule_debye_raw_ff_userq(mol, q.data(), I.data(), static_cast<int>(q.size()), &status);
+        molecule_debye_userq(mol, q.data(), I.data(), static_cast<int>(q.size()), &status);
         REQUIRE(status == 0);
         for (unsigned int k = 0; k < q.size(); ++k) {
             auto [expected, scale] = direct_sum(q[k]);
@@ -253,7 +257,7 @@ TEST_CASE("molecule_debye_userq: excluded volume models refuse q beyond the defa
     CHECK(std::string(error_msg).find("not meant for wide-angle scattering") != std::string::npos);
 }
 
-TEST_CASE("molecule_debye_raw_ff: molecules without form factors are refused") {
+TEST_CASE("molecule_debye: the vacuum model refuses molecules without form factors") {
     std::array x = {0.0, 1.0, 0.0};
     std::array y = {0.0, 0.0, 1.0};
     std::array z = {0.0, 0.0, 0.0};
@@ -261,10 +265,12 @@ TEST_CASE("molecule_debye_raw_ff: molecules without form factors are refused") {
     int status = 1;
     int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), 3, &status);
     REQUIRE(status == 0);
+    set_setting("exv_model", "vacuum", &status);
+    REQUIRE(status == 0);
 
     double *q, *I;
     int n = 0;
-    molecule_debye_raw_ff(mol, &q, &I, &n, &status);
+    molecule_debye(mol, &q, &I, &n, &status);
     CHECK(status != 0);
 }
 

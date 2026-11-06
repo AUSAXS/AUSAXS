@@ -65,7 +65,7 @@ std::unique_ptr<IScatteringModel> hist::detail::make_explicit_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     switch (settings::exv::exv_method) {
-        case settings::exv::ExvMethod::None:
+        case settings::exv::ExvMethod::Vacuum:
             return std::make_unique<ScatteringModelNoExv>(
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
                 Distribution2D(std::move(d.p_aw)),

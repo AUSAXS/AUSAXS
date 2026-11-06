@@ -97,8 +97,8 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
         CHECK(dynamic_cast<hist::HistogramManagerMTFFAvg<true>*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
     }
 
-    SECTION("no excluded volume with explicit form factors on request") {
-        settings::internal_state::prefer_explicit_form_factors = true;
+    SECTION("the vacuum model resolves the form factors without any excluded volume") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Vacuum;
         auto model = [] (const Molecule& m) {return hist::factory::construct_histogram_manager(&m)->calculate_all();};
         auto is_no_exv = [] (const auto& h) {return dynamic_cast<hist::ScatteringModelNoExv*>(h.get()) != nullptr;};
 

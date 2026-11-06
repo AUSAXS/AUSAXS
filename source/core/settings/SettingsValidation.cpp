@@ -13,6 +13,7 @@ void settings::validate_settings() {
     // check for exv fitting support: the simple models have no separate excluded volume to fit
     switch (settings::exv::exv_method.value) {
         case settings::exv::ExvMethod::None:
+        case settings::exv::ExvMethod::Vacuum:
         case settings::exv::ExvMethod::Simple:
             if (settings::fit::fit_excluded_volume) {
                 console::print_warning("Warning: The chosen excluded volume model does not support excluded volume fitting. Disabling excluded volume fitting.");

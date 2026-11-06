@@ -23,6 +23,7 @@
 #include <cassert>
 #include <functional>
 #include <numeric>
+#include <optional>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -67,15 +68,22 @@ Molecule& Molecule::operator=(Molecule&& other) noexcept {
 }
 
 namespace {
-    // whether settings::hist::weighted_bins = auto leaves the bins to the molecule. The grid models always use weighted bins.
-    bool auto_bins() {
-        return settings::hist::weighted_bins->is_auto() && !hist::factory::uses_grid_exv();
+    // whether the bins are weighted regardless of the molecule, or nullopt if settings::hist::weighted_bins = auto leaves them to it. 
+    // The grid models always use weighted bins. ExvMethod::Vacuum holds at any q, far beyond the range the molecule judges unweighted 
+    // bins by, so auto gives it weighted bins as well.
+    std::optional<bool> fixed_weighted_bins() {
+        if (hist::factory::uses_grid_exv()) {return true;}
+        if (!settings::hist::weighted_bins->is_auto()) {return settings::hist::weighted_bins->is_true();}
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Vacuum) {return true;}
+        return std::nullopt;
     }
+
+    bool auto_bins() {return !fixed_weighted_bins().has_value();}
 
     // the bins of a new manager. Under auto they are unweighted until the molecule has decided otherwise, since most molecules
     // are disordered: their first calculation is then also their final one.
     bool initial_weighted_bins(std::optional<bool> decision) {
-        return auto_bins() ? decision.value_or(false) : settings::hist::weighted_bins->is_true();
+        return fixed_weighted_bins().value_or(decision.value_or(false));
     }
 
     // whether unweighted bins would distort the profile of a molecule. Ordering must be measured from the atom-atom component:
@@ -92,7 +100,7 @@ void Molecule::lazy_histogram_manager_init() const {
 }
 
 bool Molecule::uses_weighted_bins() const {
-    if (!auto_bins()) {return hist::factory::uses_grid_exv() || settings::hist::weighted_bins->is_true();}
+    if (auto fixed = fixed_weighted_bins()) {return *fixed;}
     if (!auto_weighted_bins.has_value()) {(void) get_histogram();} // decides
     return *auto_weighted_bins;
 }
