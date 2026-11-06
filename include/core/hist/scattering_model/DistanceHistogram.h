@@ -53,7 +53,6 @@ namespace ausaxs::hist {
             /**
              * @brief Perform the Fourier transform through the Debye equation.
              *        Every scatterer carries the Gaussian form factor exp(-q²/2), so the intensity is multiplied by exp(-q²).
-             *        Subclasses with their own form factors override this; ScatteringModelPoint drops it for point scatterers.
              */
             virtual ScatteringProfile debye_transform() const;
 
