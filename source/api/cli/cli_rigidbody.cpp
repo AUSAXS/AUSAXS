@@ -9,6 +9,7 @@
 #include <constants/ValidFileExtensions.h>
 #include <constants/Version.h>
 #include <fitter/FitReporter.h>
+#include <gpu/GPUInstaller.h>
 #include <io/File.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <settings/All.h>
@@ -42,7 +43,10 @@ int cli_rigidbody(int argc, char const *argv[]) {
     app.add_flag("--offline", settings::general::offline.value, "Run the program in offline mode. This will prevent any network requests.")
         ->default_val(settings::general::offline.value);
     app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);    
-    app.add_flag("--gpu", settings::general::gpu.value, "Use GPU acceleration if available.")->default_val(settings::general::gpu.value);
+    settings::general::gpu = gpu::installer::enabled(); // choosing a GPU with "ausaxs gpu install" is the opt-in
+    app.add_flag("--gpu,!--no-gpu", settings::general::gpu.value, 
+        R"(Use GPU acceleration if available. On by default once a GPU is chosen with "ausaxs gpu install", unless turned off with "ausaxs gpu disable".)")
+        ->default_val(settings::general::gpu.value);
 
     // config subcommands
     auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");

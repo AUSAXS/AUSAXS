@@ -8,6 +8,7 @@
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
 #include <fitter/FitReporter.h>
+#include <gpu/GPUInstaller.h>
 #include <hist/scattering_model/IScatteringModel.h>
 #include <plots/PlotDistance.h>
 #include <plots/PlotProfiles.h>
@@ -31,7 +32,10 @@ int cli_em_fitter(int argc, char const *argv[]) {
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); throw CLI::Success();}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
     app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);
-    app.add_flag("--gpu", settings::general::gpu.value, "Use GPU acceleration if available.")->default_val(settings::general::gpu.value);
+    settings::general::gpu = gpu::installer::enabled(); // choosing a GPU with "ausaxs gpu install" is the opt-in
+    app.add_flag("--gpu,!--no-gpu", settings::general::gpu.value, 
+        R"(Use GPU acceleration if available. On by default once a GPU is chosen with "ausaxs gpu install", unless turned off with "ausaxs gpu disable".)")
+        ->default_val(settings::general::gpu.value);
 
     // config subcommands
     auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");

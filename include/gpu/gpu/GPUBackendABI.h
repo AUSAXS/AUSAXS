@@ -26,7 +26,7 @@ namespace ausaxs::gpu::abi {
         /**
          * @brief The version of this interface.
          */
-        constexpr std::int32_t version = 2;
+        constexpr std::int32_t version = 3;
 
         /**
          * @brief Status returned by the run functions.
@@ -88,6 +88,31 @@ namespace ausaxs::gpu::abi {
         using last_error_fn = const char* (*)();
 
         /**
+         * @brief Number of GPUs the backend can run on. Never fails; 0 if there are none, or they could not be listed.
+         *
+         * The list is ranked so that dedicated GPUs tend to come first: devices reached through a vendor's own compute API (CUDA, HIP)
+         * precede those reached through OpenCL, where integrated GPUs live. The ranking is only a guess, since a backend cannot ask whether
+         * a GPU is integrated; it is meant as a default for the user to override.
+         */
+        using device_count_fn = std::int32_t (*)();
+
+        /**
+         * @brief Stable identifier of the device at @a index in the ranked list, formatted as "<api>: <device name>", e.g. "cuda: NVIDIA
+         *        GeForce RTX 3050". Identical devices on the same API are told apart by a " #<n>" suffix on all but the first. 
+         *        Suitable for showing to the user and for storing; valid for the lifetime of the process. Null if @a index is out of range.
+         */
+        using device_id_fn = const char* (*)(std::int32_t index);
+
+        /**
+         * @brief Choose the device every later call runs on, by its identifier from device_id().
+         *        Must be called before anything that uses a device, i.e. available(), device_name() or begin(). Without it, the first device
+         *        in the ranked list is used.
+         *
+         * @return ok, or invalid_input if no device has that identifier, or a different device is already in use.
+         */
+        using select_device_fn = Status (*)(const char* id);
+
+        /**
          * @brief Start a calculation, discarding anything left from a previous one.
          *
          * @param bin_count Number of bins per histogram. Distances beyond the last bin are discarded.
@@ -127,6 +152,9 @@ namespace ausaxs::gpu::abi {
         EXPORT_GPU bool ausaxs_gpu_available();
         EXPORT_GPU const char* ausaxs_gpu_device_name();
         EXPORT_GPU const char* ausaxs_gpu_last_error();
+        EXPORT_GPU std::int32_t ausaxs_gpu_device_count();
+        EXPORT_GPU const char* ausaxs_gpu_device_id(std::int32_t index);
+        EXPORT_GPU Status ausaxs_gpu_select_device(const char* id);
         EXPORT_GPU Status ausaxs_gpu_begin(std::int32_t bin_count, float inv_width, bool weighted);
         EXPORT_GPU Status ausaxs_gpu_submit(const Job* jobs, std::int32_t n_jobs);
         EXPORT_GPU Status ausaxs_gpu_finish_unweighted(std::int32_t n_slots, double* out);
@@ -137,6 +165,9 @@ namespace ausaxs::gpu::abi {
         constexpr const char* symbol_available         = "ausaxs_gpu_available";
         constexpr const char* symbol_device_name       = "ausaxs_gpu_device_name";
         constexpr const char* symbol_last_error        = "ausaxs_gpu_last_error";
+        constexpr const char* symbol_device_count      = "ausaxs_gpu_device_count";
+        constexpr const char* symbol_device_id         = "ausaxs_gpu_device_id";
+        constexpr const char* symbol_select_device     = "ausaxs_gpu_select_device";
         constexpr const char* symbol_begin             = "ausaxs_gpu_begin";
         constexpr const char* symbol_submit            = "ausaxs_gpu_submit";
         constexpr const char* symbol_finish_unweighted = "ausaxs_gpu_finish_unweighted";
@@ -148,6 +179,9 @@ namespace ausaxs::gpu::abi {
     static_assert(std::is_same_v<decltype(&ausaxs_gpu_available), available_fn>);
     static_assert(std::is_same_v<decltype(&ausaxs_gpu_device_name), device_name_fn>);
     static_assert(std::is_same_v<decltype(&ausaxs_gpu_last_error), last_error_fn>);
+    static_assert(std::is_same_v<decltype(&ausaxs_gpu_device_count), device_count_fn>);
+    static_assert(std::is_same_v<decltype(&ausaxs_gpu_device_id), device_id_fn>);
+    static_assert(std::is_same_v<decltype(&ausaxs_gpu_select_device), select_device_fn>);
     static_assert(std::is_same_v<decltype(&ausaxs_gpu_begin), begin_fn>);
     static_assert(std::is_same_v<decltype(&ausaxs_gpu_submit), submit_fn>);
     static_assert(std::is_same_v<decltype(&ausaxs_gpu_finish_unweighted), finish_unweighted_fn>);
