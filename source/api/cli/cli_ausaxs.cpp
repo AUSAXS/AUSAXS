@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -51,63 +50,49 @@ namespace {
         text += "\n\nFor tool-specific help:\n  ausaxs <tool> --help";
         console::print_text(text);
     }
-
-    int dispatch(int argc, char const *argv[]) {
-        if (argc < 2) {
-            print_help();
-            return 1;
-        }
-
-        std::string tool = argv[1];
-        if (tool == "-h" || tool == "--help") {
-            print_help();
-            return 0;
-        }
-        if (tool == "-v" || tool == "--version") {
-            console::print_text(constants::version);
-            return 0;
-        }
-        if (tool == "--licence" || tool == "--license") {
-            console::print_text(constants::licence);
-            return 0;
-        }
-        if (!tool_map.contains(tool)) {
-            console::print_warning("Unknown tool: " + tool);
-            print_help();
-            return 1;
-        }
-
-        // the radiation type is global state, so set it explicitly for both tools in case of repeated in-process calls
-        switch (tool_map.at(tool)) {
-            case Tool::SAXS:
-                settings::scattering::radiation = settings::scattering::Radiation::XRay;
-                return cli_saxs_fitter(argc-1, argv+1);
-            case Tool::SANS:
-                settings::scattering::radiation = settings::scattering::Radiation::Neutron;
-                return cli_saxs_fitter(argc-1, argv+1);
-            case Tool::EM:
-                return cli_em_fitter(argc-1, argv+1);
-            case Tool::Rigidbody:
-                return cli_rigidbody(argc-1, argv+1);
-            case Tool::GPU:
-                return cli_gpu(argc-1, argv+1);
-        }
-        return 1;
-    }
 }
 
 int cli_ausaxs(int argc, char const *argv[]) {
-    // the tools always talk to the console, but in-process callers may have turned it off for their own use
-    bool verbose = settings::general::verbose;
-    settings::general::verbose = true;
-    int code = dispatch(argc, argv);
-    settings::general::verbose = verbose;
+    if (argc < 2) {
+        print_help();
+        return 1;
+    }
 
-    // flush so a caller writing to the same stream afterwards cannot overtake our output
-    std::cout.flush();
-    std::cerr.flush();
-    std::fflush(nullptr);
-    return code;
+    std::string tool = argv[1];
+    if (tool == "-h" || tool == "--help") {
+        print_help();
+        return 0;
+    }
+    if (tool == "-v" || tool == "--version") {
+        console::print_text(constants::version);
+        return 0;
+    }
+    if (tool == "--licence" || tool == "--license") {
+        console::print_text(constants::licence);
+        return 0;
+    }
+    if (!tool_map.contains(tool)) {
+        console::print_warning("Unknown tool: " + tool);
+        print_help();
+        return 1;
+    }
+
+    // the radiation type is global state, so set it explicitly for both tools in case of repeated in-process calls
+    switch (tool_map.at(tool)) {
+        case Tool::SAXS:
+            settings::scattering::radiation = settings::scattering::Radiation::XRay;
+            return cli_saxs_fitter(argc-1, argv+1);
+        case Tool::SANS:
+            settings::scattering::radiation = settings::scattering::Radiation::Neutron;
+            return cli_saxs_fitter(argc-1, argv+1);
+        case Tool::EM:
+            return cli_em_fitter(argc-1, argv+1);
+        case Tool::Rigidbody:
+            return cli_rigidbody(argc-1, argv+1);
+        case Tool::GPU:
+            return cli_gpu(argc-1, argv+1);
+    }
+    return 1;
 }
 
 void cli_ausaxs_add_tool(char const* name, char const* description) {
