@@ -7,7 +7,6 @@
 #include <api/cli/cli_rigidbody.h>
 #include <api/cli/cli_saxs_fitter.h>
 #include <constants/Version.h>
-#include <settings/GeneralSettings.h>
 #include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
