@@ -93,33 +93,21 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
 }
 
 Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
-    return debye_transform<true>(q);
-}
-
-template<bool form_factor>
-ScatteringProfile DistanceHistogram::debye_transform() const {
-    if constexpr (form_factor) {return debye_transform();} // dispatch to any form factors of a subclass
-    else {return debye_sum<false>(p, sinc_table.get_sinc_table());}
-}
-
-template<bool form_factor>
-Dataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
     // 1. q within the current range: interpolate the model
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     if (debye_axis.front() <= q.front() && q.back() <= debye_axis.back()) {
-        return debye_transform<form_factor>().as_dataset().interpolate(q);
+        return debye_transform().as_dataset().interpolate(q);
     }
 
     // 2. q within the default axis: expand the q range to cover it and interpolate. 
     // The settings keep the expanded range, so a fit calling this repeatedly pays for it only once.
     if (constants::axes::q_axis.min <= q.front() && q.back() <= constants::axes::q_axis.max) {
         if (q.front() < settings::axes::qmin || settings::axes::qmax < q.back()) {expand_q_range(q);}
-        return debye_transform<form_factor>().as_dataset().interpolate(q);
+        return debye_transform().as_dataset().interpolate(q);
     }
 
     // 3. outside the default axis there are no precomputed form factors, so each model evaluates its own at these q values
-    if constexpr (form_factor) {return {q, debye_transform_beyond_axis(q)};}
-    else {return {q, debye_sum<false>(p, sinc_table_for(q), q)};}
+    return {q, debye_transform_beyond_axis(q)};
 }
 
 std::vector<double> DistanceHistogram::debye_transform_beyond_axis(const std::vector<double>& q) const {
@@ -137,10 +125,6 @@ template std::vector<double> DistanceHistogram::debye_sum<true>(std::span<const 
 template std::vector<double> DistanceHistogram::debye_sum<false>(std::span<const double>, observer_ptr<const table::DebyeTable>, std::span<const double>, int);
 template ScatteringProfile DistanceHistogram::debye_sum<true>(std::span<const double>, observer_ptr<const table::DebyeTable>);
 template ScatteringProfile DistanceHistogram::debye_sum<false>(std::span<const double>, observer_ptr<const table::DebyeTable>);
-template ScatteringProfile DistanceHistogram::debye_transform<true>() const;
-template ScatteringProfile DistanceHistogram::debye_transform<false>() const;
-template Dataset DistanceHistogram::debye_transform<true>(const std::vector<double>&) const;
-template Dataset DistanceHistogram::debye_transform<false>(const std::vector<double>&) const;
 
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 

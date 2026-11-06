@@ -12,11 +12,13 @@
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/ScatteringModelPoint.h>
 #include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
 #include <utility/Exceptions.h>
 
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -252,13 +254,17 @@ void molecule_debye_userq(
 }, status);}
 
 namespace {
-template<bool form_factor>
-int debye_raw(int molecule_id, double** q, double** I, int* n_points) {
-    RawScope raw(form_factor);
-
+// The histogram of a raw calculation, see RawScope, which must be active while it is used.
+std::unique_ptr<hist::DistanceHistogram> raw_histogram(int molecule_id, bool form_factor) {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     molecule.reset_histogram_manager(); // rebuilt with the raw settings
-    auto debye_I = molecule.get_histogram()->template debye_transform<form_factor>();
+    if (form_factor) {return molecule.get_histogram();} // ScatteringModelNoExv
+    return std::make_unique<hist::ScatteringModelPoint>(std::move(*molecule.get_total_histogram()));
+}
+
+int debye_raw(int molecule_id, double** q, double** I, int* n_points, bool form_factor) {
+    RawScope raw(form_factor);
+    auto debye_I = raw_histogram(molecule_id, form_factor)->debye_transform();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
     for (int i = 0; i < debye_I.size(); ++i) {
@@ -273,14 +279,10 @@ int debye_raw(int molecule_id, double** q, double** I, int* n_points) {
     return data_id;
 }
 
-template<bool form_factor>
-void debye_raw_userq(int molecule_id, double* q, double* I, int n_points) {
+void debye_raw_userq(int molecule_id, double* q, double* I, int n_points, bool form_factor) {
     RawScope raw(form_factor);
-
     std::vector<double> q_vals(q, q + n_points);
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    molecule.reset_histogram_manager(); // rebuilt with the raw settings
-    auto debye_I = molecule.get_histogram()->template debye_transform<form_factor>(q_vals);
+    auto debye_I = raw_histogram(molecule_id, form_factor)->debye_transform(q_vals);
     if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i);
@@ -292,25 +294,25 @@ int molecule_debye_raw(
     int molecule_id,
     double** q, double** I, int* n_points,
     int* status
-) {return execute_with_catch([&]() {return debye_raw<false>(molecule_id, q, I, n_points);}, status);}
+) {return execute_with_catch([&]() {return debye_raw(molecule_id, q, I, n_points, false);}, status);}
 
 void molecule_debye_raw_userq(
     int molecule_id, 
     double* q, double* I, int n_points,
     int* status
-) {execute_with_catch([&]() {debye_raw_userq<false>(molecule_id, q, I, n_points);}, status);}
+) {execute_with_catch([&]() {debye_raw_userq(molecule_id, q, I, n_points, false);}, status);}
 
 int molecule_debye_raw_ff(
     int molecule_id,
     double** q, double** I, int* n_points,
     int* status
-) {return execute_with_catch([&]() {return debye_raw<true>(molecule_id, q, I, n_points);}, status);}
+) {return execute_with_catch([&]() {return debye_raw(molecule_id, q, I, n_points, true);}, status);}
 
 void molecule_debye_raw_ff_userq(
     int molecule_id,
     double* q, double* I, int n_points,
     int* status
-) {execute_with_catch([&]() {debye_raw_userq<true>(molecule_id, q, I, n_points);}, status);}
+) {execute_with_catch([&]() {debye_raw_userq(molecule_id, q, I, n_points, true);}, status);}
 
 int molecule_debye_exact(
     int molecule_id,

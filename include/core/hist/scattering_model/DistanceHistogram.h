@@ -53,7 +53,7 @@ namespace ausaxs::hist {
             /**
              * @brief Perform the Fourier transform through the Debye equation.
              *        Every scatterer carries the Gaussian form factor exp(-q²/2), so the intensity is multiplied by exp(-q²).
-             *        Subclasses with their own form factors override this.
+             *        Subclasses with their own form factors override this; ScatteringModelPoint drops it for point scatterers.
              */
             virtual ScatteringProfile debye_transform() const;
 
@@ -65,25 +65,6 @@ namespace ausaxs::hist {
              *
              * @param q The q values at which to evaluate the scattering.
              */
-            Dataset debye_transform(const std::vector<double>& q) const;
-
-            /**
-             * @brief Perform the Fourier transform through the Debye equation, optionally without the form factor.
-             *
-             * @tparam form_factor If true, this is identical to the virtual debye_transform().
-             *                     If false, the plain Debye sum of the total histogram is returned, i.e. the intensity of point scatterers.
-             */
-            template<bool form_factor>
-            ScatteringProfile debye_transform() const;
-
-            /**
-             * @brief Perform the Fourier transform through the Debye equation at the given q values, optionally without the form factor.
-             *
-             * @tparam form_factor If true, this is identical to debye_transform(q).
-             *                     If false, the plain Debye sum of the total histogram is returned, i.e. the intensity of point scatterers.
-             * @param q The q values at which to evaluate the scattering.
-             */
-            template<bool form_factor>
             Dataset debye_transform(const std::vector<double>& q) const;
 
             /**

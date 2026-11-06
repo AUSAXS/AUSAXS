@@ -208,15 +208,9 @@ namespace ausaxs::hist {
 
             /**
              * @brief Throws: the excluded volume models are only defined on the default q axis, as they are not meant for wide-angle scattering.
-             *        A model without excluded volume can return atomic_debye_transform instead.
+             *        ScatteringModelNoExv, which has none, overrides this.
              */
             std::vector<double> debye_transform_beyond_axis(const std::vector<double>& q) const override;
-
-            /**
-             * @brief The atomic and hydration terms aa + aw + ww at any q values, with the form factors evaluated at each of them rather than 
-             *        taken from the tables over the default q axis. The water scaling factor and the atomic Debye-Waller factor are applied.
-             */
-            std::vector<double> atomic_debye_transform(const std::vector<double>& q) const;
 
         private:
             /**

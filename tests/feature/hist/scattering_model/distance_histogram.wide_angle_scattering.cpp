@@ -1,8 +1,10 @@
 #include <algorithm>
+#include <utility>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <dataset/Dataset.h>
+#include <hist/scattering_model/ScatteringModelPoint.h>
 #include <settings/All.h>
 
 #include <support/hist_test_helper.h>
@@ -23,10 +25,7 @@ TEST_CASE("Wide-angle scattering: gold nanoparticles") {
     // calculate scattering from the molecule
     Molecule mol("tests/files/carbon_sphere.xyz");
     mol.clear_hydration();
-    auto I = mol.get_total_histogram()->debye_transform(expected.x());
-    std::transform(I.y().begin(), I.y().end(), I.x().begin(), I.y().begin(), [] (double I, double q) {
-        return I*std::exp(q*q); // remove form factor imposed by debye transform
-    });
+    auto I = hist::ScatteringModelPoint(std::move(*mol.get_total_histogram())).debye_transform(expected.x());
 
     // compare the results
     auto normalise = [] (std::vector<double> y) {

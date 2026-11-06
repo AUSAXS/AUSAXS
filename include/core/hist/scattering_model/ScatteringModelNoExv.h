@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <form_factor/lookup/FormFactorManager.h>
+#include <form_factor/lookup/FormFactorLookupFwd.h>
 #include <hist/scattering_model/ScatteringModelExvBase.h>
 #include <utility/TypeTraits.h>
 
@@ -17,15 +17,17 @@ namespace ausaxs::hist {
             using ScatteringModelExvBase::ScatteringModelExvBase;
 
         protected:
-            const form_factor::lookup::table_t& get_ff_table() const override {
-                return form_factor::manager::get_active_product_tables()->raw_atomic_table;
-            }
+            const form_factor::lookup::table_t& get_ff_table() const override;
 
             void cache_refresh_sinqd_exv() const override {}
             void cache_refresh_intensity_exv(const std::vector<double>& /* void */, bool /* void */, bool /* void */) const override {}
 
-            // without an excluded volume, the model holds at any q
-            std::vector<double> debye_transform_beyond_axis(const std::vector<double>& q) const override {return atomic_debye_transform(q);}
+            /**
+             * @brief Without an excluded volume, the model holds at any q: the atomic and hydration terms aa + aw + ww, with the form factors
+             *        evaluated at each q value rather than taken from the tables over the default q axis.
+             *        The water scaling factor and the atomic Debye-Waller factor are applied.
+             */
+            std::vector<double> debye_transform_beyond_axis(const std::vector<double>& q) const override;
     };
     static_assert(supports_nothrow_move_v<ScatteringModelNoExv>, "ScatteringModelNoExv should support nothrow move semantics.");
 }

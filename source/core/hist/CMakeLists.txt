@@ -46,6 +46,8 @@ target_sources(ausaxs_core PRIVATE
 	"scattering_model/ScatteringModelGridBase.cpp"
 	"scattering_model/ScatteringModelGridScalable.cpp"
 	"scattering_model/ScatteringModelGridSurface.cpp"
+	"scattering_model/ScatteringModelNoExv.cpp"
+	"scattering_model/ScatteringModelPoint.cpp"
 	"scattering_model/ScatteringModelSimple.cpp"
 	"scattering_model/crysol/ScatteringModelCrysol.cpp"
 	"scattering_model/foxs/ScatteringModelFoXS.cpp"
