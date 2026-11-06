@@ -16,6 +16,7 @@ add_library(ausaxs_api OBJECT
     "api_helper.cpp"
     "api_sasview.cpp"
 
+    "cli/cli_ausaxs.cpp"
     "cli/cli_em_fitter.cpp"
     "cli/cli_gpu.cpp"
     "cli/cli_rigidbody.cpp"

@@ -1,80 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <api/cli/cli_em_fitter.h>
-#include <api/cli/cli_gpu.h>
-#include <api/cli/cli_rigidbody.h>
-#include <api/cli/cli_saxs_fitter.h>
-#include <constants/Version.h>
-#include <settings/ScatteringSettings.h>
-#include <utility/Console.h>
+#include <api/cli/cli_ausaxs.h>
 
 #include <iostream>
-#include <unordered_map>
-
-using namespace ausaxs;
-
-namespace {
-    enum class Tool {SAXS, SANS, EM, Rigidbody, GPU};
-    std::unordered_map<std::string, Tool> tool_map {
-        {"fit", Tool::SAXS},
-        {"saxs", Tool::SAXS},
-        {"sans", Tool::SANS},
-        {"em", Tool::EM},
-        {"rigidbody", Tool::Rigidbody},
-        {"gpu", Tool::GPU},
-    };
-}
 
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
-    auto print_help = [&] () {
-        console::print_text(
-            "\nUsage: ausaxs <tool> [options]"
-            "\n\nAvailable tools:"
-            "\n  fit        - Fit SAXS data to a structure"
-            "\n  em         - Fit EM map to SAXS data"
-            "\n  rigidbody  - Rigid-body optimization"
-            "\n  gpu        - Install or check the GPU backend"
-            "\n\nFor tool-specific help:"
-            "\n  ausaxs <tool> --help"            
-        );
-    };
-
-    if (argc < 2) {
-        print_help();
-        return 1;
-    }
-
-    std::string tool = argv[1];
-    if (tool == "-h" || tool == "--help") {
-        print_help();
-        return 0;
-    }
-    if (tool == "-v" || tool == "--version") {
-        console::print_text(constants::version);
-        return 0;
-    }
-    if (tool == "--licence") {
-        console::print_text(constants::licence);
-        return 0;
-    }
-    if (!tool_map.contains(tool)) {
-        console::print_warning("Unknown tool: " + tool);
-        print_help();
-        return 1;
-    }
-    switch (tool_map[tool]) {
-        case Tool::SAXS:
-            return cli_saxs_fitter(argc-1, argv+1);
-        case Tool::SANS:
-            settings::scattering::radiation = settings::scattering::Radiation::Neutron;
-            return cli_saxs_fitter(argc-1, argv+1);
-        case Tool::EM:
-            return cli_em_fitter(argc-1, argv+1);
-        case Tool::Rigidbody:
-            return cli_rigidbody(argc-1, argv+1);
-        case Tool::GPU:
-            return cli_gpu(argc-1, argv+1);
-    }
+    return cli_ausaxs(argc, argv);
 }
