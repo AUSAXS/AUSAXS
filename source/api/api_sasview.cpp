@@ -6,8 +6,10 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <dataset/Dataset.h>
-#include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/ScatteringModelPoint.h>
 #include <settings/All.h>
+
+#include <utility>
 
 
 using namespace ausaxs;
@@ -58,11 +60,11 @@ void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int
 
     // calculate the distance histogram for the protein
     *_return_status = 3;
-    auto dist = protein.get_histogram();
+    hist::ScatteringModelPoint dist(std::move(*protein.get_total_histogram()));
 
     // perform the Debye transform
     *_return_status = 4;
-    auto Iq = dist->debye_transform<false>(q);
+    auto Iq = dist.debye_transform(q);
 
     // sanity check - the number of q values should match the number of I(q) values
     if (Iq.size() != _nq) {

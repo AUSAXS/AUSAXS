@@ -15,6 +15,7 @@
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
 #include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelFraser.h>
+#include <hist/scattering_model/ScatteringModelNoExv.h>
 #include <hist/scattering_model/ScatteringModelSimple.h>
 #include <hist/scattering_model/crysol/ScatteringModelCrysol.h>
 #include <hist/scattering_model/foxs/ScatteringModelFoXS.h>
@@ -64,6 +65,15 @@ std::unique_ptr<IScatteringModel> hist::detail::make_explicit_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     switch (settings::exv::exv_method) {
+        case settings::exv::ExvMethod::Vacuum:
+            return std::make_unique<ScatteringModelNoExv>(
+                Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
+                Distribution2D(std::move(d.p_aw)),
+                Distribution1D(std::move(d.p_ww)),
+                std::move(d.self_aa),
+                d.self_ww,
+                std::move(d.p_tot)
+            );
         case settings::exv::ExvMethod::FoXS:
             return std::make_unique<ScatteringModelFoXS>(
                 Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),

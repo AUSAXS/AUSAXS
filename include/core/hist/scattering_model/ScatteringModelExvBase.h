@@ -206,6 +206,12 @@ namespace ausaxs::hist {
              */
             virtual double exv_factor(double q) const;
 
+            /**
+             * @brief Throws: the excluded volume models are only defined on the default q axis, as they are not meant for wide-angle scattering.
+             *        ScatteringModelNoExv, which has none, overrides this.
+             */
+            std::vector<double> debye_transform_beyond_axis(const std::vector<double>& q) const override;
+
         private:
             /**
              * @brief Get the atomic Debye Waller factor for a given q value.

@@ -1007,6 +1007,27 @@ TEST_CASE("Molecule::uses_weighted_bins") {
         CHECK(ordered.uses_weighted_bins());
     }
 
+    // the vacuum model holds at any q, far beyond the range auto judges unweighted bins by, so auto gives even a disordered molecule weighted bins
+    SECTION("vacuum") {
+        settings::exv::exv_method = settings::exv::ExvMethod::Vacuum;
+        auto profile = [] () {return data::Molecule("tests/files/2epe.pdb").get_histogram()->debye_transform().get_intensity();};
+        settings::hist::weighted_bins = true;
+        auto expected = profile();
+
+        settings::hist::weighted_bins = settings::hist::WeightedBins::Value::Auto;
+        CHECK(data::Molecule("tests/files/2epe.pdb").uses_weighted_bins());
+        auto result = profile();
+        REQUIRE(result.size() == expected.size());
+        for (int i = 0; i < static_cast<int>(result.size()); ++i) {
+            REQUIRE_THAT(result[i], Catch::Matchers::WithinRel(expected[i], 1e-5));
+        }
+        CHECK(settings::hist::weighted_bins->is_auto());
+
+        // an explicit choice still wins
+        settings::hist::weighted_bins = false;
+        CHECK_FALSE(data::Molecule("tests/files/2epe.pdb").uses_weighted_bins());
+    }
+
     // the first calculation is kept for a disordered molecule, and redone with weighted bins for an ordered one
     SECTION("get_histogram") {
         auto profile = [] (const std::string& file) {return data::Molecule(file).get_histogram()->debye_transform().get_intensity();};

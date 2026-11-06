@@ -7,6 +7,7 @@
 #include <form_factor/lookup/FormFactorLookupFwd.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <settings/HistogramSettings.h>
+#include <utility/Exceptions.h>
 #include <utility/MultiThreading.h>
 
 #include <algorithm>
@@ -323,6 +324,14 @@ std::tuple<const Distribution1D&, const Distribution1D&,const Distribution1D&>
 ScatteringModelExvBase<FormFactorTableType>::cache_get_distance_profiles() const {
     if (!cache.distance_profiles.valid) {cache_refresh_distance_profiles();}
     return std::forward_as_tuple(cache.distance_profiles.p_aa, cache.distance_profiles.p_aw, cache.distance_profiles.p_ww);
+}
+
+template<typename FormFactorTableType>
+std::vector<double> ScatteringModelExvBase<FormFactorTableType>::debye_transform_beyond_axis(const std::vector<double>&) const {
+    throw except::invalid_argument(
+        "ScatteringModelExvBase::debye_transform: The excluded volume models are only defined for q in [" + std::to_string(constants::axes::q_axis.min) 
+        + ", " + std::to_string(constants::axes::q_axis.max) + "]; they are not meant for wide-angle scattering."
+    );
 }
 
 template<typename FormFactorTableType>
