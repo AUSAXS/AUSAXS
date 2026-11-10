@@ -26,6 +26,11 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
 include(Catch)
 
+# linked into every unit and feature test; see the file for what it does
+add_library(ausaxs_test_support OBJECT support/gpu_listener.cpp)
+target_link_libraries(ausaxs_test_support PUBLIC Catch2::Catch2 libausaxs)
+target_compile_options(ausaxs_test_support PRIVATE ${AUSAXS_TEST_FLAGS})
+
 add_subdirectory(unit)
 add_subdirectory(feature)
 add_subdirectory(benchmark)

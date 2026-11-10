@@ -56,7 +56,7 @@ namespace {
     }
 }
 
-TEST_CASE("HistogramManager: self-correlation weights exclude coincident distinct points") {
+TEST_CASE("HistogramManager: self-correlation weights exclude coincident distinct points", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // a form factor model, so every manager returns a form factor scattering model
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;

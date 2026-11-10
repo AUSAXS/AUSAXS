@@ -348,7 +348,7 @@ TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement
     CHECK_FALSE(parameters_of(*body_params.symmetry_pars[1]) == targeted_before);
 }
 
-TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement symmetry mask split", "[files]") {
+TEST_CASE_METHOD(SequenceParserSelectFixture, "SequenceParser::BodySelectElement symmetry mask split") {
     auto mask_of = [] (const std::string& mask_name) {
         auto seq = parse(
             "load {\n"

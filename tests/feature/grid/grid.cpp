@@ -1167,7 +1167,7 @@ TEST_CASE("Grid: cubic_grid") {
     }
 }
 
-TEST_CASE("Grid::operator=", "[files]") {
+TEST_CASE("Grid::operator=") {
     settings::general::verbose = false;
 
     SECTION("copy") {

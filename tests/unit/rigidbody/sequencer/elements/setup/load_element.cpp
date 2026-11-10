@@ -52,7 +52,7 @@ struct PathResolutionFixture {
     std::string root;
 };
 
-TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::LoadElement resolves paths relative to the script", "[files]") {
+TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::LoadElement resolves paths relative to the script") {
     SECTION("a structure in a subfolder next to the configuration file") {
         plant_structure();
         auto seq = parse(

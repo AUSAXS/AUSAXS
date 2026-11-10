@@ -52,7 +52,7 @@ namespace {
 
 // The transform must reproduce the histogram of the regular pair loop. The pair loop forms its distances in float while
 // the transform uses double, so pairs close to a bin edge may land in a neighbouring bin.
-TEST_CASE("lattice::self_correlation: matches the pair loop", "[files]") {
+TEST_CASE("lattice::self_correlation: matches the pair loop") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::grid::cell_width = 1;
@@ -76,7 +76,7 @@ TEST_CASE("lattice::self_correlation: matches the pair loop", "[files]") {
     compare_axes(*expected, lattice);
 }
 
-TEST_CASE("lattice::correlations: matches the pair loops", "[files]") {
+TEST_CASE("lattice::correlations: matches the pair loops") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::grid::cell_width = 1;

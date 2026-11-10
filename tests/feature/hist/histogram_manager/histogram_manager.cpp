@@ -55,7 +55,7 @@ static void run_test1(const Molecule& protein, const auto& target) {
     REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
 }
 
-TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
+TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
@@ -167,7 +167,7 @@ static void run_test_atom_order_invariance(const Molecule& original, const Molec
     REQUIRE(compare_hist(h3->debye_transform(), h4->debye_transform()));
 }
 
-TEST_CASE("HistogramManager::calculate_all real data") {
+TEST_CASE("HistogramManager::calculate_all real data", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
@@ -187,7 +187,7 @@ TEST_CASE("HistogramManager::calculate_all real data") {
     );
 }
 
-TEST_CASE("HistogramManager::calculate_all is invariant to atom ordering") {
+TEST_CASE("HistogramManager::calculate_all is invariant to atom ordering", "[gpu]") {
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
 

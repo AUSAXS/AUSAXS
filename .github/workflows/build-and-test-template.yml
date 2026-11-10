@@ -264,6 +264,20 @@ jobs:
           ctest --output-on-failure --parallel 6 --test-dir build/tests/unit
           ctest --output-on-failure --parallel 6 --test-dir build/tests/feature
 
+      # The runners have no GPU, so the released GPU backend is installed on AdaptiveCpp's host CPU device instead, and the tests tagged
+      # [gpu] are run again through it. The listener in tests/support/gpu_listener.cpp fails them if the backend is not actually in use.
+      - name: Install the GPU backend on the host CPU
+        if: matrix.os == 'ubuntu-latest'
+        run: ./build/bin/ausaxs gpu install --device host
+
+      - name: Run tests on the GPU backend
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          AUSAXS_TEST_GPU: 1
+        run: |
+          ctest --output-on-failure --parallel 6 --test-dir build/tests/unit -L gpu --no-tests=ignore
+          ctest --output-on-failure --parallel 6 --test-dir build/tests/feature -L gpu
+
       - name: Upload test report
         uses: actions/upload-artifact@v4
         if: matrix.full_build == true && always()

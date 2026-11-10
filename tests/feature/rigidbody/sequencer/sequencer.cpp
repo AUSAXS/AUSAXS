@@ -21,7 +21,7 @@ namespace {
     }
 }
 
-TEST_CASE("Sequencer: parser basic run", "[files]") {
+TEST_CASE("Sequencer: parser basic run") {
     configure_settings();
     auto seq = parse_sequence("load {\n    pdb tests/files/SASDJG5.pdb\n    saxs tests/files/SASDJG5.dat\n}\nloop 5\n    optimize_once\nend\n");
     auto result = seq->execute();
@@ -29,12 +29,12 @@ TEST_CASE("Sequencer: parser basic run", "[files]") {
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("Sequencer: parser split loading", "[files]") {
+TEST_CASE("Sequencer: parser split loading") {
     configure_settings();
     REQUIRE_NOTHROW(parse_sequence("load {\n    pdb tests/files/LAR1-2.pdb\n    split 9 99\n    saxs tests/files/LAR1-2.pdb\n}\n"));
 }
 
-TEST_CASE("Sequencer: parser nested loops", "[files]") {
+TEST_CASE("Sequencer: parser nested loops") {
     configure_settings();
     auto seq = parse_sequence("load {\n    pdb tests/files/SASDJG5.pdb\n    saxs tests/files/SASDJG5.dat\n}\nloop 3\n    loop 2\n        optimize_once\n    end\nend\n");
     auto result = seq->execute();
@@ -42,7 +42,7 @@ TEST_CASE("Sequencer: parser nested loops", "[files]") {
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("Sequencer: parser strategy configuration", "[files]") {
+TEST_CASE("Sequencer: parser strategy configuration") {
     configure_settings();
     auto seq = parse_sequence("load {\n    pdb tests/files/SASDJG5.pdb\n    saxs tests/files/SASDJG5.dat\n}\nloop 5\n    select random_body\n    transform rigid\n    optimize_once\nend\n");
     auto result = seq->execute();
@@ -50,7 +50,7 @@ TEST_CASE("Sequencer: parser strategy configuration", "[files]") {
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("Sequencer: parser automatic constraints", "[files]") {
+TEST_CASE("Sequencer: parser automatic constraints") {
     configure_settings();
     auto seq = parse_sequence("load {\n    pdb tests/files/LAR1-2.pdb\n    split 9 99\n    saxs tests/files/LAR1-2.dat\n}\nautoconstrain backbone\nloop 5\n    optimize_once\nend\n");
     auto result = seq->execute();

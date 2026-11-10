@@ -10,7 +10,7 @@
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
 
-TEST_CASE("SequenceParser: parse minimal config", "[files]") {
+TEST_CASE("SequenceParser: parse minimal config") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 250;
@@ -35,7 +35,7 @@ TEST_CASE("SequenceParser: parse minimal config", "[files]") {
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("SequenceParser: parse normal config with output folder", "[files]") {
+TEST_CASE("SequenceParser: parse normal config with output folder") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 250;
@@ -49,7 +49,7 @@ TEST_CASE("SequenceParser: parse normal config with output folder", "[files]") {
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("SequenceParser: parse symmetry config", "[files]") {
+TEST_CASE("SequenceParser: parse symmetry config") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 250;
@@ -63,7 +63,7 @@ TEST_CASE("SequenceParser: parse symmetry config", "[files]") {
     CHECK(result->fval > 0);
 }
 
-TEST_CASE("SequenceParser: a bare loop takes the nearest preceding parameter count", "[files]") {
+TEST_CASE("SequenceParser: a bare loop takes the nearest preceding parameter count") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 250;

@@ -59,7 +59,7 @@ static auto test_polyhedral_symmetry = [] (settings::hist::HistogramManagerChoic
     }
 };
 
-TEST_CASE("SymmetryManager: PolyhedralSymmetry") {
+TEST_CASE("SymmetryManager: PolyhedralSymmetry", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
@@ -95,7 +95,7 @@ static auto test_polyhedral_symmetry_lysozyme = [] (settings::hist::HistogramMan
     CHECK(compare_hist_approx(h, h2));
 };
 
-TEST_CASE("SymmetryManager: PolyhedralSymmetry on hydrated lysozyme") {
+TEST_CASE("SymmetryManager: PolyhedralSymmetry on hydrated lysozyme", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the simple exv makes the atomic and water terms nearly cancel, so bin noise exceeds the relative tolerance
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {

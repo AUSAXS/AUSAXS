@@ -80,6 +80,12 @@ namespace ausaxs::gpu {
              */
             static std::string_view library_name();
 
+            /**
+             * @brief Whether @a id identifies the backend's host CPU device rather than a GPU.
+             *        The host device is only listed when settings::internal_state::gpu_expose_cpu is set; see abi::device_count_fn.
+             */
+            static bool is_host_device(std::string_view id);
+
             // @brief The outcome of probe().
             struct Probe {
                 bool loaded = false;                // the library opened and implements this library's ABI

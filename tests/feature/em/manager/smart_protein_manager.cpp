@@ -25,7 +25,7 @@ struct fixture {
     std::unique_ptr<em::managers::SmartProteinManager> manager;
 };
 
-TEST_CASE_METHOD(fixture, "SmartProteinManager::SmartProteinManager", "[files]") {
+TEST_CASE_METHOD(fixture, "SmartProteinManager::SmartProteinManager") {
     SECTION("ImageStackBase*") {
         CHECK(!manager->get_charge_levels().empty());
     }
@@ -37,7 +37,7 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::set_charge_levels") {
     CHECK(manager->get_charge_levels() == std::vector<double>{1, 2, 3, 10000});
 }
 
-TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein", "[files]") {
+TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein") {
     // we just check the size of the returned protein
     int size = manager->get_protein(2)->size_atom();
     CHECK(size != 0);
@@ -46,14 +46,14 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein", "[files]") {
     CHECK(manager->get_protein(2)->size_atom() == size);
 }
 
-TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram", "[files]") {
+TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram") {
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
     CHECK(manager->get_histogram(1)->get_weighted_counts() == manager->get_protein(1)->get_histogram()->get_weighted_counts());
 }
 
 // SmartProteinManager used to switch Molecule::initialize() off process-wide and never switch it
 // back, so every later move-assign silently kept a histogram manager bound to the destination's old bodies.
-TEST_CASE("SmartProteinManager: driving the manager does not leak into later Molecule moves", "[files]") {
+TEST_CASE("SmartProteinManager: driving the manager does not leak into later Molecule moves") {
     settings::molecule::implicit_hydrogens = false;
 
     auto build = [] (int n) {
@@ -84,7 +84,7 @@ TEST_CASE("SmartProteinManager: driving the manager does not leak into later Mol
     CHECK(dst.get_histogram()->get_weighted_counts() == ref.get_histogram()->get_weighted_counts());
 }
 
-TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
+TEST_CASE("SmartProteinManager::generate_protein") {
     settings::em::sample_frequency = 4;
 
     // ensure hydration shell is deterministic
@@ -105,7 +105,7 @@ TEST_CASE("SmartProteinManager::generate_protein", "[files]") {
     }
 }
 
-TEST_CASE("SmartProteinManager::update_protein", "[files]") {
+TEST_CASE("SmartProteinManager::update_protein") {
     settings::em::sample_frequency = 3;
 
     // ensure hydration shell is deterministic
@@ -130,7 +130,7 @@ TEST_CASE("SmartProteinManager::update_protein", "[files]") {
     }
 }
 
-TEST_CASE("SmartProteinManager: consistency", "[files]") {
+TEST_CASE("SmartProteinManager: consistency") {
     settings::general::verbose = false;
     settings::general::supplementary_plots = false;
     settings::em::sample_frequency = 3;

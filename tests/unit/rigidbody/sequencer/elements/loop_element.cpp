@@ -202,7 +202,7 @@ struct ParameterParseFixture {
     }
 };
 
-TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::LoopElement iteration deduction", "[files]") {
+TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::LoopElement iteration deduction") {
     // a bare "loop" deduces its iteration count from the last parameter element, walking up the owner chain to find one.
     // With no parameter element anywhere, that walk reaches the Sequencer, which has no owner to continue to.
     SECTION("a bare loop with no parameter element to deduce from is a parse error") {
@@ -266,7 +266,7 @@ struct LoopCountFixture {
     }
 };
 
-TEST_CASE_METHOD(LoopCountFixture, "SequenceParser::LoopElement total iteration count", "[files]") {
+TEST_CASE_METHOD(LoopCountFixture, "SequenceParser::LoopElement total iteration count") {
     SECTION("a single loop counts its own iterations") {
         CHECK(total_iterations_of(
             "loop 5\n"

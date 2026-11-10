@@ -250,7 +250,7 @@ namespace {
             std::size_t slab = 0, used = 0;
     };
 
-    // A GPU the user may choose, with the identifier the ABI reports for it.
+    // A device the user may choose, with the identifier the ABI reports for it.
     struct Candidate {
         sycl::device device;
         std::string id;
@@ -265,8 +265,16 @@ namespace {
             case sycl::backend::hip:        return "hip";
             case sycl::backend::level_zero: return "level_zero";
             case sycl::backend::ocl:        return "opencl";
+            case sycl::backend::omp:        return host_api;
             default:                        return "other";
         }
+    }
+
+    /**
+     * @brief Whether @a device is AdaptiveCpp's OpenMP host device, which the kernels are JIT-compiled for through LLVM like any other.
+     */
+    bool is_host(const sycl::device& device) {
+        return device.get_backend() == sycl::backend::omp;
     }
 
     /**
@@ -282,18 +290,23 @@ namespace {
             case sycl::backend::hip:        return 0;
             case sycl::backend::level_zero: return 1;
             case sycl::backend::ocl:        return 2;
+            case sycl::backend::omp:        return 4; // the host device, always last
             default:                        return 3;
         }
     }
 
     /**
-     * @brief Every GPU the runtime can reach, ranked as described for device_count in the ABI header. Listed once, on first use.
+     * @brief Every GPU the runtime can reach, followed by the host device, ranked as described for device_count in the ABI header.
+     *        Listed once, on first use.
+     *
+     * Of the CPU devices only the host device is listed, since it is the one every AdaptiveCpp runtime has; it is there for testing.
      */
     const std::vector<Candidate>& candidates() {
         static const std::vector<Candidate> list = [] {
             std::vector<Candidate> result;
             try {
-                for (const auto& device : sycl::device::get_devices(sycl::info::device_type::gpu)) {
+                for (const auto& device : sycl::device::get_devices()) {
+                    if (!device.is_gpu() && !is_host(device)) {continue;}
                     result.push_back(Candidate{
                         .device=device,
                         .id=api_name(device.get_backend()) + ": " + device.get_info<sycl::info::device::name>()
@@ -323,6 +336,9 @@ namespace {
     // index into candidates() of the device to use, as chosen by select_device; the first one if never chosen
     std::size_t chosen_device = 0;
 
+    // whether select_device has been called; the host device is only ever used if it was chosen this way
+    bool device_chosen = false;
+
     // set as soon as the context is first asked for, after which the device can no longer be changed
     bool device_fixed = false;
 
@@ -341,7 +357,7 @@ namespace {
                     device_fixed = true;
                     try {
                         const auto& list = candidates();
-                        if (list.empty()) {
+                        if (list.empty() || (!device_chosen && is_host(list[chosen_device].device))) {
                             context_error = "no GPU was found";
                             return nullptr;
                         }
@@ -370,6 +386,16 @@ namespace {
             float inv_width = 0;
             std::unordered_map<const float*, const sycl::float4*> uploaded; // host -> device, deduplicated
             std::vector<sycl::event> pending;                               // uploads the next kernel must wait for
+
+            /**
+             * @brief The host-side sources of the job and tile uploads.
+             *
+             * A memcpy only promises to have read its source once its event completes; some runtimes (e.g. AdaptiveCpp's OpenMP and OpenCL
+             * backends) read it later, from a worker thread. The sources are therefore kept until the next begin(), which waits for the queue.
+             * Moving a vector in keeps its buffer, so the pointers handed to memcpy stay valid.
+             */
+            std::vector<std::vector<DeviceJob>> staged_jobs;
+            std::vector<std::vector<TileRef>> staged_tiles;
             sycl::event zeroing;                                            // begin_on clearing the slots the last calculation used
 
             /**
@@ -528,34 +554,29 @@ namespace {
             };
         }
 
-        std::vector<TileRef> regular, diagonal;
-        build_tiles(jobs, n_jobs, regular, diagonal);
+        std::vector<TileRef> tiles, diagonal;
+        build_tiles(jobs, n_jobs, tiles, diagonal);
+        const std::size_t n_regular = tiles.size();
+        tiles.insert(tiles.end(), diagonal.begin(), diagonal.end()); // uploaded as one, regular tiles first
 
         // every buffer below is arena memory belonging to this submit alone, so the kernels may
         // still be reading it when the next submit arrives
         const std::size_t job_bytes = device_jobs.size()*sizeof(DeviceJob);
-        const std::size_t tile_bytes = (regular.size() + diagonal.size())*sizeof(TileRef);
+        const std::size_t tile_bytes = tiles.size()*sizeof(TileRef);
         auto* device_job_array = static_cast<DeviceJob*>(context.arena.allocate(context.queue, job_bytes));
         auto* device_tiles = static_cast<TileRef*>(context.arena.allocate(context.queue, tile_bytes));
 
         context.pending.push_back(context.queue.memcpy(device_job_array, device_jobs.data(), job_bytes));
-        if (!regular.empty()) {
-            context.pending.push_back(
-                context.queue.memcpy(device_tiles, regular.data(), regular.size()*sizeof(TileRef))
-            );
-        }
-        if (!diagonal.empty()) {
-            context.pending.push_back(context.queue.memcpy(
-                device_tiles + regular.size(), diagonal.data(), diagonal.size()*sizeof(TileRef)
-            ));
-        }
+        context.pending.push_back(context.queue.memcpy(device_tiles, tiles.data(), tile_bytes)); // never empty, since n_jobs > 0
+        context.staged_jobs.push_back(std::move(device_jobs));
+        context.staged_tiles.push_back(std::move(tiles));
 
         launch<weighted, false>(
-            context, device_tiles, regular.size(), device_job_array,
+            context, device_tiles, n_regular, device_job_array,
             context.histograms, context.inv_width, context.bin_count, context.local_bins, context.pending
         );
         launch<weighted, true>(
-            context, device_tiles + regular.size(), diagonal.size(), device_job_array,
+            context, device_tiles + n_regular, diagonal.size(), device_job_array,
             context.histograms, context.inv_width, context.bin_count, context.local_bins, context.pending
         );
 
@@ -600,6 +621,8 @@ namespace {
         context.arena.rewind();
         context.uploaded.clear();
         context.pending.clear();
+        context.staged_jobs.clear();
+        context.staged_tiles.clear();
 
         // the layout of the output depends on both, so a change invalidates what is already allocated
         if (context.bin_count != bin_count || context.weighted != weighted) {
@@ -746,6 +769,7 @@ Status ausaxs::gpu::abi::ausaxs_gpu_select_device(const char* id) {
         return Status::invalid_input;
     }
     chosen_device = index;
+    device_chosen = true;
     return Status::ok;
 }
 

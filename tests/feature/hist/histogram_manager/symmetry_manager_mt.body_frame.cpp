@@ -65,7 +65,7 @@ namespace {
     }
 }
 
-TEST_CASE("Symmetry: rigid motion of the base body leaves the assembly unchanged") {
+TEST_CASE("Symmetry: rigid motion of the base body leaves the assembly unchanged", "[gpu]") {
     settings::molecule::implicit_hydrogens = false;
 
     SECTION("PointSymmetry") {
@@ -142,7 +142,7 @@ TEST_CASE("Symmetry: rigid motion of the base body leaves the assembly unchanged
 // A shared symmetry replicates the participating bodies as one asymmetric unit, so every copy must be placed by a single operator acting on all of them.
 // If each body reoriented its own copies, the participants of a copy would drift apart as soon as their orientations diverged - which they do, since the
 // optimiser moves each body independently - and the assembly would stop being symmetric.
-TEST_CASE("ReferenceSymmetry: copies stay congruent when participants are moved independently") {
+TEST_CASE("ReferenceSymmetry: copies stay congruent when participants are moved independently", "[gpu]") {
     settings::molecule::implicit_hydrogens = false;
 
     auto m = make_reference_molecule();

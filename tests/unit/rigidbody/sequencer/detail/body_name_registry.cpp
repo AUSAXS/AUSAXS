@@ -81,7 +81,7 @@ struct SequenceParserBodyNamesFixture {
     }
 };
 
-TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default names stay unique as bodies are created and destroyed", "[files]") {
+TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default names stay unique as bodies are created and destroyed") {
     SECTION("a plain load yields exactly b1..bN") {
         auto seq = build();
         REQUIRE(seq != nullptr);
@@ -181,7 +181,7 @@ TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: default name
     }
 }
 
-TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: replica tags follow their own body's default name", "[files]") {
+TEST_CASE_METHOD(SequenceParserBodyNamesFixture, "BodyNameRegistry: replica tags follow their own body's default name") {
     // b2 carries a symmetry and is then split, so the fragments are created after b3 already exists: their replica tags must be built from the fragments' own
     // (post-split) default names rather than from their indices, which no longer identify them
     auto seq = build("symmetry b2 c2\nsplit b2 60\n");

@@ -12,7 +12,7 @@ using namespace data;
 using namespace rigidbody;
 
 // test that we can consistently fit the same protein
-TEST_CASE("RigidBody: reusable fitter", "[files]") {
+TEST_CASE("RigidBody: reusable fitter") {
     settings::general::verbose = false;
     settings::internal_state::allow_decorrelate_atom_order = false;
 
@@ -295,7 +295,7 @@ TEST_CASE("RigidBody: reusable fitter", "[files]") {
 //     }
 // }
 
-// TEST_CASE("generate_sequential_constraints", "[body],[files]") {
+// TEST_CASE("generate_sequential_constraints", "[body]") {
 //     settings::general::verbose = false;
 //     vector<int> splits = {9, 99};
 //     Protein protein = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
