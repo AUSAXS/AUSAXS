@@ -47,6 +47,16 @@ namespace {
         if (std::getenv("ACPP_DEBUG_LEVEL") != nullptr || std::getenv("HIPSYCL_DEBUG_LEVEL") != nullptr) {return;}
         #ifdef _WIN32
             _putenv_s("ACPP_DEBUG_LEVEL", "1");
+
+            // The runtime reads the environment of the shared C runtime (ucrtbase.dll), which keeps its own copy of it. If that copy was
+            // made before this point, e.g. because a system library loaded ucrtbase.dll first, the line above is never seen, since it only
+            // changes the copy of the C runtime this binary carries, and the process' own environment. So the shared one is changed too.
+            if (HMODULE ucrt = LoadLibraryExA("ucrtbase.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32)) {
+                using putenv_fn = int (*)(const char*, const char*);
+                if (auto shared_putenv = reinterpret_cast<putenv_fn>(GetProcAddress(ucrt, "_putenv_s"))) {
+                    shared_putenv("ACPP_DEBUG_LEVEL", "1");
+                }
+            }
         #else
             setenv("ACPP_DEBUG_LEVEL", "1", 0);
         #endif
@@ -62,12 +72,19 @@ namespace {
          * A packaged backend carries its runtime in its own directory, which LoadLibraryA would only search if it were on PATH. This is the 
          * counterpart of the $ORIGIN RUNPATH a Linux package carries. A bare name, or a backend whose runtime only PATH can find, still gets 
          * the default search as a fallback.
+         *
+         * The backend's directory is also added to the process' default search directories. The runtime opens its own plugins from the
+         * hipSYCL subfolder with LOAD_LIBRARY_SEARCH_DEFAULT_DIRS, which never looks in the package, so a plugin could otherwise not find the
+         * dependencies the package carries beside the backend. The CUDA plugin would e.g. miss the CUDA runtime on every machine without
+         * a CUDA toolkit on PATH, and the runtime would quietly find no devices.
          */
         library_handle open_library(const std::string& path) {
             quiet_runtime();
             if (std::filesystem::path file(path); file.has_parent_path()) {
                 // LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR is only accepted together with an absolute path
-                std::string absolute = std::filesystem::absolute(file).string();
+                std::filesystem::path absolute_path = std::filesystem::absolute(file);
+                AddDllDirectory(absolute_path.parent_path().wstring().c_str());
+                std::string absolute = absolute_path.string();
                 if (auto handle = LoadLibraryExA(absolute.c_str(), nullptr, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)) {
                     return handle;
                 }
