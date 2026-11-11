@@ -9,8 +9,7 @@
 
 namespace ausaxs::hist {
     /**
-     * @brief The atoms and waters with their atomic form factors, without any excluded volume. This is ExvMethod::Vacuum.
-     *        The excluded volume profiles ax, xx and wx are always zero.
+     * @brief A scattering model where all scatterers are taken to be in vacuum, i.e. there is no excluded volume contribution. 
      */
     class ScatteringModelNoExv : public ScatteringModelExvBase<form_factor::lookup::table_t> {
         public:
