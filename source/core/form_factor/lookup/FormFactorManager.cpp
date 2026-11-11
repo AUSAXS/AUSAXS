@@ -91,7 +91,7 @@ namespace {
      * @brief Evaluate every active form factor over the default q axis.
      *        Evaluating first & then multiplying the results is faster than evaluating each product individually. 
      *
-     * @param eval Evaluates the profile of a single form factor, e.g. manager::evaluate_amplitude.
+     * @param eval Evaluates the profile of a single form factor, e.g. manager::evaluate.
      */
     profile_set_t evaluate_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices, const auto& eval) {
         profile_set_t profiles(form_factor::get_active_count());
@@ -222,7 +222,7 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     // must come first; the profile evaluations and table generators below only fill the active sub-block, which they read from here
     form_factor::detail::active_ff_count = active_count;
 
-    const auto atomic_profiles = evaluate_profiles(this->ff_indices, [] (form_factor_t type) {return manager::evaluate_amplitude(type);});
+    const auto atomic_profiles = evaluate_profiles(this->ff_indices, [] (form_factor_t type) {return manager::evaluate(type);});
     const auto exv_profiles = evaluate_exv_profiles(this->ff_indices);
 
     this->raw_atomic_table = generate_atomic_table(atomic_profiles);
@@ -231,7 +231,7 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     this->raw_exv_table    = generate_exv_table(exv_profiles);
 }
 
-manager::detail::profile_t manager::evaluate_amplitude(form_factor_t type) {
+manager::detail::profile_t manager::evaluate(form_factor_t type) {
     return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate(q);});
 }
 
@@ -239,7 +239,7 @@ manager::detail::profile_t manager::evaluate_self(form_factor_t type) {
     return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
 }
 
-double manager::evaluate_amplitude(form_factor_t type, double q) {
+double manager::evaluate(form_factor_t type, double q) {
     return evaluate_at(type, q, [] (const auto& ff, double q) {return ff.evaluate(q);});
 }
 

@@ -33,7 +33,7 @@ std::vector<double> ScatteringModelNoExv::debye_transform_direct(const std::vect
             auto debye_sum = [sinqd] (auto begin, auto end) {return std::transform_reduce(begin, end, sinqd, 0.0);};
             for (int ff = first; ff < n_ff; ++ff) {
                 auto type = static_cast<form_factor::form_factor_t>(ff_indices[ff]);
-                f[ff] = form_factor::manager::evaluate_amplitude(type, q[k]);
+                f[ff] = form_factor::manager::evaluate(type, q[k]);
                 s[ff] = form_factor::manager::evaluate_self(type, q[k]);
             }
 
