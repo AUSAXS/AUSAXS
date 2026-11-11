@@ -46,45 +46,29 @@ namespace {
     using profile_set_t = std::vector<manager::detail::profile_t>; // One profile per active form factor slot.
 
     /**
-     * @brief Call @a visit with the form factor of @a type for the current probe.
+     * @brief Call @a visit with the form factor of @a type for the current probe, and return its result.
      *        The excluded volume form factor is a normalized shape rather than a scattering length, so it is the same for both probes.
      *
-     * @param visit Called with a form factor of either probe.
+     * @param visit Called with a form factor of either probe. Must return the same type for both.
      */
     template<typename F>
-    void visit_form_factor(form_factor_t type, F&& visit) {
-        if (type == form_factor_t::EXCLUDED_VOLUME) {visit(xray::raw::get(type)); return;}
+    auto visit_form_factor(form_factor_t type, F&& visit) {
+        if (type == form_factor_t::EXCLUDED_VOLUME) {return visit(xray::raw::get(type));}
         switch (settings::scattering::radiation.value) {
-            case settings::scattering::Radiation::XRay:     visit(xray::raw::get(type)); return;
-            case settings::scattering::Radiation::Neutron:  visit(neutron::get(type)); return;
+            case settings::scattering::Radiation::XRay:     return visit(xray::raw::get(type));
+            case settings::scattering::Radiation::Neutron:  return visit(neutron::get(type));
         }
         throw except::unexpected("form_factor::manager: Unknown radiation type. Did you forget to add it to the switch statement?");
     }
 
     /**
-     * @brief Evaluate a single form factor over the default q axis, for the current probe.
-     *
-     * @param eval Evaluates a form factor of either probe at a given q value.
+     * @brief Tabulate @a f over the default q axis.
      */
     template<typename F>
-    manager::detail::profile_t evaluate_profile(form_factor_t type, F&& eval) {
+    manager::detail::profile_t tabulate(F&& f) {
         manager::detail::profile_t profile;
-        visit_form_factor(type, [&profile, &eval] (const auto& ff) {
-            for (int q = 0; q < static_cast<int>(profile.size()); ++q) {profile[q] = eval(ff, constants::axes::q_vals[q]);}
-        });
+        for (int q = 0; q < static_cast<int>(profile.size()); ++q) {profile[q] = f(constants::axes::q_vals[q]);}
         return profile;
-    }
-
-    /**
-     * @brief Evaluate a single form factor at a single q value, for the current probe.
-     *
-     * @param eval Evaluates a form factor of either probe at a given q value.
-     */
-    template<typename F>
-    double evaluate_at(form_factor_t type, double q, F&& eval) {
-        double value = 0;
-        visit_form_factor(type, [&value, &eval, q] (const auto& ff) {value = eval(ff, q);});
-        return value;
     }
 
     /**
@@ -232,19 +216,19 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
 }
 
 manager::detail::profile_t manager::evaluate(form_factor_t type) {
-    return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate(q);});
+    return visit_form_factor(type, [] (const auto& ff) {return tabulate([&ff] (double q) {return ff.evaluate(q);});});
 }
 
 manager::detail::profile_t manager::evaluate_self(form_factor_t type) {
-    return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
+    return visit_form_factor(type, [] (const auto& ff) {return tabulate([&ff] (double q) {return ff.evaluate_self(q);});});
 }
 
 double manager::evaluate(form_factor_t type, double q) {
-    return evaluate_at(type, q, [] (const auto& ff, double q) {return ff.evaluate(q);});
+    return visit_form_factor(type, [q] (const auto& ff) {return ff.evaluate(q);});
 }
 
 double manager::evaluate_self(form_factor_t type, double q) {
-    return evaluate_at(type, q, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
+    return visit_form_factor(type, [q] (const auto& ff) {return ff.evaluate_self(q);});
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() {
