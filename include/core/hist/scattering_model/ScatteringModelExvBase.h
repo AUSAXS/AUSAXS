@@ -207,10 +207,9 @@ namespace ausaxs::hist {
             virtual double exv_factor(double q) const;
 
             /**
-             * @brief Throws: the excluded volume models are only defined on the default q axis, as they are not meant for wide-angle scattering.
-             *        ScatteringModelNoExv, which has none, overrides this.
+             * @brief Throws by default: exv models are not supposed to be used outside the default q range. 
              */
-            std::vector<double> debye_transform_beyond_axis(const std::vector<double>& q) const override;
+            std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
 
         private:
             /**

@@ -3,16 +3,12 @@
 
 #pragma once
 
-#include <container/Container1D.h>
 #include <hist/distribution/Distribution1D.h>
-#include <hist/distribution/DistributionFwd.h>
 #include <hist/scattering_model/IScatteringModel.h>
-#include <utility/TypeTraits.h>
 
 namespace ausaxs::hist {
     /**
-     * @brief A class containing partial distance histograms for the different types of interactions.
-     *        This allows scaling the water contribution to the total intensity profile for use in e.g. fitting. 
+     * @brief A scattering model where all scatterers are equal and have the same Gaussian form factor. 
      */
     class ScatteringModelSimple : public IScatteringModel {
         public: 
@@ -51,12 +47,19 @@ namespace ausaxs::hist {
             Distribution1D& get_ww_counts() override;
 
             void apply_water_scaling_factor(double k) override;
+            ScatteringProfile debye_transform() const override;
+            using IScatteringModel::debye_transform;
             ScatteringProfile get_profile_aa() const override;
             ScatteringProfile get_profile_aw() const override;
             ScatteringProfile get_profile_ww() const override;
 
+        protected:
+            std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
+
         private:
             mutable struct {Distribution1D aa, aw, ww;} distance_profiles;
+
+            ScatteringProfile transform_counts_gaussian(std::span<const double> counts) const;
     };
     static_assert(supports_nothrow_move_v<ScatteringModelSimple>, "ScatteringModelSimple should support nothrow move semantics.");
 }

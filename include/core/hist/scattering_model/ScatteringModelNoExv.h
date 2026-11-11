@@ -23,11 +23,9 @@ namespace ausaxs::hist {
             void cache_refresh_intensity_exv(const std::vector<double>& /* void */, bool /* void */, bool /* void */) const override {}
 
             /**
-             * @brief Without an excluded volume, the model holds at any q: the atomic and hydration terms aa + aw + ww, with the form factors
-             *        evaluated at each q value rather than taken from the tables over the default q axis.
-             *        The water scaling factor and the atomic Debye-Waller factor are applied.
+             * @brief Evaluate the intensity directly at arbitrary q values, without using precomputed tables.
              */
-            std::vector<double> debye_transform_beyond_axis(const std::vector<double>& q) const override;
+            std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
     };
     static_assert(supports_nothrow_move_v<ScatteringModelNoExv>, "ScatteringModelNoExv should support nothrow move semantics.");
 }
