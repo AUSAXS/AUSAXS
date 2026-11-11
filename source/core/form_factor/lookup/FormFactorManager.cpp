@@ -222,11 +222,11 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     // must come first; the profile evaluations and table generators below only fill the active sub-block, which they read from here
     form_factor::detail::active_ff_count = active_count;
 
-    const auto atomic_profiles = evaluate_profiles(this->ff_indices, manager::evaluate_amplitude);
+    const auto atomic_profiles = evaluate_profiles(this->ff_indices, [] (form_factor_t type) {return manager::evaluate_amplitude(type);});
     const auto exv_profiles = evaluate_exv_profiles(this->ff_indices);
 
     this->raw_atomic_table = generate_atomic_table(atomic_profiles);
-    this->raw_self_table   = evaluate_profiles(this->ff_indices, manager::evaluate_self);
+    this->raw_self_table   = evaluate_profiles(this->ff_indices, [] (form_factor_t type) {return manager::evaluate_self(type);});
     this->raw_cross_table  = generate_cross_table(atomic_profiles, exv_profiles);
     this->raw_exv_table    = generate_exv_table(exv_profiles);
 }
@@ -239,11 +239,11 @@ manager::detail::profile_t manager::evaluate_self(form_factor_t type) {
     return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
 }
 
-double manager::evaluate_amplitude_at(form_factor_t type, double q) {
+double manager::evaluate_amplitude(form_factor_t type, double q) {
     return evaluate_at(type, q, [] (const auto& ff, double q) {return ff.evaluate(q);});
 }
 
-double manager::evaluate_self_at(form_factor_t type, double q) {
+double manager::evaluate_self(form_factor_t type, double q) {
     return evaluate_at(type, q, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
 }
 

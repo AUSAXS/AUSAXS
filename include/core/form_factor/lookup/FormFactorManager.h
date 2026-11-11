@@ -67,15 +67,15 @@ namespace ausaxs::form_factor::manager {
 
     /**
      * @brief Evaluate the amplitude f(q) of a single form factor at a single q value, for the probe selected by settings::scattering::radiation.
-     *        Unlike evaluate_amplitude, this is not limited to the default q axis.
+     *        Unlike the profile overload, this is not limited to the default q axis.
      */
-    double evaluate_amplitude_at(form_factor_t type, double q);
+    double evaluate_amplitude(form_factor_t type, double q);
 
     /**
      * @brief Evaluate the self-correlation form factor of a single form factor at a single q value, for the probe selected by settings::scattering::radiation.
-     *        Unlike evaluate_self, this is not limited to the default q axis.
+     *        Unlike the profile overload, this is not limited to the default q axis.
      */
-    double evaluate_self_at(form_factor_t type, double q);
+    double evaluate_self(form_factor_t type, double q);
 
     /**
      * @brief Get the currently active form factor product tables. 
