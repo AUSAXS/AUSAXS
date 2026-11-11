@@ -55,25 +55,24 @@ namespace ausaxs::form_factor::manager {
     }
 
     /**
-     * @brief Evaluate the amplitude f(q) of a single form factor over the default q axis, for the probe selected by settings::scattering::radiation.
+     * @brief Evaluate the amplitude f(q) of a single form factor over the default q axis for the current probe.
      */
     detail::profile_t evaluate_amplitude(form_factor_t type);
 
     /**
-     * @brief Evaluate the self-correlation form factor of a single form factor over the default q axis, for the probe selected by settings::scattering::radiation.
+     * @brief Evaluate the self-correlation form factor of a single form factor over the default q axis for the current probe.
      *        This is the form factor of a scatterer correlated with itself, which is only the squared amplitude for spherically symmetric scatterers.
      */
     detail::profile_t evaluate_self(form_factor_t type);
 
     /**
-     * @brief Evaluate the amplitude f(q) of a single form factor at a single q value, for the probe selected by settings::scattering::radiation.
-     *        Unlike the profile overload, this is not limited to the default q axis.
+     * @brief Evaluate the amplitude f(q) of a single form factor at a single q value for the current probe.
      */
     double evaluate_amplitude(form_factor_t type, double q);
 
     /**
-     * @brief Evaluate the self-correlation form factor of a single form factor at a single q value, for the probe selected by settings::scattering::radiation.
-     *        Unlike the profile overload, this is not limited to the default q axis.
+     * @brief Evaluate the self-correlation form factor of a single form factor at a single q value for the current probe.
+     *        This is the form factor of a scatterer correlated with itself, which is only the squared amplitude for spherically symmetric scatterers.
      */
     double evaluate_self(form_factor_t type, double q);
 
