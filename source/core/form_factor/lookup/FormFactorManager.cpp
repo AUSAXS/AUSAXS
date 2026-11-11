@@ -49,10 +49,10 @@ namespace {
      * @brief Call @a visit with the form factor of @a type for the current probe, and return its result.
      *        The excluded volume form factor is a normalized shape rather than a scattering length, so it is the same for both probes.
      *
-     * @param visit Called with a form factor of either probe. Must return the same type for both.
+     * @param visit Called with a form factor of either probe.
      */
     template<typename F>
-    auto visit_form_factor(form_factor_t type, F&& visit) {
+    auto visit_form_factor(form_factor_t type, F&& visit) -> decltype(auto) {
         if (type == form_factor_t::EXCLUDED_VOLUME) {return visit(xray::raw::get(type));}
         switch (settings::scattering::radiation.value) {
             case settings::scattering::Radiation::XRay:     return visit(xray::raw::get(type));
