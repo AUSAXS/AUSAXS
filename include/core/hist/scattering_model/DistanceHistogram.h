@@ -79,9 +79,9 @@ namespace ausaxs::hist {
 
             /**
              * @brief Determine if the structure represented by this histogram is highly ordered.
-             *        This is done by estimating the number of peaks in the histogram and comparing it to the number of bins.             
+             *        This is done by estimating the number of peaks in the histogram and comparing it to the number of bins.
              */
-            bool is_highly_ordered() const;
+            virtual bool is_highly_ordered() const;
 
             /**
              * @brief Determine whether a distance-count sequence is highly ordered.

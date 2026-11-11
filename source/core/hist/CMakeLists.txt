@@ -38,6 +38,7 @@ target_sources(ausaxs_core PRIVATE
 	"scattering_model/DebyeGradient.cpp"
 	"scattering_model/DistanceHistogram.cpp"
 	"scattering_model/ExactDebyeCalculator.cpp"
+	"scattering_model/IScatteringModel.cpp"
 	"scattering_model/IScatteringModelExv.cpp"
 	"scattering_model/ScatteringModelAverage.cpp"
 	"scattering_model/ScatteringModelExvBase.cpp"

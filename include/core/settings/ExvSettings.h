@@ -51,8 +51,7 @@ namespace ausaxs::settings {
             // Disable excluded volume modeling. The atoms are point scatterers with their weights and the effective form factor exp(-q*q).
             None,
 
-            // No excluded volume either, but the atoms and waters carry their individual atomic form factors, evaluated at each q.
-            // Without an excluded volume this holds at any q, also beyond the default q axis, so weighted bins are used unless explicitly disabled.
+            // The vacuum scattering of the atoms, without any excluded volume contribution.
             Vacuum
         };
         static Setting<ExvMethod> exv_method; // The method used to model the excluded volume.

@@ -248,8 +248,8 @@ void molecule_debye_userq(
 }, status);}
 
 namespace {
-// The point scatterers of a raw calculation, see RawScope, which must be active while they are used.
 hist::ScatteringModelPoint raw_histogram(int molecule_id) {
+    RawScope raw;
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     molecule.reset_histogram_manager(); // rebuilt with the raw settings
     return hist::ScatteringModelPoint(std::move(*molecule.get_total_histogram()));
@@ -261,7 +261,6 @@ int molecule_debye_raw(
     double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    RawScope raw;
     auto debye_I = raw_histogram(molecule_id).debye_transform();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
@@ -282,7 +281,6 @@ void molecule_debye_raw_userq(
     double* q, double* I, int n_points,
     int* status
 ) {execute_with_catch([&]() {
-    RawScope raw;
     std::vector<double> q_vals(q, q + n_points);
     auto debye_I = raw_histogram(molecule_id).debye_transform(q_vals);
     if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
