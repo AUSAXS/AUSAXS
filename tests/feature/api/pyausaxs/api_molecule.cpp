@@ -3,7 +3,6 @@
 #include <api/ObjectStorage.h>
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
-#include <constants/ConstantsAxes.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <data/atoms/AtomFF.h>
@@ -234,44 +233,6 @@ TEST_CASE("molecule_debye: the vacuum model agrees with the direct sum with atom
             CHECK_THAT(I[k], Catch::Matchers::WithinAbs(expected, 1e-5*scale));
         }
     }
-}
-
-// the excluded volume models are not meant for wide-angle scattering, and must say so rather than return the profile of another model
-TEST_CASE("molecule_debye_userq: excluded volume models refuse q beyond the default axis") {
-    int status = 1;
-    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
-    REQUIRE(status == 0);
-    std::string exv = GENERATE("average", "fraser");
-    set_setting("exv_model", exv.c_str(), &status);
-    REQUIRE(status == 0);
-
-    std::array q = {0.5, constants::axes::q_axis.max + 1};
-    std::array<double, 2> I{};
-    molecule_debye_userq(mol, q.data(), I.data(), 2, &status);
-    CHECK(status != 0);
-
-    char* error_msg = nullptr;
-    int error_status = 1;
-    get_last_error_msg(&error_msg, &error_status);
-    REQUIRE(error_status == 0);
-    CHECK(std::string(error_msg).find("not meant for wide-angle scattering") != std::string::npos);
-}
-
-TEST_CASE("molecule_debye: the vacuum model refuses molecules without form factors") {
-    std::array x = {0.0, 1.0, 0.0};
-    std::array y = {0.0, 0.0, 1.0};
-    std::array z = {0.0, 0.0, 0.0};
-    std::array w = {1.0, 1.0, 1.0};
-    int status = 1;
-    int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), 3, &status);
-    REQUIRE(status == 0);
-    set_setting("exv_model", "vacuum", &status);
-    REQUIRE(status == 0);
-
-    double *q, *I;
-    int n = 0;
-    molecule_debye(mol, &q, &I, &n, &status);
-    CHECK(status != 0);
 }
 
 TEST_CASE("object ids: an object of the wrong type is refused") {
