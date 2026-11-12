@@ -51,14 +51,11 @@ namespace ausaxs::gpu {
 
             /**
              * @brief Whether a backend is loaded and reports a usable device.
-             *        False for the rest of the process once report_failure() has been called.
              */
             static bool available();
 
             /**
              * @brief Report a backend call that failed, and take the device out of use.
-             *
-             * Prints one warning naming the first failure, and makes available() false from then on, so every later caller goes straight to the CPU. 
              *
              * @param action What the caller was trying to do, named in the warning. Format is "failed while trying to <action>".
              * @param status The status the backend returned.
@@ -82,7 +79,6 @@ namespace ausaxs::gpu {
 
             /**
              * @brief Whether @a id identifies the backend's host CPU device rather than a GPU.
-             *        The host device is only listed when settings::internal_state::gpu_expose_cpu is set; see abi::device_count_fn.
              */
             static bool is_host_device(std::string_view id);
 
@@ -99,22 +95,17 @@ namespace ausaxs::gpu {
             };
 
             /**
-             * @brief Picks one of the GPUs, given their identifiers in the backend's ranked order. Returns the index of the chosen one, or nothing
-             *        if no choice was made.
+             * @brief Picks one of the GPUs, given their identifiers in the backend's ranked order. 
+             *        Returns the index of the chosen one, or nothing if no choice was made.
              */
             using DeviceChooser = std::function<std::optional<std::size_t>(const std::vector<std::string>& devices)>;
-
-            // @brief Returned by a DeviceChooser to use none of the GPUs.
-            static constexpr std::size_t no_device = std::numeric_limits<std::size_t>::max();
+            static constexpr std::size_t no_device = std::numeric_limits<std::size_t>::max(); // No device as chosen by DeviceChooser. 
 
             /**
              * @brief Open the backend at @a path and ask it for a device, without making it the backend in use.
              *
-             * @param choose Asked to pick the device to test whenever the backend finds one, even if it is the only one. Without it, or if it
-             *               makes no choice, the first one is tested.
-             *
-             * For checking an installation. Note that a broken AdaptiveCpp runtime may terminate the process from inside this call, which cannot 
-             * be caught; a caller that records an installation as good should only do so once this has returned. 
+             * @param choose Asked to pick the device to test whenever the backend finds one, even if it is the only one. 
+             *               Without it, or if it makes no choice, the first one is tested.
              */
             static Probe probe(const std::string& path, const DeviceChooser& choose = {});
     };

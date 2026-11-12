@@ -185,13 +185,15 @@ TEST_CASE("installer::select_device") {
 TEST_CASE("installer::install") {
     TempCache temp("install");
 
-    SECTION("a file that is not a zip is rejected, and leaves nothing behind") {
-        io::File archive = temp.root.path() + "/not_a.zip";
-        archive.create();
-        CHECK_THROWS(gpu::installer::install(archive.path()));
-        CHECK_FALSE(temp.folder.exists());
-        CHECK_FALSE(temp.staging.exists());
-        CHECK_FALSE(temp.record.exists());
+    SECTION("a file that is neither a zip nor a shared library, or a zip that cannot be unpacked, is rejected, and leaves nothing behind") {
+        for (const std::string& name : {std::string("not_a.zip"), std::string("libCatch2.a")}) {
+            io::File file = temp.root.path() + "/" + name;
+            file.create();
+            CHECK_THROWS(gpu::installer::install(file.path()));
+            CHECK_FALSE(temp.folder.exists());
+            CHECK_FALSE(temp.staging.exists());
+            CHECK_FALSE(temp.record.exists());
+        }
     }
 
     SECTION("an existing path that is not from an earlier installation is never replaced") {

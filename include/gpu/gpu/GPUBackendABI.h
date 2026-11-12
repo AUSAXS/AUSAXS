@@ -23,15 +23,8 @@
  */
 namespace ausaxs::gpu::abi {
     extern "C" {
-        /**
-         * @brief The version of this interface.
-         */
-        constexpr std::int32_t version = 4;
-
-        /**
-         * @brief The <api> part of the identifier of the host CPU device; see device_count.
-         */
-        constexpr const char* host_api = "host";
+        constexpr std::int32_t version = 4; // ABI version, used to verify the backend is valid at link time. 
+        constexpr const char* host_api = "host"; // The <api> name of the host device in the DeviceChooser. 
 
         /**
          * @brief Status returned by the run functions.
