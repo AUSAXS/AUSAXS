@@ -46,23 +46,28 @@ namespace {
     using profile_set_t = std::vector<manager::detail::profile_t>; // One profile per active form factor slot.
 
     /**
-     * @brief Evaluate a single form factor over the default q axis, for the current probe.
+     * @brief Call @a visit with the form factor of @a type for the current probe, and return its result.
      *        The excluded volume form factor is a normalized shape rather than a scattering length, so it is the same for both probes.
      *
-     * @param eval Evaluates a form factor of either probe at a given q value.
+     * @param visit Called with a form factor of either probe.
      */
     template<typename F>
-    manager::detail::profile_t evaluate_profile(form_factor_t type, F&& eval) {
-        manager::detail::profile_t profile;
-        auto fill = [&profile, &eval] (const auto& ff) {
-            for (int q = 0; q < static_cast<int>(profile.size()); ++q) {profile[q] = eval(ff, constants::axes::q_vals[q]);}
-        };
-
-        if (type == form_factor_t::EXCLUDED_VOLUME) {fill(xray::raw::get(type)); return profile;}
+    auto visit_form_factor(form_factor_t type, F&& visit) -> decltype(auto) {
+        if (type == form_factor_t::EXCLUDED_VOLUME) {return visit(xray::raw::get(type));}
         switch (settings::scattering::radiation.value) {
-            case settings::scattering::Radiation::XRay:     fill(xray::raw::get(type)); break;
-            case settings::scattering::Radiation::Neutron:  fill(neutron::get(type)); break;
+            case settings::scattering::Radiation::XRay:     return visit(xray::raw::get(type));
+            case settings::scattering::Radiation::Neutron:  return visit(neutron::get(type));
         }
+        throw except::unexpected("form_factor::manager: Unknown radiation type. Did you forget to add it to the switch statement?");
+    }
+
+    /**
+     * @brief Tabulate @a f over the default q axis.
+     */
+    template<typename F>
+    manager::detail::profile_t tabulate(F&& f) {
+        manager::detail::profile_t profile;
+        for (int q = 0; q < static_cast<int>(profile.size()); ++q) {profile[q] = f(constants::axes::q_vals[q]);}
         return profile;
     }
 
@@ -70,7 +75,7 @@ namespace {
      * @brief Evaluate every active form factor over the default q axis.
      *        Evaluating first & then multiplying the results is faster than evaluating each product individually. 
      *
-     * @param eval Evaluates the profile of a single form factor, e.g. manager::evaluate_amplitude.
+     * @param eval Evaluates the profile of a single form factor, e.g. manager::evaluate.
      */
     profile_set_t evaluate_profiles(const std::array<int, form_factor::total_ff_count>& ff_indices, const auto& eval) {
         profile_set_t profiles(form_factor::get_active_count());
@@ -201,21 +206,29 @@ manager::detail::ActiveTables::ActiveTables(const std::array<int, form_factor::t
     // must come first; the profile evaluations and table generators below only fill the active sub-block, which they read from here
     form_factor::detail::active_ff_count = active_count;
 
-    const auto atomic_profiles = evaluate_profiles(this->ff_indices, manager::evaluate_amplitude);
+    const auto atomic_profiles = evaluate_profiles(this->ff_indices, [] (form_factor_t type) {return manager::evaluate(type);});
     const auto exv_profiles = evaluate_exv_profiles(this->ff_indices);
 
     this->raw_atomic_table = generate_atomic_table(atomic_profiles);
-    this->raw_self_table   = evaluate_profiles(this->ff_indices, manager::evaluate_self);
+    this->raw_self_table   = evaluate_profiles(this->ff_indices, [] (form_factor_t type) {return manager::evaluate_self(type);});
     this->raw_cross_table  = generate_cross_table(atomic_profiles, exv_profiles);
     this->raw_exv_table    = generate_exv_table(exv_profiles);
 }
 
-manager::detail::profile_t manager::evaluate_amplitude(form_factor_t type) {
-    return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate(q);});
+manager::detail::profile_t manager::evaluate(form_factor_t type) {
+    return visit_form_factor(type, [] (const auto& ff) {return tabulate([&ff] (double q) {return ff.evaluate(q);});});
 }
 
 manager::detail::profile_t manager::evaluate_self(form_factor_t type) {
-    return evaluate_profile(type, [] (const auto& ff, double q) {return ff.evaluate_self(q);});
+    return visit_form_factor(type, [] (const auto& ff) {return tabulate([&ff] (double q) {return ff.evaluate_self(q);});});
+}
+
+double manager::evaluate(form_factor_t type, double q) {
+    return visit_form_factor(type, [q] (const auto& ff) {return ff.evaluate(q);});
+}
+
+double manager::evaluate_self(form_factor_t type, double q) {
+    return visit_form_factor(type, [q] (const auto& ff) {return ff.evaluate_self(q);});
 }
 
 observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_tables() {

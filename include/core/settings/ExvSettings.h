@@ -48,8 +48,11 @@ namespace ausaxs::settings {
             // Mimic of the WAXSiS implementation, where the excluded volume covers the entire envelope.
             WAXSiS,
 
-            // Disable excluded volume modeling.
-            None
+            // Disable excluded volume modeling. The atoms are point scatterers with their weights and the effective form factor exp(-q*q).
+            None,
+
+            // The vacuum scattering of the atoms, without any excluded volume contribution.
+            Vacuum
         };
         static Setting<ExvMethod> exv_method; // The method used to model the excluded volume.
 

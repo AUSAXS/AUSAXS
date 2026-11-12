@@ -12,6 +12,7 @@
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/ScatteringModelPoint.h>
 #include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
 #include <utility/Exceptions.h>
@@ -246,17 +247,21 @@ void molecule_debye_userq(
     }
 }, status);}
 
+namespace {
+hist::ScatteringModelPoint raw_histogram(int molecule_id) {
+    RawScope raw;
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager(); // rebuilt with the raw settings
+    return hist::ScatteringModelPoint(std::move(*molecule.get_total_histogram()));
+}
+}
+
 int molecule_debye_raw(
     int molecule_id,
     double** q, double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    RawScope raw;
-
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    molecule.reset_histogram_manager(); // rebuilt with the raw settings
-    auto hist = molecule.get_histogram();
-    auto debye_I = hist->debye_transform<false>();
+    auto debye_I = raw_histogram(molecule_id).debye_transform();
     auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
     _molecule_debye_obj data(debye_I.size());
     for (int i = 0; i < debye_I.size(); ++i) {
@@ -268,7 +273,6 @@ int molecule_debye_raw(
     *q = ref->q.data();
     *I = ref->I.data();
     *n_points = debye_I.size();
-
     return data_id;
 }, status);}
 
@@ -277,13 +281,8 @@ void molecule_debye_raw_userq(
     double* q, double* I, int n_points,
     int* status
 ) {execute_with_catch([&]() {
-    RawScope raw;
-
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     std::vector<double> q_vals(q, q + n_points);
-    molecule.reset_histogram_manager(); // rebuilt with the raw settings
-    auto hist = molecule.get_histogram();
-    auto debye_I = hist->debye_transform<false>(q_vals);
+    auto debye_I = raw_histogram(molecule_id).debye_transform(q_vals);
     if (debye_I.size() != n_points) {throw except::size_error("Raw Debye transform returned an unexpected number of points.");}
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i);

@@ -52,38 +52,14 @@ namespace ausaxs::hist {
 
             /**
              * @brief Perform the Fourier transform through the Debye equation.
-             *        Every scatterer carries the Gaussian form factor exp(-q²/2), so the intensity is multiplied by exp(-q²).
-             *        Subclasses with their own form factors override this.
              */
             virtual ScatteringProfile debye_transform() const;
 
             /**
              * @brief Perform the Fourier transform through the Debye equation.
-             *        q values within the default q axis (constants::axes::q_axis) are interpolated from the profile of this histogram.
-             *        If settings::axes::qmin..qmax does not cover them, the q range is first expanded to do so; see expand_q_range.
-             *        Outside the default q axis, a size q*d sinc(x) lookup table is calculated for every call to this function.
              *
              * @param q The q values at which to evaluate the scattering.
              */
-            Dataset debye_transform(const std::vector<double>& q) const;
-
-            /**
-             * @brief Perform the Fourier transform through the Debye equation, optionally without the form factor.
-             *
-             * @tparam form_factor If true, this is identical to the virtual debye_transform().
-             *                     If false, the plain Debye sum of the total histogram is returned, i.e. the intensity of point scatterers.
-             */
-            template<bool form_factor>
-            ScatteringProfile debye_transform() const;
-
-            /**
-             * @brief Perform the Fourier transform through the Debye equation at the given q values, optionally without the form factor.
-             *
-             * @tparam form_factor If true, this is identical to debye_transform(q).
-             *                     If false, the plain Debye sum of the total histogram is returned, i.e. the intensity of point scatterers.
-             * @param q The q values at which to evaluate the scattering.
-             */
-            template<bool form_factor>
             Dataset debye_transform(const std::vector<double>& q) const;
 
             /**
@@ -103,42 +79,50 @@ namespace ausaxs::hist {
 
             /**
              * @brief Determine if the structure represented by this histogram is highly ordered.
-             *        This is done by estimating the number of peaks in the histogram and comparing it to the number of bins.             
+             *        This is done by estimating the number of peaks in the histogram and comparing it to the number of bins.
              */
-            bool is_highly_ordered() const;
+            virtual bool is_highly_ordered() const;
 
             /**
              * @brief Determine whether a distance-count sequence is highly ordered.
-             *
-             * This overload is used for partial histograms, where the atom-atom
-             * component must be inspected instead of the total histogram.
+             *        This is done by estimating the number of peaks in the histogram and comparing it to the number of bins.             
              */
             static bool is_highly_ordered(const std::vector<double>& counts);
 
         protected:
             /**
-             * @brief The Debye sum of @a counts at the given q values, optionally multiplied by the exp(-q²) form factor.
+             * @brief The Debye transform I(q) = sum_d counts(d)*sinc(q*d) of a single count array, over the current q range.
+             *
+             * @param sinqd_table A sinc table over the full default q axis.
+             */
+            static ScatteringProfile transform_counts(std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table);
+
+            /**
+             * @brief As transform_counts, but at the given q values.
              *
              * @param sinqd_table The sinc table. Its row @a first_row + i must hold the sinc values for q[i].
              */
-            template<bool form_factor>
-            static std::vector<double> debye_sum(
+            static std::vector<double> transform_counts(
                 std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table, std::span<const double> q, int first_row = 0
             );
 
             /**
-             * @brief The Debye sum of @a counts on the default q axis, optionally multiplied by the exp(-q²) form factor.
-             *
-             * @param sinqd_table A sinc table over the full default q axis.
+             * @brief Evaluate the intensity directly at arbitrary q values, without using precomputed tables.
              */
-            template<bool form_factor>
-            static ScatteringProfile debye_sum(std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table);
+            virtual std::vector<double> debye_transform_direct(const std::vector<double>& q) const;
+
+            /**
+             * @brief A sinc table for the distance axis of this histogram at the given q values, with one row per q value.
+             */
+            observer_ptr<const table::DebyeTable> sinc_table_for(const std::vector<double>& q) const;
+            //! Unclear, change name/function. 
 
             /**
              * @brief Expand settings::axes::qmin..qmax to cover @a q, which must lie within the default q axis.
              *        Subclasses caching anything sized by the q range must invalidate it.
              */
             virtual void expand_q_range(const std::vector<double>& q) const;
+            //! Should probably be a pair of `expand_q_range` and `virtual on_q_range_changed` instead. 
 
             std::vector<double> d_axis;                     // The distance axis.
             mutable table::DebyeTableManager sinc_table;    // The sinc(x) lookup table manager for the Debye transform.

@@ -8,7 +8,7 @@
 #include <grid/detail/GridExcludedVolume.h>
 #include <hist/detail/GridExvFFT.h>
 #include <hist/distribution/WeightedDistribution1D.h>
-#include <hist/scattering_model/DistanceHistogram.h>
+#include <hist/scattering_model/ScatteringModelPoint.h>
 #include <math/Vector3.h>
 #include <settings/InternalState.h>
 #include <utility/Exceptions.h>
@@ -71,7 +71,7 @@ void shape_debye_userq(
 
     // every cell scatters with the Gaussian form factor of its volume, as in the Grid excluded volume model
     std::vector<double> q_vals(q, q + n_q);
-    auto debye_I = hist::DistanceHistogram(std::move(p)).debye_transform<false>(q_vals);
+    auto debye_I = hist::ScatteringModelPoint(std::move(p)).debye_transform(q_vals);
     double V = spacing*spacing*spacing;
     form_factor::detail::ExvFormFactor ff(V, 1); // unit contrast: only the shape is modelled
     for (int j = 0; j < n_q; ++j) {

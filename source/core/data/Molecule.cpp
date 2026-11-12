@@ -8,7 +8,6 @@
 #include <dataset/SimpleDataset.h>
 #include <grid/Grid.h>
 #include <grid/exv/ExvVolume.h>
-#include <hist/distribution/Distribution1D.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
@@ -23,6 +22,7 @@
 #include <cassert>
 #include <functional>
 #include <numeric>
+#include <optional>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -67,21 +67,20 @@ Molecule& Molecule::operator=(Molecule&& other) noexcept {
 }
 
 namespace {
-    // whether settings::hist::weighted_bins = auto leaves the bins to the molecule. The grid models always use weighted bins.
-    bool auto_bins() {
-        return settings::hist::weighted_bins->is_auto() && !hist::factory::uses_grid_exv();
+    // Whether anything forces the bins to be weighted (e.g. a grid-based exv model or because the user specified it). 
+    bool forced_weighted_bins() {
+        if (hist::factory::uses_grid_exv()) {return true;}
+        if (settings::hist::weighted_bins->is_auto()) {return settings::exv::exv_method == settings::exv::ExvMethod::Vacuum;}
+        return settings::hist::weighted_bins->is_true();
     }
 
-    // the bins of a new manager. Under auto they are unweighted until the molecule has decided otherwise, since most molecules
+    // Whether the molecule can decide on whether to use weighted bins.
+    bool auto_bins_allowed() {return settings::hist::weighted_bins->is_auto() && !forced_weighted_bins();}
+
+    // The initial state of a new manager. Under auto they are unweighted until the molecule has decided otherwise, since most molecules
     // are disordered: their first calculation is then also their final one.
     bool initial_weighted_bins(std::optional<bool> decision) {
-        return auto_bins() ? decision.value_or(false) : settings::hist::weighted_bins->is_true();
-    }
-
-    // whether unweighted bins would distort the profile of a molecule. Ordering must be measured from the atom-atom component:
-    // hydration can hide sharp peaks in the total p(r).
-    bool is_ordered(const hist::IScatteringModel& histogram) {
-        return hist::DistanceHistogram::is_highly_ordered(histogram.get_aa_counts().get_content());
+        return auto_bins_allowed() ? decision.value_or(false) : forced_weighted_bins();
     }
 }
 
@@ -92,7 +91,7 @@ void Molecule::lazy_histogram_manager_init() const {
 }
 
 bool Molecule::uses_weighted_bins() const {
-    if (!auto_bins()) {return hist::factory::uses_grid_exv() || settings::hist::weighted_bins->is_true();}
+    if (!auto_bins_allowed()) {return forced_weighted_bins();}
     if (!auto_weighted_bins.has_value()) {(void) get_histogram();} // decides
     return *auto_weighted_bins;
 }
@@ -290,10 +289,10 @@ void Molecule::set_hydration_generator(std::unique_ptr<hydrate::HydrationStrateg
 
 std::unique_ptr<hist::IScatteringModel> Molecule::get_histogram() const {
     auto histogram = get_histogram_manager()->calculate_all();
-    if (!auto_bins() || auto_weighted_bins) {return histogram;}
+    if (!auto_bins_allowed() || auto_weighted_bins) {return histogram;}
 
     // Under auto, the first calculation decides whether its unweighted bins are good enough, and is redone with weighted bins if not.
-    auto_weighted_bins = is_ordered(*histogram);
+    auto_weighted_bins = histogram->is_highly_ordered(); // unweighted bins would distort the profile of an ordered molecule
     if (!*auto_weighted_bins) {
         console::print_text("Molecule: weighted bins disabled automatically (disordered structure).");
         return histogram;
@@ -305,7 +304,7 @@ std::unique_ptr<hist::IScatteringModel> Molecule::get_histogram() const {
 }
 
 std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
-    if (auto_bins() && !auto_weighted_bins) {return get_histogram();} // the decision needs the atom-atom component
+    if (auto_bins_allowed() && !auto_weighted_bins) {return get_histogram();} // the decision needs the atom-atom component
     return get_histogram_manager()->calculate();
 }
 

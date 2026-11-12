@@ -69,5 +69,10 @@ namespace ausaxs::hist {
              *        This is intended to be used by the fitter to set correct limits. 
              */
             virtual Limit get_water_scaling_factor_limits() const {return {0, 10};}
+
+            /**
+             * @brief Determine if the structure represented by this histogram is highly ordered.
+             */
+            bool is_highly_ordered() const override;
     };
 }

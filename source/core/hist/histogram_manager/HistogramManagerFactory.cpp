@@ -73,6 +73,7 @@ namespace {
             case ExvMethod::FoXS:
             case ExvMethod::Pepsi:
             case ExvMethod::WAXSiS:
+            case ExvMethod::Vacuum: // see ScatteringModelNoExv
                 return true;
             default:
                 throw except::unexpected("hist::factory::uses_form_factors: Unknown ExvMethod. Did you forget to add it to the switch statement?");

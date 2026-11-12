@@ -59,6 +59,7 @@ extern "C" API int molecule_debye(
 
 /**
  * As molecule_debye, but evaluated at the given q values.
+ * Only the models without excluded volume, "none" and "vacuum", can be evaluated beyond the default q axis; the others fail there.
  */
 extern "C" API void molecule_debye_userq(
     int molecule_id, 
@@ -68,6 +69,7 @@ extern "C" API void molecule_debye_userq(
 
 /**
  * The plain binned Debye sum of the atoms and any waters as point scatterers with their weights.
+ * For the same sum with their atomic form factors, use molecule_debye with the excluded volume model "vacuum".
  */
 extern "C" API int molecule_debye_raw(
     int molecule_id,

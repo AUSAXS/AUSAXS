@@ -3,6 +3,8 @@
 
 #include <hist/scattering_model/ScatteringModelSimple.h>
 
+#include <cmath>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
@@ -52,14 +54,38 @@ void ScatteringModelSimple::apply_water_scaling_factor(double k) {
     for (int i = 0; i < p.size(); ++i) {p[i] = distance_profiles.aa.index(i) + k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
 }
 
+namespace {
+    // the exp(-q²/2) form factor of each scatterer
+    void apply_gaussian_form_factor(std::vector<double>& I, const std::vector<double>& q) {
+        for (std::size_t i = 0; i < I.size(); ++i) {I[i] *= std::exp(-q[i]*q[i]);}
+    }
+}
+
+ScatteringProfile ScatteringModelSimple::transform_counts_gaussian(std::span<const double> counts) const {
+    auto profile = transform_counts(counts, sinc_table.get_sinc_table());
+    std::vector<double> I = profile.get_intensity();
+    apply_gaussian_form_factor(I, profile.get_axis().as_vector());
+    return {std::move(I), profile.get_axis()};
+}
+
+ScatteringProfile ScatteringModelSimple::debye_transform() const {
+    return transform_counts_gaussian(p);
+}
+
+std::vector<double> ScatteringModelSimple::debye_transform_direct(const std::vector<double>& q) const {
+    auto I = transform_counts(p, sinc_table_for(q), q);
+    apply_gaussian_form_factor(I, q);
+    return I;
+}
+
 ScatteringProfile ScatteringModelSimple::get_profile_aa() const {
-    return debye_sum<true>(get_aa_counts().get_content(), sinc_table.get_sinc_table());
+    return transform_counts_gaussian(get_aa_counts().get_content());
 }
 
 ScatteringProfile ScatteringModelSimple::get_profile_aw() const {
-    return debye_sum<true>(get_aw_counts().get_content(), sinc_table.get_sinc_table());
+    return transform_counts_gaussian(get_aw_counts().get_content());
 }
 
 ScatteringProfile ScatteringModelSimple::get_profile_ww() const {
-    return debye_sum<true>(get_ww_counts().get_content(), sinc_table.get_sinc_table());
+    return transform_counts_gaussian(get_ww_counts().get_content());
 }

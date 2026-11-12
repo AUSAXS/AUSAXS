@@ -15,6 +15,7 @@
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
 #include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelFraser.h>
+#include <hist/scattering_model/ScatteringModelNoExv.h>
 #include <hist/scattering_model/ScatteringModelSimple.h>
 #include <hist/scattering_model/crysol/ScatteringModelCrysol.h>
 #include <hist/scattering_model/foxs/ScatteringModelFoXS.h>
@@ -25,6 +26,24 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail;
+
+namespace {
+    /**
+     * @brief Construct a form factor scattering model from the exported distributions, followed by any model-specific arguments.
+     */
+    template<typename Model, bool wb, typename... Args>
+    std::unique_ptr<IScatteringModel> make_ff_model(ManagerDistributions<wb, true>&& d, Args&&... args) { // NOLINT
+        return std::make_unique<Model>(
+            Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
+            Distribution2D(std::move(d.p_aw)),
+            Distribution1D(std::move(d.p_ww)),
+            std::move(d.self_aa),
+            d.self_ww,
+            std::move(d.p_tot),
+            std::forward<Args>(args)...
+        );
+    }
+}
 
 template<bool wb, bool ff>
 ManagerDistributions<wb, ff> hist::detail::export_distributions(distance_calculator::HistogramStore<wb>& store, int aa, int aw, int ww) {
@@ -64,44 +83,11 @@ std::unique_ptr<IScatteringModel> hist::detail::make_explicit_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     switch (settings::exv::exv_method) {
-        case settings::exv::ExvMethod::FoXS:
-            return std::make_unique<ScatteringModelFoXS>(
-                Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
-                Distribution2D(std::move(d.p_aw)),
-                Distribution1D(std::move(d.p_ww)),
-                std::move(d.self_aa),
-                d.self_ww,
-                std::move(d.p_tot)
-            );
-        case settings::exv::ExvMethod::Pepsi:
-            return std::make_unique<ScatteringModelPepsi>(
-                Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
-                Distribution2D(std::move(d.p_aw)),
-                Distribution1D(std::move(d.p_ww)),
-                std::move(d.self_aa),
-                d.self_ww,
-                std::move(d.p_tot),
-                protein
-            );
-        case settings::exv::ExvMethod::CRYSOL:
-            return std::make_unique<ScatteringModelCrysol>(
-                Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
-                Distribution2D(std::move(d.p_aw)),
-                Distribution1D(std::move(d.p_ww)),
-                std::move(d.self_aa),
-                d.self_ww,
-                std::move(d.p_tot),
-                protein
-            );
-        default:
-            return std::make_unique<ScatteringModelFraser>(
-                Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
-                Distribution2D(std::move(d.p_aw)),
-                Distribution1D(std::move(d.p_ww)),
-                std::move(d.self_aa),
-                d.self_ww,
-                std::move(d.p_tot)
-            );
+        case settings::exv::ExvMethod::Vacuum:  return make_ff_model<ScatteringModelNoExv> (std::move(d));
+        case settings::exv::ExvMethod::FoXS:    return make_ff_model<ScatteringModelFoXS>  (std::move(d));
+        case settings::exv::ExvMethod::Pepsi:   return make_ff_model<ScatteringModelPepsi> (std::move(d), protein);
+        case settings::exv::ExvMethod::CRYSOL:  return make_ff_model<ScatteringModelCrysol>(std::move(d), protein);
+        default:                                return make_ff_model<ScatteringModelFraser>(std::move(d));
     }
 }
 
@@ -110,15 +96,7 @@ std::unique_ptr<IScatteringModel> hist::detail::make_average_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     double Z_exv_avg = protein->size_atom() == 0 ? 0 : protein->get_volume_grid()*settings::internal_state::solvent_density()/protein->size_atom();
-    return std::make_unique<ScatteringModelAverage>(
-        Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
-        Distribution2D(std::move(d.p_aw)),
-        Distribution1D(std::move(d.p_ww)),
-        std::move(d.self_aa),
-        d.self_ww,
-        std::move(d.p_tot),
-        Z_exv_avg
-    );
+    return make_ff_model<ScatteringModelAverage>(std::move(d), Z_exv_avg);
 }
 
 template<bool wb>

@@ -206,6 +206,11 @@ namespace ausaxs::hist {
              */
             virtual double exv_factor(double q) const;
 
+            /**
+             * @brief Throws by default: exv models are not supposed to be used outside the default q range. 
+             */
+            std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
+
         private:
             /**
              * @brief Get the atomic Debye Waller factor for a given q value.
