@@ -1,0 +1,363 @@
+name: GPU backend (Windows)
+
+# The Windows backend package. Called by gpu-backend-release.yml, which must grant packages: write for the toolchain package.
+on:
+  workflow_call:
+
+env:
+  BUILD_TYPE: Release
+  WINDOWS_LLVM_VERSION: "20"
+  WINDOWS_BASE_LLVM_VERSION: "19"
+  WINDOWS_CUDA_VERSION: "12.6.1"
+
+jobs:
+  # Follows AdaptiveCpp's windows-acppllvm.yml. Only CUDA is covered: that workflow never builds the ROCm or
+  # OpenCL backends on Windows, so neither has been shown to work there.
+  backend-windows:
+    name: "SYCL backend (Windows x86_64)"
+    runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: write # publishing the toolchain package
+    env:
+      ACPP_PREFIX: ${{ github.workspace }}\_acpp
+      ACPP_LLVM_SRC: ${{ github.workspace }}\_src
+      DIST: ${{ github.workspace }}\_deploy
+      GPU_PACKAGE: dist\ausaxs-gpu-windows-x64
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      # Loads the AdaptiveCpp pin shared by all platforms, and names the package after the sources it is built from.
+      - id: setup
+        uses: ./.github/actions/gpu-backend-setup
+        with:
+          platform: windows
+
+      # clang-cl and the build of LLVM below both need the MSVC environment, and so does dumpbin, which
+      # --acpp-deploy uses to find indirect dependencies on Windows.
+      - uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
+
+      # One argument per line. The build step configures with exactly these, and the file's hash is the
+      # package version, so a changed flag or pin can never fetch a toolchain that was built another way.
+      - name: Describe the AdaptiveCpp-LLVM toolchain
+        id: toolchain
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $pins = "# image=$env:ImageOS llvm=release/$env:WINDOWS_LLVM_VERSION.x base-llvm=$env:WINDOWS_BASE_LLVM_VERSION " +
+                  "cuda=$env:WINDOWS_CUDA_VERSION acpp=$env:ACPP_REPO@$env:ACPP_COMMIT"
+          # LINK_INTO_TOOLS is what makes this work at all: a Windows DLL cannot be loaded into clang as a
+          # plugin, so the SSCP compiler has to be linked into clang itself.
+          $cmakeArgs = @(
+            '-S', "$env:ACPP_LLVM_SRC\llvm\llvm",
+            '-B', "$env:ACPP_LLVM_SRC\build",
+            '-G', 'Ninja',
+            '-DCMAKE_BUILD_TYPE=Release',
+            '-DCMAKE_C_COMPILER=clang-cl',
+            '-DCMAKE_CXX_COMPILER=clang-cl',
+            "-DCMAKE_INSTALL_PREFIX=$env:ACPP_PREFIX",
+            '-DLLVM_TARGETS_TO_BUILD=X86;NVPTX',
+            '-DLLVM_ENABLE_PROJECTS=clang;openmp;lld;compiler-rt',
+            '-DLLVM_PARALLEL_LINK_JOBS=1',
+            '-DLLVM_EXTERNAL_PROJECTS=AdaptiveCpp',
+            "-DLLVM_EXTERNAL_ADAPTIVECPP_SOURCE_DIR=$env:ACPP_LLVM_SRC\acpp",
+            '-DLLVM_ADAPTIVECPP_LINK_INTO_TOOLS=ON',
+            '-DWITH_CUDA_BACKEND=ON',
+            '-DWITH_ROCM_BACKEND=OFF',
+            '-DWITH_OPENCL_BACKEND=OFF',
+            '-DLLVM_TOOL_BUGPOINT_BUILD=OFF',
+            '-DOPENMP_ENABLE_LIBOMPTARGET=OFF',
+            '-DLLVM_INCLUDE_TESTS=OFF'
+          )
+          New-Item -ItemType Directory -Force _toolchain | Out-Null
+          @($pins) + $cmakeArgs | Set-Content _toolchain\acpp-llvm.txt
+          Get-Content _toolchain\acpp-llvm.txt
+
+          # Named and versioned the way vcpkg's binary cache names its packages on the same feed.
+          $hash = (Get-FileHash _toolchain\acpp-llvm.txt -Algorithm SHA256).Hash.ToLower()
+          "package=adaptivecpp-llvm_x64-windows" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$env:WINDOWS_LLVM_VERSION.0.0-acpp$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      # The toolchain is kept as a package on the organisation's GitHub Packages NuGet feed, beside vcpkg's
+      # binary cache. Unlike actions/cache, packages are never evicted and are visible to every branch.
+      - name: Configure the package feed
+        env:
+          FEED: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+          FEED_USER: ${{ github.repository_owner }}
+          FEED_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $nuget = (Get-Command nuget.exe -ErrorAction SilentlyContinue).Source
+          if (-not $nuget) { $nuget = & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" fetch nuget | Select-Object -Last 1 }
+          & $nuget sources add -Name AUSAXS -Source $env:FEED -UserName $env:FEED_USER -Password $env:FEED_TOKEN -StorePasswordInClearText
+          "NUGET=$nuget" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      # Never fails: anything short of a complete toolchain is a miss, and a miss costs a rebuild.
+      - name: Fetch AdaptiveCpp-LLVM
+        id: fetch
+        env:
+          PACKAGE: ${{ steps.toolchain.outputs.package }}
+          VERSION: ${{ steps.toolchain.outputs.version }}
+        run: |
+          $tar = "$env:SystemRoot\System32\tar.exe" # bsdtar; Git's GNU tar may shadow a bare `tar`
+          $pkg = "$env:RUNNER_TEMP\toolchain-package"
+          & $env:NUGET install $env:PACKAGE -Version $env:VERSION -Source AUSAXS -OutputDirectory $pkg -NonInteractive -DirectDownload
+          $archive = Get-ChildItem -Recurse -File -Path $pkg -Filter acpp-llvm.tar.gz -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (($LASTEXITCODE -eq 0) -and $archive) {
+            New-Item -ItemType Directory -Force $env:ACPP_PREFIX | Out-Null
+            & $tar -xzf $archive.FullName -C $env:ACPP_PREFIX
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "Using the published toolchain $env:PACKAGE $env:VERSION"
+              "hit=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+              Remove-Item -Recurse -Force $pkg
+              exit 0
+            }
+            Write-Host "::warning::$env:PACKAGE $env:VERSION could not be unpacked; building it instead"
+            Remove-Item -Recurse -Force $env:ACPP_PREFIX -ErrorAction SilentlyContinue
+          } else {
+            Write-Host "No published toolchain $env:PACKAGE $env:VERSION; building it"
+          }
+          "hit=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          exit 0
+
+      - name: Install LLVM ${{ env.WINDOWS_BASE_LLVM_VERSION }} (bootstrap compiler)
+        if: steps.fetch.outputs.hit != 'true'
+        uses: ZhongRuoyu/setup-llvm@v0.2.0
+        with:
+          llvm-version: ${{ env.WINDOWS_BASE_LLVM_VERSION }}
+
+      # Needed on a hit too: the cuda deployment component copies libdevice and cudart out of the toolkit.
+      - name: Install CUDA ${{ env.WINDOWS_CUDA_VERSION }}
+        uses: Jimver/cuda-toolkit@v0.2.35
+        with:
+          method: local
+          cuda: ${{ env.WINDOWS_CUDA_VERSION }}
+          sub-packages: '["nvcc", "cudart", "nvfatbin"]'
+
+      - name: Install Ninja
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          Invoke-WebRequest "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip" -OutFile "$env:RUNNER_TEMP\ninja.zip"
+          Expand-Archive -Path "$env:RUNNER_TEMP\ninja.zip" -DestinationPath "$env:RUNNER_TEMP\ninja"
+          "$env:RUNNER_TEMP\ninja" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      # About 40 minutes, and only ever run once per toolchain description.
+      - name: Build LLVM ${{ env.WINDOWS_LLVM_VERSION }} with AdaptiveCpp
+        if: steps.fetch.outputs.hit != 'true'
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $env:PATH = "$env:LLVM_PATH\bin;$env:PATH"
+
+          git clone --depth 1 --single-branch -b "release/$env:WINDOWS_LLVM_VERSION.x" https://github.com/llvm/llvm-project "$env:ACPP_LLVM_SRC\llvm"
+          git clone --recurse-submodules $env:ACPP_REPO "$env:ACPP_LLVM_SRC\acpp"
+          git -C "$env:ACPP_LLVM_SRC\acpp" checkout $env:ACPP_COMMIT
+          git -C "$env:ACPP_LLVM_SRC\acpp" submodule update --init --recursive
+
+          $cmakeArgs = Get-Content _toolchain\acpp-llvm.txt | Where-Object { $_ -and -not $_.StartsWith('#') }
+          cmake @cmakeArgs
+          cmake --build "$env:ACPP_LLVM_SRC\build" --target install
+
+          # Only the installed toolchain is needed from here on, and the build tree is most of the disk.
+          Remove-Item -Recurse -Force $env:ACPP_LLVM_SRC
+
+      # Published straight after the build, so the build is kept even when a later step fails. Allowed to
+      # fail: a pull request from a fork gets a read-only token, and must still be able to build.
+      #
+      # The tree goes in as one archive rather than as package content, because NuGet percent-encodes
+      # file names such as clang++.exe inside the package.
+      - name: Publish AdaptiveCpp-LLVM
+        if: steps.fetch.outputs.hit != 'true'
+        continue-on-error: true
+        env:
+          PACKAGE: ${{ steps.toolchain.outputs.package }}
+          VERSION: ${{ steps.toolchain.outputs.version }}
+          REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+          FEED_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $tar = "$env:SystemRoot\System32\tar.exe"
+          $staging = "$env:RUNNER_TEMP\toolchain-publish"
+          New-Item -ItemType Directory -Force $staging | Out-Null
+          & $tar -czf "$staging\acpp-llvm.tar.gz" -C $env:ACPP_PREFIX .
+
+          $description = "NOT FOR DIRECT USE. The AdaptiveCpp-LLVM toolchain the Windows GPU backend is built with, " +
+                         "published by gpu-backend-windows.yml so it is only built once. Built from: " +
+                         ((Get-Content _toolchain\acpp-llvm.txt) -join ' ')
+          # The repository element links the package to this repository, which is what lets later runs read it.
+          $nuspec = @"
+          <?xml version="1.0" encoding="utf-8"?>
+          <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+            <metadata>
+              <id>$env:PACKAGE</id>
+              <version>$env:VERSION</version>
+              <authors>AUSAXS</authors>
+              <description>$([System.Security.SecurityElement]::Escape($description))</description>
+              <repository type="git" url="$env:REPOSITORY_URL" />
+            </metadata>
+            <files>
+              <file src="acpp-llvm.tar.gz" target="tools" />
+            </files>
+          </package>
+          "@
+          Set-Content -Path "$staging\toolchain.nuspec" -Value $nuspec
+          & $env:NUGET pack "$staging\toolchain.nuspec" -BasePath $staging -OutputDirectory $staging -NoPackageAnalysis -NonInteractive
+          $nupkg = Get-ChildItem "$staging\*.nupkg" | Select-Object -First 1
+          '{0}: {1:N0} MiB' -f $nupkg.Name, ($nupkg.Length / 1MB)
+          & $env:NUGET push $nupkg.FullName -Source AUSAXS -ApiKey $env:FEED_TOKEN -Timeout 3600 -NonInteractive
+          Remove-Item -Recurse -Force $staging
+
+      - name: Check the toolchain
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          python "$env:ACPP_PREFIX\bin\acpp" --version
+          if (-not (Test-Path "$env:ACPP_PREFIX\bin\clang.exe")) {
+            Write-Host "::error::the AdaptiveCpp-LLVM install has no clang.exe"
+            exit 1
+          }
+
+      - name: Deploy runtime components
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          function Deploy-Component([string]$component, [string]$sentinel) {
+            Write-Host "=== deploying component: $component ==="
+            python "$env:ACPP_PREFIX\bin\acpp" "--acpp-deploy=${component}:$env:DIST\$component"
+            if (-not (Test-Path "$env:DIST\$component\$sentinel")) {
+              Write-Host "::error::component '$component' deployed without '$sentinel'"
+              Write-Host "  --acpp-deploy reports missing files as warnings but still exits 0, so check the log above."
+              exit 1
+            }
+          }
+
+          Deploy-Component core 'acpp-rt.dll'
+          Deploy-Component cuda 'hipSYCL\ext\bitcode\ptx\libdevice.10.bc'
+          Get-ChildItem $env:DIST -Directory | ForEach-Object {
+            $bytes = (Get-ChildItem $_.FullName -Recurse -File | Measure-Object -Property Length -Sum).Sum
+            '{0}: {1:N0} MiB' -f $_.Name, ($bytes / 1MB)
+          }
+
+      # The top-level project needs CURL to configure, though the backend never links it.
+      - name: Install CURL
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install curl --triplet x64-windows-static
+
+      # Through the top-level project, as on Linux: the backend takes the export macro from the core headers.
+      # The compiler must be AdaptiveCpp's clang: the launcher hands its command line to acpp.
+      # C is pinned to the same clang: left unset, CMake picks cl.exe from the MSVC environment, and refuses to mix
+      # it with a GNU-style clang.
+      - name: Configure AUSAXS backend
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          cmake -S . -B build-gpu -G Ninja `
+            "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
+            "-DCMAKE_C_COMPILER=$env:ACPP_PREFIX\bin\clang.exe" `
+            "-DCMAKE_CXX_COMPILER=$env:ACPP_PREFIX\bin\clang.exe" `
+            "-DAdaptiveCpp_ROOT=$env:ACPP_PREFIX" `
+            "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DBUILD_TESTS=OFF `
+            -DBUILD_EXECUTABLES=OFF
+
+      - name: Build backend
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          cmake --build build-gpu --target ausaxs_gpu_sycl
+
+      - name: Check exported ABI symbols
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $lib = 'build-gpu\bin\ausaxs_gpu_sycl.dll'
+          if (-not (Test-Path $lib)) { Write-Host "::error::$lib was not built"; exit 1 }
+          $expected = Select-String -Path include\gpu\gpu\GPUBackendABI.h -Pattern 'symbol_[a-z_]+ *= *"(ausaxs_gpu_[a-z_]+)"' `
+            | ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique
+          if (-not $expected) { Write-Host "::error::no ABI symbols found in the header"; exit 1 }
+          $exports = dumpbin /nologo /exports $lib | Out-String
+          $missing = 0
+          foreach ($sym in $expected) {
+            if ($exports -match "\b$sym\b") { Write-Host "  ok      $sym" }
+            else { Write-Host "  MISSING $sym"; $missing = 1 }
+          }
+          exit $missing
+
+      - name: Assemble runtime package
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          New-Item -ItemType Directory -Force $env:GPU_PACKAGE | Out-Null
+          Get-ChildItem $env:DIST -Directory | ForEach-Object {
+            Copy-Item -Recurse -Force "$($_.FullName)\*" $env:GPU_PACKAGE
+          }
+          Copy-Item build-gpu\bin\ausaxs_gpu_sycl.dll $env:GPU_PACKAGE
+
+      - name: Prune runtime package
+        run: python .github/prune_gpu_package.py $env:GPU_PACKAGE
+
+      - name: Load backend and query the ABI
+        run: |
+          $expected_version = [regex]::Match((Get-Content include\gpu\gpu\GPUBackendABI.h -Raw), 'version *= *([0-9]+)').Groups[1].Value
+          Write-Host "Header declares ABI version $expected_version"
+          $probe_src = @'
+          #include <windows.h>
+          #include <stdbool.h>
+          #include <stdio.h>
+          int main(int argc, char** argv) {
+              // as the loader opens it: dependencies from the DLL's own directory, then the system's
+              HMODULE h = LoadLibraryExA(argv[1], NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+              if (!h) {printf("LoadLibrary failed: error %lu\n", GetLastError()); return 2;}
+              int (*abi_version)(void) = (int (*)(void)) GetProcAddress(h, "ausaxs_gpu_abi_version");
+              bool (*available)(void) = (bool (*)(void)) GetProcAddress(h, "ausaxs_gpu_available");
+              const char* (*last_error)(void) = (const char* (*)(void)) GetProcAddress(h, "ausaxs_gpu_last_error");
+              if (!abi_version || !available || !last_error) {printf("GetProcAddress failed: error %lu\n", GetLastError()); return 3;}
+              printf("abi_version=%d\n", abi_version());
+              printf("available=%d\n", available() ? 1 : 0);
+              const char* err = last_error();
+              printf("last_error=%s\n", err ? err : "(none)");
+              return 0;
+          }
+          '@
+          Set-Content -Path "$env:RUNNER_TEMP\abi_probe.c" -Value $probe_src
+          cl /nologo "$env:RUNNER_TEMP\abi_probe.c" "/Fo:$env:RUNNER_TEMP\abi_probe.obj" "/Fe:$env:RUNNER_TEMP\abi_probe.exe"
+          if ($LASTEXITCODE -ne 0) { Write-Host "::error::the probe did not compile"; exit 1 }
+
+          # Nothing is added to PATH: the package has to find itself, as it will on a user's machine. The version
+          # is parsed out of stdout, so bumping the ABI can never collide with the probe's exit codes.
+          $out = & "$env:RUNNER_TEMP\abi_probe.exe" "$PWD\$env:GPU_PACKAGE\ausaxs_gpu_sycl.dll" 2>&1 | Out-String
+          $rc = $LASTEXITCODE
+          Write-Host $out
+          if ($rc -ne 0) {
+            Write-Host "::error::the backend could not be loaded from the deployed package (probe exit $rc)"
+            exit 1
+          }
+          $reported = [regex]::Match($out, '(?m)^abi_version=([0-9]+)').Groups[1].Value
+          if ($reported -ne $expected_version) {
+            Write-Host "::error::backend reports ABI version '$reported', header declares '$expected_version'"
+            exit 1
+          }
+          Write-Host "ABI version $reported matches the header."
+
+      - name: Report dependencies resolved outside the package
+        continue-on-error: true
+        run: |
+          $files = Get-ChildItem -Recurse -File $env:GPU_PACKAGE -Include *.dll, *.exe
+          $local = $files | ForEach-Object { $_.Name.ToLower() } | Sort-Object -Unique
+          $system = Join-Path $env:SystemRoot 'System32'
+          $outside = foreach ($f in $files) {
+            dumpbin /nologo /dependents $f.FullName | ForEach-Object {
+              if ($_ -match '^\s+(\S+\.dll)\s*$') { $Matches[1].ToLower() }
+            }
+          }
+          # nvcuda.dll is expected here: like libcuda.so on Linux it comes with the driver and must not be shipped.
+          $outside = $outside | Sort-Object -Unique | Where-Object {
+            ($local -notcontains $_) -and ($_ -notlike 'api-ms-win-*') -and ($_ -notlike 'ext-ms-*') -and
+            -not (Test-Path (Join-Path $system $_))
+          }
+          $report = @('## Dependencies resolved outside the runtime package (Windows)', '```') + $outside + @('```')
+          $report | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.setup.outputs.artifact }}
+          path: ${{ env.GPU_PACKAGE }}

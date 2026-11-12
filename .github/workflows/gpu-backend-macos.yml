@@ -1,0 +1,266 @@
+name: GPU backend (macOS)
+
+# The macOS backend package. Called by gpu-backend-release.yml, which must pass on the MACOS_* signing secrets.
+on:
+  workflow_call:
+
+env:
+  BUILD_TYPE: Release
+  MACOS_LLVM_VERSION: "20"
+  METAL_CPP_URL: "https://developer.apple.com/metal/cpp/files/metal-cpp_26.zip"
+
+jobs:
+  # Follows AdaptiveCpp's macos-metal.yml. The backend builds and loads, but cannot yet run its kernel on an
+  # Apple GPU: AdaptiveCpp's Metal backend implements no 64-bit atomics (its atomic64 aspect is hard-coded
+  # false), and the histogram bins are accumulated with them. Until that changes the kernel fails on first
+  # submit and the library falls back to the CPU, so this job proves the toolchain and packaging only.
+  #
+  # Disabled for that reason. Re-enable by dropping the `false &&` from its condition.
+  backend-macos:
+    name: "SYCL backend (macOS arm64)"
+    runs-on: macos-26
+    if: false
+    env:
+      ACPP_PREFIX: ${{ github.workspace }}/_acpp
+      DIST: ${{ github.workspace }}/_deploy
+      GPU_PACKAGE: dist/ausaxs-gpu-macos-arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      # Loads the AdaptiveCpp pin shared by all platforms, and names the package after the sources it is built from.
+      - id: setup
+        uses: ./.github/actions/gpu-backend-setup
+        with:
+          platform: macos
+
+      - name: Install dependencies
+        run: |
+          # brew exits non-zero for things like an already-installed formula; the build below is what
+          # finds out whether anything is really missing.
+          set +e
+          brew update
+          brew install "llvm@${MACOS_LLVM_VERSION}" "lld@${MACOS_LLVM_VERSION}" libomp ninja
+          set -e
+
+      - name: Download metal-cpp
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/metal-cpp.zip" "$METAL_CPP_URL"
+          unzip -q "$RUNNER_TEMP/metal-cpp.zip" -d "$RUNNER_TEMP/metal-cpp"
+
+      - name: Build AdaptiveCpp
+        run: |
+          set -euo pipefail
+          llvm_prefix=$(brew --prefix "llvm@${MACOS_LLVM_VERSION}")
+          lld_prefix=$(brew --prefix "lld@${MACOS_LLVM_VERSION}")
+          omp_prefix=$(brew --prefix libomp)
+          metal_cpp=$(ls -d "$RUNNER_TEMP"/metal-cpp/metal-cpp* | head -1)
+
+          git clone --recurse-submodules "$ACPP_REPO" "$RUNNER_TEMP/acpp"
+          cd "$RUNNER_TEMP/acpp"
+          git checkout "$ACPP_COMMIT"
+          git submodule update --init --recursive
+
+          # The feature profile must be named: AdaptiveCpp defaults to 'none' on Apple outside an LLVM tree,
+          # which drops the generic compiler that Metal is reached through.
+          cmake -S . -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$ACPP_PREFIX" \
+            -DCMAKE_C_COMPILER=/usr/bin/clang \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+            -DCLANG_EXECUTABLE_PATH="${llvm_prefix}/bin/clang++" \
+            -DLLVM_DIR="${llvm_prefix}/lib/cmake/llvm" \
+            -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
+            -DACPP_COMPILER_FEATURE_PROFILE=full \
+            -DWITH_METAL_BACKEND=ON \
+            -DMETAL_INCLUDE_DIR="$metal_cpp" \
+            -DWITH_OPENCL_BACKEND=OFF \
+            -DWITH_CUDA_BACKEND=OFF \
+            -DWITH_ROCM_BACKEND=OFF \
+            -DACPP_LLD_PATH="${lld_prefix}/bin/ld64.lld" \
+            -DSEQUENTIAL_LINK_LINE="${omp_prefix}/lib/libomp.dylib" \
+            "-DOMP_LINK_LINE=-fopenmp ${omp_prefix}/lib/libomp.dylib -L${omp_prefix}/lib/" \
+            "-DOMP_CXX_FLAGS=-fopenmp -D_ENABLE_EXTENDED_ALIGNED_STORAGE -I${omp_prefix}/include"
+          cmake --build build --target install
+          "$ACPP_PREFIX/bin/acpp" --version
+          cd / && rm -rf "$RUNNER_TEMP/acpp"
+
+      - name: Deploy runtime components
+        run: |
+          set -euo pipefail
+          export PATH="$ACPP_PREFIX/bin:$PATH"
+
+          echo "=== deploying component: core ==="
+          acpp "--acpp-deploy=core:${DIST}/core"
+          if [ ! -e "${DIST}/core/libacpp-rt.dylib" ]; then
+            echo "::error::component 'core' deployed without 'libacpp-rt.dylib'"
+            echo "  --acpp-deploy reports missing files as 'acpp error:' lines but still exits 0, so check the log above."
+            exit 1
+          fi
+
+          # AdaptiveCpp ships no deployment manifest for Metal, so the component is assembled by hand, in
+          # the layout the others use: the runtime plugin, its IR translator and its device bitcode library,
+          # at their paths relative to lib/. The runtime finds them there, relative to libacpp-rt.
+          echo "=== deploying component: metal ==="
+          cd "$ACPP_PREFIX/lib"
+          for f in hipSYCL/librt-backend-metal.dylib \
+                   hipSYCL/llvm-to-backend/libllvm-to-metal.dylib \
+                   hipSYCL/bitcode/libkernel-sscp-metal-full.bc; do
+            if [ ! -e "$f" ]; then
+              echo "::error::AdaptiveCpp installed without ${f}; was it built with -DWITH_METAL_BACKEND=ON?"
+              exit 1
+            fi
+            mkdir -p "${DIST}/metal/$(dirname "$f")"
+            cp -L "$f" "${DIST}/metal/$f"
+            echo "   ${ACPP_PREFIX}/lib/$f -> ${DIST}/metal/$f"
+          done
+          du -sh "$DIST"/*
+
+      # Through the top-level project, as on Linux: the backend takes the export macro from the core headers.
+      # The CURL it needs to configure comes with the macOS SDK.
+      - name: Configure AUSAXS backend
+        run: |
+          cmake -S . -B build-gpu -G Ninja \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DAdaptiveCpp_ROOT="$ACPP_PREFIX" \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_EXECUTABLES=OFF
+
+      - name: Build backend
+        run: cmake --build build-gpu --target ausaxs_gpu_sycl
+
+      - name: Check exported ABI symbols
+        run: |
+          set -euo pipefail
+          lib=build-gpu/lib/libausaxs_gpu_sycl.dylib
+          test -f "$lib"
+          expected=$(grep -oE 'symbol_[a-z_]+ *= *"ausaxs_gpu_[a-z_]+"' include/gpu/gpu/GPUBackendABI.h \
+            | grep -oE 'ausaxs_gpu_[a-z_]+' | sort -u)
+          test -n "$expected"
+          # Mach-O prefixes C symbols with an underscore. Dumped to a file first for the pipefail reason
+          # given in the Linux job.
+          nm -gU "$lib" | awk '{print $NF}' | sed 's/^_//' > "$RUNNER_TEMP/backend_syms.txt"
+          missing=0
+          for sym in $expected; do
+            if grep -qx "$sym" "$RUNNER_TEMP/backend_syms.txt"; then
+              echo "  ok      $sym"
+            else
+              echo "  MISSING $sym"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      # As on Linux: -R without -L copies the deployed symlinks as symlinks, for the prune step to collapse.
+      - name: Assemble runtime package
+        run: |
+          set -euo pipefail
+          mkdir -p "$GPU_PACKAGE"
+          for component in "$DIST"/*/; do
+            cp -R "$component"/. "$GPU_PACKAGE/"
+          done
+          cp build-gpu/lib/libausaxs_gpu_sycl.dylib "$GPU_PACKAGE/"
+          du -sh "$GPU_PACKAGE"
+
+      - name: Prune runtime package
+        run: python3 .github/prune_gpu_package.py "$GPU_PACKAGE"
+
+      - name: Sign runtime package
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PWD: ${{ secrets.MACOS_P12_PASSWORD }}
+          KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          DEV_ID: ${{ secrets.MACOS_DEV_ID }}
+        run: |
+          set -euo pipefail
+          # secrets are withheld from pull requests opened from forks
+          if [ -z "$CERTIFICATE_BASE64" ] || [ -z "$DEV_ID" ]; then
+            echo "::warning::no signing certificate available; the package is unsigned, and the released ausaxs cannot load it"
+            exit 0
+          fi
+
+          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          echo -n "$CERTIFICATE_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" -P "$CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          rm -f "$CERTIFICATE_PATH"
+
+          signed=0
+          while IFS= read -r -d '' f; do
+            file -b "$f" | grep -q 'Mach-O' || continue
+            codesign --force --options runtime --timestamp --sign "$DEV_ID" "$f"
+            codesign --verify --strict --verbose=2 "$f"
+            echo "  signed ${f#"$GPU_PACKAGE"/}"
+            signed=$((signed + 1))
+          done < <(find "$GPU_PACKAGE" -type f -print0)
+          if [ "$signed" -eq 0 ]; then
+            echo "::error::found no Mach-O files to sign in $GPU_PACKAGE"
+            exit 1
+          fi
+
+      - name: Load backend and query the ABI
+        run: |
+          set -euo pipefail
+          expected_version=$(grep -oE 'version *= *[0-9]+' include/gpu/gpu/GPUBackendABI.h \
+            | grep -oE '[0-9]+' | head -1)
+          echo "Header declares ABI version ${expected_version}"
+          cat > "$RUNNER_TEMP/abi_probe.c" <<'PROBE'
+          #include <dlfcn.h>
+          #include <stdbool.h>
+          #include <stdio.h>
+          int main(int argc, char** argv) {
+              void* h = dlopen(argv[1], RTLD_NOW);
+              if (!h) {printf("dlopen failed: %s\n", dlerror()); return 2;}
+              int (*abi_version)(void) = dlsym(h, "ausaxs_gpu_abi_version");
+              bool (*available)(void) = dlsym(h, "ausaxs_gpu_available");
+              const char* (*last_error)(void) = dlsym(h, "ausaxs_gpu_last_error");
+              if (!abi_version || !available || !last_error) {printf("dlsym failed: %s\n", dlerror()); return 3;}
+              printf("abi_version=%d\n", abi_version());
+              printf("available=%d\n", available() ? 1 : 0);
+              const char* err = last_error();
+              printf("last_error=%s\n", err ? err : "(none)");
+              return 0;
+          }
+          PROBE
+          cc -O0 -o "$RUNNER_TEMP/abi_probe" "$RUNNER_TEMP/abi_probe.c"
+          set +e
+          out=$(DYLD_LIBRARY_PATH="$PWD/$GPU_PACKAGE:${DYLD_LIBRARY_PATH:-}" \
+            "$RUNNER_TEMP/abi_probe" "$PWD/$GPU_PACKAGE/libausaxs_gpu_sycl.dylib" 2>&1)
+          rc=$?
+          set -e
+          echo "$out"
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::the backend could not be loaded from the deployed package (probe exit $rc)"
+            exit 1
+          fi
+          reported=$(echo "$out" | grep -oE '^abi_version=[0-9]+' | cut -d= -f2)
+          if [ "$reported" != "$expected_version" ]; then
+            echo "::error::backend reports ABI version '$reported', header declares '$expected_version'"
+            exit 1
+          fi
+          echo "ABI version $reported matches the header."
+
+      # Install names are what decide this on macOS, and Homebrew's are absolute paths into its own
+      # prefix, so anything listed here would still be loaded from the build machine's Homebrew.
+      - name: Report dependencies resolved outside the package
+        continue-on-error: true
+        run: |
+          {
+            echo '## Dependencies resolved outside the runtime package (macOS)'
+            echo '```'
+            find "$PWD/$GPU_PACKAGE" -type f ! -name '*.bc' -print0 \
+              | xargs -0 otool -L 2>/dev/null \
+              | awk '/^\t/ {print $1}' \
+              | grep -vE '^(/usr/lib/|/System/)' | sort -u
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.setup.outputs.artifact }}
+          path: ${{ env.GPU_PACKAGE }}

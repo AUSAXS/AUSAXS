@@ -258,20 +258,88 @@ jobs:
         if: matrix.full_build == true
         run: cmake --build build --target tests -j12
 
+      # For the gpu-tests job, which runs these same executables once a backend is available
+      - name: Pack the tests for the GPU run
+        if: matrix.os == 'ubuntu-latest'
+        run: tar -czf gpu-test-tree.tar.gz --exclude=CMakeFiles --exclude='*.o' --exclude='*.a' build/bin build/lib build/tests
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: gpu-test-tree
+          path: gpu-test-tree.tar.gz
+          retention-days: 1
+
       - name: Run tests
         if: matrix.full_build == true
         run: |
           ctest --output-on-failure --parallel 6 --test-dir build/tests/unit
           ctest --output-on-failure --parallel 6 --test-dir build/tests/feature
 
-      # The runners have no GPU, so the released GPU backend is installed on AdaptiveCpp's host CPU device instead, and the tests tagged
-      # [gpu] are run again through it. The listener in tests/support/gpu_listener.cpp fails them if the backend is not actually in use.
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: matrix.full_build == true && always()
+        with:
+          name: "junit-test-results-${{ matrix.os }}"
+          path: build/tests/reports/*.xml
+          retention-days: 1
+
+  # The Linux backend package for gpu-tests, built only if no package of these exact backend sources exists yet.
+  gpu-backend:
+    name: "GPU backend"
+    if: github.event.pull_request.draft == false
+    uses: ./.github/workflows/gpu-backend-pr.yml
+
+  # The runners have no GPU, so the tests tagged [gpu] are run again on AdaptiveCpp's host CPU device
+  gpu-tests:
+    name: "Tests on the GPU backend (host CPU)"
+    needs: [build-ubuntu, gpu-backend]
+    if: ${{ !cancelled() && github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # the backend may be an artifact of an earlier run
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check that a backend was found or built
+        env:
+          ARTIFACT: ${{ needs.gpu-backend.outputs.artifact }}
+          RUN: ${{ needs.gpu-backend.outputs.run }}
+        run: |
+          if [ -z "$ARTIFACT" ] || [ -z "$RUN" ]; then
+            echo "::error::the GPU backend gate did not name a backend to test with; see the 'GPU backend' jobs"
+            exit 1
+          fi
+          echo "Testing with ${ARTIFACT} from run ${RUN}"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gpu-test-tree
+
+      - name: Unpack the tests
+        run: tar -xzf gpu-test-tree.tar.gz && rm gpu-test-tree.tar.gz
+
+      - uses: actions/download-artifact@v4
+        if: needs.gpu-backend.outputs.run == github.run_id
+        with:
+          name: ${{ needs.gpu-backend.outputs.artifact }}
+          path: gpu-backend
+
+      - uses: actions/download-artifact@v4
+        if: needs.gpu-backend.outputs.run != github.run_id
+        with:
+          name: ${{ needs.gpu-backend.outputs.artifact }}
+          path: gpu-backend
+          run-id: ${{ needs.gpu-backend.outputs.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install the GPU backend on the host CPU
-        if: matrix.os == 'ubuntu-latest'
-        run: ./build/bin/ausaxs gpu install --device host
+        run: |
+          find gpu-backend -path '*/bin/*' -type f -exec chmod +x {} +
+          ./build/bin/ausaxs gpu install --from "$PWD/gpu-backend/libausaxs_gpu_sycl.so" --device host
 
       - name: Run tests on the GPU backend
-        if: matrix.os == 'ubuntu-latest'
         env:
           AUSAXS_TEST_GPU: 1
         run: |
@@ -280,8 +348,8 @@ jobs:
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
-        if: matrix.full_build == true && always()
+        if: always()
         with:
-          name: "junit-test-results-${{ matrix.os }}"
+          name: "junit-test-results-gpu"
           path: build/tests/reports/*.xml
           retention-days: 1

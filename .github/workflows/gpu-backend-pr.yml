@@ -1,0 +1,71 @@
+name: GPU backend for a pull request
+
+# Provides the Linux backend package the GPU tests of a pull request run with, built from exactly this commit's backend sources. Called by
+# build-and-test-template.yml. Builds it only if no such package exists yet: any earlier run that built identical sources will do, including
+# one of the pull request that last changed the backend, whose commits a squash merge leaves out of master's history.
+on:
+  workflow_call:
+    outputs:
+      artifact:
+        description: "Name of the artifact holding the package."
+        value: ${{ jobs.gate.outputs.artifact }}
+      run:
+        description: "Id of the workflow run holding it: this run if it is being built, otherwise the run that built it."
+        value: ${{ jobs.gate.outputs.run }}
+
+jobs:
+  gate:
+    name: "Already built?"
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      build: ${{ steps.lookup.outputs.build }}
+      artifact: ${{ steps.setup.outputs.artifact }}
+      run: ${{ steps.lookup.outputs.run }}
+    steps:
+      # the same commit the build checks out, which for a pull request is the merge with its target branch
+      - uses: actions/checkout@v4
+
+      - id: setup
+        uses: ./.github/actions/gpu-backend-setup
+        with:
+          platform: linux
+
+      - id: lookup
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          REPO_ID: ${{ github.repository_id }}
+          HEAD_REPO_ID: ${{ github.event.pull_request.head.repo.id }}
+          ARTIFACT: ${{ steps.setup.outputs.artifact }}
+        run: |
+          set -euo pipefail
+
+          # Only artifacts uploaded by runs on this repository's own branches, or on the branch of this pull request: a fork runs its own
+          # copy of the workflows, so it could upload anything under any name, and other pull requests would then load it as their
+          # backend. A failed lookup comes back empty and costs a build, never a skipped one.
+          run=$(gh api --method GET "repos/${REPO}/actions/artifacts" -f name="$ARTIFACT" -F per_page=100 \
+                  --jq "[.artifacts[] | select(.expired | not)
+                                      | select(.workflow_run.head_repository_id == ${REPO_ID}
+                                            or .workflow_run.head_repository_id == ${HEAD_REPO_ID:-0})
+                                      | .workflow_run.id] | first // empty" || true)
+
+          if [ -n "$run" ]; then
+            reason="skipped -- ${ARTIFACT} was already built, in run ${run}"
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          else
+            reason="running -- no unexpired ${ARTIFACT}"
+            run=$GITHUB_RUN_ID
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "run=${run}" >> "$GITHUB_OUTPUT"
+          echo "Linux backend build: ${reason}"
+          echo "**Linux backend build: ${reason}**" >> "$GITHUB_STEP_SUMMARY"
+
+  linux:
+    name: "Linux"
+    needs: gate
+    if: needs.gate.outputs.build == 'true'
+    uses: ./.github/workflows/gpu-backend-linux.yml

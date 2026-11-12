@@ -299,7 +299,7 @@ namespace {
      * @brief Every GPU the runtime can reach, followed by the host device, ranked as described for device_count in the ABI header.
      *        Listed once, on first use.
      *
-     * Of the CPU devices only the host device is listed, since it is the one every AdaptiveCpp runtime has; it is there for testing.
+     * All non-ACPP CPU devices are skipped. 
      */
     const std::vector<Candidate>& candidates() {
         static const std::vector<Candidate> list = [] {
