@@ -102,6 +102,12 @@ namespace {
         using library_handle = void*;
         library_handle open_library(const std::string& path) {
             quiet_runtime();
+            if (std::filesystem::path file(path); file.has_parent_path()) {
+                std::error_code ec;
+                if (auto real = std::filesystem::canonical(file, ec); !ec) {
+                    return dlopen(real.c_str(), RTLD_NOW | RTLD_LOCAL);
+                }
+            }
             return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
         }
         void* find_symbol(library_handle handle, const char* name) {return dlsym(handle, name);}
