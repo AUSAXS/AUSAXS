@@ -1,5 +1,3 @@
-#include <algorithm>
-#include <utility>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -10,6 +8,8 @@
 
 #include <support/hist_test_helper.h>
 
+#include <algorithm>
+#include <utility>
 
 using namespace ausaxs;
 using namespace ausaxs::data;

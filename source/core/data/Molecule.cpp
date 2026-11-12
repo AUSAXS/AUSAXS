@@ -8,7 +8,6 @@
 #include <dataset/SimpleDataset.h>
 #include <grid/Grid.h>
 #include <grid/exv/ExvVolume.h>
-#include <hist/distribution/Distribution1D.h>
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>

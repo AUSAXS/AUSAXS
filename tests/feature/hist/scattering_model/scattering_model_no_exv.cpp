@@ -27,7 +27,7 @@ TEST_CASE("ScatteringModelNoExv: agrees with an exv model at zero solvent densit
         settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
         protein.reset_histogram_manager();
         auto hist = protein.get_histogram();
-        auto exv_model = dynamic_cast<hist::IScatteringModelExv*>(hist.get());
+        auto* exv_model = dynamic_cast<hist::IScatteringModelExv*>(hist.get());
         REQUIRE(exv_model != nullptr);
         exv_model->apply_solvent_density_scaling_factor(0);
         auto I_exv = exv_model->debye_transform();

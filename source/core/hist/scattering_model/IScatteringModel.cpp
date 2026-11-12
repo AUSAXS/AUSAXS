@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/scattering_model/IScatteringModel.h>
+
 #include <hist/distribution/Distribution1D.h>
 
 using namespace ausaxs;
