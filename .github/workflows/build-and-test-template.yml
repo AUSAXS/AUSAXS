@@ -287,14 +287,14 @@ jobs:
   # The Linux backend package for gpu-tests, built only if no package of these exact backend sources exists yet.
   gpu-backend:
     name: "GPU backend"
-    if: github.event.pull_request.draft == false
+    needs: check-sources
     uses: ./.github/workflows/gpu-backend-pr.yml
 
   # The runners have no GPU, so the tests tagged [gpu] are run again on AdaptiveCpp's host CPU device
   gpu-tests:
     name: "Tests on the GPU backend (host CPU)"
     needs: [build-ubuntu, gpu-backend]
-    if: ${{ !cancelled() && github.event.pull_request.draft == false }}
+    if: ${{ !cancelled() && needs.gpu-backend.result == 'success' && needs.build-ubuntu.result != 'skipped' }}
     runs-on: ubuntu-latest
     permissions:
       actions: read # the backend may be an artifact of an earlier run
