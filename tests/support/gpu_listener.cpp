@@ -5,9 +5,9 @@
 #include <gpu/GPULoader.h>
 #include <settings/GeneralSettings.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <stdexcept>
-#include <string>
 #include <string_view>
 
 using namespace ausaxs;
@@ -24,14 +24,11 @@ using namespace ausaxs;
 namespace {
     bool requested() {
         const char* value = std::getenv("AUSAXS_TEST_GPU");
-        return value != nullptr && std::string_view(value) != "" && std::string_view(value) != "0";
+        return value != nullptr && !std::string_view(value).empty() && std::string_view(value) != "0";
     }
 
     bool tagged(const Catch::TestCaseInfo& info) {
-        for (const auto& tag : info.tags) {
-            if (tag.original == "gpu") {return true;}
-        }
-        return false;
+        return std::ranges::any_of(info.tags, [] (const Catch::Tag& tag) {return tag.original == "gpu";});
     }
 
     class GPUListener : public Catch::EventListenerBase {
