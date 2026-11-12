@@ -327,7 +327,7 @@ ScatteringModelExvBase<FormFactorTableType>::cache_get_distance_profiles() const
 }
 
 template<typename FormFactorTableType>
-std::vector<double> ScatteringModelExvBase<FormFactorTableType>::debye_transform_direct(const std::vector<double>&) const {
+std::vector<double> ScatteringModelExvBase<FormFactorTableType>::debye_transform_direct(const std::vector<double>& /*q*/) const {
     throw except::invalid_argument(
         "ScatteringModelExvBase::debye_transform: The excluded volume models are only defined for q in [" + std::to_string(constants::axes::q_axis.min) 
         + ", " + std::to_string(constants::axes::q_axis.max) + "]; they are not meant for wide-angle scattering."

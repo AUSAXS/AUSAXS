@@ -17,7 +17,7 @@ const form_factor::lookup::table_t& ScatteringModelNoExv::get_ff_table() const {
 }
 
 std::vector<double> ScatteringModelNoExv::debye_transform_direct(const std::vector<double>& q) const {
-    auto sinqd_table = sinc_table_for(q);
+    const auto* sinqd_table = sinc_table_for(q);
     const auto& ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
     const int n_ff = form_factor::get_active_count();
     constexpr int first = form_factor::start_index_for_explicit_exv();

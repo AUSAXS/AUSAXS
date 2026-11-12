@@ -73,7 +73,7 @@ ScatteringProfile ScatteringModelSimple::debye_transform() const {
 }
 
 std::vector<double> ScatteringModelSimple::debye_transform_direct(const std::vector<double>& q) const {
-    auto I = transform_counts_at(p, sinc_table_for(q), q);
+    auto I = transform_counts(p, sinc_table_for(q), q);
     apply_gaussian_form_factor(I, q);
     return I;
 }

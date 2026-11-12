@@ -102,7 +102,7 @@ namespace ausaxs::hist {
              *
              * @param sinqd_table The sinc table. Its row @a first_row + i must hold the sinc values for q[i].
              */
-            static std::vector<double> transform_counts_at(
+            static std::vector<double> transform_counts(
                 std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table, std::span<const double> q, int first_row = 0
             );
 
