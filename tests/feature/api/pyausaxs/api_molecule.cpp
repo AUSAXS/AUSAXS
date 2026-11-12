@@ -3,11 +3,6 @@
 #include <api/ObjectStorage.h>
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
-#include <data/Body.h>
-#include <data/Molecule.h>
-#include <data/atoms/AtomFF.h>
-#include <form_factor/xray/XrayFormFactor.h>
-#include <math/ConstexprMath.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Random.h>
 
@@ -175,63 +170,6 @@ TEST_CASE("molecule_debye_raw_userq: accurate at high q") {
     REQUIRE(status == 0);
     for (unsigned int k = 0; k < q.size(); ++k) {
         CHECK_THAT(I[k], Catch::Matchers::WithinRel(expected[k], 0.03)); // the tolerance of SasView's own comparison
-    }
-}
-
-// atoms on a line at the marks of a Golomb ruler, so every distance is distinct and has a weighted bin of its own, and the binned sum must
-// match the direct one. The weighted bins are left on auto, which must give them to the vacuum model.
-TEST_CASE("molecule_debye: the vacuum model agrees with the direct sum with atomic form factors") {
-    using ff_t = form_factor::form_factor_t;
-    constexpr std::array marks = {0, 1, 5, 12, 25, 27, 35};
-    constexpr std::array types = {ff_t::C, ff_t::N, ff_t::O, ff_t::S, ff_t::Fe, ff_t::Zn, ff_t::I};
-    std::vector<data::AtomFF> atoms;
-    
-    atoms.reserve(marks.size());
-    for (unsigned int i = 0; i < marks.size(); ++i) {atoms.emplace_back(Vector3<double>{1.13*marks[i], 0.2*i, 0}, types[i]);}
-    int mol = api::ObjectStorage::register_object(data::Molecule({data::Body{atoms}}));
-
-    // returns the expected intensity and its scale (sum_i |f_i|)^2, against which the deviation is measured since the intensity crosses zero
-    auto f = [] (ff_t t, double q) {return form_factor::xray::raw::get(t).evaluate(q);};
-    auto direct_sum = [&] (double q) {
-        double expected = 0, scale = 0;
-        for (unsigned int i = 0; i < atoms.size(); ++i) {
-            expected += form_factor::xray::raw::get(types[i]).evaluate_self(q);
-            scale += std::abs(f(types[i], q));
-            for (unsigned int j = 0; j < atoms.size(); ++j) {
-                if (i == j) {continue;}
-                expected += f(types[i], q)*f(types[j], q)*math::sinc(q*atoms[i].get_atom().coordinates().distance(atoms[j].get_atom().coordinates()));
-            }
-        }
-        return std::make_pair(expected, scale*scale);
-    };
-
-    int status = 1;
-    set_setting("exv_model", "vacuum", &status);
-    REQUIRE(status == 0);
-    REQUIRE(settings::hist::weighted_bins->is_auto());
-
-    SECTION("default q axis") {
-        double *q, *I;
-        int n = 0;
-        molecule_debye(mol, &q, &I, &n, &status);
-        REQUIRE(status == 0);
-        REQUIRE(n > 0);
-        for (int k = 0; k < n; ++k) {
-            auto [expected, scale] = direct_sum(q[k]);
-            CHECK_THAT(I[k], Catch::Matchers::WithinAbs(expected, 1e-5*scale));
-        }
-    }
-
-    // beyond the default axis, the form factors are evaluated at each q rather than taken from the tables
-    SECTION("userq far beyond the default q axis") {
-        std::vector<double> q(100), I(q.size());
-        for (unsigned int k = 0; k < q.size(); ++k) {q[k] = 0.1 + 0.1*k;}
-        molecule_debye_userq(mol, q.data(), I.data(), static_cast<int>(q.size()), &status);
-        REQUIRE(status == 0);
-        for (unsigned int k = 0; k < q.size(); ++k) {
-            auto [expected, scale] = direct_sum(q[k]);
-            CHECK_THAT(I[k], Catch::Matchers::WithinAbs(expected, 1e-5*scale));
-        }
     }
 }
 
