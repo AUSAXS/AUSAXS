@@ -45,6 +45,11 @@ namespace ausaxs::residue {
             constants::atomic_group_t get_atomic_group(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom);
 
             /**
+             * @brief Get the number of hydrogens bound to an atom of a residue.
+             */
+            double get_hydrogens(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom);
+
+            /**
              * @brief Insert a residue into the storage. 
              */
             void insert(const std::string& name, detail::ResidueMap&& residue);

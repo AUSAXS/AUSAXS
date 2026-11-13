@@ -12,16 +12,49 @@
 #include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <utility/Curl.h>
+#include <utility/StringUtils.h>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <string>
 #include <unordered_map>
 
 using namespace ausaxs;
 using namespace ausaxs::residue;
 using namespace ausaxs::residue::detail;
+
+namespace {
+    struct AtomAlias {
+        std::string residue; // empty: any residue
+        std::string name;
+    };
+
+    // The names other conventions give an atom, with the CCD name the residue definitions carry it under.
+    // The two C-terminal oxygens are interchangeable; which of them carries the hydrogen is a convention.
+    const std::unordered_multimap<std::string, AtomAlias> atom_aliases = {
+        {"oc1", {.residue="",    .name="oxt"}}, // GROMACS
+        {"oc2", {.residue="",    .name="o"}},
+        {"ot1", {.residue="",    .name="oxt"}}, // CHARMM
+        {"ot2", {.residue="",    .name="o"}},
+        {"cd",  {.residue="ILE", .name="cd1"}}
+    };
+
+    /**
+     * @brief The name the residue definition carries this atom under. A name the definition has itself is never replaced by an alias.
+     */
+    std::string resolve_atom_name(const ResidueMap& residue, const std::string& residue_name, const std::string& atom_name, constants::atom_t atom) {
+        if (residue.contains(atom_name, atom)) {return atom_name;}
+        auto [first, last] = atom_aliases.equal_range(utility::to_lowercase(atom_name));
+        for (; first != last; ++first) {
+            const auto& alias = first->second;
+            if (!alias.residue.empty() && alias.residue != residue_name) {continue;}
+            if (residue.contains(alias.name, atom)) {return alias.name;}
+        }
+        return atom_name;
+    }
+}
 
 ResidueStorage::ResidueStorage() = default;
 
@@ -170,7 +203,11 @@ void ResidueStorage::write_residue(const std::string& name) {
 }
 
 constants::atomic_group_t ResidueStorage::get_atomic_group(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom) {
-    if (!initialized) {initialize();}
     auto& residue = get(residue_name);
-    return residue.get_atomic_group(atom_name, atom);
+    return residue.get_atomic_group(resolve_atom_name(residue, residue_name, atom_name, atom), atom);
+}
+
+double ResidueStorage::get_hydrogens(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom) {
+    auto& residue = get(residue_name);
+    return residue.get(resolve_atom_name(residue, residue_name, atom_name, atom), atom);
 }

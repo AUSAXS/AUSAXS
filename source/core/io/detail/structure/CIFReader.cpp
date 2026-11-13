@@ -92,16 +92,7 @@ namespace {
                 while (i < atom.data.size() && atom.data[i][i_comp_id] == current_comp_id) {
                     const std::string& atom_id = atom.data[i][i_atom_id];
                     const std::string& type_symbol = atom.data[i][i_type_symbol];
-                    std::string alt_atom_id = atom.data[i][i_alt_atom_id];
-
-                    // sometimes the "1" in e.g. CD1 is omitted, so if the atom_id and alt_atom_id are the same anyway, add this as an alias
-                    if (atom_id == alt_atom_id) {
-                        if (auto N = atom_id.size(); N > 2) { // second character must be a locator e.g. A, B, C, D, E, ...
-                            if (atom_id[N - 1] == '1' && !utility::isdigit(atom_id[N - 2])) { // last character must be 1 & previous character must be a locator
-                                alt_atom_id = atom_id.substr(0, N - 1);
-                            }
-                        }
-                    }
+                    const std::string& alt_atom_id = atom.data[i][i_alt_atom_id];
                     residue.add_atom(atom_id, alt_atom_id, constants::symbols::parse_element_string(type_symbol));
                     ++i;
                 }
@@ -137,15 +128,6 @@ namespace {
             if (const auto& m = current_residue.get_name_map(); m.contains("N")) {
                 current_residue.get_atoms()[(m.at("N"))].hydrogen_bonds -= 1;
             }
-
-            // add aliases for O and OXT that are used in e.g. GROMACS output files
-            // ? it does not seem like there is any way to distinguish between the single and double bonded O's
-            // ? since there is at most a single O-terminus, the impact of switching them is minimal anyway
-            current_residue.add_atom("OC1", "OC1", constants::atom_t::O);
-            current_residue.get_atoms().back().hydrogen_bonds = 1;
-            current_residue.get_atoms().back().valency = 1; // single-bonded
-            current_residue.add_atom("OC2", "OC2", constants::atom_t::O);
-            current_residue.get_atoms().back().valency = 0; // double-bonded
         }
 
         return residues;
