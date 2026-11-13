@@ -31,16 +31,16 @@ void shape_debye_userq(
     if (n_cells <= 0) {throw except::invalid_argument("shape_debye_userq: the shape has no cells.");}
     if (!(0 < spacing)) {throw except::invalid_argument("shape_debye_userq: the lattice spacing must be positive.");}
 
-    // snap the centres to integer lattice sites; anything off the lattice is a caller error
+    // snap the centres to integer lattice sites relative to the first cell, so the lattice may have any origin; anything off it is a caller error
     std::array<const double*, 3> coords = {x, y, z};
     std::vector<Vector3<int>> sites(n_cells);
     for (int i = 0; i < n_cells; ++i) {
         for (int k = 0; k < 3; ++k) {
-            double s = coords[k][i]/spacing;
+            double s = (coords[k][i] - coords[k][0])/spacing;
             double site = std::round(s);
             if (1e-3 < std::abs(s - site)) {
                 throw except::invalid_argument(
-                    "shape_debye_userq: cell " + std::to_string(i) + " is not on a lattice of spacing " + std::to_string(spacing) + "."
+                    "shape_debye_userq: cell " + std::to_string(i) + " is not on the lattice of cell 0 with spacing " + std::to_string(spacing) + "."
                 );
             }
             sites[i][k] = static_cast<int>(site);
