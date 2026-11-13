@@ -149,7 +149,7 @@ TEST_CASE("FormFactor::xray::groups") {
         for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
             auto type = static_cast<form_factor_t>(i);
             INFO("form factor " << to_string(type));
-            CHECK_THAT(raw::get(type).I0(), WithinAbs(constants::charge::nuclear::get_charge(type) - get_info(type).charge, 0.01));
+            CHECK_THAT(raw::get(type).I0(), Catch::Matchers::WithinRel(constants::charge::nuclear::get_charge(type) - get_info(type).charge, 1e-3));
         }
     }
 

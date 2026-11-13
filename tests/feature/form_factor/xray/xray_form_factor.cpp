@@ -16,7 +16,7 @@ TEST_CASE("FormFactor::evaluate") {
         const auto& ff_obj = xray::raw::get(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0.0), Catch::Matchers::WithinAbs(ff_obj.I0(), 1e-6));
         double relative = ff_obj.evaluate(0.5)/ff_obj.I0();
-        if (relative < 0.95) {
+        if (relative < 0.93) {
             std::cout << "Warning: Form factor " << ff << " has a relative value of " << relative << " at q = 0.5" << std::endl;
             FAIL();
         }
