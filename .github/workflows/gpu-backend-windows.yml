@@ -130,8 +130,9 @@ jobs:
         with:
           llvm-version: ${{ env.WINDOWS_BASE_LLVM_VERSION }}
 
-      # Needed on a hit too: the cuda deployment component copies libdevice and cudart out of the toolkit.
+      # Needed on a hit too: libdevice and the cudart DLL are both copied out of the toolkit into the package.
       - name: Install CUDA ${{ env.WINDOWS_CUDA_VERSION }}
+        id: cuda-toolkit
         uses: Jimver/cuda-toolkit@v0.2.35
         with:
           method: local
@@ -220,6 +221,8 @@ jobs:
           }
 
       - name: Deploy runtime components
+        env:
+          CUDA_TOOLKIT: ${{ steps.cuda-toolkit.outputs.CUDA_PATH }}
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           function Deploy-Component([string]$component, [string]$sentinel) {
@@ -234,6 +237,25 @@ jobs:
 
           Deploy-Component core 'acpp-rt.dll'
           Deploy-Component cuda 'hipSYCL\ext\bitcode\ptx\libdevice.10.bc'
+
+          # The cuda component names cudart by CUDA_cudart_LIBRARY, which on Windows is the import library cudart.lib rather than the
+          # DLL the plugin loads, so cudart64_*.dll is never deployed.
+          $plugin = "$env:DIST\cuda\hipSYCL\rt-backend-cuda.dll"
+          $cudart = dumpbin /nologo /dependents $plugin | ForEach-Object {
+            if ($_ -match '^\s+(cudart64_\S+\.dll)\s*$') { $Matches[1] }
+          } | Select-Object -First 1
+          if (-not $cudart) {
+            Write-Host "::error::could not find the cudart DLL among the imports of $plugin"
+            exit 1
+          }
+          $source = Get-ChildItem -Recurse -File "$env:CUDA_TOOLKIT\bin" -Filter $cudart | Select-Object -First 1
+          if (-not $source) {
+            Write-Host "::error::$cudart, imported by the CUDA plugin, is not in $env:CUDA_TOOLKIT\bin"
+            exit 1
+          }
+          Copy-Item $source.FullName "$env:DIST\cuda\"
+          Write-Host "deployed $($source.FullName)"
+
           Get-ChildItem $env:DIST -Directory | ForEach-Object {
             $bytes = (Get-ChildItem $_.FullName -Recurse -File | Measure-Object -Property Length -Sum).Sum
             '{0}: {1:N0} MiB' -f $_.Name, ($bytes / 1MB)
