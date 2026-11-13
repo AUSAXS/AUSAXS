@@ -47,6 +47,17 @@ namespace {
         if (std::getenv("ACPP_DEBUG_LEVEL") != nullptr || std::getenv("HIPSYCL_DEBUG_LEVEL") != nullptr) {return;}
         #ifdef _WIN32
             _putenv_s("ACPP_DEBUG_LEVEL", "1");
+
+            // The runtime reads the environment through the shared C runtime (ucrtbase.dll), which keeps its own copy of it, made when it is
+            // loaded. This binary carries a static C runtime, so the line above only changes its private copy and the process' environment. If
+            // ucrtbase.dll is already loaded, as it always is inside python.exe, its copy is changed too; otherwise it will pick the value up
+            // from the process' environment when it is loaded.
+            if (HMODULE ucrt = GetModuleHandleA("ucrtbase.dll")) {
+                using putenv_fn = int (*)(const char*, const char*);
+                if (auto shared_putenv = reinterpret_cast<putenv_fn>(GetProcAddress(ucrt, "_putenv_s"))) {
+                    shared_putenv("ACPP_DEBUG_LEVEL", "1");
+                }
+            }
         #else
             setenv("ACPP_DEBUG_LEVEL", "1", 0);
         #endif
@@ -62,6 +73,9 @@ namespace {
          * A packaged backend carries its runtime in its own directory, which LoadLibraryA would only search if it were on PATH. This is the 
          * counterpart of the $ORIGIN RUNPATH a Linux package carries. A bare name, or a backend whose runtime only PATH can find, still gets 
          * the default search as a fallback.
+         *
+         * The runtime's own plugins, in the hipSYCL subfolder, need nothing from here: before opening them, the runtime adds the directory
+         * of acpp-rt.dll to the process' DLL search directories itself, so they find the dependencies the package carries beside it.
          */
         library_handle open_library(const std::string& path) {
             quiet_runtime();
