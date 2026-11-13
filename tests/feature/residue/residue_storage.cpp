@@ -1,6 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <constants/Constants.h>
 #include <residue/ResidueStorage.h>
 #include <residue/detail/ResidueMap.h>
 
@@ -16,11 +15,11 @@ TEST_CASE("ResidueStorage: atom name aliases") {
     storage.insert("TST", ResidueMap({{AtomKey("O", O), 0}, {AtomKey("OXT", O), 1}, {AtomKey("CD1", C), 3}, {AtomKey("CA", C), 1}, {AtomKey("OT1", O), 0}}));
 
     SECTION("C-terminal oxygens") {
-        for (auto name : {"OC1", "OT1"}) {
+        for (const auto* name : {"OC1", "OT1"}) {
             CHECK(storage.get_hydrogens("ILE", name, O) == 1);
             CHECK(storage.get_atomic_group("ILE", name, O) == storage.get_atomic_group("ILE", "OXT", O));
         }
-        for (auto name : {"OC2", "OT2"}) {
+        for (const auto* name : {"OC2", "OT2"}) {
             CHECK(storage.get_hydrogens("ILE", name, O) == 0);
             CHECK(storage.get_atomic_group("ILE", name, O) == storage.get_atomic_group("ILE", "O", O));
         }

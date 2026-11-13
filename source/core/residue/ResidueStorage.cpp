@@ -34,11 +34,11 @@ namespace {
     // The names other conventions give an atom, with the CCD name the residue definitions carry it under.
     // The two C-terminal oxygens are interchangeable; which of them carries the hydrogen is a convention.
     const std::unordered_multimap<std::string, AtomAlias> atom_aliases = {
-        {"oc1", {"",    "oxt"}}, // GROMACS
-        {"oc2", {"",    "o"}},
-        {"ot1", {"",    "oxt"}}, // CHARMM
-        {"ot2", {"",    "o"}},
-        {"cd",  {"ILE", "cd1"}}
+        {"oc1", {.residue="",    .name="oxt"}}, // GROMACS
+        {"oc2", {.residue="",    .name="o"}},
+        {"ot1", {.residue="",    .name="oxt"}}, // CHARMM
+        {"ot2", {.residue="",    .name="o"}},
+        {"cd",  {.residue="ILE", .name="cd1"}}
     };
 
     /**
