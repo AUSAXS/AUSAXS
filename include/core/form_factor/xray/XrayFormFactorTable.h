@@ -35,8 +35,11 @@ namespace ausaxs::form_factor::xray::coefficients {
         }
     }
 
-    // International Tables for Crystallography, https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php
-    constexpr FiveGaussian H           {.a = { 0.489918, 0.262003, 0.196767,  0.049879,         0}, .b = s_to_q({  20.6593,    7.74039,    49.5519,    2.20159,         0}), .c =   0.001305};
+    // The bonded hydrogen of Stewart, Davidson & Simpson, J. Chem. Phys. 42, 3175-3187 (1965), https://doi.org/10.1063/1.1696397:
+    // the spherical density which best fits the hydrogen of the H2 molecule, centred on the nucleus. It is more contracted than the free atom,
+    // and exceeds its form factor by 5% at q = 1.26 Å^-1 and 18% at q = 2.5 Å^-1.
+    // Coefficients from International Tables for Crystallography Vol. C, Table 6.1.1.4.
+    constexpr FiveGaussian H           {.a = { 0.493002, 0.322912, 0.140191,  0.040810,         0}, .b = s_to_q({  10.5109,    26.1257,    3.14236,    57.7997,         0}), .c =   0.003038}; // NOLINT(modernize-use-std-numbers): 3.14236 is a fit coefficient, not pi
 
     // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
     constexpr FiveGaussian C           {.a = { 2.657506, 1.078079, 1.490909, -4.241070,  0.713791}, .b = s_to_q({14.780758,   0.776775,  42.086843,  -0.000294,  0.239535}), .c =   4.297983};

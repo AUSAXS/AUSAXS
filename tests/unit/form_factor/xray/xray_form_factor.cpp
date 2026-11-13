@@ -156,7 +156,7 @@ TEST_CASE("FormFactor::xray::groups") {
     SECTION("groups are built from the atomic form factors of their atoms") {
         const AtomicFormFactor c(coefficients::C), h(coefficients::H);
         for (double q : {0.1, 0.5, 1., 2.}) {
-            CHECK_THAT(raw::get(form_factor_t::CH3).evaluate(q), WithinAbs(c.evaluate(q) + 3*h.evaluate(q)*sinc(q*group::bond::CH), 1e-12));
+            CHECK_THAT(raw::get(form_factor_t::CH3).evaluate(q), WithinAbs(c.evaluate(q) + 3*h.evaluate(q)*sinc(q*group::bond::CH3), 1e-12));
         }
     }
 

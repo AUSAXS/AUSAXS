@@ -84,7 +84,7 @@ namespace ausaxs::form_factor::xray {
         namespace detail {
             // the charge of a group is taken evenly from the electrons of its hydrogens, e.g. the three hydrogens of NH3+ carry two electrons in total
             constexpr AtomicFormFactor bound_hydrogen(const form_factor::FormFactorInfo& info) {
-                constexpr AtomicFormFactor hydrogen(coefficients::H); // the free hydrogen atom, centred on its nucleus
+                constexpr AtomicFormFactor hydrogen(coefficients::H); // the bonded hydrogen, centred on its nucleus
                 if (info.charge == 0) {return hydrogen;}
                 auto [a, b, c] = coefficients::H;
                 double electrons = static_cast<double>(info.geometry.hydrogens - info.charge)/info.geometry.hydrogens;

@@ -43,7 +43,7 @@ TEST_CASE("NeutronFormFactor::get") {
 
     SECTION("groups place their hydrogens at the nuclear X-H distance") {
         auto sinc = [] (double x) {return std::sin(x)/x;};
-        CHECK_THAT(get(form_factor_t::CH3).evaluate(1), WithinAbs(6.646 - 3*3.739*sinc(group::bond::CH), 1e-12));
+        CHECK_THAT(get(form_factor_t::CH3).evaluate(1), WithinAbs(scattering_length::C + 3*scattering_length::H*sinc(group::bond::CH3), 1e-12));
     }
 
     SECTION("excluded volume is not defined") {
