@@ -28,33 +28,13 @@ ResidueMap::ResidueMap(std::unordered_map<AtomKey, int> map) : map(std::move(map
     this->calculate_average();
 }
 
-namespace {
-    /**
-     * @brief The name a force field gives an atom that the residue definitions know by another name, or an empty string if there is none.
-     *        CHARMM calls the two C-terminal oxygens OT1 and OT2, where the definitions carry the GROMACS names OC1 and OC2.
-     */
-    std::string alias_of(const std::string& lowercase_name) {
-        if (lowercase_name == "ot1") {return "oc1";}
-        if (lowercase_name == "ot2") {return "oc2";}
-        return {};
-    }
-}
-
-const int* ResidueMap::find(const AtomKey& key) const {
-    if (auto it = map.find(key); it != map.end()) {return &it->second;}
-    if (auto alias = alias_of(key.name); !alias.empty()) {
-        if (auto it = map.find(AtomKey(alias, key.atom)); it != map.end()) {return &it->second;}
-    }
-    return nullptr;
-}
-
 bool ResidueMap::contains(const std::string& name, constants::atom_t atom) const {
     return map.contains(AtomKey(name, atom));
 }
 
 double ResidueMap::get(const AtomKey& key) {
     // first check if the key is in the map
-    if (auto value = find(key)) {return *value;}
+    if (map.contains(key)) {return map.at(key);}
 
     // if not, check if the key is a hydrogen
     if (key.atom == constants::atom_t::H) {return 0;}
@@ -106,8 +86,7 @@ std::unordered_map<AtomKey, int>& ResidueMap::get_backing_map() {return map;}
 
 constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_name, constants::atom_t atom_type) {
     auto key = AtomKey(atom_name, atom_type);
-    auto value = find(key);
-    if (!value) {
+    if (!map.contains(key)) {
         if (key.atom == constants::atom_t::H) {return constants::atomic_group_t::unknown;}
         if (!settings::molecule::allow_unknown_atoms) {
             throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
@@ -122,6 +101,6 @@ constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_n
         }
         return constants::atomic_group_t::unknown;
     }
-    int hydrogens = *value;
+    int hydrogens = map.at(key);
     return constants::symbols::get_atomic_group(atom_type, hydrogens);
 }

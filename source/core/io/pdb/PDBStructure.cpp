@@ -241,7 +241,7 @@ namespace {
                 auto group = constants::symbols::get_atomic_group(a.resName, a.name, a.element);
                 hydrogens[i].group = group;
                 if (!form_factor::has_implicit_hydrogens(form_factor::get_type(a.element, group))) {
-                    hydrogens[i].count = constants::hydrogen_atoms::residues.get(a.resName).get(a.name, a.element);
+                    hydrogens[i].count = constants::hydrogen_atoms::residues.get_hydrogens(a.resName, a.name, a.element);
                 }
             } catch (const except::base&) {
                 throw except::invalid_argument(
