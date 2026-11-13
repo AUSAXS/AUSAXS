@@ -10,6 +10,7 @@
 #include <gpu/GPULoader.h>
 #include <io/File.h>
 #include <settings/GeneralSettings.h>
+#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 
@@ -77,6 +78,26 @@ namespace {
         return choice - 1;
     }
 
+    /**
+     * @brief A chooser that picks the device named on the command line instead of asking: the one with exactly that identifier, or else the
+     *        first one reached through that API, e.g. "hip".
+     */
+    gpu::GPULoader::DeviceChooser choose_named(const std::string& name) {
+        return [name] (const std::vector<std::string>& devices) -> std::optional<std::size_t> {
+            auto found = std::ranges::find(devices, name);
+            if (found == devices.end()) {
+                found = std::ranges::find_if(devices, [&name] (const std::string& id) {return id.starts_with(name + ":");});
+            }
+            if (found != devices.end()) {return static_cast<std::size_t>(found - devices.begin());}
+
+            std::string listed;
+            for (const auto& id : devices) {listed += "\n    " + id;}
+            throw except::invalid_argument(
+                "No device is called or reached through \"" + name + "\". The devices found are:" + (listed.empty() ? std::string(" none") : listed)
+            );
+        };
+    }
+
     // the exit status: 0 if a backend is loaded and has a usable device, 1 otherwise
     int status() {
         auto folder = gpu::installer::folder();
@@ -116,6 +137,10 @@ int cli_gpu(int argc, char const *argv[]) {
     auto* sub_install = app.add_subcommand("install", "Install the GPU backend for this platform, unless a compatible one is already installed. If there are several GPUs, asks which one to use, so run it again to choose another.");
     sub_install->add_option("--from", from, "Install from this URL or already downloaded zip file instead of the latest release, replacing any existing installation.");
     sub_install->add_flag("--offline", settings::general::offline.value, "Prevent any network requests. Only --from with a local file works.");
+    std::string device;
+    sub_install->add_option("--device", device, "Use this GPU without asking: its identifier as listed when asked, or just its API, e.g. \"cuda\" for the first CUDA GPU.");
+    // internal: offer the backend's host CPU device as well, to test the backend on a machine without a GPU
+    sub_install->add_flag("--expose-cpu", settings::internal_state::gpu_expose_cpu)->group("");
 
     auto* sub_status = app.add_subcommand("status", "Show the installed GPU backend and the device it finds.");
     auto* sub_remove = app.add_subcommand("remove", "Remove the installed GPU backend.");
@@ -125,15 +150,19 @@ int cli_gpu(int argc, char const *argv[]) {
 
     try {
         if (*sub_install) {
+            // naming the host device is asking for it, so it must be listed to be found
+            if (device == gpu::abi::host_api || gpu::GPULoader::is_host_device(device)) {settings::internal_state::gpu_expose_cpu = true;}
+            auto chooser = device.empty() ? gpu::GPULoader::DeviceChooser(choose_device) : choose_named(device);
+
             if (from.empty()) {
-                if (gpu::installer::select_device(choose_device)) {return 0;}
+                if (gpu::installer::select_device(chooser)) {return 0;}
                 if (gpu::installer::asset_name().empty()) {
                     console::print_warning("No prebuilt GPU backend exists for this platform.");
                     return 1;
                 }
                 from = gpu::installer::asset_url();
             }
-            gpu::installer::install(from, choose_device);
+            gpu::installer::install(from, chooser);
             return 0;
         }
         if (*sub_status) {

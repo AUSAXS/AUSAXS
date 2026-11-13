@@ -114,7 +114,7 @@ static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::u
 };
 
 // Check that the Grid histograms are correct (normalized comparison)
-TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
+TEST_CASE("HistogramManagerMTFFGrid::calculate", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("simple") {
@@ -140,7 +140,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate", "[files]") {
 }
 
 // Check that the atom-atom form factor weighting is correct on absolute scale
-TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[files]") {
+TEST_CASE("HistogramManagerMTFFGrid::calculate absolute scale", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
@@ -236,16 +236,16 @@ static auto test_derived = [] () {
 };
 
 // Check that the GridSurface histograms are correct
-TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[files]") {
+TEST_CASE("HistogramManagerMTFFGridSurface::calculate", "[gpu]") {
     test_derived<HistogramManagerMTFFGridSurface, ScatteringModelGridSurface>();
 }
 
-TEST_CASE("HistogramManagerMTFFGridScalableExv::calculate", "[files]") {
+TEST_CASE("HistogramManagerMTFFGridScalableExv::calculate", "[gpu]") {
     test_derived<HistogramManagerMTFFGridScalableExv, ScatteringModelGridScalable>();
 }
 
 // Check that the weighted bins are correct and separate for the excluded volume and the protein atoms
-TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[files]") {
+TEST_CASE("HistogramManagerMTFFGrid: weighted_bins", "[gpu]") {
     settings::molecule::implicit_hydrogens = false;
     settings::hist::weighted_bins = true;
     settings::general::verbose = false;

@@ -12,6 +12,7 @@ using namespace ausaxs::settings;
 double internal_state::inv_bin_width = 1./constants::axes::d_axis.width();
 bool internal_state::prefer_partial_manager = false;
 bool internal_state::allow_decorrelate_atom_order = true;
+bool internal_state::gpu_expose_cpu = false;
 
 double internal_state::solvent_density() {
     using Radiation = scattering::Radiation;

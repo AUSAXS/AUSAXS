@@ -83,7 +83,7 @@ static auto test_composite_symmetry = [] (settings::hist::HistogramManagerChoice
     }
 };
 
-TEST_CASE("SymmetryManager: CompositeSymmetry") {
+TEST_CASE("SymmetryManager: CompositeSymmetry", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {

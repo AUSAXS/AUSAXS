@@ -123,7 +123,7 @@ namespace {
     }
 }
 
-TEST_CASE("SymmetryManager: random mixed-symmetry fuzz") {
+TEST_CASE("SymmetryManager: random mixed-symmetry fuzz", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {

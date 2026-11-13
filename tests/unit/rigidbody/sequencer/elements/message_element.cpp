@@ -53,7 +53,7 @@ TEST_CASE("MessageElement: an unknown placeholder or stray brace is refused") {
     CHECK_THROWS_AS(MessageElement(&sequencer, "{ {iteration}", "white", false), rigidbody::sequencer::except::parse_error);
 }
 
-TEST_CASE("MessageElement: an unknown colour is refused when the script is parsed", "[files]") {
+TEST_CASE("MessageElement: an unknown colour is refused when the script is parsed") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 250;

@@ -147,7 +147,7 @@ TEST_CASE_METHOD(fixture, "Molecule::Molecule") {
     }
 }
 
-TEST_CASE("Molecule::get_Rg", "[files]") {
+TEST_CASE("Molecule::get_Rg") {
     // tests without effective charge are compared against the electron Rg from CRYSOL
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
@@ -174,7 +174,7 @@ TEST_CASE("Molecule::get_Rg", "[files]") {
     }
 }
 
-TEST_CASE("Molecule::simulate_dataset", "[files]") {
+TEST_CASE("Molecule::simulate_dataset") {
     settings::axes::qmax = 0.4;
     settings::general::verbose = false;
     settings::em::sample_frequency = 2;
@@ -210,7 +210,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_cm") {
 //     REQUIRE_THAT(protein.get_volume_grid(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
 // }
 
-TEST_CASE_METHOD(fixture, "Molecule::get_histogram", "[files]") {
+TEST_CASE_METHOD(fixture, "Molecule::get_histogram") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
 
@@ -263,7 +263,7 @@ TEST_CASE_METHOD(fixture, "Molecule::get_total_histogram") {
     // REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
 }
 
-TEST_CASE("Molecule::save", "[files]") {
+TEST_CASE("Molecule::save") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
 
@@ -290,7 +290,7 @@ TEST_CASE("Molecule::save", "[files]") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
+TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration") {
     settings::general::verbose = false;
     settings::grid::scaling = 0.25;
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
@@ -321,7 +321,7 @@ TEST_CASE_METHOD(fixture, "Molecule::generate_new_hydration", "[files]") {
     }
 }
 
-TEST_CASE("Molecule::get_volume_grid", "[files]") {
+TEST_CASE("Molecule::get_volume_grid") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     REQUIRE(protein.get_volume_grid() == protein.get_grid()->get_volume());
@@ -331,7 +331,7 @@ TEST_CASE("Molecule::get_volume_grid", "[files]") {
 //     CHECK(false);
 // }
 
-TEST_CASE("Molecule::get_molar_mass", "[files]") {
+TEST_CASE("Molecule::get_molar_mass") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
 
@@ -343,7 +343,7 @@ TEST_CASE("Molecule::get_molar_mass", "[files]") {
     REQUIRE(protein.get_molar_mass() < 1e5);
 }
 
-TEST_CASE("Molecule::get_absolute_mass", "[files]") {
+TEST_CASE("Molecule::get_absolute_mass") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     double sum = 0;
@@ -354,7 +354,7 @@ TEST_CASE("Molecule::get_absolute_mass", "[files]") {
     REQUIRE_THAT(protein.get_absolute_mass(), Catch::Matchers::WithinRel(sum, 1e-12));
 }
 
-TEST_CASE("Molecule::get_total_atomic_charge", "[files]") {
+TEST_CASE("Molecule::get_total_atomic_charge") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     double sum = 0;
@@ -364,7 +364,7 @@ TEST_CASE("Molecule::get_total_atomic_charge", "[files]") {
     REQUIRE_THAT(protein.get_total_atomic_charge(), Catch::Matchers::WithinRel(sum, 1e-9));
 }
 
-TEST_CASE("Molecule::get_excess_charge_density", "[files]") {
+TEST_CASE("Molecule::get_excess_charge_density") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     REQUIRE_THAT(
@@ -376,7 +376,7 @@ TEST_CASE("Molecule::get_excess_charge_density", "[files]") {
     );
 }
 
-TEST_CASE("Molecule::get_excess_mass_density", "[files]") {
+TEST_CASE("Molecule::get_excess_mass_density") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = true;      // do not inherit the override from get_Rg above
     settings::molecule::allow_unknown_atoms = true;     // SASDJQ4 carries a few
@@ -418,7 +418,7 @@ TEST_CASE("Molecule::get_excess_mass_density", "[files]") {
     CHECK(protein.get_absolute_mass(true) > protein.get_absolute_mass(false));
 }
 
-TEST_CASE("Molecule::get_excess_charge", "[files]") {
+TEST_CASE("Molecule::get_excess_charge") {
     settings::general::verbose = false;
     Molecule protein("tests/files/2epe.pdb");
     REQUIRE_THAT(
@@ -589,14 +589,14 @@ TEST_CASE_METHOD(fixture, "Molecule::get_histogram_manager") {
 //     auto hm = protein.get_histogram_manager();
 // }
 
-TEST_CASE("Molecule::translate", "[files]") {
+TEST_CASE("Molecule::translate") {
     Molecule protein("tests/files/2epe.pdb");
     Vector3<double> cm = protein.get_cm();
     protein.translate(Vector3<double>{1, 1, 1});
     REQUIRE(protein.get_cm() == cm + Vector3<double>{1, 1, 1});
 }
 
-TEST_CASE("Molecule::histogram", "[files]") {
+TEST_CASE("Molecule::histogram") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     SECTION("multiple bodies, simple") {
         // make the protein
@@ -1036,7 +1036,7 @@ TEST_CASE("Molecule::uses_weighted_bins") {
 }
 
 // The weights are derived from the active probe when a structure is read, so a later probe change must reach them (BL-188).
-TEST_CASE("Molecule: the weights follow the scattering probe", "[files]") {
+TEST_CASE("Molecule: the weights follow the scattering probe") {
     settings::general::verbose = false;
     auto probe = GENERATE(settings::scattering::Radiation::XRay, settings::scattering::Radiation::Neutron);
     auto other = probe == settings::scattering::Radiation::XRay ? settings::scattering::Radiation::Neutron : settings::scattering::Radiation::XRay;

@@ -90,7 +90,7 @@ struct ParameterParseFixture {
     }
 };
 
-TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplitudes", "[files]") {
+TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplitudes") {
     SECTION("translate alone enables only body translation") {
         auto a = amplitudes_of(load() + "parameters {\n    iterations 10\n    translate 5\n}\n");
         CHECK(a.translation == 5);
@@ -174,7 +174,7 @@ TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement amplit
     }
 }
 
-TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement rejects contradictions", "[files]") {
+TEST_CASE_METHOD(ParameterParseFixture, "SequenceParser::ParameterElement rejects contradictions") {
     SECTION("symmetry amplitudes on a molecule without symmetries") {
         CHECK_THROWS_AS(parse(load() + "parameters {\n    iterations 10\n    sym_translate 10\n}\n"), sequencer::except::parse_error);
     }

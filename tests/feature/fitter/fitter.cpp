@@ -143,7 +143,7 @@ TEST_CASE("SmartFitter::fit") {
     }
 }
 
-TEST_CASE("fitter: correct dof", "[files]") {
+TEST_CASE("fitter: correct dof") {
     settings::general::verbose = false;
     settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
     Molecule protein("tests/files/2epe.pdb");

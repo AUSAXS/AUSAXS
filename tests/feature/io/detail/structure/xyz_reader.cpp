@@ -72,7 +72,7 @@ TEST_CASE("XYZReader::read") {
     }
 }
 
-TEST_CASE("XYZReader::read does not disable implicit hydrogens for later structures", "[files]") {
+TEST_CASE("XYZReader::read does not disable implicit hydrogens for later structures") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = true;
 

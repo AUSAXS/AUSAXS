@@ -273,7 +273,7 @@ static auto test_translation = [] (settings::hist::HistogramManagerChoice choice
     }
 };
 
-TEST_CASE("SymmetryManager: translations") {
+TEST_CASE("SymmetryManager: translations", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
@@ -352,7 +352,7 @@ static auto test_repeating_symmetries = [] (settings::hist::HistogramManagerChoi
     }
 };
 
-TEST_CASE("SymmetryManager: repeating symmetries") {
+TEST_CASE("SymmetryManager: repeating symmetries", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
@@ -395,7 +395,7 @@ static auto test_rotations = [] (settings::hist::HistogramManagerChoice choice) 
     }
 };
 
-TEST_CASE("SymmetryManager: rotations") {
+TEST_CASE("SymmetryManager: rotations", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
@@ -467,7 +467,7 @@ static auto test_multi_atom = [] (settings::hist::HistogramManagerChoice choice)
         check_hist(h, checks);
     }
 };
-TEST_CASE("SymmetryManager: multi-atom systems") {
+TEST_CASE("SymmetryManager: multi-atom systems", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
 
@@ -576,7 +576,7 @@ static auto test_random = [] (settings::hist::HistogramManagerChoice choice) {
     }
 };
 
-TEST_CASE("SymmetryManager: random tests") {
+TEST_CASE("SymmetryManager: random tests", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     SECTION("SymmetryManager") {
         test_random(settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT);
@@ -586,7 +586,7 @@ TEST_CASE("SymmetryManager: random tests") {
     }
 }
 
-TEST_CASE("SymmetryManager: simple excluded volume matches the explicit structure") {
+TEST_CASE("SymmetryManager: simple excluded volume matches the explicit structure", "[gpu]") {
     settings::molecule::implicit_hydrogens = false;
     settings::general::verbose = false;
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;

@@ -51,7 +51,7 @@ struct PathResolutionFixture {
     std::string root;
 };
 
-TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::OutputFolderElement modes", "[files]") {
+TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::OutputFolderElement modes") {
     plant_structure();
     static const std::string load =
         "load {\n"

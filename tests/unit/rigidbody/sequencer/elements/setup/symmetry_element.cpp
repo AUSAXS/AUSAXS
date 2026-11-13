@@ -50,7 +50,7 @@ struct ArgWhitelistFixture {
     }
 };
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::SymmetryElement inline forms", "[files]") {
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser::SymmetryElement inline forms") {
     static const std::string two_bodies =
         "load {\n"
         "    pdb tests/files/SASDJG5_single.pdb tests/files/SASDJG5_single.pdb\n"

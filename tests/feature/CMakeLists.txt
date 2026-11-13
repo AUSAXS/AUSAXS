@@ -8,7 +8,7 @@ foreach(test ${TEST_SRC})
 	cmake_path(GET test STEM LAST_ONLY testname)
 	set(name "ftest_${testname}")
 	add_executable("${name}" ${test})
-	target_link_libraries("${name}" Catch2::Catch2WithMain libausaxs)
+	target_link_libraries("${name}" Catch2::Catch2WithMain libausaxs ausaxs_test_support)
 	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/tests/feature" "${CMAKE_SOURCE_DIR}/tests")
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${TEST_BIN_DIR}"
@@ -17,6 +17,7 @@ foreach(test ${TEST_SRC})
 	add_dependencies(feature_tests "${name}")
 	catch_discover_tests("${name}" 
 		TEST_SPEC "~[slow] ~[broken] ~[manual]" 
+		ADD_TAGS_AS_LABELS
 		WORKING_DIRECTORY "${TEST_BIN_DIR}"
 		REPORTER junit
 		OUTPUT_DIR ${REPORT_DIR}

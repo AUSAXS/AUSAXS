@@ -1,0 +1,26 @@
+name: GPU backend release build
+
+# Builds the backend package for every platform, for a release of AUSAXS-GPU. Always builds, whatever was built before.
+on:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: "Linux"
+    uses: ./.github/workflows/gpu-backend-linux.yml
+    permissions:
+      contents: read
+
+  windows:
+    name: "Windows"
+    uses: ./.github/workflows/gpu-backend-windows.yml
+    permissions:
+      contents: read
+      packages: write # publishing the toolchain package
+
+  macos:
+    name: "macOS"
+    uses: ./.github/workflows/gpu-backend-macos.yml
+    permissions:
+      contents: read
+    secrets: inherit # signing

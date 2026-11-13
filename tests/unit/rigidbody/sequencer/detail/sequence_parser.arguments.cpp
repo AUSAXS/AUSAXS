@@ -45,7 +45,7 @@ struct ArgWhitelistFixture {
     }
 };
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments are rejected", "[files]") {
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments are rejected") {
     SECTION("an unknown key in an element that has a whitelist") {
         CHECK_THROWS_AS(parse(load() +
             "parameters {\n"
@@ -113,7 +113,7 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: unknown named arguments a
     }
 }
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: named loops are scoped to one parse", "[files]") {
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: named loops are scoped to one parse") {
     auto script = load() +
         "loop L1 10\n"
         "    optimize_once\n"
@@ -133,7 +133,7 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: named loops are scoped to
     }
 }
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: inline argument counts are rejected centrally", "[files]") {
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: inline argument counts are rejected centrally") {
     SECTION("too few inline arguments") {
         CHECK_THROWS_AS(parse(load() + "rename b1\n"), sequencer::except::parse_error);
         CHECK_THROWS_AS(parse(load() + "merge b1\n"), sequencer::except::parse_error);
@@ -175,7 +175,7 @@ TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: inline argument counts ar
     }
 }
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: the two argument forms cannot be combined", "[files]") {
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: the two argument forms cannot be combined") {
     // tokens between the element name and the brace used to be discarded without a word, so this was previously accepted
     SECTION("an inline argument in front of a block") {
         CHECK_THROWS_AS(parse(load() + "print red {\n    msg \"hello\"\n}\n"), sequencer::except::parse_error);
@@ -231,7 +231,7 @@ TEST_CASE("SequenceParser: every element declares its own named arguments") {
     }
 }
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: an unknown element reports its own line", "[files]") {
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: an unknown element reports its own line") {
     // the load block is lines 1-4; the unknown element opens a block on line 5 which ends on line 7
     try {
         parse(load() + "parameter {\n    iterations 10\n}\n");
@@ -271,7 +271,7 @@ TEST_CASE("SequenceParser: element names must match a registered name exactly") 
     }
 }
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: overlap_strength sets the overlap penalty", "[files]") {
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: overlap_strength sets the overlap penalty") {
     struct OverlapConstraint : constraints::OverlapConstraint {using constraints::OverlapConstraint::weight;}; // weight() is protected
     using Catch::Matchers::WithinRel;
     const double default_weight = std::exp(-5*0.5);
@@ -325,7 +325,7 @@ TEST_CASE("SequenceParser: script numbers are parsed strictly") {
     }
 }
 
-TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: numeric arguments are checked", "[files]") {
+TEST_CASE_METHOD(ArgWhitelistFixture, "SequenceParser: numeric arguments are checked") {
     auto parameter = [] (const std::string& body) {return "parameters {\n" + body + "}\n";};
     std::string P = parameter("    iterations 4\n    translate 1\n    rotate 1\n");
 

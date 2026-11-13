@@ -14,7 +14,7 @@ using namespace ausaxs::data;
 // the plain managers subtract the displaced charge from each atomic weight before binning, while the partial managers apply it afterwards
 // to the histogram of each form factor type; both must describe the same model. Every atom of these structures is fully occupied, since
 // the form factor histograms carry no per-atom weights
-TEST_CASE("make_simple_model: matches the plain managers") {
+TEST_CASE("make_simple_model: matches the plain managers", "[gpu]") {
     settings::general::verbose = false;
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
     bool weighted_bins = GENERATE(false, true);

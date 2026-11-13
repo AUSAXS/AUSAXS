@@ -273,6 +273,65 @@ namespace {
         }
         return line;
     }
+
+    /**
+     * @brief Refuse to install @a entries if a top-level one already exists in @a folder without being from an earlier installation.
+     *
+     * Called before anything is changed, so a refusal changes nothing.
+     */
+    void check_replaceable(const io::Folder& folder, const std::vector<fs::path>& entries, const std::vector<fs::path>& previous) {
+        for (const auto& entry : entries) {
+            if (entry.has_parent_path() || std::ranges::find(previous, entry) != previous.end()) {continue;}
+            std::error_code ec;
+            if (fs::exists(fs::symlink_status(fs::path(folder.path())/entry, ec))) {
+                throw except::runtime_error(
+                    "gpu::installer: refusing to install into \"" + folder.path() + "\": it already holds \"" + entry.string() + "\", "
+                    "which is not from an earlier installation"
+                );
+            }
+        }
+    }
+
+    /**
+     * @brief Replace any existing installation with a link to @a library, so a rebuilt backend is used without installing it again.
+     *
+     * The library is tested where it is before anything is changed, so one that cannot be loaded leaves the existing installation alone.
+     */
+    void link_library(const io::File& library, const GPULoader::DeviceChooser& choose) {
+        io::Folder folder = installer::folder();
+        io::File record = record_file(folder);
+        std::vector<fs::path> previous = read_record(record);
+        std::vector<fs::path> entries{fs::path(GPULoader::library_name()), fs::path(marker_name)};
+        check_replaceable(folder, entries, previous);
+
+        std::string target = fs::absolute(library.path()).string();
+        console::print_text("Testing " + target + ". This may take a few seconds while the kernel is compiled.");
+        auto probe = GPULoader::probe(target, choose);
+        if (!probe.loaded) {
+            throw except::runtime_error("gpu::installer: \"" + target + "\" could not be loaded as a GPU backend, changes reverted. Error: " + probe.error);
+        }
+
+        uninstall(folder, previous);
+        discard(toggle_file(folder)); // the GPU chosen for the old installation no longer applies
+
+        // Recorded before the link is made, so an interrupted install can still be removed.
+        write_record(record, entries);
+        try {
+            folder.create();
+            fs::create_symlink(target, library_file(folder).path());
+        } catch (const fs::filesystem_error& e) {
+            discard_installation(folder, entries, record);
+            throw except::runtime_error(
+                "gpu::installer: could not link to \"" + target + "\": " + e.code().message() + "."
+                #ifdef _WIN32
+                    " Creating links on Windows needs developer mode or administrator rights."
+                #endif
+            );
+        }
+        write_marker(folder, target, probe.chosen ? probe.selected : "");
+        installer::set_enabled(probe.chosen && probe.available); // only a GPU someone chose, since the first may be integrated graphics
+        report("Linked the GPU backend to " + target, probe);
+    }
 }
 
 std::string installer::installed_source() {
@@ -283,7 +342,20 @@ std::string installer::installed_device() {
     return marker_line(1);
 }
 
-void installer::install([[maybe_unused]] const std::string& source, [[maybe_unused]] const GPULoader::DeviceChooser& choose) {
+void installer::install(const std::string& source, const GPULoader::DeviceChooser& choose) {
+    if (io::File file(source); file.exists()) {
+        auto library_extension = fs::path(GPULoader::library_name()).extension();
+        if (fs::path(source).extension() == library_extension) {
+            link_library(file, choose);
+            return;
+        }
+        if (fs::path(source).extension() != ".zip") {
+            throw except::runtime_error(
+                "gpu::installer: \"" + source + "\" is neither a zip archive nor a shared library (" + library_extension.string() + ")"
+            );
+        }
+    }
+
     #ifndef AUSAXS_GPU_DOWNLOADER
         throw except::runtime_error("gpu::installer: this build of AUSAXS cannot install GPU backends, since it was built without the downloader (GPU_DOWNLOADER=OFF)");
     #else
@@ -317,18 +389,7 @@ void installer::install([[maybe_unused]] const std::string& source, [[maybe_unus
             }
             entries = list_contents(staging);
             entries.emplace_back(marker_name);
-
-            // Only what an earlier installation put there may be replaced. Checked before anything is changed, so a refusal changes nothing.
-            for (const auto& entry : entries) {
-                if (entry.has_parent_path() || std::ranges::find(previous, entry) != previous.end()) {continue;}
-                std::error_code ec;
-                if (fs::exists(fs::symlink_status(fs::path(folder.path())/entry, ec))) {
-                    throw except::runtime_error(
-                        "gpu::installer: refusing to install into \"" + folder.path() + "\": it already holds \"" + entry.string() + "\", "
-                        "which is not from an earlier installation"
-                    );
-                }
-            }
+            check_replaceable(folder, entries, previous);
         } catch (...) {
             discard(staging);
             if (downloaded) {discard(zip);}

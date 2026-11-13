@@ -83,7 +83,7 @@ namespace {
     }
 }
 
-TEST_CASE("SplitElement: splitting a symmetric body preserves scattering under rigid transforms", "[files]") {
+TEST_CASE("SplitElement: splitting a symmetric body preserves scattering under rigid transforms") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the effective charges of Simple depend on the grid volume, which differs by a few voxels between the two molecules
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
@@ -124,7 +124,7 @@ TEST_CASE("SplitElement: splitting a symmetric body preserves scattering under r
     expect_same_scattering(rb_unsplit->molecule, rb_split->molecule);
 }
 
-TEST_CASE("SplitElement: splitting a body with no symmetry yields independent fragments", "[files]") {
+TEST_CASE("SplitElement: splitting a body with no symmetry yields independent fragments") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;
@@ -156,7 +156,7 @@ TEST_CASE("SplitElement: splitting a body with no symmetry yields independent fr
     expect_same_scattering(rb_unsplit->molecule, rb_split->molecule);
 }
 
-TEST_CASE("SplitElement: constrained optimization steps of split symmetric fragments", "[files]") {
+TEST_CASE("SplitElement: constrained optimization steps of split symmetric fragments") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     settings::grid::min_bins = 100;

@@ -23,10 +23,8 @@
  */
 namespace ausaxs::gpu::abi {
     extern "C" {
-        /**
-         * @brief The version of this interface.
-         */
-        constexpr std::int32_t version = 3;
+        constexpr std::int32_t version = 4; // ABI version, used to verify the backend is valid at link time. 
+        constexpr const char* host_api = "host"; // The <api> name of the host device in the DeviceChooser. 
 
         /**
          * @brief Status returned by the run functions.
@@ -88,11 +86,14 @@ namespace ausaxs::gpu::abi {
         using last_error_fn = const char* (*)();
 
         /**
-         * @brief Number of GPUs the backend can run on. Never fails; 0 if there are none, or they could not be listed.
+         * @brief Number of devices the backend can run on. Never fails; 0 if there are none, or they could not be listed.
          *
          * The list is ranked so that dedicated GPUs tend to come first: devices reached through a vendor's own compute API (CUDA, HIP)
          * precede those reached through OpenCL, where integrated GPUs live. The ranking is only a guess, since a backend cannot ask whether
          * a GPU is integrated; it is meant as a default for the user to override.
+         *
+         * A backend that can also run its kernels on the host CPU lists that device last, with host_api as its <api>. It exists to test
+         * the backend on machines without a GPU, and is never used unless chosen with select_device; the library hides it from users.
          */
         using device_count_fn = std::int32_t (*)();
 
@@ -106,7 +107,7 @@ namespace ausaxs::gpu::abi {
         /**
          * @brief Choose the device every later call runs on, by its identifier from device_id().
          *        Must be called before anything that uses a device, i.e. available(), device_name() or begin(). Without it, the first device
-         *        in the ranked list is used.
+         *        in the ranked list is used, unless that is the host device, in which case there is no usable device.
          *
          * @return ok, or invalid_input if no device has that identifier, or a different device is already in use.
          */

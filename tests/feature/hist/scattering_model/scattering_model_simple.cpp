@@ -118,7 +118,7 @@ TEST_CASE("ScatteringModelSimple::apply_water_scaling_factor") {
     }
 }
 
-TEST_CASE("ScatteringModelSimple::debye_transform", "[files]") {
+TEST_CASE("ScatteringModelSimple::debye_transform") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::warnings = true;
     settings::general::verbose = false;

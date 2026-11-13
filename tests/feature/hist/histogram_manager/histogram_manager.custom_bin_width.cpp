@@ -76,7 +76,7 @@ static void run_test2(const Molecule& protein) {
     auto h = MANAGER(&protein).calculate_all();
     REQUIRE_THAT(h->get_d_axis()[1] - h->get_d_axis()[0], Catch::Matchers::WithinAbs(settings::axes::bin_width, 1e-9));
 }
-TEST_CASE("Custom bin width: respected by managers") {
+TEST_CASE("Custom bin width: respected by managers", "[gpu]") {
     settings::general::verbose = false;
     settings::axes::bin_width = GENERATE(0.1, 0.05, 0.02);
 
@@ -106,7 +106,7 @@ static void run_test3(const Molecule& protein, const auto& target) {
     auto h2 = MANAGER<true>(&protein).calculate_all();
     REQUIRE(compare_hist(get_raw_counts(h2.get()), target));
 }
-TEST_CASE("Custom bin width: varying widths agree with analytical result") {
+TEST_CASE("Custom bin width: varying widths agree with analytical result", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
 
@@ -155,7 +155,7 @@ static void run_test5(const Molecule& protein, const std::vector<double>& exact)
         REQUIRE(avg_deviation(iq, exact) <= target_dev*1.001); // allow numerical noise
     }
 }
-TEST_CASE("Custom bin width: smaller widths increase accuracy") {
+TEST_CASE("Custom bin width: smaller widths increase accuracy", "[gpu]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
 
@@ -179,7 +179,7 @@ static void run_test6(const Molecule& protein) {
         REQUIRE(avg_deviation(unweighted, weighted) < 0.01);
     }
 }
-TEST_CASE("Custom bin width: unweighted bins transform with their own width") {
+TEST_CASE("Custom bin width: unweighted bins transform with their own width", "[gpu]") {
     // unweighted bins carry no distance axis of their own, so their Debye transform must not borrow the default table's,
     // which is precomputed for the default width. On a disordered structure the two binnings then agree closely.
     settings::general::verbose = false;

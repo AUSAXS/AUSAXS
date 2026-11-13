@@ -47,7 +47,7 @@ struct SequenceParserRelativeHydrationFixture {
     }
 };
 
-TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationElement: ratios are laid out over the whole body set", "[files]") {
+TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationElement: ratios are laid out over the whole body set") {
     // BodyCounterCulling::cull indexes body_ratios by body index for every body in the molecule, so the vector must be exactly that long. It used to be built
     // by appending encoded name-registry indices onto the caller's ratio list, leaving it double length with indices standing in for weights.
     constexpr double normal = 1.0, high = 1.5, maximum = 1.75;
@@ -114,7 +114,7 @@ TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationEleme
     }
 }
 
-TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationElement: declarations accumulate", "[files]") {
+TEST_CASE_METHOD(SequenceParserRelativeHydrationFixture, "RelativeHydrationElement: declarations accumulate") {
     // The ratio vector spans the whole body set, so an element cannot describe only its own bodies. Before the shared store,
     // a second element rebuilt the vector from scratch and reset every body the first one had named back to normal.
     constexpr double normal = 1.0, high = 1.5, maximum = 1.75, low = 0.5;

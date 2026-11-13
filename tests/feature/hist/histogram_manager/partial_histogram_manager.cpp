@@ -18,7 +18,7 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 
 // Test that the first calculation is correct
-TEST_CASE("PartialHistogramManager: initial calculation") {
+TEST_CASE("PartialHistogramManager: initial calculation", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
@@ -135,7 +135,7 @@ static auto test_random = [] (data::Molecule& protein, auto&& phm) {
 };
 
 // Test that subsequent calculations are correct
-TEST_CASE("PartialHistogramManager: subsequent calculations") {
+TEST_CASE("PartialHistogramManager: subsequent calculations", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
@@ -157,7 +157,7 @@ TEST_CASE("PartialHistogramManager: subsequent calculations") {
     test_random(protein, [] (const Molecule& protein) {return hist::PartialSymmetryManagerMT<true>(&protein).calculate_all();});    
 }
 
-TEST_CASE("PartialHistogramManager: grows its axis when the structure outgrows it") {
+TEST_CASE("PartialHistogramManager: grows its axis when the structure outgrows it", "[gpu]") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
     auto choice = GENERATE(
@@ -178,7 +178,7 @@ TEST_CASE("PartialHistogramManager: grows its axis when the structure outgrows i
     REQUIRE(after.size() > before.size());
 }
 
-TEST_CASE("PartialHistogramManager: a total-only calculation does not leave stale partials behind") {
+TEST_CASE("PartialHistogramManager: a total-only calculation does not leave stale partials behind", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
@@ -205,7 +205,7 @@ TEST_CASE("PartialHistogramManager: a total-only calculation does not leave stal
     CHECK(compare_hist_approx(h->get_ww_counts(), ref->get_ww_counts()));
 }
 
-TEST_CASE("PartialHistogramManager: the simple excluded volume follows the current geometry") {
+TEST_CASE("PartialHistogramManager: the simple excluded volume follows the current geometry", "[gpu]") {
     settings::general::verbose = false;
     settings::exv::exv_method = settings::exv::ExvMethod::Simple;
     auto choice = GENERATE(

@@ -9,7 +9,7 @@ using namespace ausaxs;
 using namespace ausaxs::data;
 using namespace ausaxs::rigidbody;
 
-TEST_CASE("BodySplitter::split by indices", "[files]") {
+TEST_CASE("BodySplitter::split by indices") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
 
@@ -36,7 +36,7 @@ TEST_CASE("BodySplitter::split by indices", "[files]") {
     }
 }
 
-TEST_CASE("BodySplitter::split by chain", "[files]") {
+TEST_CASE("BodySplitter::split by chain") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
 

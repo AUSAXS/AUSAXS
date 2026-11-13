@@ -54,7 +54,7 @@ TEST_CASE("ConstraintManager: the per-body map covers bodies added after constru
 
 // Regression: splitting a body hands the optimizer indices the constraint map predates. Splitting before declaring constraints is the supported ordering - the
 // structure guard forbids only the reverse - so the map has to catch up on its own instead of the selector walking off the end of it.
-TEST_CASE("ConstraintManager: an unconstrained split optimizes without tripping the per-body map", "[files]") {
+TEST_CASE("ConstraintManager: an unconstrained split optimizes without tripping the per-body map") {
     common_settings();
 
     test::TempFile config(".conf",

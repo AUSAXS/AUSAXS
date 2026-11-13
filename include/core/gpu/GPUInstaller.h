@@ -16,7 +16,7 @@
  * once it has been loaded successfully, so the loader never picks up a half-written or broken one. Every path it unpacks is recorded beside
  * that folder, and only recorded paths are ever replaced or deleted, so anything else in the folder is left alone.
  *
- * Unpacking needs miniz. Builds without it (GPU_DOWNLOADER=OFF) can still report on and remove an installation, but not make one.
+ * Unpacking needs miniz. Builds without it (GPU_DOWNLOADER=OFF) can still report on, link to, and remove an installation, but not unpack one.
  */
 namespace ausaxs::gpu::installer {
     /**
@@ -55,13 +55,13 @@ namespace ausaxs::gpu::installer {
     std::string installed_device();
 
     /**
-     * @brief Download and install a backend, replacing any existing installation.
+     * @brief Download and install a backend, or link to a local one, replacing any existing installation.
      *
      * The backend is test-loaded before the installation is marked complete. A backend that loads but finds no device is still installed, since it may be 
      * installed on one machine and used on another, e.g. a login and a compute node. If it finds a GPU, the one tested is recorded as the one to use from 
      * then on.
      *
-     * @param source A URL, or the path of an already downloaded zip.
+     * @param source A URL, the path of an already downloaded zip, or the path of a shared library to link to.
      * @param choose Asked to pick a GPU whenever the backend finds one. 
      * @throws except::runtime_error if the backend could not be installed, or the folder holds something that is not from an earlier installation.
      */

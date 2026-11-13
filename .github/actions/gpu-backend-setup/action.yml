@@ -1,0 +1,48 @@
+name: "GPU backend setup"
+description: >
+  Load the settings shared by every GPU backend build into the job's environment, and derive the name its package is uploaded
+  under. Needs the repository checked out.
+
+inputs:
+  platform:
+    description: "linux, windows or macos."
+    required: true
+
+outputs:
+  key:
+    description: "Hash of every source that goes into this platform's package."
+    value: ${{ steps.setup.outputs.key }}
+  artifact:
+    description: >
+      Name of the artifact the package is uploaded as, ending in the key. Each build job uploads it as its last step, so an
+      unexpired artifact of this name exists exactly when a package was built successfully from identical sources.
+    value: ${{ steps.setup.outputs.artifact }}
+
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+      run: |
+        set -euo pipefail
+        case "$PLATFORM" in
+          linux)   package=ausaxs-gpu-linux-x64 ;;
+          windows) package=ausaxs-gpu-windows-x64 ;;
+          macos)   package=ausaxs-gpu-macos-arm64 ;;
+          *)       echo "::error::unknown platform '${PLATFORM}'"; exit 1 ;;
+        esac
+
+        # carriage returns stripped for Windows, whose runners check text files out with CRLF line endings (core.autocrlf=true)
+        grep -vE '^[[:space:]]*(#|$)' .github/gpu-backend.env | tr -d '\r' >> "$GITHUB_ENV"
+
+        # Tree hashes come from the repository rather than the working copy, so line-ending conversion cannot change them. A missing
+        # path still contributes its name, so deleting one changes the key. git hash-object rather than sha256sum, which macOS lacks.
+        key=$(for path in source/gpu include/gpu .github/gpu-backend.env ".github/workflows/gpu-backend-${PLATFORM}.yml" \
+                          .github/prune_gpu_package.py .github/relocate_gpu_package.py; do
+                git rev-parse "HEAD:${path}" 2>/dev/null || echo "missing ${path}"
+              done | git hash-object --stdin | cut -c1-16)
+        echo "key=${key}" >> "$GITHUB_OUTPUT"
+        echo "artifact=${package}-${key}" >> "$GITHUB_OUTPUT"
+        echo "${PLATFORM} backend: ${package}-${key}"

@@ -163,7 +163,7 @@ TEST_CASE("CIFReader::read: previously broken files") {
     }
 }
 
-TEST_CASE("CIFReader: compare with PDB", "[files]") {
+TEST_CASE("CIFReader: compare with PDB") {
     settings::general::verbose = false;
 
     auto cif1 = io::detail::cif::read("tests/files/3sba.cif");
@@ -210,7 +210,7 @@ TEST_CASE("CIFReader: compare with PDB", "[files]") {
     compare_atoms(cif3.atoms, pdb3.atoms);
 }
 
-TEST_CASE("CIFReader::read does not disable implicit hydrogens for later structures", "[files]") {
+TEST_CASE("CIFReader::read does not disable implicit hydrogens for later structures") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = true;
 

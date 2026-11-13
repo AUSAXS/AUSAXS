@@ -65,7 +65,7 @@ static auto test_reference_symmetry = [] (settings::hist::HistogramManagerChoice
     }
 };
 
-TEST_CASE("SymmetryManager: ReferenceSymmetry") {
+TEST_CASE("SymmetryManager: ReferenceSymmetry", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
@@ -114,7 +114,7 @@ static auto test_reference_symmetry_dihedral = [] (settings::hist::HistogramMana
     }
 };
 
-TEST_CASE("SymmetryManager: ReferenceSymmetry with dihedral base") {
+TEST_CASE("SymmetryManager: ReferenceSymmetry with dihedral base", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
@@ -183,7 +183,7 @@ static auto test_reference_symmetry_after_transform = [] (settings::hist::Histog
     CHECK(compare_hist_approx(m.get_histogram()->get_weighted_counts(), ground_truth()));
 };
 
-TEST_CASE("SymmetryManager: ReferenceSymmetry stays consistent with ground truth after a further rigid transform") {
+TEST_CASE("SymmetryManager: ReferenceSymmetry stays consistent with ground truth after a further rigid transform", "[gpu]") {
     settings::exv::exv_method = settings::exv::ExvMethod::None; // the expected histograms use the unmodified atomic weights
     settings::molecule::implicit_hydrogens = false;
     SECTION("SymmetryManager") {
@@ -194,7 +194,7 @@ TEST_CASE("SymmetryManager: ReferenceSymmetry stays consistent with ground truth
     }
 }
 
-TEST_CASE("ReferenceSymmetry: combined centre of mass is mass-weighted, matching a single body's own centre of mass") {
+TEST_CASE("ReferenceSymmetry: combined centre of mass is mass-weighted, matching a single body's own centre of mass", "[gpu]") {
     settings::molecule::implicit_hydrogens = false;
 
     std::vector<AtomFF> atoms_a{AtomFF({0, 0, 0}, form_factor::form_factor_t::C), AtomFF({1, 0, 0}, form_factor::form_factor_t::C), AtomFF({0, 1, 0}, form_factor::form_factor_t::C)};

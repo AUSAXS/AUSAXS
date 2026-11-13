@@ -5,6 +5,7 @@
 
 #include <gpu/GPUInstaller.h>
 #include <settings/GeneralSettings.h>
+#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 
@@ -101,6 +102,12 @@ namespace {
         using library_handle = void*;
         library_handle open_library(const std::string& path) {
             quiet_runtime();
+            if (std::filesystem::path file(path); file.has_parent_path()) {
+                std::error_code ec;
+                if (auto real = std::filesystem::canonical(file, ec); !ec) {
+                    return dlopen(real.c_str(), RTLD_NOW | RTLD_LOCAL);
+                }
+            }
             return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
         }
         void* find_symbol(library_handle handle, const char* name) {return dlsym(handle, name);}
@@ -206,11 +213,17 @@ namespace {
 
     /**
      * @brief Identifiers of every GPU @a backend found, in its ranked order.
+     *
+     * The backend's host CPU device is left out unless settings::internal_state::gpu_expose_cpu is set. It only exists to test the backend on
+     * machines without a GPU, and would be much slower than the CPU code for anyone who picked it by mistake.
      */
     std::vector<std::string> list_devices(const GPULoader::Backend& backend) {
         std::vector<std::string> devices;
         for (std::int32_t i = 0; i < backend.device_count(); ++i) {
-            if (const char* id = backend.device_id(i)) {devices.emplace_back(id);}
+            const char* id = backend.device_id(i);
+            if (id == nullptr) {continue;}
+            if (!settings::internal_state::gpu_expose_cpu && GPULoader::is_host_device(id)) {continue;}
+            devices.emplace_back(id);
         }
         return devices;
     }
@@ -318,6 +331,11 @@ std::string GPULoader::path() {
 
 std::string_view GPULoader::library_name() {
     return ::library_name;
+}
+
+bool GPULoader::is_host_device(std::string_view id) {
+    const std::string_view api = abi::host_api;
+    return id.starts_with(api) && id.substr(api.size()).starts_with(':');
 }
 
 std::string GPULoader::device_name() {
