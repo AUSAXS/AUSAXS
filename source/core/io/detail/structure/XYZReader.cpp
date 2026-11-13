@@ -6,6 +6,8 @@
 #include <io/File.h>
 #include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
+#include <utility/Exceptions.h>
+#include <utility/StringUtils.h>
 
 #include <fstream>
 
@@ -24,17 +26,32 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
     std::ifstream input(path);
     if (!input.is_open()) {throw except::io_error("XYZReader::read: Could not open file \"" + path.str() + "\"");}
 
-    int section_id = 0; // 0 = header, 1 = atoms, 2 = footer
+    // header: the atom count, then a free-form comment line (in extended XYZ, the Properties and lattice keys)
     std::string line;
-    while(getline(input, line)) {
-        if (utility::remove_all(line, " \n\r").empty()) {continue;}
-        auto tokens = utility::split(line, " \t");
+    int line_number = 1;
+    auto error = [&] (const std::string& what) {
+        return except::io_error("XYZReader::read: " + what + " on line " + std::to_string(line_number) + " of \"" + path.str() + "\"");
+    };
+    if (!std::getline(input, line)) {throw error("missing atom count");}
+    auto count_token = utility::remove_leading_and_trailing(line, " \t\r");
+    if (!utility::isinteger(count_token) || std::stoi(std::string(count_token)) <= 0) {
+        throw error("expected a positive atom count, got \"" + std::string(count_token) + "\"");
+    }
+    int count = std::stoi(std::string(count_token));
+    std::getline(input, line);
+    ++line_number;
 
-        // skip header
-        if (tokens.size() != 4 && section_id == 0) {continue;}
-        section_id = 1;                                     // progress to main data section
-        if (tokens.size() != 4 && section_id == 1) {break;} // progress to footer
+    // atoms: an element symbol and three coordinates, then any per-atom columns (tags, forces, ...), which are ignored
+    res.atoms.reserve(count);
+    while (static_cast<int>(res.atoms.size()) < count) {
+        ++line_number;
+        if (!std::getline(input, line)) {throw error("expected " + std::to_string(count) + " atoms, found " + std::to_string(res.atoms.size()));}
+        auto tokens = utility::split(line, " \t\r");
+        if (tokens.size() < 4 || !utility::isnumeric(tokens[1]) || !utility::isnumeric(tokens[2]) || !utility::isnumeric(tokens[3])) {
+            throw error("expected an element symbol and three coordinates, got \"" + line + "\"");
+        }
 
+        if (!constants::symbols::detail::string_to_atomt_map.contains(tokens[0])) {throw error("unknown element \"" + tokens[0] + "\"");}
         PDBAtom atom;
         atom.set_element(constants::symbols::parse_element_string(tokens[0]));
         atom.coordinates().x() = std::stod(tokens[1]);
