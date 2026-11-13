@@ -3,8 +3,11 @@
 
 /* The kernel is structured around three decisions:
 
- - Bins are 64-bit fixed-point integers, because every contribution reaches its bin through an atomic add and only the integer one is a 
-   machine instruction. f32 is imprecise, and f64 has only little support on modern consumer GPUs. 
+ - Each pair is accumulated as a 64-bit fixed-point integer in workgroup memory, and each tile's sums are converted to f64 and added to the
+   global histogram once, when the tile is flushed. Native integer atomics are the cheapest add on every device, while per-pair f64 work is
+   slow wherever f64 is not a first-class type, which includes most consumer GPUs. The fixed-point scale only has to keep one tile's sums
+   from overflowing, so it is chosen per job from the largest possible term and is finer than the precision of the float inputs. The job's
+   pair factor is applied at the flush, so it never enters that bound, and the global f64 sums have no practical limit.
 
  - Contributions go into a workgroup-local histogram that is flushed once per tile. Only the first local_bins bins fit in workgroup memory; 
    the tail falls back to global memory, which is rare in practice since it covers the first local_bins*bin_width angstrom.
@@ -20,11 +23,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -38,7 +43,17 @@ namespace {
     constexpr int tile_size = workgroup_size*rows_per_thread;   // atoms covered by one tile in either direction
 
     /**
-     * @brief How many leading bins to keep in workgroup memory. This must be strictly less than the local memory limit. 
+     * @brief One output bin, laid out exactly as the ABI returns it, so the finished histograms are copied back without conversion.
+     */
+    template<bool weighted>
+    using bin_t = std::conditional_t<weighted, WeightedBin, double>;
+
+    std::size_t bin_bytes(bool weighted) {
+        return weighted ? sizeof(WeightedBin) : sizeof(double);
+    }
+
+    /**
+     * @brief How many leading bins to keep in workgroup memory, each holding one fixed-point integer per tracked quantity.
      */
     int local_bin_capacity(std::size_t local_mem, int bin_count, bool weighted) {
         const std::size_t per_bin = (weighted ? 3 : 1)*sizeof(i64);
@@ -46,44 +61,52 @@ namespace {
     }
 
     /**
+     * @brief The fixed-point scale for terms no larger than @a bound: the largest power of two at which the sum of all tile_size^2 pairs of a
+     *        tile still fits in an int64, even if every one of them lands in the same bin.
+     */
+    float fixed_scale(double bound) {
+        if (bound <= 0) {return 1.f;} // every term is zero
+        int exponent = 0;
+        std::frexp(static_cast<double>(tile_size)*tile_size*bound, &exponent); // the tile sum is below 2^exponent
+        return std::ldexp(1.f, sycl::min(62 - exponent, 100));
+    }
+
+    inline i64 to_fixed(float scaled) {
+        return static_cast<i64>(sycl::rint(scaled));
+    }
+
+    /**
      * @brief How many output histograms to make room for before any are asked for.
      */
     constexpr int default_slots = 256;
 
-    // chosen so that a bin's fractional part keeps 16 bits of precision while the whole accumulated range stays far below the int64 overflow point.
-    constexpr float fixed_scale = 65536.f;
-
-    // Convert a value to its fixed-point representation.
-    inline i64 to_fixed(float value) {
-        return static_cast<i64>(sycl::rint(value*fixed_scale));
-    }
-
-    // Convert a fixed-point accumulator back to the real value the ABI reports.
-    inline double from_fixed(i64 value) {
-        return static_cast<double>(value)/fixed_scale;
-    }
-
-    template<sycl::access::address_space space, sycl::memory_scope scope>
-    inline void atomic_add(i64& target, i64 value) {
-        sycl::atomic_ref<i64, sycl::memory_order::relaxed, scope, space> ref{target};
+    template<sycl::access::address_space space, sycl::memory_scope scope, typename T>
+    inline void atomic_add(T& target, T value) {
+        sycl::atomic_ref<T, sycl::memory_order::relaxed, scope, space> ref{target};
         ref.fetch_add(value);
     }
 
-    inline void add_local(i64& target, i64 value) {
+    template<typename T>
+    inline void add_local(T& target, T value) {
         atomic_add<sycl::access::address_space::local_space, sycl::memory_scope::work_group>(target, value);
     }
 
-    inline void add_global(i64& target, i64 value) {
+    template<typename T>
+    inline void add_global(T& target, T value) {
         atomic_add<sycl::access::address_space::global_space, sycl::memory_scope::device>(target, value);
     }
 
     // A queued calculation as the kernel sees it.
     struct DeviceJob {
         const sycl::float4* a1;
-        const sycl::float4* a2; // equal to a1 for self-correlations
+        const sycl::float4* a2;     // equal to a1 for self-correlations
         std::uint32_t n1, n2;
-        std::uint32_t scaling;
+        std::uint32_t scaling;      // the caller's pair factor, applied as-is when a tile is flushed; see Job::scaling
         std::uint32_t slot;
+        float value_scale;          // fixed-point scales of the workgroup-local sums; see fixed_scale
+        float center_scale;
+        double value_factor;        // scaling/value_scale, converting a flushed value sum to the real one
+        double center_factor;       // scaling/center_scale
     };
 
     // One tile of one job, i.e. the work of a single workgroup.
@@ -103,32 +126,33 @@ namespace {
     struct Kernel {
         const TileRef* tiles;
         const DeviceJob* jobs;
-        i64* histograms;         // n_slots*bin_count values, or the same number of {value, count, center} triples
+        bin_t<weighted>* histograms; // n_slots*bin_count bins, slot-major
         float inv_width;
         int bin_count;
         int local_bins; // leading bins held in workgroup memory; never exceeds bin_count
 
-        // workgroup-local accumulators; count and center are unused when not weighted
-        using local_array = sycl::local_accessor<i64, 1>;
-        local_array local_value, local_count, local_center;
+        // workgroup-local fixed-point sums of the unscaled terms; count and center are unused when not weighted
+        sycl::local_accessor<i64, 1> local_value, local_count, local_center;
 
         /**
-         * @brief Accumulate one contribution, in workgroup memory if the bin is held there.
+         * @brief Accumulate the pair at distance @a d with weight product @a value, in workgroup memory if its bin is held there.
+         *        The rare pair beyond the local bins goes straight to the global histogram, already scaled.
          */
-        void add_to_bin(int bin, float value, float center, std::uint32_t count, i64* global) const {
+        void add_to_bin(int bin, float value, float d, const DeviceJob& job, bin_t<weighted>* global) const {
             if (bin < local_bins) {
-                add_local(local_value[bin], to_fixed(value));
+                add_local(local_value[bin], to_fixed(value*job.value_scale));
                 if constexpr (weighted) {
-                    add_local(local_count[bin], count);
-                    add_local(local_center[bin], to_fixed(center));
+                    add_local(local_count[bin], i64{1});
+                    add_local(local_center[bin], to_fixed(d*job.center_scale));
                 }
             } else {
+                const auto scaling = static_cast<double>(job.scaling);
                 if constexpr (weighted) {
-                    add_global(global[3*bin + 0], to_fixed(value));
-                    add_global(global[3*bin + 1], count);
-                    add_global(global[3*bin + 2], to_fixed(center));
+                    add_global(global[bin].value, scaling*value);
+                    add_global(global[bin].count, static_cast<i64>(job.scaling));
+                    add_global(global[bin].center, scaling*d);
                 } else {
-                    add_global(global[bin], to_fixed(value));
+                    add_global(global[bin], scaling*value);
                 }
             }
         }
@@ -148,7 +172,7 @@ namespace {
 
             const TileRef tile = tiles[item.get_group(0)];
             const DeviceJob job = jobs[tile.job];
-            i64* global = histograms + static_cast<std::size_t>(job.slot)*bin_count*(weighted ? 3 : 1);
+            bin_t<weighted>* global = histograms + static_cast<std::size_t>(job.slot)*bin_count;
 
             // the atoms this thread keeps in registers for the whole tile
             std::array<sycl::float4, rows_per_thread> held;
@@ -161,15 +185,11 @@ namespace {
                 held[k] = active[k] ? job.a1[index[k]] : sycl::float4{0.f, 0.f, 0.f, 0.f};
             }
 
-            // the caller's pair factor, applied as-is; see Job::scaling
-            const auto scale = static_cast<float>(job.scaling);
-            const std::uint32_t count = job.scaling;
-
             const int j_start = static_cast<int>(tile.j_block)*tile_size;
             const int j_end = sycl::min(j_start + tile_size, static_cast<int>(job.n2));
             for (int j = j_start; j < j_end; ++j) {
                 const sycl::float4 other = job.a2[j]; // identical across the workgroup, so read into scalar registers
-                const float w = scale*other.w();
+                const float w = other.w();
                 for (int k = 0; k < rows_per_thread; ++k) {
                     if constexpr (diagonal) {
                         if (!active[k] || j <= index[k]) {continue;}
@@ -180,21 +200,20 @@ namespace {
                     const float dy = held[k].y() - other.y();
                     const float dz = held[k].z() - other.z();
                     const float d = sycl::sqrt(dx*dx + dy*dy + dz*dz);
-                    add_to_bin(
-                        static_cast<int>(sycl::rint(inv_width*d)),
-                        w*held[k].w(), scale*d, count, global
-                    );
+                    add_to_bin(static_cast<int>(sycl::rint(inv_width*d)), w*held[k].w(), d, job, global);
                 }
             }
 
             sycl::group_barrier(group);
             for (int bin = lid; bin < local_bins; bin += workgroup_size) {
                 if constexpr (weighted) {
-                    if (i64 v = local_value[bin]; v != 0) {add_global(global[3*bin + 0], v);}
-                    if (i64 c = local_count[bin]; c != 0) {add_global(global[3*bin + 1], c);}
-                    if (i64 c = local_center[bin]; c != 0) {add_global(global[3*bin + 2], c);}
+                    if (i64 c = local_count[bin]; c != 0) {
+                        add_global(global[bin].value, static_cast<double>(local_value[bin])*job.value_factor);
+                        add_global(global[bin].count, c*static_cast<i64>(job.scaling));
+                        add_global(global[bin].center, static_cast<double>(local_center[bin])*job.center_factor);
+                    }
                 } else {
-                    if (i64 v = local_value[bin]; v != 0) {add_global(global[bin], v);}
+                    if (i64 v = local_value[bin]; v != 0) {add_global(global[bin], static_cast<double>(v)*job.value_factor);}
                 }
             }
         }
@@ -248,6 +267,12 @@ namespace {
 
             std::vector<Slab> slabs;
             std::size_t slab = 0, used = 0;
+    };
+
+    // A coordinate set on the device, with the largest weight magnitude it holds.
+    struct Upload {
+        const sycl::float4* device;
+        float max_weight;
     };
 
     // A device the user may choose, with the identifier the ABI reports for it.
@@ -384,7 +409,7 @@ namespace {
             int bin_count = 0;
             int local_bins = 0; // derived from local_mem and bin_count; see local_bin_capacity
             float inv_width = 0;
-            std::unordered_map<const float*, const sycl::float4*> uploaded; // host -> device, deduplicated
+            std::unordered_map<const float*, Upload> uploaded;              // host -> device, deduplicated
             std::vector<sycl::event> pending;                               // uploads the next kernel must wait for
 
             /**
@@ -409,7 +434,7 @@ namespace {
              * Kept across calculations and only ever grown, so the reallocation below happens a
              * handful of times in a process rather than once per calculation.
              */
-            i64* histograms = nullptr;
+            void* histograms = nullptr; // bin_t<weighted> elements
             int slot_capacity = 0;
 
             /**
@@ -422,16 +447,15 @@ namespace {
                 if (slots <= slot_capacity) {return;}
                 slots = sycl::max(slots, 2*slot_capacity);
 
-                const std::size_t stride = weighted ? 3 : 1;
-                const std::size_t values = static_cast<std::size_t>(slots)*bin_count*stride;
-                auto* fresh = static_cast<i64*>(sycl::malloc_device(values*sizeof(i64), queue));
+                const std::size_t bytes = static_cast<std::size_t>(slots)*bin_count*bin_bytes(weighted);
+                void* fresh = sycl::malloc_device(bytes, queue);
                 if (fresh == nullptr) {throw std::runtime_error("sycl_backend: out of device memory");}
-                queue.fill(fresh, i64{0}, values).wait();
+                queue.memset(fresh, 0, bytes).wait(); // all-zero bits are 0.0 as well
 
                 if (histograms != nullptr) {
                     queue.wait(); // in-flight kernels are still accumulating into the old buffer
-                    const std::size_t old = static_cast<std::size_t>(slot_capacity)*bin_count*stride;
-                    queue.memcpy(fresh, histograms, old*sizeof(i64)).wait();
+                    const std::size_t old = static_cast<std::size_t>(slot_capacity)*bin_count*bin_bytes(weighted);
+                    queue.memcpy(fresh, histograms, old).wait();
                     sycl::free(histograms, queue);
                 }
                 histograms = fresh;
@@ -451,27 +475,27 @@ namespace {
     };
 
     /**
-     * @brief Upload any coordinate set this calculation has not seen yet, and return the device pointers in job order.
+     * @brief Upload any coordinate set this calculation has not seen yet, and return the uploads in job order.
      *
      * The deduplication map lives for the whole calculation rather than one submit, so a coordinate set shared by jobs in different submits 
      * is still uploaded only once - which is the common case for the symmetry managers, where one body's coordinates appear in many jobs. 
      * The uploads are asynchronous; their events are collected so the kernels of this submit can wait on them without the host having to.
      */
-    std::vector<std::pair<const sycl::float4*, const sycl::float4*>> upload_coordinates(
-        Context& context, const Job* jobs, int n_jobs
-    ) {
-        auto upload = [&] (const float* host, std::uint32_t n) -> const sycl::float4* {
+    std::vector<std::pair<Upload, Upload>> upload_coordinates(Context& context, const Job* jobs, int n_jobs) {
+        auto upload = [&] (const float* host, std::uint32_t n) -> Upload {
             if (auto it = context.uploaded.find(host); it != context.uploaded.end()) {return it->second;}
             const std::size_t bytes = static_cast<std::size_t>(n)*sizeof(sycl::float4);
             auto* device = static_cast<sycl::float4*>(context.arena.allocate(context.queue, bytes));
             context.pending.push_back(context.queue.memcpy(device, host, bytes));
-            context.uploaded[host] = device;
-            return device;
+
+            float max_weight = 0;
+            for (std::uint32_t i = 0; i < n; ++i) {max_weight = sycl::max(max_weight, sycl::fabs(host[4*i + 3]));}
+            return context.uploaded[host] = Upload{.device=device, .max_weight=max_weight};
         };
 
-        std::vector<std::pair<const sycl::float4*, const sycl::float4*>> result(n_jobs);
+        std::vector<std::pair<Upload, Upload>> result(n_jobs);
         for (int i = 0; i < n_jobs; ++i) {
-            const sycl::float4* a1 = upload(jobs[i].a1, jobs[i].n1);
+            const Upload a1 = upload(jobs[i].a1, jobs[i].n1);
             result[i] = {a1, (jobs[i].a2 != nullptr) ? upload(jobs[i].a2, jobs[i].n2) : a1};
         }
         return result;
@@ -509,7 +533,7 @@ namespace {
     template<bool weighted, bool diagonal>
     void launch(
         Context& context, const TileRef* tiles, std::size_t n_tiles, const DeviceJob* jobs,
-        i64* histograms, float inv_width, int bin_count, int local_bins, // NOLINT
+        bin_t<weighted>* histograms, float inv_width, int bin_count, int local_bins, // NOLINT
         const std::vector<sycl::event>& wait_for
     ) {
         if (n_tiles == 0) {return;}
@@ -544,13 +568,20 @@ namespace {
         context.ensure_slots(static_cast<int>(max_slot) + 1);
         context.dirty_slots = sycl::max(context.dirty_slots, static_cast<int>(max_slot) + 1);
 
+        // only distances in the local bins are summed in fixed point, so they bound the center terms
+        const float center_scale = fixed_scale((context.local_bins + 0.5)/context.inv_width);
+
         const auto coordinates = upload_coordinates(context, jobs, n_jobs);
         std::vector<DeviceJob> device_jobs(n_jobs);
         for (int i = 0; i < n_jobs; ++i) {
             const bool self = jobs[i].a2 == nullptr;
+            const auto& [a1, a2] = coordinates[i];
+            const float value_scale = fixed_scale(static_cast<double>(a1.max_weight)*a2.max_weight);
+            const auto scaling = static_cast<double>(jobs[i].scaling);
             device_jobs[i] = DeviceJob{
-                .a1=coordinates[i].first, .a2=coordinates[i].second, .n1=jobs[i].n1,
-                .n2=self ? jobs[i].n1 : jobs[i].n2, .scaling=jobs[i].scaling, .slot=jobs[i].slot
+                .a1=a1.device, .a2=a2.device, .n1=jobs[i].n1, .n2=self ? jobs[i].n1 : jobs[i].n2,
+                .scaling=jobs[i].scaling, .slot=jobs[i].slot, .value_scale=value_scale, .center_scale=center_scale,
+                .value_factor=scaling/value_scale, .center_factor=scaling/center_scale
             };
         }
 
@@ -571,13 +602,14 @@ namespace {
         context.staged_jobs.push_back(std::move(device_jobs));
         context.staged_tiles.push_back(std::move(tiles));
 
+        auto* histograms = static_cast<bin_t<weighted>*>(context.histograms);
         launch<weighted, false>(
             context, device_tiles, n_regular, device_job_array,
-            context.histograms, context.inv_width, context.bin_count, context.local_bins, context.pending
+            histograms, context.inv_width, context.bin_count, context.local_bins, context.pending
         );
         launch<weighted, true>(
             context, device_tiles + n_regular, diagonal.size(), device_job_array,
-            context.histograms, context.inv_width, context.bin_count, context.local_bins, context.pending
+            histograms, context.inv_width, context.bin_count, context.local_bins, context.pending
         );
 
         // the uploads are now sequenced before the kernels that read them; a later submit brings its
@@ -586,33 +618,16 @@ namespace {
     }
 
     /**
-     * @brief Wait for everything submitted since begin(), then copy the raw fixed-point histograms
-     *        into a host staging buffer so they can be converted; shared by both finish variants
+     * @brief Wait for everything submitted since begin(), then copy the histograms straight into @a out, whose layout they already share.
      */
-    std::vector<i64> read_raw(Context& context, int n_slots, int stride) {
+    template<bool weighted>
+    void finish_on(Context& context, int n_slots, bin_t<weighted>* out) {
         // check_finish has already bounded n_slots by what was submitted, so nothing has to be allocated or cleared here to answer it
         context.queue.wait_and_throw();
 
-        std::vector<i64> raw(static_cast<std::size_t>(n_slots)*context.bin_count*stride);
-        if (!raw.empty()) {context.queue.memcpy(raw.data(), context.histograms, raw.size()*sizeof(i64)).wait();}
+        const std::size_t bins = static_cast<std::size_t>(n_slots)*context.bin_count;
+        if (bins != 0) {context.queue.memcpy(out, context.histograms, bins*sizeof(bin_t<weighted>)).wait();}
         context.active = false;
-        return raw;
-    }
-
-    // Wait for everything submitted since begin() and convert the histograms into @a out.
-    void finish_unweighted_on(Context& context, int n_slots, double* out) {
-        const auto raw = read_raw(context, n_slots, 1);
-        for (std::size_t i = 0; i < raw.size(); ++i) {out[i] = from_fixed(raw[i]);}
-    }
-
-    // Wait for everything submitted since begin() and convert the histograms into @a out.
-    void finish_weighted_on(Context& context, int n_slots, WeightedBin* out) {
-        const auto raw = read_raw(context, n_slots, 3);
-        for (std::size_t i = 0; i < raw.size()/3; ++i) {
-            out[i].value  = from_fixed(raw[3*i + 0]);
-            out[i].count  = raw[3*i + 1];
-            out[i].center = from_fixed(raw[3*i + 2]);
-        }
     }
 
     //  Start a calculation on an idle device, discarding whatever the last one left behind.
@@ -642,9 +657,8 @@ namespace {
         // only what the previous calculation accumulated into needs clearing; every slot above that is untouched since ensure_slots allocated 
         // it, and so already zero. the fill is not waited for - the host has coordinates to upload and tiles to build first - so instead every
         // kernel of this calculation is made to depend on it.
-        const std::size_t stride = weighted ? 3 : 1;
-        const std::size_t values = static_cast<std::size_t>(context.dirty_slots)*bin_count*stride;
-        context.zeroing = values == 0 ? sycl::event{} : context.queue.fill(context.histograms, i64{0}, values);
+        const std::size_t bytes = static_cast<std::size_t>(context.dirty_slots)*bin_count*bin_bytes(weighted);
+        context.zeroing = bytes == 0 ? sycl::event{} : context.queue.memset(context.histograms, 0, bytes);
         context.dirty_slots = 0;
     }
 
@@ -658,12 +672,12 @@ namespace {
         begin_on(*this, 8, 1.f, false);
         submit_on<false>(*this, jobs.data(), 2);
         std::vector<double> out_unweighted(8);
-        finish_unweighted_on(*this, 1, out_unweighted.data());
+        finish_on<false>(*this, 1, out_unweighted.data());
 
         begin_on(*this, 8, 1.f, true);
         submit_on<true>(*this, jobs.data(), 2);
         std::vector<WeightedBin> out_weighted(8);
-        finish_weighted_on(*this, 1, out_weighted.data());
+        finish_on<true>(*this, 1, out_weighted.data());
     }
 
 }
@@ -804,10 +818,10 @@ Status ausaxs::gpu::abi::ausaxs_gpu_submit(const Job* jobs, std::int32_t n_jobs)
 
 Status ausaxs::gpu::abi::ausaxs_gpu_finish_unweighted(std::int32_t n_slots, double* out) {
     if (auto status = check_finish(Context::get(), false, n_slots); status != Status::ok) {return status;}
-    return guarded([&] (Context& context) {finish_unweighted_on(context, n_slots, out);});
+    return guarded([&] (Context& context) {finish_on<false>(context, n_slots, out);});
 }
 
 Status ausaxs::gpu::abi::ausaxs_gpu_finish_weighted(std::int32_t n_slots, WeightedBin* out) {
     if (auto status = check_finish(Context::get(), true, n_slots); status != Status::ok) {return status;}
-    return guarded([&] (Context& context) {finish_weighted_on(context, n_slots, out);});
+    return guarded([&] (Context& context) {finish_on<true>(context, n_slots, out);});
 }
