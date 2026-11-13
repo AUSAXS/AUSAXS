@@ -203,6 +203,7 @@ namespace {
     GPULoader::Backend open() {
         GPULoader::Backend backend;
         std::string attempts;
+        bool rejected = false;
         for (const auto& path : candidate_paths()) {
             library_handle handle = open_library(path);
             if (handle == nullptr) {
@@ -217,10 +218,13 @@ namespace {
                 return backend;
             }
             logging::log("GPULoader: " + load_error);
-            return {}; // note: intentionally leaks the handle
+            close_library(handle);
+            attempts += "\n    " + path + ": " + load_error;
+            rejected = true;
         }
 
-        load_error = "no GPU backend could be opened:" + attempts;
+        load_error = "no GPU backend could be loaded:" + attempts;
+        if (rejected) {load_error += "\nRun \"ausaxs gpu install\" to install the backend for this release.";}
         logging::log("GPULoader: " + load_error);
         return backend;
     }
