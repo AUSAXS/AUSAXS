@@ -5,7 +5,6 @@
 
 #include <settings/All.h>
 #include <utility/Console.h>
-#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 
@@ -32,17 +31,6 @@ void settings::validate_settings() {
         case settings::exv::ExvMethod::Pepsi:
         case settings::exv::ExvMethod::WAXSiS:
             break;
-    }
-
-    // the neutron form factors only enter through the form factor tables
-    if (settings::scattering::radiation == settings::scattering::Radiation::Neutron) {
-        switch (settings::exv::exv_method.value) {
-            case settings::exv::ExvMethod::CRYSOL:
-            case settings::exv::ExvMethod::FoXS:
-                throw except::invalid_argument("settings::validate_settings: The CRYSOL and FoXS excluded volume models mimic X-ray programs, and cannot be used with neutrons.");
-            default:
-                break;
-        }
     }
 
     // if the pepsi mimic exv method is used, also match the cell widths and hydration strategy to theirs
