@@ -8,7 +8,7 @@
 namespace ausaxs::rigidbody::transform {
     /**
      * @brief Transforms only a single body. 
-     *        The body to the left of the constraint (body1) is transformed.
+     *        The selected body is transformed, pivoting about the constraint's atom on the other body; the rest of the system is left alone.
      */
     class SingleTransform : public TransformStrategy {
         public:
@@ -16,6 +16,6 @@ namespace ausaxs::rigidbody::transform {
             ~SingleTransform() override;
 
             ///< @copydoc TransformStrategy::apply
-            void apply(const parameter::BodyTransformParametersRelative& par, observer_ptr<const constraints::IDistanceConstraint> constraint, int isymmetry_body) override;
+            void apply(const parameter::BodyTransformParametersRelative& par, observer_ptr<const constraints::IDistanceConstraint> constraint, int ibody) override;
     };
 }

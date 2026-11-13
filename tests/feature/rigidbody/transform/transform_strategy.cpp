@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraintBond.h>
@@ -273,5 +274,49 @@ TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
             REQUIRE(group7.indices.size() == 1);
             CHECK(group7.indices[0] == 7);
         }
+    }
+}
+
+TEST_CASE_METHOD(fixture, "SingleTransform::apply: moves the selected body, whichever end of the constraint it is") {
+    settings::general::verbose = false;
+    settings::grid::scaling = 2;
+
+    // declared "b2-b1": body 1 is the constraint's ibody1, so HEAD moved body 1 whichever body was selected
+    Rigidbody rigidbody(Molecule{bodies}); test::mark_backbone_carbons(rigidbody.molecule);
+    auto& manager = rigidbody.constraints;
+    manager->add_constraint(std::make_unique<rigidbody::constraints::DistanceConstraintBond>(&rigidbody.molecule, 1, 0));
+    auto* constraint = manager->discoverable_constraints[0].get();
+    REQUIRE(constraint->ibody1 == 1);
+
+    auto coords = [&] (int ibody) {
+        std::vector<Vector3<double>> out;
+        for (const auto& a : rigidbody.molecule.get_body(ibody).get_atoms()) {out.push_back(a.coordinates());}
+        return out;
+    };
+    rigidbody::transform::SingleTransform transform(&rigidbody);
+
+    for (int selected : {0, 1}) {
+        int other = 1 - selected;
+        auto before_sel = coords(selected), before_other = coords(other);
+        Vector3<double> pivot = (constraint->ibody1 == selected ? constraint->get_atom2() : constraint->get_atom1()).coordinates();
+
+        // translate: the selected body moves, the other one does not
+        transform.apply({{1, 0, 0}, {0, 0, 0}}, constraint, selected);
+        auto after = coords(selected);
+        for (std::size_t i = 0; i < after.size(); ++i) {CHECK(after[i] == before_sel[i] + Vector3<double>(1, 0, 0));}
+        CHECK(coords(other) == before_other);
+        transform.undo();
+        CHECK(coords(selected) == before_sel);
+
+        // rotate: about the constraint's atom on the other body, so every distance to it is kept
+        transform.apply({{0, 0, 0}, {0, 0, std::numbers::pi/2}}, constraint, selected);
+        after = coords(selected);
+        CHECK(after != before_sel);
+        for (std::size_t i = 0; i < after.size(); ++i) {
+            CHECK_THAT((after[i] - pivot).magnitude(), Catch::Matchers::WithinAbs((before_sel[i] - pivot).magnitude(), 1e-9));
+        }
+        CHECK(coords(other) == before_other);
+        transform.undo();
+        CHECK(coords(selected) == before_sel);
     }
 }
