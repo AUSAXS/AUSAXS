@@ -9,7 +9,7 @@ using namespace ausaxs;
 using namespace form_factor;
 using namespace form_factor::xray::coefficients;
 
-// The five-Gaussian fits to the atomic groups which were used before the groups were built from their heavy atom and free hydrogens.
+// The five-Gaussian fits to the atomic groups which were used before the groups were built from their heavy atom and hydrogens.
 // Grudinin, Garkavenko, & Kazennov, https://doi.org/10.1107/s2059798317005745
 // These published values do not reproduce the curves Pepsi-SAXS itself computes from them, so they are only a rough reference.
 namespace grudinin {
