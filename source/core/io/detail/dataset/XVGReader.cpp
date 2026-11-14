@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <dataset/detail/XVGReader.h>
+#include <io/detail/dataset/XVGReader.h>
 
 #include <dataset/Dataset.h>
 #include <math/Statistics.h>
@@ -39,7 +39,7 @@ namespace {
 
         // check that we have at least the expected number of columns
         if (expected_cols != 0 && mode < expected_cols) {
-            throw except::io_error("XVGReader::parse_data: " + detail::message_too_few_columns(path, mode, expected_cols));
+            throw except::io_error("XVGReader::parse_data: " + io::detail::dataset::message_too_few_columns(path, mode, expected_cols));
         }
 
         // copy the data to the dataset
@@ -110,7 +110,7 @@ namespace {
     };
 }
 
-std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& path, int expected_cols) {
+std::unique_ptr<Dataset> io::detail::dataset::XVGReader::construct(const io::ExistingFile& path, int expected_cols) {
     console::print_info("\nReading dataset from \"" + path.str() + "\"");
     console::indent();
 
@@ -180,7 +180,7 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
     return dataset;
 }
 
-std::vector<std::unique_ptr<Dataset>> detail::XVGReader::construct_multifile(const io::ExistingFile& path) {
+std::vector<std::unique_ptr<Dataset>> io::detail::dataset::XVGReader::construct_multifile(const io::ExistingFile& path) {
     console::print_info("Reading dataset from \"" + path.str() + "\"");
 
     // disable text from parsing of each dataset section
