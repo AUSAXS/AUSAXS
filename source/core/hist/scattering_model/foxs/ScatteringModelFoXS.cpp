@@ -3,6 +3,9 @@
 
 #include <hist/scattering_model/foxs/ScatteringModelFoXS.h>
 
+#include <settings/ScatteringSettings.h>
+#include <utility/Exceptions.h>
+
 #include <numbers>
 
 using namespace ausaxs;
@@ -20,4 +23,11 @@ double ScatteringModelFoXS::exv_factor(double q, double cx) {
 
 double ScatteringModelFoXS::exv_factor(double q) const {
     return exv_factor(q, free_params.cx);
+}
+
+form_factor::lookup::table_t ScatteringModelFoXS::generate_atomic_table() {
+    if (settings::scattering::radiation == settings::scattering::Radiation::Neutron) {
+        throw except::invalid_argument("ScatteringModelFoXS: The FoXS excluded volume model mimics an X-ray program, and cannot be used with neutrons.");
+    }
+    return form_factor::foxs::storage::atomic::generate_table();
 }
