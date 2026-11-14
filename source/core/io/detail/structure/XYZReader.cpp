@@ -9,6 +9,7 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
+#include <algorithm>
 #include <fstream>
 
 using namespace ausaxs;
@@ -43,6 +44,7 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
 
     // atoms: an element symbol and three coordinates, then any per-atom columns (tags, forces, ...), which are ignored
     res.atoms.reserve(count);
+    unsigned int max_columns = 4;
     while (static_cast<int>(res.atoms.size()) < count) {
         ++line_number;
         if (!std::getline(input, line)) {throw error("expected " + std::to_string(count) + " atoms, found " + std::to_string(res.atoms.size()));}
@@ -52,6 +54,7 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
         }
 
         if (!constants::symbols::detail::string_to_atomt_map.contains(tokens[0])) {throw error("unknown element \"" + tokens[0] + "\"");}
+        max_columns = std::max<unsigned int>(max_columns, tokens.size());
         PDBAtom atom;
         atom.set_element(constants::symbols::parse_element_string(tokens[0]));
         atom.coordinates().x() = std::stod(tokens[1]);
@@ -66,6 +69,14 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
         if (!utility::remove_leading_and_trailing(line, " \t\r").empty()) {
             throw error("unexpected content after the " + std::to_string(count) + " declared atoms (multi-frame XYZ files are not supported)");
         }
+    }
+
+    // the XYZ format is not standardized beyond [element | x | y | z], so we cannot know what any extra columns mean
+    if (4 < max_columns) {
+        console::print_text(
+            "XYZReader::read: " + std::to_string(max_columns) + " columns detected. "
+            "Assuming the format is [element | x | y | z | ...] and ignoring the extra columns."
+        );
     }
 
     console::print_text("Successfully read " + std::to_string(res.atoms.size()) + " atomic records.");
