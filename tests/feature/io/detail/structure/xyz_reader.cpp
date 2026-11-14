@@ -89,6 +89,8 @@ TEST_CASE("XYZReader::read") {
             std::string("0\ncomment\n"),                    // no atoms
             std::string("C 0 0 0\nC 1 0 0\n"),               // no header
             std::string("3\ncomment\nC 0 0 0\nC 1 0 0\n"),  // fewer atoms than the count
+            std::string("1\ncomment\nC 0 0 0\nC 1 0 0\n"),  // more atoms than the count
+            std::string("1\nframe 1\nC 0 0 0\n1\nframe 2\nC 1 0 0\n"), // multi-frame
             std::string("1\ncomment\nC 0 0\n"),             // missing coordinate
             std::string("1\ncomment\nXx 0 0 0\n")           // unknown element
         );

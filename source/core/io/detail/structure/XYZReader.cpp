@@ -60,6 +60,14 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
         res.atoms.emplace_back(std::move(atom));
     }
 
+    // only single-frame files: anything but blank lines after the atoms is either another frame or a wrong atom count
+    while (std::getline(input, line)) {
+        ++line_number;
+        if (!utility::remove_leading_and_trailing(line, " \t\r").empty()) {
+            throw error("unexpected content after the " + std::to_string(count) + " declared atoms (multi-frame XYZ files are not supported)");
+        }
+    }
+
     console::print_text("Successfully read " + std::to_string(res.atoms.size()) + " atomic records.");
     console::unindent();
     return res;
