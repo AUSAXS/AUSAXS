@@ -40,7 +40,7 @@ io::pdb::PDBStructure io::detail::xyz::read(const io::File& path) {
     }
     int count = std::stoi(std::string(count_token));
     std::getline(input, line);
-    ++line_number;
+    ++line_number; // skip the optional comment line
 
     // atoms: an element symbol and three coordinates, then any per-atom columns (tags, forces, ...), which are ignored
     res.atoms.reserve(count);
