@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <dataset/Dataset.h>
-#include <dataset/detail/XVGReader.h>
+#include <io/detail/dataset/XVGReader.h>
 #include <settings/GeneralSettings.h>
 
 #include <support/temp_file.h>
@@ -30,25 +30,25 @@ TEST_CASE("XVGReader::construct") {
             test::TempFile test_file(".dat", test_file_contents);
 
             // default M
-            auto data = detail::XVGReader().construct(test_file, 0);
+            auto data = io::detail::dataset::XVGReader().construct(test_file, 0);
             REQUIRE(data->size_cols() == 3);
             vec_approx(data->col(0), std::vector<double>({0.01, 0.02, 0.03}));
             vec_approx(data->col(1), std::vector<double>({1, 2, 3}));
             vec_approx(data->col(2), std::vector<double>({10, 20, 30}));
 
             // M = 1
-            auto data1 = detail::XVGReader().construct(test_file, 1);
+            auto data1 = io::detail::dataset::XVGReader().construct(test_file, 1);
             REQUIRE(data1->size_cols() == 1);
             vec_approx(data1->col(0), std::vector<double>({0.01, 0.02, 0.03}));
 
             // M = 2
-            auto data2 = detail::XVGReader().construct(test_file, 2);
+            auto data2 = io::detail::dataset::XVGReader().construct(test_file, 2);
             REQUIRE(data2->size_cols() == 2);
             vec_approx(data2->col(0), std::vector<double>({0.01, 0.02, 0.03}));
             vec_approx(data2->col(1), std::vector<double>({1,    2,    3}));
 
             // M = 3
-            auto data3 = detail::XVGReader().construct(test_file, 3);
+            auto data3 = io::detail::dataset::XVGReader().construct(test_file, 3);
             REQUIRE(data3->size_cols() == 3);
             vec_approx(data3->col(0), std::vector<double>({0.01, 0.02, 0.03}));
             vec_approx(data3->col(1), std::vector<double>({1,    2,    3}));
@@ -71,7 +71,7 @@ TEST_CASE("XVGReader::construct") {
             test::TempFile test_file(".dat", test_file_contents);
 
             // default M
-            auto data = detail::XVGReader().construct(test_file, 0);
+            auto data = io::detail::dataset::XVGReader().construct(test_file, 0);
             REQUIRE(data->size_cols() == 4);
             vec_approx(data->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
             vec_approx(data->col(1), std::vector<double>({1,    2,    3,    4}));
@@ -79,25 +79,25 @@ TEST_CASE("XVGReader::construct") {
             vec_approx(data->col(3), std::vector<double>({100,  200,  300,  400}));
 
             // M = 1
-            auto data1 = detail::XVGReader().construct(test_file, 1);
+            auto data1 = io::detail::dataset::XVGReader().construct(test_file, 1);
             REQUIRE(data1->size_cols() == 1);
             vec_approx(data1->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
 
             // M = 2
-            auto data2 = detail::XVGReader().construct(test_file, 2);
+            auto data2 = io::detail::dataset::XVGReader().construct(test_file, 2);
             REQUIRE(data2->size_cols() == 2);
             vec_approx(data2->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
             vec_approx(data2->col(1), std::vector<double>({1,    2,    3,    4}));
 
             // M = 3
-            auto data3 = detail::XVGReader().construct(test_file, 3);
+            auto data3 = io::detail::dataset::XVGReader().construct(test_file, 3);
             REQUIRE(data3->size_cols() == 3);
             vec_approx(data3->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
             vec_approx(data3->col(1), std::vector<double>({1,    2,    3,    4}));
             vec_approx(data3->col(2), std::vector<double>({10,   20,   30,   40}));
 
             // M = 4
-            auto data4 = detail::XVGReader().construct(test_file, 4);
+            auto data4 = io::detail::dataset::XVGReader().construct(test_file, 4);
             REQUIRE(data4->size_cols() == 4);
             vec_approx(data4->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
             vec_approx(data4->col(1), std::vector<double>({1,    2,    3,    4}));
@@ -118,6 +118,6 @@ TEST_CASE("XVGReader::construct: user-specified q unit") {
         "0.3 3 30\n";
 
     test::TempFile test_file(".dat", test_file_contents);
-    auto data = detail::XVGReader().construct(test_file, 0);
+    auto data = io::detail::dataset::XVGReader().construct(test_file, 0);
     vec_approx(data->col(0), std::vector<double>({0.1, 0.2, 0.3}));
 }

@@ -6,7 +6,4 @@ target_sources(ausaxs_core PRIVATE
 	"NamedWrapper.cpp"
 	"PointSet.cpp"
 	"SimpleDataset.cpp"
-
-	"detail/DATReader.cpp"
-	"detail/XVGReader.cpp"
 )

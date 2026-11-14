@@ -4,7 +4,7 @@
 #include <dataset/Dataset.h>
 
 #include <dataset/DatasetFactory.h>
-#include <dataset/detail/QUnitAnnotation.h>
+#include <io/detail/dataset/DATWriter.h>
 #include <math/CubicSpline.h>
 #include <math/MovingAverager.h>
 #include <math/Statistics.h>
@@ -90,25 +90,7 @@ Dataset Dataset::select_columns(const std::vector<int>& cols) const {
 }
 
 void Dataset::save(const io::File& path, const std::string& header) const {
-    std::stringstream output;
-
-    // annotate with the unit our q-values are in, so a re-read cannot rescale them
-    output << detail::qunit::unit_line(header);
-
-    // write header
-    if (!header.empty()) {
-        output << header << "\n";
-    }
-    output << "\n";
-
-    // write data
-    for (int i = 0; i < data.N; i++) {
-        for (int j = 0; j < data.M-1; j++) {
-            output << std::left << std::setw(16) << std::setprecision(8) << std::scientific << index(i, j) << "\t";
-        }
-        output << index(i, data.M-1) << "\n";
-    }
-    path.create(output.str());
+    io::detail::dataset::DATWriter::write(*this, path, header);
 }
 
 void Dataset::load(const io::ExistingFile& path) {

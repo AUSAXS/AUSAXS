@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <dataset/detail/DatasetReader.h>
+#include <io/detail/dataset/DatasetReader.h>
 
 #include <unordered_set>
 
-namespace ausaxs::detail {
+namespace ausaxs::io::detail::dataset {
     /**
      * @brief Contructs a dataset from a GROMACS XVG file.
      */
