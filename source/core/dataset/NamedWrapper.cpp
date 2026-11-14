@@ -6,8 +6,8 @@
 #include <dataset/Dataset.h>
 #include <dataset/Dataset2D.h>
 #include <dataset/SimpleDataset.h>
-#include <io/detail/dataset/QUnitAnnotation.h>
 #include <io/File.h>
+#include <io/detail/dataset/QUnitAnnotation.h>
 #include <utility/Exceptions.h>
 
 #include <iomanip>
