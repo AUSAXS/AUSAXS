@@ -60,7 +60,7 @@ template<> void settings::io::detail::SettingRef<settings::exv::ExvMethod>::set(
     else if (str == "grid-base") {settingref = settings::exv::ExvMethod::Grid;}
     else if (str == "grid-scalable") {settingref = settings::exv::ExvMethod::GridScalable;}
     else if (str == "grid") {settingref = settings::exv::ExvMethod::GridSurface;}
-    else if (str == "crysol") {settingref = settings::exv::ExvMethod::CRYSOL;}
+    else if (str == "crysol" || str == "cryson") {settingref = settings::exv::ExvMethod::CRYSOL;}
     else if (str == "foxs") {settingref = settings::exv::ExvMethod::FoXS;}
     else if (str == "pepsi") {settingref = settings::exv::ExvMethod::Pepsi;}
     else if (str == "waxsis") {settingref = settings::exv::ExvMethod::WAXSiS;}

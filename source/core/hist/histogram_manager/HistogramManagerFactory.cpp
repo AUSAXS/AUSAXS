@@ -18,7 +18,6 @@
 #include <hist/histogram_manager/SymmetryManagerMT.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
-#include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 
@@ -151,17 +150,6 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(
     observer_ptr<const data::Molecule> protein, settings::hist::HistogramManagerChoice choice, bool weighted_bins
 ) {
-    // the CRYSOL and FoXS models mimic X-ray programs, and have no neutron form factors
-    if (settings::scattering::radiation == settings::scattering::Radiation::Neutron) {
-        switch (settings::exv::exv_method) {
-            case ExvMethod::CRYSOL:
-            case ExvMethod::FoXS:
-                throw except::invalid_argument("hist::factory::construct_histogram_manager: The CRYSOL and FoXS excluded volume models mimic X-ray programs, and cannot be used with neutrons.");
-            default:
-                break;
-        }
-    }
-
     bool ff = uses_form_factors(choice);
 
     // only the form factor managers read the active tables, so only these have an opinion on which set should be active

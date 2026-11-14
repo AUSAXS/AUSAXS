@@ -47,7 +47,6 @@ template<> constexpr Request request_for<hist::HistogramManagerMTFFGridScalableE
 
 TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") {
     settings::exv::exv_method = settings::exv::ExvMethod::None;
-    settings::scattering::radiation = settings::scattering::Radiation::XRay;
     settings::general::threads = 4;
     settings::hist::weighted_bins = true;
 
@@ -118,25 +117,9 @@ TEST_CASE("HistogramManagerFactory: resolves partial and symmetry preferences") 
         // the excluded volume model wins: it changes the result, whereas dropping the partial preference only costs time
         CHECK(dynamic_cast<hist::HistogramManagerMTFFGrid*>(hist::factory::construct_histogram_manager(&plain).get()) != nullptr);
     }
-
-    SECTION("the X-ray mimic models refuse neutrons") {
-        settings::scattering::radiation = settings::scattering::Radiation::Neutron;
-        settings::internal_state::prefer_partial_manager = false;
-
-        settings::exv::exv_method = settings::exv::ExvMethod::FoXS;
-        CHECK_THROWS(hist::factory::construct_histogram_manager(&plain));
-        CHECK_THROWS(hist::factory::construct_histogram_manager(&symmetric));
-
-        settings::exv::exv_method = settings::exv::ExvMethod::CRYSOL;
-        CHECK_THROWS(hist::factory::construct_histogram_manager(&plain));
-
-        settings::exv::exv_method = settings::exv::ExvMethod::Fraser;
-        CHECK_NOTHROW(hist::factory::construct_histogram_manager(&plain));
-    }
 }
 
 TEST_CASE("HistogramManagerFactory: creates expected manager") {
-    settings::scattering::radiation = settings::scattering::Radiation::XRay;
     Molecule protein({Body{SimpleCube::get_atoms()}});
 
     // the surface and scalable grid managers are only used when the excluded volume is fitted
