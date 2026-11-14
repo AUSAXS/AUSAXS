@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <data/Body.h>
 #include <data/Molecule.h>
@@ -13,7 +14,7 @@ using namespace data;
 TEST_CASE("XYZReader::read") {
     SECTION("simple") {
         test::TempFile tmp(".xyz",
-            "3\n"
+            "4\n"
             "Comment line\n"
             "H 0.0 0.0 0.0\n"
             "O 0.0 0.0 1.0\n"
@@ -53,6 +54,48 @@ TEST_CASE("XYZReader::read") {
         }
         // gold must not be weighted as an unknown form factor would be
         REQUIRE(body.get_atom(3).weight() > 70);
+    }
+
+    SECTION("comment line is never an atom") {
+        auto comment = GENERATE(
+            std::string("Au 1 2 3"),
+            std::string("Ag Au nanoparticle model"),
+            std::string("{'Ag': 1, 'Au': 1}"),
+            std::string("Properties=species:S:1:pos:R:3 pbc=\"F F F\"")
+        );
+        test::TempFile tmp(".xyz", "2\n" + comment + "\nAg 0 0 0\nAu 2.9 0 0\n");
+        auto structure = io::detail::xyz::read(tmp);
+        REQUIRE(structure.atoms.size() == 2);
+        CHECK(structure.atoms[0].element == constants::atom_t::Ag);
+        CHECK(structure.atoms[1].element == constants::atom_t::Au);
+        CHECK(structure.atoms[1].coordinates().x() == 2.9);
+    }
+
+    SECTION("extended xyz with extra per-atom columns") {
+        test::TempFile tmp(".xyz",
+            "2\n"
+            "Lattice=\"20 0 0 0 20 0 0 0 20\" Properties=species:S:1:pos:R:3:tags:I:1 pbc=\"T T T\"\n"
+            "Au 10.0 10.0 10.0 0\n"
+            "Au 12.0 10.0 10.0 1\n"
+        );
+        auto structure = io::detail::xyz::read(tmp);
+        REQUIRE(structure.atoms.size() == 2);
+        CHECK(structure.atoms[1].coordinates().x() == 12.0);
+    }
+
+    SECTION("malformed files are refused") {
+        auto content = GENERATE(
+            std::string(""),                                // no atom count
+            std::string("0\ncomment\n"),                    // no atoms
+            std::string("C 0 0 0\nC 1 0 0\n"),               // no header
+            std::string("3\ncomment\nC 0 0 0\nC 1 0 0\n"),  // fewer atoms than the count
+            std::string("1\ncomment\nC 0 0 0\nC 1 0 0\n"),  // more atoms than the count
+            std::string("1\nframe 1\nC 0 0 0\n1\nframe 2\nC 1 0 0\n"), // multi-frame
+            std::string("1\ncomment\nC 0 0\n"),             // missing coordinate
+            std::string("1\ncomment\nXx 0 0 0\n")           // unknown element
+        );
+        test::TempFile tmp(".xyz", content);
+        REQUIRE_THROWS_AS(io::detail::xyz::read(tmp), except::io_error);
     }
 
     SECTION("real file") {
