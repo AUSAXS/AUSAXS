@@ -5,6 +5,10 @@ target_sources(ausaxs_core PRIVATE
 	"detail/structure/PDBWriter.cpp"
 	"detail/trajectory/XYZWriter.cpp"
 
+	"detail/dataset/DATReader.cpp"
+	"detail/dataset/DATWriter.cpp"
+	"detail/dataset/XVGReader.cpp"
+
 	"pdb/Footer.cpp"
 	"pdb/Header.cpp"
 	"pdb/PDBAtom.cpp"

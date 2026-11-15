@@ -6,8 +6,8 @@
 #include <dataset/Dataset.h>
 #include <dataset/Dataset2D.h>
 #include <dataset/SimpleDataset.h>
-#include <dataset/detail/QUnitAnnotation.h>
 #include <io/File.h>
+#include <io/detail/dataset/QUnitAnnotation.h>
 #include <utility/Exceptions.h>
 
 #include <iomanip>
@@ -111,7 +111,7 @@ void NamedWrapper<T>::save(const io::File& path, const std::string& header) cons
     std::stringstream output;
 
     // annotate with the unit our q-values are in, so a re-read cannot rescale them
-    output << detail::qunit::unit_line(header);
+    output << io::detail::dataset::qunit::unit_line(header);
 
     // write header
     if (!header.empty()) {

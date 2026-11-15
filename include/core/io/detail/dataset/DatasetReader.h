@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-namespace ausaxs::detail {
+namespace ausaxs::io::detail::dataset {
     /**
      * @brief Abstract base class for constructing datasets from files.
      */

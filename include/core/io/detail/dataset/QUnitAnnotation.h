@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-namespace ausaxs::detail::qunit {
+namespace ausaxs::io::detail::dataset::qunit {
     /**
      * @brief Check if a header line already names a q-unit.
      */
