@@ -151,7 +151,7 @@ namespace {
      *        The Fraser-based models need an explicit excluded volume for each form factor, so only types present in the current volume set can be used.
      */
     bool is_available(int index) {
-        if (!requires_explicit_exv() || index == static_cast<int>(form_factor_t::EXCLUDED_VOLUME)) {return true;}
+        if (!requires_explicit_exv() || index == static_cast<int>(form_factor_t::EXCLUDED_VOLUME) || index == static_cast<int>(form_factor_t::WATER)) {return true;}
         return ExvTableManager::get_current_exv_table()->contains(static_cast<form_factor_t>(index));
     }
 
@@ -161,11 +161,6 @@ namespace {
      */
     std::vector<int> remove_unavailable(std::vector<int> ff_indices) {
         if (!requires_explicit_exv()) {return ff_indices;}
-
-        const auto& exv_set = *ExvTableManager::get_current_exv_table();
-        if (!exv_set.contains(form_factor_t::WATER) || !exv_set.contains(form_factor_t::OTHER)) {
-            throw except::invalid_argument("form_factor::manager: The current excluded volume set must define both WATER and OTHER to be used with the Fraser-based models.");
-        }
 
         std::string removed;
         std::erase_if(ff_indices, [&removed] (int index) {

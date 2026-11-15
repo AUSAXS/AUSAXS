@@ -22,8 +22,9 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
         const auto& table_exv = manager::get_active_product_tables()->raw_exv_table;
         const auto& table_cross = manager::get_active_product_tables()->raw_cross_table;
 
-        REQUIRE(table_exv.index(form_factor::water_bin, form_factor::water_bin).evaluate(0) > 0);
-        REQUIRE(table_cross.index(form_factor::water_bin, form_factor::water_bin).evaluate(0) > 0);
+        const int other = manager::get_active_product_tables()->active_count - 1; // OTHER is always the last active slot
+        REQUIRE(table_exv.index(other, other).evaluate(0) > 0);
+        REQUIRE(table_cross.index(other, other).evaluate(0) > 0);
     }
 
     SECTION("products match direct calculation after custom table is set") {
@@ -38,7 +39,7 @@ TEST_CASE("ExvTableManager::set_custom_exv_table") {
                 auto t1 = static_cast<form_factor_t>(tables->ff_indices[ff1]);
                 auto t2 = static_cast<form_factor_t>(tables->ff_indices[ff2]);
                 for (int i = 0; i < 10; ++i) {
-                    double expected = ffset.get(t1).evaluate(constants::axes::q_vals[i]) * ffset.get(t2).evaluate(constants::axes::q_vals[i]);
+                    double expected = test::form_factor::evaluate_exv(ffset, t1, constants::axes::q_vals[i]) * test::form_factor::evaluate_exv(ffset, t2, constants::axes::q_vals[i]);
                     REQUIRE_THAT(table.index(ff1, ff2).evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
@@ -64,7 +65,7 @@ TEST_CASE("ExvSet switching") {
                 const FormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = ffset.get(t1).evaluate(constants::axes::q_vals[i]) * ffset.get(t2).evaluate(constants::axes::q_vals[i]);
+                    double expected = test::form_factor::evaluate_exv(ffset, t1, constants::axes::q_vals[i]) * test::form_factor::evaluate_exv(ffset, t2, constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
@@ -85,7 +86,7 @@ TEST_CASE("ExvSet switching") {
                 const FormFactorProduct& ff = table.index(ff1, ff2);
 
                 for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
-                    double expected = ffset.get(t1).evaluate(constants::axes::q_vals[i]) * ffset.get(t2).evaluate(constants::axes::q_vals[i]);
+                    double expected = test::form_factor::evaluate_exv(ffset, t1, constants::axes::q_vals[i]) * test::form_factor::evaluate_exv(ffset, t2, constants::axes::q_vals[i]);
                     CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }

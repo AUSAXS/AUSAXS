@@ -209,8 +209,9 @@ TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables
     auto indices_before = manager::get_active_product_tables()->ff_indices;
     int count_before = manager::get_active_product_tables()->active_count;
 
-    // capture one exv table value before rebuild; the exv table is only filled from start_index_for_explicit_exv() onwards
-    double exv_val_before = manager::get_active_product_tables()->raw_exv_table.index(start_index_for_explicit_exv(), start_index_for_explicit_exv()).evaluate(0);
+    // capture one exv table value before rebuild; the exv table is only filled from start_index_for_explicit_exv() onwards, and the water slot right after it has no excluded volume
+    const int s = water_bin + 1;
+    double exv_val_before = manager::get_active_product_tables()->raw_exv_table.index(s, s).evaluate(0);
 
     manager::rebuild();
 
@@ -225,19 +226,26 @@ TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables
     }
 
     SECTION("table values reproduced identically after rebuild with same EXV set") {
-        double exv_val_after = tables->raw_exv_table.index(start_index_for_explicit_exv(), start_index_for_explicit_exv()).evaluate(0);
+        double exv_val_after = tables->raw_exv_table.index(s, s).evaluate(0);
         REQUIRE(exv_val_before == exv_val_after);
     }
 }
 
 TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table") {
-    test::form_factor::use_random_form_factors();
+    settings::exv::exv_set = settings::exv::ExvSet::Default;
+    manager::detail::use_form_factors({
+        static_cast<int>(form_factor_t::EXCLUDED_VOLUME),
+        static_cast<int>(form_factor_t::WATER),
+        static_cast<int>(form_factor_t::C),
+        static_cast<int>(form_factor_t::OTHER)
+    });
 
-    // capture exv product at (1,1) which is WATER vs WATER excluded volume — should differ between sets
-    double exv_val_default = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
+    // the hydration water has no excluded volume, and OTHER has the same fallback volume in every set, so compare the C vs C slot
+    const int s = water_bin + 1;
+    double exv_val_default = manager::get_active_product_tables()->raw_exv_table.index(s, s).evaluate(10);
 
     settings::exv::exv_set = settings::exv::ExvSet::Traube; // the callback rebuilds the tables
-    double exv_val_traube = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
+    double exv_val_traube = manager::get_active_product_tables()->raw_exv_table.index(s, s).evaluate(10);
 
     REQUIRE(exv_val_default != exv_val_traube);
 }
@@ -262,7 +270,7 @@ TEST_CASE("form_factor_manager: product tables hold the product their indices na
     };
 
     auto raw = [] (form_factor_t t, double q) {return xray::raw::get(t).evaluate(q);};
-    auto exv = [] (form_factor_t t, double q) {return ExvTableManager::get_current_exv_form_factor_set().get(t).evaluate(q);};
+    auto exv = [] (form_factor_t t, double q) {return test::form_factor::evaluate_exv(ExvTableManager::get_current_exv_form_factor_set(), t, q);};
     int s0 = start_index_for_explicit_exv();
 
     SECTION("random set") {
@@ -334,7 +342,7 @@ TEST_CASE("form_factor_manager: Fraser only uses form factors with an excluded v
     ExvTableManager::set_custom_exv_table(set);
 
     // not every type has a volume in the base set either, so count those that remain
-    int with_volume = 1; // EXCLUDED_VOLUME is always kept
+    int with_volume = 2; // EXCLUDED_VOLUME and WATER are always kept, and WATER has no volume
     for (int i = start_index_for_explicit_exv(); i < total_ff_count; ++i) {
         if (set.contains(static_cast<form_factor_t>(i))) {++with_volume;}
     }

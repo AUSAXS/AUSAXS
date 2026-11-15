@@ -122,13 +122,13 @@ namespace ausaxs::constants::exv {
     constexpr detail::ExvSet MinimumFluctuation_explicit_H = detail::make_set(&detail::ExvInfo::MinimumFluctuation_explicit_H);
     constexpr detail::ExvSet vdw                           = detail::make_set(&detail::ExvInfo::vdw);
 
-    // the fallback type and water must be present in every set
-    static_assert(Traube.contains(ausaxs::form_factor::form_factor_t::OTHER) && Traube.contains(ausaxs::form_factor::form_factor_t::WATER));
-    static_assert(Voronoi_implicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && Voronoi_implicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
-    static_assert(MinimumFluctuation_implicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && MinimumFluctuation_implicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
-    static_assert(Voronoi_explicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && Voronoi_explicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
-    static_assert(MinimumFluctuation_explicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER) && MinimumFluctuation_explicit_H.contains(ausaxs::form_factor::form_factor_t::WATER));
-    static_assert(vdw.contains(ausaxs::form_factor::form_factor_t::OTHER) && vdw.contains(ausaxs::form_factor::form_factor_t::WATER));
+    // the fallback type must be present in every set
+    static_assert(Traube.contains(ausaxs::form_factor::form_factor_t::OTHER));
+    static_assert(Voronoi_implicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER));
+    static_assert(MinimumFluctuation_implicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER));
+    static_assert(Voronoi_explicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER));
+    static_assert(MinimumFluctuation_explicit_H.contains(ausaxs::form_factor::form_factor_t::OTHER));
+    static_assert(vdw.contains(ausaxs::form_factor::form_factor_t::OTHER));
 
     constexpr double OH2 = 2.98*math::pow(10., -23)*math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = detail::volume(constants::radius::vdw::Ar);

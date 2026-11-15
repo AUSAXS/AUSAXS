@@ -128,7 +128,7 @@ TEST_CASE("GridMember::get_atom_type") {
     SECTION("Water") {
         Water water({1.0, 2.0, 3.0});
         GridMember<Water> member(water, Vector3<int>(5, 6, 7));
-        REQUIRE(member.get_atom_type() == form_factor::form_factor_t::OH);
+        REQUIRE(member.get_atom_type() == form_factor::form_factor_t::WATER);
     }
 }
 

@@ -22,9 +22,8 @@ using namespace ausaxs::data;
 TEST_CASE("ScatteringModelFraser::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
     auto ff_C = form_factor::xray::raw::get(form_factor::form_factor_t::C);
-    auto ff_w = form_factor::xray::raw::get(form_factor::form_factor_t::OH);
+    auto ff_w = form_factor::xray::raw::get(form_factor::form_factor_t::WATER);
     auto ff_Cx = form_factor::ExvTableManager::get_current_exv_form_factor_set().get(form_factor::form_factor_t::C);
-    [[maybe_unused]] auto ff_wx = form_factor::ExvTableManager::get_current_exv_form_factor_set().get(form_factor::form_factor_t::OH); // only read under DEBYE_DEBUG
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
     auto d = SimpleCube::d;
@@ -153,7 +152,7 @@ TEST_CASE("ScatteringModelFraser::debye_transform") {
                     std::cout << "(ax) Iq_exp[" << q << "] -= " << 2*ZC*ZX*axsum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]) << std::endl;
                     std::cout << "(aw) Iq_exp[" << q << "] += " << 2*ZX*ZO*awsum*ff_C.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
                     std::cout << "(xx) Iq_exp[" << q << "] += " << ZX*ZX*aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2) << std::endl;
-                    std::cout << "(xw) Iq_exp[" << q << "] -= " << 2*ZX*ZO*awsum*ff_wx.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "(xw) Iq_exp[" << q << "] -= " << 2*ZX*ZO*awsum*ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]) << std::endl;
                     std::cout << "(ww) Iq_exp[" << q << "] += " << 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
                 }
             #endif

@@ -193,8 +193,8 @@ TEST_CASE("Water::Water") {
         );
         Water water(coords);
         CHECK(water.coordinates() == coords);
-        CHECK(water.weight() == constants::charge::get_ff_charge(form_factor::form_factor_t::OH));
-        CHECK(water.form_factor_type() == form_factor::form_factor_t::OH);
+        CHECK(water.weight() == constants::charge::get_ff_charge(form_factor::form_factor_t::WATER));
+        CHECK(water.form_factor_type() == form_factor::form_factor_t::WATER);
     }
 }
 

@@ -7,6 +7,7 @@
 #include <data/Molecule.h>
 #include <settings/ExvSettings.h>
 #include <settings/InternalState.h>
+#include <utility/Exceptions.h>
 
 using namespace ausaxs;
 using namespace ausaxs::form_factor; 
@@ -52,6 +53,10 @@ form_factor::detail::ExvFormFactorSet ExvTableManager::get_current_exv_form_fact
 }
 
 void ExvTableManager::set_custom_exv_table(const constants::exv::detail::ExvSet& set) {
+    // types without a volume fall back to OTHER, so every set must define it; the built-in sets guarantee this with static_asserts in ExvTable.h
+    if (!set.contains(form_factor_t::OTHER)) {
+        throw except::invalid_argument("ExvTableManager::set_custom_exv_table: The excluded volume set must define OTHER.");
+    }
     if (set == get_default_exv_table()) {_use_custom_exv_table = false; return;}
     custom_exv_tables = std::make_unique<constants::exv::detail::ExvSet>(set);
     settings::exv::exv_set = settings::exv::ExvSet::Custom;
