@@ -22,7 +22,6 @@
 #include <regex>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 using namespace ausaxs;
@@ -77,7 +76,7 @@ namespace {
         static const std::vector<ProtonationVariant> variants = {
             {"HID", "HIS", {{"nd1", N, 1}, {"ne2", N, 0}}}, {"HSD", "HIS", {{"nd1", N, 1}, {"ne2", N, 0}}}, // hydrogen on ND1 only
             {"HIE", "HIS", {{"nd1", N, 0}, {"ne2", N, 1}}}, {"HSE", "HIS", {{"nd1", N, 0}, {"ne2", N, 1}}}, // hydrogen on NE2 only
-            {"HIP", "HIS", {{"nd1", N, 1}, {"ne2", N, 1}}}, {"HSP", "HIS", {{"nd1", N, 1}, {"ne2", N, 1}}}, // both
+            {"HIP", "HIS", {{"nd1", N, 1}, {"ne2", N, 1}}}, {"HSP", "HIS", {{"nd1", N, 1}, {"ne2", N, 1}}}, // both, same as CCD HIS
             {"ASH", "ASP", {{"od1", O, 0}, {"od2", O, 1}}}, {"GLH", "GLU", {{"oe1", O, 0}, {"oe2", O, 1}}}, // neutral acids
             {"CYX", "CYS", {{"sg",  S, 0}}},                {"CYM", "CYS", {{"sg",  S, 0}}},                // disulfide-bonded and deprotonated cysteine
             {"LYN", "LYS", {{"nz",  N, 2}}}                                                                 // neutral lysine
@@ -86,13 +85,13 @@ namespace {
     }
 
     void warn_force_field_name(const std::string& name) {
-        static std::unordered_set<std::string> warned;
-        if (!warned.insert(name).second) {return;}
+        static bool warned = false;
+        if (warned) {return;}
         auto it = std::ranges::find(protonation_variant_table(), name, &ProtonationVariant::name);
         console::print_warning(
             "Residue \"" + name + "\" is read by its CCD definition, but AMBER and CHARMM also use this name for a protonation state of " + it->base + ". "
-            "If the structure uses force-field names, read them as such with 'hydrogens --force-field-names', "
-            "or keep the explicit hydrogens of the file with 'hydrogens --keep' for higher precision."
+            "If the structure uses force-field names, read them as such with 'hydrogens --force-field-names', or keep the explicit hydrogens of the file with"
+            " 'hydrogens --keep' for higher precision. Further warnings of this type will be suppressed."
         );
     }
 }
@@ -107,17 +106,17 @@ void ResidueStorage::insert(const std::string& name, ResidueMap&& residue) {
 
 bool ResidueStorage::contains(const std::string& name) {
     if (!initialized) {initialize();}
-    if (settings::molecule::force_field_residue_names && protonation_variants.contains(name)) {return true;}
-    return data.contains(name);
+    if (data.contains(name)) {return true;}
+    return (settings::molecule::force_field_residue_names && protonation_variants.contains(name));
 }
 
 bool ResidueStorage::load(const std::string& name) {
     if (!initialized) {initialize();}
+    if (data.contains(name)) {return true;}
     if (protonation_variants.contains(name)) {
         if (settings::molecule::force_field_residue_names) {return true;}
         warn_force_field_name(name);
     }
-    if (data.contains(name)) {return true;}
 
     // small cache to avoid spamming the console with the same download
     static std::unordered_map<std::string, bool> seen_before;
@@ -144,6 +143,7 @@ ResidueMap& ResidueStorage::get(const std::string& name) {
         return invalid_residue;
     }
     if (settings::molecule::force_field_residue_names) {
+        // iterator to avoid double lookup in the map
         if (auto it = protonation_variants.find(name); it != protonation_variants.end()) {return it->second;}
     }
     return data.at(name);
@@ -196,7 +196,6 @@ void ResidueStorage::initialize() {
 
 void ResidueStorage::insert_protonation_variants() {
     for (const auto& variant : protonation_variant_table()) {
-        if (!data.contains(variant.base)) {continue;}
         auto map = data.at(variant.base).get_backing_map();
         for (const auto& site : variant.sites) {
             map.insert_or_assign(AtomKey(site.atom, site.element), site.hydrogens);

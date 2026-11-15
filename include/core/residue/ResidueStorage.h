@@ -20,8 +20,6 @@ namespace ausaxs::residue {
 
             /**
              * @brief Get a residue from the storage. If the residue is not found, it will be downloaded. 
-             *        A force-field protonation-state name (HID, HSE, CYX, ...) is read by its CCD definition, with a warning,
-             *        unless settings::molecule::force_field_residue_names is set.
              */
             detail::ResidueMap& get(const std::string& name);
 
@@ -64,8 +62,7 @@ namespace ausaxs::residue {
             bool initialized = false;
 
             /**
-             * @brief Derive the force-field protonation-state residues (e.g. CHARMM's HSD or AMBER's CYX) from their standard residues.
-             *        They are kept apart from the CCD definitions, since most of these names are also CCD codes for unrelated compounds.
+             * @brief Derive force-field protonation-state residues (e.g. CHARMM's HSD or AMBER's CYX) from their standard residues.
              */
             void insert_protonation_variants();
 
@@ -82,6 +79,6 @@ namespace ausaxs::residue {
             void write_residue(const std::string& name);
 
             std::unordered_map<std::string, detail::ResidueMap> data;
-            std::unordered_map<std::string, detail::ResidueMap> protonation_variants; // used instead of data if settings::molecule::force_field_residue_names is set
+            std::unordered_map<std::string, detail::ResidueMap> protonation_variants;
     };
 }
