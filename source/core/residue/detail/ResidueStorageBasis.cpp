@@ -9,10 +9,13 @@
 #include <string>
 
 void ausaxs::residue::detail::write_master_basis() {
+    // The CCD defines the neutral molecules. The entries below are instead their dominant protonation state at pH 7:
+    // OXT carries no hydrogen (C-terminal carboxylate), and ASP, GLU and HIS are changed as noted in their headers.
+    // The N-terminus and disulfide-bonded cysteines depend on the structure, and are set when it is read.
     std::string basis = R"(
 #
 LYS
-O oxt 1
+O oxt 0
 N nz 3
 C ce 2
 C cd 2
@@ -25,7 +28,7 @@ N n 1
 
 #
 VAL
-O oxt 1
+O oxt 0
 C cg2 3
 C cg1 3
 O o 0
@@ -36,7 +39,7 @@ N n 1
 
 #
 PHE
-O oxt 1
+O oxt 0
 N n 1
 C cb 2
 C ce1 1
@@ -51,7 +54,7 @@ C cz 1
 
 #
 GLY
-O oxt 1
+O oxt 0
 O o 0
 C c 0
 C ca 2
@@ -70,11 +73,11 @@ N nh1 2
 C c 0
 N nh2 2
 N ne 1
-O oxt 1
+O oxt 0
 
 #
 CYS
-O oxt 1
+O oxt 0
 S sg 1
 O o 0
 C c 0
@@ -82,10 +85,10 @@ C ca 1
 C cb 2
 N n 1
 
-#
+# carboxylate: no hydrogen on OE2 (CCD: 1)
 GLU
-O oxt 1
-O oe2 1
+O oxt 0
+O oe2 0
 O oe1 0
 C cd 0
 C cg 2
@@ -97,7 +100,7 @@ N n 1
 
 #
 LEU
-O oxt 1
+O oxt 0
 C cd2 3
 C cd1 3
 C cg 1
@@ -109,14 +112,14 @@ N n 1
 
 #
 ALA
-O oxt 1
+O oxt 0
 O o 0
 C c 0
 C ca 1
 C cb 3
 N n 1
 
-#
+# neutral NE2 tautomer: no hydrogen on ND1 (CCD: 1, the cation)
 HIS
 N n 1
 C cb 2
@@ -126,14 +129,14 @@ O o 0
 C cg 0
 C c 0
 N ne2 1
-N nd1 1
+N nd1 0
 C cd2 1
-O oxt 1
+O oxt 0
 
-#
+# carboxylate: no hydrogen on OD2 (CCD: 1)
 ASP
-O oxt 1
-O od2 1
+O oxt 0
+O od2 0
 O od1 0
 C cg 0
 O o 0
@@ -144,7 +147,7 @@ N n 1
 
 #
 ASN
-O oxt 1
+O oxt 0
 N nd2 2
 O od1 0
 C cg 0
@@ -156,7 +159,7 @@ N n 1
 
 #
 TYR
-O oxt 1
+O oxt 0
 N n 1
 C cb 2
 C ce1 1
@@ -172,7 +175,7 @@ C cz 0
 
 #
 SER
-O oxt 1
+O oxt 0
 O og 1
 O o 0
 C c 0
@@ -196,11 +199,11 @@ C cz3 1
 C ce2 0
 C cd1 1
 C cd2 0
-O oxt 1
+O oxt 0
 
 #
 THR
-O oxt 1
+O oxt 0
 C cg2 3
 O o 0
 O og1 1
@@ -211,7 +214,7 @@ N n 1
 
 #
 GLN
-O oxt 1
+O oxt 0
 O oe1 0
 N ne2 2
 C cd 0
@@ -224,7 +227,7 @@ N n 1
 
 #
 ILE
-O oxt 1
+O oxt 0
 C cd1 3
 C cg2 3
 C cg1 2
@@ -236,7 +239,7 @@ N n 1
 
 #
 PRO
-O oxt 1
+O oxt 0
 C cd 2
 C cg 2
 O o 0
@@ -247,7 +250,7 @@ N n 0
 
 #
 MET
-O oxt 1
+O oxt 0
 C ce 3
 S sd 0
 C cg 2

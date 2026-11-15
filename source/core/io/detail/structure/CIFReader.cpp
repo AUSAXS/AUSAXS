@@ -136,7 +136,7 @@ namespace {
     void parse_chem_comp_section(CIFSection& atom, CIFSection& bond) {
         auto residues = parse_residue(atom, bond);
         for (auto& residue : residues) {
-            constants::hydrogen_atoms::residues.insert(residue.get_name(), residue.to_map());
+            constants::hydrogen_atoms::residues.insert_ccd(residue.get_name(), residue.to_map());
         }
     }
 
