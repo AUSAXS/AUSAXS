@@ -42,6 +42,10 @@ settings::detail::Setting<double> settings::scattering::neutron_solvent_density{
     }
 };
 
+void settings::scattering::set_d2o_fraction(double d2o_fraction) {
+    neutron_solvent_density = form_factor::neutron::solvent_density(d2o_fraction);
+}
+
 settings::detail::Setting<double> settings::scattering::neutron_exchange_efficiency{
     1,
     [] (double&) {

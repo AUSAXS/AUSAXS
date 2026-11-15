@@ -23,5 +23,8 @@ namespace ausaxs::settings {
 
         // The fraction of the exchangeable implicit hydrogens (those bound to N, O or S) that has exchanged with the solvent. The default is full exchange.
         static detail::Setting<double> neutron_exchange_efficiency;
+
+        // Set neutron_solvent_density to the density of an H2O/D2O mixture with the given D2O fraction, between 0 and 1.
+        static void set_d2o_fraction(double d2o_fraction);
     };
 }
