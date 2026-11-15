@@ -11,7 +11,7 @@
 
 /**
  * @brief Conversions between the neutron scattering length density of an H2O/D2O solvent and its D2O fraction.
- *        settings::scattering::neutron_solvent_density is the single source of truth for the solvent.
+ *        settings::scattering::neutron::solvent_density is the single source of truth for the solvent.
  *        These helpers only translate between it and the H2O/D2O mixture that realises it.
  */
 namespace ausaxs::form_factor::neutron {

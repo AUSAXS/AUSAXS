@@ -76,8 +76,8 @@ TEST_CASE("ExvFormFactor: probe densities") {
     }
 
     SECTION("the factory uses the solvent density of the active probe") {
-        settings::scattering::xray_solvent_density = 0.5;
-        settings::scattering::neutron_solvent_density = -0.25;
+        settings::scattering::xray::solvent_density = 0.5;
+        settings::scattering::neutron::solvent_density = -0.25;
         CHECK(factory::construct_exv_form_factor(volume).q0 == 0.5*volume);
         CHECK(factory::construct_exv_form_factor(volume).exponent == detail::ExvFormFactor(volume, rho_water).exponent);
         settings::scattering::radiation = settings::scattering::Radiation::Neutron;
@@ -87,8 +87,8 @@ TEST_CASE("ExvFormFactor: probe densities") {
     SECTION("the current form factor set uses the solvent density of the active probe") {
         settings::scattering::radiation = settings::scattering::Radiation::XRay;
         double volume_C = ExvTableManager::get_current_exv_table()->get(form_factor_t::C);
-        settings::scattering::xray_solvent_density = 0.5;
-        settings::scattering::neutron_solvent_density = -0.25;
+        settings::scattering::xray::solvent_density = 0.5;
+        settings::scattering::neutron::solvent_density = -0.25;
         CHECK(ExvTableManager::get_current_exv_form_factor_set().get(form_factor_t::C).q0 == 0.5*volume_C);
         settings::scattering::radiation = settings::scattering::Radiation::Neutron;
         CHECK(ExvTableManager::get_current_exv_form_factor_set().get(form_factor_t::C).q0 == -0.25*volume_C);

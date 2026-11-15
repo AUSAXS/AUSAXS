@@ -10,5 +10,5 @@ using namespace ausaxs;
 using namespace ausaxs::form_factor;
 
 neutron::FormFactor neutron::get(form_factor_t type) {
-    return get(type, d2o_fraction(settings::scattering::neutron_solvent_density), settings::scattering::neutron_exchange_efficiency);
+    return get(type, d2o_fraction(settings::scattering::neutron::solvent_density), settings::scattering::neutron::exchange_efficiency);
 }

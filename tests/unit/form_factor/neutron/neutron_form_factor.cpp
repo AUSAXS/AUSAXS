@@ -13,7 +13,7 @@ using Catch::Matchers::WithinAbs;
 
 TEST_CASE("NeutronFormFactor::get") {
     using namespace neutron;
-    settings::scattering::neutron_solvent_density = solvent_density(0);
+    settings::scattering::neutron::solvent_density = solvent_density(0);
 
     SECTION("types without hydrogens are q-independent") {
         for (auto type : {form_factor_t::C, form_factor_t::N, form_factor_t::O, form_factor_t::S, form_factor_t::OTHER}) {
@@ -112,24 +112,24 @@ TEST_CASE("NeutronFormFactor::get: hydrogen isotopes") {
     }
 
     SECTION("the isotope composition follows the solvent density") {
-        settings::scattering::neutron_exchange_efficiency = 1;
-        settings::scattering::neutron_solvent_density = solvent_density(1);
+        settings::scattering::neutron::exchange_efficiency = 1;
+        settings::scattering::neutron::solvent_density = solvent_density(1);
         CHECK_THAT(get(form_factor_t::WATER).I0(), WithinAbs(b::O + 2*b::D, 1e-12));
         CHECK_THAT(get(form_factor_t::OH).I0(), WithinAbs(b::O + b::D, 1e-12));
         CHECK_THAT(get(form_factor_t::CH).I0(), WithinAbs(b::C + b::H, 1e-12));
 
-        settings::scattering::neutron_solvent_density = solvent_density(0.4);
+        settings::scattering::neutron::solvent_density = solvent_density(0.4);
         CHECK_THAT(get(form_factor_t::WATER).I0(), WithinAbs(b::O + 2*mixed(0.4), 1e-12));
         CHECK_THAT(get(form_factor_t::NH3).I0(), WithinAbs(b::N + 3*mixed(0.4), 1e-12));
 
-        settings::scattering::neutron_exchange_efficiency = 0.5;
+        settings::scattering::neutron::exchange_efficiency = 0.5;
         CHECK_THAT(get(form_factor_t::WATER).I0(), WithinAbs(b::O + 2*mixed(0.4), 1e-12));
         CHECK_THAT(get(form_factor_t::NH3).I0(), WithinAbs(b::N + 3*mixed(0.2), 1e-12));
     }
 
     SECTION("explicit hydrogens are never exchanged") {
-        settings::scattering::neutron_exchange_efficiency = 1;
-        settings::scattering::neutron_solvent_density = solvent_density(1);
+        settings::scattering::neutron::exchange_efficiency = 1;
+        settings::scattering::neutron::solvent_density = solvent_density(1);
         CHECK(get(form_factor_t::H).I0() == b::H);
         CHECK(get(form_factor_t::D).I0() == b::D);
     }
