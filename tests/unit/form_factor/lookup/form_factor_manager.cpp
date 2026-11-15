@@ -232,13 +232,20 @@ TEST_CASE("form_factor_manager::rebuild preserves indices and regenerates tables
 }
 
 TEST_CASE("form_factor_manager::rebuild after EXV set change updates exv table") {
-    test::form_factor::use_random_form_factors();
+    settings::exv::exv_set = settings::exv::ExvSet::Default;
+    manager::detail::use_form_factors({
+        static_cast<int>(form_factor_t::EXCLUDED_VOLUME),
+        static_cast<int>(form_factor_t::WATER),
+        static_cast<int>(form_factor_t::C),
+        static_cast<int>(form_factor_t::OTHER)
+    });
 
-    // capture exv product at (1,1) which is WATER vs WATER excluded volume — should differ between sets
-    double exv_val_default = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
+    // the hydration water has no excluded volume, and OTHER has the same fallback volume in every set, so compare the C vs C slot
+    const int s = water_bin + 1;
+    double exv_val_default = manager::get_active_product_tables()->raw_exv_table.index(s, s).evaluate(10);
 
     settings::exv::exv_set = settings::exv::ExvSet::Traube; // the callback rebuilds the tables
-    double exv_val_traube = manager::get_active_product_tables()->raw_exv_table.index(1, 1).evaluate(10);
+    double exv_val_traube = manager::get_active_product_tables()->raw_exv_table.index(s, s).evaluate(10);
 
     REQUIRE(exv_val_default != exv_val_traube);
 }
