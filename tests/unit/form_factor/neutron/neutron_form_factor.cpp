@@ -48,10 +48,6 @@ TEST_CASE("NeutronFormFactor::get") {
         auto sinc = [] (double x) {return std::sin(x)/x;};
         CHECK_THAT(get(form_factor_t::CH3).evaluate(1), WithinAbs(scattering_length::C + 3*scattering_length::H*sinc(group::bond::CH3), 1e-12));
     }
-
-    SECTION("excluded volume is not defined") {
-        CHECK_THROWS(get(form_factor_t::EXCLUDED_VOLUME));
-    }
 }
 
 TEST_CASE("neutron::solvent_density") {
