@@ -9,7 +9,7 @@
  *        Natural elements are from Rauch & Waschkowski, ILL Neutron Data Booklet, 2nd ed. (2003),
  *        with newer measurements for 1H, 2H, C, O, Sn, Pb, Bi from Snow et al., Phys. Rev. D 101, 062004 (2020), https://doi.org/10.1103/PhysRevD.101.062004
  *        and for 4He from Haun et al., Phys. Rev. Lett. 124, 012501 (2020), https://doi.org/10.1103/PhysRevLett.124.012501 (natural He is its isotope-weighted average with 3He).
- *        H is protium, not natural hydrogen, since every hydrogen is treated as protium.
+ *        H is protium, not natural hydrogen. The implicit hydrogens mix H and D by the isotope composition of the solvent.
  */
 namespace ausaxs::form_factor::neutron::scattering_length {
     constexpr double H  = -3.7395;

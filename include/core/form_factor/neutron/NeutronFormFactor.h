@@ -3,15 +3,11 @@
 
 #pragma once
 
-#include <constants/ConstantsProperties.h>
 #include <form_factor/FormFactorInfo.h>
 #include <form_factor/GroupFormFactor.h>
 #include <form_factor/neutron/NeutronFormFactorTable.h>
-#include <utility/Exceptions.h>
 
-#include <array>
-#include <string>
-#include <utility>
+#include <cassert>
 
 namespace ausaxs::form_factor::neutron {
     /**
@@ -40,55 +36,45 @@ namespace ausaxs::form_factor::neutron {
      */
     using FormFactor = GroupFormFactor<AtomicFormFactor>;
 
-    namespace detail {
-        // the sample is assumed to be protonated and in 100% H2O, so every hydrogen is protium
-        constexpr AtomicFormFactor hydrogen(scattering_length::H);
-
-        constexpr auto table = [] <std::size_t... I> (std::index_sequence<I...>) {
-            return std::array<FormFactor, total_ff_count>{FormFactor(
-                AtomicFormFactor(form_factor::detail::ff_info_table[I].neutron_scattering_length),
-                hydrogen,
-                form_factor::detail::ff_info_table[I].geometry
-            )...};
-        }(std::make_index_sequence<total_ff_count>{});
+    /**
+     * @brief The deuterium fraction of the implicit hydrogens of a form factor type.
+     *
+     * @param d2o_fraction The D2O fraction of the solvent. It may lie outside [0, 1], see neutron::d2o_fraction.
+     * @param exchange_efficiency The fraction of the exchangeable hydrogens that has exchanged with the solvent.
+     */
+    constexpr double deuterium_fraction(form_factor_t type, double d2o_fraction, double exchange_efficiency) {
+        if (type == form_factor_t::WATER) {return d2o_fraction;} // this is just the solvent composition
+        switch (form_factor::detail::ff_info_table[static_cast<int>(type)].element) {
+            case constants::atom_t::N:
+            case constants::atom_t::O:
+            case constants::atom_t::S:
+                return exchange_efficiency*d2o_fraction;
+            default: // C and other elements do not exchange, so their implicit hydrogens are always protium
+                return 0;
+        }
     }
 
     /**
-     * @brief Get the neutron form factor of a form factor type, as described by form_factor::detail::ff_info_table.
-     *        All hydrogens, implicit and explicit, are protium.
-     *        The excluded volume is not defined for neutrons, and requesting it throws.
+     * @brief Get the neutron form factor of a form factor type.
+     *        Each implicit hydrogen has the mean scattering length (1-x)*b_H + x*b_D, with x its deuterium_fraction.
+     *
+     * @param d2o_fraction The D2O fraction of the solvent.
+     * @param exchange_efficiency The fraction of the exchangeable hydrogens that has exchanged with the solvent.
      */
-    constexpr const FormFactor& get(form_factor_t type) {
-        if (type == form_factor_t::EXCLUDED_VOLUME) {
-            throw ausaxs::except::runtime_error("form_factor::neutron::get: The excluded volume form factor is not defined for neutrons.");
-        }
-        if (!form_factor::detail::is_tabulated(type)) {
-            throw ausaxs::except::runtime_error("form_factor::neutron::get: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
-        }
-        return detail::table[static_cast<int>(type)];
-    }
-
-    namespace detail {
-        // Number of molecules per Å^3 of a liquid with the given mass density (Da/Å^3) and molecular mass (Da).
-        constexpr double number_density(double mass_density, double molecular_mass) {
-            return mass_density/molecular_mass;
-        }
-
-        constexpr double density_H2O = (2*scattering_length::H + scattering_length::O)*number_density(
-            constants::mass::density::water, 2*constants::mass::get_mass(constants::atom_t::H) + constants::mass::get_mass(constants::atom_t::O)
-        );
-        constexpr double density_D2O = (2*scattering_length::D + scattering_length::O)*number_density(
-            constants::mass::density::D2O, 2*constants::mass::get_mass(constants::atom_t::D) + constants::mass::get_mass(constants::atom_t::O)
-        );
+    constexpr FormFactor get(form_factor_t type, double d2o_fraction, double exchange_efficiency) {
+        assert(form_factor::detail::is_tabulated(type) && "form_factor::neutron::get: Invalid form factor type. Untabulated types must be rejected before reaching here.");
+        assert(type != form_factor_t::EXCLUDED_VOLUME && "form_factor::neutron::get: The excluded volume form factor is not defined for neutrons.");
+        const auto& info = form_factor::detail::ff_info_table[static_cast<int>(type)];
+        const double x = deuterium_fraction(type, d2o_fraction, exchange_efficiency);
+        return {
+            AtomicFormFactor(info.neutron_scattering_length),
+            AtomicFormFactor((1-x)*scattering_length::H + x*scattering_length::D),
+            info.geometry
+        };
     }
 
     /**
-     * @brief The coherent scattering length density of an H2O/D2O mixture in fm/Å^3.
+     * @brief Get the neutron form factor of a form factor type in the solvent as prescibed by the current settings.
      */
-    constexpr double solvent_density(double d2o_fraction) {
-        if (d2o_fraction < 0 || 1 < d2o_fraction) {
-            throw ausaxs::except::invalid_argument("form_factor::neutron::solvent_density: The D2O fraction must be between 0 and 1, but was " + std::to_string(d2o_fraction) + ".");
-        }
-        return (1-d2o_fraction)*detail::density_H2O + d2o_fraction*detail::density_D2O;
-    }
+    FormFactor get(form_factor_t type);
 }
