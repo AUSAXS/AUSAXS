@@ -12,6 +12,7 @@ namespace ausaxs::settings {
         static Setting<bool> allow_unknown_residues; // Decides whether to allow unknown residues (WARNING: implicit hydrogens will be skipped for these residues).
         static Setting<bool> implicit_hydrogens;     // Decides whether implicit hydrogens will be added to the structure.
         static Setting<bool> use_occupancy;          // Decides whether the occupancy of the atoms will be ignored.
+        static Setting<bool> force_field_residue_names; // Read the AMBER/CHARMM protonation-state names (HID, HSE, CYX, ...) as the standard residue in that state, instead of by their CCD definitions.
     };
 
     struct EXPORT hydrate {
