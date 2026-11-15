@@ -62,6 +62,11 @@ namespace ausaxs::residue {
             bool initialized = false;
 
             /**
+             * @brief Derive force-field protonation-state residues (e.g. CHARMM's HSD or AMBER's CYX) from their standard residues.
+             */
+            void insert_protonation_variants();
+
+            /**
              * @brief Update a residue from disk, or attempt to download it from the web if it does not exist.
              * 
              * @return True if the residue was downloaded, false otherwise.
@@ -74,5 +79,6 @@ namespace ausaxs::residue {
             void write_residue(const std::string& name);
 
             std::unordered_map<std::string, detail::ResidueMap> data;
+            std::unordered_map<std::string, detail::ResidueMap> protonation_variants;
     };
 }

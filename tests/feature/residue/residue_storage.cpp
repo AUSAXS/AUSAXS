@@ -2,6 +2,10 @@
 
 #include <residue/ResidueStorage.h>
 #include <residue/detail/ResidueMap.h>
+#include <settings/MoleculeSettings.h>
+
+#include <initializer_list>
+#include <string>
 
 using namespace ausaxs;
 using namespace residue::detail;
@@ -32,5 +36,26 @@ TEST_CASE("ResidueStorage: atom name aliases") {
 
     SECTION("a name the definition carries is not an alias") {
         CHECK(storage.get_hydrogens("TST", "OT1", O) == 0);
+    }
+}
+
+
+TEST_CASE("ResidueStorage: force-field protonation-state names") {
+    settings::molecule::allow_unknown_atoms = false;
+    auto N = constants::atom_t::N;
+    auto O = constants::atom_t::O;
+    residue::ResidueStorage storage;
+    storage.insert("HSE", ResidueMap({{AtomKey("OG", O), 1}})); // stands in for the CCD definition, homoserine
+
+    SECTION("the CCD definition by default") {
+        settings::molecule::force_field_residue_names = false;
+        CHECK(storage.get_hydrogens("HSE", "OG", O) == 1);
+        CHECK_THROWS(storage.get_atomic_group("HSE", "NE2", N));
+    }
+
+    SECTION("the force-field state if enabled") {
+        settings::molecule::force_field_residue_names = true;
+        CHECK_THROWS(storage.get_atomic_group("HSE", "OG", O));
+        CHECK(storage.get_hydrogens("HSE", "NE2", N) == 1);
     }
 }
