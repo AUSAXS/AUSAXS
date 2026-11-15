@@ -42,7 +42,7 @@ namespace ausaxs::form_factor {
          */
         constexpr std::array<FormFactorInfo, total_ff_count> ff_info_table = {{
             {.type=form_factor_t::EXCLUDED_VOLUME, .name="EXV", .element=atom_t::unknown, .geometry=group::atom, .xray_coefficients=ff::excluded_volume, .neutron_scattering_length=b::excluded_volume},
-            {.type=form_factor_t::OH,              .name="OH",  .element=atom_t::O,       .geometry=group::OH,   .xray_coefficients=ff::O,               .neutron_scattering_length=b::O              },
+            {.type=form_factor_t::WATER,           .name="HOH", .element=atom_t::O,       .geometry=group::H2O,  .xray_coefficients=ff::O,               .neutron_scattering_length=b::O              },
             {.type=form_factor_t::C,               .name="C",   .element=atom_t::C,       .geometry=group::atom, .xray_coefficients=ff::C,               .neutron_scattering_length=b::C              },
             {.type=form_factor_t::CH,              .name="CH",  .element=atom_t::C,       .geometry=group::CH,   .xray_coefficients=ff::C,               .neutron_scattering_length=b::C              },
             {.type=form_factor_t::CH2,             .name="CH2", .element=atom_t::C,       .geometry=group::CH2,  .xray_coefficients=ff::C,               .neutron_scattering_length=b::C              },
@@ -52,6 +52,7 @@ namespace ausaxs::form_factor {
             {.type=form_factor_t::NH2,             .name="NH2", .element=atom_t::N,       .geometry=group::NH2,  .xray_coefficients=ff::N,               .neutron_scattering_length=b::N              },
             {.type=form_factor_t::NH3,             .name="NH3", .element=atom_t::N,       .geometry=group::NH3,  .xray_coefficients=ff::N,               .neutron_scattering_length=b::N, .charge=1   }, // a nitrogen with three hydrogens and a heavy-atom neighbour is always a cation
             {.type=form_factor_t::O,               .name="O",   .element=atom_t::O,       .geometry=group::atom, .xray_coefficients=ff::O,               .neutron_scattering_length=b::O              },
+            {.type=form_factor_t::OH,              .name="OH",  .element=atom_t::O,       .geometry=group::OH,   .xray_coefficients=ff::O,               .neutron_scattering_length=b::O              },
             {.type=form_factor_t::S,               .name="S",   .element=atom_t::S,       .geometry=group::atom, .xray_coefficients=ff::S,               .neutron_scattering_length=b::S              },
             {.type=form_factor_t::SH,              .name="SH",  .element=atom_t::S,       .geometry=group::SH,   .xray_coefficients=ff::S,               .neutron_scattering_length=b::S              },
             {.type=form_factor_t::H,               .name="H",   .element=atom_t::H,       .geometry=group::atom, .xray_coefficients=ff::H,               .neutron_scattering_length=b::H              },

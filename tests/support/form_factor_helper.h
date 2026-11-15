@@ -1,5 +1,6 @@
 #pragma once
 
+#include <form_factor/ExvFormFactor.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
 
@@ -36,5 +37,13 @@ namespace test::form_factor {
         selection.push_back(other);
         ausaxs::form_factor::manager::detail::use_form_factors(selection);
         return selection;
+    }
+
+    /**
+     * @brief Evaluate the excluded volume form factor of a type from a set. The hydration water has no excluded volume, so it evaluates to zero.
+     */
+    inline double evaluate_exv(const ausaxs::form_factor::detail::ExvFormFactorSet& set, ausaxs::form_factor::form_factor_t type, double q) {
+        if (type == ausaxs::form_factor::form_factor_t::WATER) {return 0;}
+        return set.get(type).evaluate(q);
     }
 }

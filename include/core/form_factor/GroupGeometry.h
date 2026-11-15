@@ -23,11 +23,10 @@ namespace ausaxs::form_factor::group {
      *        These are the same for every probe. The X-ray hydrogen is a spherical density centred on the nucleus (see xray/XrayFormFactorTable.h),
      *        so the displacement of its electron into the bond is not modelled.
      *
-     *        The values are the mean neutron-diffraction distances of Allen & Bruno, Acta Cryst. B66, 380-386 (2010), https://doi.org/10.1107/S0108768110012048,
+     *        The values are the mean neutron-diffraction distances of Allen & Bruno (2010), doi: 10.1107/S0108768110012048,
      *        using the most specific bond class matching the group, and the precise subset of their table 4 when it contains that class, otherwise their table 2.
-     *        They are transcribed from the supplementary data of Woińska et al., Sci. Adv. 2, e1600192 (2016), https://doi.org/10.6084/m9.figshare.3205588.v1,
+     *        They are transcribed from the supplementary data of Woińska et al. (2016), doi: 10.6084/m9.figshare.3205588.v1,
      *        which lists the mean, sample standard deviation, and number of observations of every class.
-     *        S-H is not covered by those tables and is the neutron value of Allen & Bruno (2010).
      */
     namespace bond {
         constexpr double CH  = 1.100; // Z3-Csp3-H, table 4. Aromatic C(ar)-H is also represented by CH, but is 0.015 Å shorter (1.085, table 4).
@@ -35,9 +34,11 @@ namespace ausaxs::form_factor::group {
         constexpr double CH3 = 1.087; // Z-Csp3-H3, table 4
         constexpr double NH  = 1.027; // Z2-N-H, table 2
         constexpr double NH2 = 1.013; // Csp2-N-H2, table 2, covering both amide and guanidinium groups
-        constexpr double NH3 = 1.040; // N+-H, table 4. Our NH3 is always a cation, see form_factor/FormFactorInfo.h.
+        constexpr double NH3 = 1.040; // N+-H, table 4. Our NH3 is always a cation
         constexpr double OH  = 0.989; // Z-O-H, table 4
-        constexpr double SH  = 1.338;
+        constexpr double SH  = 1.338; // Allen & Bruno (2010)
+        constexpr double H2O = 0.97;  // Ichikawa, K. et al. (1991), doi: 10.1080/00268979100101071
+
     }
 
     /**
@@ -46,6 +47,7 @@ namespace ausaxs::form_factor::group {
     namespace angle {
         constexpr double tetrahedral = 109.4712;
         constexpr double trigonal = 120;
+        constexpr double H2O = 106.1; // same source as bond::H2O
     }
 
     /**
@@ -64,4 +66,5 @@ namespace ausaxs::form_factor::group {
     constexpr Geometry NH3 {.hydrogens = 3, .d_xh = bond::NH3, .d_hh = hh_distance(bond::NH3, angle::tetrahedral)};
     constexpr Geometry OH  {.hydrogens = 1, .d_xh = bond::OH};
     constexpr Geometry SH  {.hydrogens = 1, .d_xh = bond::SH};
+    constexpr Geometry H2O {.hydrogens = 2, .d_xh = bond::H2O, .d_hh = hh_distance(bond::H2O, angle::H2O)}; // the hydration water
 }

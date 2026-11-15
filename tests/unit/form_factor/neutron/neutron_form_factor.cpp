@@ -20,7 +20,7 @@ TEST_CASE("NeutronFormFactor::get") {
     }
 
     SECTION("types with hydrogens vary with q") {
-        for (auto type : {form_factor_t::CH, form_factor_t::CH2, form_factor_t::CH3, form_factor_t::NH, form_factor_t::NH2, form_factor_t::NH3, form_factor_t::OH, form_factor_t::SH}) {
+        for (auto type : {form_factor_t::CH, form_factor_t::CH2, form_factor_t::CH3, form_factor_t::NH, form_factor_t::NH2, form_factor_t::NH3, form_factor_t::OH, form_factor_t::SH, form_factor_t::WATER}) {
             const auto& ff = get(type);
             CHECK(std::abs(ff.evaluate(1) - ff.I0()) > 0.1);
         }

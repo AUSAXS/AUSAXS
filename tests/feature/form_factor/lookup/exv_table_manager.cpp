@@ -16,7 +16,7 @@ TEST_CASE("ExvFormFactor: switch volumes") {
 
     auto test = [&] (const constants::exv::detail::ExvSet& vols) {
         auto ffset = form_factor::detail::ExvFormFactorSet(vols, constants::charge::density::water);
-        auto exv = [&ffset] (form_factor_t type, double q) {return ffset.get(type).evaluate(q);};
+        auto exv = [&ffset] (form_factor_t type, double q) {return test::form_factor::evaluate_exv(ffset, type, q);};
 
         SECTION("exv") {
             const auto* tables = manager::get_active_product_tables();

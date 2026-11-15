@@ -5,11 +5,9 @@
 
 namespace ausaxs::form_factor {
     // The form factor type of an atom. This is intended to be used as an index for best performance.
-    // NOLINTNEXTLINE(readability-enum-initial-value)
     enum class form_factor_t : int {
-        EXCLUDED_VOLUME,    // excluded volume
-        WATER,              // water
-        OH = WATER,         // neutral oxygen with hydrogen. Must directly follow WATER, since the enumerators after it count on from its value
+        EXCLUDED_VOLUME,
+        WATER,
 
         // BIOMOLECULAR FORM FACTORS
         C,                  // neutral carbon
@@ -21,6 +19,7 @@ namespace ausaxs::form_factor {
         NH2,                // neutral nitrogen with two hydrogens
         NH3,                // neutral nitrogen with three hydrogens
         O,                  // neutral oxygen
+        OH,                 // neutral oxygen with hydrogen
         S,                  // neutral sulfur
         SH,                 // neutral sulfur with hydrogen
 

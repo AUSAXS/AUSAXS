@@ -19,6 +19,6 @@ TEST_CASE("form_factor_t::bins") {
     }
 
     SECTION("water_bin") {
-        CHECK(water_bin == static_cast<int>(form_factor_t::OH));
+        CHECK(water_bin == static_cast<int>(form_factor_t::WATER));
     }
 }

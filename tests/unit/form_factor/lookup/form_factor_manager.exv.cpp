@@ -37,11 +37,9 @@ TEST_CASE("ExvFormFactorProduct::raw_exv_table") {
             for (auto [j, tj] : active_slots()) {
                 const FormFactorProduct& product = table.index(i, j);
 
-                auto exv1 = exv_set.get(ti);
-                auto exv2 = exv_set.get(tj);
-
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
-                    double expected = exv1.evaluate(constants::axes::q_vals[k]) * exv2.evaluate(constants::axes::q_vals[k]);
+                    double q = constants::axes::q_vals[k];
+                    double expected = test::form_factor::evaluate_exv(exv_set, ti, q) * test::form_factor::evaluate_exv(exv_set, tj, q);
                     CHECK_THAT(product.evaluate(k), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }
@@ -79,10 +77,10 @@ TEST_CASE("ExvFormFactorProduct::cross products") {
             for (auto [j, tj] : active_slots()) {
                 const FormFactorProduct& product = table.index(i, j);
                 const xray::FormFactor& ff_atomic = xray::raw::get(ti);
-                auto exv = exv_set.get(tj);
 
                 for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
-                    double expected = ff_atomic.evaluate(constants::axes::q_vals[k]) * exv.evaluate(constants::axes::q_vals[k]);
+                    double q = constants::axes::q_vals[k];
+                    double expected = ff_atomic.evaluate(q) * test::form_factor::evaluate_exv(exv_set, tj, q);
                     CHECK_THAT(product.evaluate(k), Catch::Matchers::WithinRel(expected, 1e-10));
                 }
             }

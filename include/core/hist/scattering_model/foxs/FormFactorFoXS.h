@@ -6,6 +6,7 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
+#include <utility/Exceptions.h>
 
 #include <cmath>
 #include <vector>
@@ -37,6 +38,7 @@ namespace ausaxs::form_factor::foxs {
         namespace atomic {
             static FormFactorFoXS get_form_factor(form_factor_t type) {
                 switch (type) {
+                    case form_factor_t::WATER:              [[fallthrough]];
                     case form_factor_t::H:                  return {0.999953};
                     case form_factor_t::C:                  return {5.9992};
                     case form_factor_t::N:                  return {6.9946};
@@ -93,6 +95,7 @@ namespace ausaxs::form_factor::foxs {
         namespace exv {
             static FormFactorFoXS get_form_factor(form_factor_t type) {
                 switch (type) {
+                    case form_factor_t::WATER:  [[fallthrough]];
                     case form_factor_t::H:      return {1.7201};
                     case form_factor_t::C:      return {5.49096};
                     case form_factor_t::N:      return {0.83166};
