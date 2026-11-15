@@ -26,11 +26,13 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <exception>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 using namespace ausaxs::gpu::abi;
@@ -398,6 +400,13 @@ namespace {
                 return instance.get();
             }
 
+            /**
+             * @brief The first asynchronous error the runtime reported since the last check().
+             *
+             * Declared before the queue, since the queue's destructor still reports errors to its handler, which stores them here.
+             */
+            std::exception_ptr async_error;
+
             sycl::queue queue;
             std::string name;
             Arena arena;
@@ -451,11 +460,13 @@ namespace {
                 void* fresh = sycl::malloc_device(bytes, queue);
                 if (fresh == nullptr) {throw std::runtime_error("sycl_backend: out of device memory");}
                 queue.memset(fresh, 0, bytes).wait(); // all-zero bits are 0.0 as well
+                check();
 
                 if (histograms != nullptr) {
-                    queue.wait(); // in-flight kernels are still accumulating into the old buffer
+                    wait(); // in-flight kernels are still accumulating into the old buffer
                     const std::size_t old = static_cast<std::size_t>(slot_capacity)*bin_count*bin_bytes(weighted);
                     queue.memcpy(fresh, histograms, old).wait();
+                    check();
                     sycl::free(histograms, queue);
                 }
                 histograms = fresh;
@@ -463,8 +474,38 @@ namespace {
                 zeroing = {}; // everything above was waited for, and the buffer it referred to is gone
             }
 
+            /**
+             * @brief Throw the first asynchronous error reported since the last call, if any.
+             *
+             * Device failures, e.g. a kernel the driver killed, arrive asynchronously, and are only handed to the queue's handler when it is
+             * explicitly asked for them. Waiting on an event alone does not, so every wait is followed by this.
+             */
+            void check() {
+                queue.throw_asynchronous();
+                if (async_error) {std::rethrow_exception(std::exchange(async_error, nullptr));}
+            }
+
+            // Wait for everything submitted so far, and throw the first error it caused, if any.
+            void wait() {
+                queue.wait();
+                check();
+            }
+
         private:
-            explicit Context(const sycl::device& device) : queue(device) {
+            /**
+             * @brief Keep the first asynchronous error, for check() to throw.
+             *
+             * This must not throw itself: the default handler terminates the process, and the handler is also called from the queue's 
+             * destructor, where throwing terminates as well. The errors are therefore stored, and thrown from check() instead, where 
+             * guarded() turns them into a status.
+             */
+            void record(const sycl::exception_list& errors) {
+                for (const auto& error : errors) {
+                    if (!async_error) {async_error = error;}
+                }
+            }
+
+            explicit Context(const sycl::device& device) : queue(device, [this] (sycl::exception_list errors) {record(errors);}) {
                 name = device.get_info<sycl::info::device::name>();
                 local_mem = queue.get_device().get_info<sycl::info::device::local_mem_size>();
                 warmup();
@@ -623,16 +664,19 @@ namespace {
     template<bool weighted>
     void finish_on(Context& context, int n_slots, bin_t<weighted>* out) {
         // check_finish has already bounded n_slots by what was submitted, so nothing has to be allocated or cleared here to answer it
-        context.queue.wait_and_throw();
+        context.wait();
 
         const std::size_t bins = static_cast<std::size_t>(n_slots)*context.bin_count;
-        if (bins != 0) {context.queue.memcpy(out, context.histograms, bins*sizeof(bin_t<weighted>)).wait();}
+        if (bins != 0) {
+            context.queue.memcpy(out, context.histograms, bins*sizeof(bin_t<weighted>)).wait();
+            context.check();
+        }
         context.active = false;
     }
 
     //  Start a calculation on an idle device, discarding whatever the last one left behind.
     void begin_on(Context& context, int bin_count, float inv_width, bool weighted) {
-        context.queue.wait_and_throw(); // nothing may still be reading the arena we are about to rewind
+        context.wait(); // nothing may still be reading the arena we are about to rewind
         context.arena.rewind();
         context.uploaded.clear();
         context.pending.clear();
