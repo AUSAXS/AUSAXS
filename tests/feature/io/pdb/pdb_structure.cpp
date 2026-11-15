@@ -153,7 +153,14 @@ TEST_CASE("PDBStructure: correct_atomic_group_ff") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = true;
     settings::molecule::allow_unknown_atoms = false;
-    auto ff_type = [] (const std::string& line) {return reduce_single(line).form_factor_type();};
+
+    // precede each atom by a residue of the same chain, so its backbone N is not the chain's N-terminus
+    auto ff_type = [] (const std::string& line) {
+        return ff_types(parse_lines({
+            "ATOM      0  C   GLY A   0       0.000   0.000   0.000  1.00 19.16           C  ",
+            line
+        }))[1];
+    };
 
     SECTION("lys") {
         std::string lys1 = "ATOM      1  N   LYS A   1      -3.462  69.119  -8.662  1.00 19.81           N  ";
