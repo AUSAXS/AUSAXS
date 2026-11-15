@@ -17,8 +17,8 @@ bool internal_state::gpu_expose_cpu = false;
 double internal_state::solvent_density() {
     using Radiation = scattering::Radiation;
     switch (scattering::radiation.value) {
-        case Radiation::XRay:    return scattering::xray_solvent_density.value;
-        case Radiation::Neutron: return scattering::neutron_solvent_density.value;
+        case Radiation::XRay:    return scattering::xray::solvent_density.value;
+        case Radiation::Neutron: return scattering::neutron::solvent_density.value;
         default: throw ausaxs::except::unexpected("settings::internal_state::solvent_density: Unknown radiation type.");
     }
 }
