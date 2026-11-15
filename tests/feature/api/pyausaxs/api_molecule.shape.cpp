@@ -17,16 +17,20 @@ static double cell_ff(double q, double spacing) {
 
 TEST_CASE("shape_debye_userq: two cells") {
     // one pair distance, so the weighted bin centre is the distance itself and the result is exact
+    // the lattice may have any origin, so the cells are also shifted off the lattice through the origin
     for (double spacing : {1.0, 0.5}) {
-        std::vector<double> x = {0, 3*spacing}, y = {spacing, spacing}, z = {-2*spacing, 2*spacing};
-        double d = 5*spacing;
-        std::vector<double> q = {0, 0.1, 0.3, 0.7}, I(q.size());
-        int status = 1;
-        shape_debye_userq(x.data(), y.data(), z.data(), 2, spacing, q.data(), I.data(), static_cast<int>(q.size()), &status);
-        REQUIRE(status == 0);
-        for (unsigned int i = 0; i < q.size(); ++i) {
-            double sinc = q[i] == 0 ? 1 : std::sin(q[i]*d)/(q[i]*d);
-            CHECK_THAT(I[i], Catch::Matchers::WithinRel((2 + 2*sinc)*std::pow(cell_ff(q[i], spacing), 2), 1e-5));
+        for (double offset : {0.0, 0.5, 0.3, 1e4 + 0.25}) {
+            double o = offset*spacing;
+            std::vector<double> x = {o, 3*spacing + o}, y = {spacing - o, spacing - o}, z = {-2*spacing + o, 2*spacing + o};
+            double d = 5*spacing;
+            std::vector<double> q = {0, 0.1, 0.3, 0.7}, I(q.size());
+            int status = 1;
+            shape_debye_userq(x.data(), y.data(), z.data(), 2, spacing, q.data(), I.data(), static_cast<int>(q.size()), &status);
+            REQUIRE(status == 0);
+            for (unsigned int i = 0; i < q.size(); ++i) {
+                double sinc = q[i] == 0 ? 1 : std::sin(q[i]*d)/(q[i]*d);
+                CHECK_THAT(I[i], Catch::Matchers::WithinRel((2 + 2*sinc)*std::pow(cell_ff(q[i], spacing), 2), 1e-5));
+            }
         }
     }
 }
