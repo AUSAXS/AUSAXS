@@ -35,7 +35,7 @@ namespace {
     };
 
     // The names other conventions give an atom, with the CCD name the residue definitions carry it under.
-    // The two C-terminal oxygens are interchangeable; which of them carries the hydrogen is a convention.
+    // The two C-terminal oxygens are interchangeable.
     const std::unordered_multimap<std::string, AtomAlias> atom_aliases = {
         {"oc1", {.residue="",    .name="oxt"}}, // GROMACS
         {"oc2", {.residue="",    .name="o"}},
@@ -76,12 +76,34 @@ namespace {
         static const std::vector<ProtonationVariant> variants = {
             {"HID", "HIS", {{"nd1", N, 1}, {"ne2", N, 0}}}, {"HSD", "HIS", {{"nd1", N, 1}, {"ne2", N, 0}}}, // hydrogen on ND1 only
             {"HIE", "HIS", {{"nd1", N, 0}, {"ne2", N, 1}}}, {"HSE", "HIS", {{"nd1", N, 0}, {"ne2", N, 1}}}, // hydrogen on NE2 only
-            {"HIP", "HIS", {{"nd1", N, 1}, {"ne2", N, 1}}}, {"HSP", "HIS", {{"nd1", N, 1}, {"ne2", N, 1}}}, // both, same as CCD HIS
+            {"HIP", "HIS", {{"nd1", N, 1}, {"ne2", N, 1}}}, {"HSP", "HIS", {{"nd1", N, 1}, {"ne2", N, 1}}}, // both, the cation
             {"ASH", "ASP", {{"od1", O, 0}, {"od2", O, 1}}}, {"GLH", "GLU", {{"oe1", O, 0}, {"oe2", O, 1}}}, // neutral acids
             {"CYX", "CYS", {{"sg",  S, 0}}},                {"CYM", "CYS", {{"sg",  S, 0}}},                // disulfide-bonded and deprotonated cysteine
             {"LYN", "LYS", {{"nz",  N, 2}}}                                                                 // neutral lysine
         };
         return variants;
+    }
+
+    /**
+     * @brief Convert a CCD residue definition to its dominant protonation state at pH 7, the state the master table holds.
+     *        The CCD defines the neutral molecules, so its carboxylic acids are protonated and its histidine is the cation.
+     */
+    ResidueMap to_ph7(const std::string& name, std::unordered_map<AtomKey, int> map) {
+        constexpr auto N = constants::atom_t::N, O = constants::atom_t::O;
+        static const std::unordered_map<std::string, std::vector<ProtonationSite>> sites = {
+            {"ASP", {{"od2", O, 0}}},                   // carboxylate
+            {"GLU", {{"oe2", O, 0}}},                   // carboxylate
+            {"HIS", {{"nd1", N, 0}, {"ne2", N, 1}}}     // neutral, NE2 tautomer
+        };
+
+        // C-terminal carboxylate
+        if (auto it = map.find(AtomKey("oxt", O)); it != map.end()) {it->second = 0;}
+        if (auto it = sites.find(name); it != sites.end()) {
+            for (const auto& site : it->second) {
+                map.insert_or_assign(AtomKey(site.atom, site.element), site.hydrogens);
+            }
+        }
+        return {std::move(map)};
     }
 
     void warn_force_field_name(const std::string& name) {
@@ -102,6 +124,10 @@ ResidueStorage::~ResidueStorage() = default;
 
 void ResidueStorage::insert(const std::string& name, ResidueMap&& residue) {
     data.emplace(name, std::move(residue));
+}
+
+void ResidueStorage::insert_ccd(const std::string& name, ResidueMap&& residue) { // NOLINT
+    insert(name, to_ph7(name, std::move(residue.get_backing_map())));
 }
 
 bool ResidueStorage::contains(const std::string& name) {
@@ -237,9 +263,9 @@ bool ResidueStorage::update_or_download_residue(const std::string& name) {
             if (!curl::download("files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif")) {return false;}
             map = Residue::parse(path + name + ".cif").to_map();
         }
-        insert(name, std::move(map));
+        insert_ccd(name, std::move(map));
 
-        // write the residue to the master file
+        // write the converted residue to the master file
         write_residue(name);
     } else {
         throw except::io_error("ResidueStorage::download_residue: Invalid residue name: \"" + name + "\"; expected a 2-3 letter code.");

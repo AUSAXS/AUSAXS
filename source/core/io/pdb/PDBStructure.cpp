@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -213,7 +214,62 @@ namespace {
     };
 
     /**
-     * @brief Determine the implicit hydrogens of every atom in the structure, parallel-indexed to its atoms. 
+     * @brief Correct the hydrogens of the sites whose protonation depends on the structure rather than on the residue definition:
+     *        chain N-termini are NH3+ at pH 7, and disulfide-bonded cysteines have no thiol hydrogen.
+     */
+    void update_geometry_dependent_form_factors(const PDBStructure& structure, std::vector<ImplicitHydrogens>& hydrogens) {
+        constexpr auto N = constants::atom_t::N, S = constants::atom_t::S;
+        const auto& atoms = structure.atoms;
+        const int size = static_cast<int>(atoms.size());
+        auto known = [] (const PDBAtom& a) {return constants::hydrogen_atoms::residues.load(a.resName);};
+
+        static auto set_hydrogens = [&] (ImplicitHydrogens& h, constants::atom_t element, int hydrogens) {
+            h.group = constants::symbols::get_atomic_group(element, hydrogens);
+            h.count = form_factor::has_implicit_hydrogens(form_factor::get_type(element, h.group)) ? 0 : hydrogens;
+        };
+
+        static auto same_residue = [] (const PDBAtom& a, const PDBAtom& b) {
+            return a.chainID == b.chainID && a.resSeq == b.resSeq && a.iCode == b.iCode && a.resName == b.resName;
+        };
+
+        // N-termini: the backbone N of the first residue of each chain
+        auto protonate_n_terminus = [&] (int first) {
+            for (int i = first; i < size && same_residue(atoms[first], atoms[i]); ++i) {
+                const auto& n = atoms[i];
+                if (n.element != N || n.name != "N" || !known(n)) {continue;}
+                int chain_hydrogens = static_cast<int>(std::round(constants::hydrogen_atoms::residues.get_hydrogens(n.resName, n.name, N)));
+                set_hydrogens(hydrogens[i], N, chain_hydrogens + 2);
+                return;
+            }
+        };
+        // disulfides: two cysteine SG of different residues within bonding distance
+        auto is_sg = [&] (int i) {return atoms[i].element == S && atoms[i].name == "SG" && known(atoms[i]);};
+        std::vector<int> sg;
+
+        // single pass: protonate each chain's N-terminus and collect the cysteine SG
+        if (0 < size) {
+            protonate_n_terminus(0);
+            if (is_sg(0)) {sg.emplace_back(0);}
+        }
+        for (int i = 1; i < size; ++i) {
+            if (atoms[i-1].chainID != atoms[i].chainID) {protonate_n_terminus(i);}
+            if (is_sg(i)) {sg.emplace_back(i);}
+        }
+
+        constexpr double disulfide_cutoff = 2.5; // bonded S-S is ~2.05 Å, non-bonded SG contacts >~3.5 Å
+        for (int i = 0; i < static_cast<int>(sg.size()); ++i) {
+            for (int j = i+1; j < static_cast<int>(sg.size()); ++j) {
+                const auto& a = atoms[sg[i]];
+                const auto& b = atoms[sg[j]];
+                if (same_residue(a, b) || disulfide_cutoff <= a.coords.distance(b.coords)) {continue;}
+                set_hydrogens(hydrogens[sg[i]], S, 0);
+                set_hydrogens(hydrogens[sg[j]], S, 0);
+            }
+        }
+    }
+
+    /**
+     * @brief Determine the implicit hydrogens of every atom in the structure, parallel-indexed to its atoms.
      *        No atom is given any if implicit hydrogens are disabled, or if the structure cannot support them. 
      */
     std::vector<ImplicitHydrogens> get_implicit_hydrogens(const PDBStructure& structure) {
@@ -226,13 +282,13 @@ namespace {
 
         // sanity check: if the structure already contains hydrogens, don't implicitly add more
         if (std::ranges::any_of(structure.atoms, [] (const PDBAtom& a) {return a.element == constants::atom_t::H;})) {
-            console::print_warning("PDBStructure::reduced_representation: The molecule already contains hydrogen atoms. Skipping implicit addition.");
+            console::print_warning("PDBStructure::reduced_representation: The molecule already contains explicit hydrogen atoms. Skipping implicit addition.");
             return hydrogens;
         }
 
         int unknown_res_count = 0;
         console::print_text("\tAdding implicit hydrogens to the molecule.");
-        for (std::size_t i = 0; i < structure.atoms.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(structure.atoms.size()); ++i) {
             const auto& a = structure.atoms[i];
 
             // verify that the residue is valid, otherwise the lookups below will throw
@@ -260,6 +316,7 @@ namespace {
             }
             console::print_warning(msg + " Implicit hydrogens will be SKIPPED for these atoms.");
         }
+        update_geometry_dependent_form_factors(structure, hydrogens);
         return hydrogens;
     }
 }
