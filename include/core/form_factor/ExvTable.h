@@ -95,8 +95,9 @@ namespace ausaxs::constants::exv {
             ExvInfo{.type=ff_t::S,   .Traube=0.01986*A3, .Voronoi_implicit_H=26.356, .MinimumFluctuation_implicit_H=15.413, .Voronoi_explicit_H=25.715, .MinimumFluctuation_explicit_H=15.242, .vdw=volume(vdw::S)                   },
             ExvInfo{.type=ff_t::SH,  .Traube=0.02510*A3, .Voronoi_implicit_H=34.192, .MinimumFluctuation_implicit_H=28.529, .Voronoi_explicit_H=32.333, .MinimumFluctuation_explicit_H=28.475, .vdw=volume(vdw::S) + volume(vdw::H)  },
 
-            // all other atoms are treated as argon in every set
-            ExvInfo{.type=ff_t::OTHER, .Traube=volume(vdw::Ar), .Voronoi_implicit_H=volume(vdw::Ar), .MinimumFluctuation_implicit_H=volume(vdw::Ar), .Voronoi_explicit_H=volume(vdw::Ar), .MinimumFluctuation_explicit_H=volume(vdw::Ar), .vdw=volume(vdw::Ar)},
+            // all other atoms take the population-weighted average volume of each set (heavy atoms only for the explicit-H sets), 
+            // as estimated from a corpus of ~270 mostly randomly selected protein structures containing a total of ~2.2M atoms
+            ExvInfo{.type=ff_t::OTHER, .Traube=17.57, .Voronoi_implicit_H=17.30, .MinimumFluctuation_implicit_H=17.09, .Voronoi_explicit_H=10.86, .MinimumFluctuation_explicit_H=10.87, .vdw=33.55},
         };
 
         /**

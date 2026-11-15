@@ -280,7 +280,6 @@ TEST_CASE("constants::exv::detail::ExvSet: optional entries") {
         CHECK_THAT(constants::exv::Traube.get(form_factor_t::CH3), Catch::Matchers::WithinRel(31.89, 1e-12));
         CHECK(constants::exv::Voronoi_implicit_H.get(form_factor_t::NH2) == 22.129);
         CHECK(constants::exv::MinimumFluctuation_explicit_H.get(form_factor_t::SH) == 28.475);
-        CHECK(constants::exv::vdw.get(form_factor_t::OTHER) == constants::exv::Ar);
     }
 
     SECTION("the excluded volume type has no entry") {
