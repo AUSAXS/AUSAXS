@@ -22,6 +22,7 @@
 #include <settings/All.h>
 #include <settings/EMSettings.h>
 #include <utility/Console.h>
+#include <utility/Exceptions.h>
 #include <utility/Limit.h>
 #include <utility/Logging.h>
 
@@ -137,7 +138,13 @@ std::unique_ptr<EMFitResult> ImageStack::fit_helper(const std::shared_ptr<SmartF
     auto func = prepare_function(fitter);
     mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
     int dof = fitter->dof()-1; // minus one because we're also fitting the cutoff
-    console::print_text("The mass range [" + std::to_string(get_mass(param.bounds->min)) + ", " + std::to_string(get_mass(param.bounds->max)) + "] kDa will be scanned."); 
+    double mass_max = get_mass(param.bounds->max);
+    if (mass_max == 0) { // an empty model leaves the fit nothing to scale
+        throw except::invalid_argument(
+            "ImageStack::fit: The map has no voxels above the upper level " + std::to_string(to_level(param.bounds->max)) + ". Lower the upper level."
+        );
+    }
+    console::print_text("The mass range [" + std::to_string(get_mass(param.bounds->min)) + ", " + std::to_string(mass_max) + "] kDa will be scanned.");
 
     EMFitResult::EMFitInfo plots;
 
