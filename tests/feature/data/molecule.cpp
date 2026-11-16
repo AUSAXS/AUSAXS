@@ -821,7 +821,7 @@ TEST_CASE("Molecule: implicit hydrogens") {
 
         // Weight is I0 of the grouped form factor, which already includes its hydrogens
         CHECK_THAT(atoms[0].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[0].form_factor_type()), 1e-12));
-        CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::NH);
+        CHECK(atoms[0].form_factor_type() == form_factor::form_factor_t::NH3); // the N-terminus
 
         CHECK_THAT(atoms[1].weight(), Catch::Matchers::WithinRel(constants::charge::get_ff_charge(atoms[1].form_factor_type()), 1e-12));
         CHECK(atoms[1].form_factor_type() == form_factor::form_factor_t::CH);

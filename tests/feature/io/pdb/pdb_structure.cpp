@@ -134,13 +134,33 @@ namespace {
         atom.parse_pdb(line);
         return Body(PDBStructure({atom}, {})).get_atom(0);
     }
+
+    std::vector<PDBAtom> parse_lines(const std::vector<std::string>& lines) {
+        std::vector<PDBAtom> atoms(lines.size());
+        for (int i = 0; i < static_cast<int>(lines.size()); ++i) {atoms[i].parse_pdb(lines[i]);}
+        return atoms;
+    }
+
+    std::vector<form_factor::form_factor_t> ff_types(const std::vector<PDBAtom>& atoms) {
+        Body body(PDBStructure(atoms, {}));
+        std::vector<form_factor::form_factor_t> types;
+        for (const auto& a : body.get_atoms()) {types.push_back(a.form_factor_type());}
+        return types;
+    }
 }
 
 TEST_CASE("PDBStructure: correct_atomic_group_ff") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = true;
     settings::molecule::allow_unknown_atoms = false;
-    auto ff_type = [] (const std::string& line) {return reduce_single(line).form_factor_type();};
+
+    // precede each atom by a residue of the same chain, so its backbone N is not the chain's N-terminus
+    auto ff_type = [] (const std::string& line) {
+        return ff_types(parse_lines({
+            "ATOM      0  C   GLY A   0       0.000   0.000   0.000  1.00 19.16           C  ",
+            line
+        }))[1];
+    };
 
     SECTION("lys") {
         std::string lys1 = "ATOM      1  N   LYS A   1      -3.462  69.119  -8.662  1.00 19.81           N  ";
@@ -256,4 +276,85 @@ TEST_CASE("PDBStructure: implicit hydrogens are counted once") {
     atom = reduce_single("ATOM      6  SG  CYS A   1       0.000   0.000   0.000  1.00 19.16           S  ");
     REQUIRE(atom.form_factor_type() == form_factor::form_factor_t::SH);
     CHECK(std::round(atom.weight()) == 17);
+}
+
+TEST_CASE("PDBStructure: implicit hydrogens follow pH 7") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = true;
+    settings::molecule::allow_unknown_atoms = false;
+    settings::molecule::force_field_residue_names = false;
+    using enum form_factor::form_factor_t;
+    auto ff_type = [] (const std::string& line) {return reduce_single(line).form_factor_type();};
+
+    SECTION("labile sites of the residues") {
+        CHECK(ff_type("ATOM      1  OD1 ASP A   1       0.000   0.000   0.000  1.00 19.16           O  ") == O);
+        CHECK(ff_type("ATOM      1  OD2 ASP A   1       0.000   0.000   0.000  1.00 19.16           O  ") == O);
+        CHECK(ff_type("ATOM      1  OE2 GLU A   1       0.000   0.000   0.000  1.00 19.16           O  ") == O);
+        CHECK(ff_type("ATOM      1  ND1 HIS A   1       0.000   0.000   0.000  1.00 19.16           N  ") == N);
+        CHECK(ff_type("ATOM      1  NE2 HIS A   1       0.000   0.000   0.000  1.00 19.16           N  ") == NH);
+        CHECK(ff_type("ATOM      1  OXT LYS A   1       0.000   0.000   0.000  1.00 19.16           O  ") == O);
+        CHECK(ff_type("ATOM      1  OC1 LYS A   1       0.000   0.000   0.000  1.00 19.16           O  ") == O);
+        CHECK(ff_type("ATOM      1  NZ  LYS A   1       0.000   0.000   0.000  1.00 19.16           N  ") == NH3);
+    }
+
+    SECTION("force-field names keep their own state") {
+        settings::molecule::force_field_residue_names = true;
+        CHECK(ff_type("ATOM      1  OD2 ASH A   1       0.000   0.000   0.000  1.00 19.16           O  ") == OH);
+        CHECK(ff_type("ATOM      1  ND1 HIP A   1       0.000   0.000   0.000  1.00 19.16           N  ") == NH);
+        CHECK(ff_type("ATOM      1  NE2 HIP A   1       0.000   0.000   0.000  1.00 19.16           N  ") == NH);
+        CHECK(ff_type("ATOM      1  ND1 HID A   1       0.000   0.000   0.000  1.00 19.16           N  ") == NH);
+        CHECK(ff_type("ATOM      1  NE2 HID A   1       0.000   0.000   0.000  1.00 19.16           N  ") == N);
+    }
+
+    SECTION("N-terminus") {
+        auto atoms = parse_lines({
+            "ATOM      1  N   LYS A   1      -3.462  69.119  -8.662  1.00 19.81           N  ",
+            "ATOM      2  CA  LYS A   1      -2.451  68.681  -9.776  1.00 19.16           C  ",
+            "ATOM      3  C   LYS A   1      -2.454  67.107  -9.965  1.00 19.10           C  ",
+            "ATOM      4  O   LYS A   1      -2.418  66.315  -9.018  1.00 16.87           O  ",
+            "ATOM      5  N   VAL A   2      -2.619  66.716 -11.199  1.00 19.43           N  ",
+            "ATOM      6  CA  VAL A   2      -2.470  65.345 -11.600  1.00 21.68           C  ",
+            "ATOM      7  C   VAL A   2      -0.988  65.113 -12.076  1.00 21.22           C  ",
+            "ATOM      8  O   VAL A   2      -0.668  65.628 -13.069  1.00 21.74           O  ",
+        });
+
+        SECTION("first residue of the chain") {
+            auto types = ff_types(atoms);
+            CHECK(types[0] == NH3);
+            CHECK(types[4] == NH);
+        }
+
+        SECTION("first residue of a new chain") {
+            for (int i = 4; i < 8; ++i) {atoms[i].chainID = 'B';}
+            CHECK(ff_types(atoms)[4] == NH3);
+        }
+
+        SECTION("proline") {
+            for (int i = 0; i < 4; ++i) {atoms[i].resName = "PRO";}
+            CHECK(ff_types(atoms)[0] == NH2);
+        }
+    }
+
+    SECTION("disulfides") {
+        auto atoms = parse_lines({
+            "ATOM      1  SG  CYS A   3       0.000   0.000   0.000  1.00 19.16           S  ",
+            "ATOM      2  SG  CYS A  10       2.050   0.000   0.000  1.00 19.16           S  ",
+            "ATOM      3  SG  CYS A  20       6.000   0.000   0.000  1.00 19.16           S  ",
+        });
+
+        SECTION("bonded pair") {
+            auto types = ff_types(atoms);
+            CHECK(types[0] == S);
+            CHECK(types[1] == S);
+            CHECK(types[2] == SH);
+        }
+
+        SECTION("alternate locations of one residue are no bond") {
+            atoms[1].resSeq = 3;
+            atoms[1].altLoc = "B";
+            auto types = ff_types(atoms);
+            CHECK(types[0] == SH);
+            CHECK(types[1] == SH);
+        }
+    }
 }

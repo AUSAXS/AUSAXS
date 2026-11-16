@@ -5,12 +5,13 @@
 #include <data/Molecule.h>
 #include <io/detail/structure/CIFReader.h>
 #include <io/detail/structure/PDBReader.h>
+#include <residue/ResidueStorage.h>
 #include <residue/detail/Residue.h>
+#include <residue/detail/ResidueMap.h>
 #include <settings/All.h>
 
 #include <support/temp_file.h>
 
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -100,34 +101,26 @@ TEST_CASE("CIFReader::read") {
     REQUIRE(atoms[3].tempFactor == 50.538);
 }
 
-TEST_CASE("CIFReader: uses file residues") {
-    settings::general::verbose = false;
-
-    data::Molecule cif("tests/files/3sba.cif");
-    auto residues = io::detail::cif::read_residue("tests/files/3sba.cif");
-
-    for (const auto& residue : residues) {
-        auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
-        auto expected = residue.to_map();
-        for (const auto& [atom, num] : expected.get_backing_map()) {
-            REQUIRE(loaded.get(atom) == num);
-        }
-    }
-}
-
-TEST_CASE("CIFReader: file residues agrees with PDB") {
+TEST_CASE("CIFReader: file residues") {
     settings::general::verbose = false;
     settings::molecule::allow_unknown_residues = true;
 
     auto residues = io::detail::cif::read_residue("tests/files/3sba.cif");
-    data::Molecule pdb("tests/files/3sba.pdb");
+    SECTION("are used when reading the CIF") {
+        data::Molecule cif("tests/files/3sba.cif");
+    }
+    SECTION("agree with the definitions used for the PDB") {
+        data::Molecule pdb("tests/files/3sba.pdb");
+    }
+
+    // the storage holds the definitions in their pH 7 state. insert all before the first lookup, which adds the master definitions of the rest
+    residue::ResidueStorage ccd;
+    for (const auto& residue : residues) {ccd.insert_ccd(residue.get_name(), residue.to_map());}
     for (const auto& residue : residues) {
         auto& loaded = constants::hydrogen_atoms::residues.get(residue.get_name());
-        auto expected = residue.to_map();
+        auto& expected = ccd.get(residue.get_name());
         for (const auto& [atom, num] : expected.get_backing_map()) {
-            if (loaded.get(atom) != num) {
-                std::cout << "Residue: " << residue.get_name() << " Atom: " << constants::symbols::to_string(atom.atom) << " Expected: " << num << " Loaded: " << loaded.get(atom) << std::endl;
-            }
+            INFO("Residue: " << residue.get_name() << " Atom: " << atom.name << " (" << constants::symbols::to_string(atom.atom) << ")");
             REQUIRE(loaded.get(atom) == num);
         }
     }

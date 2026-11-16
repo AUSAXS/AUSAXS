@@ -54,6 +54,12 @@ namespace ausaxs::residue {
              */
             void insert(const std::string& name, detail::ResidueMap&& residue);
 
+            /**
+             * @brief Insert a CCD residue definition into the storage.
+             *        The CCD defines the neutral molecules, so the definition is first converted to its dominant protonation state at pH 7.
+             */
+            void insert_ccd(const std::string& name, detail::ResidueMap&& residue);
+
         private: 
             /**
              * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 
