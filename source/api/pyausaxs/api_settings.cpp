@@ -66,6 +66,12 @@ void load_settings(
     settings::read(io::ExistingFile(path));
 }, status);}
 
+void reset_settings(
+    int* status
+) {execute_with_catch([&]() {
+    settings::reset();
+}, status);}
+
 namespace {
     struct _get_q_axis_obj {
         std::vector<double> q;
