@@ -31,4 +31,11 @@ namespace ausaxs::io::pdb {
 
             bool operator==(const PDBWater& rhs) const;
     };
+
+    /**
+     * @brief Map the residue names other programs use for water (SOL, WAT, TIP3, and DOD for heavy water) onto HOH, 
+     *        so is_water only has to recognise the one name. Called by the structure readers at load time.
+     *        A name the CCD reserves for another compound (SOL) is only mapped if residue::ResidueStorage::handle_nonstandard_residue allows it.
+     */
+    void normalize_water_name(std::string& resName);
 }

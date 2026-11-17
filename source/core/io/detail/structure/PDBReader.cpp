@@ -43,6 +43,7 @@ namespace {
                     // first just parse it as an atom; we can reuse it anyway even if it is a water molecule
                     PDBAtom atom;
                     atom.parse_pdb(line);
+                    normalize_water_name(atom.resName);
 
                     // check if this is a hydrogen atom
                     if (constants::symbols::is_hydrogen(atom.element)) {

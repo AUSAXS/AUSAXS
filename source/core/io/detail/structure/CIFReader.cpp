@@ -302,6 +302,7 @@ namespace {
                     ) + "\".");
                 throw;
             }
+            io::pdb::normalize_water_name(resName);
             io::pdb::PDBAtom a(serial, name, altLoc, resName, chainID, resSeq, iCode, coords, occupancy, tempFactor, element, charge);
 
             // check if this is a hydrogen atom

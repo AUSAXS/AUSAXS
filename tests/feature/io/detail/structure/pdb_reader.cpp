@@ -121,6 +121,7 @@ TEST_CASE("PDBReader: unrecognized records") {
 
 TEST_CASE("PDBReader: hydrogen isotopes") {
     settings::general::verbose = false;
+    settings::molecule::force_field_residue_names = true; // read the GROMACS SOL below as water
     std::string content =
         "ATOM      1  N   GLY A   1      -3.299   8.066 -11.443  1.00  0.00           N\n"
         "ATOM      2  D   GLY A   1      -3.411   8.677 -12.239  1.00  0.00           D\n"
@@ -144,6 +145,15 @@ TEST_CASE("PDBReader: hydrogen isotopes") {
         auto protein = io::detail::pdb::read(path);
         CHECK(protein.atoms.size() == 4);
         CHECK(protein.waters.size() == 4);
+    }
+
+    // SOL is the CCD code for L-sorbose, so it is only water when force-field names are enabled
+    SECTION("SOL by its CCD definition") {
+        settings::general::keep_hydrogens = false;
+        settings::molecule::force_field_residue_names = false;
+        auto protein = io::detail::pdb::read(path);
+        CHECK(protein.atoms.size() == 5);
+        CHECK(protein.waters.size() == 3);
     }
 
     SECTION("default load") {

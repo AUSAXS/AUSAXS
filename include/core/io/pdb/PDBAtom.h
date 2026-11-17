@@ -53,7 +53,7 @@ namespace ausaxs::io::pdb {
             std::string as_pdb() const override;
 
             /**
-             * @brief Check if this is a water molecule by its residue name: HOH, SOL, WAT, TIP3, or DOD for heavy water.
+             * @brief Check if this is a water molecule by its residue name. Only HOH is recognised; the readers map other water names onto it (see normalize_water_name).
              */
             virtual bool is_water() const;
 

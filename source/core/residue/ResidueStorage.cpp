@@ -16,11 +16,13 @@
 #include <utility/StringUtils.h>
 
 #include <algorithm>
+#include <cassert>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -106,21 +108,39 @@ namespace {
         return {std::move(map)};
     }
 
-    void warn_force_field_name(const std::string& name) {
-        static bool warned = false;
-        if (warned) {return;}
-        auto it = std::ranges::find(protonation_variant_table(), name, &ProtonationVariant::name);
-        console::print_warning(
-            "Residue \"" + name + "\" is read by its CCD definition, but AMBER and CHARMM also use this name for a protonation state of " + it->base + ". "
-            "If the structure uses force-field names, read them as such with 'hydrogens --force-field-names', or keep the explicit hydrogens of the file with"
-            " 'hydrogens --keep' for higher precision. Further warnings of this type will be suppressed."
-        );
-    }
+    // GROMACS names water SOL, which the CCD reserves for L-sorbose.
+    constexpr std::string_view force_field_water = "SOL";
 }
 
 ResidueStorage::ResidueStorage() = default;
 
 ResidueStorage::~ResidueStorage() = default;
+
+bool ResidueStorage::is_nonstandard(const std::string& name) {
+    const auto& variants = protonation_variant_table();
+    return name == force_field_water || std::ranges::find(variants, name, &ProtonationVariant::name) != variants.end();
+}
+
+bool ResidueStorage::handle_nonstandard_residue(const std::string& name) {
+    assert(is_nonstandard(name) && "ResidueStorage::handle_nonstandard_residue: Not a nonstandard residue name.");
+    if (settings::molecule::force_field_residue_names) {return true;}
+
+    // all nonstandard names share the one warning
+    static bool warned = false;
+    if (warned) {return false;}
+    warned = true;
+    std::string message = "Residue \"" + name + "\" is read by its CCD definition, but ";
+    if (name == force_field_water) {
+        message += "GROMACS also uses this name for water. If the structure uses force-field names, read them as such with 'hydrogens --force-field-names'.";
+    } else {
+        auto it = std::ranges::find(protonation_variant_table(), name, &ProtonationVariant::name);
+        message += "AMBER and CHARMM also use this name for a protonation state of " + it->base + ". "
+            "If the structure uses force-field names, read them as such with 'hydrogens --force-field-names', or keep the explicit hydrogens of the file with"
+            " 'hydrogens --keep' for higher precision.";
+    }
+    console::print_warning(message + " Further warnings of this type will be suppressed.");
+    return false;
+}
 
 void ResidueStorage::insert(const std::string& name, ResidueMap&& residue) {
     data.emplace(name, std::move(residue));
@@ -139,10 +159,7 @@ bool ResidueStorage::contains(const std::string& name) {
 bool ResidueStorage::load(const std::string& name) {
     if (!initialized) {initialize();}
     if (data.contains(name)) {return true;}
-    if (protonation_variants.contains(name)) {
-        if (settings::molecule::force_field_residue_names) {return true;}
-        warn_force_field_name(name);
-    }
+    if (protonation_variants.contains(name) && handle_nonstandard_residue(name)) {return true;}
 
     // small cache to avoid spamming the console with the same download
     static std::unordered_map<std::string, bool> seen_before;
