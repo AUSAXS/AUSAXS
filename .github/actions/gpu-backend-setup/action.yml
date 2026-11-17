@@ -27,9 +27,11 @@ runs:
         PLATFORM: ${{ inputs.platform }}
       run: |
         set -euo pipefail
+        # extra: sources only one platform's package is built from, kept out of the other platforms' keys
+        extra=()
         case "$PLATFORM" in
           linux)   package=ausaxs-gpu-linux-x64 ;;
-          windows) package=ausaxs-gpu-windows-x64 ;;
+          windows) package=ausaxs-gpu-windows-x64; extra=(.github/acpp.patch) ;;
           macos)   package=ausaxs-gpu-macos-arm64 ;;
           *)       echo "::error::unknown platform '${PLATFORM}'"; exit 1 ;;
         esac
@@ -40,7 +42,7 @@ runs:
         # Tree hashes come from the repository rather than the working copy, so line-ending conversion cannot change them. A missing
         # path still contributes its name, so deleting one changes the key. git hash-object rather than sha256sum, which macOS lacks.
         key=$(for path in source/gpu include/gpu .github/gpu-backend.env ".github/workflows/gpu-backend-${PLATFORM}.yml" \
-                          .github/prune_gpu_package.py .github/relocate_gpu_package.py; do
+                          .github/prune_gpu_package.py .github/relocate_gpu_package.py ${extra[@]+"${extra[@]}"}; do
                 git rev-parse "HEAD:${path}" 2>/dev/null || echo "missing ${path}"
               done | git hash-object --stdin | cut -c1-16)
         echo "key=${key}" >> "$GITHUB_OUTPUT"
