@@ -32,6 +32,7 @@
 #include <string>
 #include <type_traits>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -275,6 +276,7 @@ namespace {
     struct Upload {
         const sycl::float4* device;
         float max_weight;
+        sycl::event ready; // the copy that put it there
     };
 
     // A device the user may choose, with the identifier the ABI reports for it.
@@ -419,7 +421,7 @@ namespace {
             int local_bins = 0; // derived from local_mem and bin_count; see local_bin_capacity
             float inv_width = 0;
             std::unordered_map<const float*, Upload> uploaded;              // host -> device, deduplicated
-            std::vector<sycl::event> pending;                               // uploads the next kernel must wait for
+            std::vector<sycl::event> pending;                               // uploads the kernels of the current submit must wait for
 
             /**
              * @brief The host-side sources of the job and tile uploads.
@@ -520,18 +522,25 @@ namespace {
      *
      * The deduplication map lives for the whole calculation rather than one submit, so a coordinate set shared by jobs in different submits 
      * is still uploaded only once - which is the common case for the symmetry managers, where one body's coordinates appear in many jobs. 
-     * The uploads are asynchronous; their events are collected so the kernels of this submit can wait on them without the host having to.
+     * The uploads are asynchronous; the event of every set this submit reads, whether uploaded now or by an earlier submit, is collected
+     * once, so the kernels of this submit can wait on them without the host having to. The queue is not in-order, so a kernel reading a set
+     * an earlier submit uploaded is not otherwise sequenced after that copy.
      */
     std::vector<std::pair<Upload, Upload>> upload_coordinates(Context& context, const Job* jobs, int n_jobs) {
+        std::unordered_set<const float*> waited_for;
         auto upload = [&] (const float* host, std::uint32_t n) -> Upload {
-            if (auto it = context.uploaded.find(host); it != context.uploaded.end()) {return it->second;}
-            const std::size_t bytes = static_cast<std::size_t>(n)*sizeof(sycl::float4);
-            auto* device = static_cast<sycl::float4*>(context.arena.allocate(context.queue, bytes));
-            context.pending.push_back(context.queue.memcpy(device, host, bytes));
+            auto it = context.uploaded.find(host);
+            if (it == context.uploaded.end()) {
+                const std::size_t bytes = static_cast<std::size_t>(n)*sizeof(sycl::float4);
+                auto* device = static_cast<sycl::float4*>(context.arena.allocate(context.queue, bytes));
+                sycl::event ready = context.queue.memcpy(device, host, bytes);
 
-            float max_weight = 0;
-            for (std::uint32_t i = 0; i < n; ++i) {max_weight = sycl::max(max_weight, sycl::fabs(host[4*i + 3]));}
-            return context.uploaded[host] = Upload{.device=device, .max_weight=max_weight};
+                float max_weight = 0;
+                for (std::uint32_t i = 0; i < n; ++i) {max_weight = sycl::max(max_weight, sycl::fabs(host[4*i + 3]));}
+                it = context.uploaded.emplace(host, Upload{.device=device, .max_weight=max_weight, .ready=ready}).first;
+            }
+            if (waited_for.insert(host).second) {context.pending.push_back(it->second.ready);}
+            return it->second;
         };
 
         std::vector<std::pair<Upload, Upload>> result(n_jobs);
@@ -653,8 +662,8 @@ namespace {
             histograms, context.inv_width, context.bin_count, context.local_bins, context.pending
         );
 
-        // the uploads are now sequenced before the kernels that read them; a later submit brings its
-        // own, and must not make its kernels wait on this one's as well
+        // the uploads are now sequenced before the kernels that read them; a later submit collects the
+        // ones it reads itself, and must not make its kernels wait on the job and tile copies of this one
         context.pending.clear();
     }
 

@@ -40,8 +40,9 @@ namespace ausaxs::gpu::abi {
         /**
          * @brief One queued correlation.
          *
-         * The coordinates are read as tightly packed [x, y, z, w] floats, i.e. the layout of
-         * hist::detail::CompactCoordinates. They must stay alive until the run call returns.
+         * The coordinates are read as tightly packed [x, y, z, w] floats. They must stay alive and unchanged until finish() returns.
+         * A backend may recognise a set by its address for the rest of the calculation and upload it only once, so jobs sharing a set
+         * should share the pointer.
          */
         struct Job {
             const float* a1;        // first coordinate set

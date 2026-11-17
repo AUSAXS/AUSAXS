@@ -11,7 +11,6 @@
 
 #include <cassert>
 #include <cstdint>
-#include <deque>
 #include <memory>
 #include <span>
 #include <string_view>
@@ -94,7 +93,7 @@ namespace ausaxs::hist::distance_calculator::detail {
                 slots.clear();
                 rows.clear();
                 diagonal.clear();
-                coordinate_buffers.clear();
+                packed.clear();
                 queued.clear();
                 session_open = false;
                 holding = false;
@@ -115,7 +114,7 @@ namespace ausaxs::hist::distance_calculator::detail {
             std::vector<double> diagonal;                           // per device histogram, the zero-distance contribution
             bool session_open = false;                              // whether begin() has been issued for the batch being built
             bool holding = false;                                   // whether jobs are being collected into a group, see hold()
-            std::deque<std::vector<float>> coordinate_buffers;
+            std::unordered_map<const CompactCoordinates_t*, std::vector<float>> packed; // coordinate set -> its packed copy, see coordinates()
             std::unique_ptr<CalculatorCPU<weighted_bins, unit_weights>> cpu;
             bool on_cpu = false;                                    // whether the device was given up on, see switch_to_cpu()
 
@@ -220,16 +219,26 @@ namespace ausaxs::hist::distance_calculator::detail {
                 cpu->run();
             }
 
+            /**
+             * @brief @a a packed as the [x, y, z, w] floats the device reads, once per batch.
+             *
+             * A set appears in many jobs of a batch (every form-factor class against every other), and the backend only uploads a host
+             * pointer it has not seen in this calculation, so handing out one buffer per set keeps it at one upload per set.
+             * Keying by address is safe for the same reason the replay list is: every set stays alive and unchanged until run().
+             */
             const float* coordinates(const CompactCoordinates_t& a) {
-                coordinate_buffers.emplace_back(a.size()*4);
-                auto& packed = coordinate_buffers.back();
+                auto [it, inserted] = packed.try_emplace(&a);
+                auto& buffer = it->second;
+                if (!inserted) {return buffer.data();}
+
+                buffer.resize(a.size()*4);
                 for (int i = 0; i < a.size(); ++i) {
-                    packed[4*i] = a.x(i);
-                    packed[4*i + 1] = a.y(i);
-                    packed[4*i + 2] = a.z(i);
-                    packed[4*i + 3] = unit_weights ? 1 : a.get_weight(i);
+                    buffer[4*i] = a.x(i);
+                    buffer[4*i + 1] = a.y(i);
+                    buffer[4*i + 2] = a.z(i);
+                    buffer[4*i + 3] = unit_weights ? 1 : a.get_weight(i);
                 }
-                return packed.data();
+                return buffer.data();
             }
 
             /**
