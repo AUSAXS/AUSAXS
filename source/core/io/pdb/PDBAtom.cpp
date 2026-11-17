@@ -73,6 +73,7 @@ void PDBAtom::parse_pdb(const std::string& str) {
     // remove any spaces from the numbers
     serial = utility::remove_all(serial, " ");
     name = utility::remove_all(space1+name, " "); // we add space1 since some programs (gromacs) uses it for the name.
+    if (space2[0] != ' ') {resName += space2;} // CHARMM and NAMD write four-character residue names (TIP3, POPC) into column 21
     resName = utility::remove_all(resName, " ");
     resSeq = utility::remove_all(resSeq, " ");
     x = utility::remove_all(x, " ");
@@ -140,8 +141,7 @@ std::string PDBAtom::as_pdb() const {
         << " "                                                                      // 12
         << left << setw(4) << name_field(name, element)                             // 13 - 16
         << left << setw(1) << altLoc                                                // 17
-        << left << setw(3) << resName                                               // 18 - 20
-        << " "                                                                      // 21
+        << left << setw(4) << resName                                               // 18 - 21: column 21 is blank unless the name has four characters
         << left << setw(1) << chainID                                               // 22
         << right << setw(4) << resSeq                                               // 23 - 26
         << right << setw(1) << iCode                                                // 27

@@ -45,6 +45,7 @@ void Terminate::parse_pdb(const std::string& s) {
     }
 
     // remove any spaces
+    if (space2[0] != ' ') {resName += space2;} // CHARMM and NAMD write four-character residue names (TIP3, POPC) into column 21
     serial = utility::remove_all(serial, " ");
     resSeq = utility::remove_all(resSeq, " ");
 
@@ -70,7 +71,7 @@ std::string Terminate::as_pdb() const {
         << right << setw(5) << serial                // 7 - 11
         << "      "                                  // 12 - 17
         << right << setw(3) << resName               // 18 - 20
-        << " "                                       // 21
+        << (resName.size() < 4 ? " " : "")           // 21: blank unless the name has four characters
         << left << setw(1) << chainID                // 22
         << right << setw(4) << resSeq                // 23 - 26
         << right << setw(1) << iCode                 // 27

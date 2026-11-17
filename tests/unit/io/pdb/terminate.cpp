@@ -32,6 +32,17 @@ TEST_CASE("Terminate::parse_pdb") {
     CHECK(terminate.iCode == " ");
 }
 
+TEST_CASE("Terminate::parse_pdb: four-character residue name") {
+    // CHARMM and NAMD write the name into columns 18-21
+    std::string record = "TER       1      TIP3W   2";
+    Terminate terminate;
+    terminate.parse_pdb(record);
+    CHECK(terminate.resName == "TIP3");
+    CHECK(terminate.chainID == 'W');
+    CHECK(terminate.resSeq == 2);
+    CHECK(terminate.as_pdb().substr(0, record.size()) == record);
+}
+
 TEST_CASE("Terminate::as_pdb") {
     Terminate terminate;
     REQUIRE(terminate.get() == terminate.as_pdb());
