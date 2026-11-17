@@ -1,0 +1,171 @@
+/* Sora is the wordmark face of the home-page lockup only; Material loads the text and code fonts itself. */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@800&display=swap");
+
+/* Colours follow the pyAUSAXS GUI palette (pyausaxs/gui/core/palette.py): slate text, blue accent. */
+:root,
+[data-md-color-scheme="default"] {
+  --ausaxs-slate: #1f2733;
+  --ausaxs-blue: #2f7de0;
+  --ausaxs-blue-dark: #2569c0;
+  --ausaxs-blue-soft: #e4eefb;
+  --ausaxs-gold: #b07c12;
+
+  --md-primary-fg-color: var(--ausaxs-slate);
+  --md-primary-fg-color--light: #3a4556;
+  --md-primary-fg-color--dark: #141a22;
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: var(--ausaxs-blue);
+  --md-accent-fg-color--transparent: rgba(47, 125, 224, 0.1);
+  --md-typeset-a-color: var(--ausaxs-blue-dark);
+}
+
+[data-md-color-scheme="slate"] {
+  --ausaxs-blue: #6aa5f0;
+  --ausaxs-blue-dark: #8bb9f4;
+  --ausaxs-blue-soft: rgba(106, 165, 240, 0.12);
+  --ausaxs-gold: #e3b341;
+
+  --md-primary-fg-color: #161b22;
+  --md-primary-fg-color--light: #2a313c;
+  --md-primary-fg-color--dark: #0d1117;
+  --md-accent-fg-color: var(--ausaxs-blue);
+  --md-accent-fg-color--transparent: rgba(106, 165, 240, 0.12);
+  --md-typeset-a-color: var(--ausaxs-blue);
+  --md-default-bg-color: #0f141b;
+  --md-code-bg-color: #161c25;
+}
+
+/* The tab bar sits in the header colour, so the header and tabs read as one band. */
+.md-tabs {
+  background-color: var(--md-primary-fg-color);
+}
+
+.md-typeset h1 {
+  font-weight: 700;
+  color: var(--md-default-fg-color);
+  letter-spacing: -0.01em;
+}
+
+.md-typeset h2 {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* ---------- Home page ---------- */
+
+.ausaxs-hero {
+  margin: 0 0 2.5rem;
+  padding: 2.5rem 0 2rem;
+  text-align: center;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.ausaxs-lockup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  margin-bottom: 1.4rem;
+  font-size: clamp(2.6rem, 9vw, 4.6rem);
+}
+
+.ausaxs-lockup .ausaxs-mark {
+  width: 1.3em;
+  height: auto;
+}
+
+.md-typeset .ausaxs-wordmark {
+  margin: 0;
+  font-family: "Sora", var(--md-text-font-family), sans-serif;
+  font-size: 1em;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset .ausaxs-wordmark .au {
+  color: var(--ausaxs-gold);
+}
+
+.ausaxs-hero .ausaxs-tagline {
+  max-width: 38rem;
+  margin: 0 auto 1.6rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--md-default-fg-color--light);
+}
+
+.ausaxs-hero .md-button {
+  margin: 0.3rem 0.25rem;
+}
+
+/* The GUI's accent button, the same in both schemes so the white label keeps its contrast. */
+.md-typeset .md-button--primary {
+  color: #ffffff;
+  background-color: #2f7de0;
+  border-color: #2f7de0;
+}
+
+.md-typeset .md-button--primary:hover,
+.md-typeset .md-button--primary:focus {
+  color: #ffffff;
+  background-color: #2569c0;
+  border-color: #2569c0;
+}
+
+/* Material draws outline buttons in the header colour, which vanishes on the dark background. */
+.md-typeset .md-button:not(.md-button--primary) {
+  color: var(--md-default-fg-color);
+  border-color: var(--md-default-fg-color--lighter);
+}
+
+.md-typeset .md-button:not(.md-button--primary):hover,
+.md-typeset .md-button:not(.md-button--primary):focus {
+  color: var(--ausaxs-blue);
+  background-color: transparent;
+  border-color: var(--ausaxs-blue);
+}
+
+/* The headline file formats and probes, as small pills under the tagline. */
+.ausaxs-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1.4rem;
+}
+
+.ausaxs-pills span {
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ausaxs-blue-dark);
+  background-color: var(--ausaxs-blue-soft);
+}
+
+/* Card grid: a quiet border, lifted on hover. */
+.md-typeset .grid.cards > ul > li {
+  border-radius: 0.5rem;
+  transition: border-color 150ms, box-shadow 150ms, transform 150ms;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--ausaxs-blue);
+  box-shadow: 0 0.4rem 1.2rem rgba(31, 39, 51, 0.08);
+  transform: translateY(-2px);
+}
+
+.md-typeset .grid.cards .lg {
+  color: var(--ausaxs-blue);
+}
+
+.md-typeset .grid.cards code {
+  font-size: 0.75em;
+}
+
+/* Four guide cards on the home page: a 2x2 grid instead of three plus an orphan. */
+.md-typeset .grid.ausaxs-two-col {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+}

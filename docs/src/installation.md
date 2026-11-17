@@ -14,14 +14,14 @@ description: Install the AUSAXS small-angle scattering calculator with pip insta
 
 The latest version can be easily installed by running the following: 
 ```python
-pip install pyausaxs[all]
+python -m pip install pyausaxs[all]
 ```
 
 See the [pyausaxs repository](https://github.com/AUSAXS/pyAUSAXS) for more information. 
 
 ## Downloading the latest GitHub release
 
-Recent precompiled executables for all platforms are available in the [releases](https://github.com/AUSAXS/AUSAXS/releases) section.
+Recent precompiled executables for all platforms are available as [GitHub releases](https://github.com/AUSAXS/AUSAXS/releases).
 
 ## Compiling the library yourself
 

@@ -20,3 +20,6 @@ resources
 .vs
 **/__pycache__
 config.txt
+
+# mkdocs build output
+/site/
