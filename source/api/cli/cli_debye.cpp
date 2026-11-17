@@ -21,8 +21,6 @@
 #include <utility/Exceptions.h>
 
 #include <cmath>
-#include <fstream>
-#include <iomanip>
 #include <limits>
 #include <numbers>
 #include <string>
@@ -32,24 +30,25 @@ using namespace ausaxs;
 
 namespace {
     /**
-     * @brief Write columns against the scattering angle 2θ in degrees, for q = 4π/λ sin(θ). 
-     *        Only q ≤ 4π/λ can be reached at this wavelength, so larger q are left out.
-     *        A plain table, since a Dataset annotates its first column as q.
+     * @brief The scattering angle 2θ in degrees of each q at this wavelength, for q = 4π/λ sin(θ).
+     *        Only q ≤ 4π/λ can be reached, so larger q are marked with the out-of-range angle -1.
+     *        The q values are ascending, so everything after the first unreachable q is unreachable too.
      */
-    void write_two_theta(const std::string& path, double wavelength, const std::vector<double>& q, const std::vector<std::vector<double>>& cols, const std::string& names) {
-        std::size_t n = 0;
-        while (n < q.size() && q[n]*wavelength/(4*std::numbers::pi) <= 1) {++n;}
-        if (n < q.size()) {
-            console::print_text("\tq > " + std::to_string(4*std::numbers::pi/wavelength) + " Å^-1 cannot be reached at a wavelength of " + std::to_string(wavelength) + " Å and is left out of the 2θ pattern.");
+    std::vector<double> two_theta(double wavelength, const std::vector<double>& q) {
+        std::vector<double> angles(q.size(), -1);
+        for (int i = 0; i < static_cast<int>(q.size()); ++i) {
+            double s = q[i]*wavelength/(4*std::numbers::pi);
+            if (1 < s) {
+                console::print_text("\tq > " + std::to_string(4*std::numbers::pi/wavelength) + " Å^-1 cannot be reached at a wavelength of " + std::to_string(wavelength) + " Å, so its 2θ is written as -1.");
+                break;
+            }
+            angles[i] = 2*std::asin(s)*180/std::numbers::pi;
         }
-        std::ofstream out(path);
-        out << "2theta[deg] " << names << ", wavelength " << std::to_string(wavelength) << " A\n\n" << std::scientific << std::setprecision(8);
-        for (std::size_t i = 0; i < n; ++i) {
-            out << 2*std::asin(q[i]*wavelength/(4*std::numbers::pi))*180/std::numbers::pi;
-            for (const auto& col : cols) {out << "\t" << col[i];}
-            out << "\n";
-        }
-        console::print_text("Wrote the pattern against 2θ to " + path);
+        return angles;
+    }
+
+    std::string two_theta_header(double wavelength) {
+        return ", 2theta[deg] at a wavelength of " + std::to_string(wavelength) + " A in the last column";
     }
 }
 
@@ -76,7 +75,7 @@ int cli_debye(int argc, char const *argv[]) {
     app.add_flag("--points", points, "Treat every atom as a point scatterer with its weight, instead of using its form factor.");
     app.add_option_function<double>("--bin-width", [] (double width) {settings::axes::bin_width = width;}, // through the setting, which also updates the inverse width
         "The width of the distance bins in Å. Lower it for large crystals.")->check(CLI::PositiveNumber);
-    auto* p_wavelength = app.add_option("--wavelength", wavelength, "Also write the intensity against the scattering angle 2θ for this wavelength in Å.")->check(CLI::PositiveNumber);
+    auto* p_wavelength = app.add_option("--wavelength", wavelength, "Add a column with the scattering angle 2θ in degrees for this wavelength in Å to the output.")->check(CLI::PositiveNumber);
     app.add_flag("--neutron", neutron, "Use neutron scattering lengths instead of X-ray form factors.");
     cli::add_config_subcommand(app, config, "debye");
     cli::add_molecule_subcommand(app);
@@ -155,14 +154,14 @@ int cli_debye(int argc, char const *argv[]) {
             result->set_data_curves(measurement.x(), measurement.y(), measurement.yerr(), std::vector<double>(model), linear_fitter.get_residuals(result->get_parameter_values()));
             fitter::FitReporter::report(result.get());
             fitter::FitReporter::save(result.get(), settings::general::output + "report.txt", argc, argv);
-            result->curves.select_columns({0, 1, 2, 3}).save(
-                settings::general::output + "ausaxs.fit", 
-                "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof) + ", " + std::to_string(molecule.size_atom()) + " atoms with " + description
-            );
-            console::print_text("Wrote the fit of " + std::to_string(molecule.size_atom()) + " atoms with " + description + " to " + settings::general::output + "ausaxs.fit");
+            auto fit = result->curves.select_columns({0, 1, 2, 3});
+            std::string header = "chi2=" + std::to_string(result->fval/result->dof) + " dof=" + std::to_string(result->dof) + ", " + std::to_string(molecule.size_atom()) + " atoms with " + description;
             if (p_wavelength->count() != 0) {
-                write_two_theta(settings::general::output + "ausaxs_2theta.fit", wavelength, measurement.x(), {measurement.y(), measurement.yerr(), model}, "I I_err I_fit");
+                fit = Dataset({fit.col(0), fit.col(1), fit.col(2), fit.col(3), two_theta(wavelength, measurement.x())});
+                header += two_theta_header(wavelength);
             }
+            fit.save(settings::general::output + "ausaxs.fit", header);
+            console::print_text("Wrote the fit of " + std::to_string(molecule.size_atom()) + " atoms with " + description + " to " + settings::general::output + "ausaxs.fit");
         }
 
         // simulation mode: the raw profile
@@ -173,11 +172,14 @@ int cli_debye(int argc, char const *argv[]) {
             auto I = debye(q);
 
             settings::general::output += "simulated/" + structure.stem() + "/";
-            Dataset({q, I}).save(settings::general::output + "debye.dat", "q I, " + std::to_string(molecule.size_atom()) + " atoms with " + description);
-            console::print_text("Wrote I(q) of " + std::to_string(molecule.size_atom()) + " atoms with " + description + " to " + settings::general::output + "debye.dat");
+            std::string header = "q I, " + std::to_string(molecule.size_atom()) + " atoms with " + description;
+            Dataset profile({q, I});
             if (p_wavelength->count() != 0) {
-                write_two_theta(settings::general::output + "debye_2theta.dat", wavelength, q, {I}, "I");
+                profile = Dataset({q, I, two_theta(wavelength, q)});
+                header += two_theta_header(wavelength);
             }
+            profile.save(settings::general::output + "debye.dat", header);
+            console::print_text("Wrote I(q) of " + std::to_string(molecule.size_atom()) + " atoms with " + description + " to " + settings::general::output + "debye.dat");
         }
     } catch (const except::base&) {
         return 1; // our own exceptions already report themselves when thrown
