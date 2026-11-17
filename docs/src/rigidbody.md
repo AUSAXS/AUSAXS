@@ -14,6 +14,7 @@ _**NEW**_: You can now use this tool via the new Python GUI. Simply run the foll
 pip install pyausaxs[all]
 ausaxs gui
 ```
+The [rigid-body tutorial](https://sastutorials.org/RigidBody/RigidBodyGUI.html) walks through a complete refinement in the GUI.
 
 ## Arguments
 The optimization is fully described by a configuration script, which is the only required argument:  

@@ -27,7 +27,7 @@ The Microsoft SmartScreen filter may warn you about potential security risks whe
 
 The binaries are compiled against specific MacOS versions, which are usually not backwards compatible. We strive to compile against the [oldest MacOS versions available](https://github.com/actions/runner-images?tab=readme-ov-file#available-images) on GitHub. <br><br>
 
-In case they do not work on your system, you can try to compile the software yourself as described [here](installation.md#macos).
+In case they do not work on your system, you can try to compile the software yourself as described [here](compiling.md#macos).
 </details>
 
 ## Linux

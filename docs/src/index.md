@@ -14,22 +14,29 @@ hide:
   <h1 class="ausaxs-wordmark"><span class="au">AU</span>SAXS</h1>
 </div>
 
-<p class="ausaxs-tagline">A highly optimized Debye-equation kernel for the CPU and the GPU, predicting SAXS, WAXS and SANS profiles of biomolecules and fitting them to experimental data.</p>
+<p class="ausaxs-tagline">Debye scattering from any atomic structure, all in one package.</p>
 
 [Get started](installation.md){ .md-button .md-button--primary }
-[SAXS fitting guide](saxs-fitter.md){ .md-button }
+[Tutorials](tutorials.md){ .md-button }
 
-<div class="ausaxs-pills"><span>SAXS</span><span>WAXS</span><span>SANS</span><span>PDB</span><span>mmCIF</span><span>CIF</span><span>XYZ</span><span>CPU + GPU</span><span>Linux · macOS · Windows</span></div>
+<div class="ausaxs-pills" markdown="span">[SAXS](saxs.md) [SANS](sans.md) [Crystals](crystals.md) [Powder diffraction](powder-diffraction.md) [Rigid-body refinement](rigidbody.md) [GPU](gpu.md) [Linux · macOS · Windows](installation.md)</div>
 
 </div>
 
 AUSAXS accurately predicts small-angle X-ray scattering (SAXS), wide-angle X-ray scattering (WAXS) and small-angle neutron scattering (SANS) profiles of proteins and other biomolecules, and fits them to experimental small-angle scattering data. The same kernel computes the Debye scattering of crystals, nanoparticles and arbitrary point scatterers, with or without atomic form factors. It is available both as a command-line program and as a Python package:
 ```bash
-pip install pyausaxs
+python -m pip install pyausaxs
 ```
 
-## User guides
-All tools are run through the single `ausaxs` executable as `ausaxs <tool> [options]`.
+## Getting started
+1. [Install AUSAXS](installation.md) with a single `pip` command.
+2. Optionally, [install the GPU backend](gpu.md) to run the calculations on a GPU.
+3. Follow one of the [tutorials](tutorials.md), which walk through complete analyses of real data.
+
+If you have issues running the programs, please take a look at the [troubleshooting](troubleshooting.md) page.
+
+## Tools
+All tools are run through the single `ausaxs` executable as `ausaxs <tool> [options]`. Each card links to the documentation of every option of the tool.
 
 <div class="grid cards ausaxs-two-col" markdown>
 
@@ -39,7 +46,7 @@ All tools are run through the single `ausaxs` executable as `ausaxs <tool> [opti
 
     Calculate the SAXS profile of a protein or other macromolecule from its atomic model, and test whether it is consistent with experimental SAXS data. The hydration shell and excluded volume are modelled explicitly from the atomic coordinates.
 
-    [:octicons-arrow-right-24: SAXS fitting](saxs-fitter.md)
+    [:octicons-arrow-right-24: Documentation](saxs-fitter.md)
 
 -   :material-cube-scan:{ .lg .middle } **EM map validation** &nbsp; `ausaxs em`
 
@@ -47,7 +54,7 @@ All tools are run through the single `ausaxs` executable as `ausaxs <tool> [opti
 
     Validate cryo-EM maps against solution SAXS data using dummy structures built from the map itself.
 
-    [:octicons-arrow-right-24: EM map validation](em-validation.md)
+    [:octicons-arrow-right-24: Documentation](em-validation.md)
 
 -   :material-puzzle-outline:{ .lg .middle } **Rigid-body refinement** &nbsp; `ausaxs rigidbody`
 
@@ -55,7 +62,7 @@ All tools are run through the single `ausaxs` executable as `ausaxs <tool> [opti
 
     Refine multi-domain proteins and complexes against SAXS data, driven by configuration scripts. This tool is still in active development.
 
-    [:octicons-arrow-right-24: Rigid-body refinement](rigidbody.md)
+    [:octicons-arrow-right-24: Documentation](rigidbody.md)
 
 -   :material-language-python:{ .lg .middle } **Python API and GUI**
 
@@ -68,9 +75,6 @@ All tools are run through the single `ausaxs` executable as `ausaxs <tool> [opti
 </div>
 
 The [plotting scripts](plotting-scripts.md) turn the output of the command-line tools into figures.
-
-## Getting started
-See the [installation guide](installation.md) to install AUSAXS with `pip`, download a precompiled binary, or compile it from source. If you have issues running the programs, please take a look at the [troubleshooting](troubleshooting.md) page.
 
 ## Citing AUSAXS
 If you use AUSAXS in your work, please cite:

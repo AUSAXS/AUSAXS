@@ -1,73 +1,29 @@
 ---
 title: Installing AUSAXS
-description: Install the AUSAXS small-angle scattering calculator with pip install pyausaxs, download a precompiled binary, or compile it from source on Linux, macOS or Windows.
+description: Install the AUSAXS small-angle scattering calculator on Linux, macOS or Windows with pip install pyausaxs.
 ---
 
 # Installing AUSAXS
 
-`AUSAXS` can be installed in three ways:  
-1. [Installing the Python wrapper](#installation-via-the-python-wrapper),  
-2. [Downloading the latest release](#downloading-the-latest-github-release), and  
-3. [Compiling it yourself](#compiling-the-library-yourself). 
-
-## Installation via the Python wrapper
-
-The latest version can be easily installed by running the following: 
-```python
-python -m pip install pyausaxs[all]
+AUSAXS is installed with a single command, on Linux, macOS and Windows alike. Open a terminal and run:
+```bash
+python -m pip install "pyausaxs[all]"
+```
+This installs both the Python package and the `ausaxs` command, together with the optional plotting and graphical interface dependencies. Check that it works by running:
+```bash
+ausaxs --version
 ```
 
-See the [pyausaxs repository](https://github.com/AUSAXS/pyAUSAXS) for more information. 
+> [!NOTE]
+> If your shell cannot find `ausaxs`, the folder pip installs scripts into is not on your path. Use `python -m pyausaxs` in its place, e.g. `python -m pyausaxs --version`.
 
-## Downloading the latest GitHub release
+If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
 
-Recent precompiled executables for all platforms are available as [GitHub releases](https://github.com/AUSAXS/AUSAXS/releases).
+## Next steps
+- **Use a GPU.** AUSAXS runs only on the CPU out of the box. To use your GPU, you will have to [install the GPU backend](gpu.md) first.
+- **Learn by example.** The [tutorials](tutorials.md) walk through complete analyses of real data, from fitting protein structures to validating EM maps.
+- **Learn what AUSAXS calculates.** See the pages on [SAXS](saxs.md), [SANS](sans.md), [crystals and nanoparticles](crystals.md) and [powder diffraction](powder-diffraction.md).
+- **Look up an option.** Every argument of the command-line tools is listed in the [documentation](saxs-fitter.md).
 
-## Compiling the library yourself
-
-If you prefer compiling the library yourself, this is also fairly straightforward, requiring only that `curl` is available on the system. Since the codebase is written in modern `C++20`, a recent compiler supporting this is also required. The compilation has been verified to work with GCC v11+, Clang v15+, and MSVC 2022+.
-
-### Linux
-1. Make sure you have the prerequisites installed  
-`apt-get install cmake make g++ libcurl4-openssl-dev`
-
-2. Clone this repository  
-`git clone https://github.com/AUSAXS/AUSAXS.git`.
-
-3. Run the build command from the root directory  
-`cmake -B build -S .`
-
-4. Compile the executable  
-`cmake --build build --target ausaxs -jX`  
-where X is the number of worker threads. The executable is placed in `build/bin/`. 
-
-5. (optional) To convert the output `.plot` files to images, you need a few Python packages.  
-`pip3 install matplotlib numpy scipy`  
-
-### MacOS
-1. Make sure both CMake and a recent compiler, e.g. Xcode, is available on your system  
-`brew install cmake`
-
-2. Follow step 2 through 5 from the Linux guide. 
-
-### Windows
-1. Make sure CURL is available on your system, e.g. through vcpkg  
-`vcpkg install curl`
-
-2. Download or clone this repository  
-`git clone https://github.com/AUSAXS/AUSAXS.git`.
-
-3. Compile the `ausaxs` target as in step 3 and 4 of the Linux guide. Note that this can be very memory-intensive with the MSVC compiler. 
-
-4. (optional) To convert the output `.plot` files to images, you will also need `Python` and a few additional packages.  
-`pip3 install matplotlib numpy scipy`
-
-### Dependencies
-The following are automatically fetched by CMake:
-*	[Generalized Constant Expression Math](https://github.com/kthohr/gcem), for constexpr math support beyond GCC. 
-*	[BSThreadPool](https://github.com/bshoshany/thread-pool), for multithreading. 
-*	[CLI11](https://github.com/CLIUtils/CLI11), for interpreting command line arguments. 
-*	[pocketfft](https://github.com/mreineck/pocketfft), for the Fourier transform of the grid-based excluded volume. 
-*	[Catch2](https://github.com/catchorg/Catch2), for running tests.
-
-Each of these can be replaced by a system-provided version with the corresponding `-DUSE_SYSTEM_<NAME>=ON` CMake option. 
+## Other ways to install
+If you cannot use Python, you can instead [download a precompiled executable](precompiled-binaries.md) or [compile AUSAXS from source](compiling.md).

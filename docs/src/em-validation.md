@@ -5,7 +5,7 @@ description: Validate cryo-EM maps (MRC/CCP4) against solution small-angle X-ray
 
 # Validating EM maps with SAXS data
 
-Welcome to this short tutorial on our EM validation method. Here we will cover all of the arguments and settings which are available for the fitting procedure. 
+This page documents the EM validation method: its output and all of the arguments and settings available for the fitting procedure. For a step-by-step walkthrough on real data, see the [EM validation tutorial](https://sastutorials.org/SAXS_EM/SAXS_EM.html). 
 
 All AUSAXS tools are run through the single `ausaxs` executable, with the name of the tool as the first argument. The EM tool requires two arguments: a location of a map file, and a location of a SAXS data file:  
 `ausaxs em <map file> <saxs file>`

@@ -136,13 +136,21 @@
   margin-top: 1.4rem;
 }
 
-.ausaxs-pills span {
+.md-typeset .ausaxs-pills span,
+.md-typeset .ausaxs-pills a {
   padding: 0.15rem 0.65rem;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 600;
   color: var(--ausaxs-blue-dark);
   background-color: var(--ausaxs-blue-soft);
+  transition: border-color 150ms;
+}
+
+.md-typeset .ausaxs-pills a:hover,
+.md-typeset .ausaxs-pills a:focus-visible {
+  border-color: var(--ausaxs-blue);
 }
 
 /* Card grid: a quiet border, lifted on hover. */

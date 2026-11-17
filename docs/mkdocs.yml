@@ -53,14 +53,25 @@ nav:
   - Home: index.md
   - Getting started:
       - Installation: installation.md
+      - GPU acceleration: gpu.md
       - Troubleshooting: troubleshooting.md
-  - User guides:
-      - SAXS fitting: saxs-fitter.md
-      - EM map validation: em-validation.md
-      - Rigid-body refinement: rigidbody.md
-      - Plotting scripts: plotting-scripts.md
-  - Developers:
-      - macOS debug build: macos-debug-build.md
+      - Other installation methods:
+          - Precompiled executables: precompiled-binaries.md
+          - Compiling from source: compiling.md
+  - Tutorials: tutorials.md
+  - Applications:
+      - SAXS: saxs.md
+      - SANS: sans.md
+      - Crystals and nanoparticles: crystals.md
+      - Powder diffraction: powder-diffraction.md
+  - Documentation:
+      - Command-line tools:
+          - SAXS fitting: saxs-fitter.md
+          - EM map validation: em-validation.md
+          - Rigid-body refinement: rigidbody.md
+          - Plotting scripts: plotting-scripts.md
+      - Developers:
+          - macOS debug build: macos-debug-build.md
 
 markdown_extensions:
   - admonition
