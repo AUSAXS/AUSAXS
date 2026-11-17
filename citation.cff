@@ -5,7 +5,8 @@ authors:
   given-names: "Kristian"
   orcid: "https://orcid.org/0000-0001-8743-7990"
 title: "AUSAXS"
-url: "https://github.com/AUSAXS/AUSAXS"
+url: "https://ausaxs.github.io/AUSAXS/"
+repository-code: "https://github.com/AUSAXS/AUSAXS"
 preferred-citation:
   authors:
   - family-names: "Lytje"

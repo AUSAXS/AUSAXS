@@ -1,0 +1,52 @@
+name: Documentation
+
+# The site is published with each release, so the documentation matches the released binaries.
+# A documentation-only fix can be published from master with a manual run.
+# Pull requests that touch the documentation only build it, to catch broken links and anchors.
+on:
+  workflow_run:
+    workflows: ["Build & sign release binaries"]
+    types: [completed]
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths: ["docs/**", "mkdocs.yml", ".github/workflows/docs.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.event_name == 'pull_request' && github.ref || 'deploy' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r docs/requirements.txt
+      - run: mkdocs build --strict
+        env:
+          NO_MKDOCS_2_WARNING: 1
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: site
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
