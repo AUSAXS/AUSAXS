@@ -2,11 +2,9 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_saxs_fitter.h>
+
 #include <api/cli/cli_sans_fitter.h>
 #include <api/cli/detail/CLICommon.h>
-
-#include <CLI/CLI.hpp>
-
 #include <constants/ConstantsFitParameters.h>
 #include <constants/ConstantsUnits.h>
 #include <constants/ValidFileExtensions.h>
@@ -23,6 +21,8 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
+#include <CLI/CLI.hpp>
+
 #include <cmath>
 #include <string>
 #include <vector>
@@ -36,7 +36,7 @@ namespace {
      * @brief Fit a structure to a measurement, or simulate its profiles if no measurement is given.
      *        The probe is decided by the tool, after any settings file has been read.
      */
-    int run_fitter(int argc, char const *argv[], Radiation radiation) {
+    int run_fitter(int argc, char const* const* argv, Radiation radiation) {
         const bool neutron = radiation == Radiation::Neutron;
         const std::string probe_name = neutron ? "SANS" : "SAXS";
         const std::string tool_name = neutron ? "sans_fitter" : "saxs_fitter";

@@ -2,10 +2,8 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_debye.h>
+
 #include <api/cli/detail/CLICommon.h>
-
-#include <CLI/CLI.hpp>
-
 #include <constants/ValidFileExtensions.h>
 #include <data/Molecule.h>
 #include <dataset/Dataset.h>
@@ -19,6 +17,8 @@
 #include <settings/All.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
+
+#include <CLI/CLI.hpp>
 
 #include <cmath>
 #include <limits>

@@ -2,10 +2,8 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_rigidbody.h>
+
 #include <api/cli/detail/CLICommon.h>
-
-#include <CLI/CLI.hpp>
-
 #include <constants/ValidFileExtensions.h>
 #include <fitter/FitReporter.h>
 #include <io/File.h>
@@ -14,6 +12,8 @@
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 #include <utility/Logging.h>
+
+#include <CLI/CLI.hpp>
 
 #include <string>
 

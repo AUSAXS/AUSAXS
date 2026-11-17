@@ -79,7 +79,7 @@ namespace ausaxs::cli {
      * @return The exit code if the program should stop (e.g. after --help or a parse error), otherwise nothing.
      */
     std::optional<int> parse(
-        CLI::App& app, int argc, char const* argv[], const ConfigOptions& config, const std::function<io::Folder()>& discover_dir = {}
+        CLI::App& app, int argc, char const* const* argv, const ConfigOptions& config, const std::function<io::Folder()>& discover_dir = {}
     );
 
     /**

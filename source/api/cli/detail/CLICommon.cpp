@@ -98,11 +98,11 @@ void cli::add_neutron_solvent_options(CLI::App* sub) {
 }
 
 std::optional<int> cli::parse(
-    CLI::App& app, int argc, char const* argv[], const ConfigOptions& config, const std::function<io::Folder()>& discover_dir
+    CLI::App& app, int argc, char const* const* argv, const ConfigOptions& config, const std::function<io::Folder()>& discover_dir
 ) {
     auto parse_once = [&] () -> std::optional<int> {
         try {
-            app.parse(argc, argv);
+            app.parse(argc, argv); // NOLINT
         } catch (const CLI::ParseError& e) {
             return app.exit(e);
         }
