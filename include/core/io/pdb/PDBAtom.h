@@ -53,7 +53,7 @@ namespace ausaxs::io::pdb {
             std::string as_pdb() const override;
 
             /**
-             * @brief Check if this is a water molecule by checking the residue name. Both HOH and SOL are considered water molecules.
+             * @brief Check if this is a water molecule by its residue name.
              */
             virtual bool is_water() const;
 

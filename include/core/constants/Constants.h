@@ -120,6 +120,12 @@ namespace ausaxs::constants {
         }
 
         atom_t parse_element_string(const std::string& element_string);
+
+        /**
+         * @brief Whether an atom is a hydrogen isotope, i.e. protium or deuterium.
+         */
+        constexpr bool is_hydrogen(atom_t atom) {return atom == atom_t::H || atom == atom_t::D;}
+
         std::string to_string(atom_t atom);
         std::string to_string(atomic_group_t group);
 

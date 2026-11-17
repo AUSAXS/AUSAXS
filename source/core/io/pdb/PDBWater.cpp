@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <io/pdb/PDBWater.h>
+#include <residue/ResidueStorage.h>
 
 using namespace ausaxs;
 using namespace ausaxs::io::pdb;
@@ -21,6 +22,12 @@ PDBWater PDBWater::create_new_water() {
 
 PDBWater PDBWater::create_new_water(const Vector3<double>& coords) {
     return {-1, "O", "", "HOH", ' ', -1, "", coords, 1, 0, constants::atom_t::O, ""};
+}
+
+void ausaxs::io::pdb::normalize_water_name(std::string& resName) {
+    if (resName != "SOL" && resName != "WAT" && resName != "TIP3" && resName != "DOD") {return;}
+    if (residue::ResidueStorage::is_nonstandard(resName) && !residue::ResidueStorage::handle_nonstandard_residue(resName)) {return;}
+    resName = "HOH";
 }
 
 bool PDBWater::operator==(const PDBWater& rhs) const {

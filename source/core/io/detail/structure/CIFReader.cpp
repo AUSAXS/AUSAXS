@@ -261,6 +261,7 @@ namespace {
         if (has_charge)      {i_pdbx_formal_charge = labels.at("pdbx_formal_charge");}
 
         int hydrogens_found = 0;
+        int deuterium_found = 0;
         for (auto& data : atom.data) {
             auto& group_PDB = default_to_ATOM.empty() ? data[i_group_PDB] : default_to_ATOM;
             if (io::pdb::Record::get_type(group_PDB) != io::pdb::RecordType::ATOM) {
@@ -301,12 +302,14 @@ namespace {
                     ) + "\".");
                 throw;
             }
+            io::pdb::normalize_water_name(resName);
             io::pdb::PDBAtom a(serial, name, altLoc, resName, chainID, resSeq, iCode, coords, occupancy, tempFactor, element, charge);
 
             // check if this is a hydrogen atom
-            if (a.element == constants::atom_t::H) {
+            if (constants::symbols::is_hydrogen(a.element)) {
                 hydrogens_found++;
-                if (!settings::general::keep_hydrogens) {continue;}
+                deuterium_found += static_cast<int>(a.element == constants::atom_t::D && !a.is_water());
+                if (!settings::general::keep_hydrogens || a.is_water()) {continue;} // a water is a single site at its oxygen
             }
 
             // check if this is a water molecule
@@ -327,8 +330,9 @@ namespace {
 
         if (!settings::general::keep_hydrogens) {
             if (hydrogens_found != 0) {console::print_text("Discarded " + std::to_string(hydrogens_found) + " explicit hydrogen atoms.");}
+            if (deuterium_found != 0) {console::print_warning("CIFReader::read: " + std::to_string(deuterium_found) + " of the discarded hydrogens are deuterium, so their labelling is lost. Use 'hydrogens --keep' to keep them as given.");}
         } else {
-            if (hydrogens_found == 0) {console::print_warning("CIFReader::read: No explicit hydrogen atoms were found, but --keep-hydrogens was specified.");}
+            if (hydrogens_found == 0) {console::print_warning("CIFReader::read: No explicit hydrogen atoms were found, but 'hydrogens --keep' was specified.");}
         }
     }
 

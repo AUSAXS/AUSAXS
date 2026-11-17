@@ -50,6 +50,21 @@ namespace ausaxs::residue {
             double get_hydrogens(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom);
 
             /**
+             * @brief Check if a residue name is nonstandard: a force-field name the CCD reserves for another compound, 
+             *        i.e. an AMBER/CHARMM protonation state (HID, HSE, CYX, ...) or GROMACS' water SOL.
+             */
+            static bool is_nonstandard(const std::string& name);
+
+            /**
+             * @brief Decide how to read a nonstandard residue name. 
+             *        It is read by its force-field meaning only when settings::molecule::force_field_residue_names is set; 
+             *        otherwise it is read by its CCD definition, and the first such name triggers a warning.
+             * 
+             * @return True if the name should be read by its force-field meaning.
+             */
+            static bool handle_nonstandard_residue(const std::string& name);
+
+            /**
              * @brief Insert a residue into the storage. 
              */
             void insert(const std::string& name, detail::ResidueMap&& residue);

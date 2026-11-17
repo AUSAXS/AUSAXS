@@ -281,7 +281,7 @@ namespace {
         }
 
         // sanity check: if the structure already contains hydrogens, don't implicitly add more
-        if (std::ranges::any_of(structure.atoms, [] (const PDBAtom& a) {return a.element == constants::atom_t::H;})) {
+        if (std::ranges::any_of(structure.atoms, [] (const PDBAtom& a) {return constants::symbols::is_hydrogen(a.element);})) {
             console::print_warning("PDBStructure::reduced_representation: The molecule already contains explicit hydrogen atoms. Skipping implicit addition.");
             return hydrogens;
         }

@@ -162,7 +162,7 @@ std::string PDBAtom::get_recName() const {return "ATOM  ";}
 
 RecordType PDBAtom::get_type() const {return RecordType::ATOM;}
 
-bool PDBAtom::is_water() const {return (resName == "HOH") || (resName == "SOL");}
+bool PDBAtom::is_water() const {return resName == "HOH";}
 
 void PDBAtom::set_element(constants::atom_t element) {
     assert(element != constants::atom_t::unknown && "PDBAtom::set_element: Attempted to set element to unknown.");

@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Molecule.h>
 #include <io/detail/structure/PDBReader.h>
 #include <io/detail/structure/PDBWriter.h>
 #include <io/pdb/PDBStructure.h>
@@ -115,5 +116,70 @@ TEST_CASE("PDBReader: unrecognized records") {
     SECTION("without any atoms are refused") {
         test::TempFile path(".pdb", "this is not\na PDB file\n");
         CHECK_THROWS(io::detail::pdb::read(path));
+    }
+}
+
+TEST_CASE("PDBReader: hydrogen isotopes") {
+    settings::general::verbose = false;
+    settings::molecule::force_field_residue_names = true; // read the GROMACS SOL below as water
+    std::string content =
+        "ATOM      1  N   GLY A   1      -3.299   8.066 -11.443  1.00  0.00           N\n"
+        "ATOM      2  D   GLY A   1      -3.411   8.677 -12.239  1.00  0.00           D\n"
+        "ATOM      3  CA  GLY A   1      -3.085   6.673 -11.780  1.00  0.00           C\n"
+        "ATOM      4  DA2 GLY A   1      -3.328   6.080 -10.899  1.00  0.00           D\n"
+        "ATOM      5  DA3 GLY A   1      -2.612   4.760 -13.992  1.00  0.00           D\n"
+        "ATOM      6  C   GLY A   1      -1.621   6.436 -12.123  1.00  0.00           C\n"
+        "ATOM      7  O   GLY A   1      -1.200   7.045 -13.104  1.00  0.00           O\n"
+        "HETATM    8  O   DOD A   2      30.117  29.049  34.879  1.00  0.00           O\n"
+        "HETATM    9  D1  DOD A   2      31.077  29.049  34.879  1.00  0.00           D\n"
+        "HETATM   10  D2  DOD A   2      29.157  29.049  34.879  1.00  0.00           D\n"
+        "HETATM   11  O   HOH A   3      20.117  29.049  34.879  1.00  0.00           O\n"
+        "HETATM   12  H1  HOH A   3      21.077  29.049  34.879  1.00  0.00           H\n"
+        "HETATM   13  O   WAT A   4      10.117  29.049  34.879  1.00  0.00           O\n"
+        "HETATM   14  O   SOL A   5       0.117  29.049  34.879  1.00  0.00           O\n";
+    test::TempFile path(".pdb", content);
+
+    // deuterium is a hydrogen: discarded by default, kept as given otherwise; a water is always only its oxygen
+    SECTION("discarded") {
+        settings::general::keep_hydrogens = false;
+        auto protein = io::detail::pdb::read(path);
+        CHECK(protein.atoms.size() == 4);
+        CHECK(protein.waters.size() == 4);
+    }
+
+    // SOL is the CCD code for L-sorbose, so it is only water when force-field names are enabled
+    SECTION("SOL by its CCD definition") {
+        settings::general::keep_hydrogens = false;
+        settings::molecule::force_field_residue_names = false;
+        auto protein = io::detail::pdb::read(path);
+        CHECK(protein.atoms.size() == 5);
+        CHECK(protein.waters.size() == 3);
+    }
+
+    SECTION("default load") {
+        settings::general::keep_hydrogens = false;
+        settings::molecule::implicit_hydrogens = true;
+        data::Molecule molecule(path);
+        CHECK(molecule.size_atom() == 4);
+        CHECK(molecule.size_water() == 4);
+    }
+
+    SECTION("kept") {
+        settings::general::keep_hydrogens = true;
+        auto protein = io::detail::pdb::read(path);
+        REQUIRE(protein.atoms.size() == 7);
+        CHECK(protein.atoms[1].element == constants::atom_t::D);
+        CHECK(protein.atoms[3].element == constants::atom_t::D);
+        CHECK(protein.waters.size() == 4);
+    }
+
+    // explicit deuterium suppresses implicit hydrogens as explicit protium does
+    SECTION("no implicit hydrogens on top") {
+        settings::general::keep_hydrogens = true;
+        settings::molecule::implicit_hydrogens = true;
+        auto structure = io::detail::pdb::read(path);
+        auto reduced = structure.reduced_representation();
+        REQUIRE(reduced.atoms.size() == 7);
+        for (float h : *reduced.metadata->implicit_h) {CHECK(h == 0);}
     }
 }

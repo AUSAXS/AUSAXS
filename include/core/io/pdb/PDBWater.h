@@ -31,4 +31,9 @@ namespace ausaxs::io::pdb {
 
             bool operator==(const PDBWater& rhs) const;
     };
+
+    /**
+     * @brief Map the residue names other programs use for water (SOL, WAT, TIP3, and DOD for heavy water) onto HOH.
+     */
+    void normalize_water_name(std::string& resName);
 }

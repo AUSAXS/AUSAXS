@@ -37,7 +37,7 @@ double ResidueMap::get(const AtomKey& key) {
     if (map.contains(key)) {return map.at(key);}
 
     // if not, check if the key is a hydrogen
-    if (key.atom == constants::atom_t::H) {return 0;}
+    if (constants::symbols::is_hydrogen(key.atom)) {return 0;}
 
     // estimate the number of bonds as the average for that element
     if (update_average) [[unlikely]] {this->calculate_average();}
@@ -87,7 +87,7 @@ std::unordered_map<AtomKey, int>& ResidueMap::get_backing_map() {return map;}
 constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_name, constants::atom_t atom_type) {
     auto key = AtomKey(atom_name, atom_type);
     if (!map.contains(key)) {
-        if (key.atom == constants::atom_t::H) {return constants::atomic_group_t::unknown;}
+        if (constants::symbols::is_hydrogen(key.atom)) {return constants::atomic_group_t::unknown;}
         if (!settings::molecule::allow_unknown_atoms) {
             throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
         }
