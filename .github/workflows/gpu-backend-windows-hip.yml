@@ -279,6 +279,14 @@ jobs:
           Deploy-Component core 'acpp-rt.dll'
           Deploy-Component hip 'hipSYCL\ext\bitcode\amdgcn\ockl.bc'
 
+          # The CPU plugin, rt-backend-omp.dll, imports libomp.dll, and AdaptiveCpp terminates the process when no CPU backend loads,
+          # even if a GPU backend did. The core manifest names libomp by find_library, which on Windows finds the import library, so
+          # the DLL is never deployed. It goes beside acpp-rt.dll, whose directory the runtime adds to the plugins' DLL search path.
+          $libomp = Get-ChildItem -Recurse -File $env:ACPP_PREFIX -Filter 'libomp.dll' | Select-Object -First 1
+          if (-not $libomp) { Write-Host "::error::no libomp.dll in $env:ACPP_PREFIX"; exit 1 }
+          Copy-Item $libomp.FullName "$env:DIST\core\"
+          Write-Host "deployed $($libomp.FullName)"
+
           # The hip manifest names ROCm's libraries by find_library, which on Windows finds the import libraries (amdhip64.lib, ...)
           # rather than the DLLs, so none of the runtime is deployed. Copy every DLL the deployed component imports from ROCm, and
           # theirs in turn. hiprtc-builtins and comgr are loaded with LoadLibrary rather than imported, so dumpbin cannot see them.
@@ -374,6 +382,30 @@ jobs:
       - name: Prune runtime package
         run: python .github/prune_gpu_package.py $env:GPU_PACKAGE
 
+      # Every DLL imported from inside the package must be shipped with it or come with Windows. Checked before the probe below, which
+      # cannot name a missing dependency of a plugin: AdaptiveCpp only terminates. Even amdhip64 is shipped, although the driver
+      # installs its own copy, so nothing is allowed from outside.
+      - name: Check for dependencies outside the package
+        run: |
+          $files = Get-ChildItem -Recurse -File $env:GPU_PACKAGE -Include *.dll, *.exe
+          $local = $files | ForEach-Object { $_.Name.ToLower() } | Sort-Object -Unique
+          $system = Join-Path $env:SystemRoot 'System32'
+          $outside = foreach ($f in $files) {
+            dumpbin /nologo /dependents $f.FullName | ForEach-Object {
+              if ($_ -match '^\s+(\S+\.dll)\s*$') { $Matches[1].ToLower() }
+            }
+          }
+          $outside = @($outside | Sort-Object -Unique | Where-Object {
+            ($local -notcontains $_) -and ($_ -notlike 'api-ms-win-*') -and ($_ -notlike 'ext-ms-*') -and
+            -not (Test-Path (Join-Path $system $_))
+          })
+          $report = @('## Dependencies resolved outside the runtime package (Windows, HIP)', '```') + $outside + @('```')
+          $report | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          if ($outside.Count -gt 0) {
+            Write-Host "::error::the package imports DLLs it does not ship: $($outside -join ', ')"
+            exit 1
+          }
+
       # The runner has no AMD GPU, so the backend is expected to load and report itself unavailable.
       - name: Load backend and query the ABI
         run: |
@@ -402,8 +434,11 @@ jobs:
           cl /nologo "$env:RUNNER_TEMP\abi_probe.c" "/Fo:$env:RUNNER_TEMP\abi_probe.obj" "/Fe:$env:RUNNER_TEMP\abi_probe.exe"
           if ($LASTEXITCODE -ne 0) { Write-Host "::error::the probe did not compile"; exit 1 }
 
-          # Nothing is added to PATH: the package has to find itself, as it will on a user's machine. The version is parsed out of
-          # stdout, so bumping the ABI can never collide with the probe's exit codes.
+          # The package has to find itself, as it will on a user's machine, so PATH is cut down to the system directories. The runner's
+          # PATH holds other toolchains, and AdaptiveCpp retries a plugin that fails to load with a plain LoadLibrary, which searches
+          # PATH, so a DLL missing from the package would otherwise go unnoticed. The probe links the CRT statically and needs nothing
+          # else. The version is parsed out of stdout, so bumping the ABI can never collide with the probe's exit codes.
+          $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot"
           $out = & "$env:RUNNER_TEMP\abi_probe.exe" "$PWD\$env:GPU_PACKAGE\ausaxs_gpu_sycl.dll" 2>&1 | Out-String
           $rc = $LASTEXITCODE
           Write-Host $out
@@ -417,24 +452,6 @@ jobs:
             exit 1
           }
           Write-Host "ABI version $reported matches the header."
-
-      - name: Report dependencies resolved outside the package
-        continue-on-error: true
-        run: |
-          $files = Get-ChildItem -Recurse -File $env:GPU_PACKAGE -Include *.dll, *.exe
-          $local = $files | ForEach-Object { $_.Name.ToLower() } | Sort-Object -Unique
-          $system = Join-Path $env:SystemRoot 'System32'
-          $outside = foreach ($f in $files) {
-            dumpbin /nologo /dependents $f.FullName | ForEach-Object {
-              if ($_ -match '^\s+(\S+\.dll)\s*$') { $Matches[1].ToLower() }
-            }
-          }
-          $outside = $outside | Sort-Object -Unique | Where-Object {
-            ($local -notcontains $_) -and ($_ -notlike 'api-ms-win-*') -and ($_ -notlike 'ext-ms-*') -and
-            -not (Test-Path (Join-Path $system $_))
-          }
-          $report = @('## Dependencies resolved outside the runtime package (Windows, HIP)', '```') + $outside + @('```')
-          $report | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
       - uses: actions/upload-artifact@v4
         with:
