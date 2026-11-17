@@ -308,7 +308,7 @@ namespace {
             // check if this is a hydrogen atom
             if (constants::symbols::is_hydrogen(a.element)) {
                 hydrogens_found++;
-                deuterium_found += a.element == constants::atom_t::D && !a.is_water();
+                deuterium_found += static_cast<int>(a.element == constants::atom_t::D && !a.is_water());
                 if (!settings::general::keep_hydrogens || a.is_water()) {continue;} // a water is a single site at its oxygen
             }
 
