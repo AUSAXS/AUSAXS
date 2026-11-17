@@ -3,7 +3,7 @@
 
 #include <io/detail/structure/PDBReader.h>
 
-#include <constants/ConstantsFwd.h>
+#include <constants/Constants.h>
 #include <io/ExistingFile.h>
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
@@ -27,6 +27,7 @@ namespace {
         if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + file.str() + "\"");}
 
         int hydrogens_found = 0;
+        int deuterium_found = 0;
         std::set<std::string> unknown_records;
         std::string line;
         while(getline(input, line)) {
@@ -44,9 +45,10 @@ namespace {
                     atom.parse_pdb(line);
 
                     // check if this is a hydrogen atom
-                    if (atom.element == constants::atom_t::H) {
+                    if (constants::symbols::is_hydrogen(atom.element)) {
                         hydrogens_found++;
-                        if (!settings::general::keep_hydrogens) {continue;}
+                        deuterium_found += atom.element == constants::atom_t::D && !atom.is_water();
+                        if (!settings::general::keep_hydrogens || atom.is_water()) {continue;} // a water is a single site at its oxygen
                     }
 
                     // check if this is a water molecule
@@ -96,8 +98,9 @@ namespace {
 
         if (!settings::general::keep_hydrogens) {
             if (hydrogens_found != 0) {console::print_text("Discarded " + std::to_string(hydrogens_found) + " explicit hydrogen atoms.");}
+            if (deuterium_found != 0) {console::print_warning("PDBReader::read: " + std::to_string(deuterium_found) + " of the discarded hydrogens are deuterium, so their labelling is lost. Use 'hydrogens --keep' to keep them as given.");}
         } else {
-            if (hydrogens_found == 0) {console::print_warning("PDBReader::read: No explicit hydrogen atoms were found, but --keep-hydrogens was specified.");}
+            if (hydrogens_found == 0) {console::print_warning("PDBReader::read: No explicit hydrogen atoms were found, but 'hydrogens --keep' was specified.");}
         }
     };
 }

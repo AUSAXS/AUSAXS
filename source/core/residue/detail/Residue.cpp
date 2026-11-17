@@ -34,7 +34,7 @@ void ResidueAtom::set_charge(int charge) {
 }
 
 void ResidueAtom::add_bond(const constants::atom_t symbol, int order) {
-    if (symbol == constants::atom_t::H) {
+    if (constants::symbols::is_hydrogen(symbol)) {
         hydrogen_bonds++;
     }
     valency -= order;
@@ -102,7 +102,7 @@ ResidueMap Residue::to_map() const {
     ResidueMap map;
     for (const ResidueAtom& a : atoms) {
         // skip all H's, they are automatically handled by the SimpleResidueMap
-        if (a.atom == constants::atom_t::H) {
+        if (constants::symbols::is_hydrogen(a.atom)) {
             continue;
         }
 
