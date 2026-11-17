@@ -85,7 +85,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydrogen atoms.");
     sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens.value, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens.value);
     sub_hydrogen->add_flag("--force-field-names", settings::molecule::force_field_residue_names.value, 
-        "Parse forcefield protonation-state residue names (HID, HSE, CYX, ...) as protonation states instead of their usual CCD definitions.")
+        "Parse force-field residue names by their force-field meaning instead of their usual CCD definitions: protonation states (HID, HSE, CYX, ...) and GROMACS's SOL water.")
         ->default_val(settings::molecule::force_field_residue_names.value);
 
     // grid subcommands

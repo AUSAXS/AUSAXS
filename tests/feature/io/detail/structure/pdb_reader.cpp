@@ -121,6 +121,7 @@ TEST_CASE("PDBReader: unrecognized records") {
 
 TEST_CASE("PDBReader: hydrogen isotopes") {
     settings::general::verbose = false;
+    settings::molecule::force_field_residue_names = true; // SOL is a water only under force-field names
     std::string content =
         "ATOM      1  N   GLY A   1      -3.299   8.066 -11.443  1.00  0.00           N\n"
         "ATOM      2  D   GLY A   1      -3.411   8.677 -12.239  1.00  0.00           D\n"
@@ -171,5 +172,30 @@ TEST_CASE("PDBReader: hydrogen isotopes") {
         auto reduced = structure.reduced_representation();
         REQUIRE(reduced.atoms.size() == 7);
         for (float h : *reduced.metadata->implicit_h) {CHECK(h == 0);}
+    }
+}
+
+// SOL is the CCD code of L-sorbose; GROMACS's water only with force-field names enabled
+TEST_CASE("PDBReader: GROMACS water") {
+    settings::general::verbose = false;
+    settings::general::keep_hydrogens = false;
+    std::string content =
+        "ATOM      1  OW  SOL     1      30.117  29.049  34.879  1.00  0.00           O\n"
+        "ATOM      2  HW1 SOL     1      31.077  29.049  34.879  1.00  0.00           H\n"
+        "ATOM      3  HW2 SOL     1      29.157  29.049  34.879  1.00  0.00           H\n";
+    test::TempFile path(".pdb", content);
+
+    SECTION("CCD definition") {
+        settings::molecule::force_field_residue_names = false;
+        auto protein = io::detail::pdb::read(path);
+        CHECK(protein.atoms.size() == 1);
+        CHECK(protein.waters.size() == 0);
+    }
+
+    SECTION("force-field names") {
+        settings::molecule::force_field_residue_names = true;
+        auto protein = io::detail::pdb::read(path);
+        CHECK(protein.atoms.size() == 0);
+        CHECK(protein.waters.size() == 1);
     }
 }

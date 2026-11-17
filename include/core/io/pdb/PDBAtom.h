@@ -53,7 +53,8 @@ namespace ausaxs::io::pdb {
             std::string as_pdb() const override;
 
             /**
-             * @brief Check if this is a water molecule by its residue name: HOH, SOL, WAT, TIP3, or DOD for heavy water.
+             * @brief Check if this is a water molecule by its residue name: HOH, WAT, TIP3, or DOD for heavy water.
+             *        GROMACS's SOL is only a water if settings::molecule::force_field_residue_names is set, since it is the CCD code of L-sorbose.
              */
             virtual bool is_water() const;
 

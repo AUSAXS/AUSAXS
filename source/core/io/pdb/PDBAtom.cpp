@@ -7,6 +7,7 @@
 
 #include <constants/Constants.h>
 #include <io/pdb/PDBAtom.h>
+#include <settings/MoleculeSettings.h>
 #include <utility/Console.h>
 #include <utility/Utility.h>
 
@@ -162,7 +163,26 @@ std::string PDBAtom::get_recName() const {return "ATOM  ";}
 
 RecordType PDBAtom::get_type() const {return RecordType::ATOM;}
 
-bool PDBAtom::is_water() const {return resName == "HOH" || resName == "SOL" || resName == "WAT" || resName == "DOD" || resName == "TIP3";}
+namespace {
+    // SOL is the CCD code of L-sorbose, but GROMACS uses it for water. It is only read as water when force-field names are enabled.
+    bool is_gromacs_water() {
+        if (settings::molecule::force_field_residue_names) {return true;}
+        static bool warned = false;
+        if (!warned) {
+            warned = true;
+            console::print_warning(
+                "Residue \"SOL\" is read by its CCD definition (L-sorbose), but GROMACS also uses this name for water. "
+                "If the structure uses force-field names, read them as such with 'hydrogens --force-field-names'."
+            );
+        }
+        return false;
+    }
+}
+
+bool PDBAtom::is_water() const {
+    if (resName == "SOL") {return is_gromacs_water();}
+    return resName == "HOH" || resName == "WAT" || resName == "DOD" || resName == "TIP3";
+}
 
 void PDBAtom::set_element(constants::atom_t element) {
     assert(element != constants::atom_t::unknown && "PDBAtom::set_element: Attempted to set element to unknown.");
