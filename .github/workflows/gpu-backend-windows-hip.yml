@@ -92,8 +92,11 @@ jobs:
         id: toolchain
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
+          # The AdaptiveCpp patch the build step applies is part of the description, so a changed patch never fetches a toolchain
+          # built without it.
+          $patch = (Get-FileHash .github\acpp.patch -Algorithm SHA256).Hash.ToLower()
           $pins = "# image=$env:ImageOS llvm=release/$env:WINDOWS_LLVM_VERSION.x base-llvm=$env:WINDOWS_BASE_LLVM_VERSION " +
-                  "rocm=$env:WINDOWS_ROCM_VERSION acpp=$env:ACPP_REPO@$env:ACPP_COMMIT"
+                  "rocm=$env:WINDOWS_ROCM_VERSION acpp=$env:ACPP_REPO@$env:ACPP_COMMIT acpp-patch=$patch"
           # LINK_INTO_TOOLS is what makes this work at all: a Windows DLL cannot be loaded into clang as a plugin, so the SSCP compiler
           # has to be linked into clang itself.
           # ROCM_DEVICE_LIBS_PATH is needed because AdaptiveCpp looks for the device libraries in $ROCM_PATH/amdgcn/bitcode, while
@@ -198,6 +201,9 @@ jobs:
           git clone --recurse-submodules $env:ACPP_REPO "$env:ACPP_LLVM_SRC\acpp"
           git -C "$env:ACPP_LLVM_SRC\acpp" checkout $env:ACPP_COMMIT
           git -C "$env:ACPP_LLVM_SRC\acpp" submodule update --init --recursive
+          # hipRTC on Windows rejects a device library named by its full path, which AdaptiveCpp passes and does not check, so
+          # kernels fail to link. The patch is meant for upstream; drop it once AdaptiveCpp has an equivalent fix.
+          git -C "$env:ACPP_LLVM_SRC\acpp" apply --verbose "$env:GITHUB_WORKSPACE\.github\acpp.patch"
 
           $cmakeArgs = Get-Content _toolchain\acpp-llvm.txt | Where-Object { $_ -and -not $_.StartsWith('#') }
           cmake @cmakeArgs

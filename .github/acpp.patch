@@ -1,0 +1,57 @@
+diff --git a/src/compiler/llvm-to-backend/amdgpu/LLVMToAmdgpu.cpp b/src/compiler/llvm-to-backend/amdgpu/LLVMToAmdgpu.cpp
+index 6376dcc..7c0ed22 100644
+--- a/src/compiler/llvm-to-backend/amdgpu/LLVMToAmdgpu.cpp
++++ b/src/compiler/llvm-to-backend/amdgpu/LLVMToAmdgpu.cpp
+@@ -30,6 +30,7 @@
+ #include <llvm/Transforms/IPO/AlwaysInliner.h>
+ #include <llvm/Support/FileSystem.h>
+ #include <llvm/Support/MemoryBuffer.h>
++#include <llvm/Support/Path.h>
+ #include <llvm/Support/raw_ostream.h>
+ #include <llvm/Support/Program.h>
+ #include <algorithm>
+@@ -256,6 +257,12 @@ public:
+     BitcodeFiles.clear();
+     for(const auto& L : NeededBitcodeLibs) {
+       std::string FullPath = common::filesystem::join_path(DeviceLibPath, L);
++      // Newer ROCm device libraries no longer ship the correctly_rounded_sqrt and daz_opt control
++      // libraries, so skip them when they are absent rather than failing to open them.
++      bool IsRetiredControlLib = L.rfind("oclc_correctly_rounded_sqrt_", 0) == 0 ||
++                                 L.rfind("oclc_daz_opt_", 0) == 0;
++      if(IsRetiredControlLib && !common::filesystem::exists(FullPath))
++        continue;
+       BitcodeFiles.push_back(FullPath);
+     }
+
+@@ -465,8 +472,17 @@ bool LLVMToAmdgpuTranslator::hiprtcJitLink(const std::string &Bitcode, std::stri
+     }
+
+     llvm::StringRef BC = ReadResult->get()->getBuffer();
+-    hiprtcLinkAddData(LS, HIPRTC_JIT_INPUT_LLVM_BITCODE, const_cast<char *>(BC.data()), BC.size(),
+-                      BCFileName.c_str(), 0, 0, 0);
++    // hipRTC rejects an input name that is an absolute Windows path (C:\...) with
++    // HIPRTC_ERROR_PROGRAM_CREATION_FAILURE, so pass only the file name.
++    std::string InputName = llvm::sys::path::filename(BCFileName).str();
++    hiprtcResult AddErr =
++        hiprtcLinkAddData(LS, HIPRTC_JIT_INPUT_LLVM_BITCODE, const_cast<char *>(BC.data()),
++                          BC.size(), InputName.c_str(), 0, 0, 0);
++    if(AddErr != HIPRTC_SUCCESS) {
++      this->registerError("LLVMToAmdgpu: hiprtcLinkAddData() failed for " + BCFileName +
++                          " with error " + std::to_string(static_cast<int>(AddErr)));
++      return false;
++    }
+
+     return true;
+   };
+@@ -476,7 +492,10 @@ bool LLVMToAmdgpuTranslator::hiprtcJitLink(const std::string &Bitcode, std::stri
+                                               CodeObjectModelVersion);
+   for(const auto& Lib : DeviceLibs) {
+     HIPSYCL_DEBUG_INFO << "LLVMToAmdgpu: Linking with bitcode file: " << Lib << "\n";
+-    addBitcodeFile(Lib);
++    if(!addBitcodeFile(Lib)) {
++      hiprtcLinkDestroy(LS);
++      return false;
++    }
+   }
+
+

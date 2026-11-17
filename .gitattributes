@@ -1,0 +1,6 @@
+# Every text file is checked out with LF on every platform. 
+# The Windows HIP workflow applies .github/acpp.patch to AdaptiveCpp's LF sources, which a CRLF checkout would stop matching.
+* text=auto eol=lf
+
+# Test inputs stay byte for byte as committed: some are deliberately left as CRLF files, as users supply them.
+tests/files/** -text
