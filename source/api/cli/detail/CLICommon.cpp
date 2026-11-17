@@ -59,12 +59,16 @@ CLI::App* cli::add_data_subcommand(CLI::App& app, const std::string& data_name) 
         ->default_val(settings::axes::qmin.value)
         ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
     ;
-    sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});},
-        "The unit of the q values in the measurement file. Options: A, nm.");
-    sub_data->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
+    add_measurement_options(sub_data);
     sub_data->add_flag("--rebin", settings::axes::rebin.value, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin.value);
     sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins.value, "Use weighted bins (true/false). By default, this is automatically decided for each molecule.")->default_val(settings::hist::weighted_bins.value);
     return sub_data;
+}
+
+void cli::add_measurement_options(CLI::App* sub) {
+    sub->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});},
+        "The unit of the q values in the measurement file. Options: A, nm.");
+    sub->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
 }
 
 CLI::App* cli::add_molecule_subcommand(CLI::App& app) {

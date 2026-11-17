@@ -50,6 +50,12 @@ namespace ausaxs::cli {
     CLI::App* add_data_subcommand(CLI::App& app, const std::string& data_name);
 
     /**
+     * @brief Register the options for reading a measurement file, --unit and --skip, on a subcommand. 
+     *        Unlike add_data_subcommand, this leaves the q-range settings alone.
+     */
+    void add_measurement_options(CLI::App* sub);
+
+    /**
      * @brief Register the molecule subcommand: --use-occupancy.
      */
     CLI::App* add_molecule_subcommand(CLI::App& app);
