@@ -79,3 +79,22 @@ foreach(_variant scalar sse2 avx2 avx512)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
     )
 endforeach()
+
+# The benchmarks of the AUSAXS paper, against CRYSOL, FoXS, Pepsi-SAXS, DebyeCalculator and AES-Debye.
+# See tests/benchmark/paper/README.md.
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE _bench_commit OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
+)
+add_executable(benchmark_paper "benchmark_paper.cpp")
+target_link_libraries(benchmark_paper PRIVATE libausaxs Catch2::Catch2WithMain)
+target_include_directories(benchmark_paper PRIVATE ${CMAKE_SOURCE_DIR}/tests)
+target_compile_definitions(benchmark_paper PRIVATE AUSAXS_BENCH_COMMIT="${_bench_commit}")
+if(BUILD_EXECUTABLES)
+    target_compile_definitions(benchmark_paper PRIVATE AUSAXS_BENCH_DEFAULT_CLI="$<TARGET_FILE:ausaxs>")
+    add_dependencies(benchmark_paper ausaxs)
+else()
+    target_compile_definitions(benchmark_paper PRIVATE AUSAXS_BENCH_DEFAULT_CLI="ausaxs")
+endif()
+set_target_properties(benchmark_paper PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)

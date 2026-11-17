@@ -1,0 +1,21 @@
+# label	structure	data	q unit (A or nm)
+# Paths are relative to the data root, AUSAXS_BENCH_DATA (default: data/ in the repository root, which is not tracked).
+# Ordered by size; the four nm files are converted to 1/A by the benchmark, so every program reads the same q values.
+1ubq	1ubq/1ubq.pdb	1ubq/1ubq.dat	A
+6lyz	6lyz/6lyz.pdb	6lyz/6lyz.dat	A
+SASDPS4	consensus/old/SASDPS4/SASDPS4.pdb	consensus/old/SASDPS4/SASDPS4.dat	A
+SASDAG2	SASDAG2/SASDAG2.pdb	SASDAG2/SASDAG2.dat	nm
+SASDE35	SASDE35/SASDE35.pdb	SASDE35/SASDE35.dat	A
+SASDQ59	rigidbody/SASDQ59/SASDQ59.pdb	rigidbody/SASDQ59/SASDQ59.dat	A
+SASDJG5	SASDJG5/SASDJG5.pdb	SASDJG5/SASDJG5.dat	A
+SASDME4	SASDME4/SASDME4.pdb	SASDME4/SASDME4.dat	A
+SASDPB9	rigidbody/SASDPB9/SASDPB9.pdb	rigidbody/SASDPB9/SASDPB9.dat	A
+SHOC2	SHOC2/SHOC2.pdb	SHOC2/SHOC2.dat	A
+urateox	rigidbody/urateox/urateox.pdb	rigidbody/urateox/urateox.dat	A
+SASDDD3	SASDDD3/SASDDD3.pdb	SASDDD3/SASDDD3.dat	A
+SASDPR4	consensus/old/SASDPR4/SASDPR4.pdb	consensus/old/SASDPR4/SASDPR4.dat	A
+SASDA92	SASDA92/SASDA92.pdb	SASDA92/SASDA92.dat	nm
+SASDBC3	symmetry/SASDBC3/SASDBC3.pdb	symmetry/SASDBC3/SASDBC3.dat	nm
+SASDA45	SASDA45/SASDA45.pdb	SASDA45/SASDA45.dat	nm
+SASDGL2	symmetry/SASDGL2/SASDGL2.pdb	symmetry/SASDGL2/SASDGL2.dat	A
+A2M_ma	A2M_ma/A2M_ma.pdb	A2M_ma/A2M_ma.dat	A
