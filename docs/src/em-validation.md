@@ -15,7 +15,7 @@ If you leave out the SAXS data file and instead give a threshold level with `em 
 ## Output
 By default all output will be saved in a new `output/em_fitter/<data-name>/<map-name>/` folder, although this location can be changed by specifying the `--output` argument (note that the subfolders will always be created). In simulation mode, the output is written to `output/em_fitter/simulated/<map-name>/` instead. 
 
-In this folder you will find a bunch of `.plot` files. These are instructions for making plots with the custom `scripts/plot.py` Python script. Simply run the plotting script with this folder as its argument. See e.g. the [plotting documentation](plotting-scripts.md) for more information. 
+In this folder you will find a bunch of `.plot` files. Turn them into images by running `ausaxs plot` in this folder. See the [CLI plotting](plotting-scripts.md) page for more information. 
 
 After you have plotted the files, you will have the three following $\chi^2$-landscape figures:
 - **chi2_evaluated_points_full**: This figure shows the full $\chi^2$-landscape for the entire range of scanned threshold values. 

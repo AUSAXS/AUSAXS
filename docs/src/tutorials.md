@@ -9,29 +9,23 @@ The tutorials below are hosted on [SAStutorials.org](https://sastutorials.org/),
 
 <div class="grid cards ausaxs-two-col" markdown>
 
--   :material-chart-bell-curve-cumulative:{ .lg .middle } **Proteins**
+-   :material-chart-bell-curve-cumulative:{ .lg .middle } **[Proteins](https://sastutorials.org/Proteins/Proteins.html)**
 
     ---
 
     Find the oligomeric state of a protein from its SAXS data, and compare the fits of AUSAXS with those of other SAXS calculators.
 
-    [:octicons-arrow-right-24: Proteins tutorial](https://sastutorials.org/Proteins/Proteins.html)
-
--   :material-cube-scan:{ .lg .middle } **Comparing with electron microscopy**
+-   :material-cube-scan:{ .lg .middle } **[Comparing with electron microscopy](https://sastutorials.org/SAXS_EM/SAXS_EM.html)**
 
     ---
 
     Validate a cryo-EM map against SAXS data with `ausaxs em`, and interpret the resulting $\chi^2$ landscapes.
 
-    [:octicons-arrow-right-24: EM tutorial](https://sastutorials.org/SAXS_EM/SAXS_EM.html)
-
--   :material-puzzle-outline:{ .lg .middle } **Rigid-body refinement**
+-   :material-puzzle-outline:{ .lg .middle } **[Rigid-body refinement](https://sastutorials.org/RigidBody/RigidBodyGUI.html)**
 
     ---
 
     Refine a rigid-body model against SAXS data in the AUSAXS graphical interface.
-
-    [:octicons-arrow-right-24: Rigid-body tutorial](https://sastutorials.org/RigidBody/RigidBodyGUI.html)
 
 </div>
 

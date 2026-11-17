@@ -52,5 +52,23 @@ The following are automatically fetched by CMake:
 
 Each of these can be replaced by a system-provided version with the corresponding `-DUSE_SYSTEM_<NAME>=ON` CMake option.
 
+## Using your build from Python
+The Python package bundles its own copy of the AUSAXS library. To make it use one you compiled yourself instead, e.g. to try out changes in the [graphical interface](saxs-fitter.md#graphical-user-interface), build the shared library:
+```bash
+cmake --build build --target libausaxs -jX
+```
+and point the package at it with `ausaxs setup`:
+```bash
+ausaxs setup --relink build/lib/libausaxs.so
+```
+The library is named `libausaxs.dylib` on macOS and `libausaxs.dll` on Windows. The path is checked by loading the library, and remembered across sessions, so rebuilding the library is enough to pick up later changes. The other options are:
+
+| Command | Effect |
+|---|---|
+| `ausaxs setup` | Show which library is in use, and where it comes from. |
+| `ausaxs setup --reset` | Go back to the bundled library. |
+
+For a one-off run, the `AUSAXS_LIB` environment variable can be set to the library path instead. A relinked path takes precedence over it.
+
 ## Next steps
 Check that the build works by running `build/bin/ausaxs --version`, then continue with the [next steps](installation.md#next-steps).

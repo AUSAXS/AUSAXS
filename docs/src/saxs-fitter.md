@@ -30,11 +30,11 @@ In this folder you will find the following files:
 - **p(r).png.plot** and **profiles.png.plot**: Plot files for the distance distribution and the scattering profiles of the individual contributions. 
 - **rebinned.dat**, **grid.pdb**, **exv.pdb**: Only written if requested by `data --rebin`, `grid --save`, and `exv --save` respectively. 
 
-Running the `scripts/plot.py` Python script on this folder will convert the `.plot` files to images, and also generate two figures of the fit: 
+Running `ausaxs plot` in this folder will convert the `.plot` files to images, and also generate two figures of the fit: 
 - **log.png**: This top panel of this figure shows the fit plotted on top of the input data set, with the $\chi^2_r$ shown in the legend. The bottom panel shows the residual associated with each point, which ideally should have a Gaussian distribution with a mean of 0. 
 - **loglog.png**: This shows the same plots as *log.png*, except with double-logarithmic axes. 
 
-See e.g. the [plotting documentation](plotting-scripts.md) for more information on this step. 
+See the [CLI plotting](plotting-scripts.md) page for more information on this step. 
 
 ## Graphical user interface
 

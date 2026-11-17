@@ -1,6 +1,6 @@
 ---
-title: "AUSAXS: Debye-equation SAXS, WAXS and SANS calculator"
-description: Documentation for AUSAXS, a fast small-angle scattering calculator built on the Debye equation. Calculate SAXS, WAXS and SANS profiles from PDB, mmCIF, CIF and XYZ structures, and fit atomic models and EM maps to experimental data.
+title: "AUSAXS: the fast small-angle scattering calculator"
+description: Documentation for AUSAXS, a fast small-angle scattering calculator built on the Debye equation. Calculate SAXS and SANS profiles from PDB, mmCIF, CIF and XYZ structures, and fit atomic models and EM maps to experimental data.
 hide:
   - navigation
   - toc
@@ -32,57 +32,88 @@ hide:
 [Get started](installation.md){ .md-button .md-button--primary }
 [Tutorials](tutorials.md){ .md-button }
 
-<div class="ausaxs-pills" markdown="span">[SAXS](saxs.md) [SANS](sans.md) [Crystals](crystals.md) [Powder diffraction](powder-diffraction.md) [Rigid-body refinement](rigidbody.md) [GPU](gpu.md) [Linux · macOS · Windows](installation.md)</div>
-
 </div>
 
-AUSAXS accurately predicts small-angle X-ray scattering (SAXS), wide-angle X-ray scattering (WAXS) and small-angle neutron scattering (SANS) profiles of proteins and other biomolecules, and fits them to experimental small-angle scattering data. The same kernel computes the Debye scattering of crystals, nanoparticles and arbitrary point scatterers, with or without atomic form factors. It is available both as a command-line program and as a Python package:
-```bash
-python -m pip install pyausaxs
-```
+AUSAXS is a fast Debye-equation calculator for small-angle X-ray and neutron scattering. It calculates the [SAXS](saxs.md) and [SANS](sans.md) profiles of proteins and other biomolecules directly from their atomic structure, with an explicit hydration shell and excluded volume, and fits them to experimental data. The same engine calculates the scattering and [powder diffraction](powder-diffraction.md) patterns of [crystals and nanoparticles](crystals.md). It runs on Linux, macOS and Windows, from the command line, from Python, or through a graphical interface.
 
 ## Getting started
-1. [Install AUSAXS](installation.md) with a single `pip` command.
+1. [Install AUSAXS](installation.md) with a single command:
+    ```bash
+    python -m pip install "pyausaxs[all]"
+    ```
 2. Optionally, [install the GPU backend](gpu.md) to run the calculations on a GPU.
 3. Follow one of the [tutorials](tutorials.md), which walk through complete analyses of real data.
 
-If you have issues running the programs, please take a look at the [troubleshooting](troubleshooting.md) page.
+If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
 
 ## Tools
-All tools are run through the single `ausaxs` executable as `ausaxs <tool> [options]`. Each card links to the documentation of every option of the tool.
 
-<div class="grid cards ausaxs-two-col" markdown>
+<div class="grid cards" markdown>
 
--   :material-chart-bell-curve-cumulative:{ .lg .middle } **SAXS fitting** &nbsp; `ausaxs fit`
+-   :ausaxs-xray:{ .lg .middle } **[SAXS fitting](saxs-fitter.md)**
 
     ---
 
-    Calculate the SAXS profile of a protein or other macromolecule from its atomic model, and test whether it is consistent with experimental SAXS data. The hydration shell and excluded volume are modelled explicitly from the atomic coordinates.
+    Calculate the SAXS profile of an atomic model and fit it to experimental data.
 
-    [:octicons-arrow-right-24: Documentation](saxs-fitter.md)
+-   :material-atom:{ .lg .middle } **[SANS fitting](sans.md)**
 
--   :material-cube-scan:{ .lg .middle } **EM map validation** &nbsp; `ausaxs em`
+    ---
+
+    Calculate the SANS profile of an atomic model and fit it to experimental data, with control over the D₂O fraction of the solvent.
+
+-   :material-dots-hexagon:{ .lg .middle } **[Debye scattering](crystals.md#running-it)**
+
+    ---
+
+    Calculate the scattering of crystals, nanoparticles and other structures without solvent, with or without atomic form factors.
+
+-   :material-cube-scan:{ .lg .middle } **[EM map validation](em-validation.md)**
 
     ---
 
     Validate cryo-EM maps against solution SAXS data using dummy structures built from the map itself.
 
-    [:octicons-arrow-right-24: Documentation](em-validation.md)
-
--   :material-puzzle-outline:{ .lg .middle } **Rigid-body refinement** &nbsp; `ausaxs rigidbody`
+-   :material-puzzle-outline:{ .lg .middle } **[Rigid-body refinement](rigidbody.md)**
 
     ---
 
-    Refine multi-domain proteins and complexes against SAXS data, driven by configuration scripts. This tool is still in active development.
+    Refine multi-domain proteins and complexes against experimental data.
 
-    [:octicons-arrow-right-24: Documentation](rigidbody.md)
+</div>
 
--   :material-language-python:{ .lg .middle } **Python API and GUI**
+## Python and utilities
+
+<div class="grid cards" markdown>
+
+-   :material-language-python:{ .lg .middle } **[Python API](https://github.com/AUSAXS/pyAUSAXS)**
 
     ---
 
-    All three tools are also available through a graphical interface and a Python API in the [pyAUSAXS](https://github.com/AUSAXS/pyAUSAXS) package. Its [examples](https://github.com/AUSAXS/pyAUSAXS/tree/master/examples) cover everything from a basic Debye calculation to model fitting and crystal scattering.
+    Call AUSAXS from your own Python scripts and notebooks.
 
-    [:octicons-arrow-right-24: pyAUSAXS on GitHub](https://github.com/AUSAXS/pyAUSAXS)
+-   :material-monitor-dashboard:{ .lg .middle } **[Graphical interface](saxs-fitter.md#graphical-user-interface)**
+
+    ---
+
+    Fit models to SAXS data interactively, without the command line.
+
+-   :material-expansion-card:{ .lg .middle } **[GPU backend](gpu.md)**
+
+    ---
+
+    Install and enable the optional GPU backend, and choose which GPU to run on.
+
+-   :material-chart-line:{ .lg .middle } **[CLI plotting](plotting-scripts.md)**
+
+    ---
+
+    Plot the results of the command-line tools, from fits to $\chi^2$ landscapes.
+
+-   :material-cog-outline:{ .lg .middle } **[Developer setup](compiling.md#using-your-build-from-python)**
+
+    ---
+
+    Point the Python package at your own build of the AUSAXS library.
 
 </div>

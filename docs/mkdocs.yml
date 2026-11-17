@@ -1,7 +1,7 @@
 site_name: AUSAXS
 site_url: https://ausaxs.github.io/AUSAXS/
 site_description: >-
-  AUSAXS calculates SAXS, WAXS and SANS profiles from atomic structures with the
+  AUSAXS calculates SAXS and SANS profiles from atomic structures with the
   Debye equation, and fits PDB/CIF models and EM maps to small-angle scattering data.
 site_author: Kristian Lytje
 repo_url: https://github.com/AUSAXS/AUSAXS
@@ -69,7 +69,7 @@ nav:
           - SAXS fitting: saxs-fitter.md
           - EM map validation: em-validation.md
           - Rigid-body refinement: rigidbody.md
-          - Plotting scripts: plotting-scripts.md
+          - CLI plotting: plotting-scripts.md
       - Developers:
           - macOS debug build: macos-debug-build.md
 
@@ -84,6 +84,9 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - !relative $config_dir/overrides/.icons
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.superfences

@@ -404,7 +404,7 @@ Save the current conformation.
   ii. `*.xyz`: Append the current structure to the specified file. This is an animation format which can be played in PyMOL.  
   iii. `*.fit`: Save the current fit, in the same format as the `ausaxs.fit` file from the [SAXS fitter](saxs-fitter.md#output).  
   iv. `*.txt`: Save a report of the current fit.  
-  v. `*.png`: Save a plot of the current fit. This is written as a `.plot` file; see the [plotting documentation](plotting-scripts.md). 
+  v. `*.png`: Save a plot of the current fit. This is written as a `.plot` file; see [CLI plotting](plotting-scripts.md). 
 
 You can use a wildcard `%` in the path name to avoid overwriting the same data file: `out_%.pdb` creates the file `out_1.pdb` on first activation, `out_2.pdb` on second activation, and so on. Each path has its own counter.
 

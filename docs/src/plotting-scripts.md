@@ -1,25 +1,46 @@
 ---
-title: Plotting scripts - AUSAXS
-description: Turn the .plot files written by AUSAXS into figures of SAXS fits and chi-square landscapes, and customize them.
+title: CLI plotting - AUSAXS
+description: Turn the .plot and ausaxs.fit files written by the AUSAXS command-line tools into figures of SAXS fits and chi-square landscapes with ausaxs plot, and customize them.
 ---
 
-# Plotting scripts
+# CLI plotting
 
-AUSAXS utilizes the custom plot format `.plot`. These are highly customizable text files, containing a simplified description of each part of a plot.
+The command-line tools write their results as text files: the fit itself as `ausaxs.fit`, and every figure as a `.plot` file, a simple description of each curve in the plot. The `ausaxs plot` tool turns these into images. The [graphical interface](saxs-fitter.md#graphical-user-interface) and the [Python API](https://github.com/AUSAXS/pyAUSAXS) draw their own figures, so this is only needed for results from the command line.
 
-When using the command-line tools, you must manually convert these files to images. To do so, run the Python script `python scripts/plot.py` (found in the AUSAXS repository) from the folder containing the files. The required Python packages can be installed with `pip install matplotlib numpy scipy`. 
+`ausaxs plot` is part of the Python package, and needs its plotting extension:
+```bash
+pip install "pyausaxs[plots]"
+```
 
-The script also takes an optional argument specifying the path. It will iteratively search through nested folders for `.plot` files. 
+> [!TIP]
+> If you use the [precompiled executables](precompiled-binaries.md) or [compiled AUSAXS yourself](compiling.md) without the Python package, the same plotting is available as the script `scripts/plot.py` in the AUSAXS repository. It needs `pip install matplotlib numpy scipy`, and takes the same options as `ausaxs plot`, except those for animations.
+
+## Making the figures
+Run it from the output folder of a command-line tool:
+```bash
+ausaxs plot
+```
+or point it at a folder with `--folder <path>`. It searches the folder and its subfolders for results, and writes each figure as a `.png` next to the file it came from:
+
+- Every `.plot` file becomes an image of the same name.
+- An `ausaxs.fit` file becomes `log.png` and `loglog.png`, the fit on semi-logarithmic and double-logarithmic axes. Any other `.fit` or `.xvg` files in the same folder, e.g. fits from other SAXS programs, are drawn on the same axes for comparison. The `ausaxs.fit` file can also be read by the ATSAS plotting utilities.
+- A numbered sequence of frames becomes an animated `.gif`.
 
 > [!NOTE]
-> The script only recurses 3 folders deep, and skips folders with more than 30 items for safety.
+> For safety, the search stops 4 folders deep, and skips folders with more than 30 files. Change these limits with `--max_depth` and `--max_files`.
 
-When invoked on a directory containing an `ausaxs.fit` file, it will convert this to a semi-logarithmic and double-logarithmic plot of the fit. Note that the `ausaxs.fit` file is also compatible with the ATSAS plotting utility. 
+## Options
+| Option | Effect |
+|---|---|
+| `--folder <path>` | Folder to search for results. Default: the current folder. |
+| `--max_depth <n>` | How many subfolders deep to search. Default: 4. |
+| `--max_files <n>` | Skip folders with more than this many files. Default: 30. |
+| `--medium`, `--big` | Larger fonts, lines and markers, e.g. for slides and posters. |
+| `--title <text>` | Title of the fit figures. |
+| `--fps <n>` or `--duration <s>` | Frame rate, or total length, of animations. |
+| `--loop <n>` | How many times animations repeat. Default: 0, forever. |
 
 ## Customizing the plots
-> [!TIP]
-> (Experimental) To easily change most plot scalings, supply the optional `--medium` or `--big` parameters to the program invocation, such that the call becomes `./plot <directory> <size>`. Note that a dot `.` indicates the current directory.
-
 Minor modifications can easily be made on the plots. To understand how, we first have to understand the file format itself.  
 
 The file itself contains a number of curve data sections, each starting with an identifier. A typical curve is stored as:

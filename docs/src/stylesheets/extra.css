@@ -220,8 +220,18 @@
   color: var(--md-default-fg-color);
 }
 
-.md-typeset .ausaxs-wordmark .au {
+.md-typeset .ausaxs-wordmark .au,
+.md-typeset .ausaxs-name .au {
   color: var(--ausaxs-gold);
+}
+
+/* The wordmark inline in running text, for a few highlighted mentions only:
+   <span class="ausaxs-name"><span class="au">AU</span>SAXS</span> */
+.md-typeset .ausaxs-name {
+  font-family: "Sora", var(--md-text-font-family), sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
 }
 
 .ausaxs-hero .ausaxs-tagline {
@@ -263,36 +273,33 @@
   border-color: var(--ausaxs-gold);
 }
 
-/* The headline file formats and probes, as small pills under the tagline. */
-.ausaxs-pills {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.4rem;
-  margin-top: 1.4rem;
-}
-
-.md-typeset .ausaxs-pills span,
-.md-typeset .ausaxs-pills a {
-  padding: 0.15rem 0.65rem;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--ausaxs-gold-text);
-  background-color: var(--ausaxs-gold-soft);
-  transition: border-color 150ms;
-}
-
-.md-typeset .ausaxs-pills a:hover,
-.md-typeset .ausaxs-pills a:focus-visible {
-  border-color: var(--ausaxs-gold);
-}
-
 /* Card grid: a quiet border, lifted on hover. */
 .md-typeset .grid.cards > ul > li {
+  position: relative;
   border-radius: 0.5rem;
   transition: border-color 150ms, box-shadow 150ms, transform 150ms;
+}
+
+/* Whole card is clickable: the title link stretches an overlay over the card.
+   Other links in the card body are lifted above the overlay so they still work. */
+.md-typeset .grid.cards > ul > li > p:first-child a {
+  color: inherit;
+}
+
+.md-typeset .grid.cards > ul > li > p:first-child a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.md-typeset .grid.cards > ul > li > p:not(:first-child) a {
+  position: relative;
+  z-index: 1;
+}
+
+.md-typeset .grid.cards > ul > li:has(> p:first-child a):hover > p:first-child a {
+  color: var(--ausaxs-gold);
 }
 
 .md-typeset .grid.cards > ul > li:hover {
@@ -313,7 +320,28 @@
   font-size: 0.75em;
 }
 
-/* Four guide cards on the home page: a 2x2 grid instead of three plus an orphan. */
+/* Two-column card grid, for card counts that would leave an orphan in three columns. */
 .md-typeset .grid.ausaxs-two-col {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+}
+
+/* Note callouts in the gold accent instead of Material's default blue. */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: var(--ausaxs-gold);
+}
+
+.md-typeset .admonition.note:focus-within,
+.md-typeset details.note:focus-within {
+  box-shadow: 0 0 0 0.2rem var(--ausaxs-gold-soft);
+}
+
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary {
+  background-color: var(--ausaxs-gold-soft);
+}
+
+.md-typeset .note > .admonition-title::before,
+.md-typeset .note > summary::before {
+  background-color: var(--ausaxs-gold);
 }
