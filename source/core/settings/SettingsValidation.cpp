@@ -6,6 +6,10 @@
 #include <settings/All.h>
 #include <utility/Console.h>
 
+#include <algorithm>
+#include <cmath>
+#include <string>
+
 using namespace ausaxs;
 
 void settings::validate_settings() {
@@ -46,10 +50,24 @@ void settings::validate_settings() {
             break;
     }
 
-    {   // check for grid cell width compatibility
-        double grid_ratio = settings::grid::exv::width/settings::grid::cell_width;
-        if (std::abs(grid_ratio - int(grid_ratio)) != 0.0) {
-            console::print_warning("Warning: The grid cell width is not a multiple of the excluded volume radius. This may lead to artifacts in the excluded volume calculation.");
+    {   // the grid-based excluded volume models place their dummies on every point_stride()'th grid cell, so a dummy
+        // width that is not a whole number of cells is rounded. Only those models read it, so only they are warned
+        switch (settings::exv::exv_method) {
+            case settings::exv::ExvMethod::Grid:
+            case settings::exv::ExvMethod::GridScalable:
+            case settings::exv::ExvMethod::GridSurface:
+            case settings::exv::ExvMethod::WAXSiS: {
+                double ratio = settings::grid::exv::width/settings::grid::cell_width;
+                if (1e-6 < std::abs(ratio - std::max(1., std::round(ratio)))) {
+                    console::print_warning(
+                        "Warning: The excluded volume width (" + std::to_string(settings::grid::exv::width) + " Å) is not a multiple of the grid cell width ("
+                        + std::to_string(settings::grid::cell_width) + " Å). The dummy atoms will be spaced "
+                        + std::to_string(std::max(1., std::round(ratio))*settings::grid::cell_width) + " Å apart instead."
+                    );
+                }
+                break;
+            }
+            default: break;
         }
     }
 

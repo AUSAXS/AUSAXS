@@ -157,6 +157,7 @@ TEST_CASE("HistogramManagerMTFFGrid::debye_transform") {
     settings::molecule::implicit_hydrogens = false;
     settings::hist::weighted_bins = true;
     settings::grid::exv::width = 1;
+    settings::grid::cell_width = 1; // the debug dummies sit on a unit lattice, and their volume is the lattice cell's
     settings::grid::min_exv_radius = 0;
 
     std::vector<AtomFF> atoms = SimpleCube::get_atoms();

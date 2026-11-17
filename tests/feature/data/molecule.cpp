@@ -710,6 +710,8 @@ TEST_CASE("Molecule::histogram") {
     }
 
     SECTION("equivalent to old approach") {
+        // the atoms sit on the edges of the old approach's 1 Å grid over [-2, 2], which a wider cell does not reach
+        settings::grid::cell_width = 1;
         std::vector<AtomFF> atoms = {
             AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), AtomFF({-1, 1, -1}, form_factor::form_factor_t::C),
             AtomFF({ 1, -1, -1}, form_factor::form_factor_t::C), AtomFF({ 1, 1, -1}, form_factor::form_factor_t::C),

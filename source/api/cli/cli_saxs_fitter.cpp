@@ -122,8 +122,19 @@ namespace {
                 throw CLI::RuntimeError(1);
             }
 
-            // adjust grid width to support user-specified excluded volume width
-            if (sub_exv_w->count() && !sub_grid_w->count()) {
+            // adjust grid width to support user-specified excluded volume width. The grid-based excluded volume models
+            // also keep the grid at their dummy width by default: the lattice resolution is part of those models, and
+            // the coarser default hydration grid would otherwise change them
+            bool grid_exv = false;
+            switch (settings::exv::exv_method) {
+                case settings::exv::ExvMethod::Grid:
+                case settings::exv::ExvMethod::GridScalable:
+                case settings::exv::ExvMethod::GridSurface:
+                case settings::exv::ExvMethod::WAXSiS:
+                    grid_exv = true; break;
+                default: break;
+            }
+            if ((sub_exv_w->count() || grid_exv) && !sub_grid_w->count()) {
                 settings::grid::cell_width = static_cast<double>(settings::grid::exv::width);
             }
 

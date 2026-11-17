@@ -8,7 +8,7 @@
 using namespace ausaxs;
 
 settings::Setting<double> settings::grid::water_scaling{0.01};
-settings::Setting<double> settings::grid::cell_width{1};
+settings::Setting<double> settings::grid::cell_width{1.75};
 settings::Setting<double> settings::grid::scaling{0.25};
 settings::Setting<bool> settings::grid::cubic{false};
 settings::Setting<double> settings::grid::min_exv_radius{2.15};

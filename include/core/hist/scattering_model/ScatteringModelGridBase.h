@@ -24,7 +24,7 @@ namespace ausaxs::hist {
 
             /**
              * @brief Regenerate the internal form factor table for the grid-based calculations.
-             *        This must be called to reflect changes in settings::grid::exv::width.
+             *        This must be called to reflect changes in settings::grid::exv::width or settings::grid::cell_width.
              * @param ffx The excluded volume form factor to use.
              */
             template<FormFactorType T>

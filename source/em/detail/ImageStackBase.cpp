@@ -29,9 +29,16 @@
 using namespace ausaxs;
 using namespace ausaxs::em;
 
+namespace {
+    // the EM validation was calibrated on a 1 Å hydration grid, so it keeps that width regardless of the SAXS
+    // default. The dummy radius in read() depends on it as well.
+    constexpr double em_cell_width = 1;
+}
+
 ImageStackBase::ImageStackBase(const std::vector<Image>& images) 
     : data(images), size_x(images[0].N), size_y(images[0].M), size_z(static_cast<int>(images.size())) 
 {
+    settings::grid::cell_width = em_cell_width;
     for (int z = 0; z < size_z; ++z) {
         if (image(z).N != size_x || image(z).M != size_y) {throw except::invalid_argument("ImageStackBase::ImageStackBase: All images must have the same dimensions.");}
         image(z).set_z(z);
@@ -41,6 +48,7 @@ ImageStackBase::ImageStackBase(const std::vector<Image>& images)
 }
 
 ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
+    settings::grid::cell_width = em_cell_width;
     constants::filetypes::em_map.check(file);
     header = em::detail::factory::create_header(file);
 
