@@ -1,36 +1,45 @@
 /* Sora is the wordmark face of the home-page lockup only; Material loads the text and code fonts itself. */
 @import url("https://fonts.googleapis.com/css2?family=Sora:wght@800&display=swap");
 
-/* Colours follow the pyAUSAXS GUI palette (pyausaxs/gui/core/palette.py): slate text, blue accent. */
+/* Slate text from the pyAUSAXS GUI palette (pyausaxs/gui/core/palette.py), with the logo's gold as the single
+   accent: links, buttons, headings, rules and list markers. */
 :root,
 [data-md-color-scheme="default"] {
   --ausaxs-slate: #1f2733;
-  --ausaxs-blue: #2f7de0;
-  --ausaxs-blue-dark: #2569c0;
-  --ausaxs-blue-soft: #e4eefb;
   --ausaxs-gold: #b07c12;
+  --ausaxs-gold-text: #8a600c;               /* darker, for gold text and links on white */
+  --ausaxs-gold-hover: #b07c12;
+  --ausaxs-gold-line: rgba(176, 124, 18, 0.35);
+  --ausaxs-gold-soft: #fbf3e0;
+  --ausaxs-code-bg: #eaeef3;
+  --ausaxs-code-border: #d3dae3;
+  --ausaxs-code-fg: #1f2733;
 
   --md-primary-fg-color: var(--ausaxs-slate);
   --md-primary-fg-color--light: #3a4556;
   --md-primary-fg-color--dark: #141a22;
   --md-primary-bg-color: #ffffff;
-  --md-accent-fg-color: var(--ausaxs-blue);
-  --md-accent-fg-color--transparent: rgba(47, 125, 224, 0.1);
-  --md-typeset-a-color: var(--ausaxs-blue-dark);
+  --md-accent-fg-color: var(--ausaxs-gold-hover);
+  --md-accent-fg-color--transparent: rgba(176, 124, 18, 0.1);
+  --md-typeset-a-color: var(--ausaxs-gold-text);
 }
 
 [data-md-color-scheme="slate"] {
-  --ausaxs-blue: #6aa5f0;
-  --ausaxs-blue-dark: #8bb9f4;
-  --ausaxs-blue-soft: rgba(106, 165, 240, 0.12);
   --ausaxs-gold: #e3b341;
+  --ausaxs-gold-text: #e3b341;
+  --ausaxs-gold-hover: #f2cf72;
+  --ausaxs-gold-line: rgba(227, 179, 65, 0.35);
+  --ausaxs-gold-soft: rgba(227, 179, 65, 0.12);
+  --ausaxs-code-bg: #252d3a;
+  --ausaxs-code-border: #3a4556;
+  --ausaxs-code-fg: #e6edf3;
 
   --md-primary-fg-color: #161b22;
   --md-primary-fg-color--light: #2a313c;
   --md-primary-fg-color--dark: #0d1117;
-  --md-accent-fg-color: var(--ausaxs-blue);
-  --md-accent-fg-color--transparent: rgba(106, 165, 240, 0.12);
-  --md-typeset-a-color: var(--ausaxs-blue);
+  --md-accent-fg-color: var(--ausaxs-gold-hover);
+  --md-accent-fg-color--transparent: rgba(227, 179, 65, 0.12);
+  --md-typeset-a-color: var(--ausaxs-gold-text);
   --md-default-bg-color: #0f141b;
   --md-code-bg-color: #161c25;
 }
@@ -46,9 +55,72 @@
   letter-spacing: -0.01em;
 }
 
+/* A short gold bar under the page title. The home page wordmark is also an h1, so it is left out. */
+.md-typeset h1:not(.ausaxs-wordmark)::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 0.2rem;
+  margin-top: 0.5rem;
+  border-radius: 0.1rem;
+  background-color: var(--ausaxs-gold);
+}
+
+/* A permalink to the top of the page is of no use, and on long titles it wraps and pushes the bar down a line. */
+.md-typeset h1 .headerlink {
+  display: none;
+}
+
 .md-typeset h2 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--ausaxs-gold-line);
   font-weight: 600;
   letter-spacing: -0.005em;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+  color: var(--ausaxs-gold-text);
+}
+
+/* A gold strip along the top edge of the sticky header, drawn as a background so the header keeps its height. */
+.md-header {
+  background-image: linear-gradient(var(--ausaxs-gold), var(--ausaxs-gold));
+  background-size: 100% 0.15rem;
+  background-repeat: no-repeat;
+}
+
+.md-typeset ul li::marker,
+.md-typeset ol li::marker {
+  color: var(--ausaxs-gold);
+}
+
+.md-typeset ol li::marker {
+  font-weight: 700;
+}
+
+/* Table headers get a gold wash and a gold rule beneath them. */
+.md-typeset table:not([class]) th {
+  background-color: var(--ausaxs-gold-soft);
+  border-bottom: 2px solid var(--ausaxs-gold-line);
+}
+
+.md-typeset blockquote {
+  border-left-color: var(--ausaxs-gold);
+}
+
+/* Inline code: Material's default background is barely distinguishable from the page in either scheme,
+   so give it a stronger fill and a hairline outline. Code blocks keep Material's styling. */
+.md-typeset :not(pre) > code {
+  color: var(--ausaxs-code-fg);
+  background-color: var(--ausaxs-code-bg);
+  box-shadow: inset 0 0 0 1px var(--ausaxs-code-border);
+  border-radius: 0.2rem;
+}
+
+/* Inline code inside a link keeps the link colour, so it still reads as clickable. */
+.md-typeset a > code {
+  color: inherit;
 }
 
 /* ---------- Home page ---------- */
@@ -57,7 +129,7 @@
   margin: 0 0 2.5rem;
   padding: 2.5rem 0 2rem;
   text-align: center;
-  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  border-bottom: 1px solid var(--ausaxs-gold-line);
 }
 
 .ausaxs-lockup {
@@ -164,18 +236,18 @@
   margin: 0.3rem 0.25rem;
 }
 
-/* The GUI's accent button, the same in both schemes so the white label keeps its contrast. */
+/* The logo's bright gold with a slate label, the same in both schemes; white on gold is too faint to read. */
 .md-typeset .md-button--primary {
-  color: #ffffff;
-  background-color: #2f7de0;
-  border-color: #2f7de0;
+  color: #1f2733;
+  background-color: #e3b341;
+  border-color: #e3b341;
 }
 
 .md-typeset .md-button--primary:hover,
 .md-typeset .md-button--primary:focus {
-  color: #ffffff;
-  background-color: #2569c0;
-  border-color: #2569c0;
+  color: #1f2733;
+  background-color: #d09f2a;
+  border-color: #d09f2a;
 }
 
 /* Material draws outline buttons in the header colour, which vanishes on the dark background. */
@@ -186,9 +258,9 @@
 
 .md-typeset .md-button:not(.md-button--primary):hover,
 .md-typeset .md-button:not(.md-button--primary):focus {
-  color: var(--ausaxs-blue);
+  color: var(--ausaxs-gold-text);
   background-color: transparent;
-  border-color: var(--ausaxs-blue);
+  border-color: var(--ausaxs-gold);
 }
 
 /* The headline file formats and probes, as small pills under the tagline. */
@@ -207,14 +279,14 @@
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--ausaxs-blue-dark);
-  background-color: var(--ausaxs-blue-soft);
+  color: var(--ausaxs-gold-text);
+  background-color: var(--ausaxs-gold-soft);
   transition: border-color 150ms;
 }
 
 .md-typeset .ausaxs-pills a:hover,
 .md-typeset .ausaxs-pills a:focus-visible {
-  border-color: var(--ausaxs-blue);
+  border-color: var(--ausaxs-gold);
 }
 
 /* Card grid: a quiet border, lifted on hover. */
@@ -224,13 +296,17 @@
 }
 
 .md-typeset .grid.cards > ul > li:hover {
-  border-color: var(--ausaxs-blue);
+  border-color: var(--ausaxs-gold);
   box-shadow: 0 0.4rem 1.2rem rgba(31, 39, 51, 0.08);
   transform: translateY(-2px);
 }
 
 .md-typeset .grid.cards .lg {
-  color: var(--ausaxs-blue);
+  color: var(--ausaxs-gold);
+}
+
+.md-typeset .grid.cards hr {
+  border-bottom-color: var(--ausaxs-gold-line);
 }
 
 .md-typeset .grid.cards code {

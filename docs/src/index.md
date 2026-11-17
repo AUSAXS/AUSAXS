@@ -86,14 +86,3 @@ All tools are run through the single `ausaxs` executable as `ausaxs <tool> [opti
     [:octicons-arrow-right-24: pyAUSAXS on GitHub](https://github.com/AUSAXS/pyAUSAXS)
 
 </div>
-
-The [plotting scripts](plotting-scripts.md) turn the output of the command-line tools into figures.
-
-## Citing AUSAXS
-If you use AUSAXS in your work, please cite:
-
-- K. Lytje and J. S. Pedersen. Small-angle X-ray scattering profile calculation for high-resolution models of biomacromolecules. _J. Appl. Cryst._ (2025). doi: [10.1107/S160057672500562X](https://doi.org/10.1107/S160057672500562X)
-
-For EM map validation, please also cite:
-
-- Validation of electron-microscopy maps using solution small-angle X-ray scattering. _Acta Cryst. D_ (2024). doi: [10.1107/S2059798324005497](https://doi.org/10.1107/S2059798324005497)
