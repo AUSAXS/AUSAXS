@@ -18,6 +18,14 @@ void cli::add_general_options(CLI::App& app, const std::string& default_output) 
     app.add_option("--output,-o", settings::general::output.value, "Output folder to write the results to.")->default_val(default_output)->group("General options");
     app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); throw CLI::Success();}, "Print the licence.");
     app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
+    app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);
+    settings::general::gpu = gpu::installer::enabled(); // choosing a GPU with "ausaxs gpu install" is the opt-in
+    app.add_flag("--gpu,!--no-gpu", settings::general::gpu.value,
+        R"(Use GPU acceleration if available. On by default once a GPU is chosen with "ausaxs gpu install", unless turned off with "ausaxs gpu disable".)")
+        ->default_val(settings::general::gpu.value);
+}
+
+void cli::add_structure_options(CLI::App& app) {
     app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms.value,
         "Allow processing files with unknown atoms. Use only if you understand the implications.")
         ->default_val(settings::molecule::allow_unknown_atoms.value);
@@ -26,11 +34,6 @@ void cli::add_general_options(CLI::App& app, const std::string& default_output) 
         ->default_val(settings::molecule::allow_unknown_residues.value);
     app.add_flag("--offline", settings::general::offline.value, "Run the program in offline mode. This will prevent any network requests.")
         ->default_val(settings::general::offline.value);
-    app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);
-    settings::general::gpu = gpu::installer::enabled(); // choosing a GPU with "ausaxs gpu install" is the opt-in
-    app.add_flag("--gpu,!--no-gpu", settings::general::gpu.value,
-        R"(Use GPU acceleration if available. On by default once a GPU is chosen with "ausaxs gpu install", unless turned off with "ausaxs gpu disable".)")
-        ->default_val(settings::general::gpu.value);
 }
 
 void cli::add_config_subcommand(CLI::App& app, ConfigOptions& config, const std::string& log_name) {
@@ -109,7 +112,7 @@ std::optional<int> cli::parse(
         settings::read(config.file);
         return parse_once();                // the command line takes priority over the file
     }
-    if (settings::discover(discover_dir())) {
+    if (discover_dir && settings::discover(discover_dir())) {
         return parse_once();
     }
     return std::nullopt;

@@ -27,10 +27,15 @@ namespace ausaxs::cli {
     };
 
     /**
-     * @brief Register the top-level options: --output, --licence, --version, --allow-unknown-atoms, --allow-unknown-residues,
-     *        --offline, --threads and --gpu.
+     * @brief Register the top-level options of every tool: --output, --licence, --version, --threads and --gpu.
      */
     void add_general_options(CLI::App& app, const std::string& default_output);
+
+    /**
+     * @brief Register the top-level options of the tools that read atomic structures: --allow-unknown-atoms, --allow-unknown-residues
+     *        and --offline (unknown residues may otherwise be downloaded).
+     */
+    void add_structure_options(CLI::App& app);
 
     /**
      * @brief Register the config subcommand: --file, --save and --log.
@@ -64,10 +69,11 @@ namespace ausaxs::cli {
      *        the command line again so that it takes priority over the file.
      *
      * @param discover_dir The folder to look for a settings file in when none was given. Called after the first parse.
+     *                     If empty, no settings file is looked for.
      * @return The exit code if the program should stop (e.g. after --help or a parse error), otherwise nothing.
      */
     std::optional<int> parse(
-        CLI::App& app, int argc, char const* argv[], const ConfigOptions& config, const std::function<io::Folder()>& discover_dir
+        CLI::App& app, int argc, char const* argv[], const ConfigOptions& config, const std::function<io::Folder()>& discover_dir = {}
     );
 
     /**

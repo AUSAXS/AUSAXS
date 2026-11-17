@@ -50,6 +50,7 @@ namespace {
         auto* input_s = app.add_option("input_structure", pdb, "Path to the structure file.")->check(CLI::ExistingFile);
         auto* input_m = app.add_option("input_measurement", mfile, "Path to the measured " + probe_name + " data.")->check(CLI::ExistingFile);
         cli::add_general_options(app, "output/" + tool_name + "/");
+        cli::add_structure_options(app);
         cli::add_config_subcommand(app, config, tool_name);
         cli::add_data_subcommand(app, probe_name);
         cli::add_molecule_subcommand(app);

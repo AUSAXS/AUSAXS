@@ -39,6 +39,7 @@ int cli_debye(int argc, char const *argv[]) {
     app.fallthrough();
     auto* input_s = app.add_option("input_structure", structure, "Path to the structure file.")->check(CLI::ExistingFile);
     cli::add_general_options(app, "output/debye/");
+    cli::add_structure_options(app);
     app.add_option("--qmin", qmin, "Lower limit of the q-range in Å^-1.")->default_val(qmin)->check(CLI::NonNegativeNumber);
     app.add_option("--qmax", qmax, "Upper limit of the q-range in Å^-1.")->default_val(qmax)->check(CLI::PositiveNumber);
     app.add_option("--count,-n", count, "The number of q values, evenly spaced from qmin to qmax.")->default_val(count)->check(CLI::Range(2, 1000000));

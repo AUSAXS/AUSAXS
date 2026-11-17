@@ -2,66 +2,34 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_em_fitter.h>
+#include <api/cli/detail/CLICommon.h>
 
 #include <CLI/CLI.hpp>
 
+#include <constants/ValidFileExtensions.h>
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
 #include <fitter/FitReporter.h>
-#include <gpu/GPUInstaller.h>
 #include <hist/scattering_model/IScatteringModel.h>
 #include <plots/PlotDistance.h>
 #include <plots/PlotProfiles.h>
 #include <settings/All.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
-#include <utility/Logging.h>
 
 using namespace ausaxs;
 
 int cli_em_fitter(int argc, char const *argv[]) {
     settings::fit::verbose = true;
     settings::general::supplementary_plots = false;
-    bool save_settings = false;
-
-    io::ExistingFile mfile, mapfile, settings;
+    io::ExistingFile mfile, mapfile;
+    cli::ConfigOptions config;
     CLI::App app{"Fit an EM map to a SAXS measurement."};
     auto* input_map = app.add_option("input-map", mapfile, "Path to the EM map.")->check(CLI::ExistingFile);
     auto* input_saxs = app.add_option("input-saxs", mfile, "Path to the SAXS measurement.")->check(CLI::ExistingFile);
-    app.add_option("--output,-o", settings::general::output.value, "Output folder to write the results to.")->default_val("output/em_fitter/");
-    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); throw CLI::Success();}, "Print the licence.");
-    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
-    app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);
-    settings::general::gpu = gpu::installer::enabled(); // choosing a GPU with "ausaxs gpu install" is the opt-in
-    app.add_flag("--gpu,!--no-gpu", settings::general::gpu.value, 
-        R"(Use GPU acceleration if available. On by default once a GPU is chosen with "ausaxs gpu install", unless turned off with "ausaxs gpu disable".)")
-        ->default_val(settings::general::gpu.value);
-
-    // config subcommands
-    auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
-    auto* p_settings = sub_config->add_option("--file,-f", settings, "The configuration file to use.")->check(CLI::ExistingFile);
-    sub_config->add_flag("--save", save_settings, "Save the settings to a file.");
-    sub_config->add_flag_callback("--log", [] () {logging::start("em_fitter");}, "Enable logging to a file.");
-
-    // data subcommands
-    auto* sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.")->alias("saxs"); // "saxs" kept for backwards compatibility
-    sub_data->add_option(
-        "--qmax", 
-        settings::axes::qmax.value,
-        "Upper limit on used q values from the measurement file.")
-        ->default_val(settings::axes::qmax.value)
-        ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
-    ;
-    sub_data->add_option(
-        "--qmin", 
-        settings::axes::qmin.value,
-        "Lower limit on used q values from the measurement file.")
-        ->default_val(settings::axes::qmin.value)
-        ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
-    ;
-    sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, "The unit of the q values in the measurement file. Options: A, nm.");
-    sub_data->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
-    sub_data->add_flag("--rebin", settings::axes::rebin.value, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin.value);
+    cli::add_general_options(app, "output/em_fitter/");
+    cli::add_config_subcommand(app, config, "em_fitter");
+    cli::add_data_subcommand(app, "SAXS")->alias("saxs"); // "saxs" kept for backwards compatibility
 
     // em subcommands
     auto* sub_em = app.add_subcommand("em", "See and set additional options for the EM map.");
@@ -79,7 +47,7 @@ int cli_em_fitter(int argc, char const *argv[]) {
 
     app.final_callback([&] () {
         // save settings if requested
-        if (save_settings) {
+        if (config.save) {
             settings::write("settings.txt");
             console::print_info("Settings saved to settings.txt in current directory.");
             if (!input_map->count() || !input_saxs->count()) { // gracefully exit if no input files are provided
@@ -103,18 +71,7 @@ int cli_em_fitter(int argc, char const *argv[]) {
     //### PARSE INPUT ###//
     //###################//
     try {
-        CLI11_PARSE(app, argc, argv);
-        console::print_info("Running AUSAXS " + std::string(constants::version));
-
-        // if a settings file was provided
-        if (p_settings->count() != 0) {
-            settings::read(settings);        // read it
-            CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
-        } else {                            // otherwise check if there is a settings file in the same directory
-            if (settings::discover(mfile.directory())) {
-                CLI11_PARSE(app, argc, argv);
-            }
-        }
+        if (auto code = cli::parse(app, argc, argv, config, [&] () {return mfile.directory();})) {return *code;}
 
         bool simulate = input_saxs->count() == 0u; // no SAXS measurement -> output a raw profile instead of fitting
 

@@ -2,14 +2,12 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_rigidbody.h>
+#include <api/cli/detail/CLICommon.h>
 
 #include <CLI/CLI.hpp>
 
-#include <constants/ConstantsAxes.h>
 #include <constants/ValidFileExtensions.h>
-#include <constants/Version.h>
 #include <fitter/FitReporter.h>
-#include <gpu/GPUInstaller.h>
 #include <io/File.h>
 #include <rigidbody/sequencer/detail/SequenceParser.h>
 #include <settings/All.h>
@@ -25,68 +23,17 @@ int cli_rigidbody(int argc, char const *argv[]) {
     settings::grid::scaling = 2;
     settings::grid::cubic = true;
     settings::general::verbose = true;
-    settings::general::output = "output/rigidbody/";
-    bool save_settings = false;
-
-    io::File script, settings;
+    io::File script;
+    cli::ConfigOptions config;
     CLI::App app{"Perform rigid-body optimization."};
     app.fallthrough();
     auto* p_script = app.add_option("input_script", script, "Path to the rigid-body configuration script.")->check(CLI::ExistingFile);
-    app.add_flag_callback("--licence",    [] () {console::print_text(constants::licence); throw CLI::Success();}, "Print the licence.");
-    app.add_flag_callback("-v,--version", [] () {console::print_text(constants::version); throw CLI::Success();}, "Print the AUSAXS version.");
-    app.add_flag("--allow-unknown-atoms", settings::molecule::allow_unknown_atoms.value, 
-        "Allow processing files with unknown atoms. Use only if you understand the implications.")
-        ->default_val(settings::molecule::allow_unknown_atoms.value);
-    app.add_flag("--allow-unknown-residues", settings::molecule::allow_unknown_residues.value,
-        "Allow processing files with unknown residues. Use only if you understand the implications.")
-        ->default_val(settings::molecule::allow_unknown_residues.value);
-    app.add_flag("--offline", settings::general::offline.value, "Run the program in offline mode. This will prevent any network requests.")
-        ->default_val(settings::general::offline.value);
-    app.add_option("--threads,-t", settings::general::threads.value, "Number of threads to use.")->default_val(settings::general::threads.value);    
-    settings::general::gpu = gpu::installer::enabled(); // choosing a GPU with "ausaxs gpu install" is the opt-in
-    app.add_flag("--gpu,!--no-gpu", settings::general::gpu.value, 
-        R"(Use GPU acceleration if available. On by default once a GPU is chosen with "ausaxs gpu install", unless turned off with "ausaxs gpu disable".)")
-        ->default_val(settings::general::gpu.value);
-
-    // config subcommands
-    auto* sub_config = app.add_subcommand("config", "See and set additional options for the configuration.");
-    auto* p_settings = sub_config->add_option("--file,-f", settings, "The configuration file to use.")->check(CLI::ExistingFile);
-    sub_config->add_flag("--save", save_settings, "Save the settings to a file.");
-    sub_config->add_flag_callback("--log", [] () {logging::start("saxs_fitter");}, "Enable logging to a file.");
-
-    // data subcommands
-    auto* sub_data = app.add_subcommand("data", "See and set additional options for the SAXS data.");
-    sub_data->add_option(
-        "--qmax", 
-        settings::axes::qmax.value,
-        "Upper limit on used q values from the measurement file.")
-        ->default_val(settings::axes::qmax.value)
-        ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
-    ;
-    sub_data->add_option(
-        "--qmin", 
-        settings::axes::qmin.value,
-        "Lower limit on used q values from the measurement file.")
-        ->default_val(settings::axes::qmin.value)
-        ->check(CLI::Range(constants::axes::q_axis.min, constants::axes::q_axis.max))
-    ;
-    sub_data->add_option_function<std::string>("--unit,-u", [] (const std::string& s) {settings::detail::parse_option("unit", {s});}, 
-        "The unit of the q values in the measurement file. Options: A, nm.");
-    sub_data->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
-    sub_data->add_flag("--rebin", settings::axes::rebin.value, "Rebin the data to increase the information content of each data point.")->default_val(settings::axes::rebin.value);
-    sub_data->add_flag("--weighted-bins", settings::hist::weighted_bins.value, "Use weighted bins (true/false). By default, this is automatically decided for each molecule.")->default_val(settings::hist::weighted_bins.value);
-
-    // molecule subcommands
-    auto* sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
-    sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy.value, 
-        "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy.value);
-
-    // hydrogen subcommands
-    auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydrogen atoms.");
-    sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens.value, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens.value);
-    sub_hydrogen->add_flag("--force-field-names", settings::molecule::force_field_residue_names.value, 
-        "Parse forcefield residue names (protonation states HID, HSE, CYX, ...; water SOL) by their forcefield meaning instead of their usual CCD definitions.")
-        ->default_val(settings::molecule::force_field_residue_names.value);
+    cli::add_general_options(app, "output/rigidbody/");
+    cli::add_structure_options(app);
+    cli::add_config_subcommand(app, config, "rigidbody");
+    cli::add_data_subcommand(app, "SAXS");
+    cli::add_molecule_subcommand(app);
+    cli::add_hydrogens_subcommand(app);
 
     // grid subcommands
     auto* sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
@@ -94,7 +41,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
         "The distance between each grid point in Ångström. Lower widths increase the precision."
     )->default_val(settings::grid::cell_width.value);
 
-    app.final_callback([&] () {if (save_settings) {
+    app.final_callback([&] () {if (config.save) {
         settings::write("settings.txt");
         console::print_info("Settings saved to settings.txt in current directory.");
     }});
@@ -103,8 +50,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     //### PARSE INPUT ###//
     //###################//
     try {
-        CLI11_PARSE(app, argc, argv);
-        console::print_info("Running AUSAXS " + std::string(constants::version));
+        if (auto code = cli::parse(app, argc, argv, config)) {return *code;} // no settings file is looked for next to the script
         logging::start("rigidbody");
 
         // rigid-body optimization is only available through the sequencer configuration format
@@ -116,12 +62,6 @@ int cli_rigidbody(int argc, char const *argv[]) {
                 "rigidbody: The input file \"" + script.str() + "\" is not a configuration script. "
                 "Rigid-body optimization must be described in a configuration script."
             );
-        }
-
-        // if a settings file was provided, read it and re-parse the command line arguments so they take priority
-        if (p_settings->count() != 0) {
-            settings::read(settings);
-            CLI11_PARSE(app, argc, argv);
         }
 
         auto res = rigidbody::sequencer::SequenceParser().parse_file(script)->execute();
