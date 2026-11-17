@@ -1,6 +1,9 @@
 name: GPU backend (Windows)
 
 # The Windows backend package. Called by gpu-backend-release.yml, which must grant packages: write for the toolchain package.
+#
+# One package for both vendors: the CUDA and HIP runtimes are both shipped, though a user needs only one of them. The HIP half alone
+# adds about 160 MB, most of it comgr. Splitting the package by vendor is BL-322.
 on:
   workflow_call:
 
@@ -9,10 +12,14 @@ env:
   WINDOWS_LLVM_VERSION: "20"
   WINDOWS_BASE_LLVM_VERSION: "19"
   WINDOWS_CUDA_VERSION: "12.6.1"
+  WINDOWS_ROCM_VERSION: "10.1.0"
+  ROCM_INDEX: https://stable.repo.amd.com/rocm/whl-next/
 
 jobs:
-  # Follows AdaptiveCpp's windows-acppllvm.yml. Only CUDA is covered: that workflow never builds the ROCm or
-  # OpenCL backends on Windows, so neither has been shown to work there.
+  # Follows AdaptiveCpp's windows-acppllvm.yml, which covers CUDA only. Its CI never builds HIP on Windows; the HIP backend is
+  # reported working there with the generic JIT (AdaptiveCpp issue #1023), and needs the patch in .github/acpp.patch. ROCm comes from
+  # AMD's TheRock pip wheels rather than the classic HIP SDK installer, as llama.cpp does: the wheels are current (the HIP SDK installer
+  # lags far behind) and install without administrator rights.
   backend-windows:
     name: "SYCL backend (Windows x86_64)"
     runs-on: windows-2022
@@ -24,6 +31,9 @@ jobs:
       ACPP_LLVM_SRC: ${{ github.workspace }}\_src
       DIST: ${{ github.workspace }}\_deploy
       GPU_PACKAGE: dist\ausaxs-gpu-windows-x64
+      # A fixed path: the ROCm root is compiled into the toolchain and is part of its description, so it must be the same in every run
+      # for a published toolchain to be found again.
+      ROCM_VENV: C:\rocm-venv
     defaults:
       run:
         shell: pwsh
@@ -42,16 +52,59 @@ jobs:
         with:
           arch: x64
 
+      # Needed on a toolchain hit too: the device bitcode and the runtime DLLs are copied out of it into the package. The core wheel holds
+      # the runtime, hipRTC, comgr and the device libraries; devel adds the CMake configs, as a tarball that `rocm-sdk init` unpacks.
+      - name: Install ROCm ${{ env.WINDOWS_ROCM_VERSION }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          python -m venv $env:ROCM_VENV
+          & "$env:ROCM_VENV\Scripts\python.exe" -m pip install --no-cache-dir --upgrade pip
+          & "$env:ROCM_VENV\Scripts\python.exe" -m pip install --no-cache-dir --index-url $env:ROCM_INDEX "rocm[devel]==$env:WINDOWS_ROCM_VERSION"
+          $rocmsdk = "$env:ROCM_VENV\Scripts\rocm-sdk.exe"
+          & $rocmsdk init
+          $root = (& $rocmsdk path --root).Trim()
+          Write-Host "ROCm root: $root"
+
+          $missing = 0
+          foreach ($file in 'lib\llvm\amdgcn\bitcode\ockl.bc', 'lib\amdhip64.lib', 'lib\hiprtc.lib', 'lib\llvm\bin\clang.exe') {
+            if (Test-Path (Join-Path $root $file)) { Write-Host "  ok      $file" }
+            else { Write-Host "  MISSING $file"; $missing = 1 }
+          }
+          if ($missing) { Write-Host "::error::the ROCm root lacks files the toolchain build needs"; exit 1 }
+          # Without it AdaptiveCpp falls back to ROCM_LIBS, which the toolchain description sets for exactly this case.
+          if (-not (Get-ChildItem -Recurse -File (Join-Path $root 'lib\cmake') -Filter hip-config.cmake -ErrorAction SilentlyContinue)) {
+            Write-Host "::warning::no hip-config.cmake under $root\lib\cmake; AdaptiveCpp will link amdhip64 through ROCM_LIBS"
+          }
+
+          # hipRTC hands our bitcode to comgr, which reads it with ROCm's own LLVM. Bitcode only reads forward, so ROCm's LLVM must be
+          # at least as new as ours. AdaptiveCpp checks this itself, but not when it is built as part of LLVM, as here.
+          $version = & "$root\lib\llvm\bin\clang.exe" --version | Out-String
+          Write-Host $version
+          $major = [regex]::Match($version, 'clang version ([0-9]+)').Groups[1].Value
+          if (-not $major -or ([int]$major -lt [int]$env:WINDOWS_LLVM_VERSION)) {
+            Write-Host "::error::ROCm's LLVM ($major) is older than the LLVM AdaptiveCpp is built with ($env:WINDOWS_LLVM_VERSION)"
+            exit 1
+          }
+
+          # Forward slashes, since every use is a CMake path, and deploy matches the device library entry on its trailing '/*'.
+          "ROCM_ROOT=$($root -replace '\\', '/')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
       # One argument per line. The build step configures with exactly these, and the file's hash is the
       # package version, so a changed flag or pin can never fetch a toolchain that was built another way.
       - name: Describe the AdaptiveCpp-LLVM toolchain
         id: toolchain
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
+          # The AdaptiveCpp patch the build step applies is part of the description, so a changed patch never fetches a toolchain
+          # built without it.
+          $patch = (Get-FileHash .github\acpp.patch -Algorithm SHA256).Hash.ToLower()
           $pins = "# image=$env:ImageOS llvm=release/$env:WINDOWS_LLVM_VERSION.x base-llvm=$env:WINDOWS_BASE_LLVM_VERSION " +
-                  "cuda=$env:WINDOWS_CUDA_VERSION acpp=$env:ACPP_REPO@$env:ACPP_COMMIT"
+                  "cuda=$env:WINDOWS_CUDA_VERSION rocm=$env:WINDOWS_ROCM_VERSION acpp=$env:ACPP_REPO@$env:ACPP_COMMIT acpp-patch=$patch"
           # LINK_INTO_TOOLS is what makes this work at all: a Windows DLL cannot be loaded into clang as a
           # plugin, so the SSCP compiler has to be linked into clang itself.
+          # ROCM_DEVICE_LIBS_PATH is needed because AdaptiveCpp looks for the device libraries in $ROCM_PATH/amdgcn/bitcode, while
+          # TheRock keeps them under lib/llvm. ROCM_LIBS is only read if find_package(HIP) fails; its default is a GNU-style -L/-l
+          # line that clang-cl cannot link with.
           $cmakeArgs = @(
             '-S', "$env:ACPP_LLVM_SRC\llvm\llvm",
             '-B', "$env:ACPP_LLVM_SRC\build",
@@ -60,15 +113,18 @@ jobs:
             '-DCMAKE_C_COMPILER=clang-cl',
             '-DCMAKE_CXX_COMPILER=clang-cl',
             "-DCMAKE_INSTALL_PREFIX=$env:ACPP_PREFIX",
-            '-DLLVM_TARGETS_TO_BUILD=X86;NVPTX',
+            '-DLLVM_TARGETS_TO_BUILD=X86;NVPTX;AMDGPU',
             '-DLLVM_ENABLE_PROJECTS=clang;openmp;lld;compiler-rt',
             '-DLLVM_PARALLEL_LINK_JOBS=1',
             '-DLLVM_EXTERNAL_PROJECTS=AdaptiveCpp',
             "-DLLVM_EXTERNAL_ADAPTIVECPP_SOURCE_DIR=$env:ACPP_LLVM_SRC\acpp",
             '-DLLVM_ADAPTIVECPP_LINK_INTO_TOOLS=ON',
             '-DWITH_CUDA_BACKEND=ON',
-            '-DWITH_ROCM_BACKEND=OFF',
+            '-DWITH_ROCM_BACKEND=ON',
             '-DWITH_OPENCL_BACKEND=OFF',
+            "-DROCM_PATH=$env:ROCM_ROOT",
+            "-DROCM_DEVICE_LIBS_PATH=$env:ROCM_ROOT/lib/llvm/amdgcn/bitcode",
+            "-DROCM_LIBS=$env:ROCM_ROOT/lib/amdhip64.lib",
             '-DLLVM_TOOL_BUGPOINT_BUILD=OFF',
             '-DOPENMP_ENABLE_LIBOMPTARGET=OFF',
             '-DLLVM_INCLUDE_TESTS=OFF'
@@ -157,6 +213,9 @@ jobs:
           git clone --recurse-submodules $env:ACPP_REPO "$env:ACPP_LLVM_SRC\acpp"
           git -C "$env:ACPP_LLVM_SRC\acpp" checkout $env:ACPP_COMMIT
           git -C "$env:ACPP_LLVM_SRC\acpp" submodule update --init --recursive
+          # hipRTC on Windows rejects a device library named by its full path, which AdaptiveCpp passes and does not check, so
+          # kernels fail to link. The patch is meant for upstream; drop it once AdaptiveCpp has an equivalent fix.
+          git -C "$env:ACPP_LLVM_SRC\acpp" apply --verbose "$env:GITHUB_WORKSPACE\.github\acpp.patch"
 
           $cmakeArgs = Get-Content _toolchain\acpp-llvm.txt | Where-Object { $_ -and -not $_.StartsWith('#') }
           cmake @cmakeArgs
@@ -215,9 +274,11 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           python "$env:ACPP_PREFIX\bin\acpp" --version
-          if (-not (Test-Path "$env:ACPP_PREFIX\bin\clang.exe")) {
-            Write-Host "::error::the AdaptiveCpp-LLVM install has no clang.exe"
-            exit 1
+          foreach ($file in 'bin\clang.exe', 'bin\hipSYCL\rt-backend-cuda.dll', 'bin\hipSYCL\rt-backend-hip.dll') {
+            if (-not (Test-Path "$env:ACPP_PREFIX\$file")) {
+              Write-Host "::error::the AdaptiveCpp-LLVM install has no $file"
+              exit 1
+            }
           }
 
       - name: Deploy runtime components
@@ -237,6 +298,16 @@ jobs:
 
           Deploy-Component core 'acpp-rt.dll'
           Deploy-Component cuda 'hipSYCL\ext\bitcode\ptx\libdevice.10.bc'
+          Deploy-Component hip 'hipSYCL\ext\bitcode\amdgcn\ockl.bc'
+
+          # The CPU plugin, rt-backend-omp.dll, imports libomp.dll, and AdaptiveCpp terminates the process
+          # when no CPU backend loads, even if a GPU backend did. The core manifest names libomp by find_library,
+          # which on Windows finds the import library, so the DLL is never deployed. It goes beside acpp-rt.dll,
+          # whose directory the runtime adds to the plugins' DLL search path.
+          $libomp = Get-ChildItem -Recurse -File $env:ACPP_PREFIX -Filter 'libomp.dll' | Select-Object -First 1
+          if (-not $libomp) { Write-Host "::error::no libomp.dll in $env:ACPP_PREFIX"; exit 1 }
+          Copy-Item $libomp.FullName "$env:DIST\core\"
+          Write-Host "deployed $($libomp.FullName)"
 
           # The cuda component names cudart by CUDA_cudart_LIBRARY, which on Windows is the import library cudart.lib rather than the
           # DLL the plugin loads, so cudart64_*.dll is never deployed.
@@ -255,6 +326,41 @@ jobs:
           }
           Copy-Item $source.FullName "$env:DIST\cuda\"
           Write-Host "deployed $($source.FullName)"
+
+          # The hip manifest names ROCm's libraries by find_library, which on Windows finds the import libraries (amdhip64.lib, ...)
+          # rather than the DLLs, so none of the runtime is deployed. Copy every DLL the deployed component imports from ROCm, and
+          # theirs in turn. hiprtc-builtins and comgr are loaded with LoadLibrary rather than imported, so dumpbin cannot see them.
+          $hip = "$env:DIST\hip"
+          $rocmBin = Join-Path $env:ROCM_ROOT 'bin'
+          $queue = [System.Collections.Generic.Queue[string]]::new()
+          foreach ($dll in (Get-ChildItem -Recurse -File $hip -Filter *.dll)) { $queue.Enqueue($dll.FullName) }
+          foreach ($dll in (Get-ChildItem -File -Path "$rocmBin\*" -Include 'hiprtc-builtins*.dll', 'amd_comgr*.dll')) {
+            Copy-Item $dll.FullName "$hip\"
+            Write-Host "deployed $($dll.FullName)"
+            $queue.Enqueue("$hip\$($dll.Name)")
+          }
+          $seen = @{}
+          while ($queue.Count -gt 0) {
+            $current = $queue.Dequeue()
+            $imports = dumpbin /nologo /dependents $current | ForEach-Object { if ($_ -match '^\s+(\S+\.dll)\s*$') { $Matches[1] } }
+            foreach ($name in $imports) {
+              $source = Join-Path $rocmBin $name
+              if ($seen.ContainsKey($name.ToLower()) -or -not (Test-Path $source) -or (Test-Path "$hip\$name")) { continue }
+              $seen[$name.ToLower()] = $true
+              Copy-Item $source "$hip\"
+              Write-Host "deployed $source (imported by $(Split-Path -Leaf $current))"
+              $queue.Enqueue("$hip\$name")
+            }
+          }
+
+          # hiprtc missing means llvm-to-amdgpu was built without ACPP_HIPRTC_LINK, and would instead run clang at JIT time, which the
+          # package does not ship.
+          $missing = 0
+          foreach ($pattern in 'amdhip64_*.dll', 'hiprtc0*.dll', 'hiprtc-builtins*.dll', 'amd_comgr*.dll') {
+            if (Get-ChildItem -File $hip -Filter $pattern) { Write-Host "  ok      $pattern" }
+            else { Write-Host "  MISSING $pattern"; $missing = 1 }
+          }
+          if ($missing) { Write-Host "::error::the hip component lacks part of the ROCm runtime"; exit 1 }
 
           Get-ChildItem $env:DIST -Directory | ForEach-Object {
             $bytes = (Get-ChildItem $_.FullName -Recurse -File | Measure-Object -Property Length -Sum).Sum
@@ -317,6 +423,34 @@ jobs:
       - name: Prune runtime package
         run: python .github/prune_gpu_package.py $env:GPU_PACKAGE
 
+      # Every DLL imported from inside the package must be shipped with it or come with Windows. Checked before
+      # the probe below, which cannot name a missing dependency of a plugin: AdaptiveCpp only terminates.
+      - name: Check for dependencies outside the package
+        run: |
+          $files = Get-ChildItem -Recurse -File $env:GPU_PACKAGE -Include *.dll, *.exe
+          $local = $files | ForEach-Object { $_.Name.ToLower() } | Sort-Object -Unique
+          $system = Join-Path $env:SystemRoot 'System32'
+          $outside = foreach ($f in $files) {
+            dumpbin /nologo /dependents $f.FullName | ForEach-Object {
+              if ($_ -match '^\s+(\S+\.dll)\s*$') { $Matches[1].ToLower() }
+            }
+          }
+          $outside = @($outside | Sort-Object -Unique | Where-Object {
+            ($local -notcontains $_) -and ($_ -notlike 'api-ms-win-*') -and ($_ -notlike 'ext-ms-*') -and
+            -not (Test-Path (Join-Path $system $_))
+          })
+          $report = @('## Dependencies resolved outside the runtime package (Windows)', '```') + $outside + @('```')
+          $report | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+          # nvcuda.dll is the one exception: like libcuda.so on Linux it comes with the driver and must not be shipped. AMD's
+          # driver also installs amdhip64, but the package ships its own, so nothing on the HIP side is allowed from outside.
+          $unexpected = @($outside | Where-Object { $_ -ne 'nvcuda.dll' })
+          if ($unexpected.Count -gt 0) {
+            Write-Host "::error::the package imports DLLs it does not ship: $($unexpected -join ', ')"
+            exit 1
+          }
+
+      # The runner has no GPU, so the backend is expected to load and report itself unavailable.
       - name: Load backend and query the ABI
         run: |
           $expected_version = [regex]::Match((Get-Content include\gpu\gpu\GPUBackendABI.h -Raw), 'version *= *([0-9]+)').Groups[1].Value
@@ -344,8 +478,12 @@ jobs:
           cl /nologo "$env:RUNNER_TEMP\abi_probe.c" "/Fo:$env:RUNNER_TEMP\abi_probe.obj" "/Fe:$env:RUNNER_TEMP\abi_probe.exe"
           if ($LASTEXITCODE -ne 0) { Write-Host "::error::the probe did not compile"; exit 1 }
 
-          # Nothing is added to PATH: the package has to find itself, as it will on a user's machine. The version
-          # is parsed out of stdout, so bumping the ABI can never collide with the probe's exit codes.
+          # The package has to find itself, as it will on a user's machine, so PATH is cut down to the system
+          # directories. The runner's PATH holds other toolchains, and AdaptiveCpp retries a plugin that fails to
+          # load with a plain LoadLibrary, which searches PATH, so a DLL missing from the package would otherwise go
+          # unnoticed. The probe links the CRT statically and needs nothing else. The version is parsed out of
+          # stdout, so bumping the ABI can never collide with the probe's exit codes.
+          $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot"
           $out = & "$env:RUNNER_TEMP\abi_probe.exe" "$PWD\$env:GPU_PACKAGE\ausaxs_gpu_sycl.dll" 2>&1 | Out-String
           $rc = $LASTEXITCODE
           Write-Host $out
@@ -359,25 +497,6 @@ jobs:
             exit 1
           }
           Write-Host "ABI version $reported matches the header."
-
-      - name: Report dependencies resolved outside the package
-        continue-on-error: true
-        run: |
-          $files = Get-ChildItem -Recurse -File $env:GPU_PACKAGE -Include *.dll, *.exe
-          $local = $files | ForEach-Object { $_.Name.ToLower() } | Sort-Object -Unique
-          $system = Join-Path $env:SystemRoot 'System32'
-          $outside = foreach ($f in $files) {
-            dumpbin /nologo /dependents $f.FullName | ForEach-Object {
-              if ($_ -match '^\s+(\S+\.dll)\s*$') { $Matches[1].ToLower() }
-            }
-          }
-          # nvcuda.dll is expected here: like libcuda.so on Linux it comes with the driver and must not be shipped.
-          $outside = $outside | Sort-Object -Unique | Where-Object {
-            ($local -notcontains $_) -and ($_ -notlike 'api-ms-win-*') -and ($_ -notlike 'ext-ms-*') -and
-            -not (Test-Path (Join-Path $system $_))
-          }
-          $report = @('## Dependencies resolved outside the runtime package (Windows)', '```') + $outside + @('```')
-          $report | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
       - uses: actions/upload-artifact@v4
         with:
