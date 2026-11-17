@@ -9,8 +9,21 @@ hide:
 <div class="ausaxs-hero" markdown>
 
 <div class="ausaxs-lockup">
-  <img class="ausaxs-mark" src="assets/logo-light.svg#only-light" alt="">
-  <img class="ausaxs-mark" src="assets/logo.svg#only-dark" alt="">
+  <!-- Inline copy of assets/logo.svg, so extra.css can theme and animate it. -->
+  <svg class="ausaxs-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 6 60 52" aria-hidden="true">
+    <defs>
+      <radialGradient id="ausaxs-sphere" cx="0.36" cy="0.32" r="0.75">
+        <stop offset="0" stop-color="#fff1b8"/>
+        <stop offset="0.45" stop-color="#e3b341"/>
+        <stop offset="1" stop-color="#8f620b"/>
+      </radialGradient>
+    </defs>
+    <line class="beam" x1="2" y1="32" x2="10" y2="32" stroke-width="2.6" stroke-linecap="round" opacity="0.45"/>
+    <circle class="particle" cx="19" cy="32" r="9.5" fill="url(#ausaxs-sphere)"/>
+    <path class="wave wave-1" d="M33.55 19.79 A19 19 0 0 1 33.55 44.21" fill="none" stroke-width="4.2" stroke-linecap="round" opacity="1"/>
+    <path class="wave wave-2" d="M40.45 14.00 A28 28 0 0 1 40.45 50.00" fill="none" stroke-width="3.6" stroke-linecap="round" opacity="0.68"/>
+    <path class="wave wave-3" d="M47.34 8.22 A37 37 0 0 1 47.34 55.78" fill="none" stroke-width="3.0" stroke-linecap="round" opacity="0.4"/>
+  </svg>
   <h1 class="ausaxs-wordmark"><span class="au">AU</span>SAXS</h1>
 </div>
 

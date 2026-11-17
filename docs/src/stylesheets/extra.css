@@ -72,6 +72,70 @@
 .ausaxs-lockup .ausaxs-mark {
   width: 1.3em;
   height: auto;
+  overflow: visible;
+}
+
+/* Logo intro on page load: the beam slides in, strikes the particle, and the wavefronts follow one by one.
+   The end state of every keyframe is the static logo, so nothing changes once the animation has run. */
+.ausaxs-mark {
+  --ausaxs-beam: #1f2733;
+  --intro-beam: 0.45s;   /* beam travel time; the particle is struck when it ends */
+  --intro-wave: 0.5s;    /* delay between successive wavefronts */
+}
+
+[data-md-color-scheme="slate"] .ausaxs-mark {
+  --ausaxs-beam: #ffffff;
+}
+
+.ausaxs-mark .beam {
+  stroke: var(--ausaxs-beam);
+}
+
+.ausaxs-mark .wave {
+  stroke: var(--ausaxs-gold);
+}
+
+/* Transforms are in the SVG's user units, scaled about the particle centre (19, 32). */
+.ausaxs-mark .particle,
+.ausaxs-mark .wave {
+  transform-box: view-box;
+  transform-origin: 19px 32px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ausaxs-mark .beam {
+    animation: ausaxs-beam-in var(--intro-beam) cubic-bezier(0.3, 0, 0.6, 1) both;
+  }
+
+  /* One strike per wavefront, each just ahead of its wave. No fill mode: a backwards fill would hold
+     the later strikes at rest and mask the earlier ones, and the keyframes start and end at rest anyway. */
+  .ausaxs-mark .particle {
+    animation:
+      ausaxs-strike 0.3s ease-out var(--intro-beam),
+      ausaxs-strike 0.3s ease-out calc(var(--intro-beam) + var(--intro-wave)),
+      ausaxs-strike 0.3s ease-out calc(var(--intro-beam) + 2 * var(--intro-wave));
+  }
+
+  .ausaxs-mark .wave {
+    animation: ausaxs-wave-out 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+
+  .ausaxs-mark .wave-1 { animation-delay: calc(var(--intro-beam) + 0.1s); }
+  .ausaxs-mark .wave-2 { animation-delay: calc(var(--intro-beam) + 0.1s + var(--intro-wave)); }
+  .ausaxs-mark .wave-3 { animation-delay: calc(var(--intro-beam) + 0.1s + 2 * var(--intro-wave)); }
+}
+
+/* The keyframes leave the final opacity out, so each element settles on its own opacity attribute. */
+@keyframes ausaxs-beam-in {
+  from { transform: translateX(-9px); opacity: 0; }
+}
+
+@keyframes ausaxs-strike {
+  40% { transform: scale(1.07); }
+}
+
+@keyframes ausaxs-wave-out {
+  from { transform: scale(0.8); opacity: 0; }
 }
 
 .md-typeset .ausaxs-wordmark {
