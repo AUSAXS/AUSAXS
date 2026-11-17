@@ -29,6 +29,13 @@ extern "C" API void load_settings(
 );
 
 /**
+ * @brief Restore every setting to its default value.
+ */
+extern "C" API void reset_settings(
+    int* status
+);
+
+/**
  * @brief The default q-axis of the Debye transforms, i.e. the one used when no q values are given.
  */
 extern "C" API int get_q_axis(
