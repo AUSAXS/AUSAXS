@@ -8,15 +8,20 @@ hide:
 
 # Rigid-body refinement
 
-<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> refines multi-domain proteins and complexes against SAXS data. Rigid parts of an atomic model are moved around until its profile fits the measurement.
+<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> refines multi-domain proteins and complexes against SAXS or SANS data, by moving rigid parts of an atomic model until its profile fits the measurement.
 
-## How it works
-- **Bodies.** The structure is split into rigid bodies: by chain, at given residues, or one per file.
-- **Constraints.** The bodies are held together by constraints, such as the backbone bonds between the domains of a single chain. Overlapping bodies are penalised.
-- **Symmetries.** A symmetric assembly is built from a single subunit, and only the parameters of the symmetry are refined.
-- **The optimization.** Each step moves a body or a symmetry at random, and the move is kept if it lowers the χ².
+## Why rigid bodies
+- **What is known.** High-resolution structures are often available for the individual domains of a protein, or the subunits of a complex. What is missing is how they are arranged in solution, for instance when they are joined by flexible linkers or crystallised separately.
+- **What the data can tell.** A solution scattering profile is a one-dimensional, orientationally averaged measurement. It cannot determine an atomic structure, but it is sensitive to the overall shape. This is what the arrangement of a few large rigid bodies changes.
+- **Constraints.** The arrangement must also be physically sensible: domains of the same chain stay connected through their linkers, and bodies may not overlap. Such constraints rule out many arrangements that would otherwise fit equally well.
+- **Symmetries.** Many complexes are symmetric assemblies of identical subunits. Building them from a single subunit and refining only the symmetry leaves far fewer parameters to determine from the data.
 
-The whole procedure is described by a short configuration script, so you decide which parts move, how far, and for how long.
+<figure markdown="span">
+![The five rigid bodies of the LAR1-2 protein, drawn as backbone traces in different colours, shift and rotate relative to each other while staying connected as the refinement fits them to SAXS data.](assets/figures/rigidbody-trajectory.gif#only-light){ width="400" }
+![The five rigid bodies of the LAR1-2 protein, drawn as backbone traces in different colours, shift and rotate relative to each other while staying connected as the refinement fits them to SAXS data.](assets/figures/rigidbody-trajectory-dark.gif#only-dark){ width="400" }
+</figure>
+
+Since the data hold only low-resolution information, a good fit does not prove that a model is correct. It should be checked against what else is known about the system.
 
 > [!NOTE]
 > Rigid-body refinement is still in active development.
@@ -68,7 +73,7 @@ save dimer.pdb
     fit = rb.run() # columns q, I, I_err, I_fit
     ```
 
-The refined dimer is written to `output/dimer/dimer.pdb`. It fits the data better than the deposited dimer model does.
+The refined dimer fits the data better than the deposited dimer model does.
 
 ![Before refinement, the two copies of the monomer sit too far apart and fit the data poorly; the refined dimer follows the measured data across the full q range.](assets/figures/rigidbody-fit.svg#only-light){ width="100%" }
 ![Before refinement, the two copies of the monomer sit too far apart and fit the data poorly; the refined dimer follows the measured data across the full q range.](assets/figures/rigidbody-fit-dark.svg#only-dark){ width="100%" }
