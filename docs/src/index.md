@@ -62,7 +62,7 @@ If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
 
     Calculate the SANS profile of an atomic model and fit it to experimental data, with control over the D₂O fraction of the solvent.
 
--   :material-dots-hexagon:{ .lg .middle } **[Debye scattering](crystals.md#running-it)**
+-   :material-dots-hexagon:{ .lg .middle } **[Debye scattering](crystals.md)**
 
     ---
 

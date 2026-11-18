@@ -24,7 +24,7 @@ import pyausaxs as ausaxs
 from build_figures import OUTPUT, SOURCES, SVG, remove_hidden, remove_unused_defs, strip_editor_data
 
 DOCS = Path(__file__).resolve().parent.parent
-DATA = DOCS / "src" / "assets" / "data"
+DATA = DOCS.parent / "tests" / "files"
 
 # The "Molecule in vacuum" drawing in the decomposition figure: its group id, and the region around it in the
 # source's user units (mm). Update the region if the drawing is moved in Inkscape.

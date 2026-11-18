@@ -63,6 +63,8 @@ nav:
       - Overview: applications.md
       - SAXS: saxs.md
       - SANS: sans.md
+      - Rigid-body refinement: rigid-body-refinement.md
+      - EM map validation: em.md
       - Crystals and nanoparticles: crystals.md
       - Powder diffraction: powder-diffraction.md
   - Documentation:

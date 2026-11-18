@@ -33,7 +33,7 @@ The SAXS pipeline with neutron scattering lengths, with control over the D₂O f
 <div class="ausaxs-app" markdown>
 <span class="ausaxs-app__art">:ausaxs-art-rigidbody:</span>
 
-[Rigid-body refinement](rigidbody.md){ .ausaxs-app__title }
+[Rigid-body refinement](rigid-body-refinement.md){ .ausaxs-app__title }
 
 Refine multi-domain proteins and complexes against SAXS or SANS data.
 </div>
@@ -41,7 +41,7 @@ Refine multi-domain proteins and complexes against SAXS or SANS data.
 <div class="ausaxs-app" markdown>
 <span class="ausaxs-app__art">:ausaxs-art-em:</span>
 
-[EM map validation](em-validation.md){ .ausaxs-app__title }
+[EM map validation](em.md){ .ausaxs-app__title }
 
 Validate a cryo-EM map against solution SAXS data.
 </div>

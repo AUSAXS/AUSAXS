@@ -19,7 +19,7 @@ journey: apps
 For a deeper understanding of the physics, see e.g. [Lytje, Pedersen & Hub (2026)](https://doi.org/10.1088/1361-6633/aead1d). 
 
 ## Example
-Here we fit the structure of hen egg-white lysozyme, [2epe.pdb](assets/data/2epe.pdb){ download="2epe.pdb" }, to a SAXS measurement of it, [2epe.dat](assets/data/2epe.dat){ download="2epe.dat" }, and plot the result:
+Here we fit the structure of hen egg-white lysozyme, [2epe.pdb](https://raw.githubusercontent.com/AUSAXS/AUSAXS/master/tests/files/2epe.pdb), to a SAXS measurement of it, [2epe.dat](https://raw.githubusercontent.com/AUSAXS/AUSAXS/master/tests/files/2epe.dat), and plot the result:
 
 === "Command line"
 
