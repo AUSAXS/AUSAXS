@@ -30,8 +30,6 @@ using namespace ausaxs;
 using namespace ausaxs::em;
 
 namespace {
-    // the EM validation was calibrated on a 1 Å hydration grid, so it keeps that width regardless of the SAXS
-    // default. The dummy radius in read() depends on it as well.
     constexpr double em_cell_width = 1;
 }
 

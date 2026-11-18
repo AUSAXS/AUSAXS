@@ -127,7 +127,7 @@ void cli::add_grid_width_option(CLI::App* sub) {
             settings::grid::cell_width = w;
             settings::grid::exv::width = w;
         },
-        "The distance between each grid point in Ångström, which is also the width of the grid-based excluded volume dummy atoms. "
+        "The distance between each grid point in Ångström, used for both collision detection and grid-based excluded volume calculations."
         "Lower widths increase the precision."
     )->default_str(std::to_string(settings::grid::cell_width.value))->check(CLI::PositiveNumber);
 }

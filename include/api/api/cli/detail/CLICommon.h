@@ -72,8 +72,7 @@ namespace ausaxs::cli {
 
     /**
      * @brief Register the grid --width option on a subcommand. It sets both the grid cell width and the width of the
-     *        grid-based excluded volume dummy atoms, so the dummies sit on every grid cell. The two can still be set
-     *        separately through a settings file.
+     *        grid-based excluded volume dummy atoms, so the dummies sit on every grid cell. 
      */
     void add_grid_width_option(CLI::App* sub);
 
