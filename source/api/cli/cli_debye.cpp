@@ -29,13 +29,7 @@
 using namespace ausaxs;
 
 namespace {
-    /**
-     * @brief The default bin width in Å. The profiles of this tool extend to wide angles, where the many sharp, repeated distances of a
-     *        crystal must each keep their own bin: up to q = 10 Å^-1, the profile of an 8 nm fcc particle with 0.05 Å thermal disorder is
-     *        off by up to 87% of the nearby peak heights at 0.25 Å, against 0.3% at 0.02 Å. The narrower bins only add to the Debye transform, not to the
-     *        distance calculation, and cost about 10% for an 84 000-atom particle.
-     */
-    constexpr double default_bin_width = 0.02;
+    constexpr double default_bin_width = 0.02; // seeems like a good default for wide-angle calcs
 
     /**
      * @brief The scattering angle 2θ in degrees of each q at this wavelength, for q = 4π/λ sin(θ).
