@@ -66,7 +66,7 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
     ---
 
-    Calculate the scattering of crystals, nanoparticles and other structures without solvent, with or without atomic form factors.
+    Calculate the scattering of crystals, nanoparticles and other structures without solvent.
 
 -   :material-cube-scan:{ .lg .middle } **[EM map validation](documentation/cli/em-validation.md)**
 

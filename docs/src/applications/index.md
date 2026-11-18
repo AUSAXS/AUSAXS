@@ -57,7 +57,7 @@ Validate a cryo-EM map against solution SAXS data.
 
 [Crystals and nanoparticles](crystals.md){ .ausaxs-app__title }
 
-The orientationally averaged scattering of any set of atoms or point scatterers, without the solvent.
+The orientationally averaged scattering of any set of atoms, without the solvent.
 </div>
 
 <div class="ausaxs-app" markdown>

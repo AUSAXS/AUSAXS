@@ -1,6 +1,6 @@
 ---
 title: Debye scattering of crystals and nanoparticles - AUSAXS
-description: Calculate the Debye scattering of crystals, nanoparticles and arbitrary point scatterers with AUSAXS, with or without atomic form factors, from CIF, XYZ and PDB files or plain coordinate arrays.
+description: Calculate the Debye scattering of crystals, nanoparticles and other atomic structures with AUSAXS, from CIF, XYZ and PDB files or plain coordinate arrays.
 journey: apps
 hide:
   - toc
@@ -8,12 +8,9 @@ hide:
 
 # Crystals and nanoparticles
 
-<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> calculates the orientationally averaged scattering of crystals, nanoparticles and any other collection of atoms or point scatterers.
+<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> calculates the scattering of crystals, nanoparticles and any other collection of atoms with the Debye equation, using the vacuum form factor of every atom.
 
-## What goes into the profile
-- **The atoms in vacuum.** Every atom scatters with its own vacuum X-ray form factor, or with its neutron scattering length.
-- **Or point scatterers.** Every scatterer is a point with a constant weight. This is the bare Debye equation, and applies to any system that can be described as a set of points.
-- **The orientational average.** The Debye equation sums over all pairs of scatterers, and only their distances enter. It therefore describes a particle observed in every orientation at once, and makes no assumption of long-range order. The Bragg peaks of a crystal appear naturally, broadened by its finite size.
+The Debye equation describes a sample of randomly oriented particles. A crystal therefore does not give Bragg spots, since every reflection is spread over all orientations, and instead shows up as a peak at $q = 2\pi/d$ in the profile.
 
 ## Example
 Here we calculate the scattering of a silver nanoparticle of 201 atoms, about 2 nm across, [Ag_crystal.cif](https://raw.githubusercontent.com/AUSAXS/AUSAXS/master/tests/files/Ag_crystal.cif), up to $q = 10$ Å⁻¹:

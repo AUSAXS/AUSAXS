@@ -8,13 +8,11 @@ hide:
 
 # Powder diffraction
 
-<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> calculates the powder diffraction pattern of a nanocrystal or nanoparticle directly from its atomic structure. A powder averages over every orientation of its crystallites, which is exactly what the [Debye equation](crystals.md) calculates.
+<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> calculates the powder diffraction pattern of a nanocrystal or nanoparticle directly from its atomic structure. A powder is a sample of randomly oriented crystallites, which is exactly what the [Debye equation](crystals.md) describes.
 
-## What goes into the pattern
-- **The atoms in vacuum.** Every atom scatters with its own vacuum X-ray form factor, as for [crystals and nanoparticles](crystals.md).
-- **The finite size.** The pattern is calculated from the actual atoms of the particle, so no assumptions about long-range order or peak shapes are needed. The peaks broaden as the particle shrinks, and its surface, defects and strain all enter directly. For large crystallites, where the peaks become sharp, Rietveld refinement is the better tool.
-- **The scattering angle.** $q$ is related to the scattering angle $2\theta$ by $q = \frac{4\pi}{\lambda}\sin\theta$, so the wavelength of the instrument sets how far out in $q$ a pattern reaches.
-- **The instrument.** A measured pattern also contains the effects of the instrument, such as polarisation and instrumental broadening, which must be accounted for before comparing it with the pattern of the particle.
+Since the pattern is calculated from the actual atoms of the particle, the broadening of the peaks from its finite size enters directly, as do its surface, defects and strain. For large crystallites with sharp peaks, Rietveld refinement is the better tool. The effects of the instrument, such as polarisation and instrumental broadening, are not included, and must be accounted for before comparing with a measured pattern.
+
+The pattern is calculated as a function of $q$, which is related to the scattering angle by $q = \frac{4\pi}{\lambda}\sin\theta$.
 
 ## Example
 Here we calculate the Cu Kα powder pattern of a silver nanoparticle of 201 atoms, about 2 nm across, [Ag_crystal.cif](https://raw.githubusercontent.com/AUSAXS/AUSAXS/master/tests/files/Ag_crystal.cif):
