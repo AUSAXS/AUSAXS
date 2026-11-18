@@ -2,12 +2,14 @@
 // Author: Kristian Lytje
 
 #include <api/cli/cli_ausaxs.h>
+
+#include <api/cli/cli_debye.h>
 #include <api/cli/cli_em_fitter.h>
 #include <api/cli/cli_gpu.h>
 #include <api/cli/cli_rigidbody.h>
+#include <api/cli/cli_sans_fitter.h>
 #include <api/cli/cli_saxs_fitter.h>
 #include <constants/Version.h>
-#include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
 #include <algorithm>
@@ -20,11 +22,12 @@
 using namespace ausaxs;
 
 namespace {
-    enum class Tool {SAXS, SANS, EM, Rigidbody, GPU};
+    enum class Tool {SAXS, SANS, Debye, EM, Rigidbody, GPU};
     const std::unordered_map<std::string, Tool> tool_map {
         {"fit", Tool::SAXS},
         {"saxs", Tool::SAXS},
         {"sans", Tool::SANS},
+        {"debye", Tool::Debye},
         {"em", Tool::EM},
         {"rigidbody", Tool::Rigidbody},
         {"gpu", Tool::GPU},
@@ -33,6 +36,8 @@ namespace {
     // tools listed in the help text, in order
     std::vector<std::pair<std::string, std::string>> listed_tools {
         {"fit",       "Fit SAXS data to a structure"},
+        {"sans",      "Fit SANS data to a structure"},
+        {"debye",     "Calculate the Debye scattering of a structure, without solvent"},
         {"em",        "Fit EM map to SAXS data"},
         {"rigidbody", "Rigid-body optimization"},
         {"gpu",       "Install or check the GPU backend"},
@@ -78,11 +83,11 @@ int cli_ausaxs(int argc, char const *argv[]) {
 
     switch (tool_map.at(tool)) {
         case Tool::SAXS:
-            settings::scattering::radiation = settings::scattering::Radiation::XRay;
             return cli_saxs_fitter(argc-1, argv+1);
         case Tool::SANS:
-            settings::scattering::radiation = settings::scattering::Radiation::Neutron;
-            return cli_saxs_fitter(argc-1, argv+1);
+            return cli_sans_fitter(argc-1, argv+1);
+        case Tool::Debye:
+            return cli_debye(argc-1, argv+1);
         case Tool::EM:
             return cli_em_fitter(argc-1, argv+1);
         case Tool::Rigidbody:

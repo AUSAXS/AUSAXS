@@ -17,10 +17,12 @@ add_library(ausaxs_api OBJECT
     "api_sasview.cpp"
 
     "cli/cli_ausaxs.cpp"
+    "cli/cli_debye.cpp"
     "cli/cli_em_fitter.cpp"
     "cli/cli_gpu.cpp"
     "cli/cli_rigidbody.cpp"
     "cli/cli_saxs_fitter.cpp"
+    "cli/detail/CLICommon.cpp"
 
     "pyausaxs/api_data.cpp"
     "pyausaxs/api_fit.cpp"

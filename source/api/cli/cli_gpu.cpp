@@ -3,8 +3,6 @@
 
 #include <api/cli/cli_gpu.h>
 
-#include <CLI/CLI.hpp>
-
 #include <constants/Version.h>
 #include <gpu/GPUInstaller.h>
 #include <gpu/GPULoader.h>
@@ -13,6 +11,8 @@
 #include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
+
+#include <CLI/CLI.hpp>
 
 #include <algorithm>
 #include <cstdio>

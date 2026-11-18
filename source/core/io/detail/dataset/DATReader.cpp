@@ -7,6 +7,7 @@
 #include <math/Statistics.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
+#include <settings/InternalState.h>
 #include <utility/Console.h>
 #include <utility/StringUtils.h>
 
@@ -184,7 +185,7 @@ std::unique_ptr<Dataset> io::detail::dataset::DATReader::construct(const io::Exi
     }
 
     // check if the file is abnormally large
-    if (dataset->size_rows() > 300) {
+    if (settings::internal_state::suggest_rebinning && dataset->size_rows() > 300) {
         // reread first line
         input.clear();
         input.seekg(0, std::ifstream::beg);
