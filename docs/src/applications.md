@@ -15,7 +15,7 @@ AUSAXS uses the same Debye-equation engine for every application. What changes i
 <div class="ausaxs-apps" markdown>
 
 <div class="ausaxs-app" markdown>
-<span class="ausaxs-app__icon">:ausaxs-xray:</span>
+<span class="ausaxs-app__art">:ausaxs-art-saxs:</span>
 
 [SAXS](saxs.md){ .ausaxs-app__title }
 
@@ -23,7 +23,7 @@ Calculate the X-ray scattering profile of a protein or other biomolecule, and fi
 </div>
 
 <div class="ausaxs-app" markdown>
-<span class="ausaxs-app__icon">:material-atom:</span>
+<span class="ausaxs-app__art">:ausaxs-art-sans:</span>
 
 [SANS](sans.md){ .ausaxs-app__title }
 
@@ -31,7 +31,7 @@ The SAXS pipeline with neutron scattering lengths, with control over the D₂O f
 </div>
 
 <div class="ausaxs-app" markdown>
-<span class="ausaxs-app__icon">:material-puzzle-outline:</span>
+<span class="ausaxs-app__art">:ausaxs-art-rigidbody:</span>
 
 [Rigid-body refinement](rigidbody.md){ .ausaxs-app__title }
 
@@ -39,7 +39,7 @@ Refine multi-domain proteins and complexes against SAXS or SANS data.
 </div>
 
 <div class="ausaxs-app" markdown>
-<span class="ausaxs-app__icon">:material-cube-scan:</span>
+<span class="ausaxs-app__art">:ausaxs-art-em:</span>
 
 [EM map validation](em-validation.md){ .ausaxs-app__title }
 
@@ -53,7 +53,7 @@ Validate a cryo-EM map against solution SAXS data.
 <div class="ausaxs-apps" markdown>
 
 <div class="ausaxs-app" markdown>
-<span class="ausaxs-app__icon">:material-dots-hexagon:</span>
+<span class="ausaxs-app__art">:ausaxs-art-crystals:</span>
 
 [Crystals and nanoparticles](crystals.md){ .ausaxs-app__title }
 
@@ -61,7 +61,7 @@ The orientationally averaged scattering of any set of atoms or point scatterers,
 </div>
 
 <div class="ausaxs-app" markdown>
-<span class="ausaxs-app__icon">:material-circle-double:</span>
+<span class="ausaxs-app__art">:ausaxs-art-powder:</span>
 
 [Powder diffraction](powder-diffraction.md){ .ausaxs-app__title }
 
