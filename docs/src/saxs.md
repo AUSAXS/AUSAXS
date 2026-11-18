@@ -18,23 +18,30 @@ journey: apps
 
 For a deeper understanding of the physics, see e.g. [Lytje, Pedersen & Hub (2026)](https://doi.org/10.1088/1361-6633/aead1d). 
 
-## Running it
-Given a measurement "data.dat", you can fit an atomic structure file, "model.pdb" like so:
+## Example
+Here we fit the structure of hen egg-white lysozyme, [2epe.pdb](assets/data/2epe.pdb){ download="2epe.pdb" }, to a SAXS measurement of it, [2epe.dat](assets/data/2epe.dat){ download="2epe.dat" }, and plot the result:
 
 === "Command line"
 
     ```bash
-    ausaxs fit model.pdb data.dat
+    ausaxs fit 2epe.pdb 2epe.dat
+    ausaxs plot --folder output/saxs_fitter/2epe
     ```
 
 === "pyAUSAXS"
 
     ```python
     import pyausaxs as ausaxs
-    mol = ausaxs.create_molecule("model.pdb")
+    import matplotlib.pyplot as plt
+    mol = ausaxs.create_molecule("2epe.pdb")
     mol.hydrate()
-    result = mol.fit("data.dat")
+    result = mol.fit("2epe.dat")
+    result.plot()
+    plt.show()
     ```
+
+![The fitted SAXS profile of lysozyme follows the measured data across the full q range, with residuals scattered evenly around zero.](assets/figures/saxs-fit.svg#only-light){ width="100%" }
+![The fitted SAXS profile of lysozyme follows the measured data across the full q range, with residuals scattered evenly around zero.](assets/figures/saxs-fit-dark.svg#only-dark){ width="100%" }
 
 For a worked example on real data, see the [proteins tutorial](https://sastutorials.org/Proteins/Proteins.html). The full documentation
 for the `saxs` program is available [here](saxs-fitter.md).
