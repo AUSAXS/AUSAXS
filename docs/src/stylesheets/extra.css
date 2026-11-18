@@ -541,3 +541,190 @@
     display: none;
   }
 }
+
+/* ---------- Application switcher (second row of overrides/partials/journey.html) ---------- */
+
+/* Pulled up under the banner, so the two read as one unit: the step, then where in the step you are. */
+.md-typeset .ausaxs-journey--top:has(+ .ausaxs-appbar) {
+  margin-bottom: 0.55rem;
+}
+
+.md-typeset .ausaxs-appbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.7rem;
+  margin: 0 0 1.6rem;
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.md-typeset .ausaxs-appbar__all {
+  padding-right: 0.7rem;
+  border-right: 1px solid var(--md-default-fg-color--lightest);
+  color: var(--md-default-fg-color--light);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.md-typeset .ausaxs-appbar__all:hover,
+.md-typeset .ausaxs-appbar__all:focus-visible {
+  color: var(--ausaxs-gold-text);
+}
+
+.md-typeset nav.ausaxs-appbar ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .ausaxs-appbar ul li {
+  margin: 0;
+}
+
+.md-typeset .ausaxs-appbar ul a {
+  display: block;
+  padding: 0.22rem 0.7rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 1rem;
+  color: var(--md-default-fg-color--light);
+  white-space: nowrap;
+  transition: border-color 150ms, color 150ms;
+}
+
+.md-typeset .ausaxs-appbar ul a:hover,
+.md-typeset .ausaxs-appbar ul a:focus-visible {
+  border-color: var(--ausaxs-gold);
+  color: var(--ausaxs-gold-text);
+}
+
+.md-typeset .ausaxs-appbar ul a.is-current {
+  border-color: var(--ausaxs-gold);
+  background-color: var(--ausaxs-gold-soft);
+  color: var(--md-default-fg-color);
+  font-weight: 700;
+}
+
+/* ---------- Applications landing page (applications.md) ---------- */
+
+.md-typeset .ausaxs-apps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+
+/* Each tile: a quiet frame with a faint gold glow in its corner. On hover a gold bar grows along the top edge
+   and an arrow slides in, and the whole tile is a link through the title's overlay. */
+.md-typeset .ausaxs-app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem 1.25rem 1rem;
+  overflow: hidden;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.6rem;
+  background:
+    radial-gradient(circle at 100% 0, var(--ausaxs-gold-soft), transparent 9rem),
+    var(--md-default-bg-color);
+  transition: border-color 150ms, box-shadow 150ms, transform 150ms;
+}
+
+.md-typeset .ausaxs-app::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0.2rem;
+  background-color: var(--ausaxs-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 250ms ease-out;
+}
+
+.md-typeset .ausaxs-app::after {
+  content: "→";
+  position: absolute;
+  top: 1rem;
+  right: 1.1rem;
+  font-size: 1rem;
+  color: var(--ausaxs-gold);
+  opacity: 0;
+  transform: translateX(-0.4rem);
+  transition: opacity 150ms, transform 150ms;
+}
+
+.md-typeset .ausaxs-app:hover,
+.md-typeset .ausaxs-app:focus-within {
+  border-color: var(--ausaxs-gold);
+  box-shadow: 0 0.4rem 1.2rem rgba(31, 39, 51, 0.08);
+  transform: translateY(-2px);
+}
+
+.md-typeset .ausaxs-app:hover::before,
+.md-typeset .ausaxs-app:focus-within::before {
+  transform: scaleX(1);
+}
+
+.md-typeset .ausaxs-app:hover::after,
+.md-typeset .ausaxs-app:focus-within::after {
+  opacity: 1;
+  transform: none;
+}
+
+.md-typeset .ausaxs-app p {
+  margin: 0 0 0.6rem;
+}
+
+.md-typeset .ausaxs-app__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0 0 1px var(--ausaxs-gold-line);
+  background-color: var(--ausaxs-gold-soft);
+  color: var(--ausaxs-gold);
+}
+
+.md-typeset .ausaxs-app__icon .twemoji,
+.md-typeset .ausaxs-app__icon svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  max-height: none;
+}
+
+/* The title link stretches an overlay over the whole tile. */
+.md-typeset a.ausaxs-app__title {
+  color: var(--md-default-fg-color);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
+.md-typeset a.ausaxs-app__title::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+}
+
+.md-typeset .ausaxs-app:hover a.ausaxs-app__title {
+  color: var(--ausaxs-gold-text);
+}
+
+.md-typeset .ausaxs-app p:has(> .ausaxs-app__title) {
+  margin-bottom: 0.3rem;
+}
+
+/* On narrow screens the chips wrap below the "All applications" link, so the divider after it is dropped. */
+@media screen and (max-width: 44.9375em) {
+  .md-typeset .ausaxs-appbar__all {
+    flex-basis: 100%;
+    padding-right: 0;
+    border-right: none;
+  }
+}

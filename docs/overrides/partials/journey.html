@@ -3,7 +3,7 @@
 {% set steps = [
   {"key": "install",   "title": "Installation", "url": "installation/"},
   {"key": "gpu",       "title": "GPU driver",   "url": "gpu/", "optional": true},
-  {"key": "apps",      "title": "Applications", "url": "saxs/"},
+  {"key": "apps",      "title": "Applications", "url": "applications/"},
   {"key": "tutorials", "title": "Tutorials",    "url": "tutorials/"},
 ] %}
 {% set current = page.meta.journey %}
@@ -27,3 +27,26 @@
     {% endfor %}
   </ol>
 </nav>
+
+{#- On the application pages, a second row under the top banner lists the applications of that nav section,
+    so the reader can see which one they are on and switch between them. The section's first entry is the
+    overview page, which gets the "All applications" link instead of a chip; on the overview itself the row is
+    left out, since the page body already lists every application. -#}
+{% set section = page.parent %}
+{% if position == "top" and current == "apps" and section and section.children %}
+  {% set overview = section.children | first %}
+  {% if overview.is_page and overview.url != page.url %}
+    <nav class="ausaxs-appbar" aria-label="Applications">
+      <a class="ausaxs-appbar__all" href="{{ overview.url | url }}">
+        <span aria-hidden="true">&larr;</span> All applications
+      </a>
+      <ul>
+        {% for child in section.children[1:] if child.is_page %}
+          <li>
+            <a href="{{ child.url | url }}"{% if child.url == page.url %} class="is-current" aria-current="page"{% endif %}>{{ child.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
+{% endif %}

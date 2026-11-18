@@ -60,6 +60,7 @@ nav:
           - Compiling from source: compiling.md
   - Tutorials: tutorials.md
   - Applications:
+      - Overview: applications.md
       - SAXS: saxs.md
       - SANS: sans.md
       - Crystals and nanoparticles: crystals.md
