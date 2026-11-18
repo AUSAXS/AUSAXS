@@ -30,7 +30,7 @@ hide:
 <p class="ausaxs-tagline">Debye scattering from any atomic structure, all in one package.</p>
 
 [Get started](getting-started/installation.md){ .md-button .md-button--primary }
-[Tutorials](tutorials.md){ .md-button }
+[Why AUSAXS?](why-ausaxs.md){ .md-button }
 
 </div>
 

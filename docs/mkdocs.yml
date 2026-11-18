@@ -51,6 +51,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Why AUSAXS?: why-ausaxs.md
   - Getting started:
       - Installation: getting-started/installation.md
       - GPU acceleration: getting-started/gpu.md
