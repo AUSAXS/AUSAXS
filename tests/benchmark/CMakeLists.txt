@@ -3,7 +3,7 @@
 #     cmake --build build --target benchmarks -j8
 #     ./build/tests/benchmark/bin/benchmark_pr "[benchmark]~[large]" -r xml::out=results.xml
 #     python3 tests/benchmark/plot_benchmark.py results.xml
-foreach(_bench benchmark_pr benchmark_rigidbody)
+foreach(_bench benchmark_pr benchmark_rigidbody benchmark_grid_width)
     add_executable(${_bench} "${_bench}.cpp")
     target_link_libraries(${_bench} PRIVATE libausaxs Catch2::Catch2WithMain)
     target_include_directories(${_bench} PRIVATE ${CMAKE_SOURCE_DIR}/tests)
@@ -12,7 +12,7 @@ foreach(_bench benchmark_pr benchmark_rigidbody)
     )
 endforeach()
 
-add_custom_target(benchmarks DEPENDS benchmark_pr benchmark_rigidbody)
+add_custom_target(benchmarks DEPENDS benchmark_pr benchmark_rigidbody benchmark_grid_width)
 
 # Per-SIMD histogram benchmark variants.
 #

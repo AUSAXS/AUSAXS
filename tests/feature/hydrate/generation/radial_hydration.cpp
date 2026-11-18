@@ -60,6 +60,10 @@ TEST_CASE("RadialHydration: atoms without a form factor still exclude water") {
     settings::hydrate::hydration_strategy = settings::hydrate::HydrationStrategy::RadialStrategy;
     hydrate::RadialHydration::set_noise_generator([] () {return Vector3<double>{0, 0, 0};});
 
+    // the 2 Å floor below is a 1 Å-grid property: occupancy is only resolved per cell, so on 1.75 Å cells ~1% of the
+    // waters of an ordinary PDB structure also end up closer than 2 Å to some atom
+    settings::grid::cell_width = 1;
+
     Molecule file("tests/files/2epe.pdb");
     file.clear_hydration();
     std::vector<Atom> bare;

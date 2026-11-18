@@ -5,7 +5,7 @@
 
 #include <form_factor/ExvFormFactor.h>
 #include <form_factor/lookup/FormFactorManager.h>
-#include <settings/GridSettings.h>
+#include <grid/exv/GridExvStrategy.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -53,5 +53,5 @@ void ScatteringModelGridBase::regenerate_ff_table(T&& ffx) {ff_table = generate_
 template void ScatteringModelGridBase::regenerate_ff_table(form_factor::detail::ExvFormFactor&&);
 
 void ScatteringModelGridBase::regenerate_ff_table() {
-    regenerate_ff_table(factory::construct_exv_form_factor(std::pow(settings::grid::exv::width, 3)));
+    regenerate_ff_table(factory::construct_exv_form_factor(std::pow(grid::exv::point_spacing(), 3)));
 }

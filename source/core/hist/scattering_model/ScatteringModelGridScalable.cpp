@@ -4,7 +4,7 @@
 #include <form_factor/ExvFormFactor.h>
 #include <hist/scattering_model/ScatteringModelGridScalable.h>
 
-#include <settings/GridSettings.h>
+#include <grid/exv/GridExvStrategy.h>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -22,6 +22,6 @@ void ScatteringModelGridScalable::apply_excluded_volume_scaling_factor(double k)
     p = std::move(h->p);
     axis = h->axis;
     cache.sinqd.valid = false;
-    auto V = std::pow(settings::grid::exv::width*k, 3);
+    auto V = std::pow(grid::exv::point_spacing()*k, 3);
     regenerate_ff_table(form_factor::factory::construct_exv_form_factor(V));
 }

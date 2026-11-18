@@ -23,6 +23,8 @@ class GridDebug : public grid::Grid {
 
         static void generate_debug_grid(Molecule& protein) {
             settings::grid::min_bins = 50;
+            settings::grid::cell_width = 1; // the hand-verified targets below count 1 Å cells
+            settings::grid::exv::width = 1;  // with one dummy per cell
             auto grid = std::make_unique<GridDebug>(protein.get_bodies());
             grid->set_atomic_radius(0);
             protein.set_grid(std::move(grid));

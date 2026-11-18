@@ -37,9 +37,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
 
     // grid subcommands
     auto* sub_grid = app.add_subcommand("grid", "See and set additional options for the grid calculations.");
-    sub_grid->add_option("--width,-w", settings::grid::cell_width.value, 
-        "The distance between each grid point in Ångström. Lower widths increase the precision."
-    )->default_val(settings::grid::cell_width.value);
+    cli::add_grid_width_option(sub_grid);
 
     app.final_callback([&] () {if (config.save) {
         settings::write("settings.txt");

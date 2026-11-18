@@ -71,6 +71,12 @@ namespace ausaxs::cli {
     void add_neutron_solvent_options(CLI::App* sub);
 
     /**
+     * @brief Register the grid --width option on a subcommand. It sets both the grid cell width and the width of the
+     *        grid-based excluded volume dummy atoms, so the dummies sit on every grid cell. 
+     */
+    void add_grid_width_option(CLI::App* sub);
+
+    /**
      * @brief Parse the command line, read a settings file if one was given with config --file or is discovered, and then parse
      *        the command line again so that it takes priority over the file.
      *
