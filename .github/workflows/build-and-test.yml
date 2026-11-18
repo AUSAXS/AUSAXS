@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [master]
+    # Skip the build when a PR changes only documentation; the docs workflow checks those.
+    paths-ignore: ["docs/**", ".github/workflows/docs.yml"]
 
 jobs:
   build-and-test-internal:
