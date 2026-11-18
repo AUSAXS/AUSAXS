@@ -15,7 +15,7 @@ settings::Setting<double> settings::grid::min_exv_radius{2.15};
 settings::Setting<int> settings::grid::min_bins{0};
 
 settings::Setting<double> settings::grid::exv::surface_thickness{1};
-settings::Setting<double> settings::grid::exv::width{1};
+settings::Setting<double> settings::grid::exv::width{1.75};
 settings::Setting<bool> settings::grid::exv::save{false};
 settings::Setting<settings::grid::exv::ExvType> settings::grid::exv::expansion_strategy{settings::grid::exv::ExvType::AtomicOnly};
 

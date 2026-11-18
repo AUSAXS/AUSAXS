@@ -122,6 +122,16 @@ std::optional<int> cli::parse(
     return std::nullopt;
 }
 
+void cli::add_grid_width_option(CLI::App* sub) {
+    sub->add_option_function<double>("--width,-w", [] (double w) {
+            settings::grid::cell_width = w;
+            settings::grid::exv::width = w;
+        },
+        "The distance between each grid point in Ångström, which is also the width of the grid-based excluded volume dummy atoms. "
+        "Lower widths increase the precision."
+    )->default_str(std::to_string(settings::grid::cell_width.value))->check(CLI::PositiveNumber);
+}
+
 void cli::print_neutron_solvent() {
     const double density = settings::scattering::neutron::solvent_density;
     console::print_text(

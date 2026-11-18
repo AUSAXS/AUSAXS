@@ -70,9 +70,6 @@ namespace {
         sub_exv->add_option("--surface-thickness", settings::grid::exv::surface_thickness.value,
             "The thickness of the surface layer in Ångström."
         )->default_val(settings::grid::exv::surface_thickness.value)->group("");
-        auto* sub_exv_w = sub_exv->add_option("--width,-w", settings::grid::exv::width.value,
-            "The width of the excluded volume dummy atoms used for the grid-based excluded volume calculations in Ångström."
-        )->default_val(settings::grid::exv::width.value);
         sub_exv->add_flag("--save", save_exv,
             "Write a PDB representation of the excluded volume to disk."
         )->default_val(save_exv);
@@ -99,9 +96,7 @@ namespace {
         sub_grid->add_option("--rvol", settings::grid::min_exv_radius.value,
             "The radius of the excluded volume sphere around each atom."
         )->default_val(settings::grid::min_exv_radius.value);
-        auto* sub_grid_w = sub_grid->add_option("--width,-w", settings::grid::cell_width.value,
-            "The distance between each grid point in Ångström. Lower widths increase the precision."
-        )->default_val(settings::grid::cell_width.value);
+        cli::add_grid_width_option(sub_grid);
         sub_grid->add_flag("--save", save_grid,
             "Write a PDB representation of the grid to disk."
         )->default_val(save_grid);
@@ -120,27 +115,6 @@ namespace {
             if (!input_s->count()) {
                 console::print_warning("Error: input_structure is required.");
                 throw CLI::RuntimeError(1);
-            }
-
-            // adjust grid width to support user-specified excluded volume width. The grid-based excluded volume models
-            // also keep the grid at their dummy width by default: the lattice resolution is part of those models, and
-            // the coarser default hydration grid would otherwise change them
-            bool grid_exv = false;
-            switch (settings::exv::exv_method) {
-                case settings::exv::ExvMethod::Grid:
-                case settings::exv::ExvMethod::GridScalable:
-                case settings::exv::ExvMethod::GridSurface:
-                case settings::exv::ExvMethod::WAXSiS:
-                    grid_exv = true; break;
-                default: break;
-            }
-            if ((sub_exv_w->count() || grid_exv) && !sub_grid_w->count()) {
-                settings::grid::cell_width = static_cast<double>(settings::grid::exv::width);
-            }
-
-            // adjust excluded volume width to be at least as large as the grid width
-            if (sub_grid_w->count() && !sub_exv_w->count() && settings::grid::exv::width < settings::grid::cell_width) {
-                settings::grid::exv::width = static_cast<double>(settings::grid::cell_width);
             }
         });
 
