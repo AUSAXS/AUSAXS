@@ -6,30 +6,35 @@ journey: apps
 
 # Small-angle X-ray scattering (SAXS)
 
-AUSAXS calculates the SAXS profile of a protein or other biomolecule directly from its atomic model, and fits it to measured data. The model is read from a PDB or mmCIF file.
+<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> calculates the SAXS profile of a protein or other biomolecule directly from its atomic model, and fits it to measured data.
 
 ## What goes into the profile
-- **The atoms.** Every atom scatters with its own X-ray form factor. Hydrogens missing from the model are added implicitly to the atoms that carry them, in their protonation state at pH 7. Explicit hydrogens in the file can be used instead.
-- **The excluded volume.** The solvent displaced by the molecule is subtracted. AUSAXS offers three published models, from a fast approximation to an explicit grid of the molecular volume.
-- **The hydration shell.** A layer of water molecules is placed around the surface of the molecule. Its density is not known in advance, so its scattering power is fitted to the data.
+![The solution scattering equals the scattering of the molecule in vacuum, plus that of its hydration shell, minus that of the excluded volume.](assets/figures/saxs-decomposition.svg#only-light){ width="100%" }
+![The solution scattering equals the scattering of the molecule in vacuum, plus that of its hydration shell, minus that of the excluded volume.](assets/figures/saxs-decomposition-dark.svg#only-dark){ width="100%" }
 
-The calculation is valid up to $q = 1$ Å⁻¹. Beyond that, the excluded volume and hydration shell models become too imprecise.
+- **The atoms in vacuum.** Every atom scatters with its own vacuum X-ray form factor. Missing hydrogens are added implicitly to the atoms that carry them.
+- **The excluded volume.** SAS only observes _variations_ in density. The average buffer density is therefore subtracted.  
+- **The hydration shell.** A layer of structured water molecules is placed around the surface of the molecule.
 
-## Fitting to data
-The fit adjusts the scattering power of the hydration shell. The size of the excluded volume and the solvent density can be fitted as well. The result is a fitted curve, the $\chi^2$, the fitted parameters with their uncertainties, and the model with its hydration shell written to a PDB file.
+For a deeper understanding of the physics, see e.g. [Lytje, Pedersen & Hub (2026)](https://doi.org/10.1088/1361-6633/aead1d). 
 
 ## Running it
-From the command line:
-```bash
-ausaxs fit model.pdb data.dat
-```
-Or from Python, with the [pyAUSAXS](https://github.com/AUSAXS/pyAUSAXS) package:
-```python
-import pyausaxs as ausaxs
-mol = ausaxs.create_molecule("model.pdb")
-mol.hydrate()
-result = mol.fit("data.dat")
-```
-The [SAXS fitting documentation](saxs-fitter.md) covers every option, the output files and the graphical interface. For a worked example on real data, see the [proteins tutorial](https://sastutorials.org/Proteins/Proteins.html).
+Given a measurement "data.dat", you can fit an atomic structure file, "model.pdb" like so:
 
-The method is described in K. Lytje and J. S. Pedersen, _J. Appl. Cryst._ (2025), doi: [10.1107/S160057672500562X](https://doi.org/10.1107/S160057672500562X).
+=== "Command line"
+
+    ```bash
+    ausaxs fit model.pdb data.dat
+    ```
+
+=== "pyAUSAXS"
+
+    ```python
+    import pyausaxs as ausaxs
+    mol = ausaxs.create_molecule("model.pdb")
+    mol.hydrate()
+    result = mol.fit("data.dat")
+    ```
+
+For a worked example on real data, see the [proteins tutorial](https://sastutorials.org/Proteins/Proteins.html). The full documentation
+for the `saxs` program is available [here](saxs-fitter.md).
