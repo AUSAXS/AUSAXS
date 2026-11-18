@@ -21,6 +21,7 @@ The order of the two files does not matter. If you leave out the SAXS data file,
 By default all output will be saved in a new `output/saxs/<data-name>/` folder, where `<data-name>` is the name of the SAXS data file. The location can be changed with the `--output` argument (the subfolder `<data-name>` will always be created). In simulation mode, the output is written to `output/saxs/simulated/<model-name>/` instead. 
 
 In this folder you will find the following files: 
+
 - **ausaxs.fit**: A data file containing both the data and the fitted curve evaluated at the same `q`-values as the input SAXS data file. Note that the data may be truncated and scaled to inverse Ångström, depending on your settings. This file is compatible with the plotting utility from the ATSAS package. 
 - **report.txt**: A short report containing the most important information from the fit. Here you will find: 
 	- *Fevals*: The number of function evaluations.
@@ -33,6 +34,7 @@ In this folder you will find the following files:
 - **rebinned.dat**, **grid.pdb**, **exv.pdb**: Only written if requested by `data --rebin`, `grid --save`, and `exv --save` respectively. 
 
 Running `ausaxs plot` in this folder will convert the `.plot` files to images, and also generate two figures of the fit: 
+
 - **log.png**: This top panel of this figure shows the fit plotted on top of the input data set, with the $\chi^2_r$ shown in the legend. The bottom panel shows the residual associated with each point, which ideally should have a Gaussian distribution with a mean of 0. 
 - **loglog.png**: This shows the same plots as *log.png*, except with double-logarithmic axes. 
 

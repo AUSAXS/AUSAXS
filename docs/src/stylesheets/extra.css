@@ -958,3 +958,8 @@
     border-right: none;
   }
 }
+
+/* One word of inline code, e.g. an argument like --threads, which must not break at its hyphens (hooks/nowrap_code.py). */
+.md-typeset .ausaxs-nowrap {
+  white-space: nowrap;
+}

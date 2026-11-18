@@ -18,6 +18,7 @@ By default all output will be saved in a new `output/em/<data-name>/<map-name>/`
 In this folder you will find a bunch of `.plot` files. Turn them into images by running `ausaxs plot` in this folder. See the [CLI plotting](plotting-scripts.md) page for more information. 
 
 After you have plotted the files, you will have the three following $\chi^2$-landscape figures:
+
 - **chi2_evaluated_points_full**: This figure shows the full $\chi^2$-landscape for the entire range of scanned threshold values. 
 - **chi2_evaluated_points_limited**: This figure shows the same range as the first, but with very high- $\chi^2$ points removed. This is done so the more interesting low- $\chi^2$ range can better be visualized. A rolling average is performed, as shown by the solid red line. This average is also the basis for checking for the presence of more local minima. All minima are shown with a dashed vertical red line. You can find dummy models for each of these minima in the `models` folder.
 - **chi2_near_minimum**: This figure shows the area near the absolute minimum, sampled with the smallest step-size possible for your map. Shown are also the mean and standard deviation of the entire range. This mean is the reported average $\chi^2$ value, $\bar{\chi}^2$. The blue dot is just the interpolated $\chi^2$ value from earlier, and may thus often be somewhat higher/lower in value than the rest of the plot. 
@@ -25,6 +26,7 @@ After you have plotted the files, you will have the three following $\chi^2$-lan
 The second and third of these plots also have an accompanying `_mass` version, where the threshold x-axis has been replaced with a mass-axis. 
 
 Beyond these landscape plots, you will also find the four figures:
+
 - **intensity_fit**: A simple plot of the original scattering data with the fit superimposed.
 - **residuals**: The fit residuals. 
 - **log**: A nicer figure combining the fit and residuals into one, with a linear x-axis. 

@@ -44,11 +44,12 @@ where X is the number of worker threads. The executable is placed in `build/bin/
 
 ## Dependencies
 The following are automatically fetched by CMake:
-*	[Generalized Constant Expression Math](https://github.com/kthohr/gcem), for constexpr math support beyond GCC. 
-*	[BSThreadPool](https://github.com/bshoshany/thread-pool), for multithreading. 
-*	[CLI11](https://github.com/CLIUtils/CLI11), for interpreting command line arguments. 
-*	[pocketfft](https://github.com/mreineck/pocketfft), for the Fourier transform of the grid-based excluded volume. 
-*	[Catch2](https://github.com/catchorg/Catch2), for running tests.
+
+* [Generalized Constant Expression Math](https://github.com/kthohr/gcem), for constexpr math support beyond GCC. 
+* [BSThreadPool](https://github.com/bshoshany/thread-pool), for multithreading. 
+* [CLI11](https://github.com/CLIUtils/CLI11), for interpreting command line arguments. 
+* [pocketfft](https://github.com/mreineck/pocketfft), for the Fourier transform of the grid-based excluded volume. 
+* [Catch2](https://github.com/catchorg/Catch2), for running tests.
 
 Each of these can be replaced by a system-provided version with the corresponding `-DUSE_SYSTEM_<NAME>=ON` CMake option.
 
