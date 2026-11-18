@@ -78,9 +78,11 @@
   letter-spacing: -0.005em;
 }
 
+/* Headings keep the text colour; gold is reserved for accents (h1 bar, h2 rule) so inline code in a heading
+   does not clash with it. */
 .md-typeset h3 {
   font-weight: 600;
-  color: var(--ausaxs-gold-text);
+  color: var(--md-default-fg-color);
 }
 
 /* A gold strip along the top edge of the sticky header, drawn as a background so the header keeps its height. */
@@ -107,6 +109,32 @@
 
 .md-typeset blockquote {
   border-left-color: var(--ausaxs-gold);
+}
+
+/* Material's "question" admonition is green; recolour it gold to match the theme. */
+.md-typeset .admonition.question,
+.md-typeset details.question {
+  border-color: var(--ausaxs-gold);
+}
+
+.md-typeset .admonition.question:focus-within,
+.md-typeset details.question:focus-within {
+  box-shadow: 0 0 0 0.2rem var(--md-accent-fg-color--transparent);
+}
+
+.md-typeset .question > .admonition-title,
+.md-typeset .question > summary {
+  background-color: var(--ausaxs-gold-soft);
+}
+
+.md-typeset .question > .admonition-title::before,
+.md-typeset .question > summary::before {
+  background-color: var(--ausaxs-gold);
+}
+
+.md-typeset .question > .admonition-title::after,
+.md-typeset .question > summary::after {
+  color: var(--ausaxs-gold);
 }
 
 /* Inline code: Material's default background is barely distinguishable from the page in either scheme,

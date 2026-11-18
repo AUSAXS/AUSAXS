@@ -41,7 +41,7 @@ AUSAXS is a fast Debye-equation calculator for small-angle X-ray and neutron sca
     ```bash
     python -m pip install "pyausaxs[all]"
     ```
-2. Optionally, [install the GPU backend](gpu.md) to run the calculations on a GPU.
+2. Optionally, [install the GPU driver](gpu.md) to run the calculations on a GPU.
 3. Follow one of the [tutorials](tutorials.md), which walk through complete analyses of real data.
 
 If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
@@ -98,11 +98,11 @@ If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
 
     Fit models to SAXS data interactively, without the command line.
 
--   :material-expansion-card:{ .lg .middle } **[GPU backend](gpu.md)**
+-   :material-expansion-card:{ .lg .middle } **[GPU driver](gpu.md)**
 
     ---
 
-    Install and enable the optional GPU backend, and choose which GPU to run on.
+    Install and enable the optional GPU driver, and choose which GPU to run on.
 
 -   :material-chart-line:{ .lg .middle } **[CLI plotting](plotting-scripts.md)**
 
