@@ -62,19 +62,19 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
     Calculate the SANS profile of an atomic model and fit it to experimental data, with control over the D₂O fraction of the solvent.
 
--   :material-dots-hexagon:{ .lg .middle } **[Debye scattering](applications/crystals.md)**
+-   :ausaxs-debye:{ .lg .middle } **[Debye scattering](applications/crystals.md)**
 
     ---
 
     Calculate the scattering of crystals, nanoparticles and other structures without solvent.
 
--   :material-cube-scan:{ .lg .middle } **[EM map validation](documentation/cli/em-validation.md)**
+-   :ausaxs-em:{ .lg .middle } **[EM map validation](documentation/cli/em-validation.md)**
 
     ---
 
     Validate cryo-EM maps against solution SAXS data using dummy structures built from the map itself.
 
--   :material-puzzle-outline:{ .lg .middle } **[Rigid-body refinement](documentation/cli/rigidbody.md)**
+-   :ausaxs-rigidbody:{ .lg .middle } **[Rigid-body refinement](documentation/cli/rigidbody.md)**
 
     ---
 

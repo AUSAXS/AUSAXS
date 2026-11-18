@@ -18,13 +18,13 @@ The tutorials below are hosted on [SAStutorials.org](https://sastutorials.org/),
 
     Find the oligomeric state of a protein from its SAXS data, and compare the fits of AUSAXS with those of other SAXS calculators.
 
--   :material-cube-scan:{ .lg .middle } **[Comparing with electron microscopy](https://sastutorials.org/SAXS_EM/SAXS_EM.html)**
+-   :ausaxs-em:{ .lg .middle } **[Comparing with electron microscopy](https://sastutorials.org/SAXS_EM/SAXS_EM.html)**
 
     ---
 
     Validate a cryo-EM map against SAXS data with `ausaxs em`, and interpret the resulting $\chi^2$ landscapes.
 
--   :material-puzzle-outline:{ .lg .middle } **[Rigid-body refinement](https://sastutorials.org/RigidBody/RigidBodyGUI.html)**
+-   :ausaxs-rigidbody:{ .lg .middle } **[Rigid-body refinement](https://sastutorials.org/RigidBody/RigidBodyGUI.html)**
 
     ---
 
