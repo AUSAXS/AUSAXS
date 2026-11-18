@@ -23,7 +23,7 @@
 #include <fitter/SmartFitter.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <grid/Grid.h>
-#include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/IScatteringModel.h> // NOLINT
 #include <io/File.h>
 #include <settings/All.h>
 
