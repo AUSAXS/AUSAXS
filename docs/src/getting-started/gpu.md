@@ -37,4 +37,4 @@ ausaxs gpu install --from <path to zip file>
 ```
 `--from` also accepts a URL, and replaces any driver already installed. Add `--offline` to make sure no network requests are made.
 
-To check, disable or remove the driver later, see [managing the GPU driver](../cli/gpu-driver.md). If the driver does not find your GPU, see the [troubleshooting](troubleshooting.md) page.
+To check, disable or remove the driver later, see [managing the GPU driver](../documentation/cli/gpu-driver.md). If the driver does not find your GPU, see the [troubleshooting](troubleshooting.md) page.

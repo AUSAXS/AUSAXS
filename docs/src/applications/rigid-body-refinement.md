@@ -78,4 +78,4 @@ The refined dimer fits the data better than the deposited dimer model does.
 ![Before refinement, the two copies of the monomer sit too far apart and fit the data poorly; the refined dimer follows the measured data across the full q range.](../assets/figures/rigidbody-fit.svg#only-light){ width="100%" }
 ![Before refinement, the two copies of the monomer sit too far apart and fit the data poorly; the refined dimer follows the measured data across the full q range.](../assets/figures/rigidbody-fit-dark.svg#only-dark){ width="100%" }
 
-For a walkthrough in the graphical interface, see the [rigid-body tutorial](https://sastutorials.org/RigidBody/RigidBodyGUI.html). The full documentation for the `rigidbody` program, including every element of the configuration scripts, is available [here](../cli/rigidbody.md).
+For a walkthrough in the graphical interface, see the [rigid-body tutorial](https://sastutorials.org/RigidBody/RigidBodyGUI.html). The full documentation for the `rigidbody` program, including every element of the configuration scripts, is available [here](../documentation/cli/rigidbody.md).

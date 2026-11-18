@@ -68,15 +68,16 @@ nav:
       - Powder diffraction: applications/powder-diffraction.md
   - Tutorials: tutorials.md
   - Documentation:
+      - Overview: documentation/index.md
       - Command-line tools:
-          - SAXS fitting: cli/saxs-fitter.md
-          - EM map validation: cli/em-validation.md
-          - Rigid-body refinement: cli/rigidbody.md
-          - CLI plotting: cli/plotting-scripts.md
-          - GPU driver: cli/gpu-driver.md
+          - SAXS fitting: documentation/cli/saxs-fitter.md
+          - EM map validation: documentation/cli/em-validation.md
+          - Rigid-body refinement: documentation/cli/rigidbody.md
+          - CLI plotting: documentation/cli/plotting-scripts.md
+          - GPU driver: documentation/cli/gpu-driver.md
       - Developers:
-          - macOS debug build: developers/macos-debug-build.md
-      - Citing AUSAXS: citing.md
+          - macOS debug build: documentation/developers/macos-debug-build.md
+      - Citing AUSAXS: documentation/citing.md
 
 markdown_extensions:
   - admonition

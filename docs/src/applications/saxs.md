@@ -46,4 +46,4 @@ Here we fit the structure of hen egg-white lysozyme, [2epe.pdb](https://raw.gith
 ![The fitted SAXS profile of lysozyme follows the measured data across the full q range, with residuals scattered evenly around zero.](../assets/figures/saxs-fit-dark.svg#only-dark){ width="100%" }
 
 For a worked example on real data, see the [proteins tutorial](https://sastutorials.org/Proteins/Proteins.html). The full documentation
-for the `saxs` program is available [here](../cli/saxs-fitter.md).
+for the `saxs` program is available [here](../documentation/cli/saxs-fitter.md).

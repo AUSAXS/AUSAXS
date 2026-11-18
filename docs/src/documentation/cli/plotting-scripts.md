@@ -13,7 +13,7 @@ pip install "pyausaxs[plots]"
 ```
 
 > [!TIP]
-> If you use the [precompiled executables](../getting-started/precompiled-binaries.md) or [compiled AUSAXS yourself](../getting-started/compiling.md) without the Python package, the same plotting is available as the script `scripts/plot.py` in the AUSAXS repository. It needs `pip install matplotlib numpy scipy`, and takes the same options as `ausaxs plot`, except those for animations.
+> If you use the [precompiled executables](../../getting-started/precompiled-binaries.md) or [compiled AUSAXS yourself](../../getting-started/compiling.md) without the Python package, the same plotting is available as the script `scripts/plot.py` in the AUSAXS repository. It needs `pip install matplotlib numpy scipy`, and takes the same options as `ausaxs plot`, except those for animations.
 
 ## Making the figures
 Run it from the output folder of a command-line tool:

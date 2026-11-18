@@ -50,7 +50,7 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
 <div class="grid cards" markdown>
 
--   :ausaxs-xray:{ .lg .middle } **[SAXS fitting](cli/saxs-fitter.md)**
+-   :ausaxs-xray:{ .lg .middle } **[SAXS fitting](documentation/cli/saxs-fitter.md)**
 
     ---
 
@@ -68,13 +68,13 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
     Calculate the scattering of crystals, nanoparticles and other structures without solvent, with or without atomic form factors.
 
--   :material-cube-scan:{ .lg .middle } **[EM map validation](cli/em-validation.md)**
+-   :material-cube-scan:{ .lg .middle } **[EM map validation](documentation/cli/em-validation.md)**
 
     ---
 
     Validate cryo-EM maps against solution SAXS data using dummy structures built from the map itself.
 
--   :material-puzzle-outline:{ .lg .middle } **[Rigid-body refinement](cli/rigidbody.md)**
+-   :material-puzzle-outline:{ .lg .middle } **[Rigid-body refinement](documentation/cli/rigidbody.md)**
 
     ---
 
@@ -92,7 +92,7 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
     Call AUSAXS from your own Python scripts and notebooks.
 
--   :material-monitor-dashboard:{ .lg .middle } **[Graphical interface](cli/saxs-fitter.md#graphical-user-interface)**
+-   :material-monitor-dashboard:{ .lg .middle } **[Graphical interface](documentation/cli/saxs-fitter.md#graphical-user-interface)**
 
     ---
 
@@ -104,7 +104,7 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
     Install and enable the optional GPU driver, and choose which GPU to run on.
 
--   :material-chart-line:{ .lg .middle } **[CLI plotting](cli/plotting-scripts.md)**
+-   :material-chart-line:{ .lg .middle } **[CLI plotting](documentation/cli/plotting-scripts.md)**
 
     ---
 

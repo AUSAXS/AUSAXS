@@ -5,7 +5,7 @@ description: Check, enable, disable or remove the AUSAXS GPU driver with the aus
 
 # Managing the GPU driver
 
-This page lists the commands for managing an installed AUSAXS GPU driver. To install it in the first place, see [GPU acceleration](../getting-started/gpu.md).
+This page lists the commands for managing an installed AUSAXS GPU driver. To install it in the first place, see [GPU acceleration](../../getting-started/gpu.md).
 
 | Command               | Description |
 |-----------------------|-------------|
