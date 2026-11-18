@@ -109,6 +109,10 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a.resName == "TIP3");
         CHECK(a.chainID == 'W');
         CHECK(a.resSeq == 1);
+
+        // the readers map force-field water names onto HOH
+        normalize_water_name(a.resName);
+        CHECK(a.resName == "HOH");
         CHECK(a.is_water());
     }
 
