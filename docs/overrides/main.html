@@ -9,6 +9,17 @@
   {% endif %}
 {% endblock %}
 
+{#- Pages on the getting-started path get the step banner above and below their content. -#}
+{% block content %}
+  {% if page.meta and page.meta.journey %}
+    {% with position = "top" %}{% include "partials/journey.html" %}{% endwith %}
+  {% endif %}
+  {{ super() }}
+  {% if page.meta and page.meta.journey %}
+    {% with position = "bottom" %}{% include "partials/journey.html" %}{% endwith %}
+  {% endif %}
+{% endblock %}
+
 {% block extrahead %}
   {% set title = page.meta.title if page.meta and page.meta.title else config.site_name %}
   {% set description = page.meta.description if page.meta and page.meta.description else config.site_description %}

@@ -1,6 +1,7 @@
 ---
 title: SAXS profiles of biomolecules - AUSAXS
 description: How AUSAXS calculates small-angle X-ray scattering (SAXS) profiles of proteins and other biomolecules from atomic models, with an explicit hydration shell and excluded volume, and fits them to experimental SAXS data.
+journey: apps
 ---
 
 # Small-angle X-ray scattering (SAXS)

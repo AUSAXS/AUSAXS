@@ -1,6 +1,7 @@
 ---
 title: GPU acceleration - AUSAXS
 description: Install the optional AUSAXS GPU driver with ausaxs gpu install, either directly or from a manually downloaded release, and choose which GPU to use.
+journey: gpu
 ---
 
 # GPU acceleration
@@ -34,18 +35,4 @@ ausaxs gpu install --from <path to zip file>
 ```
 `--from` also accepts a URL, and replaces any driver already installed. Add `--offline` to make sure no network requests are made.
 
-## Managing the driver
-
-| Command               | Description |
-|-----------------------|-------------|
-|`ausaxs gpu status`    | Show the installed driver, the chosen GPU, and whether it is used by default. |
-|`ausaxs gpu disable`   | Stop using the GPU by default, without removing the driver. |
-|`ausaxs gpu enable`    | Use the GPU by default again. |
-|`ausaxs gpu remove`    | Remove the driver. |
-
-For a single run, the `--gpu` and `--no-gpu` flags of `ausaxs fit`, `ausaxs em` and `ausaxs rigidbody` override the default.
-
-If the driver does not find your GPU, see the [troubleshooting](troubleshooting.md) page.
-
-## Next steps
-You are ready to calculate your first profile. The [tutorials](tutorials.md) walk through complete analyses of real data, and the [SAXS](saxs.md) page explains what goes into the calculation.
+To check, disable or remove the driver later, see [managing the GPU driver](gpu-driver.md). If the driver does not find your GPU, see the [troubleshooting](troubleshooting.md) page.

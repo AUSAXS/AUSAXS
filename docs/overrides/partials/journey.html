@@ -1,0 +1,29 @@
+{#- The "Getting started" path through the docs, drawn above and below every page whose front matter sets
+    `journey:` to one of the step keys below. The step with that key is highlighted, earlier steps are marked done. -#}
+{% set steps = [
+  {"key": "install",   "title": "Installation", "url": "installation/"},
+  {"key": "gpu",       "title": "GPU driver",   "url": "gpu/", "optional": true},
+  {"key": "apps",      "title": "Applications", "url": "saxs/"},
+  {"key": "tutorials", "title": "Tutorials",    "url": "tutorials/"},
+] %}
+{% set current = page.meta.journey %}
+{% set ns = namespace(index=-1) %}
+{% for step in steps %}{% if step.key == current %}{% set ns.index = loop.index0 %}{% endif %}{% endfor %}
+
+<nav class="ausaxs-journey ausaxs-journey--{{ position }}" aria-label="Getting started">
+  <p class="ausaxs-journey__label">Getting started</p>
+  <ol>
+    {% for step in steps %}
+      {% set state = "is-current" if loop.index0 == ns.index else ("is-done" if loop.index0 < ns.index else "") %}
+      <li class="ausaxs-journey__step {{ state }}">
+        <a href="{{ step.url | url }}"{% if loop.index0 == ns.index %} aria-current="step"{% endif %}>
+          <span class="ausaxs-journey__num">{{ loop.index }}</span>
+          <span class="ausaxs-journey__text">
+            <span class="ausaxs-journey__title">{{ step.title }}</span>
+            {% if step.optional %}<span class="ausaxs-journey__opt">optional</span>{% endif %}
+          </span>
+        </a>
+      </li>
+    {% endfor %}
+  </ol>
+</nav>

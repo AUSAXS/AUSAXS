@@ -373,3 +373,171 @@
 .md-typeset .note > summary::before {
   background-color: var(--ausaxs-gold);
 }
+
+/* ---------- Getting-started banner (overrides/partials/journey.html) ---------- */
+
+/* One segmented bar: square joins between the steps, rounded only at the two ends, and a small gold
+   triangle on each divider pointing to the next step. */
+.md-typeset .ausaxs-journey {
+  margin: 0 0 1.6rem;
+}
+
+.md-typeset .ausaxs-journey--bottom {
+  margin: 2.5rem 0 0;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--ausaxs-gold-line);
+}
+
+.md-typeset .ausaxs-journey__label {
+  margin: 0 0 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ausaxs-gold-text);
+}
+
+.md-typeset nav.ausaxs-journey ol {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The step class lifts these above Material's `[dir=ltr] .md-typeset ol li` indent. */
+.md-typeset .ausaxs-journey li.ausaxs-journey__step {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+
+/* Neighbouring steps overlap by their border width, so each divider is a single line. */
+.md-typeset .ausaxs-journey li.ausaxs-journey__step + li {
+  margin-left: -1px;
+}
+
+.md-typeset .ausaxs-journey a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0;
+  color: var(--md-default-fg-color);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition: border-color 150ms, color 150ms, background-color 150ms;
+}
+
+.md-typeset .ausaxs-journey li:first-child a {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.md-typeset .ausaxs-journey li:last-child a {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* A gold step border has to sit on top of the grey border of the step next to it. */
+.md-typeset .ausaxs-journey .is-current,
+.md-typeset .ausaxs-journey li:hover {
+  z-index: 1;
+}
+
+.md-typeset .ausaxs-journey a:hover,
+.md-typeset .ausaxs-journey a:focus-visible {
+  border-color: var(--ausaxs-gold);
+  color: var(--ausaxs-gold-text);
+}
+
+/* The "|>" on the divider after the current step: a small triangle pointing on to the next step. */
+.md-typeset .ausaxs-journey li.is-current:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: -0.32rem;
+  border-top: 0.28rem solid transparent;
+  border-bottom: 0.28rem solid transparent;
+  border-left: 0.32rem solid var(--ausaxs-gold);
+  transform: translateY(-50%);
+}
+
+.md-typeset .ausaxs-journey__num {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  /* The ring is an inset shadow, not a border: the four sides of a border are painted separately, and with a
+     translucent colour their overlaps show as darker seams at the top, bottom, left and right. */
+  box-shadow: inset 0 0 0 1.5px var(--ausaxs-gold-line);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--ausaxs-gold-text);
+}
+
+.md-typeset .ausaxs-journey__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.md-typeset .ausaxs-journey__title {
+  font-weight: 600;
+}
+
+.md-typeset .ausaxs-journey__opt {
+  font-size: 0.6rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .ausaxs-journey .is-done .ausaxs-journey__num {
+  box-shadow: inset 0 0 0 1.5px var(--ausaxs-gold);
+  background-color: var(--ausaxs-gold-soft);
+}
+
+/* The current step: gold wash and a filled number, the logo's bright gold with a slate label as on the buttons. */
+.md-typeset .ausaxs-journey .is-current a {
+  border-color: var(--ausaxs-gold);
+  background-color: var(--ausaxs-gold-soft);
+}
+
+.md-typeset .ausaxs-journey .is-current .ausaxs-journey__num {
+  box-shadow: none;
+  background-color: #e3b341;
+  color: #1f2733;
+}
+
+.md-typeset .ausaxs-journey .is-current .ausaxs-journey__title {
+  font-weight: 700;
+}
+
+/* On narrow screens four steps do not fit on one line: they go two by two as separate rounded tiles,
+   without the triangles, which would point across the wrap. */
+@media screen and (max-width: 44.9375em) {
+  .md-typeset nav.ausaxs-journey ol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  .md-typeset .ausaxs-journey li.ausaxs-journey__step + li {
+    margin-left: 0;
+  }
+
+  .md-typeset .ausaxs-journey li a,
+  .md-typeset .ausaxs-journey li:first-child a,
+  .md-typeset .ausaxs-journey li:last-child a {
+    justify-content: flex-start;
+    border-radius: 0.5rem;
+  }
+
+  .md-typeset .ausaxs-journey li.is-current::after {
+    display: none;
+  }
+}

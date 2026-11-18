@@ -1,6 +1,7 @@
 ---
 title: Installing AUSAXS
 description: Install the AUSAXS small-angle scattering calculator on Linux, macOS or Windows with pip install pyausaxs.
+journey: install
 ---
 
 # Installing AUSAXS

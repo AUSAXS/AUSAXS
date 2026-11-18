@@ -70,6 +70,7 @@ nav:
           - EM map validation: em-validation.md
           - Rigid-body refinement: rigidbody.md
           - CLI plotting: plotting-scripts.md
+          - GPU driver: gpu-driver.md
       - Developers:
           - macOS debug build: macos-debug-build.md
 
