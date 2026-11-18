@@ -2,6 +2,8 @@
 title: Tutorials - AUSAXS
 description: Step-by-step tutorials on SAStutorials.org that use AUSAXS to fit protein structures to SAXS data, validate cryo-EM maps, and refine rigid-body models.
 journey: tutorials
+hide:
+  - toc
 ---
 
 # Tutorials

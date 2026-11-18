@@ -2,6 +2,8 @@
 title: GPU acceleration - AUSAXS
 description: Install the optional AUSAXS GPU driver with ausaxs gpu install, either directly or from a manually downloaded release, and choose which GPU to use.
 journey: gpu
+hide:
+  - toc
 ---
 
 # GPU acceleration
