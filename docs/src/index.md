@@ -29,52 +29,52 @@ hide:
 
 <p class="ausaxs-tagline">Debye scattering from any atomic structure, all in one package.</p>
 
-[Get started](installation.md){ .md-button .md-button--primary }
+[Get started](getting-started/installation.md){ .md-button .md-button--primary }
 [Tutorials](tutorials.md){ .md-button }
 
 </div>
 
-<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> is a fast Debye-equation calculator for small-angle X-ray and neutron scattering. It calculates the [SAXS](saxs.md) and [SANS](sans.md) profiles of proteins and other biomolecules directly from their atomic structure, with an explicit hydration shell and excluded volume, and fits them to experimental data. The same engine calculates the scattering and [powder diffraction](powder-diffraction.md) patterns of [crystals and nanoparticles](crystals.md). It runs on Linux, macOS and Windows, from the command line, from Python, or through a graphical interface.
+<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> is a fast Debye-equation calculator for small-angle X-ray and neutron scattering. It calculates the [SAXS](applications/saxs.md) and [SANS](applications/sans.md) profiles of proteins and other biomolecules directly from their atomic structure, with an explicit hydration shell and excluded volume, and fits them to experimental data. The same engine calculates the scattering and [powder diffraction](applications/powder-diffraction.md) patterns of [crystals and nanoparticles](applications/crystals.md). It runs on Linux, macOS and Windows, from the command line, from Python, or through a graphical interface.
 
 ## Getting started
-1. [Install AUSAXS](installation.md) with a single command:
+1. [Install AUSAXS](getting-started/installation.md) with a single command:
     ```bash
     python -m pip install "pyausaxs[all]"
     ```
-2. Optionally, [install the GPU driver](gpu.md) to run the calculations on a GPU.
+2. Optionally, [install the GPU driver](getting-started/gpu.md) to run the calculations on a GPU.
 3. Follow one of the [tutorials](tutorials.md), which walk through complete analyses of real data.
 
-If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
+If something goes wrong, see the [troubleshooting](getting-started/troubleshooting.md) page.
 
 ## Tools
 
 <div class="grid cards" markdown>
 
--   :ausaxs-xray:{ .lg .middle } **[SAXS fitting](saxs-fitter.md)**
+-   :ausaxs-xray:{ .lg .middle } **[SAXS fitting](cli/saxs-fitter.md)**
 
     ---
 
     Calculate the SAXS profile of an atomic model and fit it to experimental data.
 
--   :material-atom:{ .lg .middle } **[SANS fitting](sans.md)**
+-   :material-atom:{ .lg .middle } **[SANS fitting](applications/sans.md)**
 
     ---
 
     Calculate the SANS profile of an atomic model and fit it to experimental data, with control over the D₂O fraction of the solvent.
 
--   :material-dots-hexagon:{ .lg .middle } **[Debye scattering](crystals.md)**
+-   :material-dots-hexagon:{ .lg .middle } **[Debye scattering](applications/crystals.md)**
 
     ---
 
     Calculate the scattering of crystals, nanoparticles and other structures without solvent, with or without atomic form factors.
 
--   :material-cube-scan:{ .lg .middle } **[EM map validation](em-validation.md)**
+-   :material-cube-scan:{ .lg .middle } **[EM map validation](cli/em-validation.md)**
 
     ---
 
     Validate cryo-EM maps against solution SAXS data using dummy structures built from the map itself.
 
--   :material-puzzle-outline:{ .lg .middle } **[Rigid-body refinement](rigidbody.md)**
+-   :material-puzzle-outline:{ .lg .middle } **[Rigid-body refinement](cli/rigidbody.md)**
 
     ---
 
@@ -92,25 +92,25 @@ If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
 
     Call AUSAXS from your own Python scripts and notebooks.
 
--   :material-monitor-dashboard:{ .lg .middle } **[Graphical interface](saxs-fitter.md#graphical-user-interface)**
+-   :material-monitor-dashboard:{ .lg .middle } **[Graphical interface](cli/saxs-fitter.md#graphical-user-interface)**
 
     ---
 
     Fit models to SAXS data interactively, without the command line.
 
--   :material-expansion-card:{ .lg .middle } **[GPU driver](gpu.md)**
+-   :material-expansion-card:{ .lg .middle } **[GPU driver](getting-started/gpu.md)**
 
     ---
 
     Install and enable the optional GPU driver, and choose which GPU to run on.
 
--   :material-chart-line:{ .lg .middle } **[CLI plotting](plotting-scripts.md)**
+-   :material-chart-line:{ .lg .middle } **[CLI plotting](cli/plotting-scripts.md)**
 
     ---
 
     Plot the results of the command-line tools, from fits to $\chi^2$ landscapes.
 
--   :material-cog-outline:{ .lg .middle } **[Developer setup](compiling.md#using-your-build-from-python)**
+-   :material-cog-outline:{ .lg .middle } **[Developer setup](getting-started/compiling.md#using-your-build-from-python)**
 
     ---
 

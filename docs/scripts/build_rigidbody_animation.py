@@ -9,8 +9,8 @@ trial conformations of rejected moves.) Writes a pair to docs/src/assets/figures
 
 Use them as a pair:
 
-    ![alt](assets/figures/rigidbody-trajectory.gif#only-light)
-    ![alt](assets/figures/rigidbody-trajectory-dark.gif#only-dark)
+    ![alt](../assets/figures/rigidbody-trajectory.gif#only-light)
+    ![alt](../assets/figures/rigidbody-trajectory-dark.gif#only-dark)
 
 The refinement is stochastic, so the animation changes with every build. The data are read from data/rigidbody/LAR1-2-full,
 which is not under version control.

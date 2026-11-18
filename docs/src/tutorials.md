@@ -32,4 +32,4 @@ The tutorials below are hosted on [SAStutorials.org](https://sastutorials.org/),
 
 </div>
 
-Every option of the command-line tools is listed in the [documentation](saxs-fitter.md). Questions not covered here can be asked in the [discussions](https://github.com/AUSAXS/AUSAXS/discussions).
+Every option of the command-line tools is listed in the [documentation](cli/saxs-fitter.md). Questions not covered here can be asked in the [discussions](https://github.com/AUSAXS/AUSAXS/discussions).

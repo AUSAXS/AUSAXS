@@ -9,8 +9,8 @@ draws the results in the site's colours. Writes two pairs to docs/src/assets/fig
 
 Use each as a pair:
 
-    ![alt](assets/figures/<name>.svg#only-light)
-    ![alt](assets/figures/<name>-dark.svg#only-dark)
+    ![alt](../assets/figures/<name>.svg#only-light)
+    ![alt](../assets/figures/<name>-dark.svg#only-dark)
 
 The data are read from tests/files, which the pages link to, and the configuration script from the code block on
 rigid-body-refinement.md. The rigid-body refinement is stochastic, so its figure changes slightly with every build.

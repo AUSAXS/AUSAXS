@@ -9,8 +9,8 @@ and draws it in the site's colours. Writes two pairs to docs/src/assets/figures/
 
 Use each as a pair:
 
-    ![alt](assets/figures/<name>.svg#only-light)
-    ![alt](assets/figures/<name>-dark.svg#only-dark)
+    ![alt](../assets/figures/<name>.svg#only-light)
+    ![alt](../assets/figures/<name>-dark.svg#only-dark)
 
 Needs pyausaxs and matplotlib. Usage: python docs/scripts/build_debye_figures.py
 """

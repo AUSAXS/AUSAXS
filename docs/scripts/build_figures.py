@@ -5,8 +5,8 @@ Each docs/figures/<name>.svg is an Inkscape file kept for editing. This script w
 docs/src/assets/figures/: <name>.svg for the light scheme and <name>-dark.svg for the dark one. Use them in the
 docs as a pair:
 
-    ![alt](assets/figures/<name>.svg#only-light)
-    ![alt](assets/figures/<name>-dark.svg#only-dark)
+    ![alt](../assets/figures/<name>.svg#only-light)
+    ![alt](../assets/figures/<name>-dark.svg#only-dark)
 
 The cleanup drops editor metadata, hidden elements and unused definitions, and shortens long decimals.
 

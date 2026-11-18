@@ -25,7 +25,7 @@ ausaxs em emd_24889.map SASDJG5.dat
 ausaxs plot --folder output/em_fitter/SASDJG5/emd_24889
 ```
 
-![The chi-square of the map falls steeply with the threshold level, reaching a broad minimum near 7.4 sigma; the fit at the minimum follows the measured SAXS data.](assets/figures/em-validation.svg#only-light){ width="100%" }
-![The chi-square of the map falls steeply with the threshold level, reaching a broad minimum near 7.4 sigma; the fit at the minimum follows the measured SAXS data.](assets/figures/em-validation-dark.svg#only-dark){ width="100%" }
+![The chi-square of the map falls steeply with the threshold level, reaching a broad minimum near 7.4 sigma; the fit at the minimum follows the measured SAXS data.](../assets/figures/em-validation.svg#only-light){ width="100%" }
+![The chi-square of the map falls steeply with the threshold level, reaching a broad minimum near 7.4 sigma; the fit at the minimum follows the measured SAXS data.](../assets/figures/em-validation-dark.svg#only-dark){ width="100%" }
 
-For a worked example on the same data, see the [EM validation tutorial](https://sastutorials.org/SAXS_EM/SAXS_EM.html). The full documentation for the `em` program is available [here](em-validation.md).
+For a worked example on the same data, see the [EM validation tutorial](https://sastutorials.org/SAXS_EM/SAXS_EM.html). The full documentation for the `em` program is available [here](../cli/em-validation.md).

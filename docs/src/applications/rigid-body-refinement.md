@@ -17,8 +17,8 @@ hide:
 - **Symmetries.** Many complexes are symmetric assemblies of identical subunits. Building them from a single subunit and refining only the symmetry leaves far fewer parameters to determine from the data.
 
 <figure markdown="span">
-![The five rigid bodies of the LAR1-2 protein, drawn as backbone traces in different colours, shift and rotate relative to each other while staying connected as the refinement fits them to SAXS data.](assets/figures/rigidbody-trajectory.gif#only-light){ width="400" }
-![The five rigid bodies of the LAR1-2 protein, drawn as backbone traces in different colours, shift and rotate relative to each other while staying connected as the refinement fits them to SAXS data.](assets/figures/rigidbody-trajectory-dark.gif#only-dark){ width="400" }
+![The five rigid bodies of the LAR1-2 protein, drawn as backbone traces in different colours, shift and rotate relative to each other while staying connected as the refinement fits them to SAXS data.](../assets/figures/rigidbody-trajectory.gif#only-light){ width="400" }
+![The five rigid bodies of the LAR1-2 protein, drawn as backbone traces in different colours, shift and rotate relative to each other while staying connected as the refinement fits them to SAXS data.](../assets/figures/rigidbody-trajectory-dark.gif#only-dark){ width="400" }
 </figure>
 
 Since the data hold only low-resolution information, a good fit does not prove that a model is correct. It should be checked against what else is known about the system.
@@ -75,7 +75,7 @@ save dimer.pdb
 
 The refined dimer fits the data better than the deposited dimer model does.
 
-![Before refinement, the two copies of the monomer sit too far apart and fit the data poorly; the refined dimer follows the measured data across the full q range.](assets/figures/rigidbody-fit.svg#only-light){ width="100%" }
-![Before refinement, the two copies of the monomer sit too far apart and fit the data poorly; the refined dimer follows the measured data across the full q range.](assets/figures/rigidbody-fit-dark.svg#only-dark){ width="100%" }
+![Before refinement, the two copies of the monomer sit too far apart and fit the data poorly; the refined dimer follows the measured data across the full q range.](../assets/figures/rigidbody-fit.svg#only-light){ width="100%" }
+![Before refinement, the two copies of the monomer sit too far apart and fit the data poorly; the refined dimer follows the measured data across the full q range.](../assets/figures/rigidbody-fit-dark.svg#only-dark){ width="100%" }
 
-For a walkthrough in the graphical interface, see the [rigid-body tutorial](https://sastutorials.org/RigidBody/RigidBodyGUI.html). The full documentation for the `rigidbody` program, including every element of the configuration scripts, is available [here](rigidbody.md).
+For a walkthrough in the graphical interface, see the [rigid-body tutorial](https://sastutorials.org/RigidBody/RigidBodyGUI.html). The full documentation for the `rigidbody` program, including every element of the configuration scripts, is available [here](../cli/rigidbody.md).

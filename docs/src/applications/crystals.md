@@ -8,7 +8,7 @@ hide:
 
 # Crystals and nanoparticles
 
-<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> calculates the orientationally averaged scattering of crystals, nanoparticles and any other collection of atoms or point scatterers. Unlike for [SAXS](saxs.md), there is no solvent: no excluded volume and no hydration shell.
+<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> calculates the orientationally averaged scattering of crystals, nanoparticles and any other collection of atoms or point scatterers.
 
 ## What goes into the profile
 - **The atoms in vacuum.** Every atom scatters with its own vacuum X-ray form factor, or with its neutron scattering length.
@@ -38,7 +38,7 @@ Here we calculate the scattering of a silver nanoparticle of 201 atoms, about 2 
     plt.show()
     ```
 
-![The scattering of the silver nanoparticle falls steeply at low q, followed by broad Bragg peaks that continue out to q = 10 inverse ångström.](assets/figures/crystal-debye.svg#only-light){ width="100%" }
-![The scattering of the silver nanoparticle falls steeply at low q, followed by broad Bragg peaks that continue out to q = 10 inverse ångström.](assets/figures/crystal-debye-dark.svg#only-dark){ width="100%" }
+![The scattering of the silver nanoparticle falls steeply at low q, followed by broad Bragg peaks that continue out to q = 10 inverse ångström.](../assets/figures/crystal-debye.svg#only-light){ width="100%" }
+![The scattering of the silver nanoparticle falls steeply at low q, followed by broad Bragg peaks that continue out to q = 10 inverse ångström.](../assets/figures/crystal-debye-dark.svg#only-dark){ width="100%" }
 
 For a worked example in Python, see the [crystal scattering example](https://github.com/AUSAXS/pyAUSAXS/blob/master/examples/5_crystal_scattering.py).

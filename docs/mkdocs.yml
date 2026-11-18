@@ -52,30 +52,31 @@ theme:
 nav:
   - Home: index.md
   - Getting started:
-      - Installation: installation.md
-      - GPU acceleration: gpu.md
-      - Troubleshooting: troubleshooting.md
+      - Installation: getting-started/installation.md
+      - GPU acceleration: getting-started/gpu.md
+      - Troubleshooting: getting-started/troubleshooting.md
       - Other installation methods:
-          - Precompiled executables: precompiled-binaries.md
-          - Compiling from source: compiling.md
-  - Tutorials: tutorials.md
+          - Precompiled executables: getting-started/precompiled-binaries.md
+          - Compiling from source: getting-started/compiling.md
   - Applications:
-      - Overview: applications.md
-      - SAXS: saxs.md
-      - SANS: sans.md
-      - Rigid-body refinement: rigid-body-refinement.md
-      - EM map validation: em.md
-      - Crystals and nanoparticles: crystals.md
-      - Powder diffraction: powder-diffraction.md
+      - Overview: applications/index.md
+      - SAXS: applications/saxs.md
+      - SANS: applications/sans.md
+      - Rigid-body refinement: applications/rigid-body-refinement.md
+      - EM map validation: applications/em.md
+      - Crystals and nanoparticles: applications/crystals.md
+      - Powder diffraction: applications/powder-diffraction.md
+  - Tutorials: tutorials.md
   - Documentation:
       - Command-line tools:
-          - SAXS fitting: saxs-fitter.md
-          - EM map validation: em-validation.md
-          - Rigid-body refinement: rigidbody.md
-          - CLI plotting: plotting-scripts.md
-          - GPU driver: gpu-driver.md
+          - SAXS fitting: cli/saxs-fitter.md
+          - EM map validation: cli/em-validation.md
+          - Rigid-body refinement: cli/rigidbody.md
+          - CLI plotting: cli/plotting-scripts.md
+          - GPU driver: cli/gpu-driver.md
       - Developers:
-          - macOS debug build: macos-debug-build.md
+          - macOS debug build: developers/macos-debug-build.md
+      - Citing AUSAXS: citing.md
 
 markdown_extensions:
   - admonition

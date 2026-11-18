@@ -16,10 +16,10 @@ python -m pip install pyausaxs
 ```
 
 # Main features
-- **[SAXS profile calculation and fitting](https://ausaxs.github.io/AUSAXS/saxs-fitter/)**: Calculate the SAXS curve of a structure and test whether it is consistent with experimental data, adjusting only solvent and scaling parameters. The hydration shell and excluded volume are modelled explicitly from the atomic coordinates.
+- **[SAXS profile calculation and fitting](https://ausaxs.github.io/AUSAXS/cli/saxs-fitter/)**: Calculate the SAXS curve of a structure and test whether it is consistent with experimental data, adjusting only solvent and scaling parameters. The hydration shell and excluded volume are modelled explicitly from the atomic coordinates.
 - **SANS profile calculation** _(in development)_: The same calculation for small-angle neutron scattering, with neutron scattering lengths, hydrogen/deuterium exchange and D₂O contrast variation.
-- **[EM map validation](https://ausaxs.github.io/AUSAXS/em-validation/)**: Compare cryo-EM maps (MRC/CCP4) against SAXS data using dummy structures built from the map itself.
-- **[Rigid-body refinement](https://ausaxs.github.io/AUSAXS/rigidbody/)** _(in development)_: Refine multi-domain proteins and complexes against SAXS data, exploiting symmetry relations to accelerate the calculation. Driven by a composable configuration language for fine-grained control over parameters, loops, and per-step output.
+- **[EM map validation](https://ausaxs.github.io/AUSAXS/cli/em-validation/)**: Compare cryo-EM maps (MRC/CCP4) against SAXS data using dummy structures built from the map itself.
+- **[Rigid-body refinement](https://ausaxs.github.io/AUSAXS/cli/rigidbody/)** _(in development)_: Refine multi-domain proteins and complexes against SAXS data, exploiting symmetry relations to accelerate the calculation. Driven by a composable configuration language for fine-grained control over parameters, loops, and per-step output.
 - **Debye scattering of crystals and point scatterers**: Evaluate the Debye equation at any _q_ for crystals, nanoparticles and other materials read from CIF or XYZ files, or for arbitrary point scatterers given as coordinates and weights, with or without atomic form factors. The gradient is also available, for use in optimization and machine-learning workflows. Available through the [Python package](https://github.com/AUSAXS/pyAUSAXS).
 - **GPU acceleration**: Optional GPU backend for NVIDIA and AMD cards, installed and checked with `ausaxs gpu`.
 
@@ -42,7 +42,7 @@ No need to track down a downloaded binary: just `pip install` and you're ready t
 
 **Binaries**: Precompiled binaries are also available directly in the [releases](https://github.com/AUSAXS/AUSAXS/releases).
 
-**From source**: Follow the [compilation guide](https://ausaxs.github.io/AUSAXS/installation/#compiling-the-library-yourself) to build it yourself in a few steps.
+**From source**: Follow the [compilation guide](https://ausaxs.github.io/AUSAXS/getting-started/compiling/) to build it yourself in a few steps.
 
 # Contributing
 Encountering problems, have feedback or suggestions, or considering contributing? Please check out the [contributor guidelines](CONTRIBUTING.md).

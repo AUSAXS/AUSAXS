@@ -5,8 +5,8 @@ Fits 2epe.pdb to 2epe.dat with pyAUSAXS, exactly as in the page's example, and d
 colours. The stylized molecule from figures/saxs-decomposition.svg is embedded, as vector graphics, in the
 bottom-left corner. Writes saxs-fit.svg and saxs-fit-dark.svg to docs/src/assets/figures/; use them as a pair:
 
-    ![alt](assets/figures/saxs-fit.svg#only-light)
-    ![alt](assets/figures/saxs-fit-dark.svg#only-dark)
+    ![alt](../assets/figures/saxs-fit.svg#only-light)
+    ![alt](../assets/figures/saxs-fit-dark.svg#only-dark)
 
 Needs pyausaxs and matplotlib. Usage: python docs/scripts/build_fit_figure.py
 """
