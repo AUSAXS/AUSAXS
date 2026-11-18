@@ -43,7 +43,7 @@
       <ul>
         {% for child in section.children[1:] if child.is_page %}
           <li>
-            <a href="{{ child.url | url }}"{% if child.url == page.url %} class="is-current" aria-current="page"{% endif %}>{{ child.title }}</a>
+            <a href="{{ child.url | url }}" data-label="{{ child.title }}"{% if child.url == page.url %} class="is-current" aria-current="page"{% endif %}>{{ child.title }}</a>
           </li>
         {% endfor %}
       </ul>

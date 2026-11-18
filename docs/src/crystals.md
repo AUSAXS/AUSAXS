@@ -2,6 +2,8 @@
 title: Debye scattering of crystals and nanoparticles - AUSAXS
 description: Calculate the Debye scattering of crystals, nanoparticles and arbitrary point scatterers with AUSAXS, with or without atomic form factors, from CIF, XYZ and PDB files or plain coordinate arrays.
 journey: apps
+hide:
+  - toc
 ---
 
 # Crystals and nanoparticles

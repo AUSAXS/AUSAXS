@@ -591,8 +591,20 @@
   border: 1px solid var(--md-default-fg-color--lightest);
   border-radius: 1rem;
   color: var(--md-default-fg-color--light);
+  text-align: center;
   white-space: nowrap;
   transition: border-color 150ms, color 150ms;
+}
+
+/* Invisible bold copy of the label: every chip is as wide as its bold (current) state, so highlighting a
+   chip never changes its width and cannot reflow the chips between rows. */
+.md-typeset .ausaxs-appbar ul a::after {
+  content: attr(data-label);
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: 700;
 }
 
 .md-typeset .ausaxs-appbar ul a:hover,

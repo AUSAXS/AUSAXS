@@ -2,6 +2,8 @@
 title: Powder diffraction patterns of nanocrystals - AUSAXS
 description: Calculate X-ray powder diffraction patterns of nanocrystals and nanoparticles from their atomic structure with the Debye scattering equation in AUSAXS.
 journey: apps
+hide:
+  - toc
 ---
 
 # Powder diffraction

@@ -2,6 +2,8 @@
 title: SANS profiles of biomolecules - AUSAXS
 description: How AUSAXS calculates small-angle neutron scattering (SANS) profiles of proteins from atomic models, with neutron scattering lengths, H2O/D2O solvent contrast and hydrogen-deuterium exchange.
 journey: apps
+hide:
+  - toc
 ---
 
 # Small-angle neutron scattering (SANS)
@@ -9,10 +11,8 @@ journey: apps
 <span class="ausaxs-name"><span class="au">AU</span>SAXS</span> calculates the SANS profile of a protein or other biomolecule directly from its atomic model, and fits it to measured data. It uses the same pipeline as for [SAXS](saxs.md); only the scattering of the atoms and the solvent changes.
 
 ## What changes for neutrons
-- **The atoms.** Every nucleus scatters as a point with a constant scattering length. Hydrogen scatters about as strongly as carbon, but with the opposite sign. Missing hydrogens are therefore added implicitly at their bond distance from the atoms that carry them.
-- **The solvent.** The solvent is an H₂O/D₂O mixture, pure D₂O by default. The excluded volume and the hydration shell both take its isotope composition.
-- **Hydrogen exchange.** Implicit hydrogens bound to nitrogen, oxygen and sulfur exchange with the solvent. Those bound to carbon do not.
-- **Deuterated samples.** Hydrogen and deuterium atoms written explicitly in the structure file are used as given with `hydrogens --keep`. To model a deuterated protein, write its deuterium atoms into the file.
+- **The atoms.** Every nucleus scatters as a point with a constant scattering length. Hydrogen scatters about as strongly as carbon, but with the opposite sign. Hydrogens therefore matter far more than in SAXS, and should be modeled explicitly whenever possible.
+- **The solvent.** The solvent is usually a mixture of H₂O and D₂O, and its composition sets both the scattering of the bulk solvent and the contrast of the hydration shell. It also reaches into the molecule, as solvent-exposed hydrogens can exchange with deuterons and affect their scattering lengths.
 
 For a deeper understanding of the physics, see e.g. [Lytje, Pedersen & Hub (2026)](https://doi.org/10.1088/1361-6633/aead1d).
 
@@ -40,11 +40,4 @@ Given a SANS measurement in 42% D₂O, "data.dat", you can fit an atomic structu
     plt.show()
     ```
 
-The solvent options must be set before the structure is loaded:
-
-| Command line       | pyAUSAXS setting              | Description |
-|--------------------|-------------------------------|-------------|
-|`solv --d2o`        | `neutron_solvent_density`     | The solvent. On the command line, its D₂O fraction from 0 to 1. In Python, its scattering length density in fm/Å³: −0.0559 for H₂O and 0.6363 for D₂O, linear in between. The default is pure D₂O. |
-|`solv --exchange`   | `neutron_exchange_efficiency` | The fraction of the exchangeable hydrogens that take the isotope composition of the solvent, from 0 to 1. The default is 1, full exchange. |
-
-Apart from these, `ausaxs sans` takes the same arguments as `ausaxs fit`. The full documentation is available [here](saxs-fitter.md).
+The full documentation for the `sans` program is available [here](link).
