@@ -30,6 +30,14 @@ using namespace ausaxs;
 
 namespace {
     /**
+     * @brief The default bin width in Å. The profiles of this tool extend to wide angles, where the many sharp, repeated distances of a
+     *        crystal must each keep their own bin: up to q = 10 Å^-1, the profile of an 8 nm fcc particle with 0.05 Å thermal disorder is
+     *        off by up to 87% of the nearby peak heights at 0.25 Å, against 0.3% at 0.02 Å. The narrower bins only add to the Debye transform, not to the
+     *        distance calculation, and cost about 10% for an 84 000-atom particle.
+     */
+    constexpr double default_bin_width = 0.02;
+
+    /**
      * @brief The scattering angle 2θ in degrees of each q at this wavelength, for q = 4π/λ sin(θ).
      *        Only q ≤ 4π/λ can be reached, so larger q are marked with the out-of-range angle -1.
      *        The q values are ascending, so everything after the first unreachable q is unreachable too.
@@ -73,8 +81,8 @@ int cli_debye(int argc, char const *argv[]) {
     auto* p_qmax = app.add_option("--qmax", qmax, "Upper limit of the q-range in Å^-1. With a measurement, it only narrows the measured range.")->default_val(qmax)->check(CLI::PositiveNumber);
     auto* p_count = app.add_option("--count,-n", count, "The number of q values, evenly spaced from qmin to qmax. Not used with a measurement.")->default_val(count)->check(CLI::Range(2, 1000000));
     app.add_flag("--points", points, "Treat every atom as a point scatterer with its weight, instead of using its form factor.");
-    app.add_option_function<double>("--bin-width", [] (double width) {settings::axes::bin_width = width;}, // through the setting, which also updates the inverse width
-        "The width of the distance bins in Å. Lower it for large crystals.")->check(CLI::PositiveNumber);
+    auto* p_bin_width = app.add_option_function<double>("--bin-width", [] (double width) {settings::axes::bin_width = width;}, // through the setting, which also updates the inverse width
+        "The width of the distance bins in Å. The default is 0.02 Å.")->check(CLI::PositiveNumber);
     auto* p_wavelength = app.add_option("--wavelength", wavelength, "Add a column with the scattering angle 2θ in degrees for this wavelength in Å to the output.")->check(CLI::PositiveNumber);
     app.add_flag("--neutron", neutron, "Use neutron scattering lengths instead of X-ray form factors.");
     cli::add_config_subcommand(app, config, "debye");
@@ -104,6 +112,7 @@ int cli_debye(int argc, char const *argv[]) {
         settings::scattering::radiation = neutron ? settings::scattering::Radiation::Neutron : settings::scattering::Radiation::XRay;
         settings::exv::exv_method = points ? settings::exv::ExvMethod::None : settings::exv::ExvMethod::Vacuum;
         settings::hist::weighted_bins = true; // the profile must hold far beyond the range unweighted bins are judged by
+        if (p_bin_width->count() == 0) {settings::axes::bin_width = default_bin_width;}
         settings::validate_settings();
 
         if (!constants::filetypes::structure.check(structure)) {
