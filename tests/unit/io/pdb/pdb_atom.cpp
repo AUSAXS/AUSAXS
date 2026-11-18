@@ -103,6 +103,19 @@ TEST_CASE("PDBAtom::parse_pdb") {
         CHECK(a.get_recName() == "ATOM  ");
     }
 
+    SECTION("four-character residue name") {
+        // CHARMM and NAMD write the name into columns 18-21
+        PDBAtom a; a.parse_pdb("ATOM      1  OH2 TIP3W   1      30.117  29.049  34.879  1.00  0.00           O  ");
+        CHECK(a.resName == "TIP3");
+        CHECK(a.chainID == 'W');
+        CHECK(a.resSeq == 1);
+
+        // the readers map force-field water names onto HOH
+        normalize_water_name(a.resName);
+        CHECK(a.resName == "HOH");
+        CHECK(a.is_water());
+    }
+
     SECTION("inferred element") {
         auto element = [] (const std::string& line) {PDBAtom a; a.parse_pdb(line); return a.element;};
         CHECK(element("ATOM  66661  ZN   ZN   354     121.330  83.600  67.660  1.00  0.00") == constants::atom_t::Zn);
@@ -126,6 +139,13 @@ TEST_CASE("PDBAtom::as_pdb") {
 
         // a coordinate below -100 or beyond 1000 needs all eight columns of its field to keep its last decimal
         roundtrip("ATOM      2  CA  ARG A   1    -123.4561234.567 -99.999  1.00 20.00           C  ");
+
+        // a four-character residue name fills column 21 instead of shifting the fields after it
+        roundtrip("ATOM      3  P   POPCL   1       1.000   2.000   3.000  1.00  0.00           P  ");
+        PDBAtom a; a.parse_pdb("ATOM      3  P   POPCL   1       1.000   2.000   3.000  1.00  0.00           P  ");
+        auto record = a.as_pdb();
+        CHECK(record.size() == 81);
+        CHECK(record.substr(17, 5) == "POPCL");
     }
 
     SECTION("atom name is aligned on the element symbol") {
