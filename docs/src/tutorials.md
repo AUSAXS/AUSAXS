@@ -8,7 +8,7 @@ hide:
 
 # Tutorials
 
-The tutorials below are hosted on [SAStutorials.org](https://sastutorials.org/), and walk through complete analyses of real data with AUSAXS. They are the best place to start after [installing AUSAXS](installation.md).
+The tutorials below are hosted on [SAStutorials.org](https://sastutorials.org/), and walk through complete analyses of real data with AUSAXS.
 
 <div class="grid cards ausaxs-two-col" markdown>
 

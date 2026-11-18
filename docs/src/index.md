@@ -34,7 +34,7 @@ hide:
 
 </div>
 
-AUSAXS is a fast Debye-equation calculator for small-angle X-ray and neutron scattering. It calculates the [SAXS](saxs.md) and [SANS](sans.md) profiles of proteins and other biomolecules directly from their atomic structure, with an explicit hydration shell and excluded volume, and fits them to experimental data. The same engine calculates the scattering and [powder diffraction](powder-diffraction.md) patterns of [crystals and nanoparticles](crystals.md). It runs on Linux, macOS and Windows, from the command line, from Python, or through a graphical interface.
+<span class="ausaxs-name"><span class="au">AU</span>SAXS</span> is a fast Debye-equation calculator for small-angle X-ray and neutron scattering. It calculates the [SAXS](saxs.md) and [SANS](sans.md) profiles of proteins and other biomolecules directly from their atomic structure, with an explicit hydration shell and excluded volume, and fits them to experimental data. The same engine calculates the scattering and [powder diffraction](powder-diffraction.md) patterns of [crystals and nanoparticles](crystals.md). It runs on Linux, macOS and Windows, from the command line, from Python, or through a graphical interface.
 
 ## Getting started
 1. [Install AUSAXS](installation.md) with a single command:

@@ -1,5 +1,5 @@
-/* Sora is the wordmark face of the home-page lockup only; Material loads the text and code fonts itself. */
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@800&display=swap");
+/* Sora is the wordmark face: 800 for the home-page lockup, 500 for inline mentions. Material loads the text and code fonts itself. */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@500;800&display=swap");
 
 /* Slate text from the pyAUSAXS GUI palette (pyausaxs/gui/core/palette.py), with the logo's gold as the single
    accent: links, buttons, headings, rules and list markers. */
@@ -257,8 +257,8 @@
    <span class="ausaxs-name"><span class="au">AU</span>SAXS</span> */
 .md-typeset .ausaxs-name {
   font-family: "Sora", var(--md-text-font-family), sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.025em;
+  font-weight: 500;                          /* lighter than the 800 logo, so it doesn't shout in running text */
+  letter-spacing: -0.005em;
   white-space: nowrap;
 }
 
