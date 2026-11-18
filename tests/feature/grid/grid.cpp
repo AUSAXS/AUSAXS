@@ -345,6 +345,7 @@ TEST_CASE("Grid::add") {
 }
 
 TEST_CASE("Grid::expand_volume") {
+    settings::grid::cell_width = 1; // the expected shapes and counts below are for 1 Å cells
     Limit3D lims(-10, 10, -10, 10, -10, 10);
     test::ExactGrid grid(lims);
 
@@ -1253,6 +1254,7 @@ TEST_CASE("Grid: hydration") {
 }
 
 TEST_CASE("Grid::add:remove") {
+    settings::grid::cell_width = 1; // the atoms sit on the edges of a 1 Å grid over [-2, 2], which a wider cell does not reach
     SECTION("single") {
         Body b(std::vector<AtomFF>{
             AtomFF({-1, -1, -1}, form_factor::form_factor_t::C), 
