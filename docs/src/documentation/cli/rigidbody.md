@@ -339,8 +339,8 @@ For a structure with both (e.g. a symmetric assembly whose subunit has been spli
 > [!TIP]
 > A good strategy is to start with big transforms and perfect the structure at the end. Note that the amplitudes decay over the run, so an over-large starting amplitude is not fatal — it merely wastes the early iterations, during which nothing is accepted. If your run only starts improving halfway through, your amplitudes were too large.
 
-> [!NOTE]
-> All rotation amplitudes are angles in radians. `rotate 3` is thus a rotation of nearly 172°, not 3°.
+> [!IMPORTANT]
+> All rotation amplitudes are angles in radians: `rotate 3` is a rotation of nearly 172°, not 3°.
 
 ---
 
@@ -397,8 +397,8 @@ This will open a new [scope](#scopes) containing the transformed structure. When
 
 Remember to terminate the scope with an `end` statement. 
 
-> [!NOTE]
-> This is the main element of your script. Every time this element is activated, one optimization step is run. You essentially always want this inside a `loop` element. 
+> [!IMPORTANT]
+> This is the main element of your script: every activation runs one optimization step. Place it inside a [`loop`](#loop), or the optimization will only run a single step.
 
 ---
 
@@ -489,8 +489,8 @@ constrain {
 
 </details>
 
-> [!NOTE]
-> You can chain any number of constraint elements to constrain your system just the way you want!
+> [!TIP]
+> Repeat the `constrain` element as many times as you need to build up the constraints of your system.
 
 ---
 
@@ -645,8 +645,8 @@ Specify how to apply the transformation to the bodies.
     - `rigid` (or `rigid_transform`): All bodies connected to the chosen body will be transformed as well. This is the default.  
     - `single` (or `single_transform`): Only the chosen body will be transformed. This is likely to violate constraints on the transformed body with larger transformation amplitudes. 
 
-> [!NOTE]
-> Typically you want to combine the `single` strategy with smaller transformations, or limit it to only rotations. 
+> [!TIP]
+> Combine the `single` strategy with smaller transformations, or limit it to rotations, to avoid breaking the constraints of the transformed body.
 
 ---
 
@@ -656,8 +656,8 @@ _`on_improvement`_
 Open a new [scope](#scopes) which will only be run if a better conformation (lower chi2) was found this iteration. This element must be placed directly inside an [`optimize_once`](#optimize_once) scope. 
 Remember to terminate the scope with an `end` statement. 
 
-> [!NOTE]
-> This is primarily useful for saving a history of the optimization using `save` statements. 
+> [!TIP]
+> Place a [`save`](#save) element in this scope to keep a history of every accepted conformation.
 
 ---
 
@@ -670,8 +670,8 @@ Open a new [scope](#scopes) which will run once every `N` iterations.
 
 Remember to terminate the scope with an `end` statement. 
 
-> [!NOTE]
-> This is useful for keeping track of the optimization progress without being overwhelmed. You can combine this with e.g. the `save` element to regularly see the optimization progress. 
+> [!TIP]
+> Use this to follow a long optimization without being overwhelmed, e.g. with a [`print`](#print) or [`save`](#save) element every 100 iterations.
 
 ---
 
@@ -718,8 +718,8 @@ Publish the current conformation to the GUI live preview.
 
 Place this inside the optimization loop to update the preview as the run progresses. It does nothing if no GUI is connected, so it is safe to leave in scripts which are also run from the command line.
 
-> [!NOTE]
-> Rejected states are only available inside the [`optimize_once`](#optimize_once) [scope](#scopes). Placing this element there lets you watch every sampled conformation, while placing it outside the scope will only update once a new state is accepted. 
+> [!TIP]
+> Place this element inside the [`optimize_once`](#optimize_once) [scope](#scopes) to watch every sampled conformation, including the rejected ones. Outside the scope, the preview only updates when a new conformation is accepted.
 
 ---
 

@@ -26,8 +26,7 @@ or point it at a folder with `--folder <path>`. It searches the folder and its s
 - An `ausaxs.fit` file becomes `log.png` and `loglog.png`, the fit on semi-logarithmic and double-logarithmic axes. Any other `.fit` or `.xvg` files in the same folder, e.g. fits from other SAXS programs, are drawn on the same axes for comparison. The `ausaxs.fit` file can also be read by the ATSAS plotting utilities.
 - A numbered sequence of frames becomes an animated `.gif`.
 
-> [!NOTE]
-> For safety, the search stops 4 folders deep, and skips folders with more than 30 files. Change these limits with `--max_depth` and `--max_files`.
+The search stops 4 folders deep, and skips folders with more than 30 files. Change these limits with `--max_depth` and `--max_files`.
 
 ## Options
 | Option | Effect |

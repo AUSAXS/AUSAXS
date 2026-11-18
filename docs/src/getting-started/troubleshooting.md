@@ -7,7 +7,7 @@ description: Solutions to common problems when installing or running AUSAXS on W
 
 Getting the programs to run on some platforms can be somewhat tricky. Please refer to the following if you encounter any issues. 
 
-> [!NOTE]
+> [!TIP]
 > Can't find your issue? Please create a [discussion thread](https://github.com/AUSAXS/AUSAXS/discussions) with more information so we can help get it solved. 
 
 ## Windows

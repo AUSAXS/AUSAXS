@@ -23,7 +23,7 @@ hide:
 
 Since the data hold only low-resolution information, a good fit does not prove that a model is correct. It should be checked against what else is known about the system.
 
-> [!NOTE]
+> [!IMPORTANT]
 > Rigid-body refinement is still in active development.
 
 ## Example

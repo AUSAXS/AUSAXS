@@ -47,10 +47,7 @@ If you prefer a visual interface, you can use the Python GUI from the [pyAUSAXS]
 pip install pyausaxs[all]
 ausaxs gui
 ```
-If you do use this, you can skip over the next section on the command-line arguments.
-
-> [!NOTE]
-> Not all options are available through this interface.
+If you do use this, you can skip over the next section on the command-line arguments, though not every option is available in the graphical interface.
 
 ## Arguments
 Arguments are handled by [CLI11](https://github.com/CLIUtils/CLI11). You can see a list of available arguments by providing the `--help` argument: `ausaxs fit --help`.  

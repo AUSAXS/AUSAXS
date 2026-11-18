@@ -14,6 +14,8 @@
   --ausaxs-code-bg: #eaeef3;
   --ausaxs-code-border: #d3dae3;
   --ausaxs-code-fg: #1f2733;
+  --ausaxs-red: #b0524a;                     /* muted red, for "important" callouts */
+  --ausaxs-red-soft: rgba(176, 82, 74, 0.1);
 
   --md-primary-fg-color: var(--ausaxs-slate);
   --md-primary-fg-color--light: #3a4556;
@@ -33,6 +35,8 @@
   --ausaxs-code-bg: #252d3a;
   --ausaxs-code-border: #3a4556;
   --ausaxs-code-fg: #e6edf3;
+  --ausaxs-red: #d9776e;
+  --ausaxs-red-soft: rgba(217, 119, 110, 0.12);
 
   --md-primary-fg-color: #161b22;
   --md-primary-fg-color--light: #2a313c;
@@ -111,30 +115,52 @@
   border-left-color: var(--ausaxs-gold);
 }
 
-/* Material's "question" admonition is green; recolour it gold to match the theme. */
+/* Material's "question" admonition is green, and a plain <details> dropdown (e.g. the examples on the rigid-body
+   page) is the blue of a note; recolour both gold to match the theme. */
 .md-typeset .admonition.question,
-.md-typeset details.question {
+.md-typeset details.question,
+.md-typeset details:not([class]) {
   border-color: var(--ausaxs-gold);
 }
 
 .md-typeset .admonition.question:focus-within,
-.md-typeset details.question:focus-within {
+.md-typeset details.question:focus-within,
+.md-typeset details:not([class]):focus-within {
   box-shadow: 0 0 0 0.2rem var(--md-accent-fg-color--transparent);
 }
 
 .md-typeset .question > .admonition-title,
-.md-typeset .question > summary {
+.md-typeset .question > summary,
+.md-typeset details:not([class]) > summary {
   background-color: var(--ausaxs-gold-soft);
 }
 
 .md-typeset .question > .admonition-title::before,
-.md-typeset .question > summary::before {
+.md-typeset .question > summary::before,
+.md-typeset details:not([class]) > summary::before {
   background-color: var(--ausaxs-gold);
 }
 
 .md-typeset .question > .admonition-title::after,
-.md-typeset .question > summary::after {
+.md-typeset .question > summary::after,
+.md-typeset details:not([class]) > summary::after {
   color: var(--ausaxs-gold);
+}
+
+/* GitHub's "[!IMPORTANT]" callout has no Material type of its own, so it would fall back to the blue of a note.
+   Give it a muted red and a circled exclamation mark. */
+.md-typeset .admonition.important {
+  border-color: var(--ausaxs-red);
+}
+
+.md-typeset .important > .admonition-title {
+  background-color: var(--ausaxs-red-soft);
+}
+
+.md-typeset .important > .admonition-title::before {
+  background-color: var(--ausaxs-red);
+  -webkit-mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-1 3h2v7h-2Zm0 9h2v2h-2Z"/></svg>');
+          mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-1 3h2v7h-2Zm0 9h2v2h-2Z"/></svg>');
 }
 
 /* Inline code: Material's default background is barely distinguishable from the page in either scheme,
@@ -962,4 +988,112 @@
 /* One word of inline code, e.g. an argument like --threads, which must not break at its hyphens (hooks/nowrap_code.py). */
 .md-typeset .ausaxs-nowrap {
   white-space: nowrap;
+}
+
+/* The command list on the documentation overview: a table whose rows are each one large link, with the command in
+   gold and a short description. Hovering a row tints it and slides in an arrow. Below 30em the description wraps
+   under the command. */
+.md-typeset .ausaxs-cmds {
+  margin: 1em 0;
+  overflow: hidden;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.md-typeset .ausaxs-cmds__head,
+.md-typeset .ausaxs-cmd {
+  display: grid;
+  grid-template-columns: 10.5rem 1fr 1.2rem;
+  column-gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.md-typeset .ausaxs-cmds__head {
+  padding-block: 0.6rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+  background-color: var(--ausaxs-gold-soft);
+  border-bottom: 2px solid var(--ausaxs-gold-line);
+}
+
+.md-typeset .ausaxs-cmds p {
+  margin: 0;
+}
+
+.md-typeset .ausaxs-cmds p + p .ausaxs-cmd {
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .ausaxs-cmd {
+  color: var(--md-default-fg-color);
+  transition: background-color 150ms, box-shadow 150ms;
+}
+
+.md-typeset .ausaxs-cmd::after {
+  content: "→";
+  color: var(--ausaxs-gold);
+  font-size: 0.9rem;
+  opacity: 0;
+  transform: translateX(-0.3rem);
+  transition: opacity 150ms, transform 150ms;
+}
+
+.md-typeset .ausaxs-cmd:hover,
+.md-typeset .ausaxs-cmd:focus-visible {
+  color: var(--md-default-fg-color);
+  background-color: var(--ausaxs-gold-soft);
+  box-shadow: inset 3px 0 0 var(--ausaxs-gold);
+}
+
+.md-typeset .ausaxs-cmd:hover::after,
+.md-typeset .ausaxs-cmd:focus-visible::after {
+  opacity: 1;
+  transform: none;
+}
+
+.md-typeset .ausaxs-cmd > code {
+  justify-self: start;
+  padding: 0.15em 0.45em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--ausaxs-gold-text);
+}
+
+.md-typeset .ausaxs-cmd__desc code {
+  font-size: 0.85em;
+}
+
+@media screen and (max-width: 30em) {
+  .md-typeset .ausaxs-cmds__head {
+    display: none;
+  }
+
+  .md-typeset .ausaxs-cmd {
+    grid-template-columns: 1fr 1.2rem;
+    row-gap: 0.35rem;
+  }
+
+  .md-typeset .ausaxs-cmd > code {
+    grid-column: 1;
+  }
+
+  .md-typeset .ausaxs-cmd__desc {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .md-typeset .ausaxs-cmd::after {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset .ausaxs-cmd,
+  .md-typeset .ausaxs-cmd::after {
+    transition: none;
+  }
 }
