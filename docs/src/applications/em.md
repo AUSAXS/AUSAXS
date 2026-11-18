@@ -22,7 +22,7 @@ Here we validate the cryo-EM map of the SARS-CoV-2 main protease, [EMD-24889](ht
 
 ```bash
 ausaxs em emd_24889.map SASDJG5.dat
-ausaxs plot --folder output/em_fitter/SASDJG5/emd_24889
+ausaxs plot --folder output/em/SASDJG5/emd_24889
 ```
 
 ![The chi-square of the map falls steeply with the threshold level, reaching a broad minimum near 7.4 sigma; the fit at the minimum follows the measured SAXS data.](../assets/figures/em-validation.svg#only-light){ width="100%" }

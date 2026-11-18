@@ -27,7 +27,7 @@ Here we fit the structure of hen egg-white lysozyme, [2epe.pdb](https://raw.gith
 
     ```bash
     ausaxs saxs 2epe.pdb 2epe.dat
-    ausaxs plot --folder output/saxs_fitter/2epe
+    ausaxs plot --folder output/saxs/2epe
     ```
 
 === "pyAUSAXS"

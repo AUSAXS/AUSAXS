@@ -13,7 +13,7 @@ All AUSAXS tools are run through the single `ausaxs` executable, with the name o
 If you leave out the SAXS data file and instead give a threshold level with `em --level <σ>`, the program runs in _simulation mode_: the scattering profile of the map at that threshold is calculated and saved as `<map-name>.dat`, without any fitting. 
 
 ## Output
-By default all output will be saved in a new `output/em_fitter/<data-name>/<map-name>/` folder, although this location can be changed by specifying the `--output` argument (note that the subfolders will always be created). In simulation mode, the output is written to `output/em_fitter/simulated/<map-name>/` instead. 
+By default all output will be saved in a new `output/em/<data-name>/<map-name>/` folder, although this location can be changed by specifying the `--output` argument (note that the subfolders will always be created). In simulation mode, the output is written to `output/em/simulated/<map-name>/` instead. 
 
 In this folder you will find a bunch of `.plot` files. Turn them into images by running `ausaxs plot` in this folder. See the [CLI plotting](plotting-scripts.md) page for more information. 
 
@@ -59,7 +59,7 @@ As for the [SAXS fitter](fit.md#argument-groups), most arguments are sorted into
 |`-h`, `--help`      | Help                       | Print a help message |
 |`--licence`         | Print the licence          | Print the licence    |
 |`-v`, `--version`   | See the program version    | See the program version. | 
-|`-o`, `--output`    | Set output directory       | Set the path to the output directory. Defaults to `output/em_fitter/`. |
+|`-o`, `--output`    | Set output directory       | Set the path to the output directory. Defaults to `output/em/`. |
 |`-t`, `--threads`   | Set the number of threads  | Use this to limit the number of threads. By default all but one thread available on the system will be used. |
 |`--gpu`             | Use GPU acceleration       | Use GPU acceleration if available. |
 

@@ -18,7 +18,7 @@ The order of the two files does not matter. If you leave out the SAXS data file,
 [`ausaxs sans`](sans.md) and [`ausaxs debye`](debye.md) are built on this tool, and take most of the arguments described here. Their own pages only list where they differ.
 
 ## Output
-By default all output will be saved in a new `output/saxs_fitter/<data-name>/` folder, where `<data-name>` is the name of the SAXS data file. The location can be changed with the `--output` argument (the subfolder `<data-name>` will always be created). In simulation mode, the output is written to `output/saxs_fitter/simulated/<model-name>/` instead. 
+By default all output will be saved in a new `output/saxs/<data-name>/` folder, where `<data-name>` is the name of the SAXS data file. The location can be changed with the `--output` argument (the subfolder `<data-name>` will always be created). In simulation mode, the output is written to `output/saxs/simulated/<model-name>/` instead. 
 
 In this folder you will find the following files: 
 - **ausaxs.fit**: A data file containing both the data and the fitted curve evaluated at the same `q`-values as the input SAXS data file. Note that the data may be truncated and scaled to inverse Ångström, depending on your settings. This file is compatible with the plotting utility from the ATSAS package. 
@@ -69,7 +69,7 @@ As an example, `ausaxs fit <pdb> <data> exv --model grid --fit solv --keep data 
 |`-h`, `--help`      | Help                       | Print a help message |
 |`--licence`         | Print the licence          | Print the licence    |
 |`-v`, `--version`   | See the program version    | See the program version. | 
-|`-o`, `--output`    | Set output directory       | Set the path to the output directory. Defaults to `output/saxs_fitter/`. |
+|`-o`, `--output`    | Set output directory       | Set the path to the output directory. Defaults to `output/saxs/`. |
 |`--allow-unknown-atoms` | Do not exit when an unknown atom is encountered | Usually the program terminates if an unknown atom is found since its charge cannot be correctly determined. If you would like to proceed anyway, supply this argument. |
 |`--allow-unknown-residues` | Do not exit when an unknown residue is encountered | As above, but for residues. |
 |`--offline`         | Run in offline mode        | Prevent all network requests. Normally, definitions of unknown residues may be downloaded from the PDB. |

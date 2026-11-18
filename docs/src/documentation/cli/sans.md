@@ -11,7 +11,7 @@ description: Calculate the SANS profile of a PDB or mmCIF structure and fit it t
 For what SANS adds over SAXS, see the [SANS application](../../applications/sans.md).
 
 ## Differences from `ausaxs fit`
-- **Output folder.** The default output folder is `output/sans_fitter/` instead of `output/saxs_fitter/`.
+- **Output folder.** The default output folder is `output/sans/` instead of `output/saxs/`.
 - **Units.** Charges and densities are reported as scattering lengths in fm and fm/Å³, instead of electrons.
 - **Probe.** The tool always uses neutrons, even if a settings file says otherwise.
 - **Solvent.** The `solv` group has two extra arguments for the composition of the solvent, listed below.

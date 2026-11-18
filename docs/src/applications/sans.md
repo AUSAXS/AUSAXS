@@ -23,7 +23,7 @@ Given a SANS measurement in 42% D₂O, "data.dat", you can fit an atomic structu
 
     ```bash
     ausaxs sans model.pdb data.dat solv --d2o 0.42
-    ausaxs plot --folder output/sans_fitter/data
+    ausaxs plot --folder output/sans/data
     ```
 
 === "pyAUSAXS"
