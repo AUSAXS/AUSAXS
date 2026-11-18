@@ -40,4 +40,4 @@ Given a SANS measurement in 42% D₂O, "data.dat", you can fit an atomic structu
     plt.show()
     ```
 
-`ausaxs sans` takes the same options as `ausaxs fit`, which are listed in its [documentation](../documentation/cli/saxs-fitter.md), plus the composition of the solvent.
+Every option of `ausaxs sans`, including the composition of the solvent, is listed in its [documentation](../documentation/cli/sans.md).

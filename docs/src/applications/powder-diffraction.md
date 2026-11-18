@@ -43,3 +43,5 @@ Here we calculate the Cu Kα powder pattern of a silver nanoparticle of 201 atom
 ![The powder pattern of the silver nanoparticle shows broad peaks, the strongest near 38 degrees with a shoulder near 44 degrees, followed by weaker peaks near 65, 78 and 114 degrees.](../assets/figures/powder-pattern-dark.svg#only-dark){ width="100%" }
 
 The peaks are broad because the particle is only about 2 nm across.
+
+Every option of `ausaxs debye` is listed in its [documentation](../documentation/cli/debye.md).

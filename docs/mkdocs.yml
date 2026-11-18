@@ -70,7 +70,9 @@ nav:
   - Documentation:
       - Overview: documentation/index.md
       - Command-line tools:
-          - SAXS fitting: documentation/cli/saxs-fitter.md
+          - SAXS fitting: documentation/cli/fit.md
+          - SANS fitting: documentation/cli/sans.md
+          - Debye scattering: documentation/cli/debye.md
           - EM map validation: documentation/cli/em-validation.md
           - Rigid-body refinement: documentation/cli/rigidbody.md
           - CLI plotting: documentation/cli/plotting-scripts.md

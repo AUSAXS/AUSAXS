@@ -15,6 +15,8 @@ The order of the two files does not matter. If you leave out the SAXS data file,
 > [!TIP]
 > `ausaxs saxs` is an alias of `ausaxs fit`.
 
+[`ausaxs sans`](sans.md) and [`ausaxs debye`](debye.md) are built on this tool, and take most of the arguments described here. Their own pages only list where they differ.
+
 ## Output
 By default all output will be saved in a new `output/saxs_fitter/<data-name>/` folder, where `<data-name>` is the name of the SAXS data file. The location can be changed with the `--output` argument (the subfolder `<data-name>` will always be created). In simulation mode, the output is written to `output/saxs_fitter/simulated/<model-name>/` instead. 
 
@@ -110,7 +112,6 @@ The `q`-range must lie within $[10^{-4},\ 1]\ Å^{-1}$.
 |`--fit`             | Fit excluded volume        | Enable excluded volume fitting. This will add an additional fitting parameter for most excluded volume models. |
 |`--fit-density`     | Fit solvent density        | Enable excluded solvent density fitting. This will always add an additional fitting parameter. |
 |`--table`           | Set excluded volume table  | Change the displaced volume table backing the model. Options: `traube`, `vdw`, `voronoi`, `mf` (minimum fluctuation). |
-|`-w`, `--width`     | Set grid width             | Change the width of the dummy atoms used by the `grid` model. This can be set independently from the `grid --width` argument, though it must always be an integer multiple of the underlying grid width. |
 |`--save`            | Save excluded volume       | Save the excluded volume as `exv.pdb`. This will only happen when using a grid-based model. |
 |`--ref`, `--reference` | Excluded volume reference | Path to a reference file defining the excluded volume. |
 
@@ -151,10 +152,11 @@ These models are not as well-tested as those listed above, and are only listed f
 | Argument           | Name                       | Description |
 |--------------------|----------------------------|-------------|
 |`--keep`, `--discard` | Keep explicit hydrogens    | Keep the explicit hydrogens present in the structure file instead of accounting for them implicitly. This will also switch the excluded volume tables to a version containing non-zero hydrogen volumes. By default they are discarded. | 
+|`--force-field-names` | Read force-field residue names | Read force-field residue names, such as the protonation states `HID`, `HSE` and `CYX`, or `SOL` for water, by their force-field meaning instead of their usual definitions in the PDB's Chemical Component Dictionary. |
 
 ### `grid` group
 | Argument           | Name                       | Description |
 |--------------------|----------------------------|-------------|
 |`--rvol`            | Set min exv radius         | The volume occupied by each atom is calculated as `max(rvdw, rvol)`. This setting modifies the latter, allowing for generating either small and structured or large and homogeneous excluded volumes. |
-|`-w`, `--width`     | Set the grid width         | Set the grid cell width. This will have a major impact on everything relying on the grid, including the hydration model, the volume calculations, and the grid-based excluded volume. |
+|`-w`, `--width`     | Set the grid width         | Set the grid cell width. This will have a major impact on everything relying on the grid, including the hydration model, the volume calculations, and the grid-based excluded volume, whose dummy atoms have the same width. |
 |`--save`            | Save the grid              | Save the grid as `grid.pdb`. |

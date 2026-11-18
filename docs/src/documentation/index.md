@@ -13,14 +13,14 @@ All tools are subcommands of `ausaxs`. Run `ausaxs <command> --help` for a short
 
 | Command | Description |
 |---------|-------------|
-| [`ausaxs fit`](cli/saxs-fitter.md) | Calculate the SAXS profile of an atomic model and fit it to experimental data. `ausaxs saxs` is an alias. |
+| [`ausaxs fit`](cli/fit.md) | Calculate the SAXS profile of an atomic model and fit it to experimental data. `ausaxs saxs` is an alias. |
+| [`ausaxs sans`](cli/sans.md) | Calculate the SANS profile of an atomic model and fit it to experimental data. |
+| [`ausaxs debye`](cli/debye.md) | Calculate the Debye scattering of a structure without solvent, such as a crystal or nanoparticle. |
 | [`ausaxs em`](cli/em-validation.md) | Validate a cryo-EM map against SAXS data. |
 | [`ausaxs rigidbody`](cli/rigidbody.md) | Refine a multi-domain model against SAXS data, driven by a configuration script. |
 | [`ausaxs plot`](cli/plotting-scripts.md) | Make figures from the output of the other tools. |
 | [`ausaxs gpu`](cli/gpu-driver.md) | Check, enable, disable or remove the GPU driver. |
-| [`ausaxs gui`](cli/saxs-fitter.md#graphical-user-interface) | Start the graphical interface. |
-
-The SANS and Debye-scattering calculations are described on their application pages: [`ausaxs sans`](../applications/sans.md) and [`ausaxs debye`](../applications/crystals.md).
+| [`ausaxs gui`](cli/fit.md#graphical-user-interface) | Start the graphical interface. |
 
 ## Developers
 

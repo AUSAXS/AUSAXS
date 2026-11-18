@@ -26,7 +26,7 @@ Here we fit the structure of hen egg-white lysozyme, [2epe.pdb](https://raw.gith
 === "Command line"
 
     ```bash
-    ausaxs fit 2epe.pdb 2epe.dat
+    ausaxs saxs 2epe.pdb 2epe.dat
     ausaxs plot --folder output/saxs_fitter/2epe
     ```
 
@@ -45,4 +45,4 @@ Here we fit the structure of hen egg-white lysozyme, [2epe.pdb](https://raw.gith
 ![The fitted SAXS profile of lysozyme follows the measured data across the full q range, with residuals scattered evenly around zero.](../assets/figures/saxs-fit.svg#only-light){ width="100%" }
 ![The fitted SAXS profile of lysozyme follows the measured data across the full q range, with residuals scattered evenly around zero.](../assets/figures/saxs-fit-dark.svg#only-dark){ width="100%" }
 
-For a worked example on real data, see the [proteins tutorial](https://sastutorials.org/Proteins/Proteins.html). Every option of `ausaxs fit` is listed in its [documentation](../documentation/cli/saxs-fitter.md).
+For a worked example on real data, see the [proteins tutorial](https://sastutorials.org/Proteins/Proteins.html). Every option of `ausaxs saxs` is listed in its [documentation](../documentation/cli/fit.md).

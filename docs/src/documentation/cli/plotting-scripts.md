@@ -5,7 +5,7 @@ description: Turn the .plot and ausaxs.fit files written by the AUSAXS command-l
 
 # CLI plotting
 
-The command-line tools write their results as text files: the fit itself as `ausaxs.fit`, and every figure as a `.plot` file, a simple description of each curve in the plot. The `ausaxs plot` tool turns these into images. The [graphical interface](saxs-fitter.md#graphical-user-interface) and the [Python API](https://github.com/AUSAXS/pyAUSAXS) draw their own figures, so this is only needed for results from the command line.
+The command-line tools write their results as text files: the fit itself as `ausaxs.fit`, and every figure as a `.plot` file, a simple description of each curve in the plot. The `ausaxs plot` tool turns these into images. The [graphical interface](fit.md#graphical-user-interface) and the [Python API](https://github.com/AUSAXS/pyAUSAXS) draw their own figures, so this is only needed for results from the command line.
 
 `ausaxs plot` is part of the Python package, and needs its plotting extension:
 ```bash

@@ -53,7 +53,7 @@ The following are automatically fetched by CMake:
 Each of these can be replaced by a system-provided version with the corresponding `-DUSE_SYSTEM_<NAME>=ON` CMake option.
 
 ## Using your build from Python
-The Python package bundles its own copy of the AUSAXS library. To make it use one you compiled yourself instead, e.g. to try out changes in the [graphical interface](../documentation/cli/saxs-fitter.md#graphical-user-interface), build the shared library:
+The Python package bundles its own copy of the AUSAXS library. To make it use one you compiled yourself instead, e.g. to try out changes in the [graphical interface](../documentation/cli/fit.md#graphical-user-interface), build the shared library:
 ```bash
 cmake --build build --target libausaxs -jX
 ```

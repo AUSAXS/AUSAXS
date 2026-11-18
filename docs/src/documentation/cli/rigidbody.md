@@ -24,7 +24,7 @@ The optimization is fully described by a configuration script, which is the only
 
 The script must have one of the extensions `.config`, `.conf`, or `.txt`. The structure and SAXS data files are loaded by the script itself, through the [`load`](#load) element. 
 
-The remaining command-line arguments follow the same _group_ structure as the [SAXS fitter](saxs-fitter.md#argument-groups), and can be listed with `ausaxs rigidbody --help`: 
+The remaining command-line arguments follow the same _group_ structure as the [SAXS fitter](fit.md#argument-groups), and can be listed with `ausaxs rigidbody --help`: 
 | Group       | Arguments |
 |-------------|-----------|
 | base        | `--licence`, `-v`/`--version`, `--allow-unknown-atoms`, `--allow-unknown-residues`, `--offline`, `-t`/`--threads`, `--gpu` |
@@ -404,7 +404,7 @@ Save the current conformation.
 * **`path`** [`string`]: The path to write to, relative to the [output folder](#output). The extension defines the saved data:  
   i. `*.pdb`: Save the current structure in the `pdb` format.  
   ii. `*.xyz`: Append the current structure to the specified file. This is an animation format which can be played in PyMOL.  
-  iii. `*.fit`: Save the current fit, in the same format as the `ausaxs.fit` file from the [SAXS fitter](saxs-fitter.md#output).  
+  iii. `*.fit`: Save the current fit, in the same format as the `ausaxs.fit` file from the [SAXS fitter](fit.md#output).  
   iv. `*.txt`: Save a report of the current fit.  
   v. `*.png`: Save a plot of the current fit. This is written as a `.plot` file; see [CLI plotting](plotting-scripts.md). 
 

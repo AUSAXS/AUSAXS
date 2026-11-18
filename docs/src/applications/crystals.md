@@ -38,4 +38,4 @@ Here we calculate the scattering of a silver nanoparticle of 201 atoms, about 2 
 ![The scattering of the silver nanoparticle falls steeply at low q, followed by broad Bragg peaks that continue out to q = 10 inverse ångström.](../assets/figures/crystal-debye.svg#only-light){ width="100%" }
 ![The scattering of the silver nanoparticle falls steeply at low q, followed by broad Bragg peaks that continue out to q = 10 inverse ångström.](../assets/figures/crystal-debye-dark.svg#only-dark){ width="100%" }
 
-For a worked example in Python, see the [crystal scattering example](https://github.com/AUSAXS/pyAUSAXS/blob/master/examples/5_crystal_scattering.py).
+For a worked example in Python, see the [crystal scattering example](https://github.com/AUSAXS/pyAUSAXS/blob/master/examples/5_crystal_scattering.py). Every option of `ausaxs debye` is listed in its [documentation](../documentation/cli/debye.md).

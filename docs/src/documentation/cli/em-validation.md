@@ -51,7 +51,7 @@ If you do use this, you can skip over the next section on the command-line argum
 ## Arguments
 Arguments are handled by [CLI11](https://github.com/CLIUtils/CLI11). You can see a list of available arguments by providing the `--help` argument: `ausaxs em --help`. 
 
-As for the [SAXS fitter](saxs-fitter.md#argument-groups), most arguments are sorted into argument _groups_. To set an argument from a group, write the group name followed by the argument, e.g. `ausaxs em <map> <data> em --levelmin 2 --frequency 2 data --qmax 0.4`. 
+As for the [SAXS fitter](fit.md#argument-groups), most arguments are sorted into argument _groups_. To set an argument from a group, write the group name followed by the argument, e.g. `ausaxs em <map> <data> em --levelmin 2 --frequency 2 data --qmax 0.4`. 
 
 ### Base group
 | Argument           | Name                       | Description |

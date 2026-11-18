@@ -50,19 +50,19 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
 <div class="grid cards" markdown>
 
--   :ausaxs-xray:{ .lg .middle } **[SAXS fitting](documentation/cli/saxs-fitter.md)**
+-   :ausaxs-xray:{ .lg .middle } **[SAXS fitting](documentation/cli/fit.md)**
 
     ---
 
     Calculate the SAXS profile of an atomic model and fit it to experimental data.
 
--   :material-atom:{ .lg .middle } **[SANS fitting](applications/sans.md)**
+-   :material-atom:{ .lg .middle } **[SANS fitting](documentation/cli/sans.md)**
 
     ---
 
     Calculate the SANS profile of an atomic model and fit it to experimental data, with control over the D₂O fraction of the solvent.
 
--   :ausaxs-debye:{ .lg .middle } **[Debye scattering](applications/crystals.md)**
+-   :ausaxs-debye:{ .lg .middle } **[Debye scattering](documentation/cli/debye.md)**
 
     ---
 
@@ -92,7 +92,7 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
     Call AUSAXS from your own Python scripts and notebooks.
 
--   :material-monitor-dashboard:{ .lg .middle } **[Graphical interface](documentation/cli/saxs-fitter.md#graphical-user-interface)**
+-   :material-monitor-dashboard:{ .lg .middle } **[Graphical interface](documentation/cli/fit.md#graphical-user-interface)**
 
     ---
 
