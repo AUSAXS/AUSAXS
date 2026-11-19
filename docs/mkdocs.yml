@@ -80,7 +80,6 @@ nav:
           - GPU driver: documentation/cli/gpu-driver.md
       - Developers:
           - Running the tests: documentation/developers/tests.md
-          - macOS debug build: documentation/developers/macos-debug-build.md
       - Citing AUSAXS: documentation/citing.md
 
 markdown_extensions:

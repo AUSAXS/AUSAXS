@@ -41,7 +41,6 @@ All tools are subcommands of `ausaxs`. Run `ausaxs <command> --help` for a short
 
 - [Compiling from source](../getting-started/compiling.md): build the library yourself, and point the Python package at your build with `ausaxs setup`.
 - [Running the tests](developers/tests.md): build and run the test suite.
-- [macOS debug build](developers/macos-debug-build.md): compile AUSAXS in debug mode on macOS.
 - [Contributing](https://github.com/AUSAXS/AUSAXS/blob/master/CONTRIBUTING.md): how to report bugs, make suggestions and contribute code.
 
 ## Citing AUSAXS
