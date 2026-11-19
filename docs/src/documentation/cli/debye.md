@@ -23,7 +23,7 @@ By default all output is saved in the `output/debye/` folder, which can be chang
 - Without a measurement, the profile is written to **debye.dat** in `output/debye/simulated/<structure-name>/`, with the columns $q$ and $I$.
 - With a measurement, the fit is written to **ausaxs.fit** in `output/debye/<data-name>/`, along with a **report.txt**. Both are described on the [`ausaxs fit` page](fit.md#output).
 
-The header of each file states the number of atoms and how they scatter. With `--wavelength`, both files get an extra column with the scattering angle $2\theta$ in degrees.
+The header of `debye.dat` and `ausaxs.fit` states the number of atoms and how they scatter. With `--wavelength`, both files get an extra column with the scattering angle $2\theta$ in degrees.
 
 ## Arguments
 Arguments are given the same way as for `ausaxs fit`, with some of them in [argument groups](fit.md#argument-groups). Run `ausaxs debye --help` for a summary.

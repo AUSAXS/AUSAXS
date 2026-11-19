@@ -1,6 +1,6 @@
 ---
 title: Citing AUSAXS - AUSAXS
-description: How to cite AUSAXS in publications, with BibTeX entries for the SAXS profile calculation and EM map validation papers.
+description: How to cite AUSAXS in publications, with BibTeX entries for the SAXS profile calculation and EM map validation papers, and our review of small-angle scattering theory.
 hide:
   - toc
 ---

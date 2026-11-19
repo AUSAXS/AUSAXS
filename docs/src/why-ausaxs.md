@@ -7,7 +7,7 @@ hide:
 
 # Why <span class="ausaxs-name"><span class="au">AU</span>SAXS</span>?
 
-AUSAXS is built on three principles: use the full Debye equation, make it fast, and tell the user everything we do.
+AUSAXS is built on three principles: use the full Debye equation, make it fast, and tell the user everything it does.
 
 ## Speed
 
@@ -25,26 +25,26 @@ A complete SAXS fit of a typical protein, hydration shell included, takes a few 
 
 === "Modern hardware"
 
-    ![AUSAXS alone on a 2024 desktop, with the 2017 desktop for comparison. The CPU calculates the Debye sum of 290 000 atoms in 6 seconds, twice as fast as the 2017 desktop. The GPU, at a bin width of 0.25 Å, takes 1.9 seconds for 830 000 atoms, 15 times faster than the 2017 GPU, and 4.9 seconds for 1.3 million.](assets/figures/benchmark-scaling-modern.svg#only-light){ width="100%" }
-    ![AUSAXS alone on a 2024 desktop, with the 2017 desktop for comparison. The CPU calculates the Debye sum of 290 000 atoms in 6 seconds, twice as fast as the 2017 desktop. The GPU, at a bin width of 0.25 Å, takes 1.9 seconds for 830 000 atoms, 15 times faster than the 2017 GPU, and 4.9 seconds for 1.3 million.](assets/figures/benchmark-scaling-modern-dark.svg#only-dark){ width="100%" }
+    ![AUSAXS alone on a current desktop, with the 2017 desktop for comparison. The CPU calculates the Debye sum of 290 000 atoms in 6 seconds, twice as fast as the 2017 desktop. The GPU, at a bin width of 0.25 Å, takes 1.9 seconds for 830 000 atoms, 15 times faster than the 2017 GPU, and 4.9 seconds for 1.3 million.](assets/figures/benchmark-scaling-modern.svg#only-light){ width="100%" }
+    ![AUSAXS alone on a current desktop, with the 2017 desktop for comparison. The CPU calculates the Debye sum of 290 000 atoms in 6 seconds, twice as fast as the 2017 desktop. The GPU, at a bin width of 0.25 Å, takes 1.9 seconds for 830 000 atoms, 15 times faster than the 2017 GPU, and 4.9 seconds for 1.3 million.](assets/figures/benchmark-scaling-modern-dark.svg#only-dark){ width="100%" }
 
 ??? info "How the timings were measured"
 
     Unless noted, timed on a 2017 desktop: an Intel Core i7-8700 (6 cores) and an NVIDIA GeForce GTX 1070 Ti. Each point is the mean of five runs.
 
     - **Fitting SAXS data:** a full fit of each structure to its SASBDB data, including reading the files and generating the hydration shell, run from the command line with each program's default settings.
-    - **Debye sum:** the scattering of spherical silver nanoparticles in vacuum, from the atomic coordinates in memory to I(q) at 1000 points up to q = 10 Å⁻¹. AUSAXS used its default bin width for crystals, 0.05 Å. An open marker without a line is a single run over the 300-second time limit.
-    - **Modern hardware:** AUSAXS alone on a modern 2026 desktop, an AMD Ryzen 5 9600X (6 cores) and an AMD Radeon RX 9070 XT, with the 2017 desktop in grey. The GPU is shown at a bin width of 0.25 Å. Smaller bin widths may be considerably slower on the GPU for large particles; this is being worked on.
+    - **Debye sum:** the scattering of spherical silver nanoparticles in vacuum, from the atomic coordinates in memory to I(q) at 1000 points up to q = 10 Å⁻¹. AUSAXS used a bin width of 0.05 Å. An open marker without a line is a single run over the 300-second time limit.
+    - **Modern hardware:** AUSAXS alone on a current desktop, an AMD Ryzen 5 9600X (6 cores) and an AMD Radeon RX 9070 XT, with the 2017 desktop in grey. The GPU is shown at a bin width of 0.25 Å. Smaller bin widths may be considerably slower on the GPU for large particles; this is being worked on.
     - **Versions:** Pepsi-SAXS 2020-07-28, FoXS from IMP (develop branch, 11a86f9), CRYSOL from ATSAS 3.2.1, DebyeCalculator 1.1.1 and AES-Debye 1.0.0. The benchmark itself is in [`tests/benchmark/`](https://github.com/AUSAXS/AUSAXS/tree/master/tests/benchmark).
 
-The exact gradient of the scattering curve with respect to the atom positions is also available (`Molecule.debye_raw_vjp` in Python), for example as a loss in machine learning:
+The exact gradient of the Debye sum of point scatterers with respect to the atom positions is also available (`Molecule.debye_raw_vjp` in Python), for example as a loss in machine learning:
 
 ![The gradient of the Debye sum with AUSAXS on the CPU takes 5 milliseconds for 225 atoms and 77 seconds for 425 000 atoms. DebyeCalculator takes 37 to 44 times longer at 100 000 atoms on its GPU and CPU and exceeds the time limit at 200 000 atoms. For large structures, the AUSAXS gradient costs about three times as much as calculating I(q).](assets/figures/benchmark-gradient.svg#only-light){ width="100%" }
 ![The gradient of the Debye sum with AUSAXS on the CPU takes 5 milliseconds for 225 atoms and 77 seconds for 425 000 atoms. DebyeCalculator takes 37 to 44 times longer at 100 000 atoms on its GPU and CPU and exceeds the time limit at 200 000 atoms. For large structures, the AUSAXS gradient costs about three times as much as calculating I(q).](assets/figures/benchmark-gradient-dark.svg#only-dark){ width="100%" }
 
 ## Accuracy
 
-Thanks to its weighted bin implementation [Lytje & Pedersen (2025)](https://doi.org/10.1107/S160057672500562X), AUSAXS is accurate over a wide range of angles. For SAS, the reference is the exact vacuum profile of the structure, without hydration shell or excluded volume, as these are modelled differently by every program and have no exact solution.
+Thanks to its weighted bins ([Lytje & Pedersen, 2025](https://doi.org/10.1107/S160057672500562X)), AUSAXS is accurate over a wide range of angles. For SAS, the reference is the exact vacuum profile of the structure, without hydration shell or excluded volume, as these are modelled differently by every program and have no exact solution.
 
 === "Small angles"
 
@@ -61,8 +61,8 @@ Beyond a certain point, more accuracy gains nothing: rounding the coordinates to
 ??? info "How the accuracy was measured"
 
     - **Reference:** the exact Debye sum in double precision, computed separately from every program.
-    - **Small angles:** the vacuum profile of the protein SASDME4 from each SAS program, at its default settings, except that the q range is extended to the program's maximum. As every atom is given the same element, the profile of a single atom from the same program removes its form factor. AUSAXS uses its default bin width for SAS, 0.25 Å.
-    - **Wide angles:** the silver nanoparticle of the speed benchmark. AUSAXS uses its default bin width for crystals, 0.05 Å.
+    - **Small angles:** the vacuum profile of the protein of SASBDB entry SASDME4 from each SAS program, at its default settings, except that the q range is extended to the program's maximum. As every atom is given the same element, dividing by the profile of a single atom from the same program removes its form factor. AUSAXS uses its default bin width for SAS, 0.25 Å.
+    - **Wide angles:** the silver nanoparticle of the speed benchmark. AUSAXS uses a bin width of 0.05 Å.
     - The curves are running medians over 0.05 Å⁻¹ (small angles) and 0.25 Å⁻¹ (wide angles), as the deviation spikes at the minima of I(q).
 
 ## Transparency

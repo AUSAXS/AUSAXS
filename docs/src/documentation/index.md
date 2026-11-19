@@ -9,7 +9,7 @@ This section is the reference for the AUSAXS command-line tools: every argument,
 
 ## Command-line tools
 
-All tools are subcommands of `ausaxs`. Run `ausaxs <command> --help` for a short summary of the arguments.
+All tools are subcommands of `ausaxs`. `plot`, `gui` and `setup` come with the [Python package](../getting-started/installation.md), and are not part of the precompiled executable or a source build. Run `ausaxs <command> --help` for a short summary of the arguments.
 
 <div class="ausaxs-cmds" markdown>
 <div class="ausaxs-cmds__head"><span>Command</span><span>Description</span></div>

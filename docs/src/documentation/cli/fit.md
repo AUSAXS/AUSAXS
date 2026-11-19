@@ -35,7 +35,7 @@ In this folder you will find the following files:
 
 Running `ausaxs plot` in this folder will convert the `.plot` files to images, and also generate two figures of the fit: 
 
-- **log.png**: This top panel of this figure shows the fit plotted on top of the input data set, with the $\chi^2_r$ shown in the legend. The bottom panel shows the residual associated with each point, which ideally should have a Gaussian distribution with a mean of 0. 
+- **log.png**: The top panel of this figure shows the fit plotted on top of the input data set, with the $\chi^2_r$ shown in the legend. The bottom panel shows the residual associated with each point, which ideally should have a Gaussian distribution with a mean of 0. 
 - **loglog.png**: This shows the same plots as *log.png*, except with double-logarithmic axes. 
 
 See the [CLI plotting](plotting-scripts.md) page for more information on this step. 
@@ -135,7 +135,7 @@ These models are not as well-tested as those listed above, and are only listed f
 
 * `average`: This is an extension of the `simple` model, which uses individual form factors for the atomic species.  
 
-* `crysol`, `foxs`, `pepsi`, `waxsis`: These excluded volume models implements the excluded volume as defined in their respective papers. None of them exactly reproduces the output from their respective programs.  
+* `crysol`, `foxs`, `pepsi`, `waxsis`: These excluded volume models implement the excluded volume as defined in their respective papers. None of them exactly reproduces the output from their respective programs.  
 
 * `none`: Disable the excluded volume entirely. 
 

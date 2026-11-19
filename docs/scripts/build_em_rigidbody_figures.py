@@ -70,7 +70,7 @@ def run_em(work: Path) -> dict:
     shutil.copy(DATA / "SASDJG5.dat", work)
     shutil.copy(MAP, work)
     run(["em", "emd_24889.map", "SASDJG5.dat"], work)
-    out = work / "output" / "em_fitter" / "SASDJG5" / "emd_24889"
+    out = work / "output" / "em" / "SASDJG5" / "emd_24889"
     smooth, points, minimum = read_blocks(out / "chi2_evaluated_points_limited.png.plot")[:3]
     return {"smooth": smooth, "points": points, "minimum": minimum,
             "fit": read_blocks(out / "ausaxs.fit")[0], "chi2r": chi2r(out / "ausaxs.fit")}

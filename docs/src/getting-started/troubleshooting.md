@@ -18,13 +18,13 @@ Please refer to the following if you encounter any issues.
 
 ??? question "Windows: why do I get SmartScreen warnings?"
 
-    The Microsoft SmartScreen filter may warn you about potential security risks when running AUSAXS for the first time. You should be able to ignore this warning by clicking "More information", where you will be able to override the warning. Removing this notice from our end requires a yearly fee to sign our program, which we are currently unable to support.
+    The Microsoft SmartScreen filter may warn you about potential security risks when running AUSAXS for the first time. You should be able to ignore this warning by clicking "More info" and then "Run anyway". Removing this notice from our end requires a yearly fee to sign our program, which we are currently unable to support.
 
     **Warning!** You should only ignore SmartScreen warnings for software you trust! AUSAXS is completely open source, so if you have any security concerns, you are free to check the code.
 
 ??? question "macOS: why does the program crash immediately upon opening?"
 
-    The binaries are compiled against specific macOS versions, which are usually not backwards compatible. We strive to compile against the [oldest macOS versions available](https://github.com/actions/runner-images?tab=readme-ov-file#available-images) on GitHub.
+    The binaries are built on a recent macOS version, and may not run on older ones.
 
     In case they do not work on your system, you can try to compile the software yourself as described [here](compiling.md#macos).
 
@@ -45,7 +45,7 @@ Please refer to the following if you encounter any issues.
 
 ??? question "Is my data read in the right q unit?"
 
-    $q$ may be given in either Å⁻¹ or nm⁻¹. If the header of the data file states its unit, as `[A]` or `[nm]`, that unit is used. Otherwise it is guessed from the values: data reaching above $q = 1$ is assumed to be in nm⁻¹, data starting below $q = 10^{-3}$ in Å⁻¹, and anything in between is assumed to be in Å⁻¹ with a warning. Which unit was used is printed at the start of each run.
+    $q$ may be given in either Å⁻¹ or nm⁻¹. If the header of the data file states its unit, as `[A]` or `[nm]`, that unit is used. Otherwise it is guessed from the values: data reaching above $q = 1$ is assumed to be in nm⁻¹, data starting below $q = 10^{-3}$ in Å⁻¹, and anything in between is assumed to be in Å⁻¹ with a warning. A message is printed whenever the unit is guessed or the data is converted from nm⁻¹.
 
     If the guess is wrong, give the unit explicitly with `data --unit A` or `data --unit nm`. The data in `ausaxs.fit` is always in Å⁻¹.
 

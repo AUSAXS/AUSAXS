@@ -15,10 +15,10 @@ The suite is split in two:
 Run them with the `scripts/run_test.py` script from the repository root, after configuring the build in `build/` as described in [compiling from source](../../getting-started/compiling.md). It builds the tests it needs, and runs every test case in its own process:
 
 ```bash
-python scripts/run_test.py                   # every unit test
+python scripts/run_test.py utest             # every unit test
 python scripts/run_test.py <test file>       # one test file, unit or feature
-python scripts/run_test.py hist/             # every test in a folder
-python scripts/run_test.py "<test case>"     # the file containing this test case
+python scripts/run_test.py utest hist/       # every unit test in a folder
+python scripts/run_test.py "<test case>"     # only this test case
 ```
 
-Prefix the argument with `utest` or `ftest` to choose between the unit and feature tests explicitly. Running the whole feature suite takes a long time, so run the tests relevant to your change locally and leave the rest to the CI.
+Prefix a file or folder with `utest` or `ftest` to choose between the unit and feature tests explicitly; this is required when the name exists in both. Running the whole feature suite takes a long time, so run the tests relevant to your change locally and leave the rest to the CI.

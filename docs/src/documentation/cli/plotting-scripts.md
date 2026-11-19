@@ -56,6 +56,6 @@ logx 1
 logy 0
 ...
 ```
-Here, the `PlotDataset` section contains the data itself, while the `PlotOptions` section contains information on how it should be plotted. To change e.g. the color of a curve, simple replace "tab:orange" with some other color [supported by matplotlib](https://matplotlib.org/stable/gallery/color/named_colors.html#base-colors). The title, axes, legends, and so on, can all be changed in this manner. 
+Here, the `PlotDataset` section contains the data itself, while the `PlotOptions` section contains information on how it should be plotted. To change e.g. the color of a curve, simply replace "tab:orange" with some other color [supported by matplotlib](https://matplotlib.org/stable/gallery/color/named_colors.html#base-colors). The title, axes, legends, and so on, can all be changed in this manner. 
 
 To add or remove curves from a given plot, simply add or remove its PlotDataset and corresponding PlotOptions data sections from the .plot file. 

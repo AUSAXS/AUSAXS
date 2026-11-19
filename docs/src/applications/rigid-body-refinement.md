@@ -27,10 +27,10 @@ Since the data hold only low-resolution information, a good fit does not prove t
 > Rigid-body refinement is still in active development.
 
 ## Example
-Here we build the dimer of the SARS-CoV-2 main protease from a single chain, [SASDJG5_single.pdb](https://raw.githubusercontent.com/AUSAXS/AUSAXS/master/tests/files/SASDJG5_single.pdb), by refining a two-fold symmetry against a SAXS measurement of the dimer, [SASDJG5.dat](https://raw.githubusercontent.com/AUSAXS/AUSAXS/master/tests/files/SASDJG5.dat). Save the following script as `dimer.conf`. It declares the symmetry, keeps the two copies within 30 Å of each other, and runs 1000 steps:
-
 > [!TIP]
 > We highly recommend the [graphical interface](https://sastutorials.org/RigidBody/RigidBodyGUI.html) for rigid-body refinement. It lets you define the bodies, constraints and symmetries visually and writes the configuration script for you, which makes setting up a refinement much simpler than writing the script by hand.
+
+Here we build the dimer of the SARS-CoV-2 main protease from a single chain, [SASDJG5_single.pdb](https://raw.githubusercontent.com/AUSAXS/AUSAXS/master/tests/files/SASDJG5_single.pdb), by refining a two-fold symmetry against a SAXS measurement of the dimer, [SASDJG5.dat](https://raw.githubusercontent.com/AUSAXS/AUSAXS/master/tests/files/SASDJG5.dat). Save the following script as `dimer.conf`. It declares the symmetry, keeps the centres of mass of the two copies within 30 Å of each other, and runs 1000 steps:
 
 ```
 output output/dimer

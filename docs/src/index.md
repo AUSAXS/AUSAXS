@@ -96,7 +96,7 @@ If something goes wrong, see the [troubleshooting](getting-started/troubleshooti
 
     ---
 
-    Fit models to SAXS data interactively, without the command line.
+    Fit models and EM maps to SAXS data, or set up a rigid-body refinement, without the command line.
 
 -   :material-expansion-card:{ .lg .middle } **[GPU driver](getting-started/gpu.md)**
 

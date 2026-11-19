@@ -1,5 +1,5 @@
 ---
-title: Validating cryo-EM maps with SAXS data - AUSAXS
+title: Cryo-EM map validation options - AUSAXS
 description: Validate cryo-EM maps (MRC/CCP4) against solution small-angle X-ray scattering data with ausaxs em. Covers the chi-square landscapes, output files and all arguments.
 ---
 
@@ -15,7 +15,7 @@ If you leave out the SAXS data file and instead give a threshold level with `em 
 ## Output
 By default all output will be saved in a new `output/em/<data-name>/<map-name>/` folder, although this location can be changed by specifying the `--output` argument (note that the subfolders will always be created). In simulation mode, the output is written to `output/em/simulated/<map-name>/` instead. 
 
-In this folder you will find a bunch of `.plot` files. Turn them into images by running `ausaxs plot` in this folder. See the [CLI plotting](plotting-scripts.md) page for more information. 
+In this folder you will find several `.plot` files. Turn them into images by running `ausaxs plot` in this folder. See the [CLI plotting](plotting-scripts.md) page for more information. 
 
 After you have plotted the files, you will have the three following $\chi^2$-landscape figures:
 
@@ -25,14 +25,12 @@ After you have plotted the files, you will have the three following $\chi^2$-lan
 
 The second and third of these plots also have an accompanying `_mass` version, where the threshold x-axis has been replaced with a mass-axis. 
 
-Beyond these landscape plots, you will also find the four figures:
+Beyond these landscape plots, you will also find two figures:
 
-- **intensity_fit**: A simple plot of the original scattering data with the fit superimposed.
-- **residuals**: The fit residuals. 
-- **log**: A nicer figure combining the fit and residuals into one, with a linear x-axis. 
+- **log**: The fit and its residuals, with a linear x-axis. 
 - **loglog**: Same as before, but with a logarithmic x-axis. 
 
-You will also find a copy of the original scattering data file, possibly truncated at low and high *q* depending on the options. The `ausaxs.fit` file contains both the data and the fitted scattering profile. The other text file is the `report.txt`, which contains information about the fit itself. Here you will find the actual parameter values, along with the fitted threshold value and the $\chi^2$. 
+The `ausaxs.fit` file contains both the data and the fitted scattering profile. The other text file is the `report.txt`, which contains information about the fit itself. Here you will find the actual parameter values, along with the fitted threshold value and the $\chi^2$. 
 
 > [!TIP]
 > The `.fit` file is compatible with the plotting utility from the ATSAS package. 
@@ -95,18 +93,18 @@ As for the [SAXS fitter](fit.md#argument-groups), most arguments are sorted into
 | `--verbose`, `--quiet` | Toggle progress information | With `--quiet`, no optional progress information will be printed to the console. |
 
 ### Settings file
-The settings file is a handy tool for setting new default values. All arguments (and even some additional options) can be set in this file, and then automatically be used in future runs. The settings file can either be manually set using the `config --file` argument, or by placing a file named `settings.txt` in the same folder as the SAXS datafile, in which case it will be automatically found and used. Options from the command line takes precedence over the settings file. To get a template, run `ausaxs em config --save`. 
+The settings file is a handy tool for setting new default values. All arguments (and even some additional options) can be set in this file, and then automatically be used in future runs. The settings file can either be manually set using the `config --file` argument, or by placing a file named `settings.txt` in the same folder as the SAXS datafile, in which case it will be automatically found and used. Options from the command line take precedence over the settings file. To get a template, run `ausaxs em config --save`. 
 
 The most useful option beyond the arguments from the argument list is `format`, which sets the format of the outputted figures. 
 
 ### q-range
-The two arguments `--qmin` and `--qmax` specifies the range of q-values used for the fit. Any data points outside this range in the scattering files will be discarded. The default range is $[10^{-4},\ 0.5]\ Å^{-1}$. 
+The two arguments `--qmin` and `--qmax` specify the range of q-values used for the fit. Any data points outside this range in the scattering files will be discarded. The default range is $[10^{-4},\ 0.5]\ Å^{-1}$. 
 
 > [!IMPORTANT]
 > The lower and upper limits are $[10^{-4},\ 1]\ Å^{-1}$. Values outside this range are currently not supported. 
 
 ### level-range
-The two arguments `em --levelmin` and `em --levelmax` specifies the range of threshold values in terms of the RMS. This is the same levels as those used by e.g. PyMOL, meaning you can use PyMOL for estimating the bounds, and then apply them with these two arguments. Note that the evaluation of higher threshold values are significantly faster than smaller values, meaning the choice of `levelmin` has a way higher impact on the performance than `--levelmax`.
+The two arguments `em --levelmin` and `em --levelmax` specify the range of threshold values in terms of the RMS. These are the same levels as those used by e.g. PyMOL, meaning you can use PyMOL for estimating the bounds, and then apply them with these two arguments. Note that the evaluation of higher threshold values is significantly faster than smaller values, meaning the choice of `levelmin` has a much higher impact on the performance than `--levelmax`.
 
 > [!WARNING]
 > Using too small threshold values may result in the calculations never finishing. Only lower `--levelmin` if you are absolutely certain that you need to.

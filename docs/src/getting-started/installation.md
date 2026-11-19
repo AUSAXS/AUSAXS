@@ -21,7 +21,7 @@ If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
 
 ??? question "Terminal says `ausaxs` is not found?"
 
-    The folder pip installed `ausaxs` into is not on your `PATH`. This mostly happens on Windows, and sometimes on macOS with the Python that comes with the system. Add the folder to your `PATH` by running the commands for your platform, then open a new terminal and try `ausaxs --version` again:
+    The folder pip installed `ausaxs` into is not on your `PATH`. This mostly happens on Windows, and sometimes on macOS. Add the folder to your `PATH` by running the commands for your platform, then open a new terminal and try `ausaxs --version` again:
 
     === "Windows"
 
@@ -51,7 +51,7 @@ If something goes wrong, see the [troubleshooting](troubleshooting.md) page.
 - **Use a GPU.** AUSAXS runs only on the CPU out of the box. To use your GPU, you will have to [install the GPU driver](gpu.md) first.
 - **Learn by example.** The [tutorials](../tutorials.md) walk through complete analyses of real data, from fitting protein structures to validating EM maps.
 - **Learn what AUSAXS calculates.** See the pages on [SAXS](../applications/saxs.md), [SANS](../applications/sans.md), [crystals and nanoparticles](../applications/crystals.md) and [powder diffraction](../applications/powder-diffraction.md).
-- **Look up an option.** Every argument of the command-line tools is listed in the [documentation](../documentation/cli/fit.md).
+- **Look up an option.** Every argument of the command-line tools is listed in the [documentation](../documentation/index.md).
 
 ## Other ways to install
 If you cannot use Python, you can instead [download a precompiled executable](precompiled-binaries.md) or [compile AUSAXS from source](compiling.md).
