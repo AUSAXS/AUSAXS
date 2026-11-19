@@ -246,11 +246,13 @@ namespace {
         for (auto& e : env_strings) {cenv.push_back(e.data());}
         cenv.push_back(nullptr);
 
+        // the log is opened after the chdir, so a relative path would be resolved inside cwd
+        const std::string abs_cwd = fs::absolute(cwd).string(), abs_log = fs::absolute(log).string();
         posix_spawn_file_actions_t fa;
         posix_spawn_file_actions_init(&fa);
-        posix_spawn_file_actions_addchdir_np(&fa, cwd.c_str());
+        posix_spawn_file_actions_addchdir_np(&fa, abs_cwd.c_str());
         posix_spawn_file_actions_addopen(&fa, 0, "/dev/null", O_RDONLY, 0);
-        posix_spawn_file_actions_addopen(&fa, 1, log.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        posix_spawn_file_actions_addopen(&fa, 1, abs_log.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
         posix_spawn_file_actions_adddup2(&fa, 1, 2);
 
         pid_t pid;
