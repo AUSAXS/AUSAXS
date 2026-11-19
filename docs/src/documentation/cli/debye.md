@@ -21,7 +21,7 @@ Any water molecules in the structure file are discarded.
 By default all output is saved in the `output/debye/` folder, which can be changed with the `--output` argument.
 
 - Without a measurement, the profile is written to **debye.dat** in `output/debye/simulated/<structure-name>/`, with the columns $q$ and $I$.
-- With a measurement, the fit is written to **ausaxs.fit** in `output/debye/<data-name>/`, along with a **report.txt**. Both are described on the [`ausaxs fit` page](fit.md#output). The measurement is never rebinned, since that would smear the peaks of a diffraction pattern.
+- With a measurement, the fit is written to **ausaxs.fit** in `output/debye/<data-name>/`, along with a **report.txt**. Both are described on the [`ausaxs fit` page](fit.md#output).
 
 The header of each file states the number of atoms and how they scatter. With `--wavelength`, both files get an extra column with the scattering angle $2\theta$ in degrees.
 
@@ -36,12 +36,10 @@ In addition to the general arguments of the [base group of `ausaxs fit`](fit.md#
 |`--qmin`            | Set minimum q              | The lower limit of the $q$-range in Å⁻¹. Defaults to $10^{-4}$. With a measurement, it only narrows the measured range. |
 |`--qmax`            | Set maximum q              | The upper limit of the $q$-range in Å⁻¹. Defaults to 1. With a measurement, it only narrows the measured range. |
 |`-n`, `--count`     | Set the number of q values | The number of $q$ values, evenly spaced from `qmin` to `qmax`. Defaults to 1000. Not used with a measurement. |
-|`--wavelength`      | Add the scattering angle   | Add a column with the scattering angle $2\theta$ in degrees for this wavelength in Å, from $q = \frac{4\pi}{\lambda}\sin\theta$. Values of $q$ above $4\pi/\lambda$ cannot be reached at this wavelength, and get an angle of -1. |
-|`--bin-width`       | Set the bin width          | The width of the distance bins in Å. Defaults to 0.02 Å, narrow enough for the many sharp, repeated distances of a crystal to each keep their own bin at wide angles. |
+|`--wavelength`      | Set the wavelength   | Add a column with the scattering angle $2\theta$ in degrees for this wavelength in Å, from $q = \frac{4\pi}{\lambda}\sin\theta$. |
+|`--bin-width`       | Set the bin width          | The width of the distance bins in Å. Defaults to 0.02 Å which should be sufficient for most cases. |
 |`--points`          | Use point scatterers       | Treat every atom as a point scatterer instead of using its form factor. Each atom is weighted by its number of electrons, or its scattering length with `--neutron`, including its implicit hydrogens and occupancy. |
 |`--neutron`         | Use neutrons               | Use neutron scattering lengths instead of X-ray form factors. |
-
-The probe and form factors are set by these arguments, even if a settings file says otherwise.
 
 ### Groups
 | Group              | Description |
