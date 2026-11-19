@@ -27,7 +27,7 @@ int cli_em_fitter(int argc, char const *argv[]) {
     CLI::App app{"Fit an EM map to a SAXS measurement."};
     auto* input_map = app.add_option("input-map", mapfile, "Path to the EM map.")->check(CLI::ExistingFile);
     auto* input_saxs = app.add_option("input-saxs", mfile, "Path to the SAXS measurement.")->check(CLI::ExistingFile);
-    cli::add_general_options(app, "output/em_fitter/");
+    cli::add_general_options(app, "output/em/");
     cli::add_config_subcommand(app, config, "em_fitter");
     cli::add_data_subcommand(app, "SAXS")->alias("saxs"); // "saxs" kept for backwards compatibility
 
