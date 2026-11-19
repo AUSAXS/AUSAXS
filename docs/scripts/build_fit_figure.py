@@ -75,7 +75,7 @@ def molecule_svg() -> str:
     return re.sub(r'href="#([^"]+)"', r'href="#mol-\1"', text)
 
 
-def draw(fit, colours: dict):
+def draw(fit, colours: dict, data_label: str = "2epe.dat"):
     q, I, Ierr = fit.data_curve()
     model = fit.fitted_curve()
     residuals = fit.residuals()
@@ -99,7 +99,7 @@ def draw(fit, colours: dict):
     fig.patch.set_alpha(0)
 
     data_style = dict(fmt="o", ms=3, color=colours["data"], ecolor=colours["data"], elinewidth=0.8, alpha=0.75)
-    top.errorbar(q, I, yerr=Ierr, label="2epe.dat", **data_style)
+    top.errorbar(q, I, yerr=Ierr, label=data_label, **data_style)
     top.plot(q, model, color=colours["fit"], lw=2, zorder=3, label=rf"AUSAXS fit, $\chi^2_r = {fit.chi2r():.2f}$")
     # top.set_xscale("log")
     top.set_yscale("log")
@@ -127,12 +127,13 @@ def draw(fit, colours: dict):
     return fig, top
 
 
-def embed_molecule(svg: str, fig, ax, molecule: str) -> str:
-    """Place the molecule in the bottom-left corner of ax, in the figure's own SVG coordinates (points)."""
+def embed_molecule(svg: str, fig, ax, molecule: str, aspect: float = MOLECULE_VIEWBOX[3] / MOLECULE_VIEWBOX[2]) -> str:
+    """Place the molecule, of height/width aspect, in the bottom-left corner of ax, in the figure's own SVG
+    coordinates (points)."""
     width_pt, height_pt = fig.get_size_inches() * 72
     box = ax.get_position()
     w = 0.30 * box.width * width_pt
-    h = w * MOLECULE_VIEWBOX[3] / MOLECULE_VIEWBOX[2]
+    h = w * aspect
     x = box.x0 * width_pt + 0.03 * box.width * width_pt
     y = (1 - box.y0) * height_pt - 0.05 * box.height * height_pt - h
     placed = molecule.replace("<svg ", f'<svg x="{x:.2f}" y="{y:.2f}" width="{w:.2f}" height="{h:.2f}" ', 1)

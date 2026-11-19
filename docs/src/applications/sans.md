@@ -17,13 +17,13 @@ hide:
 For a deeper understanding of the physics, see e.g. [Lytje, Pedersen & Hub (2026)](https://doi.org/10.1088/1361-6633/aead1d).
 
 ## Example
-Given a SANS measurement in 42% D₂O, "data.dat", you can fit an atomic structure file, "model.pdb", like so:
+Here we fit the structure of bovine serum albumin, [4f5s.pdb](https://www.sasbdb.org/media/pdb_file/SASDWB3_fit1_model1.pdb), to a SANS measurement of it in 100% D₂O, [SASDWB3.dat](https://www.sasbdb.org/data/SASDWB3/), keeping the explicit hydrogens of the structure, and plot the result:
 
 === "Command line"
 
     ```bash
-    ausaxs sans model.pdb data.dat solv --d2o 0.42
-    ausaxs plot --folder output/sans/data
+    ausaxs sans 4f5s.pdb SASDWB3.dat hydrogens --keep
+    ausaxs plot --folder output/sans/SASDWB3
     ```
 
 === "pyAUSAXS"
@@ -32,12 +32,15 @@ Given a SANS measurement in 42% D₂O, "data.dat", you can fit an atomic structu
     import pyausaxs as ausaxs
     import matplotlib.pyplot as plt
     ausaxs.settings.set("radiation", "neutron")
-    ausaxs.settings.set("neutron_solvent_density", "0.2348") # 42% D₂O
-    mol = ausaxs.create_molecule("model.pdb")
+    ausaxs.settings.set("keep_hydrogens", "true")
+    mol = ausaxs.create_molecule("4f5s.pdb")
     mol.hydrate()
-    result = mol.fit("data.dat")
+    result = mol.fit("SASDWB3.dat")
     result.plot()
     plt.show()
     ```
 
-Every option of `ausaxs sans`, including the composition of the solvent, is listed in its [documentation](../documentation/cli/sans.md).
+![The fitted SANS profile of BSA in D₂O follows the measured data across the full q range, with residuals scattered evenly around zero.](../assets/figures/sans-fit.svg#only-light){ width="100%" }
+![The fitted SANS profile of BSA in D₂O follows the measured data across the full q range, with residuals scattered evenly around zero.](../assets/figures/sans-fit-dark.svg#only-dark){ width="100%" }
+
+For a measurement in another H₂O/D₂O mixture, pass its D₂O fraction with `solv --d2o`; 100% is the default. Every option of `ausaxs sans`, including the composition of the solvent, is listed in its [documentation](../documentation/cli/sans.md).
