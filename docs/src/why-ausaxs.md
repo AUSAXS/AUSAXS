@@ -49,12 +49,29 @@ The scattering curve can also be differentiated with respect to the atom positio
 
 <span class="ausaxs-name"><span class="au">AU</span>SAXS</span> sums the contribution of every pair of atoms, rather than relying on a multipole expansion or on coarse-graining the structure. The hydration shell and the excluded volume are modelled explicitly in real space. How this is done, and how it compares with other programs, is described in [Lytje & Pedersen (2025)](https://doi.org/10.1107/S160057672500562X).
 
-To be fast, the pair distances are sorted into fine bins before the sum over q. At the default settings, the typical relative deviation from the exact Debye sum is about 10⁻⁵ over the whole range up to q = 10 Å⁻¹, the same as DebyeCalculator:
+To be fast, the pair distances are sorted into bins before the sum over q. The error this introduces shrinks with the square of the bin width. At the default settings for SAS, it is below 10⁻⁴ up to q = 0.25 Å⁻¹ and about 10⁻³ beyond. Programs based on a multipole expansion, such as CRYSOL and Pepsi-SAXS, are very accurate at small angles, but fail abruptly once the expansion order no longer suffices. At the finer default bins for crystals and powder diffraction, the deviation is about 10⁻⁵ over the whole range up to q = 10 Å⁻¹, the same as DebyeCalculator:
 
-![For a silver nanoparticle with 6603 atoms, the relative deviation of AUSAXS from the exact Debye sum lies mostly between 10⁻⁶ and 10⁻⁴ up to q = 10 inverse ångström, almost exactly on top of DebyeCalculator. AES-Debye lies 10 to 100 times lower.](assets/figures/benchmark-accuracy.svg#only-light){ width="100%" }
-![For a silver nanoparticle with 6603 atoms, the relative deviation of AUSAXS from the exact Debye sum lies mostly between 10⁻⁶ and 10⁻⁴ up to q = 10 inverse ångström, almost exactly on top of DebyeCalculator. AES-Debye lies 10 to 100 times lower.](assets/figures/benchmark-accuracy-dark.svg#only-dark){ width="100%" }
+=== "All"
 
-The reference is DebyeCalculator's direct sum in double precision. The curves are running medians over 0.25 Å⁻¹, as the deviation spikes at the minima of I(q).
+    ![The relative deviation from the exact Debye sum of every program, against q from 0.01 to 10 inverse ångström on a logarithmic axis. For the protein, CRYSOL is accurate to 10⁻⁶ but fails above q = 0.3, Pepsi-SAXS lies between 10⁻⁵ and 10⁻³ but fails above q = 0.65, and FoXS and AUSAXS rise to about 10⁻³ at q = 0.3 and stay within 10⁻² up to q = 2. For the silver nanoparticle, AUSAXS and DebyeCalculator lie between 10⁻⁶ and 10⁻⁴ up to q = 10, and AES-Debye near 10⁻⁸.](assets/figures/benchmark-accuracy.svg#only-light){ width="100%" }
+    ![The relative deviation from the exact Debye sum of every program, against q from 0.01 to 10 inverse ångström on a logarithmic axis. For the protein, CRYSOL is accurate to 10⁻⁶ but fails above q = 0.3, Pepsi-SAXS lies between 10⁻⁵ and 10⁻³ but fails above q = 0.65, and FoXS and AUSAXS rise to about 10⁻³ at q = 0.3 and stay within 10⁻² up to q = 2. For the silver nanoparticle, AUSAXS and DebyeCalculator lie between 10⁻⁶ and 10⁻⁴ up to q = 10, and AES-Debye near 10⁻⁸.](assets/figures/benchmark-accuracy-dark.svg#only-dark){ width="100%" }
+
+=== "Small angles"
+
+    ![For a protein with 5380 atoms, CRYSOL deviates by 10⁻⁶ from the exact Debye sum up to q = 0.25 inverse ångström and by more than 10 % above q = 0.4. Pepsi-SAXS deviates by 10⁻⁵ to 10⁻³ up to q = 0.65, then by up to 10 % at q = 1. AUSAXS and FoXS deviate by less than 10⁻⁴ up to q = 0.2 and by about 10⁻³ beyond, FoXS rising to a few per cent above q = 0.75.](assets/figures/benchmark-accuracy-sas.svg#only-light){ width="100%" }
+    ![For a protein with 5380 atoms, CRYSOL deviates by 10⁻⁶ from the exact Debye sum up to q = 0.25 inverse ångström and by more than 10 % above q = 0.4. Pepsi-SAXS deviates by 10⁻⁵ to 10⁻³ up to q = 0.65, then by up to 10 % at q = 1. AUSAXS and FoXS deviate by less than 10⁻⁴ up to q = 0.2 and by about 10⁻³ beyond, FoXS rising to a few per cent above q = 0.75.](assets/figures/benchmark-accuracy-sas-dark.svg#only-dark){ width="100%" }
+
+=== "Wide angles"
+
+    ![For a silver nanoparticle with 6603 atoms, the relative deviation of AUSAXS from the exact Debye sum lies mostly between 10⁻⁶ and 10⁻⁴ up to q = 10 inverse ångström, almost exactly on top of DebyeCalculator. AES-Debye lies near 10⁻⁸.](assets/figures/benchmark-accuracy-powder.svg#only-light){ width="100%" }
+    ![For a silver nanoparticle with 6603 atoms, the relative deviation of AUSAXS from the exact Debye sum lies mostly between 10⁻⁶ and 10⁻⁴ up to q = 10 inverse ångström, almost exactly on top of DebyeCalculator. AES-Debye lies near 10⁻⁸.](assets/figures/benchmark-accuracy-powder-dark.svg#only-dark){ width="100%" }
+
+- **Reference:** the exact Debye sum in double precision, computed separately from every program.
+- **Small angles:** the vacuum profile of the protein SASDME4 from each SAS program, at its default settings, except that the q range is extended to the program's maximum. As every atom is given the same element, the profile of a single atom from the same program removes its form factor. AUSAXS uses its default bin width for SAS, 0.25 Å.
+- **Wide angles:** the silver nanoparticle of the speed benchmark. AUSAXS uses its default bin width for crystals, 0.05 Å.
+- The curves are running medians over 0.05 Å⁻¹ (small angles) and 0.25 Å⁻¹ (wide angles), as the deviation spikes at the minima of I(q).
+
+Beyond a certain point, a more accurate sum gains nothing. Merely writing a structure to a PDB file, which rounds the coordinates to 0.001 Å, already changes I(q) by 10⁻³ or more, so a precision much better than 10⁻⁴ has no physical meaning. For SAS, even an error of 1–2 % is acceptable, as measured data are always considerably less certain. Moreover, the Debye sum of independent atoms is itself only a model. It leaves out effects that matter more and more at wide angles, so the true error of any calculated profile there is larger than these curves suggest.
 
 ## Transparency
 

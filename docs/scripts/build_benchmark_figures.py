@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Build the benchmark figures from the results of tests/benchmark/benchmark_paper.
 
-Reads results.jsonl and iq/ from the benchmark's output folder (default output/paper_benchmark) and draws three
-figures in the site's colours. Writes three pairs to docs/src/assets/figures/:
+Reads results.jsonl and iq/ from the benchmark's output folder (default output/paper_benchmark) and draws the
+figures in the site's colours. Writes these pairs to docs/src/assets/figures/:
 
     benchmark-scaling.svg, benchmark-scaling-dark.svg      time against size: SAXS fits and the pure Debye sum
     benchmark-scaling-sas.svg, ...-dark.svg                 the SAXS fits only
     benchmark-scaling-debye.svg, ...-dark.svg               the pure Debye sum only
-    benchmark-accuracy.svg, benchmark-accuracy-dark.svg    deviation of the Debye sum from the exact sum
+    benchmark-accuracy.svg, benchmark-accuracy-dark.svg    deviation from the exact Debye sum, every program
+    benchmark-accuracy-sas.svg, ...-dark.svg                the SAS programs, q up to 2 Å⁻¹
+    benchmark-accuracy-powder.svg, ...-dark.svg             the pure Debye programs, q up to 10 Å⁻¹
     benchmark-gradient.svg, benchmark-gradient-dark.svg    time of the gradient of the Debye sum against size
     benchmark-scaling-modern.svg, ...-dark.svg              AUSAXS alone on a modern desktop, from LOCAL_RESULTS
 
@@ -18,7 +20,9 @@ Use each as a pair:
 
 Points are the mean of the timed runs. A single run over the benchmark's time budget ends its series; it is drawn as
 an open marker without a line. Deviations are |I/I_exact - 1| after removing each program's constant normalisation
-(AUSAXS sums over ordered pairs, twice DebyeCalculator's sum); the reference is DebyeCalculator's direct sum in float64.
+(AUSAXS sums over ordered pairs, twice DebyeCalculator's sum). The reference is the exact Debye sum in float64, computed
+here from integer squared distances (see structure_sum); no program is the judge. The SAS programs' vacuum profiles come
+from docs/scripts/run_sas_accuracy.py.
 
 Needs numpy and matplotlib. Usage: python docs/scripts/build_benchmark_figures.py [output/paper_benchmark [local results]]
 """
@@ -61,9 +65,19 @@ FIT, CPU, GPU = ("-", True), ("--", True), (":", False)
 
 # The AUSAXS Debye sum is timed at 0.25 and 0.05 Å. 0.05 Å is shown, the default for crystals and powder diffraction.
 DEBYE_TIMING = "forward-cpu-bw0.05", "forward-gpu-bw0.05"
-# The AUSAXS accuracy at the default bin width for crystals and powder diffraction.
+# The accuracy of the pure Debye programs, on the silver particle; AUSAXS at its default bin width for powder diffraction.
 ACCURACY_AUSAXS = "bw0.05"
 ACCURACY_SIZE = "Ag_R30"
+# The accuracy of the SAS programs, AUSAXS included at its SAS defaults, on a protein (see run_sas_accuracy.py).
+ACCURACY_SAS_STRUCTURE = "SASDME4"
+# Ag, Waasmaier & Kirfel (1995), as in include/core/form_factor/xray/XrayFormFactorTable.h; s = q/4π. DebyeCalculator and
+# AES-Debye use the same parametrisation.
+AG_FORM_FACTOR = ((6.073874, 17.155437, 4.173344, 0.852238, 17.988686),
+                  (0.055333, 7.896512, 28.443739, 110.376106, 0.716809), 0.756603)
+# The competitors run by docs/scripts/run_sas_accuracy.py: (program, label)
+SAS_PROGRAMS = (("crysol", "CRYSOL"), ("pepsi-saxs", "Pepsi-SAXS"), ("foxs", "FoXS"))
+# calibration molecules of run_sas_accuracy.py, by the name in the first line of their file
+SAS_CALIBRATION = {"one atom": np.zeros((1, 3)), "two atoms 3 A apart": np.array([[0, 0, -1.5], [0, 0, 1.5]])}
 
 
 def load(folder: Path) -> list[dict]:
@@ -83,17 +97,74 @@ def series(records, suite, program, variant):
     return np.array(pts).T, (over[0] if over else None)
 
 
-def deviation(folder: Path, program: str, variant: str, structure: str):
-    """q and |I/I_exact - 1|, with the program's normalisation convention (1/2, 1 or 2) removed."""
-    iq = np.loadtxt(folder / "iq" / f"{program}_{variant}_{structure}.dat")
-    ref = np.loadtxt(folder / "iq" / f"debyecalculator_exact-float64_{structure}.dat")
-    if iq.shape != ref.shape or np.max(np.abs(iq[:, 0] - ref[:, 0])) > 1e-5:
-        raise ValueError(f"{program} {variant} {structure}: q grids differ")
-    ratio = iq[:, 1]/ref[:, 1]
+def particle(folder: Path, structure: str) -> np.ndarray:
+    """The coordinates of the benchmark particle, as benchmark_paper wrote them."""
+    for root in (folder, LOCAL_RESULTS):
+        path = root / "work" / "particles" / f"{structure}.xyz"
+        if path.exists():
+            return np.loadtxt(path, skiprows=2, usecols=(1, 2, 3))
+    raise FileNotFoundError(f"{structure}.xyz in {folder} or {LOCAL_RESULTS}")
+
+
+def structure_sum(xyz: np.ndarray, q: np.ndarray, decimals: int) -> np.ndarray:
+    """The exact Debye sum of identical point scatterers, N + 2 sum_{i<j} sinc(q r_ij), in float64.
+
+    The coordinates are written with a fixed number of decimals, so they are integers in units of 10^-decimals Å. The squared
+    distances are then exact integers, and the sum runs over the distinct distances with their exact counts."""
+    scale = 10**decimals
+    n = np.rint(xyz*scale).astype(np.int64)
+    if np.max(np.abs(n/scale - xyz)) > 1e-9:
+        raise ValueError(f"coordinates are not multiples of 1e-{decimals} Å")
+    key = (decimals, n.tobytes())
+    if key not in _DISTANCES:
+        d2 = np.concatenate([np.sum((n[i + 1:] - n[i])**2, axis=1) for i in range(len(n) - 1)] or [np.zeros(0, np.int64)])
+        d2, counts = np.unique(d2, return_counts=True)
+        _DISTANCES[key] = np.sqrt(d2.astype(np.float64))/scale, counts.astype(np.float64)
+    r, counts = _DISTANCES[key]
+    return len(n) + 2*np.array([np.dot(counts, np.sinc(x*r/np.pi)) for x in q])
+
+
+_DISTANCES = {}
+
+
+def ag_form_factor(q: np.ndarray) -> np.ndarray:
+    a, b, c = AG_FORM_FACTOR
+    s2 = (q/(4*np.pi))**2
+    return sum(ai*np.exp(-bi*s2) for ai, bi in zip(a, b)) + c
+
+
+def deviation(folder: Path, program: str, variant: str, structure: str, exact: dict):
+    """q and |I/I_exact - 1| of a pure Debye program, with its normalisation convention (1/2, 1 or 2) removed. The exact
+    intensity is f(q)^2 times the exact structure sum, as every atom is silver."""
+    q, I = np.loadtxt(folder / "iq" / f"{program}_{variant}_{structure}.dat").T
+    if structure not in exact or not np.array_equal(exact[structure][0], q):
+        exact[structure] = q, structure_sum(particle(folder, structure), q, 6)
+    ratio = I/(ag_form_factor(q)**2*exact[structure][1])
     conv = min((0.5, 1.0, 2.0), key=lambda c: abs(ratio[0]/c - 1))
     if abs(ratio[0]/conv - 1) > 0.01:
         raise ValueError(f"{program} {variant} {structure}: no known normalisation, I/I_exact = {ratio[0]:.4f}")
-    return iq[:, 0], np.abs(ratio/conv - 1)
+    return q, np.abs(ratio/conv - 1)
+
+
+def sas_deviation(folder: Path, program: str, structure: str):
+    """q and |I/I_exact - 1| of the vacuum profile of a SAS program, from run_sas_accuracy.py.
+
+    The program's profile of the structure is divided by its profile of a calibration molecule, and compared with the same
+    ratio of exact structure sums: as every atom is of one element, this cancels the program's form factor and
+    normalisation. Each profile is taken relative to q = 0, which no expansion truncates. The exact sums use the coordinates
+    exactly as the programs read them, with the three decimals of a PDB file."""
+    iq = folder / "iq"
+    q, I = np.loadtxt(iq / f"{program}_default_{structure}.dat").T
+    qc, Ic = np.loadtxt(iq / f"{program}_default_calibration.dat").T
+    with open(iq / f"{program}_default_calibration.dat") as f:
+        calibration = SAS_CALIBRATION[f.readline().split(": ")[1].split(", element")[0]]
+    if not np.array_equal(q, qc) or q[0] != 0:
+        raise ValueError(f"{program}: the q grids differ or do not start at 0")
+    xyz = np.loadtxt(folder / "work" / "sas" / f"{structure}.xyz", skiprows=2, usecols=(1, 2, 3))
+    S, Sc = structure_sum(xyz, q, 3), structure_sum(calibration, q, 3)
+    measured = (I/I[0])/(Ic/Ic[0])
+    expected = (S/S[0])/(Sc/Sc[0])
+    return q[1:], np.abs(measured/expected - 1)[1:]
 
 
 def rolling_median(y: np.ndarray, window: int) -> np.ndarray:
@@ -215,30 +286,119 @@ def draw_scaling_debye(records, folder, c):
     return fig
 
 
-def draw_accuracy(records, folder, c):
-    fig, ax = figure(c)
-    fig.subplots_adjust(left=0.08, right=0.99, top=0.97, bottom=0.12)
+_ACCURACY = {}
+# (key, program, label, line style, running-median width in Å⁻¹) of every accuracy curve
+ACCURACY_CURVES = (("aes-debye", "aes-debye", "AES-Debye", "-", 0.25),
+                   ("debyecalculator", "debyecalculator", "DebyeCalculator", "--", 0.25),
+                   ("ausaxs", "ausaxs", "AUSAXS", "-", 0.25),
+                   ("ausaxs-sas", "ausaxs", "AUSAXS", "-", 0.05),
+                   *((p, p, label, "-.", 0.05) for p, label in SAS_PROGRAMS))
+
+
+def raw_deviations(folder: Path) -> dict:
+    """The unsmoothed deviation curves {key: (q, deviation)}. The exact sums take minutes for the protein, so the curves are
+    cached in <folder>/accuracy_curves.npz, keyed by the size and time of every input file."""
+    inputs = sorted([*(folder / "iq").glob("*.dat"), *(folder / "work" / "sas").glob("*.xyz"),
+                     *(p / "work" / "particles" / f"{ACCURACY_SIZE}.xyz" for p in (folder, LOCAL_RESULTS))])
+    stamp = repr([(str(p), p.stat().st_size, p.stat().st_mtime_ns) for p in inputs if p.exists()])
+    cache = folder / "accuracy_curves.npz"
+    if cache.exists():
+        with np.load(cache) as f:
+            if str(f["stamp"]) == stamp:
+                return {key: (f[f"{key}/q"], f[f"{key}/d"]) for key, *_ in ACCURACY_CURVES}
+
+    exact, raw = {}, {}
+    for key, variant in (("aes-debye", "res1.0"), ("debyecalculator", "float32-f0.12"), ("ausaxs", ACCURACY_AUSAXS)):
+        raw[key] = deviation(folder, key, variant, ACCURACY_SIZE, exact)
+    raw["ausaxs-sas"] = sas_deviation(folder, "ausaxs", ACCURACY_SAS_STRUCTURE)
+    for program, _ in SAS_PROGRAMS:
+        raw[program] = sas_deviation(folder, program, ACCURACY_SAS_STRUCTURE)
+    np.savez(cache, stamp=stamp, **{f"{k}/{n}": v for k, (q, d) in raw.items() for n, v in (("q", q), ("d", d))})
+    return raw
+
+
+def accuracy_curves(folder):
+    """The deviation curves, each smoothed by a running median so the spikes at the minima of I(q) don't hide the level:
+    over 0.25 Å⁻¹ for the powder programs and 0.05 Å⁻¹ for the SAS programs, whose range is much shorter.
+    {key: (q, deviation, program, label, line style)}"""
+    if folder not in _ACCURACY:
+        raw = raw_deviations(folder)
+        curves = {}
+        for key, program, label, ls, width in ACCURACY_CURVES:
+            q, d = raw[key]
+            window = max(1, int(round(width/(q[1] - q[0])))) | 1
+            curves[key] = (q, rolling_median(d, window), program, label, ls)
+        _ACCURACY[folder] = curves
+    return _ACCURACY[folder]
+
+
+def accuracy_titles(records, folder):
+    """Legend titles naming the structure of each comparison."""
     atoms = {r["structure"]: r["atoms"] for r in records if r["suite"] == "accuracy"}
+    with open(folder / "work" / "sas" / f"{ACCURACY_SAS_STRUCTURE}.xyz") as f:
+        sas_atoms = int(f.readline())
+    return {"powder": f"Silver nanoparticle, {atoms[ACCURACY_SIZE]:,} atoms",
+            "sas": f"{ACCURACY_SAS_STRUCTURE}, {sas_atoms:,} atoms"}
 
-    # a running median, so the spikes at the minima of I(q) don't hide the level
-    window = 25
-    for program, variant, label, ls in (
-        ("aes-debye", "res1.0", "AES-Debye", "-"),
-        ("debyecalculator", "float32-f0.12", "DebyeCalculator", "--"),
-        ("ausaxs", ACCURACY_AUSAXS, "AUSAXS", "-"),
-    ):
-        q, d = deviation(folder, program, variant, ACCURACY_SIZE)
-        ax.plot(q, rolling_median(d, window), color=c[program], lw=1.6, ls=ls, label=label)
+
+def accuracy_axes(ax, xlim, ylim, title, xlog=False, ncol=3, loc="upper left"):
     handles, labels = ax.get_legend_handles_labels()
-
     ax.set_yscale("log")
     log_decades(ax.yaxis)
-    ax.set_xlim(0, 10)
-    ax.set_ylim(1e-8, 1e-3)
+    if xlog:
+        ax.set_xscale("log")
+        ax.xaxis.set_major_locator(ticker.FixedLocator([0.01, 0.1, 1, 10]))
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter(["0.01", "0.1", "1", "10"]))
+        ax.xaxis.set_minor_locator(ticker.NullLocator())
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
     ax.set_xlabel("q (Å⁻¹)")
     ax.set_ylabel("|I / I$_\\mathrm{exact}$ − 1|")
-    ax.legend(handles[::-1], labels[::-1], loc="upper right", ncol=3,
-              title=f"Silver nanoparticle, {atoms[ACCURACY_SIZE]:,} atoms, default settings", alignment="right")
+    ax.legend(handles[::-1], labels[::-1], loc=loc, ncol=ncol, title=title, alignment="left")
+
+
+def draw_accuracy_curves(ax, c, curves, keys, labels=None):
+    for key in keys:
+        q, d, program, label, ls = curves[key]
+        ax.plot(q, d, color=c[program], lw=1.6, ls=ls, label=(labels or {}).get(key, label))
+
+
+def draw_accuracy(records, folder, c):
+    """Every program on one logarithmic q axis, so both the SAS and the wide-angle range are visible. The accuracy of a
+    method does not depend on the structure it is measured on, so the two comparisons share the axis; one legend each."""
+    fig, ax = figure(c, size=(8, 4.4))
+    fig.subplots_adjust(left=0.08, right=0.99, top=0.85, bottom=0.11)
+    curves, titles = accuracy_curves(folder), accuracy_titles(records, folder)
+    # the legends go above the axes, as the curves fill it from top to bottom
+    for keys, title, anchor, loc in ((("crysol", "pepsi-saxs", "foxs", "ausaxs-sas"), titles["sas"], (0, 1.01), "lower left"),
+                                     (("aes-debye", "debyecalculator", "ausaxs"), titles["powder"], (1, 1.01), "lower right")):
+        lines = []
+        for key in keys:
+            q, d, program, label, ls = curves[key]
+            lines += ax.plot(q, d, color=c[program], lw=1.6, ls="-." if key == "ausaxs-sas" else ls, label=label)
+        ax.add_artist(ax.legend(lines[::-1], [l.get_label() for l in lines[::-1]], loc=loc, bbox_to_anchor=anchor,
+                                ncol=len(lines), title=title, alignment="left", borderaxespad=0, handlelength=1.9,
+                                columnspacing=0.8, handletextpad=0.5))
+    accuracy_axes(ax, (0.01, 10), (1e-9, 1), None, xlog=True)
+    ax.get_legend().remove()
+    return fig
+
+
+def draw_accuracy_sas(records, folder, c):
+    """The SAS programs over their range, AUSAXS included at its SAS defaults."""
+    fig, ax = figure(c)
+    fig.subplots_adjust(left=0.08, right=0.99, top=0.97, bottom=0.12)
+    draw_accuracy_curves(ax, c, accuracy_curves(folder), ("crysol", "pepsi-saxs", "foxs", "ausaxs-sas"))
+    accuracy_axes(ax, (0, 2), (1e-9, 1), accuracy_titles(records, folder)["sas"], ncol=4, loc="lower right")
+    return fig
+
+
+def draw_accuracy_powder(records, folder, c):
+    """The pure Debye programs over the wide-angle range, with AUSAXS at its default bin width for powder diffraction."""
+    fig, ax = figure(c)
+    fig.subplots_adjust(left=0.08, right=0.99, top=0.97, bottom=0.12)
+    draw_accuracy_curves(ax, c, accuracy_curves(folder), ("aes-debye", "debyecalculator", "ausaxs"))
+    accuracy_axes(ax, (0, 10), (1e-9, 1e-3), accuracy_titles(records, folder)["powder"])
     return fig
 
 
@@ -303,7 +463,9 @@ def main() -> int:
     for name, draw, arg in [("benchmark-scaling", draw_scaling, folder), ("benchmark-scaling-sas", draw_scaling_sas, folder),
                             ("benchmark-scaling-debye", draw_scaling_debye, folder),
                             ("benchmark-scaling-modern", draw_scaling_modern, local),
-                            ("benchmark-accuracy", draw_accuracy, folder), ("benchmark-gradient", draw_gradient, folder)]:
+                            ("benchmark-accuracy", draw_accuracy, folder), ("benchmark-accuracy-sas", draw_accuracy_sas, folder),
+                            ("benchmark-accuracy-powder", draw_accuracy_powder, folder),
+                            ("benchmark-gradient", draw_gradient, folder)]:
         for scheme, colours in THEMES.items():
             fig = draw(records, arg, colours)
             buffer = io.StringIO()
