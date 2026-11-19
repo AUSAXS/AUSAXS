@@ -274,26 +274,23 @@ def draw_gradient(records, folder, c):
 
 
 def draw_scaling_modern(records, local, c):
-    """AUSAXS alone on the modern desktop, with the reference machine's AUSAXS in grey."""
+    """AUSAXS alone on the modern desktop, with the reference machine's AUSAXS in grey. The GPU is shown at 0.25 Å only, as
+    finer bin widths are currently slow on the GPU for large particles."""
     fig, ax = figure(c)
     fig.subplots_adjust(left=0.08, right=0.99, top=0.97, bottom=0.12)
     plot(ax, c, series(local, "debye", "ausaxs", DEBYE_TIMING[0]), "ausaxs", "CPU, bin width 0.05 Å", CPU)
-    plot(ax, c, series(local, "debye", "ausaxs", DEBYE_TIMING[1]), "ausaxs", "GPU, bin width 0.05 Å", GPU)
-    (x, y), _ = series(local, "debye", "ausaxs", "forward-gpu-bw0.25")
-    ax.plot(x, y, color=c["ausaxs"], ls=":", lw=1.5, marker="s", markersize=5, markeredgewidth=1.1,
-            markerfacecolor="none", label="GPU, bin width 0.25 Å")
-    modern = ax.get_legend_handles_labels()
-    for variant, ls, label in ((DEBYE_TIMING[0], "--", "CPU, bin width 0.05 Å"), (DEBYE_TIMING[1], ":", "GPU, bin width 0.05 Å")):
+    plot(ax, c, series(local, "debye", "ausaxs", "forward-gpu-bw0.25"), "ausaxs", "GPU, bin width 0.25 Å", GPU)
+    n = len(ax.get_legend_handles_labels()[0])
+    for variant, ls, label in ((DEBYE_TIMING[0], "--", "CPU, bin width 0.05 Å"), ("forward-gpu-bw0.25", ":", "GPU, bin width 0.25 Å")):
         (x, y), _ = series(records, "debye", "ausaxs", variant)
         ax.plot(x, y, color=c["muted"], ls=ls, lw=1.0, label=label)
     handles, labels = ax.get_legend_handles_labels()
-    n = len(modern[0])
     time_axes(ax, (1.2e2, 2.5e6), (1e-4, 3e2))
     first = ax.legend(handles[:n], labels[:n], title="AUSAXS, Ryzen 5 9600X and Radeon RX 9070 XT", alignment="left",
                       loc="upper left")
     ax.add_artist(first)
     ax.legend(handles[n:], labels[n:], title="AUSAXS, i7-8700 and GTX 1070 Ti", alignment="left", loc="upper left",
-              bbox_to_anchor=(0.0, 0.7))
+              bbox_to_anchor=(0.0, 0.75))
     return fig
 
 
