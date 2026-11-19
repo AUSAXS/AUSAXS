@@ -11,19 +11,50 @@ hide:
 
 ## Speed
 
-<!--
-  Benchmark figure goes here once the paper benchmarks have been run:
-  ![...](assets/figures/benchmark-sas.svg#only-light){ width="100%" }
-  ![...](assets/figures/benchmark-sas-dark.svg#only-dark){ width="100%" }
-  Caption: what is timed (a full fit, including the hydration shell), the hardware, the program versions,
-  and a link to tests/benchmark/paper/ so the numbers can be reproduced.
--->
-
 A complete SAXS fit, including generating the hydration shell, typically takes a few tens of milliseconds for a protein on an ordinary desktop CPU. Every calculation is multithreaded, so even very large structures remain practical: a good consumer CPU handles about 300 000 atoms in 10 seconds. The optional [GPU driver](getting-started/gpu.md) goes further still: a high-end consumer GPU handles a million atoms in the same time. This makes it practical to fit thousands of models, such as frames of a molecular dynamics trajectory, or to run a [rigid-body refinement](applications/rigid-body-refinement.md) with many thousands of steps.
+
+=== "All"
+
+    ![On a log-log plot of time against the number of atoms, AUSAXS fits SAXS data about as fast as Pepsi-SAXS on small structures and faster on large ones, and several to over a hundred times faster than FoXS and CRYSOL. For the Debye sum of nanoparticles, from 200 to 800 000 atoms, AUSAXS is faster than DebyeCalculator and AES-Debye on the CPU at every size, and on the GPU it matches AES-Debye at the largest sizes.](assets/figures/benchmark-scaling.svg#only-light){ width="100%" }
+    ![On a log-log plot of time against the number of atoms, AUSAXS fits SAXS data about as fast as Pepsi-SAXS on small structures and faster on large ones, and several to over a hundred times faster than FoXS and CRYSOL. For the Debye sum of nanoparticles, from 200 to 800 000 atoms, AUSAXS is faster than DebyeCalculator and AES-Debye on the CPU at every size, and on the GPU it matches AES-Debye at the largest sizes.](assets/figures/benchmark-scaling-dark.svg#only-dark){ width="100%" }
+
+=== "SAXS fitting"
+
+    ![A full SAXS fit with AUSAXS takes 16 milliseconds for 600 atoms and 0.6 seconds for 44 000 atoms. Pepsi-SAXS takes about the same time as AUSAXS on small structures and up to four times longer on larger ones; FoXS and CRYSOL are several to over a hundred times slower.](assets/figures/benchmark-scaling-sas.svg#only-light){ width="100%" }
+    ![A full SAXS fit with AUSAXS takes 16 milliseconds for 600 atoms and 0.6 seconds for 44 000 atoms. Pepsi-SAXS takes about the same time as AUSAXS on small structures and up to four times longer on larger ones; FoXS and CRYSOL are several to over a hundred times slower.](assets/figures/benchmark-scaling-sas-dark.svg#only-dark){ width="100%" }
+
+=== "Crystals and powder"
+
+    ![The Debye sum of a silver nanoparticle with 800 000 atoms takes AUSAXS 100 seconds on the CPU and 46 seconds on the GPU, against 254 and 48 seconds for AES-Debye. DebyeCalculator is up to 30 times slower than AUSAXS and exceeds the time limit above 200 000 atoms.](assets/figures/benchmark-scaling-debye.svg#only-light){ width="100%" }
+    ![The Debye sum of a silver nanoparticle with 800 000 atoms takes AUSAXS 100 seconds on the CPU and 46 seconds on the GPU, against 254 and 48 seconds for AES-Debye. DebyeCalculator is up to 30 times slower than AUSAXS and exceeds the time limit above 200 000 atoms.](assets/figures/benchmark-scaling-debye-dark.svg#only-dark){ width="100%" }
+
+=== "Modern hardware"
+
+    ![AUSAXS alone on a 2024 desktop. The CPU calculates the Debye sum of 290 000 atoms in 6 seconds, twice as fast as the 2017 desktop. At a bin width of 0.25 Å the GPU takes 1.9 seconds for 830 000 atoms and 4.9 seconds for 1.3 million. At 0.05 Å the GPU slows down above 100 000 atoms and takes 44 seconds for 830 000 atoms, about as long as the 2017 GPU.](assets/figures/benchmark-scaling-modern.svg#only-light){ width="100%" }
+    ![AUSAXS alone on a 2024 desktop. The CPU calculates the Debye sum of 290 000 atoms in 6 seconds, twice as fast as the 2017 desktop. At a bin width of 0.25 Å the GPU takes 1.9 seconds for 830 000 atoms and 4.9 seconds for 1.3 million. At 0.05 Å the GPU slows down above 100 000 atoms and takes 44 seconds for 830 000 atoms, about as long as the 2017 GPU.](assets/figures/benchmark-scaling-modern-dark.svg#only-dark){ width="100%" }
+
+Unless noted, timed on a 2017 desktop: an Intel Core i7-8700 (6 cores) and an NVIDIA GeForce GTX 1070 Ti. Each point is the mean of five runs.
+
+- **Fitting SAXS data:** a full fit of each structure to its SASBDB data, including reading the files and generating the hydration shell, run from the command line with each program's default settings. By default, AUSAXS fits q up to 0.5 Å⁻¹, while the other programs fit the whole data file.
+- **Debye sum:** the scattering of spherical silver nanoparticles in vacuum, from the atomic coordinates in memory to I(q) at 1000 points up to q = 10 Å⁻¹. AUSAXS used its default bin width for crystals, 0.05 Å. An open marker without a line is a single run over the 300-second time limit.
+- **Modern hardware:** <span class="ausaxs-name"><span class="au">AU</span>SAXS</span> alone on a 2024 desktop, an AMD Ryzen 5 9600X (6 cores) and an AMD Radeon RX 9070 XT, with the 2017 desktop in grey. The GPU's histogram of distances lives in its fast on-chip memory only up to a certain range, about 140 Å at a bin width of 0.05 Å, so it slows down for larger particles at fine bin widths.
+- **Versions:** Pepsi-SAXS 2020-07-28, FoXS from IMP (develop branch, 11a86f9), CRYSOL from ATSAS 3.2.1, DebyeCalculator 1.1.1 and AES-Debye 1.0.0. The benchmark itself is in [`tests/benchmark/`](https://github.com/AUSAXS/AUSAXS/tree/master/tests/benchmark).
+
+The scattering curve can also be differentiated with respect to the atom positions, for example to use it as a loss in machine learning. In Python this is `Molecule.debye_raw_vjp`. The gradient is that of the exact Debye sum, and on the CPU it is up to 40 times faster than DebyeCalculator on either CPU or GPU:
+
+![The gradient of the Debye sum with AUSAXS on the CPU takes 5 milliseconds for 225 atoms and 77 seconds for 425 000 atoms. DebyeCalculator takes 37 to 44 times longer at 100 000 atoms on its GPU and CPU and exceeds the time limit at 200 000 atoms. For large structures, the AUSAXS gradient costs about three times as much as calculating I(q).](assets/figures/benchmark-gradient.svg#only-light){ width="100%" }
+![The gradient of the Debye sum with AUSAXS on the CPU takes 5 milliseconds for 225 atoms and 77 seconds for 425 000 atoms. DebyeCalculator takes 37 to 44 times longer at 100 000 atoms on its GPU and CPU and exceeds the time limit at 200 000 atoms. For large structures, the AUSAXS gradient costs about three times as much as calculating I(q).](assets/figures/benchmark-gradient-dark.svg#only-dark){ width="100%" }
 
 ## The full Debye equation
 
 <span class="ausaxs-name"><span class="au">AU</span>SAXS</span> sums the contribution of every pair of atoms, rather than relying on a multipole expansion or on coarse-graining the structure. The hydration shell and the excluded volume are modelled explicitly in real space. How this is done, and how it compares with other programs, is described in [Lytje & Pedersen (2025)](https://doi.org/10.1107/S160057672500562X).
+
+To be fast, the pair distances are sorted into fine bins before the sum over q. At the default settings, the typical relative deviation from the exact Debye sum is about 10⁻⁵ over the whole range up to q = 10 Å⁻¹, the same as DebyeCalculator:
+
+![For a silver nanoparticle with 6603 atoms, the relative deviation of AUSAXS from the exact Debye sum lies mostly between 10⁻⁶ and 10⁻⁴ up to q = 10 inverse ångström, almost exactly on top of DebyeCalculator. AES-Debye lies 10 to 100 times lower.](assets/figures/benchmark-accuracy.svg#only-light){ width="100%" }
+![For a silver nanoparticle with 6603 atoms, the relative deviation of AUSAXS from the exact Debye sum lies mostly between 10⁻⁶ and 10⁻⁴ up to q = 10 inverse ångström, almost exactly on top of DebyeCalculator. AES-Debye lies 10 to 100 times lower.](assets/figures/benchmark-accuracy-dark.svg#only-dark){ width="100%" }
+
+The reference is DebyeCalculator's direct sum in double precision. The curves are running medians over 0.25 Å⁻¹, as the deviation spikes at the minima of I(q).
 
 ## Transparency
 

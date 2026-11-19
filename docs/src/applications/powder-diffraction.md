@@ -29,7 +29,7 @@ Here we calculate the Cu Kα powder pattern of a silver nanoparticle of 201 atom
     import numpy as np
     import pyausaxs as ausaxs
     import matplotlib.pyplot as plt
-    ausaxs.settings.histogram(bin_width=0.02)
+    ausaxs.settings.histogram(bin_width=0.05)
     wavelength = 1.5406
     q = np.linspace(0.01, 4*np.pi/wavelength, 2000)
     mol = ausaxs.create_molecule("Ag_crystal.cif")

@@ -33,7 +33,7 @@ WAVELENGTH = 1.5406  # Cu Kα, in Å
 
 
 def calculate() -> dict:
-    ausaxs.settings.histogram(bin_width=0.02) # the default of ausaxs debye
+    ausaxs.settings.histogram(bin_width=0.05) # the default of ausaxs debye
     mol = ausaxs.create_molecule(str(DATA / "Ag_crystal.cif"))
     q = np.linspace(0.01, 10, 2000)
     _, I = mol.debye_raw(q, form_factors=True)
