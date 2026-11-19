@@ -29,7 +29,9 @@
 using namespace ausaxs;
 
 namespace {
-    constexpr double default_bin_width = 0.02; // seeems like a good default for wide-angle calcs
+    // Wide angles resolve the many sharp distances of a crystal, so the bins must be fine. Finer than this costs a lot of speed on the GPU,
+    // whose fast histogram in workgroup memory then only covers distances up to about 55 Å.
+    constexpr double default_bin_width = 0.05;
 
     /**
      * @brief The scattering angle 2θ in degrees of each q at this wavelength, for q = 4π/λ sin(θ).
@@ -76,7 +78,7 @@ int cli_debye(int argc, char const *argv[]) {
     auto* p_count = app.add_option("--count,-n", count, "The number of q values, evenly spaced from qmin to qmax. Not used with a measurement.")->default_val(count)->check(CLI::Range(2, 1000000));
     app.add_flag("--points", points, "Treat every atom as a point scatterer with its weight, instead of using its form factor.");
     auto* p_bin_width = app.add_option_function<double>("--bin-width", [] (double width) {settings::axes::bin_width = width;}, // through the setting, which also updates the inverse width
-        "The width of the distance bins in Å. The default is 0.02 Å.")->check(CLI::PositiveNumber);
+        "The width of the distance bins in Å. The default is 0.05 Å.")->check(CLI::PositiveNumber);
     auto* p_wavelength = app.add_option("--wavelength", wavelength, "Add a column with the scattering angle 2θ in degrees for this wavelength in Å to the output.")->check(CLI::PositiveNumber);
     app.add_flag("--neutron", neutron, "Use neutron scattering lengths instead of X-ray form factors.");
     cli::add_config_subcommand(app, config, "debye");
