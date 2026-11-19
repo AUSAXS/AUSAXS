@@ -30,6 +30,8 @@ All tools are subcommands of `ausaxs`. Run `ausaxs <command> --help` for a short
 
 [<code>ausaxs gui</code><span class="ausaxs-cmd__desc">Start the graphical interface.</span>](cli/fit.md#graphical-user-interface){ .ausaxs-cmd }
 
+[<code>ausaxs setup</code><span class="ausaxs-cmd__desc">Point the Python package at a library you compiled yourself.</span>](../getting-started/compiling.md#using-your-build-from-python){ .ausaxs-cmd }
+
 </div>
 
 > [!TIP]
@@ -38,7 +40,9 @@ All tools are subcommands of `ausaxs`. Run `ausaxs <command> --help` for a short
 ## Developers
 
 - [Compiling from source](../getting-started/compiling.md): build the library yourself, and point the Python package at your build with `ausaxs setup`.
+- [Running the tests](developers/tests.md): build and run the test suite.
 - [macOS debug build](developers/macos-debug-build.md): compile AUSAXS in debug mode on macOS.
+- [Contributing](https://github.com/AUSAXS/AUSAXS/blob/master/CONTRIBUTING.md): how to report bugs, make suggestions and contribute code.
 
 ## Citing AUSAXS
 

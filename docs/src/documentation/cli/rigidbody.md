@@ -7,16 +7,17 @@ hide:
 
 # Rigid-body refinement against SAXS data
 
-_**Notice**: This tool is still in active development._
-
 This tool allows you to perform custom rigidbody optimizations on your structures. Here we cover all of the arguments and settings available for the procedure, and also how to write your own configuration scripts. 
 
-_**NEW**_: You can now use this tool via the new Python GUI. Simply run the following commands to start it!
-```python
-pip install pyausaxs[all]
-ausaxs gui
-```
-The [rigid-body tutorial](https://sastutorials.org/RigidBody/RigidBodyGUI.html) walks through a complete refinement in the GUI.
+> [!TIP]
+> The refinement can also be set up in the graphical interface, which writes the configuration script for you. Start it with:
+>
+> ```bash
+> pip install "pyausaxs[all]"
+> ausaxs gui
+> ```
+>
+> This is the recommended way to use the tool. To get started, see the [rigid-body tutorial](https://sastutorials.org/RigidBody/RigidBodyGUI.html) which walks through a complete refinement in the graphical interface.
 
 ## Arguments
 The optimization is fully described by a configuration script, which is the only required argument:  
@@ -28,7 +29,7 @@ The remaining command-line arguments follow the same _group_ structure as the [S
 
 | Group       | Arguments |
 |-------------|-----------|
-| base        | `--licence`, `-v`/`--version`, `--allow-unknown-atoms`, `--allow-unknown-residues`, `--offline`, `-t`/`--threads`, `--gpu` |
+| base        | `--licence`, `-v`/`--version`, `--allow-unknown-atoms`, `--allow-unknown-residues`, `--offline`, `-t`/`--threads`, `--gpu`/`--no-gpu` |
 | `config`    | `-f`/`--file`, `--save`, `--log` |
 | `data`      | `--qmin`, `--qmax`, `-u`/`--unit`, `--skip`, `--rebin`, `--weighted-bins` |
 | `molecule`  | `--use-occupancy`/`--ignore-occupancy` |
@@ -123,8 +124,8 @@ loop
 	optimize_once
 		on_improvement 
 			print {
-				msg "{iteration}/{iterations_total}: Accepted with new chi2 {chi2}"
-				colour green
+				message "{iteration}/{iterations_total}: Accepted with new chi2 {chi2}"
+				color green
 			}
 			save curve_%.fit
 			save trajectory.xyz
@@ -166,8 +167,8 @@ loop
 		save full.xyz
 		on_improvement 
 			print {
-				msg "{iteration}/{iterations_total}: Accepted with new chi2 {chi2_no_penalty}"
-				colour green
+				message "{iteration}/{iterations_total}: Accepted with new chi2 {chi2_no_penalty}"
+				color green
 			}
 			save trajectory.xyz
 		end
@@ -317,7 +318,7 @@ Specify a parameter generator for the transformations. This element only accepts
 * `rotate_axes` [`string`]: restrict body rotations to the given axes. Requires a non-zero `rotate`. 
 * `sym_translate` [`float`]: the amplitude of symmetry translations, in Ångström.
 * `sym_rotate` [`float`]: the amplitude of symmetry rotations, in radians.
-* `decay` [`string`]: `linear`, `exponential`, `none`. Defaults to `linear`.
+* `decay` [`string`]: `linear`, `exponential`, `none`.
 
 Each amplitude is an upper bound on the magnitude of that component's contribution to a single step, scaled down over the run by the `decay` strategy. The four components are independent, and are disabled by leaving them out or setting them to zero. At least one must be given, except when the structure has [declared symmetries](#symmetry): the symmetry amplitudes are then set to sensible defaults.
 
@@ -555,7 +556,7 @@ _`convert_to_symmetry <type>`_ or _`convert_to_symmetry { bodies <bodies>, type 
     - single body: The body will automatically be split into the required number of subunits.  
     - multiple bodies: Each body is one subunit of the symmetry.  
 * **`type`** [`string`]: The symmetry group to instantiate. Only point, cyclic, and polyhedral symmetries are supported.  
-* `tolerance` [`float`]: The maximum RMSD in Ångström allowed for the conversion. Defaults to `5`.  
+* `tolerance` [`float`]: The maximum RMSD in Ångström allowed for the conversion.  
 
 Convert the bodies into the given symmetry. The result will be a single body with the requested symmetry that best resembles the original structure. If the RMSD is larger than the tolerance, the element fails.  
 The inline form `convert_to_symmetry <type>` applies to every loaded body.  
@@ -680,8 +681,8 @@ _`print <message>`_, _`print <color> <message>`_, or _`print { message <message>
 
 Print a message to the terminal. 
 
-* **`message`** [`string`]: The message to be printed.
-* `color` [`string`]: The color of the text. Most basic colors are available; see [this link](https://github.com/AUSAXS/AUSAXS/blob/7e46a070c1fe2c2a9f2afa59013120faa1243943/include/core/utility/ConsoleColor.h#L15) for a list. 
+* **`message`** [`string`]: The message to be printed. May also be written `msg`.
+* `color` [`string`]: The color of the text, one of `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `lightgray`, `darkgray`, `lightred`, `lightgreen`, `lightyellow`, `lightblue`, `lightmagenta` and `lightcyan`. May also be written `colour`.
 
 Several runtime parameters can be printed using special keywords:
 
@@ -700,8 +701,8 @@ Braces are reserved for these keywords; any other `{...}` is an error.
 
 ```
 print {
-	msg "{iteration}/{iterations_total}: Chi2 is {chi2}."
-	color "red"
+	message "{iteration}/{iterations_total}: Chi2 is {chi2}."
+	color red
 }
 ```
 

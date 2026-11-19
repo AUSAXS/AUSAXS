@@ -32,4 +32,6 @@ The tutorials below are hosted on [SAStutorials.org](https://sastutorials.org/),
 
 </div>
 
+For the Python interface, the [pyAUSAXS examples](https://github.com/AUSAXS/pyAUSAXS/tree/master/examples) go step by step from a basic Debye calculation to model fitting, distance histograms and crystal scattering.
+
 Every option of the command-line tools is listed in the [documentation](documentation/cli/fit.md). Questions not covered here can be asked in the [discussions](https://github.com/AUSAXS/AUSAXS/discussions).

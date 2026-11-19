@@ -16,8 +16,8 @@ python -m pip install pyausaxs
 ```
 
 # Main features
-- **[SAXS profile calculation and fitting](https://ausaxs.github.io/AUSAXS/documentation/cli/saxs-fitter/)**: Calculate the SAXS curve of a structure and test whether it is consistent with experimental data, adjusting only solvent and scaling parameters. The hydration shell and excluded volume are modelled explicitly from the atomic coordinates.
-- **SANS profile calculation** _(in development)_: The same calculation for small-angle neutron scattering, with neutron scattering lengths, hydrogen/deuterium exchange and D₂O contrast variation.
+- **[SAXS profile calculation and fitting](https://ausaxs.github.io/AUSAXS/documentation/cli/fit/)**: Calculate the SAXS curve of a structure and test whether it is consistent with experimental data, adjusting only solvent and scaling parameters. The hydration shell and excluded volume are modelled explicitly from the atomic coordinates.
+- **[SANS profile calculation and fitting](https://ausaxs.github.io/AUSAXS/documentation/cli/sans/)**: The same calculation for small-angle neutron scattering, with neutron scattering lengths, hydrogen/deuterium exchange and D₂O contrast variation.
 - **[EM map validation](https://ausaxs.github.io/AUSAXS/documentation/cli/em-validation/)**: Compare cryo-EM maps (MRC/CCP4) against SAXS data using dummy structures built from the map itself.
 - **[Rigid-body refinement](https://ausaxs.github.io/AUSAXS/documentation/cli/rigidbody/)** _(in development)_: Refine multi-domain proteins and complexes against SAXS data, exploiting symmetry relations to accelerate the calculation. Driven by a composable configuration language for fine-grained control over parameters, loops, and per-step output.
 - **Debye scattering of crystals and point scatterers**: Evaluate the Debye equation at any _q_ for crystals, nanoparticles and other materials read from CIF or XYZ files, or for arbitrary point scatterers given as coordinates and weights, with or without atomic form factors. The gradient is also available, for use in optimization and machine-learning workflows. Available through the [Python package](https://github.com/AUSAXS/pyAUSAXS).
@@ -26,7 +26,7 @@ python -m pip install pyausaxs
 # Performance
 AUSAXS is the fastest SAXS program by a wide margin. Even systems containing millions of atoms can be evaluated in seconds on consumer GPUs.
 
-The GPU is optional, though. On the CPU alone, AUSAXS still outpaces every other program, evaluating structures with hundreds of thousands of atoms in a few seconds on an ordinary desktop.
+The GPU is optional, though. On the CPU alone, AUSAXS still outpaces every other program: a good consumer CPU handles about 300 000 atoms in 10 seconds.
 
 <img alt="Benchmark: AUSAXS execution time versus number of atoms, compared with Pepsi-SAXS, FoXS and CRYSOL" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/benchmark.png" width="600">
 

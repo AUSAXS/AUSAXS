@@ -37,7 +37,7 @@ In addition to the general arguments of the [base group of `ausaxs fit`](fit.md#
 |`--qmax`            | Set maximum q              | The upper limit of the $q$-range in Å⁻¹. Defaults to 1. With a measurement, it only narrows the measured range. |
 |`-n`, `--count`     | Set the number of q values | The number of $q$ values, evenly spaced from `qmin` to `qmax`. Defaults to 1000. Not used with a measurement. |
 |`--wavelength`      | Set the wavelength   | Add a column with the scattering angle $2\theta$ in degrees for this wavelength in Å, from $q = \frac{4\pi}{\lambda}\sin\theta$. |
-|`--bin-width`       | Set the bin width          | The width of the distance bins in Å. Defaults to 0.05 Å which should be sufficient for most cases. |
+|`--bin-width`       | Set the bin width          | The width of the distance bins in Å. The default should be sufficient for most cases. |
 |`--points`          | Use point scatterers       | Treat every atom as a point scatterer instead of using its form factor. Each atom is weighted by its number of electrons, or its scattering length with `--neutron`, including its implicit hydrogens and occupancy. |
 |`--neutron`         | Use neutrons               | Use neutron scattering lengths instead of X-ray form factors. |
 

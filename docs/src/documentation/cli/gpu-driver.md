@@ -14,4 +14,4 @@ This page lists the commands for managing an installed AUSAXS GPU driver. To ins
 |`ausaxs gpu enable`    | Use the GPU by default again. |
 |`ausaxs gpu remove`    | Remove the driver. |
 
-For a single run, the `--gpu` and `--no-gpu` flags of `ausaxs fit`, `ausaxs em` and `ausaxs rigidbody` override the default.
+For a single run, the `--gpu` and `--no-gpu` flags override the default.

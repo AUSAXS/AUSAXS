@@ -43,8 +43,8 @@ See the [CLI plotting](plotting-scripts.md) page for more information on this st
 ## Graphical user interface
 
 If you prefer a visual interface, you can use the Python GUI from the [pyAUSAXS](https://github.com/AUSAXS/pyAUSAXS) package:
-```
-pip install pyausaxs[all]
+```bash
+pip install "pyausaxs[all]"
 ausaxs gui
 ```
 If you do use this, you can skip over the next section on the command-line arguments, though not every option is available in the graphical interface.
@@ -73,7 +73,7 @@ As an example, `ausaxs fit <pdb> <data> exv --model grid --fit solv --keep data 
 |`--allow-unknown-residues` | Do not exit when an unknown residue is encountered | As above, but for residues. |
 |`--offline`         | Run in offline mode        | Prevent all network requests. Normally, definitions of unknown residues may be downloaded from the PDB. |
 |`-t`, `--threads`   | Set the number of threads  | Use this to limit the number of processor threads. By default all but one thread available on the system will be used. |
-|`--gpu`             | Use GPU acceleration       | Use GPU acceleration if available. |
+|`--gpu`, `--no-gpu` | Toggle GPU acceleration    | Use GPU acceleration if available. On by default once a GPU is chosen with [`ausaxs gpu install`](../../getting-started/gpu.md), unless turned off with `ausaxs gpu disable`. |
 
 ### `config` group
 | Argument           | Name                       | Description |

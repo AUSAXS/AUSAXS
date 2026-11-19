@@ -41,8 +41,8 @@ Finally you will also find the `model.pdb` file, which contains the dummy struct
 
 ## Graphical user interface
 If you prefer a visual interface, you can use the Python GUI from the [pyAUSAXS](https://github.com/AUSAXS/pyAUSAXS) package:
-```
-pip install pyausaxs[all]
+```bash
+pip install "pyausaxs[all]"
 ausaxs gui
 ```
 If you do use this, you can skip over the next section on the command-line arguments, though not every option is available in the graphical interface.
@@ -60,7 +60,7 @@ As for the [SAXS fitter](fit.md#argument-groups), most arguments are sorted into
 |`-v`, `--version`   | See the program version    | See the program version. | 
 |`-o`, `--output`    | Set output directory       | Set the path to the output directory. Defaults to `output/em/`. |
 |`-t`, `--threads`   | Set the number of threads  | Use this to limit the number of threads. By default all but one thread available on the system will be used. |
-|`--gpu`             | Use GPU acceleration       | Use GPU acceleration if available. |
+|`--gpu`, `--no-gpu` | Toggle GPU acceleration    | Use GPU acceleration if available. On by default once a GPU is chosen with [`ausaxs gpu install`](../../getting-started/gpu.md), unless turned off with `ausaxs gpu disable`. |
 
 ### `config` group
 | Argument           | Name                       | Description |
@@ -106,10 +106,10 @@ The two arguments `--qmin` and `--qmax` specifies the range of q-values used for
 > The lower and upper limits are $[10^{-4},\ 1]\ Å^{-1}$. Values outside this range are currently not supported. 
 
 ### level-range
-The two arguments `em --levelmin` and `em --levelmax` specifies the range of threshold values in terms of the RMS. This is the same levels as those used by e.g. PyMOL, meaning you can use PyMOL for estimating the bounds, and then apply them with these two arguments. Note that the evaluation of higher threshold values are significantly faster than smaller values, meaning the choice of `levelmin` has a way higher impact on the performance than `--levelmax`. 
+The two arguments `em --levelmin` and `em --levelmax` specifies the range of threshold values in terms of the RMS. This is the same levels as those used by e.g. PyMOL, meaning you can use PyMOL for estimating the bounds, and then apply them with these two arguments. Note that the evaluation of higher threshold values are significantly faster than smaller values, meaning the choice of `levelmin` has a way higher impact on the performance than `--levelmax`.
 
 > [!WARNING]
-> Using too small threshold values may result in the calculations never finishing. Only go below the default limits if you are absolutely certain that you need to.
+> Using too small threshold values may result in the calculations never finishing. Only lower `--levelmin` if you are absolutely certain that you need to.
 
 ### Map sampling frequency
 The argument `em --frequency` determines how often dummy atoms will be sampled from the grid intrinsic in the map. A value of `2` means that only every second grid point along each axis is used, effectively reducing the size of the dummy model by a factor 8. For somewhat larger high-resolution maps, using `--frequency 2` may be enough for a decent quick fit. 

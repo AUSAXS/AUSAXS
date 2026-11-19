@@ -1,5 +1,5 @@
 ---
-title: Compiling AUSAXS from source
+title: Compiling AUSAXS from source - AUSAXS
 description: Compile the AUSAXS small-angle scattering calculator from source with CMake on Linux, macOS or Windows.
 ---
 
@@ -37,9 +37,12 @@ where X is the number of worker threads. The executable is placed in `build/bin/
 2. Download or clone the repository  
 `git clone https://github.com/AUSAXS/AUSAXS.git`.
 
-3. Compile the `ausaxs` target as in step 3 and 4 of the Linux guide. Note that this can be very memory-intensive with the MSVC compiler. 
+3. Configure the build with vcpkg's toolchain file, so CMake can find CURL  
+`cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=<vcpkg root>/scripts/buildsystems/vcpkg.cmake`
 
-4. (optional) To convert the output `.plot` files to images, you will also need `Python` and a few additional packages.  
+4. Compile the `ausaxs` target as in step 4 of the Linux guide. Note that this can be very memory-intensive with the MSVC compiler. 
+
+5. (optional) To convert the output `.plot` files to images, you will also need `Python` and a few additional packages.  
 `pip3 install matplotlib numpy scipy`
 
 ## Dependencies
