@@ -169,28 +169,44 @@ namespace {
 
     fs::path results_file() {return config().out / "results.jsonl";}
 
-    // Keys already measured, from a previous (possibly interrupted) run. Failed measurements are not counted, so they
-    // are retried.
-    std::set<std::string>& done() {
-        static std::set<std::string> keys = [] {
-            std::set<std::string> k;
+    // The value of the string field @a name of a record, which may come from competitor.py, whose json.dumps puts a
+    // space after the colon. Empty if absent.
+    std::string string_field(const std::string& line, const std::string& name) {
+        auto p = line.find("\"" + name + "\"");
+        if (p == std::string::npos) {return "";}
+        p = line.find('"', line.find(':', p + name.size() + 2));
+        if (p == std::string::npos) {return "";}
+        ++p;
+        return line.substr(p, line.find('"', p) - p);
+    }
+
+    // Keys already measured, from a previous (possibly interrupted) run, and those of them that went over budget.
+    // Failed measurements are not counted, so they are retried.
+    struct Previous {std::set<std::string> done, over_budget;};
+    Previous& previous() {
+        static Previous prev = [] {
+            Previous k;
             std::ifstream in(results_file());
             for (std::string line; std::getline(in, line);) {
-                if (line.find("\"status\":\"ok\"") == std::string::npos && line.find("\"status\":\"over budget\"") == std::string::npos) {continue;}
-                auto p = line.find("\"key\":\"");
-                if (p == std::string::npos) {continue;}
-                p += 7;
-                k.insert(line.substr(p, line.find('"', p) - p));
+                auto status = string_field(line, "status"), key = string_field(line, "key");
+                if (key.empty() || (status != "ok" && status != "over budget")) {continue;}
+                k.done.insert(key);
+                if (status == "over budget") {k.over_budget.insert(key);}
             }
             return k;
         }();
-        return keys;
+        return prev;
     }
+    std::set<std::string>& done() {return previous().done;}
+
+    // Whether a measurement already done went over budget, so that a resumed run stops its series there as the first did.
+    bool was_over_budget(const std::string& key) {return previous().over_budget.contains(key);}
 
     void write(const Record& r) {
         fs::create_directories(config().out);
         std::ofstream(results_file(), std::ios::app) << r.json() << std::endl;
         if (r.status == "ok" || r.status == "over budget") {done().insert(r.key());}
+        if (r.status == "over budget") {previous().over_budget.insert(r.key());}
         std::cout << "  " << std::left << std::setw(60) << r.key() << " ";
         if (r.samples.empty()) {std::cout << r.status << std::endl; return;}
         std::cout << std::fixed << std::setprecision(4) << *std::min_element(r.samples.begin(), r.samples.end()) << " s (min of "
@@ -493,7 +509,7 @@ TEST_CASE("paper: SAS fit, end to end", "[.][paper][sas]") {
 
         for (const auto& p : programs) {
             Record r{.suite="sas", .program=p.name, .variant="cli", .structure=s.label, .atoms=atoms};
-            if (already_done(r.key())) {continue;}
+            if (already_done(r.key())) {if (was_over_budget(r.key())) {stopped.insert(p.name);} continue;}
             if (stopped.contains(p.name)) {r.status = "skipped: budget"; write(r); continue;}
 
             // a private directory per program, since they all scatter output files next to their inputs
@@ -579,7 +595,7 @@ namespace {
                         int atoms, const fs::path& xyz, const std::vector<std::string>& args, bool write_iq_file) {
         const auto& c = config();
         std::string key = suite + "/" + program + "/" + variant + "/" + structure;
-        if (already_done(key)) {return true;}
+        if (already_done(key)) {return !was_over_budget(key);}
         auto dir = c.out / "work" / suite;
         fs::create_directories(dir);
         std::vector<std::string> argv = {
@@ -646,7 +662,7 @@ TEST_CASE("paper: pure Debye, scaling", "[.][paper][debye]") {
 
         for (const auto& var : forward) {
             Record r{.suite="debye", .program="ausaxs", .variant="forward-" + var.name, .structure=p.label, .atoms=p.atoms};
-            if (already_done(r.key())) {continue;}
+            if (already_done(r.key())) {if (was_over_budget(r.key())) {stopped.insert(r.variant);} continue;}
             if (stopped.contains(r.variant)) {r.status = "skipped: budget"; write(r); continue;}
             auto molecule = load_vacuum(p.xyz, var.bw, var.gpu);
             measure(r, [&] {ausaxs_forward(molecule, q);});
@@ -655,6 +671,7 @@ TEST_CASE("paper: pure Debye, scaling", "[.][paper][debye]") {
         }
         {
             Record r{.suite="debye", .program="ausaxs", .variant="gradient-cpu", .structure=p.label, .atoms=p.atoms};
+            if (was_over_budget(r.key())) {stopped.insert(r.variant);}
             if (!already_done(r.key()) && !stopped.contains(r.variant)) {
                 auto molecule = load_vacuum(p.xyz, 0.25, false);
                 measure(r, [&] {hist::debye_raw_vjp(molecule, q, v);});
