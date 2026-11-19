@@ -28,7 +28,7 @@ AUSAXS is the fastest SAXS program by a wide margin. Even systems containing mil
 
 The GPU is optional, though. On the CPU alone, AUSAXS still outpaces every other program: a good consumer CPU handles about 300 000 atoms in 10 seconds.
 
-<img alt="Benchmark: AUSAXS execution time versus number of atoms, compared with Pepsi-SAXS, FoXS and CRYSOL" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/benchmark.png" width="600">
+The benchmarks, against both SAXS programs and Debye calculators, are in the [documentation](https://ausaxs.github.io/AUSAXS/why-ausaxs/#speed).
 
 # Documentation
 Each program has a detailed user guide in the [documentation](https://ausaxs.github.io/AUSAXS/). Examples of the Python interface, from a basic Debye calculation to model fitting and crystal scattering, are in the [pyAUSAXS examples](https://github.com/AUSAXS/pyAUSAXS/tree/master/examples).

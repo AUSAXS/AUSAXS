@@ -138,6 +138,8 @@ These models are not as well-tested as those listed above, and are only listed f
 * `crysol`, `foxs`, `pepsi`, `waxsis`: These excluded volume models implements the excluded volume as defined in their respective papers. None of them exactly reproduces the output from their respective programs.  
 
 * `none`: Disable the excluded volume entirely. 
+
+* `vacuum`: The scattering of the atoms in vacuum, with their atomic form factors and no excluded volume contribution. 
 </details>
 
 ### `solv` group

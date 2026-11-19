@@ -13,15 +13,15 @@ Review of the `docs-site` branch, checked against `origin/master` at 0accd315 (2
 - [x] **Speed numbers disagree.** `why-ausaxs.md` says about 300k atoms in 10 s on a CPU; the README says "hundreds of thousands of atoms in a few seconds". The benchmark figure on `why-ausaxs.md` is still a commented-out placeholder; the README already embeds `benchmark.png`.
 
 ## Missing pages
-- [ ] **Python API reference.** The application pages use `create_molecule`, `debye_raw`, `settings.set`, `prepare_rigidbody_refinement`, … but the site has no reference for them; the "Python API" tile leaves for GitHub. The README advertises point scatterers and the gradient, which appear nowhere on the site.
-- [ ] **Graphical interface page.** `ausaxs gui` and the landing-page tile both go to a three-line section in `fit.md`. `ausaxs setup` is only documented under `compiling.md` and is missing from the command table in `documentation/index.md`.
-- [ ] **Input and output formats.**
+- [x] ~~**Python API reference.**~~ Deferred: it will come from the pyAUSAXS repo once that is set up. The application pages use `create_molecule`, `debye_raw`, `settings.set`, `prepare_rigidbody_refinement`, … but the site has no reference for them; the "Python API" tile leaves for GitHub. The README advertises point scatterers and the gradient, which appear nowhere on the site.
+- [x] ~~**Graphical interface page.**~~ Rejected: the GUI should not need documenting. `ausaxs setup` is now in the command table. `ausaxs gui` and the landing-page tile both go to a three-line section in `fit.md`. `ausaxs setup` is only documented under `compiling.md` and is missing from the command table in `documentation/index.md`.
+- [x] ~~**Input and output formats.**~~ Rejected: not useful to readers.
   - Structure formats: PDB, mmCIF, CIF and XYZ, as the landing page promises.
   - Data files: columns, headers, the q-unit guess.
   - Accepted EM map formats.
   - The columns of `ausaxs.fit` and the fields of `report.txt`.
-- [ ] **Settings file reference.** Several pages point to `config --save` and keys like `format`, but no page describes the file or its keys. The wiki's Configuration-files page was empty too.
-- [ ] **Model/method overview.**
+- [x] ~~**Settings file reference.**~~ Rejected: not useful to readers. Several pages point to `config --save` and keys like `format`, but no page describes the file or its keys. The wiki's Configuration-files page was empty too.
+- [x] ~~**Model/method overview.**~~ Moved: the exv models are documented in the 2025 paper; the rest belongs in the SAXS tutorial (BL-338).
   - The default fit parameters: scaling, background, hydration c, plus optional exv/density.
   - What the exv models mean in practice.
   - How to read χ²ᵣ.
@@ -45,16 +45,16 @@ Review of the `docs-site` branch, checked against `origin/master` at 0accd315 (2
   - Clarify `--exchange`: the CLI help says it applies to *implicit* hydrogens, so say what happens with `hydrogens --keep`.
   - Warn that `--d2o` defaults to pure D₂O.
   - The Python example sets a raw `neutron_solvent_density` while the CLI uses `--d2o`; use a D₂O helper if pyAUSAXS has one.
-- [ ] **`vacuum` exv model.** It is still accepted on master but missing from the `fit.md` list. Put it back under "Additional models" unless dropping it was deliberate because `ausaxs debye` replaces it.
-- [ ] **Citing page.** Add the Lytje, Pedersen & Hub (2026) review that the SAXS and SANS pages cite for background, and guidance for rigid-body and SANS work.
-- [ ] **Developers section.** Currently only the macOS debug build. Add:
+- [x] **`vacuum` exv model.** It is still accepted on master but missing from the `fit.md` list. Put it back under "Additional models" unless dropping it was deliberate because `ausaxs debye` replaces it.
+- [x] **Citing page.** Review added; no specific guidance for rigid-body or SANS work (the main paper applies). Add the Lytje, Pedersen & Hub (2026) review that the SAXS and SANS pages cite for background, and guidance for rigid-body and SANS work.
+- [x] **Developers section.** C API rejected: not documented. Currently only the macOS debug build. Add:
   - a link to CONTRIBUTING.md;
   - how to build and run the tests;
   - the C API, now with `settings::reset` exported (#535);
   - the vcpkg toolchain flag for Windows in `compiling.md`.
-- [ ] **Tutorials.** There are only three, all external. There is nothing for SANS, crystals/debye, CLI rigidbody scripts or Python. Link the pyAUSAXS `examples/` folder from `tutorials.md`.
+- [x] **Tutorials.** pyAUSAXS examples linked; new tutorials are BL-338. There are only three, all external. There is nothing for SANS, crystals/debye, CLI rigidbody scripts or Python. Link the pyAUSAXS `examples/` folder from `tutorials.md`.
 - [x] **Tone.** `rigidbody.md` still has the wiki's "_**NEW**_" banner and italic notice. `troubleshooting.md` still uses raw `<details>` instead of the admonitions used elsewhere.
 
 ## Housekeeping
-- [ ] Remove the unreferenced repo-root `decomposition.svg`, about 5k lines. `docs/figures/saxs-decomposition.svg` is the source the figure scripts use.
+- [x] Remove the unreferenced repo-root `decomposition.svg`, about 5k lines. `docs/figures/saxs-decomposition.svg` is the source the figure scripts use.
 - [x] Make page `title:` values consistent: `installation`, `compiling` and `citing` lack the " - AUSAXS" suffix the others have.
