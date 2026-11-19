@@ -6,7 +6,7 @@ hide:
   - toc
 ---
 
-# Installing AUSAXS
+# Installing <span class="ausaxs-name"><span class="au">AU</span>SAXS</span>
 
 Install AUSAXS on any platform by opening a terminal and typing:
 ```bash

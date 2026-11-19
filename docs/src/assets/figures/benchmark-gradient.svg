@@ -472,24 +472,8 @@ L 46.08 8.424
 L 570.24 247.104 
 " style="fill: none; stroke: #57606a; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
-   <g id="patch_5">
-    <path d="M 421.641697 53.540385 
-Q 421.641697 74.421486 421.641697 95.302587 
-" style="fill: none; stroke: #57606a; stroke-width: 0.9; stroke-linecap: round"/>
-    <path d="M 419.741697 57.340385 
-L 421.641697 53.540385 
-L 423.541697 57.340385 
-" style="fill: none; stroke: #57606a; stroke-width: 0.9; stroke-linecap: round"/>
-    <path d="M 423.541697 91.502587 
-L 421.641697 95.302587 
-L 419.741697 91.502587 
-" style="fill: none; stroke: #57606a; stroke-width: 0.9; stroke-linecap: round"/>
-   </g>
-   <g id="text_15">
-    <text style="font-size: 9px; font-family: 'Inter', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1f2733" x="428.641697" y="76.776955" transform="rotate(-0 428.641697 76.776955)">37× faster</text>
-   </g>
    <g id="legend_1">
-    <g id="text_16">
+    <g id="text_15">
      <text style="font-size: 8.5px; font-family: 'Inter', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1f2733" x="53.73" y="22.460953" transform="rotate(-0 53.73 22.460953)">Gradient with respect to the atom positions</text>
     </g>
     <g id="line2d_32">
@@ -501,7 +485,7 @@ L 77.53 31.654234
       <use xlink:href="#m5509feaaf9" x="65.63" y="31.654234" style="fill: #b07c12; stroke: #b07c12; stroke-width: 1.1"/>
      </g>
     </g>
-    <g id="text_17">
+    <g id="text_16">
      <text style="font-size: 8.5px; font-family: 'Inter', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1f2733" x="84.33" y="34.629234" transform="rotate(-0 84.33 34.629234)">AUSAXS, CPU</text>
     </g>
     <g id="line2d_33">
@@ -513,7 +497,7 @@ L 77.53 43.906188
       <use xlink:href="#ma17fb5ed4c" x="65.63" y="43.906188" style="fill: #6250d6; stroke: #6250d6; stroke-width: 1.1; stroke-linejoin: miter"/>
      </g>
     </g>
-    <g id="text_18">
+    <g id="text_17">
      <text style="font-size: 8.5px; font-family: 'Inter', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1f2733" x="84.33" y="46.881188" transform="rotate(-0 84.33 46.881188)">DebyeCalculator, CPU</text>
     </g>
     <g id="line2d_34">
@@ -525,7 +509,7 @@ L 77.53 56.191344
       <use xlink:href="#m8a82c1e999" x="65.63" y="56.191344" style="fill-opacity: 0; stroke: #6250d6; stroke-width: 1.1; stroke-linejoin: miter"/>
      </g>
     </g>
-    <g id="text_19">
+    <g id="text_18">
      <text style="font-size: 8.5px; font-family: 'Inter', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1f2733" x="84.33" y="59.166344" transform="rotate(-0 84.33 59.166344)">DebyeCalculator, GPU</text>
     </g>
     <g id="line2d_35">
@@ -534,7 +518,7 @@ L 65.63 68.771344
 L 77.53 68.771344 
 " style="fill: none; stroke: #b07c12; stroke-width: 0.9; stroke-linecap: square"/>
     </g>
-    <g id="text_20">
+    <g id="text_19">
      <text style="font-size: 8.5px; font-family: 'Inter', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1f2733" x="84.33" y="71.746344" transform="rotate(-0 84.33 71.746344)">AUSAXS, I(q) only</text>
     </g>
    </g>

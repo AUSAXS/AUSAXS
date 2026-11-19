@@ -4,10 +4,8 @@
 Reads results.jsonl and iq/ from the benchmark's output folder (default output/paper_benchmark) and draws the
 figures in the site's colours. Writes these pairs to docs/src/assets/figures/:
 
-    benchmark-scaling.svg, benchmark-scaling-dark.svg      time against size: SAXS fits and the pure Debye sum
     benchmark-scaling-sas.svg, ...-dark.svg                 the SAXS fits only
     benchmark-scaling-debye.svg, ...-dark.svg               the pure Debye sum only
-    benchmark-accuracy.svg, benchmark-accuracy-dark.svg    deviation from the exact Debye sum, every program
     benchmark-accuracy-sas.svg, ...-dark.svg                the SAS programs, q up to 2 Å⁻¹
     benchmark-accuracy-powder.svg, ...-dark.svg             the pure Debye programs, q up to 10 Å⁻¹
     benchmark-gradient.svg, benchmark-gradient-dark.svg    time of the gradient of the Debye sum against size
@@ -250,22 +248,6 @@ def time_axes(ax, xlim, ylim):
     ax.set_ylabel("Time (s)")
 
 
-def draw_scaling(records, folder, c):
-    """Everything on one axis: SAXS fits and the Debye sum."""
-    fig, ax = figure(c)
-    fig.subplots_adjust(left=0.08, right=0.99, top=0.97, bottom=0.12)
-    fit_series(ax, c, records)
-    n = len(ax.get_legend_handles_labels()[0])
-    debye_series(ax, c, records)
-    handles, labels = ax.get_legend_handles_labels()
-    time_axes(ax, (1.2e2, 1.5e6), (1e-4, 3e3))
-    first = ax.legend(handles[:n], labels[:n], title="Fitting SAXS data, CPU", alignment="left", loc="upper left")
-    ax.add_artist(first)
-    ax.legend(handles[n:], labels[n:], title="Debye sum, nanoparticles", alignment="left", loc="upper left",
-              bbox_to_anchor=(0.2, 1.0))
-    return fig
-
-
 def draw_scaling_sas(records, folder, c):
     """SAXS fits only."""
     fig, ax = figure(c)
@@ -341,15 +323,10 @@ def accuracy_titles(records, folder):
             "sas": f"{ACCURACY_SAS_STRUCTURE}, {sas_atoms:,} atoms"}
 
 
-def accuracy_axes(ax, xlim, ylim, title, xlog=False, ncol=3, loc="upper left"):
+def accuracy_axes(ax, xlim, ylim, title, ncol=3, loc="upper left"):
     handles, labels = ax.get_legend_handles_labels()
     ax.set_yscale("log")
     log_decades(ax.yaxis)
-    if xlog:
-        ax.set_xscale("log")
-        ax.xaxis.set_major_locator(ticker.FixedLocator([0.01, 0.1, 1, 10]))
-        ax.xaxis.set_major_formatter(ticker.FixedFormatter(["0.01", "0.1", "1", "10"]))
-        ax.xaxis.set_minor_locator(ticker.NullLocator())
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
     ax.set_xlabel("q (Å⁻¹)")
@@ -361,27 +338,6 @@ def draw_accuracy_curves(ax, c, curves, keys, labels=None):
     for key in keys:
         q, d, program, label, ls = curves[key]
         ax.plot(q, d, color=c[program], lw=1.6, ls=ls, label=(labels or {}).get(key, label))
-
-
-def draw_accuracy(records, folder, c):
-    """Every program on one logarithmic q axis, so both the SAS and the wide-angle range are visible. The accuracy of a
-    method does not depend on the structure it is measured on, so the two comparisons share the axis; one legend each."""
-    fig, ax = figure(c, size=(8, 4.4))
-    fig.subplots_adjust(left=0.08, right=0.99, top=0.85, bottom=0.11)
-    curves, titles = accuracy_curves(folder), accuracy_titles(records, folder)
-    # the legends go above the axes, as the curves fill it from top to bottom
-    for keys, title, anchor, loc in ((("crysol", "pepsi-saxs", "foxs", "ausaxs-sas"), titles["sas"], (0, 1.01), "lower left"),
-                                     (("aes-debye", "debyecalculator", "ausaxs"), titles["powder"], (1, 1.01), "lower right")):
-        lines = []
-        for key in keys:
-            q, d, program, label, ls = curves[key]
-            lines += ax.plot(q, d, color=c[program], lw=1.6, ls="-." if key == "ausaxs-sas" else ls, label=label)
-        ax.add_artist(ax.legend(lines[::-1], [l.get_label() for l in lines[::-1]], loc=loc, bbox_to_anchor=anchor,
-                                ncol=len(lines), title=title, alignment="left", borderaxespad=0, handlelength=1.9,
-                                columnspacing=0.8, handletextpad=0.5))
-    accuracy_axes(ax, (0.01, 10), (1e-9, 1), None, xlog=True)
-    ax.get_legend().remove()
-    return fig
 
 
 def draw_accuracy_sas(records, folder, c):
@@ -406,27 +362,12 @@ def draw_gradient(records, folder, c):
     fig, ax = figure(c)
     fig.subplots_adjust(left=0.08, right=0.99, top=0.97, bottom=0.12)
 
-    ours = series(records, "debye", "ausaxs", "gradient-cpu")
-    dc_cpu = series(records, "debye", "debyecalculator", "gradient-cpu")
-    dc_gpu = series(records, "debye", "debyecalculator", "gradient-cuda")
-    plot(ax, c, ours, "ausaxs", "AUSAXS, CPU")
-    plot(ax, c, dc_cpu, "debyecalculator", "DebyeCalculator, CPU")
-    plot(ax, c, dc_gpu, "debyecalculator", "DebyeCalculator, GPU", GPU)
+    plot(ax, c, series(records, "debye", "ausaxs", "gradient-cpu"), "ausaxs", "AUSAXS, CPU")
+    plot(ax, c, series(records, "debye", "debyecalculator", "gradient-cpu"), "debyecalculator", "DebyeCalculator, CPU")
+    plot(ax, c, series(records, "debye", "debyecalculator", "gradient-cuda"), "debyecalculator", "DebyeCalculator, GPU",
+         GPU)
     plot(ax, c, series(records, "debye", "ausaxs", DEBYE_TIMING[0]), "ausaxs", "AUSAXS, I(q) only", ("-", True),
          lw=0.9, marker=False)
-
-    # the speed-up against the faster of DebyeCalculator's two devices, at the largest size all three completed
-    (xa, ya), _ = ours
-    best = {}
-    for (x, y), _ in (dc_cpu, dc_gpu):
-        for n, t in zip(x, y):
-            best[n] = min(best.get(n, np.inf), t)
-    n = max(v for v in xa if v in best)
-    t_ours, t_dc = ya[list(xa).index(n)], best[n]
-    ax.annotate("", xy=(n, t_ours*1.25), xytext=(n, t_dc/1.25),
-                arrowprops={"arrowstyle": "<->", "color": c["muted"], "lw": 0.9, "shrinkA": 0, "shrinkB": 0})
-    ax.annotate(f"{t_dc/t_ours:.0f}× faster", (n, np.sqrt(t_ours*t_dc)), xytext=(7, 0), textcoords="offset points",
-                va="center", fontsize=9, color=c["ink"])
 
     time_axes(ax, (1.2e2, 1.5e6), (1e-4, 3e3))
     ax.legend(loc="upper left", title="Gradient with respect to the atom positions", alignment="left")
@@ -460,10 +401,10 @@ def main() -> int:
     records = load(folder)
     local = load(local_folder)
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, draw, arg in [("benchmark-scaling", draw_scaling, folder), ("benchmark-scaling-sas", draw_scaling_sas, folder),
+    for name, draw, arg in [("benchmark-scaling-sas", draw_scaling_sas, folder),
                             ("benchmark-scaling-debye", draw_scaling_debye, folder),
                             ("benchmark-scaling-modern", draw_scaling_modern, local),
-                            ("benchmark-accuracy", draw_accuracy, folder), ("benchmark-accuracy-sas", draw_accuracy_sas, folder),
+                            ("benchmark-accuracy-sas", draw_accuracy_sas, folder),
                             ("benchmark-accuracy-powder", draw_accuracy_powder, folder),
                             ("benchmark-gradient", draw_gradient, folder)]:
         for scheme, colours in THEMES.items():
