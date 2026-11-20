@@ -52,22 +52,6 @@ void Histogram::resize(int bins) {
     axis.resize(bins);
 }
 
-void Histogram::shorten_axis(int min_size) {
-    if (p.size() < min_size) {return;}
-    int max_bin = min_size;
-    for (int i = p.size()-1; i > min_size; --i) {
-        if (p[i] != 0) {
-            max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
-            break;
-        }
-    }
-
-    p.resize(max_bin);
-    if (!axis.empty()) {
-        axis = Axis(axis.min, axis.min + max_bin*axis.width(), max_bin);
-    }
-}
-
 const Axis& Histogram::get_axis() const {
     return axis;
 }
@@ -114,23 +98,6 @@ void Histogram::normalize_max(double max) {
     std::ranges::transform(p, p.begin(), [max_val, max] (double x) {return x/max_val*max;});
 }
 
-void Histogram::merge(int n) {
-    if (n == 0) {return;}
-
-    std::vector<double> new_p;
-    new_p.reserve(p.size()/(n-1));
-
-    int i = 0;
-    for (; i < p.size()-n; i += n) {
-        new_p.push_back(std::reduce(p.begin()+i, p.begin()+i+n, 0.0));
-    }
-    if (i < p.size()) {
-        new_p.push_back(std::reduce(p.begin()+i, p.end(), 0.0));
-    }
-    p = new_p;
-    axis = Axis(axis.min, axis.max, p.size());
-}
-
 void Histogram::add_count(int i, double count) {
     assert(i < p.size() && "Index out of bounds");
     p[i] += count;
@@ -149,22 +116,6 @@ Limit Histogram::span_y() const noexcept {
     if (p.empty()) {return {0, 0};}
     auto[min, max] = std::ranges::minmax_element(p);
     return {*min, *max};
-}
-
-Limit Histogram::span_y_positive() const noexcept {
-    if (size() == 0) {
-        return {0, 0};
-    }
-
-    double min = 0;
-    double max = 0;
-    for (double bin : p) {
-        if (0 < bin) {
-            min = std::min(bin, min);
-        }
-        max = std::max(bin, max);
-    }
-    return {min, max};
 }
 
 std::string Histogram::to_string() const noexcept {

@@ -45,7 +45,7 @@ namespace ausaxs::form_factor::xray {
                 for (int i = 0; i < 5; ++i) {
                     sum += a[i]*math::exp(-b[i]*q*q);
                 }
-                return (sum + c)*q0;
+                return sum + c;
             }
 
             /**
@@ -54,17 +54,6 @@ namespace ausaxs::form_factor::xray {
             constexpr double I0() const {
                 return (a[0] + a[1] + a[2] + a[3] + a[4] + c);
             }
-
-            /**
-             * @brief Manually set the normalization of this form factor.
-             *        evaluate(0) will return this value.
-             */
-            constexpr void set_normalization(double q0) {
-                this->q0 = q0/I0();
-            }
-
-        protected:
-            double q0 = 1;
 
         private: 
             std::array<double, 5> a;

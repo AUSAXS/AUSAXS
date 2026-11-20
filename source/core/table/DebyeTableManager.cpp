@@ -3,7 +3,6 @@
 
 #include <table/DebyeTableManager.h>
 
-#include <table/ArrayDebyeTable.h>
 #include <utility/Exceptions.h>
 
 #include <algorithm>
@@ -15,7 +14,7 @@ DebyeTableManager::DebyeTableManager() = default;
 DebyeTableManager::DebyeTableManager(DebyeTableManager&&) noexcept = default; 
 DebyeTableManager& DebyeTableManager::operator=(DebyeTableManager&&) noexcept = default;
 
-observer_ptr<const table::DebyeTable> DebyeTableManager::get_sinc_table() const {
+observer_ptr<const table::VectorDebyeTable> DebyeTableManager::get_sinc_table() const {
     if (use_custom_table) {
         if (recalculate) {
             if (q.defaulted && d.defaulted) {
@@ -33,7 +32,7 @@ observer_ptr<const table::DebyeTable> DebyeTableManager::get_sinc_table() const 
         }
         return custom_sinc_table.get();
     }
-    return &ArrayDebyeTable::get_default_table();
+    return &VectorDebyeTable::get_default_table();
 }
 
 template<typename T>

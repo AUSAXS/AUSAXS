@@ -3,12 +3,13 @@
 
 #pragma once
 
-#include <table/DebyeTable.h>
 #include <table/Table.h>
 #include <utility/Concepts.h>
 
+#include <cstddef>
+
 namespace ausaxs::table {
-    class VectorDebyeTable : public DebyeTable, private Table {
+    class VectorDebyeTable : private Table {
         public:
             VectorDebyeTable();
 
@@ -18,27 +19,27 @@ namespace ausaxs::table {
             /**
              * @brief Look up a value in the table based on indices. This is a constant-time operation. 
              */
-            [[nodiscard]] double lookup(int q_index, int d_index) const override;
+            [[nodiscard]] double lookup(int q_index, int d_index) const;
 
             /**
              * @brief Get the size of the table in the q-direction. 
              */
-            [[nodiscard]] std::size_t size_q() const noexcept override;
+            [[nodiscard]] std::size_t size_q() const noexcept;
 
             /**
              * @brief Get the size of the table in the d-direction. 
              */
-            [[nodiscard]] std::size_t size_d() const noexcept override;
+            [[nodiscard]] std::size_t size_d() const noexcept;
 
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.
              */
-            [[nodiscard]] const double* begin(int q_index) const override;
+            [[nodiscard]] const double* begin(int q_index) const;
 
             /**
              * @brief Get an iterator to the end of the d-values for the given q-index.
              */
-            [[nodiscard]] const double* end(int q_index) const override;
+            [[nodiscard]] const double* end(int q_index) const;
 
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.

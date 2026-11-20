@@ -17,42 +17,6 @@ namespace ausaxs::hist {
         public:
             using Container2D::Container2D;
             explicit Distribution2D(const WeightedDistribution2D& other);
-
-            /**
-             * @brief Get a bin value from this distribution.
-             */
-            double& get_content(int i, int j);
-            const double& get_content(int i, int j) const; // @copydoc get_content(int i, int j)
-
-            /**
-             * @brief Add a value for a given bin index.
-             * 
-             * @param x The form factor index. 
-             * @param i The bin index to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add_index(int x, int32_t i, double value) {
-                index(x, i) += N*value;
-            }
-
-            template<int N = 1>
-            void increment_index(int x, int32_t i) {
-                index(x, i) += N;
-            }
-
-            /**
-             * @brief Increment the value for a given linear index. 
-             * 
-             * @param i The index to increment.
-             * @tparam N A multiplicative factor for the value. 
-             */
-            template<int N = 1>
-            void increment_linear_index(int32_t i) {
-                linear_index(i) += N;
-            }
     };
     static_assert(supports_nothrow_move_v<Distribution2D>, "Distribution2D should support nothrow move semantics.");
 }

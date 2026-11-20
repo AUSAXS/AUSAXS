@@ -57,7 +57,7 @@ void DistanceHistogram::initialize() {
 }
 
 std::vector<double> DistanceHistogram::transform_counts(
-    std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table, std::span<const double> q, int first_row
+    std::span<const double> counts, observer_ptr<const table::VectorDebyeTable> sinqd_table, std::span<const double> q, int first_row
 ) {
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(q.size(), 0);
@@ -73,7 +73,7 @@ std::vector<double> DistanceHistogram::transform_counts(
     return Iq;
 }
 
-ScatteringProfile DistanceHistogram::transform_counts(std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table) {
+ScatteringProfile DistanceHistogram::transform_counts(std::span<const double> counts, observer_ptr<const table::VectorDebyeTable> sinqd_table) {
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
     auto q = std::span<const double>(constants::axes::q_vals).subspan(q0, debye_axis.bins);
@@ -111,7 +111,7 @@ std::vector<double> DistanceHistogram::debye_transform_direct(const std::vector<
     return transform_counts(p, sinc_table_for(q), q);
 }
 
-observer_ptr<const table::DebyeTable> DistanceHistogram::sinc_table_for(const std::vector<double>& q) const {
+observer_ptr<const table::VectorDebyeTable> DistanceHistogram::sinc_table_for(const std::vector<double>& q) const {
     static table::DebyeTableManager sinc_table_extended;
     sinc_table_extended.set_q_axis(q);
     sinc_table_extended.set_d_axis(this->d_axis);
