@@ -3,8 +3,8 @@
 
 #include <rigidbody/controller/IController.h>
 
+#include <fitter/SmartFitter.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/detail/SystemSpecification.h>
 
@@ -32,7 +32,7 @@ observer_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> IController
     return current_best_config.get();
 }
 
-observer_ptr<fitter::ConstrainedFitter> IController::get_fitter() const {
+observer_ptr<fitter::SmartFitter> IController::get_fitter() const {
     assert(fitter != nullptr && "IController::fitter: Fitter not set.");
     return fitter.get();
 }

@@ -2,10 +2,11 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Molecule.h>
+#include <fitter/SmartFitter.h>
+#include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/controller/SimpleController.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
@@ -86,7 +87,7 @@ TEST_CASE_METHOD(ControllerFixture, "Controllers::SimpleController basic functio
 
         // and after an update, the fitter must evaluate the restored molecule rather than the rejected candidate
         ctrl.update_fitter();
-        fitter::ConstrainedFitter reference(rb->constraints.get(), io::ExistingFile("tests/files/2epe.dat"), rb->molecule.get_histogram());
+        fitter::SmartFitter reference(io::ExistingFile("tests/files/2epe.dat"), rb->molecule.get_histogram());
         CHECK_THAT(ctrl.get_fitter()->fit_chi2_only(), Catch::Matchers::WithinRel(reference.fit_chi2_only(), 1e-12));
     }
 

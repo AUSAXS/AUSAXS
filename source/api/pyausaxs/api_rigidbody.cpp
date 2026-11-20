@@ -8,9 +8,9 @@
 #include <data/Molecule.h>
 #include <data/detail/SimpleBody.h>
 #include <data/symmetry/BodySymmetryFacade.h>
+#include <fitter/SmartFitter.h>
 #include <rigidbody/Rigidbody.h>
 #include <rigidbody/constraints/AttractorConstraint.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/DistanceConstraintCM.h>
 #include <rigidbody/constraints/IDistanceConstraint.h>
