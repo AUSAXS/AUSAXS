@@ -78,6 +78,19 @@ TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::LoadElement resolves pa
         CHECK(seq->_get_rigidbody()->molecule.size_body() == 1);
     }
 
+    SECTION("a data file sitting directly next to the configuration file") {
+        std::filesystem::copy_file("tests/files/SASDJG5.dat", root + "/data.dat",
+                                   std::filesystem::copy_options::overwrite_existing);
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs data.dat\n"
+            "}\n"
+        );
+        REQUIRE(seq != nullptr);
+        CHECK(std::filesystem::equivalent(seq->_get_saxs_path().path(), root + "/data.dat"));
+    }
+
     SECTION("a path that exists neither way is still an error") {
         CHECK_THROWS(parse(
             "load {\n"
