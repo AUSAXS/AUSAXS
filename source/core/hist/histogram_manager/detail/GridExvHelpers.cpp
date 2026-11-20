@@ -4,7 +4,6 @@
 #include <hist/histogram_manager/detail/GridExvHelpers.h>
 
 #include <form_factor/FormFactorType.h>
-#include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelGrid.h>
 
 #include <algorithm>
@@ -13,17 +12,14 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail::grid_exv;
 
-AtomicDistributions AtomicDistributions::take(ScatteringModelAverage& base) {
-    // the total is copied before anything is moved out, since it is derived from the rest
-    WeightedDistribution1D p_tot = base.get_weighted_counts();
-    p_tot.set_bin_centers(base.get_d_axis());
+AtomicDistributions AtomicDistributions::from(ManagerDistributions<true, true>&& d) {
     return AtomicDistributions{
-        .p_aa = std::move(base.get_raw_aa_counts_by_ff()),
-        .p_aw = std::move(base.get_raw_aw_counts_by_ff()),
-        .p_ww = std::move(base.get_raw_ww_counts_by_ff()),
-        .self_aa = base.get_aa_self_weights(),
-        .self_ww = base.get_ww_self_weight(),
-        .p_tot = std::move(p_tot)
+        .p_aa = Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
+        .p_aw = Distribution2D(std::move(d.p_aw)),
+        .p_ww = Distribution1D(std::move(d.p_ww)),
+        .self_aa = std::move(d.self_aa),
+        .self_ww = d.self_ww,
+        .p_tot = std::move(d.p_tot)
     };
 }
 
@@ -52,7 +48,7 @@ std::unique_ptr<ScatteringModelGrid> hist::detail::grid_exv::splice(
         }
     }
 
-    // overwrite the excluded volume of the averaged model with the grid-based one
+    // write the grid-based excluded volume into the excluded volume slot
     Distribution2D ax(p_ax);
     Distribution1D wx(p_wx);
     Distribution1D xx(p_xx);

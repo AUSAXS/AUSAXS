@@ -4,7 +4,7 @@
 #pragma once
 
 #include <grid/detail/GridExcludedVolume.h>
-#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTBase.h>
 
 namespace ausaxs::hist {
     /**
@@ -12,9 +12,9 @@ namespace ausaxs::hist {
      *        Due to the highly ordered grid structure, weighted bins is required to use this class. 
      *        This class is equivalent to HistogramManagerMTFFGrid, except the excluded volume is separated into an interior and surface component.
      */
-    class HistogramManagerMTFFGridSurface : public HistogramManagerMTFFAvg<true> {
+    class HistogramManagerMTFFGridSurface : public HistogramManagerMTBase<true, true> {
         public:
-            using HistogramManagerMTFFAvg<true>::HistogramManagerMTFFAvg;
+            using HistogramManagerMTBase<true, true>::HistogramManagerMTBase;
 
             ~HistogramManagerMTFFGridSurface() override;
 

@@ -4,16 +4,16 @@
 #pragma once
 
 #include <grid/detail/GridExcludedVolume.h>
-#include <hist/histogram_manager/HistogramManagerMTFFAvg.h>
+#include <hist/histogram_manager/HistogramManagerMTBase.h>
 
 namespace ausaxs::hist {
     /**
      * @brief A histogram manager which uses a grid-based approximation of the excluded volume.
      *        Due to the highly ordered grid structure, weighted bins is required to use this class. 
      */
-    class HistogramManagerMTFFGridScalableExv : public HistogramManagerMTFFAvg<true> {
+    class HistogramManagerMTFFGridScalableExv : public HistogramManagerMTBase<true, true> {
         public:
-            using HistogramManagerMTFFAvg<true>::HistogramManagerMTFFAvg;
+            using HistogramManagerMTBase<true, true>::HistogramManagerMTBase;
 
             ~HistogramManagerMTFFGridScalableExv() override;
 

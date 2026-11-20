@@ -11,7 +11,6 @@
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/GridExvHelpers.h>
 #include <hist/scattering_model/DistanceHistogram.h>
-#include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelGridScalable.h>
 #include <utility/Logging.h>
 
@@ -30,11 +29,11 @@ grid::exv::GridExcludedVolume HistogramManagerMTFFGridScalableExv::get_exv() con
 
 std::unique_ptr<IScatteringModel> HistogramManagerMTFFGridScalableExv::calculate_all() {
     logging::log("HistogramManagerMTFFGridScalableExv::calculate: starting calculation");
-    auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
+    auto atomic = hist::detail::grid_exv::AtomicDistributions::from(this->compute_distributions());
 
     // wrap all calculations into a lambda which we can later pass to the intensity calculator to allow it to rescale the excluded volume and easily reevaluate the histograms
     auto eval_scaled_exv = [
-        atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<ScatteringModelAverage&>(*base_res)),
+        atomic = std::move(atomic),
         data_a = *this->data_a_ptr,
         data_w = *this->data_w_ptr,
         data_x = hist::detail::factory::construct(get_exv().interior)] 
