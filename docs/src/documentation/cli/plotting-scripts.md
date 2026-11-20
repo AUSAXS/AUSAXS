@@ -1,6 +1,6 @@
 ---
 title: CLI plotting - AUSAXS
-description: Turn the .plot and ausaxs.fit files written by the AUSAXS command-line tools into figures of SAXS fits and chi-square landscapes with ausaxs plot, and customize them.
+description: "ausaxs plot: turn .plot and ausaxs.fit files from the AUSAXS command-line tools into figures of SAXS fits and chi-square landscapes."
 ---
 
 # CLI plotting

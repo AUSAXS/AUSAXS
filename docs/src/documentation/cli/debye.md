@@ -1,6 +1,6 @@
 ---
 title: Debye scattering of atomic structures - AUSAXS
-description: Calculate the Debye scattering of crystals, nanoparticles and other atomic structures without solvent with ausaxs debye, optionally as a powder pattern in 2θ or fitted to a measurement. Covers the output files and all arguments.
+description: "ausaxs debye: Debye scattering of crystals, nanoparticles and atomic structures without solvent, as a powder pattern in 2θ or fitted to data. All arguments."
 ---
 
 # Debye scattering of atomic structures

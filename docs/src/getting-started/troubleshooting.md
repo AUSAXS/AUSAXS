@@ -1,6 +1,6 @@
 ---
 title: Troubleshooting - AUSAXS
-description: Solutions to common problems when installing or running AUSAXS on Windows, macOS and Linux, including unknown residues, the q unit of data files and the GPU driver.
+description: "Fix common AUSAXS problems on Windows, macOS and Linux: unknown residues, the q unit of data files, the GPU driver and installation errors."
 ---
 
 # Troubleshooting

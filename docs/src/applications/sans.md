@@ -1,6 +1,6 @@
 ---
 title: SANS profiles of biomolecules - AUSAXS
-description: How AUSAXS calculates small-angle neutron scattering (SANS) profiles of proteins from atomic models, with neutron scattering lengths, H2O/D2O solvent contrast and hydrogen-deuterium exchange.
+description: "Calculate SANS profiles of proteins from atomic models with AUSAXS: neutron scattering lengths, H2O/D2O solvent contrast and hydrogen exchange."
 journey: apps
 hide:
   - toc

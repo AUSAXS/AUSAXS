@@ -1,6 +1,6 @@
 ---
 title: Cryo-EM map validation options - AUSAXS
-description: Validate cryo-EM maps (MRC/CCP4) against solution small-angle X-ray scattering data with ausaxs em. Covers the chi-square landscapes, output files and all arguments.
+description: "ausaxs em: validate cryo-EM maps (MRC/CCP4) against solution SAXS data. Covers the chi-square landscapes, output files and all arguments."
 ---
 
 # Validating EM maps with SAXS data

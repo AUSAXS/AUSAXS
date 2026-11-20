@@ -5,7 +5,7 @@ description: Compile the AUSAXS small-angle scattering calculator from source wi
 
 # Compiling from source
 
-The [Python package](installation.md) is the recommended way to install AUSAXS, but compiling it yourself is also fairly straightforward. It only requires the `curl` library and its development headers. Since the codebase is written in modern `C++20`, a recent compiler supporting this is also required. The compilation has been verified to work with GCC v11+, Clang v15+, and MSVC 2022+.
+The [Python package](installation.md) is the recommended way to install AUSAXS, but compiling it yourself is also fairly straightforward. It only requires the `curl` library and its development headers. Since the codebase is written in modern `C++20`, a recent compiler supporting this is also required. The compilation has been verified to work with GCC v11+, AppleClang (macOS), and MSVC 2022+.
 
 ## Linux
 1. Make sure you have the prerequisites installed  

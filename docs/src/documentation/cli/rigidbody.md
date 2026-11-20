@@ -1,6 +1,6 @@
 ---
 title: Rigid-body refinement script reference - AUSAXS
-description: Refine multi-domain proteins and complexes against SAXS data with ausaxs rigidbody, driven by configuration scripts with symmetry, constraints and custom optimization loops.
+description: "ausaxs rigidbody: refine multi-domain proteins and complexes against SAXS data with configuration scripts, symmetry, constraints and custom loops."
 hide:
   - toc
 ---

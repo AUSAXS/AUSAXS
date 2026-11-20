@@ -1,6 +1,6 @@
 ---
 title: Why AUSAXS? - AUSAXS
-description: Why to use AUSAXS for SAXS and SANS profile calculation. It is fast on CPU and GPU, uses the accurate Debye equation, and reports everything it does, assumes and fits.
+description: "Why use AUSAXS for SAXS, SANS, and Debye calculations: fast on CPU and GPU, accurate Debye equation, and transparent about every assumption."
 hide:
   - toc
 ---

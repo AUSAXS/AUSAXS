@@ -1,6 +1,6 @@
 ---
 title: Fitting atomic models to SAXS data - AUSAXS
-description: Calculate the SAXS profile of a PDB or mmCIF structure and fit it to experimental small-angle X-ray scattering data with ausaxs fit. Covers the hydration shell, excluded volume, output files and all arguments.
+description: "ausaxs fit: calculate a SAXS profile from a PDB or mmCIF structure and fit SAXS data. Covers hydration shell, excluded volume, outputs and all arguments."
 ---
 
 # Fitting atomic models to SAXS data

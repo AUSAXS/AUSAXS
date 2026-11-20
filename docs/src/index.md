@@ -1,6 +1,6 @@
 ---
 title: "AUSAXS: the fast small-angle scattering calculator"
-description: Documentation for AUSAXS, a fast small-angle scattering calculator built on the Debye equation. Calculate SAXS and SANS profiles from PDB, mmCIF, CIF and XYZ structures, and fit atomic models and EM maps to experimental data.
+description: "Landing page for AUSAXS: the fastest SAXS, SANS, and Debye calculator. Fit atomic models and EM maps to small-angle scattering data."
 hide:
   - navigation
   - toc

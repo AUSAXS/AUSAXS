@@ -53,7 +53,7 @@ If you use AUSAXS in your work, please cite:
 (doi: [10.1107/S160057672500562X](https://doi.org/10.1107/S160057672500562X))
 
 For EM map validation, please also cite:
-* Validation of electron-microscopy maps using solution small-angle X-ray scattering. _Acta Cryst. D_ (2024)  
+* K. Lytje and J. S. Pedersen. Validation of electron-microscopy maps using solution small-angle X-ray scattering. _Acta Cryst. D_ (2024)  
 (doi: [10.1107/S2059798324005497](https://doi.org/10.1107/S2059798324005497))
 
 _This project is licenced under the GNU Lesser General Public Licence v3.0. Supported by grant 1026-00209B from the Independent Research Fund Denmark._

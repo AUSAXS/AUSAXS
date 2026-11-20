@@ -1,6 +1,6 @@
 ---
 title: Rigid-body refinement against SAXS data - AUSAXS
-description: How AUSAXS refines multi-domain proteins and symmetric complexes against SAXS data, by moving rigid bodies of an atomic model under constraints until its profile fits the data.
+description: Refine multi-domain proteins and symmetric complexes against SAXS data with AUSAXS by moving rigid bodies of an atomic model under constraints.
 journey: apps
 hide:
   - toc

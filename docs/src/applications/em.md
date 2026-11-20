@@ -1,6 +1,6 @@
 ---
 title: Validating cryo-EM maps with SAXS - AUSAXS
-description: How AUSAXS validates cryo-EM maps against solution SAXS data, by fitting hydrated dummy models of the map at every threshold level and mapping out the chi-square landscape.
+description: "Validate cryo-EM maps against solution SAXS data with AUSAXS: hydrated dummy models at every threshold and the resulting chi-square landscape."
 journey: apps
 hide:
   - toc

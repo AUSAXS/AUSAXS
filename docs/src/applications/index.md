@@ -1,6 +1,6 @@
 ---
 title: Applications - AUSAXS
-description: What AUSAXS calculates, by sample type. SAXS and SANS profiles of biomolecules in solution, rigid-body refinement and EM map validation, and the Debye scattering and powder diffraction patterns of crystals and nanoparticles.
+description: SAXS and SANS profiles of biomolecules, rigid-body refinement, EM map validation, and Debye scattering of crystals and nanoparticles with AUSAXS.
 journey: apps
 hide:
   - toc

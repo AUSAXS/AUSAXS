@@ -1,6 +1,6 @@
 ---
 title: Fitting atomic models to SANS data - AUSAXS
-description: Calculate the SANS profile of a PDB or mmCIF structure and fit it to experimental small-angle neutron scattering data with ausaxs sans, with control over the D2O fraction of the solvent and hydrogen exchange.
+description: "ausaxs sans: calculate a SANS profile from a PDB or mmCIF structure and fit SANS data, with control over the D2O fraction and hydrogen exchange."
 ---
 
 # Fitting atomic models to SANS data
