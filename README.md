@@ -14,6 +14,7 @@
 <div align="center">
 <a href="https://ausaxs.github.io/why-ausaxs/"><img align="top" alt="Why AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_why-auto.svg" width="33%"></a><a href="https://ausaxs.github.io/getting-started/installation/"><img align="top" alt="Getting started" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_start-auto.svg" width="33%"></a><a href="https://ausaxs.github.io/documentation/"><img align="top" alt="Docs" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_docs-auto.svg" width="33%"></a>
 </div>
+<br>
 
 **AUSAXS** is a fast small-angle scattering calculator. It predicts both SAXS and SANS profiles of proteins and other biomolecules, fits them to experimental data, and ships a general-purpose Debye kernel for CPU and GPU. Available as a command-line program and a Python package on Linux, macOS and Windows.
 
