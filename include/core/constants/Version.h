@@ -6,7 +6,7 @@
 #include <string_view>
 
 namespace ausaxs::constants {
-    inline constexpr std::string_view version = "v1.3.6";
+    inline constexpr std::string_view version = "v1.3.7";
     inline constexpr std::string_view licence = 
         "Copyright (C) 2026 Kristian Lytje, Jochen S Hub & Jan Skov Pedersen.\n"
         "This program comes with ABSOLUTELY NO WARRANTY.\n"
