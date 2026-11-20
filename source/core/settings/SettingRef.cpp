@@ -9,7 +9,8 @@
 
 #include <algorithm>
 #include <array>
-#include <charconv>
+#include <cstdio>
+#include <cstdlib>
 
 using namespace ausaxs;
 
@@ -20,9 +21,15 @@ std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRe
 
 namespace {
     // the shortest representation that reads back as the same double; std::to_string's fixed 6 decimals rounds 2.5e-7 to 0
+    // not std::to_chars, as Apple's libc++ only has its floating-point overloads from macOS 13.3
     std::string to_exact_string(double value) {
         std::array<char, 32> buf;
-        return {buf.data(), std::to_chars(buf.data(), buf.data() + buf.size(), value).ptr};
+        for (int precision = 1; precision < 17; ++precision) {
+            std::snprintf(buf.data(), buf.size(), "%.*g", precision, value);
+            if (std::strtod(buf.data(), nullptr) == value) {return buf.data();}
+        }
+        std::snprintf(buf.data(), buf.size(), "%.17g", value);
+        return buf.data();
     }
 }
 

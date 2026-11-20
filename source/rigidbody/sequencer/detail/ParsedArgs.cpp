@@ -7,6 +7,9 @@
 #include <utility/StringUtils.h>
 
 #include <charconv>
+#include <cerrno>
+#include <cstdlib>
+#include <string>
 
 using namespace ausaxs;
 using namespace ausaxs::rigidbody::sequencer;
@@ -26,9 +29,14 @@ double search::parse_double(std::string_view token) {
     std::string_view digits = s.starts_with('-') ? s.substr(1) : s;
     bool spelled_finite = !digits.empty() && (utility::isdigit(digits[0]) || digits[0] == '.');
 
-    double value;
-    auto [end, ec] = std::from_chars(s.data(), s.data() + s.size(), value);
-    if (!spelled_finite || ec != std::errc() || end != s.data() + s.size()) {
+    // not std::from_chars, as Apple's libc++ only has its floating-point overloads on recent macOS
+    // strtod also reads hexadecimal, so rule that out to keep accepting plain decimals only
+    std::string str(s);
+    char* end = nullptr;
+    errno = 0;
+    double value = std::strtod(str.c_str(), &end);
+    bool hex = str.find_first_of("xX") != std::string::npos;
+    if (!spelled_finite || hex || errno == ERANGE || end != str.c_str() + str.size()) {
         throw except::invalid_argument("SequenceParser: \"" + std::string(token) + "\" cannot be interpreted as a finite decimal value.");
     }
     return value;
