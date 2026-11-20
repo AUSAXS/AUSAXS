@@ -68,11 +68,11 @@ As an example, `ausaxs fit <pdb> <data> exv --model grid --fit solv --keep data 
 |`-h`, `--help`      | Help                       | Print a help message |
 |`--licence`         | Print the licence          | Print the licence    |
 |`-v`, `--version`   | See the program version    | See the program version. | 
-|`-o`, `--output`    | Set output directory       | Set the path to the output directory. Defaults to `output/saxs/`. |
+|`-o`, `--output`    | Set output directory       | Set the path to the output directory. |
 |`--allow-unknown-atoms` | Do not exit when an unknown atom is encountered | Usually the program terminates if an unknown atom is found since its charge cannot be correctly determined. If you would like to proceed anyway, supply this argument. |
 |`--allow-unknown-residues` | Do not exit when an unknown residue is encountered | As above, but for residues. |
 |`--offline`         | Run in offline mode        | Prevent all network requests. Normally, definitions of unknown residues may be downloaded from the PDB. |
-|`-t`, `--threads`   | Set the number of threads  | Use this to limit the number of processor threads. By default all but one thread available on the system will be used. |
+|`-t`, `--threads`   | Set the number of threads  | Use this to limit the number of processor threads. |
 |`--gpu`, `--no-gpu` | Toggle GPU acceleration    | Use GPU acceleration if available. On by default once a GPU is chosen with [`ausaxs gpu install`](../../getting-started/gpu.md), unless turned off with `ausaxs gpu disable`. |
 
 ### `config` group
@@ -95,14 +95,14 @@ If no settings file is given, the program will look for one named `settings.txt`
 |`-u`, `--unit`     | Set the data unit          | Set the unit of the scattering data, either `A` or `nm`. By default an educated guess will be made. |
 |`--skip`           | Skip `N` first data points | The first `N` points in the scattering data will be skipped. |
 |`--rebin`          | Rebin the data             | Rebin the data to improve the information content of each data point. The rebinned data is saved as `rebinned.dat`. |
-|`--weighted-bins`  | Use weighted bins          | Use weighted bins for the distance histograms. By default, this is automatically decided for each molecule. |
+|`--weighted-bins`  | Use weighted bins          | Force weighted bins for the distance histograms. This is otherwise decided automatically for each molecule. |
 
 The `q`-range must lie within $[10^{-4},\ 1]\ Å^{-1}$. 
 
 ### `molecule` group
 | Argument           | Name                       | Description |
 |--------------------|----------------------------|-------------|
-|`--use-occupancy`, `--ignore-occupancy` | Use occupancy information  | Decide whether the occupancy field in the `PDB` file is used to scale the scattering contribution of each atom. It is used by default. |
+|`--use-occupancy`, `--ignore-occupancy` | Use occupancy information  | Decide whether the occupancy field in the `PDB` file is used to scale the scattering contribution of each atom. |
 
 ### `exv` group
 | Argument           | Name                       | Description |
@@ -146,13 +146,13 @@ These models are not as well-tested as those listed above, and are only listed f
 | Argument           | Name                       | Description |
 |--------------------|----------------------------|-------------|
 |`-m`, `--model`     | Set hydration shell model  | Change the model used to generate the hydration shell. Options: `radial`, `axes`, `none`. Currently this should not be changed. |
-|`--keep`, `--discard` | Keep hydration molecules   | Keep the hydration molecules present in the structure file. This will cause no further hydration molecules to be generated. By default they are discarded, and a new hydration shell is generated. |
+|`--keep`, `--discard` | Keep hydration molecules   | Keep the hydration molecules present in the structure file. This will cause no further hydration molecules to be generated. |
 |`--fit`, `--no-fit` | Toggle shell fitting      | Decide whether the scattering power of the hydration shell is fitted. This should currently always be enabled, as the default hydration model requires it. |
 
 ### `hydrogens` group
 | Argument           | Name                       | Description |
 |--------------------|----------------------------|-------------|
-|`--keep`, `--discard` | Keep explicit hydrogens    | Keep the explicit hydrogens present in the structure file instead of accounting for them implicitly. This will also switch the excluded volume tables to a version containing non-zero hydrogen volumes. By default they are discarded. | 
+|`--keep`, `--discard` | Keep explicit hydrogens    | Keep the explicit hydrogens present in the structure file instead of accounting for them implicitly. This will also switch the excluded volume tables to a version containing non-zero hydrogen volumes. |
 |`--force-field-names` | Read force-field residue names | Read force-field residue names, such as the protonation states `HID`, `HSE` and `CYX`, or `SOL` for water, by their force-field meaning instead of their usual definitions in the PDB's Chemical Component Dictionary. |
 
 ### `grid` group

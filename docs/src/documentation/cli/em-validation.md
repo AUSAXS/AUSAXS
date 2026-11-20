@@ -56,8 +56,8 @@ As for the [SAXS fitter](fit.md#argument-groups), most arguments are sorted into
 |`-h`, `--help`      | Help                       | Print a help message |
 |`--licence`         | Print the licence          | Print the licence    |
 |`-v`, `--version`   | See the program version    | See the program version. | 
-|`-o`, `--output`    | Set output directory       | Set the path to the output directory. Defaults to `output/em/`. |
-|`-t`, `--threads`   | Set the number of threads  | Use this to limit the number of threads. By default all but one thread available on the system will be used. |
+|`-o`, `--output`    | Set output directory       | Set the path to the output directory. |
+|`-t`, `--threads`   | Set the number of threads  | Use this to limit the number of threads. |
 |`--gpu`, `--no-gpu` | Toggle GPU acceleration    | Use GPU acceleration if available. On by default once a GPU is chosen with [`ausaxs gpu install`](../../getting-started/gpu.md), unless turned off with `ausaxs gpu disable`. |
 
 ### `config` group
@@ -83,7 +83,7 @@ As for the [SAXS fitter](fit.md#argument-groups), most arguments are sorted into
 | `--levelmax`       | Set maximum RMS-level      | This determines the maximum threshold level used in the fit. |
 | `--charge-levels`  | Set the number of charge levels | Set the number of partial histograms to use. These will be uniformly distributed between the `levelmin` and `levelmax` levels. This is primarily useful if the scanned range is very large. Note: increasing this may significantly increase the RAM usage. |
 | `--frequency`      | Set the sampling frequency | This determines how often the map will be sampled for dummy atoms. |
-| `--hydrate`, `--no-hydrate` | Toggle hydration  | Decide whether the dummy models will be hydrated. They are hydrated by default. |
+| `--hydrate`, `--no-hydrate` | Toggle hydration  | Decide whether the dummy models will be hydrated. |
 | `--fixed-weight`, `--dynamic-weight` | Toggle dynamic weights | With `--dynamic-weight`, the weight of all dummy atoms will be extracted from the map. |
 
 ### `fit` group

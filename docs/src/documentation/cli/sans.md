@@ -22,7 +22,7 @@ In addition to the arguments of the [`solv` group of `ausaxs fit`](fit.md#solv-g
 | Argument           | Name                       | Description |
 |--------------------|----------------------------|-------------|
 |`--d2o`             | Set the D₂O fraction       | The D₂O fraction of the H₂O/D₂O solvent, from 0 to 1. This sets the scattering length density of the bulk solvent, the hydration shell, and the exchanged hydrogens. Defaults to 1, pure D₂O. |
-|`--exchange`        | Set the exchange efficiency | The fraction of the exchangeable implicit hydrogens, those bound to N, O or S, that take the isotope composition of the solvent, from 0 to 1. Defaults to 1, full exchange. |
+|`--exchange`        | Set the exchange efficiency | The fraction of the exchangeable implicit hydrogens, those bound to N, O or S, that take the isotope composition of the solvent, from 0 to 1. |
 
 > [!WARNING]
 > `--d2o` defaults to pure D₂O. For a measurement in H₂O or in a mixture, always give its D₂O fraction.

@@ -6,7 +6,7 @@ GitHub path linked from the site exists on master. The trivial fixes from the re
 
 ## Before release
 - [x] **Rebase onto master.** `docs-site` is 10 commits behind. The pages already describe master: `ausaxs sans` (#536), `ausaxs debye`, the `output/saxs|sans|em/` folders (#540) and the 0.02 Å debye bin width (#539). Master does not touch `docs/`, so the rebase should be clean.
-- [ ] **Benchmark link.** `why-ausaxs.md` says "The benchmark itself is in `tests/benchmark/`", but `benchmark_paper` is still only on PR #531. Merge it first, or drop the sentence.
+- [x] **Benchmark link.** `why-ausaxs.md` says "The benchmark itself is in `tests/benchmark/`", but `benchmark_paper` is still only on PR #531. Dropped: the repo only holds internal benchmarks, so #531 will be closed.
 
 ## Decisions
 - [x] **`hydrogens --keep` and the exv tables.** `fit.md` says `--keep` "will also switch the excluded volume tables to a version containing non-zero hydrogen volumes". Nothing in the code does this: `SettingsValidation.cpp` only sets `implicit_hydrogens = false`, and the default `MinimumFluctutation_implicit_H` set gives H zero volume. Either remove the sentence or make the code switch to the `_explicit_H` set. → BL-335
@@ -14,7 +14,7 @@ GitHub path linked from the site exists on master. The trivial fixes from the re
 - [x] **Rigid-body refinement with SANS.** `applications/rigid-body-refinement.md` and `index.md` say "SAXS or SANS data", but no page explains how to refine against SANS, and `load` only takes `saxs`. Document it (probably a `settings` element before `load`; unverified) or say SAXS. → BL-337
 - [x] **GPU on macOS.** The table in `getting-started/gpu.md` says macOS is "work in progress", but `GPUInstaller.cpp` knows `ausaxs-gpu-macos-arm64.zip` and the release workflow builds a macOS package. Make the page match what is actually released.
 - [x] **"GPU driver" or "GPU backend".** The pages say driver, the CLI messages and the GPU troubleshooting headings say backend, and "driver" collides with the vendor's graphics driver (`troubleshooting.md`, GPU section). Pick one, or say once on `gpu.md` that the CLI calls it the backend. → keep "driver" on the site.
-- [ ] **Defaults in body text.** The convention is to omit them, but these remain: `fit.md` lines 71, 75, 94, 95, 98, 105, 149, 150, 155; `em-validation.md` 61, 62, 88, 103; `debye.md` 36–38, 176; `sans.md` `--exchange`. The `--d2o` default and its warning are the intended exception.
+- [x] **Defaults in body text.** The convention is to omit them, but these remain: `fit.md` lines 71, 75, 94, 95, 98, 105, 149, 150, 155; `em-validation.md` 61, 62, 88, 103; `debye.md` 36–38, 176; `sans.md` `--exchange`. The `--d2o` default and its warning are the intended exception.
 - [x] **"Clang v15+"** in `compiling.md` is not verified by CI: there is no Linux Clang build, only AppleClang on macOS. Soften it or say AppleClang.
 - [x] **tkinter.** `pyausaxs[all]` cannot provide `_tkinter`. Without `python3-tk` (Linux) or `python-tk` (Homebrew), `ausaxs gui` says to `pip install pyausaxs[gui]`, which does not help. Add a troubleshooting entry, and maybe fix the message in pyAUSAXS. → BL-338
 - [x] **Unused asset.** `assets/logo-light.svg` is not referenced anywhere. Use it or delete it.
@@ -28,10 +28,10 @@ GitHub path linked from the site exists on master. The trivial fixes from the re
 The site itself is in good shape: a unique title and description per page, canonical URLs, Open Graph tags and a sitemap of all 25 pages. The two duplicate titles (rigid-body and EM, application page vs. CLI reference) are fixed.
 - [SUGGESTION] **GitHub repo "About".** The homepage field is empty and the description is "Repository for the AUSAXS software package". Set the homepage to https://ausaxs.github.io/AUSAXS/, use a keyword description (SAXS, SANS, Debye, small-angle scattering) and add topics. This is the strongest link to the site.
 - [x] **pyAUSAXS `[project.urls]`.** Only `Homepage` is set. Add `Documentation = "https://ausaxs.github.io/AUSAXS/"`, so PyPI links to the site.
-- [ ] **Google Search Console.** Verify the site (meta tag in `overrides/main.html`) and submit `sitemap.xml`. A project page cannot serve its own `robots.txt`, so crawlers will not find the sitemap by themselves.
+- [ ] **Google Search Console.** (after the site is live) Verify the site (meta tag in `overrides/main.html`) and submit `sitemap.xml`. A project page cannot serve its own `robots.txt`, so crawlers will not find the sitemap by themselves.
 - [x] **GitHub wiki.** Still enabled. Replace its pages with a pointer to the site, so the stale copy does not compete with it. → BL-342
 - [x] **Long descriptions.** 14 of the 25 page descriptions are over ~160 characters and are cut off in search results. Put the keywords first.
-- [ ] **Nice to have.** An `og:image` for link previews, and JSON-LD `SoftwareApplication` structured data.
+- [x] **Nice to have.** An `og:image` for link previews, and JSON-LD `SoftwareApplication` structured data. → BL-343
 
 ## Small things outside the site
 - [x] The Rep. Prog. Phys. review in `citing.md` has no volume or article number yet (2026 should be vol. 89). Add them once assigned.

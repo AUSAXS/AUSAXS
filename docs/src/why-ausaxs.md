@@ -35,7 +35,7 @@ A complete SAXS fit of a typical protein, hydration shell included, takes a few 
     - **Fitting SAXS data:** a full fit of each structure to its SASBDB data, including reading the files and generating the hydration shell, run from the command line with each program's default settings.
     - **Debye sum:** the scattering of spherical silver nanoparticles in vacuum, from the atomic coordinates in memory to I(q) at 1000 points up to q = 10 Å⁻¹. AUSAXS used a bin width of 0.05 Å. An open marker without a line is a single run over the 300-second time limit.
     - **Modern hardware:** AUSAXS alone on a current desktop, an AMD Ryzen 5 9600X (6 cores) and an AMD Radeon RX 9070 XT, with the 2017 desktop in grey. The GPU is shown at a bin width of 0.25 Å. Smaller bin widths may be considerably slower on the GPU for large particles; this is being worked on.
-    - **Versions:** Pepsi-SAXS 2020-07-28, FoXS from IMP (develop branch, 11a86f9), CRYSOL from ATSAS 3.2.1, DebyeCalculator 1.1.1 and AES-Debye 1.0.0. The benchmark itself is in [`tests/benchmark/`](https://github.com/AUSAXS/AUSAXS/tree/master/tests/benchmark).
+    - **Versions:** Pepsi-SAXS 2020-07-28, FoXS from IMP (develop branch, 11a86f9), CRYSOL from ATSAS 3.2.1, DebyeCalculator 1.1.1 and AES-Debye 1.0.0.
 
 The exact gradient of the Debye sum of point scatterers with respect to the atom positions is also available (`Molecule.debye_raw_vjp` in Python), for example as a loss in machine learning:
 
