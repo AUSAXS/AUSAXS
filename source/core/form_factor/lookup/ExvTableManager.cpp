@@ -6,6 +6,7 @@
 #include <data/Body.h>  // IWYU pragma: keep
 #include <data/Molecule.h>
 #include <settings/ExvSettings.h>
+#include <settings/GeneralSettings.h>
 #include <settings/InternalState.h>
 #include <utility/Exceptions.h>
 
@@ -24,8 +25,21 @@ const constants::exv::detail::ExvSet& ExvTableManager::get_default_exv_table() {
     }
 }
 
+namespace {
+    // the _implicit_H sets fold the hydrogen volume into the heavy atom groups and give hydrogens none,
+    // so a structure with its explicit hydrogens kept must use the matching _explicit_H set instead
+    settings::exv::ExvSet resolve_hydrogen_variant(settings::exv::ExvSet set) {
+        if (!settings::general::keep_hydrogens) {return set;}
+        switch (set) {
+            case settings::exv::ExvSet::Voronoi_implicit_H: return settings::exv::ExvSet::Voronoi_explicit_H;
+            case settings::exv::ExvSet::MinimumFluctutation_implicit_H: return settings::exv::ExvSet::MinimumFluctutation_explicit_H;
+            default: return set;
+        }
+    }
+}
+
 observer_ptr<const constants::exv::detail::ExvSet> ExvTableManager::get_current_exv_table() {
-    switch (settings::exv::ExvSet set = settings::exv::exv_set; set) {
+    switch (settings::exv::ExvSet set = resolve_hydrogen_variant(settings::exv::exv_set); set) {
         case settings::exv::ExvSet::Traube: return &constants::exv::Traube;
         case settings::exv::ExvSet::Voronoi_explicit_H: return &constants::exv::Voronoi_explicit_H;
         case settings::exv::ExvSet::Voronoi_implicit_H: return &constants::exv::Voronoi_implicit_H;
