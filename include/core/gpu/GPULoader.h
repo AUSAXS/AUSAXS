@@ -20,7 +20,7 @@ namespace ausaxs::gpu {
     class GPULoader {
         public:
             // @brief Where the common fixes for a GPU that is not used are listed, for every message that reports one.
-            static constexpr std::string_view troubleshooting_url = "https://ausaxs.github.io/AUSAXS/getting-started/troubleshooting/";
+            static constexpr std::string_view troubleshooting_url = "https://ausaxs.github.io/getting-started/troubleshooting/";
 
             // @brief A backend, if one is loaded.
             struct Backend {
