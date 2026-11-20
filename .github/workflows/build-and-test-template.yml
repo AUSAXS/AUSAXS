@@ -146,7 +146,8 @@ jobs:
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DSAFE_CHECKS=ON \
-            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
           cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs -j12
 
       - name: Configure build output folders for upload
