@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [master]
+    # Skip the build when a PR changes only documentation.
+    paths-ignore: ["docs/**"]
 
 jobs:
   build-and-test-internal:

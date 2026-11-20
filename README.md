@@ -1,39 +1,49 @@
-![title_light](../media/title_dark.png?raw=true#gh-light-mode-only)
-![title_dark](../media/title_light.png?raw=true#gh-dark-mode-only)
+<h1 align="center">
+<img alt="AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title-light.svg#gh-light-mode-only" width="70%">
+<img alt="AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title-dark.svg#gh-dark-mode-only" width="70%">
+</h1>
 
 [![release](https://img.shields.io/github/v/release/AUSAXS/AUSAXS)](https://github.com/AUSAXS/AUSAXS/releases/latest)
+[![PyPI](https://img.shields.io/pypi/v/pyausaxs)](https://pypi.org/project/pyausaxs/)
 [![coverity](https://scan.coverity.com/projects/30350/badge.svg)](https://scan.coverity.com/projects/ausaxs-ausaxs)
 [![license](https://img.shields.io/github/license/AUSAXS/AUSAXS)](LICENSE)
 
-**AUSAXS** is a modern C++20 small-angle X-ray scattering (SAXS) calculator built on the Debye equation, written to be modular and easily extendable. It is highly efficient (see the [benchmark](https://github.com/AUSAXS/AUSAXS/blob/media/benchmark.png)) and available on Linux, macOS, and Windows.
+<div align="center">
+<a href="https://ausaxs.github.io/"><img align="top" alt="Visit the website" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_website-auto.svg" width="100%"></a>
+</div>
+<div align="center">
+<a href="https://ausaxs.github.io/why-ausaxs/"><img align="top" alt="Why AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_why-auto.svg" width="33%"></a><a href="https://ausaxs.github.io/getting-started/installation/"><img align="top" alt="Getting started" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_start-auto.svg" width="33%"></a><a href="https://ausaxs.github.io/documentation/"><img align="top" alt="Docs" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_docs-auto.svg" width="33%"></a>
+</div>
+<br>
 
-Thanks to its _weighted-bin_ implementation of the Debye equation, AUSAXS can accurately predict the pure Debye scattering in the wide-angle (WAXS) regime, up to arbitrary _q_. At smaller angles, our novel explicit-solvent hydration-shell and grid-based excluded-volume modeling enable reliable validation of structures against SAXS data. 
+**AUSAXS** is a fast small-angle scattering calculator. It predicts both SAXS and SANS profiles of proteins and other biomolecules, fits them to experimental data, and ships a general-purpose Debye kernel for CPU and GPU. Available as a command-line program and a Python package on Linux, macOS and Windows.
 
-# Main features
-- **[Structural validation](https://github.com/AUSAXS/AUSAXS/wiki/SAXS-fitter)**: Test whether an atomic model is consistent with experimental SAXS data, adjusting only solvent and scaling parameters.
-- **[EM map validation](https://github.com/AUSAXS/AUSAXS/wiki/Validation-of-EM-maps)**: Compare electron-microscopy maps against SAXS data using dummy structures built from the map itself.
-- **[Rigidbody optimization](https://github.com/AUSAXS/AUSAXS/wiki/Rigidbody-optimization)** _(in development)_: Refine multi-body assemblies against SAXS data, exploiting symmetry relations to accelerate the calculation. Driven by a composable configuration language for fine-grained control over parameters, loops, and per-step output.
+# Features
+- **[SAXS fitting](https://ausaxs.github.io/documentation/cli/fit/)** and **[SANS fitting](https://ausaxs.github.io/documentation/cli/sans/)** with explicit hydration shell and excluded volume
+- **[EM map validation](https://ausaxs.github.io/documentation/cli/em-validation/)** against SAXS data
+- **[Rigid-body refinement](https://ausaxs.github.io/documentation/cli/rigidbody/)** _(in development)_
+- **[Debye scattering](https://ausaxs.github.io/documentation/cli/debye/)** of crystals and arbitrary point scatterers through the [Python package](https://github.com/AUSAXS/pyAUSAXS)
+- **[GPU acceleration](https://ausaxs.github.io/getting-started/gpu/)** for NVIDIA and AMD cards
 
-Each program has a detailed user guide in the [wiki](https://github.com/AUSAXS/AUSAXS/wiki).
+AUSAXS is the fastest SAS program available: millions of atoms in seconds on consumer GPUs, hundreds of thousands on the CPU. See the [benchmarks](https://ausaxs.github.io/why-ausaxs/#speed).
 
 # Installation
-**Python (recommended)**: The easiest way to get started is the Python wrapper, which installs the `ausaxs` command-line tool in one step:
+To install the CLI and Python wrapper, just run:
 ```bash
-pip install pyausaxs
+python -m pip install pyausaxs
+python -m pyausaxs --version
 ```
-No need to track down a downloaded binary — just `pip install` and you're ready to go. The wrapper also exposes most main features programmatically, making AUSAXS easy to integrate into external workflows. See the [pyausaxs](https://github.com/AUSAXS/pyAUSAXS) repository for details.
-
-**Binaries**: Precompiled binaries are also available directly in the [releases](https://github.com/AUSAXS/AUSAXS/releases).
-
-**From source**: Follow the [compilation guide](https://github.com/AUSAXS/AUSAXS/wiki/Compilation-&-installation) to build it yourself in a few steps.
+Precompiled binaries are available from the [releases](https://github.com/AUSAXS/AUSAXS/releases), or you can [build from source](https://ausaxs.github.io/getting-started/compiling/). Python examples are in the [pyAUSAXS repository](https://github.com/AUSAXS/pyAUSAXS/tree/master/examples).
 
 # Contributing
 Encountering problems, have feedback or suggestions, or considering contributing? Please check out the [contributor guidelines](CONTRIBUTING.md).
 
 # References
-* Small-angle X-ray scattering profile calculation for high-resolution models of biomacromolecules  
-(doi: [10.1107/S160057672500562X](https://doi.org/10.1107/S160057672500562X))
-* Validation of electron-microscopy maps using solution small-angle X-ray scattering  
-(doi: [10.1107/S2059798324005497](https://doi.org/10.1107/S2059798324005497))
+- [Small-angle X-ray scattering profile calculation for high-resolution models of biomacromolecules](https://doi.org/10.1107/S160057672500562X)  
+(_J. Appl. Cryst._ 2025)
+- [Validation of electron-microscopy maps using solution small-angle X-ray scattering](https://doi.org/10.1107/S2059798324005497)  
+(_Acta Cryst. D_ 2024)
+- [Small-angle solution scattering: from fundamental theory to practical approximations](https://doi.org/10.1088/1361-6633/aead1d)  
+(_Rep. Prog. Phys._ 2026)
 
-_This project is licenced under the GNU Lesser General Public Licence v3.0. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
+_This project is licenced under the GNU Lesser General Public Licence v3.0. Supported by grants DFF 1026-00209B and DFG HU 1971/3-2._
