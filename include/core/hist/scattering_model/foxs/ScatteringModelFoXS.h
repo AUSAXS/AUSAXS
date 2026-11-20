@@ -10,7 +10,7 @@ namespace ausaxs::hist {
     /**
      * @brief An alternative to ScatteringModelFraser that uses the same form factors as FoXS. 
      */
-    class ScatteringModelFoXS : public ScatteringModelFraserBase<form_factor::lookup::table_t, form_factor::lookup::table_t, form_factor::lookup::table_t> {
+    class ScatteringModelFoXS : public ScatteringModelFraserBase {
         public: 
             using ScatteringModelFraserBase::ScatteringModelFraserBase;
             ~ScatteringModelFoXS() override = default;

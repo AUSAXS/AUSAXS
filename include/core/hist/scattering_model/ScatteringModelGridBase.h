@@ -16,7 +16,7 @@ namespace ausaxs::hist {
     /**
      * @brief Common base for the excluded volume models built on a space-filling grid of dummy spheres.
      */
-    class ScatteringModelGridBase : public ScatteringModelExvBase<form_factor::lookup::table_t> {
+    class ScatteringModelGridBase : public ScatteringModelExvBase {
         public:
             using ScatteringModelExvBase::ScatteringModelExvBase;
 

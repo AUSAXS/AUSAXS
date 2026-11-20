@@ -36,7 +36,6 @@ namespace ausaxs::hist {
      *  (ii) It is a significant optimization. If the excluded volume also sat on the water molecules, any fit of c_x would depend on the generated shell, 
      *       which is stochastic; evaluating it properly would then require averaging over many generated shells.
      */
-    template<typename FormFactorTableType>
     class ScatteringModelExvBase : public IScatteringModelExv {
         public: 
             ScatteringModelExvBase();
@@ -173,7 +172,7 @@ namespace ausaxs::hist {
             ScatteringProfile get_profile_xx() const override;
             ScatteringProfile get_profile_wx() const override;
 
-            virtual const FormFactorTableType& get_ff_table() const = 0;
+            virtual const form_factor::lookup::table_t& get_ff_table() const = 0;
 
             /**
              * @brief Get the self-correlation form factor of each slot.

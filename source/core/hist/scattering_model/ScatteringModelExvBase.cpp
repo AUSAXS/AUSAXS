@@ -17,22 +17,17 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-template<typename FormFactorTableType>
-ScatteringModelExvBase<FormFactorTableType>::ScatteringModelExvBase() = default;
+ScatteringModelExvBase::ScatteringModelExvBase() = default;
 
-template<typename FormFactorTableType>
-const std::vector<form_factor::manager::detail::profile_t>& ScatteringModelExvBase<FormFactorTableType>::get_ff_self_table() const {
+const std::vector<form_factor::manager::detail::profile_t>& ScatteringModelExvBase::get_ff_self_table() const {
     return form_factor::manager::get_active_product_tables()->raw_self_table;
 }
 
-template<typename FormFactorTableType>
-ScatteringModelExvBase<FormFactorTableType>::ScatteringModelExvBase(ScatteringModelExvBase&&) noexcept = default;
+ScatteringModelExvBase::ScatteringModelExvBase(ScatteringModelExvBase&&) noexcept = default;
 
-template<typename FormFactorTableType>
-ScatteringModelExvBase<FormFactorTableType>& ScatteringModelExvBase<FormFactorTableType>::operator=(ScatteringModelExvBase&&) noexcept = default;
+ScatteringModelExvBase& ScatteringModelExvBase::operator=(ScatteringModelExvBase&&) noexcept = default;
 
-template<typename FormFactorTableType>
-ScatteringModelExvBase<FormFactorTableType>::ScatteringModelExvBase(
+ScatteringModelExvBase::ScatteringModelExvBase(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
@@ -43,8 +38,7 @@ ScatteringModelExvBase<FormFactorTableType>::ScatteringModelExvBase(
     assert(static_cast<int>(self_weights.aa.size()) == distance_profiles.aa.size_x() && "ScatteringModelExvBase: expected one self-correlation weight per form factor type.");
 }
 
-template<typename FormFactorTableType>
-ScatteringModelExvBase<FormFactorTableType>::ScatteringModelExvBase(
+ScatteringModelExvBase::ScatteringModelExvBase(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
@@ -55,16 +49,13 @@ ScatteringModelExvBase<FormFactorTableType>::ScatteringModelExvBase(
     assert(static_cast<int>(self_weights.aa.size()) == distance_profiles.aa.size_x() && "ScatteringModelExvBase: expected one self-correlation weight per form factor type.");
 }
 
-template<typename FormFactorTableType>
-ScatteringModelExvBase<FormFactorTableType>::~ScatteringModelExvBase() = default;
+ScatteringModelExvBase::~ScatteringModelExvBase() = default;
 
-template<typename FormFactorTableType>
-double ScatteringModelExvBase<FormFactorTableType>::exv_factor(double /*unused*/) const {
+double ScatteringModelExvBase::exv_factor(double /*unused*/) const {
     return free_params.cx;
 }
 
-template<typename FormFactorTableType>
-ScatteringProfile ScatteringModelExvBase<FormFactorTableType>::debye_transform() const {
+ScatteringProfile ScatteringModelExvBase::debye_transform() const {
     Axis debye_axis = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax);
     std::vector<double> Iq(debye_axis.bins, 0);
     auto[aa, ax, aw, xx, wx, ww] = cache_get_intensity_profiles();
@@ -85,8 +76,7 @@ ScatteringProfile ScatteringModelExvBase<FormFactorTableType>::debye_transform()
     return {Iq, debye_axis};
 }
 
-template<typename FormFactorTableType>
-const std::vector<double>& ScatteringModelExvBase<FormFactorTableType>::get_weighted_counts() const {
+const std::vector<double>& ScatteringModelExvBase::get_weighted_counts() const {
     // Return weighted counts: multiply each form factor pair by its product at q=0
     const auto& ff_table = get_ff_table();
     p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);
@@ -118,8 +108,7 @@ const std::vector<double>& ScatteringModelExvBase<FormFactorTableType>::get_weig
     return p.data;
 }
 
-template<typename FormFactorTableType>
-const std::vector<double>& ScatteringModelExvBase<FormFactorTableType>::get_total_raw_counts() const {
+const std::vector<double>& ScatteringModelExvBase::get_total_raw_counts() const {
     p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);
     auto[aa, aw, ww] = cache_get_distance_profiles();
     assert(aa.size() == p.size() && aw.size() == p.size() && ww.size() == p.size() && "ScatteringModelExvBase::get_total_raw_counts(): Count mismatch.");
@@ -129,83 +118,68 @@ const std::vector<double>& ScatteringModelExvBase<FormFactorTableType>::get_tota
     return p.data;
 }
 
-template<typename FormFactorTableType>
-const Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_aa_counts() const {
+const Distribution1D& ScatteringModelExvBase::get_aa_counts() const {
     auto[aa, _1, _2] = cache_get_distance_profiles();
     assert(!aa.empty() && "ScatteringModelExvBase:::get_aa_counts: Count is zero.");
     return aa;
 }
 
-template<typename FormFactorTableType>
-const Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_aw_counts() const {
+const Distribution1D& ScatteringModelExvBase::get_aw_counts() const {
     auto[_1, aw, _2] = cache_get_distance_profiles();
     assert(!aw.empty() && "ScatteringModelExvBase:::get_aw_counts: Count is zero.");
     return aw;
 }
 
-template<typename FormFactorTableType>
-const Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_ww_counts() const {
+const Distribution1D& ScatteringModelExvBase::get_ww_counts() const {
     auto[_1, _2, ww] = cache_get_distance_profiles();
     assert(!ww.empty() && "ScatteringModelExvBase:::get_ww_counts: Count is zero.");
     return ww;
 }
 
-template<typename FormFactorTableType>
-Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_aa_counts() {
+Distribution1D& ScatteringModelExvBase::get_aa_counts() {
     return const_cast<Distribution1D&>(const_cast<const ScatteringModelExvBase*>(this)->get_aa_counts());
 }
-template<typename FormFactorTableType>
-Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_aw_counts() {
+Distribution1D& ScatteringModelExvBase::get_aw_counts() {
     return const_cast<Distribution1D&>(const_cast<const ScatteringModelExvBase*>(this)->get_aw_counts());
 }
 
-template<typename FormFactorTableType>
-Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_ww_counts() {
+Distribution1D& ScatteringModelExvBase::get_ww_counts() {
     return const_cast<Distribution1D&>(const_cast<const ScatteringModelExvBase*>(this)->get_ww_counts());
 }
 
-template<typename FormFactorTableType>
-const Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase<FormFactorTableType>::get_raw_aa_counts_by_ff() const {
+const Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase::get_raw_aa_counts_by_ff() const {
     return distance_profiles.aa;
 }
 
-template<typename FormFactorTableType>
-Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase<FormFactorTableType>::get_raw_aa_counts_by_ff() {
+Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase::get_raw_aa_counts_by_ff() {
     return distance_profiles.aa;
 }
 
-template<typename FormFactorTableType>
-const Distribution2D& ScatteringModelExvBase<FormFactorTableType>::get_raw_aw_counts_by_ff() const {
+const Distribution2D& ScatteringModelExvBase::get_raw_aw_counts_by_ff() const {
     return distance_profiles.aw;
 }
 
-template<typename FormFactorTableType>
-Distribution2D& ScatteringModelExvBase<FormFactorTableType>::get_raw_aw_counts_by_ff() {
+Distribution2D& ScatteringModelExvBase::get_raw_aw_counts_by_ff() {
     return distance_profiles.aw;
 }
 
-template<typename FormFactorTableType>
-const Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_raw_ww_counts_by_ff() const {
+const Distribution1D& ScatteringModelExvBase::get_raw_ww_counts_by_ff() const {
     return distance_profiles.ww;
 }
 
-template<typename FormFactorTableType>
-Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_raw_ww_counts_by_ff() {
+Distribution1D& ScatteringModelExvBase::get_raw_ww_counts_by_ff() {
     return distance_profiles.ww;
 }
 
-template<typename FormFactorTableType>
-const std::vector<double>& ScatteringModelExvBase<FormFactorTableType>::get_aa_self_weights() const {
+const std::vector<double>& ScatteringModelExvBase::get_aa_self_weights() const {
     return self_weights.aa;
 }
 
-template<typename FormFactorTableType>
-double ScatteringModelExvBase<FormFactorTableType>::get_ww_self_weight() const {
+double ScatteringModelExvBase::get_ww_self_weight() const {
     return self_weights.ww;
 }
 
-template<typename FormFactorTableType>
-const Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase<FormFactorTableType>::get_aa_counts_by_ff() const {
+const Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase::get_aa_counts_by_ff() const {
     static Distribution3D<hist::Shape::Triangular> ret;
     ret = distance_profiles.aa;
     for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
@@ -217,13 +191,11 @@ const Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase<FormFactor
     return ret;
 }
 
-template<typename FormFactorTableType>
-Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase<FormFactorTableType>::get_aa_counts_by_ff() {
+Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase::get_aa_counts_by_ff() {
     return const_cast<Distribution3D<hist::Shape::Triangular>&>(const_cast<const ScatteringModelExvBase*>(this)->get_aa_counts_by_ff());
 }
 
-template<typename FormFactorTableType>
-const Distribution2D& ScatteringModelExvBase<FormFactorTableType>::get_aw_counts_by_ff() const {
+const Distribution2D& ScatteringModelExvBase::get_aw_counts_by_ff() const {
     static Distribution2D ret;
     ret = distance_profiles.aw;
     for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
@@ -233,13 +205,11 @@ const Distribution2D& ScatteringModelExvBase<FormFactorTableType>::get_aw_counts
     return ret;
 }
 
-template<typename FormFactorTableType>
-Distribution2D& ScatteringModelExvBase<FormFactorTableType>::get_aw_counts_by_ff() {
+Distribution2D& ScatteringModelExvBase::get_aw_counts_by_ff() {
     return const_cast<Distribution2D&>(const_cast<const ScatteringModelExvBase*>(this)->get_aw_counts_by_ff());
 }
 
-template<typename FormFactorTableType>
-const Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_ww_counts_by_ff() const {
+const Distribution1D& ScatteringModelExvBase::get_ww_counts_by_ff() const {
     static Distribution1D ret;
     ret = distance_profiles.ww;
     double weight = free_params.cw * free_params.cw * get_ff_table().index(form_factor::water_bin, form_factor::water_bin).evaluate(0);
@@ -247,118 +217,99 @@ const Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_ww_counts
     return ret;
 }
 
-template<typename FormFactorTableType>
-Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_ww_counts_by_ff() {
+Distribution1D& ScatteringModelExvBase::get_ww_counts_by_ff() {
     return const_cast<Distribution1D&>(const_cast<const ScatteringModelExvBase*>(this)->get_ww_counts_by_ff());
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::apply_water_scaling_factor(double k) {
+void ScatteringModelExvBase::apply_water_scaling_factor(double k) {
     free_params.cw = k;
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::apply_excluded_volume_scaling_factor(double k) {
+void ScatteringModelExvBase::apply_excluded_volume_scaling_factor(double k) {
     free_params.cx = k;
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::apply_solvent_density_scaling_factor(double k) {
+void ScatteringModelExvBase::apply_solvent_density_scaling_factor(double k) {
     free_params.crho = k;   
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::apply_atomic_debye_waller_factor(double sigma) {
+void ScatteringModelExvBase::apply_atomic_debye_waller_factor(double sigma) {
     free_params.DW_sigma_atomic = sigma;
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::apply_exv_debye_waller_factor(double sigma) {
+void ScatteringModelExvBase::apply_exv_debye_waller_factor(double sigma) {
     free_params.DW_sigma_exv = sigma;
 }
 
-template<typename FormFactorTableType>
-ScatteringProfile ScatteringModelExvBase<FormFactorTableType>::get_profile_aa() const {
+ScatteringProfile ScatteringModelExvBase::get_profile_aa() const {
     std::vector<double> aa;
     std::tie(aa, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();
     return {aa, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
-template<typename FormFactorTableType>
-ScatteringProfile ScatteringModelExvBase<FormFactorTableType>::get_profile_ax() const {
+ScatteringProfile ScatteringModelExvBase::get_profile_ax() const {
     std::vector<double> ax;
     std::tie(std::ignore, ax, std::ignore, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();
     return {ax, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
-template<typename FormFactorTableType>
-ScatteringProfile ScatteringModelExvBase<FormFactorTableType>::get_profile_xx() const {
+ScatteringProfile ScatteringModelExvBase::get_profile_xx() const {
     std::vector<double> xx;
     std::tie(std::ignore, std::ignore, std::ignore, xx, std::ignore, std::ignore) = cache_get_intensity_profiles();
     return {xx, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
-template<typename FormFactorTableType>
-ScatteringProfile ScatteringModelExvBase<FormFactorTableType>::get_profile_wx() const {
+ScatteringProfile ScatteringModelExvBase::get_profile_wx() const {
     std::vector<double> wx;
     std::tie(std::ignore, std::ignore, std::ignore, std::ignore, wx, std::ignore) = cache_get_intensity_profiles();
     return {wx, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
-template<typename FormFactorTableType>
-ScatteringProfile ScatteringModelExvBase<FormFactorTableType>::get_profile_aw() const {
+ScatteringProfile ScatteringModelExvBase::get_profile_aw() const {
     std::vector<double> aw;
     std::tie(std::ignore, std::ignore, aw, std::ignore, std::ignore, std::ignore) = cache_get_intensity_profiles();
     return {aw, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
-template<typename FormFactorTableType>
-ScatteringProfile ScatteringModelExvBase<FormFactorTableType>::get_profile_ww() const {
+ScatteringProfile ScatteringModelExvBase::get_profile_ww() const {
     std::vector<double> ww;
     std::tie(std::ignore, std::ignore, std::ignore, std::ignore, std::ignore, ww) = cache_get_intensity_profiles();
     return {ww, constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax)};
 }
 
-template<typename FormFactorTableType>
 std::tuple<const Distribution1D&, const Distribution1D&,const Distribution1D&> 
-ScatteringModelExvBase<FormFactorTableType>::cache_get_distance_profiles() const {
+ScatteringModelExvBase::cache_get_distance_profiles() const {
     if (!cache.distance_profiles.valid) {cache_refresh_distance_profiles();}
     return std::forward_as_tuple(cache.distance_profiles.p_aa, cache.distance_profiles.p_aw, cache.distance_profiles.p_ww);
 }
 
-template<typename FormFactorTableType>
-std::vector<double> ScatteringModelExvBase<FormFactorTableType>::debye_transform_direct(const std::vector<double>& /*q*/) const {
+std::vector<double> ScatteringModelExvBase::debye_transform_direct(const std::vector<double>& /*q*/) const {
     throw except::invalid_argument(
         "ScatteringModelExvBase::debye_transform: The excluded volume models are only defined for q in [" + std::to_string(constants::axes::q_axis.min) 
         + ", " + std::to_string(constants::axes::q_axis.max) + "]; they are not meant for wide-angle scattering."
     );
 }
 
-template<typename FormFactorTableType>
-double ScatteringModelExvBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q, double sigma) {
+double ScatteringModelExvBase::get_atomic_debye_waller_factor(double q, double sigma) {
     return std::exp(-q*q*sigma*sigma*0.5);
 }
 
-template<typename FormFactorTableType>
-double ScatteringModelExvBase<FormFactorTableType>::get_exv_debye_waller_factor(double q, double sigma) {
+double ScatteringModelExvBase::get_exv_debye_waller_factor(double q, double sigma) {
     return std::exp(-q*q*sigma*sigma*0.5);
 }
 
-template<typename FormFactorTableType>
-double ScatteringModelExvBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q) const {
+double ScatteringModelExvBase::get_atomic_debye_waller_factor(double q) const {
     return get_atomic_debye_waller_factor(q, free_params.DW_sigma_atomic);
 }
 
-template<typename FormFactorTableType>
-double ScatteringModelExvBase<FormFactorTableType>::get_exv_debye_waller_factor(double q) const {
+double ScatteringModelExvBase::get_exv_debye_waller_factor(double q) const {
     return get_exv_debye_waller_factor(q, free_params.DW_sigma_exv);
 }
 
-template<typename FormFactorTableType>
 std::tuple<
     std::vector<double>, std::vector<double>, std::vector<double>, 
     std::vector<double>, std::vector<double>, std::vector<double>
-> ScatteringModelExvBase<FormFactorTableType>::apply_debye_waller_factors(const std::tuple<
+> ScatteringModelExvBase::apply_debye_waller_factors(const std::tuple<
     const std::vector<double>&, const std::vector<double>&, const std::vector<double>&,
     const std::vector<double>&, const std::vector<double>&, const std::vector<double>&> profiles
 ) const {
@@ -401,11 +352,10 @@ std::tuple<
     return std::make_tuple(std::move(aa), std::move(ax), std::move(aw), std::move(xx), std::move(wx), std::move(ww));
 }
 
-template<typename FormFactorTableType>
 std::tuple<
     std::vector<double>, std::vector<double>, std::vector<double>, 
     std::vector<double>, std::vector<double>, std::vector<double>
-> ScatteringModelExvBase<FormFactorTableType>::cache_get_intensity_profiles() const {
+> ScatteringModelExvBase::cache_get_intensity_profiles() const {
     if (!cache.sinqd.valid) {
         cache_refresh_sinqd();
         cache_refresh_intensity_profiles(true, true, true);
@@ -424,8 +374,7 @@ std::tuple<
     ));
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_distance_profiles() const {
+void ScatteringModelExvBase::cache_refresh_distance_profiles() const {
     auto* pool = utility::multi_threading::get_global_pool();
 
     cache.distance_profiles.p_aa = Distribution1D(axis.bins, 0);
@@ -451,14 +400,12 @@ void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_distance_profile
     pool->wait();
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::expand_q_range(const std::vector<double>& q) const {
+void ScatteringModelExvBase::expand_q_range(const std::vector<double>& q) const {
     DistanceHistogram::expand_q_range(q);
     cache.sinqd.valid = false; // the sinqd and intensity caches are sized by the q range, so all of them are rebuilt
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_sinqd() const {
+void ScatteringModelExvBase::cache_refresh_sinqd() const {
     // both halves only submit their jobs, so the atomic and excluded volume work overlaps in the pool
     cache_refresh_sinqd_atomic();
     cache_refresh_sinqd_exv();
@@ -466,8 +413,7 @@ void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_sinqd() const {
     cache.sinqd.valid = true;
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_sinqd_atomic() const {
+void ScatteringModelExvBase::cache_refresh_sinqd_atomic() const {
     auto* pool = utility::multi_threading::get_global_pool();
     const auto& sinqd_table = sinc_table.get_sinc_table();
 
@@ -502,8 +448,7 @@ void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_sinqd_atomic() c
     });
 }
 
-template<typename FormFactorTableType>
-void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
+void ScatteringModelExvBase::cache_refresh_intensity_profiles(bool sinqd_changed, bool cw_changed, bool cx_changed) const {
     auto* pool = utility::multi_threading::get_global_pool();
     const auto& ff_table = get_ff_table(); 
     const auto& self_table = get_ff_self_table();
@@ -585,4 +530,3 @@ void ScatteringModelExvBase<FormFactorTableType>::cache_refresh_intensity_profil
     cache.intensity_profiles.cached_cw = free_params.cw;
     pool->wait();
 }
-template class hist::ScatteringModelExvBase<form_factor::lookup::table_t>;
