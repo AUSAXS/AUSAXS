@@ -1,7 +1,7 @@
-<h1>
+<h1 align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title_light.png">
-  <img alt="AUSAXS: small-angle scattering calculator" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title_dark.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title-dark.svg">
+  <img alt="AUSAXS: small-angle scattering calculator" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title-light.svg" height="90">
 </picture>
 </h1>
 
@@ -12,16 +12,12 @@
 
 **AUSAXS** is a fast small-angle scattering calculator. It predicts both SAXS and SANS profiles of proteins and other biomolecules, fits them to experimental data, and ships a general-purpose Debye kernel for CPU and GPU. Available as a command-line program and a Python package on Linux, macOS and Windows.
 
-<table align="center">
-  <tr>
-    <th colspan="3" align="center"><a href="https://ausaxs.github.io/">Website</a></th>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://ausaxs.github.io/why-ausaxs/">Why AUSAXS</a></td>
-    <td align="center"><a href="https://ausaxs.github.io/getting-started/installation/">Getting started</a></td>
-    <td align="center"><a href="https://ausaxs.github.io/documentation/">Docs</a></td>
-  </tr>
-</table>
+<p align="center">
+  <a href="https://ausaxs.github.io/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_website-dark.svg"><img alt="Visit the website" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_website-light.svg"></picture></a><br>
+  <a href="https://ausaxs.github.io/why-ausaxs/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_why-dark.svg"><img alt="Why AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_why-light.svg"></picture></a>
+  <a href="https://ausaxs.github.io/getting-started/installation/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_start-dark.svg"><img alt="Getting started" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_start-light.svg"></picture></a>
+  <a href="https://ausaxs.github.io/documentation/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_docs-dark.svg"><img alt="Docs" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_docs-light.svg"></picture></a>
+</p>
 
 ```bash
 python -m pip install pyausaxs
