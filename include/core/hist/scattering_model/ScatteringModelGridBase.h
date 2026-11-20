@@ -51,12 +51,12 @@ namespace ausaxs::hist {
             /**
              * @brief Get the sinc(x) lookup table for the excluded volume for the Debye transform.
              */
-            observer_ptr<const table::DebyeTable> get_sinc_table_xx() const;
+            observer_ptr<const table::VectorDebyeTable> get_sinc_table_xx() const;
 
             /**
              * @brief Get the sinc(x) lookup table for the cross terms for the Debye transform.
              */
-            observer_ptr<const table::DebyeTable> get_sinc_table_ax() const;
+            observer_ptr<const table::VectorDebyeTable> get_sinc_table_ax() const;
 
             /**
              * @brief Store the grid distance axes and build their sinc(qd) lookup tables.

@@ -25,10 +25,6 @@ std::vector<double> WeightedDistribution1D::as_vector() const {
     return get_content();
 }
 
-void WeightedDistribution1D::clear(int32_t i) {
-    index(i) = detail::WeightedEntry();
-}
-
 std::vector<double> WeightedDistribution1D::get_content() const {
     std::vector<double> result(size());
     for (int i = 0; i < size(); i++) {
@@ -43,10 +39,6 @@ double& WeightedDistribution1D::get_content(int i) {
 
 const double& WeightedDistribution1D::get_content(int i) const {
     return index(i).value;
-}
-
-void WeightedDistribution1D::set_content(int i, double value) {
-    index(i).value = value;
 }
 
 std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
@@ -76,11 +68,4 @@ WeightedDistribution1D& WeightedDistribution1D::operator-=(const WeightedDistrib
     assert(this->size() == rhs.size());
     std::ranges::transform(*this, rhs, this->begin(), std::minus<>());
     return *this;
-}
-
-WeightedDistribution1D hist::operator*(double factor, WeightedDistribution1D dist) {
-    for (auto& val : dist) {
-        val.value *= factor;
-    }
-    return dist;
 }

@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <cmath>
-#include <table/ArrayDebyeTable.h>
+#include <table/VectorDebyeTable.h>
 #include <table/DebyeTableManager.h>
 
 using namespace ausaxs;
@@ -19,7 +19,7 @@ static double sinc_approx(double q, double d) {
 TEST_CASE("DebyeTableManager: default table is the shared default") {
     DebyeTableManager mgr;
     const auto* table_ptr = mgr.get_sinc_table();
-    const auto &default_table = ArrayDebyeTable::get_default_table();
+    const auto &default_table = VectorDebyeTable::get_default_table();
 
     REQUIRE(table_ptr != nullptr);
     CHECK(table_ptr == &default_table);
@@ -37,7 +37,7 @@ TEST_CASE("DebyeTableManager: custom axes produce expected sinc values") {
 
         const auto* tbl = mgr.get_sinc_table();
         REQUIRE(tbl != nullptr);
-        CHECK(tbl != &ArrayDebyeTable::get_default_table());
+        CHECK(tbl != &VectorDebyeTable::get_default_table());
         CHECK(tbl->size_q() == q_axis.size());
         CHECK(tbl->size_d() == d_axis.size());
 
@@ -55,7 +55,7 @@ TEST_CASE("DebyeTableManager: custom axes produce expected sinc values") {
 
         const auto* tbl = mgr.get_sinc_table();
         REQUIRE(tbl != nullptr);
-        CHECK(tbl != &ArrayDebyeTable::get_default_table());
+        CHECK(tbl != &VectorDebyeTable::get_default_table());
         CHECK(tbl->size_q() == q_axis.size());
         CHECK(tbl->size_d() == d_axis.size());
 

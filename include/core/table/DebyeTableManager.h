@@ -4,7 +4,7 @@
 #pragma once
 
 #include <constants/ConstantsAxes.h>
-#include <table/DebyeTable.h>
+#include <table/VectorDebyeTable.h>
 #include <utility/observer_ptr.h>
 
 #include <memory>
@@ -22,7 +22,7 @@ namespace ausaxs::table {
             /**
              * @brief Get the sinc(x) lookup table for the Debye transform.
              */
-            observer_ptr<const table::DebyeTable> get_sinc_table() const;
+            observer_ptr<const table::VectorDebyeTable> get_sinc_table() const;
 
             /**
              * @brief Set the q-axis of the table.
@@ -55,7 +55,7 @@ namespace ausaxs::table {
                 std::vector<double> axis;
                 bool defaulted = true;
             } d;
-            mutable std::unique_ptr<table::DebyeTable> custom_sinc_table;
+            mutable std::unique_ptr<table::VectorDebyeTable> custom_sinc_table;
             mutable bool recalculate = true; // whether the custom table needs to be recalculated
             bool use_custom_table = false;
     };

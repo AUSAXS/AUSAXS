@@ -96,13 +96,14 @@ static auto test_absolute_aa = [] (Molecule& protein, const std::function<std::u
 
     // Get atom-atom histogram from FFGrid with form factor weighting
     auto* h_cast = static_cast<ScatteringModelGridBase*>(h.get());
-    auto aa_by_ff = h_cast->get_aa_counts_by_ff();
-    
-    // Sum all form factor contributions
+    const auto& aa_by_ff = h_cast->get_raw_aa_counts_by_ff();
+
+    // Sum all form factor contributions, each weighted by f_i(0)*f_j(0)
     hist::Distribution1D aa1(aa_by_ff.size_z());
     for (int i = form_factor::start_index_for_explicit_exv(); i < form_factor::get_active_count(); ++i) {
         for (int j = i; j < form_factor::get_active_count(); ++j) {
-            std::transform(aa_by_ff.begin(i, j), aa_by_ff.end(i, j), aa1.begin(), aa1.begin(), std::plus<>());
+            double w = h_cast->get_ff_table().index(i, j).evaluate(0);
+            std::transform(aa_by_ff.begin(i, j), aa_by_ff.end(i, j), aa1.begin(), aa1.begin(), [w] (double c, double acc) {return acc + w*c;});
         }
     }
 

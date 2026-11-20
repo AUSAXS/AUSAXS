@@ -74,7 +74,6 @@ namespace ausaxs::hist::detail {
             float y(int i) const {return _y[i];}
             float z(int i) const {return _z[i];}
 
-            Vector3<float> position(int i) const {return {_x[i], _y[i], _z[i]};}
             void set_position(int i, const Vector3<float>& v) {_x[i] = v.x(); _y[i] = v.y(); _z[i] = v.z();}
 
             /**

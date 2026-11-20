@@ -38,47 +38,11 @@ TEST_CASE("Distribution3D::Distribution3D") {
     }
 }
 
-TEST_CASE("Distribution3D::add_index") {
-    hist::Distribution3D dist(5, 5, 10);
-    dist.add_index(0, 0, 0, 1);
-    dist.add_index(1, 1, 1, 2);
-    dist.add_index(2, 2, 2, 3);
-    
-    CHECK(dist.index(0, 0, 0) == 1);
-    CHECK(dist.index(1, 1, 1) == 2);
-    CHECK(dist.index(2, 2, 2) == 3);
-}
-
-TEST_CASE("Distribution3D::increment_linear_index") {
-    SECTION("two parameters - ij, k access") {
-        hist::Distribution3D dist(2, 2, 3);
-        // increment_linear_index(ij, k) where ij is combined form factor index
-        dist.increment_linear_index(0, 0);
-        dist.increment_linear_index(0, 1);
-        dist.increment_linear_index(1, 0);
-        
-        CHECK(dist.linear_index(0, 0) == 1);
-        CHECK(dist.linear_index(0, 1) == 1);
-        CHECK(dist.linear_index(1, 0) == 1);
-    }
-
-    SECTION("template parameter increment") {
-        hist::Distribution3D dist(3, 3, 3);
-        dist.increment_linear_index<2>(0, 0);
-        dist.increment_linear_index<3>(0, 1);
-        dist.increment_linear_index<5>(0, 2);
-        
-        CHECK(dist.linear_index(0, 0) == 2);
-        CHECK(dist.linear_index(0, 1) == 3);
-        CHECK(dist.linear_index(0, 2) == 5);
-    }
-}
-
 TEST_CASE("Distribution3D: triangular") {
     constexpr auto Tri = hist::Shape::Triangular;
     auto fill = [] (auto& d) {
         for (int i = 0; i < d.size_x(); ++i) {for (int j = i; j < d.size_y(); ++j) {for (int k = 0; k < d.size_z(); ++k) {
-            d.add_index(i, j, k, 0.25 + 0.5*k, 100*i + 10*j + k + 1); // distance, weight
+            d.index(i, j, k).template add<1>(0.25 + 0.5*k, 100*i + 10*j + k + 1); // distance, weight
         }}}
     };
 
@@ -99,5 +63,4 @@ TEST_CASE("Distribution3D: triangular") {
     plain.resize(2);
     CHECK(std::distance(plain.begin(), plain.end()) == 10*2);
     CHECK(plain.index(2, 1, 1) == 100*1 + 10*2 + 1 + 1);
-    CHECK(hist::WeightedDistribution3D<Tri>(plain).index(1, 2, 1).value == plain.index(2, 1, 1));
 }

@@ -205,54 +205,6 @@ double ScatteringModelExvBase<FormFactorTableType>::get_ww_self_weight() const {
 }
 
 template<typename FormFactorTableType>
-const Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase<FormFactorTableType>::get_aa_counts_by_ff() const {
-    static Distribution3D<hist::Shape::Triangular> ret;
-    ret = distance_profiles.aa;
-    for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-        for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
-            double weight = get_ff_table().index(ff1, ff2).evaluate(0);
-            std::transform(ret.begin(ff1, ff2), ret.end(ff1, ff2), ret.begin(ff1, ff2), [weight](auto val) { return val*weight; });
-        }
-    }
-    return ret;
-}
-
-template<typename FormFactorTableType>
-Distribution3D<hist::Shape::Triangular>& ScatteringModelExvBase<FormFactorTableType>::get_aa_counts_by_ff() {
-    return const_cast<Distribution3D<hist::Shape::Triangular>&>(const_cast<const ScatteringModelExvBase*>(this)->get_aa_counts_by_ff());
-}
-
-template<typename FormFactorTableType>
-const Distribution2D& ScatteringModelExvBase<FormFactorTableType>::get_aw_counts_by_ff() const {
-    static Distribution2D ret;
-    ret = distance_profiles.aw;
-    for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-        double weight = 2 * free_params.cw * get_ff_table().index(ff1, form_factor::water_bin).evaluate(0);
-        std::transform(ret.begin(ff1), ret.end(ff1), ret.begin(ff1), [weight](auto val) { return val*weight; });
-    }
-    return ret;
-}
-
-template<typename FormFactorTableType>
-Distribution2D& ScatteringModelExvBase<FormFactorTableType>::get_aw_counts_by_ff() {
-    return const_cast<Distribution2D&>(const_cast<const ScatteringModelExvBase*>(this)->get_aw_counts_by_ff());
-}
-
-template<typename FormFactorTableType>
-const Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_ww_counts_by_ff() const {
-    static Distribution1D ret;
-    ret = distance_profiles.ww;
-    double weight = free_params.cw * free_params.cw * get_ff_table().index(form_factor::water_bin, form_factor::water_bin).evaluate(0);
-    std::transform(ret.begin(), ret.end(), ret.begin(), [weight](auto val) { return val*weight; });
-    return ret;
-}
-
-template<typename FormFactorTableType>
-Distribution1D& ScatteringModelExvBase<FormFactorTableType>::get_ww_counts_by_ff() {
-    return const_cast<Distribution1D&>(const_cast<const ScatteringModelExvBase*>(this)->get_ww_counts_by_ff());
-}
-
-template<typename FormFactorTableType>
 void ScatteringModelExvBase<FormFactorTableType>::apply_water_scaling_factor(double k) {
     free_params.cw = k;
 }

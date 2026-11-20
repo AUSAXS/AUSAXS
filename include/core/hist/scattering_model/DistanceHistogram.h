@@ -95,7 +95,7 @@ namespace ausaxs::hist {
              *
              * @param sinqd_table A sinc table over the full default q axis.
              */
-            static ScatteringProfile transform_counts(std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table);
+            static ScatteringProfile transform_counts(std::span<const double> counts, observer_ptr<const table::VectorDebyeTable> sinqd_table);
 
             /**
              * @brief As transform_counts, but at the given q values.
@@ -103,7 +103,7 @@ namespace ausaxs::hist {
              * @param sinqd_table The sinc table. Its row @a first_row + i must hold the sinc values for q[i].
              */
             static std::vector<double> transform_counts(
-                std::span<const double> counts, observer_ptr<const table::DebyeTable> sinqd_table, std::span<const double> q, int first_row = 0
+                std::span<const double> counts, observer_ptr<const table::VectorDebyeTable> sinqd_table, std::span<const double> q, int first_row = 0
             );
 
             /**
@@ -114,7 +114,7 @@ namespace ausaxs::hist {
             /**
              * @brief A sinc table for the distance axis of this histogram at the given q values, with one row per q value.
              */
-            observer_ptr<const table::DebyeTable> sinc_table_for(const std::vector<double>& q) const;
+            observer_ptr<const table::VectorDebyeTable> sinc_table_for(const std::vector<double>& q) const;
             //! Unclear, change name/function. 
 
             /**

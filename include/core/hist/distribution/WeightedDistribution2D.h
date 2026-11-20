@@ -12,8 +12,6 @@
 #include <cmath>
 
 namespace ausaxs::hist {
-    class Distribution2D;
-
     /**
      * @brief This is a small wrapper around the Container2D class. Anything added to this
      *        distribution will be tracked by the WeightedDistribution class, which may add
@@ -22,49 +20,6 @@ namespace ausaxs::hist {
     class WeightedDistribution2D : public container::Container2D<detail::WeightedEntry> {
         public:
             using Container2D::Container2D;
-            WeightedDistribution2D(const Distribution2D& other);
-
-            /**
-             * @brief Add a value for a given index.
-             * 
-             * @param x The form factor index. 
-             * @param i The index to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add_index(int x, int32_t i, const detail::WeightedEntry& value) {
-                index(x, i) += N*value;
-            }
-
-            template<int N = 1>
-            void add_index(int x, int32_t i, float distance, float weight) {
-                index(x, i).add<N>(distance, weight);
-            }
-            
-            /**
-             * @brief Increment the value for a given index.
-             *
-             * @param x The form factor index.
-             * @param i The index to increment the value for.
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void increment_index(int x, int32_t i, float distance) {
-                index(x, i).increment<N>(distance);
-            }
-
-            /**
-             * @brief Increment the value for a given linear index. 
-             * 
-             * @param i The index to increment.
-             * @tparam N A multiplicative factor for the value. 
-             */
-            template<int N = 1>
-            void increment_linear_index(int32_t i, float distance) {
-                linear_index(i).increment<N>(distance);
-            }
     };
     static_assert(supports_nothrow_move_v<WeightedDistribution2D>, "WeightedDistribution2D should support nothrow move semantics.");
 }
