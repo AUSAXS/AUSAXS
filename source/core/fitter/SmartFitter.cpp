@@ -190,7 +190,7 @@ std::unique_ptr<FitResult> SmartFitter::fit() {
         warn_if_parameter_on_bound(guess, res);
         evaluated_points = mini->get_evaluated_points();
     }
-    res.fval = chi2(res.get_parameter_values()); // the minimizer only sees the residuals, so include any terms a subclass adds to chi2
+    res.fval = chi2(res.get_parameter_values());
 
     auto linear_fitter = prepare_linear_fitter(res.get_parameter_values());
     auto linear_fit = linear_fitter.fit();

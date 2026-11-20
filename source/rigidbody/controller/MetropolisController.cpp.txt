@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <rigidbody/controller/MetropolisController.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
+#include <fitter/SmartFitter.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/selection/BodySelectStrategy.h>
@@ -22,8 +22,7 @@ using namespace ausaxs::rigidbody::controller;
 MetropolisController::~MetropolisController() = default;
 
 void MetropolisController::setup(const io::ExistingFile& measurement_path) {
-    this->fitter = std::make_unique<fitter::ConstrainedFitter>(
-        rigidbody->constraints.get(), 
+    this->fitter = std::make_unique<fitter::SmartFitter>(
         measurement_path, 
         rigidbody->molecule.get_histogram()
     );
@@ -42,11 +41,11 @@ void MetropolisController::setup(const io::ExistingFile& measurement_path) {
 
         // update the body location in the fitter
         update_fitter();
-        return fitter->fit_chi2_only();
+        return fitter->fit_chi2_only() + rigidbody->constraints->evaluate();
     };
 
     // initialize the best configuration with the current conformation
-    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
+    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only() + rigidbody->constraints->evaluate();
     current_best_config->chi2 = rigidbody->conformation->absolute_parameters.chi2;
 }
 
@@ -73,7 +72,7 @@ bool MetropolisController::prepare_step() {
 
     // update the body location in the fitter
     update_fitter();
-    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
+    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only() + rigidbody->constraints->evaluate();
 
     step_accepted = rigidbody->conformation->absolute_parameters.chi2 < current_best_config->chi2;
     return step_accepted;

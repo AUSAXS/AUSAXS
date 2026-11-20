@@ -5,9 +5,10 @@
 
 #include <data/Molecule.h>
 #include <dataset/SimpleDataset.h>
+#include <fitter/SmartFitter.h>
+#include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <hydrate/ExplicitHydration.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/detail/SystemSpecification.h>
@@ -38,14 +39,13 @@ SimpleController::~SimpleController() = default;
 void SimpleController::setup(const io::ExistingFile& measurement_path) {
     SimpleDataset data(measurement_path);
     if (settings::axes::rebin) {data.rebin();}
-    this->fitter = std::make_unique<fitter::ConstrainedFitter>(
-        rigidbody->constraints.get(),
+    this->fitter = std::make_unique<fitter::SmartFitter>(
         std::move(data),
         rigidbody->molecule.get_histogram()
     );
 
     // initialize the best configuration with the current conformation
-    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
+    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only() + rigidbody->constraints->evaluate();
     *current_best_config = rigidbody->conformation->absolute_parameters;
     current_best_config->waters = rigidbody->molecule.get_waters(); // a step rejected before any is accepted restores these
 }
@@ -75,7 +75,7 @@ bool SimpleController::prepare_step() {
 
     // update the body location in the fitter
     update_fitter();
-    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only();
+    rigidbody->conformation->absolute_parameters.chi2 = fitter->fit_chi2_only() + rigidbody->constraints->evaluate();
 
     step_accepted = rigidbody->conformation->absolute_parameters.chi2 < current_best_config->chi2;
     return step_accepted;

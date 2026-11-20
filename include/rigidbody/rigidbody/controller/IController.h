@@ -55,12 +55,12 @@ namespace ausaxs::rigidbody::controller {
             observer_ptr<detail::MoleculeTransformParametersAbsolute> get_current_best_config() const;
 
             /// @brief Get the fitter used to evaluate candidate configurations.
-            observer_ptr<fitter::ConstrainedFitter> get_fitter() const;
+            observer_ptr<fitter::SmartFitter> get_fitter() const;
 
         protected:
             bool step_accepted = false;
             observer_ptr<Rigidbody> rigidbody;
-            std::unique_ptr<fitter::ConstrainedFitter> fitter;
+            std::unique_ptr<fitter::SmartFitter> fitter;
             std::unique_ptr<rigidbody::detail::MoleculeTransformParametersAbsolute> current_best_config;            
     };
 }
