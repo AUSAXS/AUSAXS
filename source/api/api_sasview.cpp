@@ -9,6 +9,7 @@
 #include <hist/scattering_model/ScatteringModelPoint.h>
 #include <settings/All.h>
 
+#include <cassert>
 #include <utility>
 
 
@@ -42,9 +43,7 @@ namespace {
     };
 }
 
-void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, double* _return_Iq, int* _return_status) {
-    // default state is error since we don't trust the input enough to assume success
-    *_return_status = 1;
+void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, double* _return_Iq, int* _return_status) {return execute_with_catch([&]() {
     RawDebyeScope scope;
 
     // convert coordinate input to Atom objects
@@ -55,25 +54,16 @@ void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int
     }
 
     // construct a protein from the collection of atom
-    *_return_status = 2;
     Molecule protein({Body{atoms}});
 
     // calculate the distance histogram for the protein
-    *_return_status = 3;
     hist::ScatteringModelPoint dist(std::move(*protein.get_total_histogram()));
 
     // perform the Debye transform
-    *_return_status = 4;
     auto Iq = dist.debye_transform(q);
+    assert(Iq.size() == _nq && "debye_no_ff: one I(q) per q");
 
-    // sanity check - the number of q values should match the number of I(q) values
-    if (Iq.size() != _nq) {
-        *_return_status = 5;
-        return;
-    }
-
-    for (int i = 0; i < Iq.size(); ++i) {
+    for (int i = 0; i < _nq; ++i) {
         _return_Iq[i] = Iq.y(i);
     }
-    *_return_status = 0;
-}
+}, _return_status);}
