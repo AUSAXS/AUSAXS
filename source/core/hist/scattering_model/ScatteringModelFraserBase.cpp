@@ -10,51 +10,42 @@
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
-template<typename AA, typename AXFormFactorTableType, typename XX>
-ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::ScatteringModelFraserBase() = default;
+ScatteringModelFraserBase::ScatteringModelFraserBase() = default;
 
-template<typename AA, typename AX, typename XX>
-ScatteringModelFraserBase<AA, AX, XX>::ScatteringModelFraserBase(ScatteringModelFraserBase&&) noexcept = default;
+ScatteringModelFraserBase::ScatteringModelFraserBase(ScatteringModelFraserBase&&) noexcept = default;
 
-template<typename AA, typename AX, typename XX>
-ScatteringModelFraserBase<AA, AX, XX>& ScatteringModelFraserBase<AA, AX, XX>::operator=(ScatteringModelFraserBase&&) noexcept = default;
+ScatteringModelFraserBase& ScatteringModelFraserBase::operator=(ScatteringModelFraserBase&&) noexcept = default;
 
-template<typename AA, typename AXFormFactorTableType, typename XX>
-ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::~ScatteringModelFraserBase() = default;
+ScatteringModelFraserBase::~ScatteringModelFraserBase() = default;
 
-template<typename AA, typename AXFormFactorTableType, typename XX>
-ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::ScatteringModelFraserBase(
+ScatteringModelFraserBase::ScatteringModelFraserBase(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
     std::vector<double>&& self_aa,
     double self_ww,
     hist::Distribution1D&& p_tot
-) : ScatteringModelExvBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot)) {}
+) : ScatteringModelExvBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot)) {}
 
-template<typename AA, typename AXFormFactorTableType, typename XX>
-ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::ScatteringModelFraserBase(
+ScatteringModelFraserBase::ScatteringModelFraserBase(
     hist::Distribution3D<hist::Shape::Triangular>&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww,
     std::vector<double>&& self_aa,
     double self_ww,
     hist::WeightedDistribution1D&& p_tot
-) : ScatteringModelExvBase<AA>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot))  {}
+) : ScatteringModelExvBase(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(self_aa), self_ww, std::move(p_tot))  {}
 
-template<typename AA, typename AXFormFactorTableType, typename XX>
-double ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::exv_factor(double q, double cx) {
+double ScatteringModelFraserBase::exv_factor(double q, double cx) {
     constexpr double rm2 = constants::radius::average_atomic_radius*constants::radius::average_atomic_radius/4;
     return std::pow(cx, 3)*std::exp(-rm2*(std::pow(cx, 2) - 1)*q*q);
 }
 
-template<typename AA, typename AXFormFactorTableType, typename XX>
-double ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::exv_factor(double q) const {
-    return exv_factor(q, this->free_params.cx);
+double ScatteringModelFraserBase::exv_factor(double q) const {
+    return exv_factor(q, free_params.cx);
 }
 
-template<typename AA, typename AXFormFactorTableType, typename XX>
-void ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const {
+void ScatteringModelFraserBase::cache_refresh_intensity_exv(const std::vector<double>& cx, bool cw_changed, bool cx_changed) const {
     auto* pool = utility::multi_threading::get_global_pool();
 
     int bins = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).bins;
@@ -72,8 +63,8 @@ void ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::cache_refresh_int
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
                     for (int q = start; q < end; ++q) {
-                        this->cache.intensity_profiles.ax[q-q0] += 
-                            this->free_params.crho*cx[q-q0]*this->cache.sinqd.aa.index(ff1, ff2, q-q0)
+                        cache.intensity_profiles.ax[q-q0] += 
+                            free_params.crho*cx[q-q0]*cache.sinqd.aa.index(ff1, ff2, q-q0)
                             *(ff_ax_table->index(ff1, ff2).evaluate(q) + ff_ax_table->index(ff2, ff1).evaluate(q))
                         ;
                     }
@@ -86,8 +77,8 @@ void ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::cache_refresh_int
             for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
                 for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
                     for (int q = start; q < end; ++q) {
-                        this->cache.intensity_profiles.xx[q-q0] += 
-                            std::pow(cx[q-q0]*this->free_params.crho, 2)*this->cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_xx_table->index(ff1, ff2).evaluate(q)
+                        cache.intensity_profiles.xx[q-q0] += 
+                            std::pow(cx[q-q0]*free_params.crho, 2)*cache.sinqd.aa.index(ff1, ff2, q-q0)*ff_xx_table->index(ff1, ff2).evaluate(q)
                         ;
                     }
                 }
@@ -102,8 +93,8 @@ void ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::cache_refresh_int
                 for (int q = start; q < end; ++q) {
                     // only the atom carries excluded volume, so the exv form factor is evaluated only for the atom, not the water. 
                     // See the ScatteringModelExvBase class documentation.
-                    this->cache.intensity_profiles.wx[q-q0] += 
-                        2*this->free_params.crho*cx[q-q0]*this->free_params.cw*this->cache.sinqd.aw.index(ff1, q-q0)
+                    cache.intensity_profiles.wx[q-q0] += 
+                        2*free_params.crho*cx[q-q0]*free_params.cw*cache.sinqd.aw.index(ff1, q-q0)
                         *ff_ax_table->index(form_factor::water_bin, ff1).evaluate(q)
                     ;
                 }
@@ -111,7 +102,3 @@ void ScatteringModelFraserBase<AA, AXFormFactorTableType, XX>::cache_refresh_int
         });
     }
 }
-
-template class hist::ScatteringModelFraserBase<
-    form_factor::lookup::table_t, form_factor::lookup::table_t, form_factor::lookup::table_t
->;

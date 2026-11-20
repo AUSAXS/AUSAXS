@@ -21,7 +21,7 @@ using namespace ausaxs::data;
 using ff_t = form_factor::form_factor_t;
 
 namespace {
-    using FFHistogram = hist::ScatteringModelExvBase<form_factor::lookup::table_t>;
+    using FFHistogram = hist::ScatteringModelExvBase;
 
     // two coincident C atoms and two coincident waters, whose distinct pairs share the first bin with the self-correlations
     Molecule make_molecule() {

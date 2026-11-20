@@ -15,9 +15,7 @@ namespace ausaxs::hist {
      *        Unique exluded volume form factors are used for each atomic type.
      *        For more information, see ScatteringModelSimple.
      */
-    template<typename AAFormFactorTableType, typename AXFormFactorTableType, typename XXFormFactorTableType>
-    // NOLINTNEXTLINE - the destructor is virtual through the dependent base, which the check cannot see on the template pattern
-    class ScatteringModelFraserBase : public ScatteringModelExvBase<AAFormFactorTableType> {
+    class ScatteringModelFraserBase : public ScatteringModelExvBase {
         public: 
             ScatteringModelFraserBase();
             ScatteringModelFraserBase(const ScatteringModelFraserBase&) = delete;
@@ -68,8 +66,8 @@ namespace ausaxs::hist {
                 hist::WeightedDistribution1D&& p_tot
             );
 
-            virtual const AXFormFactorTableType& get_ffax_table() const = 0;
-            virtual const XXFormFactorTableType& get_ffxx_table() const = 0;
+            virtual const form_factor::lookup::table_t& get_ffax_table() const = 0;
+            virtual const form_factor::lookup::table_t& get_ffxx_table() const = 0;
 
             /**
              * @brief Get the excluded volume scaling factor.

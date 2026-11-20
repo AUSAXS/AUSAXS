@@ -14,7 +14,7 @@ namespace ausaxs::hist {
      *        Unique exluded volume form factors are used for each atomic type.
      *        For more information, see ScatteringModelSimple.
      */
-    class ScatteringModelFraser : public ScatteringModelFraserBase<form_factor::lookup::table_t, form_factor::lookup::table_t, form_factor::lookup::table_t> {
+    class ScatteringModelFraser : public ScatteringModelFraserBase {
         public: 
             using ScatteringModelFraserBase::ScatteringModelFraserBase;
 
