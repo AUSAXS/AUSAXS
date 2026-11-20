@@ -42,6 +42,7 @@ int cli_rigidbody(int argc, char const *argv[]) {
     app.final_callback([&] () {if (config.save) {
         settings::write("settings.txt");
         console::print_info("Settings saved to settings.txt in current directory.");
+        if (p_script->count() == 0) {throw CLI::Success();} // gracefully exit if no script is provided
     }});
 
     //###################//

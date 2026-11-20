@@ -18,6 +18,26 @@
 
 using namespace ausaxs::rigidbody::sequencer;
 
+namespace {
+    /**
+     * @brief Looks up a file relative to both the current working directory and the configuration file directory.
+     * @return A pair containing the resolved file path and a boolean indicating whether the file exists.
+     */
+    std::pair<std::string, bool> lookup_file_in(const std::string& path, const std::string& config_folder) {
+        ausaxs::io::File file(path);
+        if (file.exists()) {return {file, true};}
+
+        // fall back to the folder holding the configuration file so that a script can reference files relative to itself.
+        // the whole relative path is appended, so files in subfolders next to the script resolve as well
+        if (!config_folder.empty() && !std::filesystem::path(path).is_absolute()) {
+            ausaxs::io::File relative(config_folder + "/" + path);
+            if (relative.exists()) {return {relative, true};}
+        }
+
+        return {file, false};
+    }
+}
+
 LoadElement::~LoadElement() = default;
 
 LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::vector<std::string>& paths, const std::vector<std::string>& body_names) : LoadPhaseGuard(owner), owner(owner) {
@@ -87,23 +107,8 @@ LoadElement::LoadElement(observer_ptr<Sequencer> owner, const std::string& path,
     }
 }
 
-/**
- * @brief Looks up a file relative to both the current working directory and the configuration file directory.
- * @return A pair containing the resolved file path and a boolean indicating whether the file exists.
- */
 std::pair<std::string, bool> LoadElement::lookup_file(const std::string& path) {
-    io::File file(path);
-    if (file.exists()) {return {file, true};}
-
-    // fall back to the folder holding the configuration file so that a script can reference files relative to itself.
-    // the whole relative path is appended, so files in subfolders next to the script resolve as well
-    auto config_folder = owner->_get_config_folder();
-    if (!config_folder.empty() && !std::filesystem::path(path).is_absolute()) {
-        io::File relative(config_folder + "/" + path);
-        if (relative.exists()) {return {relative, true};}
-    }
-
-    return {file, false};
+    return lookup_file_in(path, owner->_get_config_folder());
 }
 
 std::vector<std::string> LoadElement::load_wildcarded(const std::string& path) {
@@ -187,7 +192,8 @@ std::unique_ptr<GenericElement> LoadElement::_parse(observer_ptr<LoopElement> ow
     if (!pdb.found) {throw except::parse_error("load", "Missing required argument \"path\".");}
     if (!saxs.found) {throw except::parse_error("load", "Missing required argument \"saxs\".");}
 
-    owner->_get_sequencer()->_set_saxs_path(io::ExistingFile(saxs.value));
+    // the data file is resolved like the structure files, so a script can reference it relative to itself
+    owner->_get_sequencer()->_set_saxs_path(io::ExistingFile(lookup_file_in(saxs.value, owner->_get_sequencer()->_get_config_folder()).first));
     if (split.found) {
         // pattern 1: split chain - a single file split at its chain boundaries
         if (split.value.size() == 1 && split.value[0] == "chain") {
