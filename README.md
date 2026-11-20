@@ -1,8 +1,6 @@
 <h1 align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title-dark.svg">
-  <img alt="AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title-light.svg" height="88">
-</picture>
+<img alt="AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title-light.svg#gh-light-mode-only" height="112">
+<img alt="AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/title-dark.svg#gh-dark-mode-only" height="112">
 </h1>
 
 [![release](https://img.shields.io/github/v/release/AUSAXS/AUSAXS)](https://github.com/AUSAXS/AUSAXS/releases/latest)
@@ -12,10 +10,12 @@
 
 **AUSAXS** is a fast small-angle scattering calculator. It predicts both SAXS and SANS profiles of proteins and other biomolecules, fits them to experimental data, and ships a general-purpose Debye kernel for CPU and GPU. Available as a command-line program and a Python package on Linux, macOS and Windows.
 
-<p align="center">
-  <a href="https://ausaxs.github.io/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_website-dark.svg"><img align="top" alt="Visit the website" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_website-light.svg" width="100%"></picture></a><br><br>
-  <a href="https://ausaxs.github.io/why-ausaxs/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_why-dark.svg"><img align="top" alt="Why AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_why-light.svg" width="33%"></picture></a><a href="https://ausaxs.github.io/getting-started/installation/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_start-dark.svg"><img align="top" alt="Getting started" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_start-light.svg" width="33%"></picture></a><a href="https://ausaxs.github.io/documentation/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_docs-dark.svg"><img align="top" alt="Docs" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_docs-light.svg" width="33%"></picture></a>
-</p>
+<div align="center">
+<a href="https://ausaxs.github.io/"><img align="top" alt="Visit the website" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_website-light.svg#gh-light-mode-only" width="100%"><img align="top" alt="Visit the website" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_website-dark.svg#gh-dark-mode-only" width="100%"></a>
+</div>
+<div align="center">
+<a href="https://ausaxs.github.io/why-ausaxs/"><img align="top" alt="Why AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_why-light.svg#gh-light-mode-only" width="33%"><img align="top" alt="Why AUSAXS" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_why-dark.svg#gh-dark-mode-only" width="33%"></a><a href="https://ausaxs.github.io/getting-started/installation/"><img align="top" alt="Getting started" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_start-light.svg#gh-light-mode-only" width="33%"><img align="top" alt="Getting started" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_start-dark.svg#gh-dark-mode-only" width="33%"></a><a href="https://ausaxs.github.io/documentation/"><img align="top" alt="Docs" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_docs-light.svg#gh-light-mode-only" width="33%"><img align="top" alt="Docs" src="https://raw.githubusercontent.com/AUSAXS/AUSAXS/media/btn_docs-dark.svg#gh-dark-mode-only" width="33%"></a>
+</div>
 
 ```bash
 python -m pip install pyausaxs
