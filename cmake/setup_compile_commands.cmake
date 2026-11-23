@@ -45,7 +45,7 @@ function(setup_compile_commands)
     set(MARCH_FLAGS_loongarch64  "-march=loongarch64")
     set(MARCH_FLAGS_s390x        "-march=z13")
 
-    if (NOT DEFINED MARCH_FLAGS_${SYS_ARCH})
+    if (NOT EMSCRIPTEN AND NOT DEFINED MARCH_FLAGS_${SYS_ARCH})
         if (ALLOW_UNKNOWN_ARCHITECTURE)
             message(WARNING
                 "Unknown architecture '${SYS_ARCH}'. Proceeding without -march flag.")
@@ -61,7 +61,9 @@ function(setup_compile_commands)
     #   "auto"   → -march=native for Debug, per-architecture default otherwise
     #   anything else → passed directly as -march=<value>
     string(TOLOWER "${ARCH}" _arch_lower)
-    if (_arch_lower STREQUAL "native")
+    if (EMSCRIPTEN)
+        set(MARCH_FLAG "")
+    elseif (_arch_lower STREQUAL "native")
         set(MARCH_FLAG "-march=native")
     elseif (_arch_lower STREQUAL "auto")
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")

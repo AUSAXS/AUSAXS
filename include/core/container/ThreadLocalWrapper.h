@@ -6,6 +6,7 @@
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
 
+#include <algorithm>
 #include <functional>
 #include <thread>
 #include <type_traits>

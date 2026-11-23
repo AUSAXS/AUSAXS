@@ -6,7 +6,10 @@
 #include <string>
 #include <type_traits>
 
-#ifdef WIN32
+#ifdef __EMSCRIPTEN__
+    #include <emscripten/emscripten.h>
+    #define API EMSCRIPTEN_KEEPALIVE
+#elif defined(WIN32)
     #define API __declspec(dllexport)
 #else
     #define API

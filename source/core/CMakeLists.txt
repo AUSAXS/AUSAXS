@@ -4,12 +4,16 @@ set_target_properties(ausaxs_core PROPERTIES
 	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
 )
 target_include_directories(ausaxs_core PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
-target_link_libraries(ausaxs_core ausaxs_math ausaxs_gpu CURL::libcurl ${CMAKE_DL_LIBS})
+target_link_libraries(ausaxs_core ausaxs_math ausaxs_gpu ${CMAKE_DL_LIBS})
+if (NOT EMSCRIPTEN)
+	target_link_libraries(ausaxs_core CURL::libcurl)
+endif()
 if (GPU_DOWNLOADER)
 	target_link_libraries(ausaxs_core miniz::miniz)
 	target_compile_definitions(ausaxs_core PRIVATE AUSAXS_GPU_DOWNLOADER)
 endif()
 
+if (NOT EMSCRIPTEN)
 add_library(libausaxs_static STATIC $<TARGET_OBJECTS:ausaxs_core>)
 target_include_directories(libausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
 set_target_properties(libausaxs_static PROPERTIES
@@ -41,6 +45,7 @@ install(TARGETS libausaxs
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+endif()
 
 add_subdirectory(constants)
 add_subdirectory(data)

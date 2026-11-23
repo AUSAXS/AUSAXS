@@ -57,6 +57,9 @@ Command& Command::mute() {
     #define pclose _pclose
 #endif
 CommandResult Command::execute() const {
+#ifdef __EMSCRIPTEN__
+    throw ausaxs::except::runtime_error("Shell commands are unavailable in the WebAssembly build.");
+#else
     std::array<char, 128> buffer;
     std::string result;
     FILE* pipe = popen(cmd.data(), "r");
@@ -68,4 +71,5 @@ CommandResult Command::execute() const {
     }
     int exit_code = pclose(pipe);
     return {.out=std::move(result), .exit_code=exit_code};
+#endif
 }

@@ -4,22 +4,43 @@
 #include <settings/GeneralSettings.h>
 
 #include <settings/SettingsIORegistry.h>
+#include <utility/Console.h>
 #include <utility/StringUtils.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <thread>
 
 using namespace ausaxs;
 
 settings::Setting<bool> settings::general::verbose{true};
 settings::Setting<bool> settings::general::warnings{true};
+#ifdef AUSAXS_SINGLE_THREADED
+settings::Setting<bool> settings::general::offline{true};
+settings::Setting<int> settings::general::threads{1, [](int& value) {
+    if (value != 1) {
+        console::print_warning("The WebAssembly build only supports one thread.");
+        value = 1;
+    }
+}};
+#else
 settings::Setting<bool> settings::general::offline{false};
 settings::Setting<int> settings::general::threads{std::max(1, static_cast<int>(std::thread::hardware_concurrency())-1)};
+#endif
 settings::Setting<std::string> settings::general::output{"output/"};
 settings::Setting<bool> settings::general::keep_hydrogens{false};
 settings::Setting<bool> settings::general::supplementary_plots{true};
 settings::Setting<bool> settings::general::generate_plots{true};
+#ifdef AUSAXS_SINGLE_THREADED
+settings::Setting<bool> settings::general::gpu{false, [](bool& value) {
+    if (value) {
+        console::print_warning("GPU support is unavailable in the WebAssembly build.");
+        value = false;
+    }
+}};
+#else
 settings::Setting<bool> settings::general::gpu{false};
+#endif
 settings::Setting<settings::general::QUnit> settings::general::input_q_unit{settings::general::QUnit::A};
 
 settings::Setting<std::string> settings::general::gpu_library{""};

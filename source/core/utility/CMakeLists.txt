@@ -2,7 +2,6 @@ target_sources(ausaxs_core PRIVATE
 	"Axis.cpp"
 	"Axis3D.cpp"
 	"Console.cpp"
-	"Curl.cpp"
 	"Exceptions.cpp"
 	"Limit.cpp"
 	"Limit2D.cpp"
@@ -13,3 +12,9 @@ target_sources(ausaxs_core PRIVATE
 	"Type.cpp"
 	"Utility.cpp"
 )
+
+if (EMSCRIPTEN)
+	target_sources(ausaxs_core PRIVATE "CurlUnavailable.cpp")
+else()
+	target_sources(ausaxs_core PRIVATE "Curl.cpp")
+endif()
