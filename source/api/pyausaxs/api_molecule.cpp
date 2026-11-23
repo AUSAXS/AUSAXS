@@ -9,6 +9,7 @@
 #include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <fitter/SmartFitter.h>
 #include <hist/distribution/Distribution1D.h>
+#include <hist/scattering_model/AmplitudeCalculator.h>
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
@@ -245,6 +246,35 @@ void molecule_debye_userq(
     for (int i = 0; i < n_points; ++i) {
         I[i] = debye_I.y(i);
     }
+}, status);}
+
+int molecule_amplitude(
+    int molecule_id,
+    double** q, double** A, int* n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector(); // the axis of molecule_debye
+    auto Aq = hist::average_amplitude(molecule, qv);
+    _molecule_debye_obj data(static_cast<int>(Aq.size()));
+    data.q = std::move(qv);
+    data.I = std::move(Aq);
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
+    *q = ref->q.data();
+    *A = ref->I.data();
+    *n_points = static_cast<int>(ref->I.size());
+    return data_id;
+}, status);}
+
+void molecule_amplitude_userq(
+    int molecule_id,
+    double* q, double* A, int n_points,
+    int* status
+) {execute_with_catch([&]() {
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    auto Aq = hist::average_amplitude(molecule, std::vector<double>(q, q + n_points));
+    std::ranges::copy(Aq, A);
 }, status);}
 
 namespace {

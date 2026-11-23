@@ -35,6 +35,7 @@ target_sources(ausaxs_core PRIVATE
 	"distribution/WeightedDistribution3D.cpp"
 	"distribution/detail/WeightedEntry.cpp"
 
+	"scattering_model/AmplitudeCalculator.cpp"
 	"scattering_model/DebyeGradient.cpp"
 	"scattering_model/DistanceHistogram.cpp"
 	"scattering_model/ExactDebyeCalculator.cpp"
