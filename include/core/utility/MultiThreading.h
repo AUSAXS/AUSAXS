@@ -11,6 +11,13 @@
 #include <vector>
 
 namespace ausaxs::utility::multi_threading {
+    class ThreadPoolImpl;
+
+    struct Tasks {
+        void wait() const;
+        std::function<void()> wait_;
+    };
+
     class ThreadPool {
         public:
             explicit ThreadPool(int threads);
@@ -23,21 +30,12 @@ namespace ausaxs::utility::multi_threading {
             void detach_blocks(int first, int last, std::function<void(int, int)> task);
             void detach_loop(int first, int last, std::function<void(int)> task);
 
-            class Tasks {
-                public:
-                    explicit Tasks(std::function<void()> wait);
-                    void wait() const;
-
-                private:
-                    std::function<void()> wait_;
-            };
             Tasks submit_blocks(int first, int last, std::function<void(int, int)> task);
             void wait();
             std::vector<std::thread::id> get_thread_ids() const;
 
         private:
-            class Impl;
-            std::unique_ptr<Impl> impl;
+            std::unique_ptr<ThreadPoolImpl> impl;
     };
 
     /**
