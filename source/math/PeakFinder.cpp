@@ -4,6 +4,7 @@
 #include <math/PeakFinder.h>
 
 #include <algorithm>
+#include <cmath>
 #include <math/Exceptions.h>
 
 using namespace ausaxs;

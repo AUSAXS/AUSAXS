@@ -16,6 +16,12 @@ option(USE_SYSTEM_CATCH "Use system provided Catch" OFF)
 option(GPU_DOWNLOADER "Build the downloader for prebuilt GPU backends (ausaxs gpu install). Needs miniz." ON)
 option(USE_SYSTEM_MINIZ "Use system provided miniz" OFF)
 
+if (EMSCRIPTEN)
+	add_compile_definitions(POCKETFFT_NO_MULTITHREADING)
+	add_compile_options(-fwasm-exceptions)
+	set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+endif()
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -44,7 +50,9 @@ set_property(
     PROPERTY COMPILE_OPTIONS -w
 )
 
-if(USE_SYSTEM_THREADPOOL)
+if(EMSCRIPTEN)
+	# The synchronous implementation does not need BS.thread_pool.
+elseif(USE_SYSTEM_THREADPOOL)
 	find_path(BS_THREAD_POOL_INCLUDE_DIR BS_thread_pool.hpp)
 	if (NOT BS_THREAD_POOL_INCLUDE_DIR)
 		message(FATAL_ERROR "BS.thread_pool headers not found")
@@ -131,7 +139,7 @@ if (WIN32)
 elseif (APPLE)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl)
-elseif(UNIX)
+elseif(UNIX AND NOT EMSCRIPTEN)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
 endif()

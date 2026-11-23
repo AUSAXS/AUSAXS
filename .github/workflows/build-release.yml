@@ -248,9 +248,16 @@ jobs:
           path: |
             build/lib/*
             build/bin/*
+
+  build-wasm:
+    needs: check-version
+    uses: ./.github/workflows/build-wasm.yml
+    permissions:
+      contents: read
+
   github-release:
     name: "Create GitHub release"
-    needs: [build-win, build-mac, build-ubuntu]
+    needs: [build-win, build-mac, build-ubuntu, build-wasm]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -268,7 +275,8 @@ jobs:
           mkdir release
           for dir in artifacts/*/; do
             name=$(basename "$dir")
-            chmod +x "$dir"bin/* "$dir"lib/*
+            if [ -d "$dir/bin" ]; then chmod +x "$dir"bin/*; fi
+            if [ -d "$dir/lib" ]; then chmod +x "$dir"lib/*; fi
             (cd "$dir" && zip -rD "../../release/$name.zip" .)
           done
           ls -la release/

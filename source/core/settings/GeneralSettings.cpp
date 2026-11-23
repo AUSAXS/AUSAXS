@@ -7,6 +7,7 @@
 #include <utility/StringUtils.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <thread>
 
 using namespace ausaxs;
