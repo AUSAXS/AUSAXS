@@ -16,7 +16,7 @@ const GPULoader::Backend& GPULoader::get() {
 
 bool GPULoader::available() {return static_cast<bool>(get());}
 
-void GPULoader::report_failure(std::string_view action, abi::Status) {
+void GPULoader::report_failure(std::string_view action, abi::Status /*unused*/) {
     ausaxs::console::print_warning("GPU support is unavailable in the WebAssembly build: " + std::string(action));
 }
 
@@ -29,7 +29,7 @@ bool GPULoader::is_host_device(std::string_view id) {
     return id.starts_with(api) && id.substr(api.size()).starts_with(':');
 }
 
-GPULoader::Probe GPULoader::probe(const std::string&, const DeviceChooser&) {
+GPULoader::Probe GPULoader::probe(const std::string& /*unused*/, const DeviceChooser& /*unused*/) {
     Probe result;
     result.error = "GPU support is unavailable in the WebAssembly build";
     return result;
