@@ -69,12 +69,14 @@ extern "C" API void molecule_debye_userq(
 
 /**
  * The orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, including its hydration shell if it has one,
- * on the q axis of molecule_debye. The amplitude is taken about the centroid of the excess scattering length.
- * <A(q)>^2 / I(q) is the beta(q) factor of the decoupling approximation, with I(q) from molecule_debye.
+ * on the q axis of molecule_debye. <A(q)>^2 / I(q) is the beta(q) factor of the decoupling approximation, with I(q) from molecule_debye.
+ * The amplitude is taken about centre, given as [x, y, z], which must be the reference point of the particles in the structure factor S(q). 
+ * If centre is null, the centroid of the excess scattering length is used.
  * Only the excluded volume models "simple", "none", "vacuum" and "fraser" are supported, and molecules with symmetries are not.
  */
 extern "C" API int molecule_amplitude(
     int molecule_id,
+    const double* centre,
     double** q, double** A, int* n_points,
     int* status
 );
@@ -84,6 +86,7 @@ extern "C" API int molecule_amplitude(
  */
 extern "C" API void molecule_amplitude_userq(
     int molecule_id,
+    const double* centre,
     double* q, double* A, int n_points,
     int* status
 );

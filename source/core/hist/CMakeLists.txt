@@ -8,6 +8,7 @@ target_sources(ausaxs_core PRIVATE
 	"detail/GridExvFFT.cpp"
 	"detail/MasterHistogram.cpp"
 
+	"histogram_manager/IHistogramManager.cpp"
 	"histogram_manager/HistogramManager.cpp"
 	"histogram_manager/HistogramManagerFactory.cpp"
 	"histogram_manager/HistogramManagerMT.cpp"
@@ -35,7 +36,7 @@ target_sources(ausaxs_core PRIVATE
 	"distribution/WeightedDistribution3D.cpp"
 	"distribution/detail/WeightedEntry.cpp"
 
-	"scattering_model/AmplitudeCalculator.cpp"
+	"scattering_model/AmplitudeHistogram.cpp"
 	"scattering_model/DebyeGradient.cpp"
 	"scattering_model/DistanceHistogram.cpp"
 	"scattering_model/ExactDebyeCalculator.cpp"
@@ -43,6 +44,7 @@ target_sources(ausaxs_core PRIVATE
 	"scattering_model/IScatteringModelExv.cpp"
 	"scattering_model/ScatteringModelAverage.cpp"
 	"scattering_model/ScatteringModelExvBase.cpp"
+	"scattering_model/ScatteringModelFraser.cpp"
 	"scattering_model/ScatteringModelFraserBase.cpp"
 	"scattering_model/ScatteringModelGrid.cpp"
 	"scattering_model/ScatteringModelGridBase.cpp"

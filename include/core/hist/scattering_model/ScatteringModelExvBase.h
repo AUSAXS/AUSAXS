@@ -211,6 +211,13 @@ namespace ausaxs::hist {
              */
             std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
 
+            /**
+             * @brief The amplitude form factors of the atoms and waters alone, without the excluded volume: B_a(q)*f_t(q) for the atoms of each 
+             *        form factor slot, with the atomic Debye-Waller factor B_a, and c_w*f_w(q) for the waters. 
+             *        The models with an excluded volume subtract their own from the atomic ones. See amplitude_form_factors().
+             */
+            std::vector<double> atomic_amplitude_form_factors(bool form_factors, double q) const;
+
         private:
             /**
              * @brief Get the atomic Debye Waller factor for a given q value.

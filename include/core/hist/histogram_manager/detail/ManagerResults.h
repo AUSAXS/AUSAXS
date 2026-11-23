@@ -140,6 +140,14 @@ namespace ausaxs::hist::detail {
 	);
 
 	/**
+	 * @brief The scatterers of @a protein for the amplitude, weighted as the managers weigh them for the scattering model of make_model().
+	 *        Without @a form_factors, each atom keeps its weight, less the displaced charge per atom with the Simple excluded volume model.
+	 *        With @a form_factors, every scatterer counts once, except with the Simple model, whose weights per type follow make_simple_model().
+	 */
+	template<bool form_factors>
+	AmplitudeScatterers make_amplitude_scatterers(observer_ptr<const data::Molecule> protein);
+
+	/**
 	 * @brief The scattering model of @a distributions based on the current settings. 
 	 */
 	template<bool weighted_bins, bool form_factors>

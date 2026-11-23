@@ -56,8 +56,15 @@ namespace ausaxs::hist {
         protected:
             std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
 
+            /**
+             * @brief Every scatterer has the amplitude exp(-q^2/2), and the waters are scaled by the water scaling factor.
+             *        Only scatterers without form factors are supported, since this model does not know the weights of the types.
+             */
+            std::vector<double> amplitude_form_factors(bool form_factors, double q) const override;
+
         private:
             mutable struct {Distribution1D aa, aw, ww;} distance_profiles;
+            double cw = 1; // the water scaling factor last applied
 
             ScatteringProfile transform_counts_gaussian(std::span<const double> counts) const;
     };

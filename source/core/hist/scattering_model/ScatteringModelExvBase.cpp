@@ -335,6 +335,25 @@ std::vector<double> ScatteringModelExvBase<FormFactorTableType>::debye_transform
 }
 
 template<typename FormFactorTableType>
+std::vector<double> ScatteringModelExvBase<FormFactorTableType>::atomic_amplitude_form_factors(bool form_factors, double q) const {
+    if (!form_factors) {
+        throw except::invalid_argument("ScatteringModelExvBase::amplitude_form_factors: The scatterers must be resolved by form factor type.");
+    }
+
+    const auto& ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
+    const int n_ff = form_factor::get_active_count();
+    const double B = get_atomic_debye_waller_factor(q);
+    constexpr int water = form_factor::water_bin;
+    std::vector<double> g(n_ff, 0); // no scatterer has the excluded volume slot
+    for (int ff = form_factor::start_index_for_explicit_exv(); ff < n_ff; ++ff) {
+        if (ff == water) {continue;}
+        g[ff] = B*form_factor::manager::evaluate(static_cast<form_factor::form_factor_t>(ff_indices[ff]), q);
+    }
+    g[water] = free_params.cw*form_factor::manager::evaluate(static_cast<form_factor::form_factor_t>(ff_indices[water]), q);
+    return g;
+}
+
+template<typename FormFactorTableType>
 double ScatteringModelExvBase<FormFactorTableType>::get_atomic_debye_waller_factor(double q, double sigma) {
     return std::exp(-q*q*sigma*sigma*0.5);
 }

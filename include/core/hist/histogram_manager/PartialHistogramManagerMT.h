@@ -41,6 +41,11 @@ namespace ausaxs::hist {
 			std::unique_ptr<IScatteringModel> calculate_all() override;
 			settings::hist::HistogramManagerChoice get_type() const override;
 
+			/**
+			 * @brief The scatterers of the molecule as this manager weighs them, in the layout of the scattering model built by calculate_all().
+			 */
+			AmplitudeScatterers get_amplitude_scatterers() const override;
+
 		private:
 		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<weighted_bins>::type;
 			using calculator_t = observer_ptr<distance_calculator::Calculator<weighted_bins, form_factors>>;

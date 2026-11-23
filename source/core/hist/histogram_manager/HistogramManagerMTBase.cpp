@@ -9,7 +9,9 @@
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/Calculator.h>
 #include <hist/distance_calculator/HistogramStore.h>
+#include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
+#include <hist/scattering_model/AmplitudeHistogram.h>
 #include <settings/HistogramSettings.h>
 
 #include <cassert>
@@ -61,6 +63,11 @@ typename HistogramManagerMTBase<wb, ff>::Distributions HistogramManagerMTBase<wb
     calculator.run();
 
     return hist::detail::export_distributions<wb, ff>(store, aa, aw, ww);
+}
+
+template<bool wb, bool ff>
+AmplitudeScatterers HistogramManagerMTBase<wb, ff>::get_amplitude_scatterers() const {
+    return hist::detail::make_amplitude_scatterers<ff>(this->protein);
 }
 
 template<bool wb, bool ff>

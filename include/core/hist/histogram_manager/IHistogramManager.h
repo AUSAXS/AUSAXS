@@ -32,5 +32,12 @@ namespace ausaxs::hist {
 			 * @brief The type of this manager, such that the factory can construct another one like it. 
 			 */
 			virtual settings::hist::HistogramManagerChoice get_type() const = 0;
+
+			/**
+			 * @brief The scatterers of the molecule as this manager weighs them, grouped in the layout of the scattering model built by calculate_all(). 
+			 *        These are the input of IScatteringModel::amplitude_transform().
+			 *        Throws by default, for the managers without an amplitude.
+			 */
+			virtual AmplitudeScatterers get_amplitude_scatterers() const;
     };
 }

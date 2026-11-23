@@ -2,6 +2,8 @@
 // Author: Kristian Lytje
 
 #include <hist/scattering_model/ScatteringModelSimple.h>
+#include <hist/scattering_model/AmplitudeHistogram.h>
+#include <utility/Exceptions.h>
 
 #include <cmath>
 
@@ -51,6 +53,7 @@ Distribution1D& ScatteringModelSimple::get_ww_counts() {
 }
 
 void ScatteringModelSimple::apply_water_scaling_factor(double k) {
+    cw = k;
     for (int i = 0; i < p.size(); ++i) {p[i] = distance_profiles.aa.index(i) + k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
 }
 
@@ -88,4 +91,17 @@ ScatteringProfile ScatteringModelSimple::get_profile_aw() const {
 
 ScatteringProfile ScatteringModelSimple::get_profile_ww() const {
     return transform_counts_gaussian(get_ww_counts().get_content());
+}
+
+std::vector<double> ScatteringModelSimple::amplitude_form_factors(bool form_factors, double q) const {
+    if (form_factors) {
+        throw except::invalid_argument("ScatteringModelSimple::amplitude_form_factors: The scatterers must be weighted, not resolved by form factor type.");
+    }
+
+    // the intensity is exp(-q^2) sum_ij w_i w_j sinc(q r_ij), so each scatterer is a point of weight w with the amplitude exp(-q^2/2)
+    double g = std::exp(-0.5*q*q);
+    std::vector<double> res(2);
+    res[AmplitudeScatterers::atom_class] = g;
+    res[AmplitudeScatterers::water_class] = cw*g;
+    return res;
 }

@@ -9,16 +9,17 @@
 #include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <fitter/SmartFitter.h>
 #include <hist/distribution/Distribution1D.h>
-#include <hist/scattering_model/AmplitudeCalculator.h>
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
 #include <hist/scattering_model/ScatteringModelPoint.h>
 #include <io/pdb/PDBStructure.h>
+#include <math/Vector3.h>
 #include <settings/All.h>
 #include <utility/Exceptions.h>
 
 #include <algorithm>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -248,14 +249,22 @@ void molecule_debye_userq(
     }
 }, status);}
 
+namespace {
+    std::optional<Vector3<double>> to_centre(const double* centre) {
+        if (centre == nullptr) {return std::nullopt;}
+        return Vector3<double>(centre[0], centre[1], centre[2]);
+    }
+}
+
 int molecule_amplitude(
     int molecule_id,
+    const double* centre,
     double** q, double** A, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector(); // the axis of molecule_debye
-    auto Aq = hist::average_amplitude(molecule, qv);
+    auto Aq = molecule.amplitude(qv, to_centre(centre));
     _molecule_debye_obj data(static_cast<int>(Aq.size()));
     data.q = std::move(qv);
     data.I = std::move(Aq);
@@ -269,11 +278,12 @@ int molecule_amplitude(
 
 void molecule_amplitude_userq(
     int molecule_id,
+    const double* centre,
     double* q, double* A, int n_points,
     int* status
 ) {execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    auto Aq = hist::average_amplitude(molecule, std::vector<double>(q, q + n_points));
+    auto Aq = molecule.amplitude(std::vector<double>(q, q + n_points), to_centre(centre));
     std::ranges::copy(Aq, A);
 }, status);}
 

@@ -35,6 +35,11 @@ namespace ausaxs::hist {
 			std::unique_ptr<IScatteringModel> calculate_all() override;
 			settings::hist::HistogramManagerChoice get_type() const override;
 
+			/**
+			 * @brief The scatterers of the molecule as this manager weighs them, in the layout of the scattering model built by calculate_all().
+			 */
+			AmplitudeScatterers get_amplitude_scatterers() const override;
+
 		protected:
 			observer_ptr<const data::Molecule> protein;
     };

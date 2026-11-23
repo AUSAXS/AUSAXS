@@ -9,7 +9,9 @@
 #include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/detail/data/BinWidth.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
+#include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
+#include <hist/scattering_model/AmplitudeHistogram.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/ScatteringModelSimple.h>
 #include <settings/HistogramSettings.h>
@@ -378,6 +380,11 @@ void PartialHistogramManager<weighted_bins>::calc_ww() {
     this->master -= partials_ww; // subtract the previous hydration histogram
     partials_ww = std::move(p_ww);
     this->master += partials_ww; // add the new hydration histogram
+}
+
+template<bool weighted_bins>
+AmplitudeScatterers PartialHistogramManager<weighted_bins>::get_amplitude_scatterers() const {
+    return hist::detail::make_amplitude_scatterers<false>(protein);
 }
 
 template<bool weighted_bins>

@@ -58,6 +58,17 @@ namespace ausaxs::data {
 			[[nodiscard]] std::unique_ptr<hist::DistanceHistogram> get_total_histogram() const;
 
 			/**
+			 * @brief The orientationally averaged scattering amplitude <A(q)> of this molecule and its hydration shell, with the scattering model of 
+			 *        get_histogram() at its default parameters. <A(q)>^2/I(q) is the beta(q) factor of the decoupling approximation, 
+			 *        see IScatteringModel::amplitude_transform().
+			 *
+			 * @param q The q values to evaluate at. Any q value is supported.
+			 * @param centre The point the amplitude is taken about. It must be the reference point of the particles in the structure factor S(q) 
+			 *               the amplitude is combined with. Defaults to the centroid of the excess scattering length.
+			 */
+			[[nodiscard]] std::vector<double> amplitude(const std::vector<double>& q, const std::optional<Vector3<double>>& centre = std::nullopt) const;
+
+			/**
 			 * @brief Simulate a SAXS dataset based on this molecule.
 			 * 
 			 * @param add_noise Whether to add noise to the simulated dataset.

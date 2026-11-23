@@ -77,6 +77,13 @@ namespace ausaxs::hist {
 
         protected:
             double exv_factor(double q) const override;
+
+            /**
+             * @brief Throws: the CRYSOL excluded volume is not resolved by type, so the amplitude of ScatteringModelFraser does not apply.
+             */
+            std::vector<double> amplitude_form_factors(bool form_factors, double q) const override {
+                return IScatteringModel::amplitude_form_factors(form_factors, q);
+            }
     };
     static_assert(supports_nothrow_move_v<ScatteringModelCrysol>, "ScatteringModelCrysol should be nothrow move constructible");
 }

@@ -25,6 +25,11 @@ namespace ausaxs::hist {
              * @brief Evaluate the intensity directly at arbitrary q values, without using precomputed tables.
              */
             std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
+
+            /**
+             * @brief The atomic and water form factors, see atomic_amplitude_form_factors().
+             */
+            std::vector<double> amplitude_form_factors(bool form_factors, double q) const override {return atomic_amplitude_form_factors(form_factors, q);}
     };
     static_assert(supports_nothrow_move_v<ScatteringModelNoExv>, "ScatteringModelNoExv should support nothrow move semantics.");
 }

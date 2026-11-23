@@ -8,11 +8,13 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/detail/BinEstimate.h>
+#include <hist/detail/CompactCoordinatesFactory.h>
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
+#include <hist/scattering_model/AmplitudeHistogram.h>
 #include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelFraser.h>
 #include <hist/scattering_model/ScatteringModelNoExv.h>
@@ -134,6 +136,41 @@ std::unique_ptr<IScatteringModel> hist::detail::make_simple_model(
     return h;
 }
 
+template<bool form_factors>
+AmplitudeScatterers hist::detail::make_amplitude_scatterers(observer_ptr<const data::Molecule> protein) {
+    bool simple = settings::exv::exv_method == settings::exv::ExvMethod::Simple && protein->size_atom() != 0;
+    auto atoms = factory::construct_from_atoms<form_factors>(protein);
+    auto waters = factory::construct_from_waters(protein);
+    auto set_weights = [] (CompactCoordinates& c, double w) {for (int i = 0; i < c.size(); ++i) {c.get_weight(i) = static_cast<float>(w);}};
+
+    AmplitudeScatterers res;
+    if constexpr (!form_factors) {
+        if (simple) {simple_exv::apply(atoms, simple_exv::get_volume_per_atom(protein));}
+        res.classes.resize(2);
+        res.classes[AmplitudeScatterers::atom_class] = std::move(atoms);
+        res.classes[AmplitudeScatterers::water_class] = std::move(waters);
+    } else if (simple) {
+        // the Simple model is built from the types with their weights applied, see make_simple_model
+        double displaced_charge = settings::internal_state::solvent_density()*simple_exv::get_volume_per_atom(protein);
+        const auto& ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
+        auto charge = [&ff_indices] (int ff) {return constants::charge::get_ff_charge(static_cast<form_factor::form_factor_t>(ff_indices[ff]));};
+        res.classes.resize(2);
+        for (int ff = form_factor::start_index_for_explicit_exv(); ff < static_cast<int>(atoms.size()); ++ff) {
+            set_weights(atoms[ff], charge(ff) - displaced_charge);
+            res.classes[AmplitudeScatterers::atom_class].append(atoms[ff]);
+        }
+        set_weights(waters, charge(form_factor::water_bin));
+        res.classes[AmplitudeScatterers::water_class] = std::move(waters);
+    } else {
+        for (auto& c : atoms) {set_weights(c, 1);}
+        set_weights(waters, 1);
+        atoms[form_factor::water_bin].append(waters);
+        res.classes = std::move(atoms);
+        res.form_factors = true;
+    }
+    return res;
+}
+
 template<bool wb, bool ff>
 std::unique_ptr<IScatteringModel> hist::detail::make_model(
     ManagerDistributions<wb, ff>&& d, observer_ptr<const data::Molecule> protein // NOLINT
@@ -166,3 +203,5 @@ template std::unique_ptr<IScatteringModel> hist::detail::make_average_model<fals
 template std::unique_ptr<IScatteringModel> hist::detail::make_average_model<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
 template std::unique_ptr<IScatteringModel> hist::detail::make_simple_model<false>(ManagerDistributions<false, true>&&, observer_ptr<const data::Molecule>);
 template std::unique_ptr<IScatteringModel> hist::detail::make_simple_model<true>(ManagerDistributions<true, true>&&, observer_ptr<const data::Molecule>);
+template AmplitudeScatterers hist::detail::make_amplitude_scatterers<false>(observer_ptr<const data::Molecule>);
+template AmplitudeScatterers hist::detail::make_amplitude_scatterers<true>(observer_ptr<const data::Molecule>);
