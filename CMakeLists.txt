@@ -1,7 +1,7 @@
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.20)
 project(AUSAXS VERSION 1.3.7)
 option(POCKETFFT "Use pocketfft for the lattice transform of the grid excluded volume" ON)
 option(BUILD_TESTS "Build the test suite" ON)
