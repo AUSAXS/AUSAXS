@@ -13,7 +13,6 @@ if (GPU_DOWNLOADER)
 	target_compile_definitions(ausaxs_core PRIVATE AUSAXS_GPU_DOWNLOADER)
 endif()
 
-if (NOT EMSCRIPTEN)
 add_library(libausaxs_static STATIC $<TARGET_OBJECTS:ausaxs_core>)
 target_include_directories(libausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include/core")
 set_target_properties(libausaxs_static PROPERTIES
@@ -38,6 +37,9 @@ set_target_properties(libausaxs PROPERTIES
 
 target_link_libraries(libausaxs ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
 target_link_libraries(libausaxs_static ausaxs_core ausaxs_math ausaxs_em ausaxs_rigidbody ausaxs_api)
+if (EMSCRIPTEN)
+	target_link_options(libausaxs PRIVATE -sSIDE_MODULE=1 -fwasm-exceptions)
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS libausaxs
@@ -45,8 +47,6 @@ install(TARGETS libausaxs
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
-endif()
-
 add_subdirectory(constants)
 add_subdirectory(data)
 add_subdirectory(dataset)

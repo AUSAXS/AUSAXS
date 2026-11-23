@@ -5,6 +5,8 @@
 #include <settings/GeneralSettings.h>
 #include <utility/MultiThreading.h>
 
+#include <atomic>
+
 using namespace ausaxs;
 using namespace container;
 
@@ -44,4 +46,23 @@ TEST_CASE("ThreadLocalWrapper::ops") {
     pool->wait();
     auto merged = wrapper.merge();
     CHECK(merged == 100);
+}
+
+TEST_CASE("ThreadPool task operations") {
+    utility::multi_threading::ThreadPool pool(2);
+    std::atomic<int> sum{0};
+    pool.detach_task([&] {sum += 1;});
+    pool.detach_loop(0, 4, [&](int i) {sum += i;});
+    pool.detach_blocks(3, 5, [&](int first, int last) {
+        for (int i = first; i < last; ++i) {sum += i;}
+    });
+    pool.wait();
+    CHECK(sum == 14);
+
+    std::atomic<int> block_sum{0};
+    pool.submit_blocks(0, 4, [&](int first, int last) {
+        for (int i = first; i < last; ++i) {block_sum += i;}
+    }).wait();
+    CHECK(block_sum == 6);
+    CHECK(pool.get_thread_ids().size() == 2);
 }

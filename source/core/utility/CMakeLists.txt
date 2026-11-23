@@ -7,14 +7,13 @@ target_sources(ausaxs_core PRIVATE
 	"Limit2D.cpp"
 	"Limit3D.cpp"
 	"Logging.cpp"
-	"MultiThreading.cpp"
 	"StringUtils.cpp"
 	"Type.cpp"
 	"Utility.cpp"
 )
 
 if (EMSCRIPTEN)
-	target_sources(ausaxs_core PRIVATE "CurlUnavailable.cpp")
+	target_sources(ausaxs_core PRIVATE "CurlUnavailable.cpp" "MultiThreadingSerial.cpp")
 else()
-	target_sources(ausaxs_core PRIVATE "Curl.cpp")
+	target_sources(ausaxs_core PRIVATE "Curl.cpp" "MultiThreading.cpp")
 endif()

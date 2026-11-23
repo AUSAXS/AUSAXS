@@ -1,0 +1,27 @@
+name: Build Pyodide backend
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 5.0.3
+      - name: Build
+        run: |
+          emcmake cmake -S . -B build-wasm \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF -DBUILD_EXECUTABLES=OFF -DGPU_DOWNLOADER=OFF
+          cmake --build build-wasm --target libausaxs -j2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libausaxs-pyemscripten-2026-0
+          path: build-wasm/lib/libausaxs.so
+          if-no-files-found: error

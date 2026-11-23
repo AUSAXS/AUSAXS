@@ -5,48 +5,40 @@
 
 #include <utility/observer_ptr.h>
 
-#ifdef AUSAXS_SINGLE_THREADED
-    #include <thread>
-    #include <utility>
-    #include <vector>
-#else
-    #include <BS_thread_pool.hpp>
-#endif
+#include <functional>
+#include <memory>
+#include <thread>
+#include <vector>
 
 namespace ausaxs::utility::multi_threading {
-#ifdef AUSAXS_SINGLE_THREADED
-    class SerialThreadPool {
+    class ThreadPool {
         public:
-            template<typename Task>
-            void detach_task(Task&& task) {std::forward<Task>(task)();}
+            explicit ThreadPool(int threads);
+            ~ThreadPool();
 
-            template<typename Index, typename Task>
-            void detach_blocks(Index first, Index last, Task&& task) {
-                if (first < last) {std::forward<Task>(task)(first, last);}
-            }
+            ThreadPool(const ThreadPool&) = delete;
+            ThreadPool& operator=(const ThreadPool&) = delete;
 
-            template<typename Index, typename Task>
-            void detach_loop(Index first, Index last, Task&& task) {
-                for (Index i = first; i < last; ++i) {task(i);}
-            }
+            void detach_task(std::function<void()> task);
+            void detach_blocks(int first, int last, std::function<void(int, int)> task);
+            void detach_loop(int first, int last, std::function<void(int)> task);
 
-            struct CompletedTasks {
-                void wait() const noexcept {}
+            class Tasks {
+                public:
+                    explicit Tasks(std::function<void()> wait);
+                    void wait() const;
+
+                private:
+                    std::function<void()> wait_;
             };
+            Tasks submit_blocks(int first, int last, std::function<void(int, int)> task);
+            void wait();
+            std::vector<std::thread::id> get_thread_ids() const;
 
-            template<typename Index, typename Task>
-            CompletedTasks submit_blocks(Index first, Index last, Task&& task) {
-                detach_blocks(first, last, std::forward<Task>(task));
-                return {};
-            }
-
-            void wait() const noexcept {}
-            std::vector<std::thread::id> get_thread_ids() const {return {};}
+        private:
+            class Impl;
+            std::unique_ptr<Impl> impl;
     };
-    using ThreadPool = SerialThreadPool;
-#else
-    using ThreadPool = BS::light_thread_pool;
-#endif
 
     /**
      * @brief Get the global thread pool.
