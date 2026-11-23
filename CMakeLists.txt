@@ -17,7 +17,7 @@ option(GPU_DOWNLOADER "Build the downloader for prebuilt GPU backends (ausaxs gp
 option(USE_SYSTEM_MINIZ "Use system provided miniz" OFF)
 
 if (EMSCRIPTEN)
-	add_compile_definitions(AUSAXS_SINGLE_THREADED POCKETFFT_NO_MULTITHREADING)
+	add_compile_definitions(POCKETFFT_NO_MULTITHREADING)
 	add_compile_options(-fwasm-exceptions)
 	set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
 endif()
