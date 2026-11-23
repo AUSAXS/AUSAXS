@@ -23,7 +23,7 @@ namespace ausaxs::fitter {
             /**
              * @brief Perform a fit and return the minimum function value.
              */
-            [[nodiscard]] virtual double fit_chi2_only();
+            [[nodiscard]] double fit_chi2_only();
 
             /**
              * @brief Perform a fit and return the optimal parameters.
@@ -44,7 +44,7 @@ namespace ausaxs::fitter {
             /**
              * @brief Evaluate the chi2 for the given parameters.
              */
-            [[nodiscard]] virtual double chi2(const std::vector<double>& params);
+            [[nodiscard]] double chi2(const std::vector<double>& params);
 
             /**
              * @brief Get the residuals for the given parameters.

@@ -3,8 +3,9 @@
 
 #include <rigidbody/sequencer/elements/MessageElement.h>
 
+#include <fitter/SmartFitter.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/sequencer/Sequencer.h>
 #include <rigidbody/sequencer/detail/ArgumentHelper.h>
@@ -25,8 +26,8 @@ std::function<std::string()> MessageElement::parse_user_msg(std::string_view msg
     auto dof = [this] () { return static_cast<double>(owner->_get_rigidbody()->controller->get_fitter()->dof()); };
     auto chi2 = [this, dof] () { return utility::round_double(owner->_get_current_conf()->chi2/dof(), 3); };
     auto chi2_best = [this, dof] () { return utility::round_double(owner->_get_best_conf()->chi2/dof(), 3); };
-    auto chi2_penalty = [this, dof] () { return utility::round_double(owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2()/dof(), 3); };
-    auto chi2_no_penalty = [this, dof] () { return utility::round_double((owner->_get_current_conf()->chi2 - owner->_get_rigidbody()->controller->get_fitter()->constraints_chi2())/dof(), 3);};
+    auto chi2_penalty = [this, dof] () { return utility::round_double(owner->_get_rigidbody()->constraints->evaluate()/dof(), 3); };
+    auto chi2_no_penalty = [this, dof] () { return utility::round_double((owner->_get_current_conf()->chi2 - owner->_get_rigidbody()->constraints->evaluate())/dof(), 3);};
     auto body_names = [this] () {
         const auto& entries = owner->_get_sequencer()->_body_name_registry().all();
 

@@ -15,7 +15,3 @@ namespace ausaxs::rigidbody {
     namespace parameter         {class ParameterGenerationStrategy;}
     namespace parameter::decay  {class DecayStrategy;}
 }
-
-namespace ausaxs::fitter {
-    struct ConstrainedFitter;
-}

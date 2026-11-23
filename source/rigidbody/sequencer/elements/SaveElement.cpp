@@ -5,10 +5,10 @@
 
 #include <fitter/FitReporter.h>
 #include <fitter/FitResult.h>
+#include <fitter/SmartFitter.h>
 #include <io/detail/trajectory/XYZWriter.h>
 #include <plots/PlotDataset.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/controller/IController.h>
 #include <rigidbody/sequencer/detail/parse_error.h>
 #include <rigidbody/sequencer/elements/LoopElement.h>
@@ -57,7 +57,7 @@ void SaveElement::run() {
     auto fit_current_state = [this] () {
         auto* controller = owner->_get_rigidbody()->controller.get();
         controller->update_fitter();
-        return controller->get_fitter()->unconstrained_fit();
+        return controller->get_fitter()->fit();
     };
 
     // PDB

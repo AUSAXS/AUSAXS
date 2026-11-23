@@ -3,10 +3,10 @@
 
 #include <rigidbody/sequencer/Sequencer.h>
 
+#include <fitter/SmartFitter.h>
 #include <hist/scattering_model/IScatteringModel.h>  // IWYU pragma: keep
 #include <io/ExistingFile.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/detail/MoleculeTransformParametersAbsolute.h>
 #include <rigidbody/sequencer/elements/SaveElement.h>
 #include <utility/Console.h>
@@ -116,5 +116,5 @@ std::shared_ptr<fitter::FitResult> Sequencer::execute() {
     // because after a rejected last step it still holds the rejected candidate's model.
     _get_controller()->update_fitter();
 
-    return _get_controller()->get_fitter()->unconstrained_fit();
+    return _get_controller()->get_fitter()->fit();
 }

@@ -6,11 +6,11 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <fitter/SmartFitter.h>
 #include <hist/scattering_model/IScatteringModel.h> // NOLINT
 #include <io/ExistingFile.h>
 #include <rigidbody/BodySplitter.h>
 #include <rigidbody/Rigidbody.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h> // NOLINT
 #include <rigidbody/selection/BodySelectStrategy.h> // NOLINT
