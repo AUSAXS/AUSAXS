@@ -8,6 +8,7 @@
 #include <functional>
 #include <memory>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace ausaxs::utility::multi_threading {
@@ -28,7 +29,16 @@ namespace ausaxs::utility::multi_threading {
 
             void detach_task(std::function<void()> task);
             void detach_blocks(int first, int last, std::function<void(int, int)> task);
-            void detach_loop(int first, int last, std::function<void(int)> task);
+
+            /**
+             * @brief Run task(i) for every i in [first, last), split into blocks.
+             */
+            template<typename F>
+            void detach_loop(int first, int last, F&& task) {
+                detach_blocks(first, last, [task = std::forward<F>(task)] (int start, int end) {
+                    for (int i = start; i < end; ++i) {task(i);}
+                });
+            }
 
             Tasks submit_blocks(int first, int last, std::function<void(int, int)> task);
             void wait();

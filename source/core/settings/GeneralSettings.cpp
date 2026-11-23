@@ -4,7 +4,6 @@
 #include <settings/GeneralSettings.h>
 
 #include <settings/SettingsIORegistry.h>
-#include <utility/Console.h>
 #include <utility/StringUtils.h>
 
 #include <algorithm>

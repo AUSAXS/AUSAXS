@@ -30,10 +30,6 @@ void ThreadPool::detach_blocks(int first, int last, std::function<void(int, int)
     impl->pool.detach_blocks(first, last, std::move(task));
 }
 
-void ThreadPool::detach_loop(int first, int last, std::function<void(int)> task) {
-    impl->pool.detach_loop(first, last, std::move(task));
-}
-
 void Tasks::wait() const {wait_();}
 
 Tasks ThreadPool::submit_blocks(int first, int last, std::function<void(int, int)> task) {

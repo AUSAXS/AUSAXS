@@ -21,10 +21,6 @@ void ThreadPool::detach_blocks(int first, int last, std::function<void(int, int)
     if (first < last) {task(first, last);}
 }
 
-void ThreadPool::detach_loop(int first, int last, std::function<void(int)> task) { // NOLINT
-    for (int i = first; i < last; ++i) {task(i);}
-}
-
 void Tasks::wait() const {wait_();}
 
 Tasks ThreadPool::submit_blocks(int first, int last, std::function<void(int, int)> task) {
