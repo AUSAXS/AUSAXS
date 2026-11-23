@@ -228,3 +228,37 @@ TEST_CASE("object ids: a missing id and a wrong type give different errors") {
     REQUIRE(status != 0);
     CHECK(last_error() == "No object with id \"" + std::to_string(data) + "\" exists (expected: dataset). It may have been deallocated.");
 }
+
+TEST_CASE("molecule_debye_amplitude: agrees with molecule_debye and molecule_amplitude") {
+    int status = 1;
+    set_setting("exv_model", GENERATE("simple", "fraser"), &status);
+    REQUIRE(status == 0);
+    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
+    REQUIRE(status == 0);
+
+    double *q, *I, *A, *q_I, *I_sep, *q_A, *A_sep;
+    int n = 0, n_I = 0, n_A = 0;
+    molecule_debye_amplitude(mol, nullptr, &q, &I, &A, &n, &status);
+    REQUIRE(status == 0);
+    molecule_debye(mol, &q_I, &I_sep, &n_I, &status);
+    REQUIRE(status == 0);
+    molecule_amplitude(mol, nullptr, &q_A, &A_sep, &n_A, &status);
+    REQUIRE(status == 0);
+
+    REQUIRE(n == n_I);
+    REQUIRE(n == n_A);
+    for (int i = 0; i < n; ++i) {
+        CHECK_THAT(q_I[i], Catch::Matchers::WithinAbs(q[i], 1e-12));
+        CHECK_THAT(q_A[i], Catch::Matchers::WithinAbs(q[i], 1e-12));
+        CHECK_THAT(I_sep[i], Catch::Matchers::WithinRel(I[i], 1e-9));
+        CHECK_THAT(A_sep[i], Catch::Matchers::WithinRel(A[i], 1e-9));
+    }
+    CHECK_THAT(A[0]*A[0]/I[0], Catch::Matchers::WithinRel(1, 1e-3));
+
+    // a centre away from the molecule lowers the amplitude at small q
+    std::array<double, 3> centre = {50, 0, 0};
+    std::vector<double> A_shifted(n);
+    molecule_amplitude_userq(mol, centre.data(), q, A_shifted.data(), n, &status);
+    REQUIRE(status == 0);
+    CHECK(A_shifted[1] < 0.999*A[1]);
+}

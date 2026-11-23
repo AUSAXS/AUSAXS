@@ -147,12 +147,12 @@ std::unique_ptr<IScatteringModel> PartialHistogramManager<weighted_bins>::calcul
         auto p_aa = cache.p_aa;
         auto p_aw = cache.p_aw;
         auto p_ww = cache.p_ww;
-        return std::make_unique<ScatteringModelSimple>(
+        return hist::detail::with_amplitude(std::make_unique<ScatteringModelSimple>(
             std::move(p_aa), 
             std::move(p_aw), 
             std::move(p_ww), 
             std::move(p_tot)
-        );
+        ));
     }
 
     auto total = calculate();
@@ -200,12 +200,12 @@ std::unique_ptr<IScatteringModel> PartialHistogramManager<weighted_bins>::calcul
     cache.p_ww = p_ww;
     cache.p_tot = p_tot;
 
-    return std::make_unique<ScatteringModelSimple>(
+    return hist::detail::with_amplitude(std::make_unique<ScatteringModelSimple>(
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 
         std::move(p_tot)
-    );
+    ));
 }
 
 template<bool weighted_bins> 

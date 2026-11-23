@@ -14,6 +14,7 @@
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
+#include <hist/scattering_model/AmplitudeFormFactors.h>
 #include <hist/scattering_model/AmplitudeHistogram.h>
 #include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelFraser.h>
@@ -35,7 +36,7 @@ namespace {
      */
     template<typename Model, bool wb, typename... Args>
     std::unique_ptr<IScatteringModel> make_ff_model(ManagerDistributions<wb, true>&& d, Args&&... args) { // NOLINT
-        return std::make_unique<Model>(
+        return with_amplitude(std::make_unique<Model>(
             Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
             Distribution2D(std::move(d.p_aw)),
             Distribution1D(std::move(d.p_ww)),
@@ -43,8 +44,13 @@ namespace {
             d.self_ww,
             std::move(d.p_tot),
             std::forward<Args>(args)...
-        );
+        ));
     }
+}
+
+std::unique_ptr<IScatteringModel> hist::detail::with_amplitude(std::unique_ptr<IScatteringModel> model) {
+    model->set_amplitude_form_factors(make_amplitude_form_factors());
+    return model;
 }
 
 template<bool wb, bool ff>
@@ -133,7 +139,7 @@ std::unique_ptr<IScatteringModel> hist::detail::make_simple_model(
     // the total of the form factor managers is a count; it only lends its axis and bin centres, and the values are rebuilt from the parts
     auto h = std::make_unique<ScatteringModelSimple>(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(d.p_tot));
     h->apply_water_scaling_factor(1);
-    return h;
+    return with_amplitude(std::move(h));
 }
 
 template<bool form_factors>
@@ -176,12 +182,12 @@ std::unique_ptr<IScatteringModel> hist::detail::make_model(
     ManagerDistributions<wb, ff>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
     if constexpr (!ff) {
-        return std::make_unique<ScatteringModelSimple>(
+        return with_amplitude(std::make_unique<ScatteringModelSimple>(
             Distribution1D(std::move(d.p_aa)),
             Distribution1D(std::move(d.p_aw)),
             Distribution1D(std::move(d.p_ww)),
             std::move(d.p_tot)
-        );
+        ));
     } else {
         if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {return make_simple_model<wb>(std::move(d), protein);}
         if (settings::exv::exv_method == settings::exv::ExvMethod::Average) {return make_average_model<wb>(std::move(d), protein);}

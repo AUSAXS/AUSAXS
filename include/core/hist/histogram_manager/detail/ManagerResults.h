@@ -140,6 +140,12 @@ namespace ausaxs::hist::detail {
 	);
 
 	/**
+	 * @brief Give @a model the amplitude form factors of the current excluded volume model, see make_amplitude_form_factors(). 
+	 *        Every manager passes the models it builds through this.
+	 */
+	std::unique_ptr<IScatteringModel> with_amplitude(std::unique_ptr<IScatteringModel> model);
+
+	/**
 	 * @brief The scatterers of @a protein for the amplitude, weighted as the managers weigh them for the scattering model of make_model().
 	 *        Without @a form_factors, each atom keeps its weight, less the displaced charge per atom with the Simple excluded volume model.
 	 *        With @a form_factors, every scatterer counts once, except with the Simple model, whose weights per type follow make_simple_model().

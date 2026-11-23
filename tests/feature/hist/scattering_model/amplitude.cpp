@@ -82,9 +82,15 @@ TEST_CASE("Molecule::amplitude: consistent with the intensity") {
             molecule.set_histogram_manager(settings::hist::HistogramManagerChoice::PartialHistogramManagerMT);
         }
 
-        auto I = molecule.get_histogram()->debye_transform();
+        auto model = molecule.get_histogram();
+        auto I = model->debye_transform();
         auto q = I.get_axis().as_vector();
-        check_consistent(q, molecule.amplitude(q), I.get_intensity());
+        auto A = molecule.amplitude(q);
+        check_consistent(q, A, I.get_intensity());
+
+        // the model carries the same form factors as Molecule::amplitude, which never builds one
+        auto A_model = model->amplitude_transform(molecule.get_histogram_manager()->get_amplitude_scatterers(), q);
+        for (std::size_t i = 0; i < q.size(); ++i) {REQUIRE_THAT(A_model[i], Catch::Matchers::WithinRel(A[i], 1e-12));}
     }
 }
 

@@ -29,13 +29,6 @@ namespace ausaxs::hist {
             const form_factor::lookup::table_t& get_ffxx_table() const override {
                 return form_factor::manager::get_active_product_tables()->raw_exv_table;
             }
-
-        protected:
-            /**
-             * @brief The atomic form factors less the excluded volume form factor of each type, scaled as in the intensity:
-             *        g_t(q) = B_a(q)*f_t(q) - rho*cx(q)*B_x(q)*fx_t(q), and c_w*f_w(q) for the waters, which carry no excluded volume.
-             */
-            std::vector<double> amplitude_form_factors(bool form_factors, double q) const override;
     };
     static_assert(supports_nothrow_move_v<ScatteringModelFraser>, "ScatteringModelFraser should be nothrow move constructible");
 }

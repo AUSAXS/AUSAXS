@@ -11,6 +11,7 @@
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
 #include <hist/scattering_model/IScatteringModelExv.h>
+#include <hist/scattering_model/ScatteringParameters.h>
 
 #include <vector>
 
@@ -191,13 +192,7 @@ namespace ausaxs::hist {
             static double get_exv_debye_waller_factor(double q, double sigma);
 
         protected:
-            struct {
-                double cw = 1;               // water density scaling factor
-                double cx = 1;               // excluded volume scaling factor, method-dependent
-                double crho = 1;             // solvent density scaling factor
-                double DW_sigma_atomic = 0;  // atomic form factor debye-waller factor, zero for disabled
-                double DW_sigma_exv = 0;     // excluded volume form factor debye-waller factor, zero for disabled
-            } free_params;
+            ScatteringParameters free_params;
             struct {Distribution3D<hist::Shape::Triangular> aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
             struct {std::vector<double> aa; double ww = 0;} self_weights; // the self-correlations in the first bin of the diagonal distance_profiles
 
@@ -211,12 +206,7 @@ namespace ausaxs::hist {
              */
             std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
 
-            /**
-             * @brief The amplitude form factors of the atoms and waters alone, without the excluded volume: B_a(q)*f_t(q) for the atoms of each 
-             *        form factor slot, with the atomic Debye-Waller factor B_a, and c_w*f_w(q) for the waters. 
-             *        The models with an excluded volume subtract their own from the atomic ones. See amplitude_form_factors().
-             */
-            std::vector<double> atomic_amplitude_form_factors(bool form_factors, double q) const;
+            ScatteringParameters get_parameters() const override {return free_params;}
 
         private:
             /**

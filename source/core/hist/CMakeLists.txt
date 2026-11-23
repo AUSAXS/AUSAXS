@@ -36,6 +36,7 @@ target_sources(ausaxs_core PRIVATE
 	"distribution/WeightedDistribution3D.cpp"
 	"distribution/detail/WeightedEntry.cpp"
 
+	"scattering_model/AmplitudeFormFactors.cpp"
 	"scattering_model/AmplitudeHistogram.cpp"
 	"scattering_model/DebyeGradient.cpp"
 	"scattering_model/DistanceHistogram.cpp"
@@ -44,7 +45,6 @@ target_sources(ausaxs_core PRIVATE
 	"scattering_model/IScatteringModelExv.cpp"
 	"scattering_model/ScatteringModelAverage.cpp"
 	"scattering_model/ScatteringModelExvBase.cpp"
-	"scattering_model/ScatteringModelFraser.cpp"
 	"scattering_model/ScatteringModelFraserBase.cpp"
 	"scattering_model/ScatteringModelGrid.cpp"
 	"scattering_model/ScatteringModelGridBase.cpp"

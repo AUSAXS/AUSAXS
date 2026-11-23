@@ -7,11 +7,14 @@
 #include <math/Vector3.h>
 #include <utility/Limit.h>
 
+#include <memory>
 #include <optional>
 #include <vector>
 
 namespace ausaxs::hist {
+    class AmplitudeFormFactors;
     struct AmplitudeScatterers;
+    struct ScatteringParameters;
 
     /**
      * @brief Interface for a scattering model, which evaluates the distance histograms of a molecule together with
@@ -82,29 +85,31 @@ namespace ausaxs::hist {
             bool is_highly_ordered() const override;
 
             /**
-             * @brief Evaluate the orientationally averaged scattering amplitude <A(q)> of @a scatterers at each of @a q, with the form factors and the 
-             *        current parameters of this model. 
-             *
-             * This is the amplitude counterpart of the intensity I(q) = <|A(q)|^2>, and <A(q)>^2/I(q) is the beta(q) factor of the decoupling 
-             * approximation, I(q) = I_0(q) [1 + beta(q) (S(q) - 1)]. Unlike the intensity, the amplitude depends on the point it is taken about, 
-             * which must be the reference point of the particles in S(q).
+             * @brief Evaluate the orientationally averaged scattering amplitude <A(q)> of @a scatterers with the form factors and the current
+             *        parameters of this model, see hist::amplitude_transform. Throws for the models without an amplitude, which includes every 
+             *        model not built by a histogram manager.
              *
              * @param scatterers The scatterers of the molecule, from IHistogramManager::get_amplitude_scatterers() of the manager which built this model.
-             * @param q The q values to evaluate at. The sums are over the binned distances, so any q value is supported.
-             * @param centre The point the amplitude is taken about. Defaults to the centroid of the excess scattering length, see AmplitudeHistogram::scattering_centre.
+             * @param q The q values to evaluate at. Any q value is supported.
+             * @param centre The point the amplitude is taken about. Defaults to the centroid of the excess scattering length.
              */
             std::vector<double> amplitude_transform(
                 const AmplitudeScatterers& scatterers, const std::vector<double>& q, const std::optional<Vector3<double>>& centre = std::nullopt
             ) const;
 
+            /**
+             * @brief Set the form factors the amplitude of this model is evaluated with. 
+             *        The histogram managers set them when they build the model, see make_amplitude_form_factors().
+             */
+            void set_amplitude_form_factors(std::shared_ptr<const AmplitudeFormFactors> form_factors);
+
         protected:
             /**
-             * @brief The effective form factor g_c(q) of each class of the AmplitudeScatterers this model is built with: a scatterer of weight w in 
-             *        class c adds w*g_c(q) to the amplitude. This is the amplitude each scatterer contributes to the intensity of this model.
-             *        Throws by default, for the models without an amplitude.
-             *
-             * @param form_factors Whether the scatterers are resolved by form factor type, see AmplitudeScatterers.
+             * @brief The current values of the free parameters of this model. The default is the default parameters.
              */
-            virtual std::vector<double> amplitude_form_factors(bool form_factors, double q) const;
+            virtual ScatteringParameters get_parameters() const;
+
+        private:
+            std::shared_ptr<const AmplitudeFormFactors> amplitude_form_factors;
     };
 }

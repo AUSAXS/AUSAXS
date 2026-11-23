@@ -9,6 +9,8 @@
 #include <data/state/Signaller.h>  // IWYU pragma: keep
 #include <fitter/SmartFitter.h>
 #include <hist/distribution/Distribution1D.h>
+#include <hist/histogram_manager/IHistogramManager.h>
+#include <hist/scattering_model/AmplitudeHistogram.h>
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
@@ -263,6 +265,7 @@ int molecule_amplitude(
     int* status
 ) {return execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager(); // as molecule_debye, so a changed configuration takes effect
     auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector(); // the axis of molecule_debye
     auto Aq = molecule.amplitude(qv, to_centre(centre));
     _molecule_debye_obj data(static_cast<int>(Aq.size()));
@@ -283,8 +286,38 @@ void molecule_amplitude_userq(
     int* status
 ) {execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager();
     auto Aq = molecule.amplitude(std::vector<double>(q, q + n_points), to_centre(centre));
     std::ranges::copy(Aq, A);
+}, status);}
+
+namespace {
+    struct _molecule_debye_amplitude_obj {
+        std::vector<double> q, I, A;
+    };
+}
+
+int molecule_debye_amplitude(
+    int molecule_id,
+    const double* centre,
+    double** q, double** I, double** A, int* n_points,
+    int* status
+) {return execute_with_catch([&]() {
+    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+    molecule.reset_histogram_manager();
+    auto model = molecule.get_histogram();
+    auto debye_I = model->debye_transform();
+    _molecule_debye_amplitude_obj data;
+    data.q = debye_I.get_axis().as_vector();
+    data.I = debye_I.get_intensity();
+    data.A = model->amplitude_transform(molecule.get_histogram_manager()->get_amplitude_scatterers(), data.q, to_centre(centre));
+    int data_id = api::ObjectStorage::register_object(std::move(data));
+    auto* ref = api::ObjectStorage::get_object<_molecule_debye_amplitude_obj>(data_id);
+    *q = ref->q.data();
+    *I = ref->I.data();
+    *A = ref->A.data();
+    *n_points = static_cast<int>(ref->q.size());
+    return data_id;
 }, status);}
 
 namespace {
