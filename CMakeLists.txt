@@ -127,21 +127,19 @@ if (POCKETFFT)
 endif()
 
 ############################################
-##           Find and link CURL           ##
+##      Find CURL and the thread library  ##
 ############################################
-if (WIN32)
-	if (STATIC_CURL)
+if (NOT EMSCRIPTEN)
+	if (WIN32 AND STATIC_CURL)
 		add_compile_definitions("CURL_STATICLIB")
 	endif()
 	find_package(CURL REQUIRED)
-	set(LIBS -static CURL::libcurl)
-	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
-elseif (APPLE)
-	find_package(CURL REQUIRED)
-	set(LIBS CURL::libcurl)
-elseif(UNIX AND NOT EMSCRIPTEN)
-	find_package(CURL REQUIRED)
-	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
+	if (WIN32)
+		include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
+	endif()
+
+	# glibc before 2.34 keeps pthreads in a separate libpthread, which must be named on the link line
+	find_package(Threads REQUIRED)
 endif()
 
 ############################################
