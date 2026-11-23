@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <cmath>
 
 #include <data/Body.h>
 #include <data/Molecule.h>
@@ -146,4 +148,38 @@ TEST_CASE("lattice::self_correlation: counts a small cube") {
     CHECK(lattice.index(2).count == 2*3*(3*4*4));
     CHECK(lattice.index(0).count == 0);
     CHECK(lattice.index(1).count == 0);
+}
+
+TEST_CASE("lattice::self_correlation: rectangular spacing") {
+    std::vector<Vector3<int>> sites = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {1, 1, 1}};
+    std::array<double, 3> spacing = {2, 3, 6};
+    constexpr double inv_width = 100;
+    auto lattice = hist::detail::lattice::self_correlation(sites, spacing, inv_width, 1000);
+
+    std::vector<int> counts(1000, 0);
+    std::vector<double> distances(1000, 0);
+    for (const auto& a : sites) {
+        for (const auto& b : sites) {
+            if (&a == &b) {continue;}
+            double r = std::hypot((a[0]-b[0])*spacing[0], (a[1]-b[1])*spacing[1], (a[2]-b[2])*spacing[2]);
+            int bin = static_cast<int>(std::round(r*inv_width));
+            ++counts[bin];
+            distances[bin] += r;
+        }
+    }
+
+    CHECK(total_count(lattice) == 20);
+    for (int i = 0; i < lattice.size(); ++i) {
+        INFO("bin " << i);
+        CHECK(lattice.index(i).count == counts[i]);
+        CHECK_THAT(lattice.index(i).bin_center, Catch::Matchers::WithinAbs(distances[i], 1e-10));
+    }
+}
+
+TEST_CASE("lattice::self_correlation: long thin lattice") {
+    std::vector<Vector3<int>> sites = {{0, 0, 0}, {50000, 0, 0}};
+    auto lattice = hist::detail::lattice::self_correlation(sites, {0.0001, 0.0001, 0.0001}, 10, 100);
+    CHECK(total_count(lattice) == 2);
+    CHECK(lattice.index(50).count == 2);
+    CHECK_THAT(lattice.index(50).bin_center, Catch::Matchers::WithinAbs(10, 1e-10));
 }

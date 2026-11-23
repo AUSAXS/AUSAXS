@@ -34,7 +34,7 @@ namespace {
     struct Box {
         std::array<std::size_t, 3> shape;  // the padded transform shape
         std::array<int32_t, 3> extent;     // the number of lattice sites the points span along each axis
-        double spacing;                    // the lattice spacing in Ångström
+        std::array<double, 3> spacing;    // the lattice spacings in Ångström
     };
 
     // the smallest 5-smooth number >= n. pocketfft is considerably faster on these.
@@ -52,7 +52,7 @@ namespace {
      * @brief The box spanned by the given lattice sites, which are non-negative by construction.
      *        Padding each axis of the transform box to at least 2*extent-1 removes the circular wrap-around of the correlation.
      */
-    Box make_box(std::initializer_list<observer_ptr<const std::vector<Vector3<int>>>> sets, double spacing) {
+    Box make_box(std::initializer_list<observer_ptr<const std::vector<Vector3<int>>>> sets, const std::array<double, 3>& spacing) {
         Box box{.shape={}, .extent={0, 0, 0}, .spacing=spacing};
         for (const auto* set : sets) {
             for (const auto& p : *set) {
@@ -159,7 +159,17 @@ namespace {
          * matching distance bin. Self-pairs (the zero displacement) are left out, since the callers add them.
          */
         void bin(const Box& box, double inv_bin_width, WeightedDistribution1D& out) const {
-            double spacing = box.spacing;
+            const auto& spacing = box.spacing;
+            if (spacing[0] == spacing[1] && spacing[1] == spacing[2]) {
+                bin_impl<true>(box, inv_bin_width, out);
+            } else {
+                bin_impl<false>(box, inv_bin_width, out);
+            }
+        }
+
+        template<bool cubic>
+        void bin_impl(const Box& box, double inv_bin_width, WeightedDistribution1D& out) const {
+            const auto& spacing = box.spacing;
             auto real = real_box();
 
             // two points spanning extent sites along an axis can differ by at most extent-1 there, so only the
@@ -167,17 +177,24 @@ namespace {
             // the negative displacements were stored wrapped around to the far end of each axis; wrap() undoes that.
             for (int dx = -(box.extent[0]-1); dx < box.extent[0]; ++dx) {
                 int ix = wrap(dx, static_cast<int>(real_dims[0]));
+                double dxd = static_cast<double>(dx);
                 for (int dy = -(box.extent[1]-1); dy < box.extent[1]; ++dy) {
                     int iy = wrap(dy, static_cast<int>(real_dims[1]));
-                    // the extents are bounded far below int overflow by the memory needed for the box itself
-                    int dxy2 = dx*dx + dy*dy;
+                    double dyd = static_cast<double>(dy);
+                    double dxy2 = dxd*dxd + dyd*dyd;
                     for (int dz = -(box.extent[2]-1); dz < box.extent[2]; ++dz) {
                         double pairs = real.index(ix, iy, wrap(dz, static_cast<int>(real_dims[2])));
                         // the counts are integers up to the round-off of the transform, so this is an exact zero test
                         if (pairs < 0.5) {continue;}
-                        int d2 = dxy2 + dz*dz;
+                        double dzd = static_cast<double>(dz);
+                        double d2 = dxy2 + dzd*dzd;
                         if (d2 == 0) {continue;}
-                        double distance = std::sqrt(static_cast<double>(d2))*spacing;
+                        double distance;
+                        if constexpr (cubic) {
+                            distance = std::sqrt(d2)*spacing[0];
+                        } else {
+                            distance = std::hypot(dxd*spacing[0], dyd*spacing[1], dzd*spacing[2]);
+                        }
                         // note that count is only 32 bits wide, exactly as in the pair loop this replaces
                         auto count = static_cast<unsigned int>(std::llround(pairs));
                         auto index = static_cast<int32_t>(std::round(distance*inv_bin_width));
@@ -225,13 +242,20 @@ namespace {
 WeightedDistribution1D hist::detail::lattice::self_correlation(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count) {
     assert(exv.interior_sites.size() == exv.interior.size() && "lattice::self_correlation: every interior position needs a lattice site");
     assert((exv.interior_sites.empty() || 0 < exv.spacing) && "lattice::self_correlation: the lattice spacing is not set");
+    return self_correlation(exv.interior_sites, {exv.spacing, exv.spacing, exv.spacing}, inv_bin_width, bin_count);
+}
+
+WeightedDistribution1D hist::detail::lattice::self_correlation(
+    const std::vector<Vector3<int>>& sites, const std::array<double, 3>& spacing, double inv_bin_width, int bin_count
+) {
+    assert((sites.empty() || (0 < spacing[0] && 0 < spacing[1] && 0 < spacing[2])) && "lattice::self_correlation: invalid lattice spacing");
     WeightedDistribution1D out(bin_count);
-    Box box = make_box({&exv.interior_sites}, exv.spacing);
+    Box box = make_box({&sites}, spacing);
     Transform transform(box);
-    transform.autocorrelate({&exv.interior_sites});
+    transform.autocorrelate({&sites});
     assert(transform.rounding_error() < 0.1 && "lattice::self_correlation: the transform is losing integer precision");
     transform.bin(box, inv_bin_width, out);
-    logging::log("lattice::self_correlation: evaluated " + std::to_string(exv.interior_sites.size()) + " excluded volume points by transform.");
+    logging::log("lattice::self_correlation: evaluated " + std::to_string(sites.size()) + " lattice points by transform.");
     return out;
 }
 
@@ -244,7 +268,7 @@ Correlations hist::detail::lattice::correlations(const grid::exv::GridExcludedVo
         .second=WeightedDistribution1D(bin_count),
         .cross=WeightedDistribution1D(bin_count)
     };
-    Box box = make_box({&exv.interior_sites, &exv.surface_sites}, exv.spacing);
+    Box box = make_box({&exv.interior_sites, &exv.surface_sites}, {exv.spacing, exv.spacing, exv.spacing});
     Transform transform(box);
 
     transform.autocorrelate({&exv.interior_sites});

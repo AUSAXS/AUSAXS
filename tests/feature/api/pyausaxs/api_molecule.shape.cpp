@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numbers>
 #include <vector>
 
@@ -88,4 +89,57 @@ TEST_CASE("shape_debye_userq: invalid input") {
     status = 0;
     shape_debye_userq(x.data(), y.data(), z.data(), 0, 1, q.data(), I.data(), 1, &status);
     CHECK(status != 0); // empty
+}
+
+TEST_CASE("shape_debye_rectangular_userq: rectangular lattice") {
+    double old_width = ausaxs::settings::axes::bin_width;
+    ausaxs::settings::axes::bin_width = 0.001;
+    std::vector<double> x = {10, 12, 10, 12}, y = {-4, -4, -1, -1}, z = {7, 7, 13, 13};
+    std::vector<double> q = {0, 0.1, 0.3, 0.7}, I(q.size());
+    int status = 1;
+    shape_debye_rectangular_userq(x.data(), y.data(), z.data(), 4, 2, 3, 6, q.data(), I.data(), static_cast<int>(q.size()), &status);
+    ausaxs::settings::axes::bin_width = old_width;
+    REQUIRE(status == 0);
+
+    constexpr double V = 2*3*6;
+    for (std::size_t k = 0; k < q.size(); ++k) {
+        double sum = 0;
+        for (std::size_t i = 0; i < x.size(); ++i) {
+            for (std::size_t j = 0; j < x.size(); ++j) {
+                double r = std::hypot(x[i]-x[j], y[i]-y[j], z[i]-z[j]);
+                double qr = q[k]*r;
+                sum += qr == 0 ? 1 : std::sin(qr)/qr;
+            }
+        }
+        double ff = V*std::exp(-std::pow(V, 2./3)*q[k]*q[k]/(4*std::numbers::pi));
+        CHECK_THAT(I[k], Catch::Matchers::WithinRel(sum*ff*ff, 1e-5));
+    }
+}
+
+TEST_CASE("shape_debye_rectangular_userq: cubic compatibility") {
+    std::vector<double> x = {0, 1, 1}, y = {0, 0, 1}, z = {0, 0, 1};
+    std::vector<double> q = {0, 0.1, 0.3}, cubic(q.size()), rectangular(q.size());
+    int status = 1;
+    shape_debye_userq(x.data(), y.data(), z.data(), 3, 1, q.data(), cubic.data(), static_cast<int>(q.size()), &status);
+    REQUIRE(status == 0);
+    shape_debye_rectangular_userq(x.data(), y.data(), z.data(), 3, 1, 1, 1, q.data(), rectangular.data(), static_cast<int>(q.size()), &status);
+    REQUIRE(status == 0);
+    for (std::size_t i = 0; i < q.size(); ++i) {CHECK(rectangular[i] == cubic[i]);}
+}
+
+TEST_CASE("shape_debye_rectangular_userq: invalid input") {
+    std::vector<double> x = {0, 2}, y = {0, 3}, z = {0, 6}, q = {0.1}, I(1);
+    int status = 0;
+    for (double step : {0., -1., std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()}) {
+        shape_debye_rectangular_userq(x.data(), y.data(), z.data(), 2, 2, step, 6, q.data(), I.data(), 1, &status);
+        CHECK(status != 0);
+    }
+    y[1] = 2;
+    shape_debye_rectangular_userq(x.data(), y.data(), z.data(), 2, 2, 3, 6, q.data(), I.data(), 1, &status);
+    CHECK(status != 0);
+    y[1] = std::numeric_limits<double>::quiet_NaN();
+    shape_debye_rectangular_userq(x.data(), y.data(), z.data(), 2, 2, 3, 6, q.data(), I.data(), 1, &status);
+    CHECK(status != 0);
+    shape_debye_rectangular_userq(x.data(), y.data(), z.data(), 2, 2, 3, 6, q.data(), I.data(), 0, &status);
+    CHECK(status != 0);
 }
