@@ -1,0 +1,55 @@
+name: Build manylinux binaries
+
+# Built in the PyPA manylinux_2_28 images, so the binaries run on any distribution with glibc 2.28 or newer
+# (RHEL 8+, Debian 10+, Ubuntu 20.04+). These are the Linux libraries pyAUSAXS bundles in its wheels.
+on:
+  workflow_dispatch:
+  workflow_call:
+  # TEMPORARY: workflow_dispatch only works once this file is on the default branch, so pushes to this branch run it
+  # until then. Remove before merging.
+  push:
+    branches: [ manylinux_2_28 ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: "manylinux_2_28 ${{ matrix.arch }}"
+    runs-on: ${{ matrix.runner }}
+    container: quay.io/pypa/manylinux_2_28_${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # the image's default compiler is a recent gcc-toolset GCC; libstdc++ and libgcc are linked statically
+      # (CMakeLists.txt), so only glibc and libcurl come from the target system
+      - name: Install dependencies
+        run: dnf install -y libcurl-devel
+
+      - name: Build the library
+        run: |
+          g++ --version
+          cmake --version
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF
+          cmake --build build --target libausaxs ausaxs -j$(nproc)
+          rm -rf build/lib/*.a
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manylinux_2_28_${{ matrix.arch }}-binaries
+          path: |
+            build/lib/*
+            build/bin/*
+          if-no-files-found: error
