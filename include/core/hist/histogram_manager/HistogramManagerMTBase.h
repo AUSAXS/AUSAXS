@@ -30,10 +30,7 @@ namespace ausaxs::hist {
 
 			settings::hist::HistogramManagerChoice get_type() const override;
 
-			/**
-			 * @brief The scatterers of the molecule as this manager weighs them, in the layout of the scattering model built by calculate_all().
-			 */
-			AmplitudeScatterers get_amplitude_scatterers() const override;
+			std::unique_ptr<ScatteringAmplitude> get_scattering_amplitude() const override;
 
 		protected:
 			using Distributions = hist::detail::ManagerDistributions<weighted_bins, form_factors>;

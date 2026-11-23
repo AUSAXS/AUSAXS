@@ -58,10 +58,10 @@ namespace ausaxs::data {
 			[[nodiscard]] std::unique_ptr<hist::DistanceHistogram> get_total_histogram() const;
 
 			/**
-			 * @brief The orientationally averaged scattering amplitude <A(q)> of this molecule and its hydration shell, with the form factors of the
-			 *        scattering model of get_histogram() at its default parameters. <A(q)>^2/I(q) is the beta(q) factor of the decoupling approximation, 
-			 *        see hist::amplitude_transform(). This does not calculate the distance histograms, so it costs O(N).
-			 *        To evaluate it with other parameters, use IScatteringModel::amplitude_transform() on a model with them.
+			 * @brief The orientationally averaged scattering amplitude <A(q)> of this molecule and its hydration shell, the counterpart of the 
+			 *        intensity of get_histogram() at its default parameters. <A(q)>^2/I(q) is the beta(q) factor of the decoupling approximation, 
+			 *        see hist::ScatteringAmplitude. This does not calculate the distance histograms, so it costs O(N).
+			 *        To evaluate it with other parameters, use hist::ScatteringAmplitude::evaluate() with IScatteringModel::get_parameters().
 			 *
 			 * @param q The q values to evaluate at. Any q value is supported.
 			 * @param centre The point the amplitude is taken about. It must be the reference point of the particles in the structure factor S(q) 

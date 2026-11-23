@@ -11,10 +11,9 @@
 #include <hist/histogram_manager/HistogramManagerFactory.h>
 #include <hist/histogram_manager/IHistogramManager.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
-#include <hist/scattering_model/AmplitudeFormFactors.h>
-#include <hist/scattering_model/AmplitudeHistogram.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/ScatteringAmplitude.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <io/Writer.h>
 #include <settings/All.h>
@@ -311,9 +310,7 @@ std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
 }
 
 std::vector<double> Molecule::amplitude(const std::vector<double>& q, const std::optional<Vector3<double>>& centre) const {
-    // only the form factors of the model are needed, so the distance histograms are never calculated
-    auto scatterers = get_histogram_manager()->get_amplitude_scatterers();
-    return hist::amplitude_transform(hist::make_amplitude_form_factors().get(), scatterers, q, {}, centre);
+    return get_histogram_manager()->get_scattering_amplitude()->evaluate(q, centre);
 }
 
 observer_ptr<grid::Grid> Molecule::get_grid() const {

@@ -4,16 +4,9 @@
 #pragma once
 
 #include <hist/scattering_model/DistanceHistogram.h>
-#include <math/Vector3.h>
 #include <utility/Limit.h>
 
-#include <memory>
-#include <optional>
-#include <vector>
-
 namespace ausaxs::hist {
-    class AmplitudeFormFactors;
-    struct AmplitudeScatterers;
     struct ScatteringParameters;
 
     /**
@@ -85,31 +78,9 @@ namespace ausaxs::hist {
             bool is_highly_ordered() const override;
 
             /**
-             * @brief Evaluate the orientationally averaged scattering amplitude <A(q)> of @a scatterers with the form factors and the current
-             *        parameters of this model, see hist::amplitude_transform. Throws for the models without an amplitude, which includes every 
-             *        model not built by a histogram manager.
-             *
-             * @param scatterers The scatterers of the molecule, from IHistogramManager::get_amplitude_scatterers() of the manager which built this model.
-             * @param q The q values to evaluate at. Any q value is supported.
-             * @param centre The point the amplitude is taken about. Defaults to the centroid of the excess scattering length.
-             */
-            std::vector<double> amplitude_transform(
-                const AmplitudeScatterers& scatterers, const std::vector<double>& q, const std::optional<Vector3<double>>& centre = std::nullopt
-            ) const;
-
-            /**
-             * @brief Set the form factors the amplitude of this model is evaluated with. 
-             *        The histogram managers set them when they build the model, see make_amplitude_form_factors().
-             */
-            void set_amplitude_form_factors(std::shared_ptr<const AmplitudeFormFactors> form_factors);
-
-        protected:
-            /**
-             * @brief The current values of the free parameters of this model. The default is the default parameters.
+             * @brief The current values of the free parameters of this model, for example to evaluate a ScatteringAmplitude with fitted parameters.
+             *        Models without free parameters return the defaults.
              */
             virtual ScatteringParameters get_parameters() const;
-
-        private:
-            std::shared_ptr<const AmplitudeFormFactors> amplitude_form_factors;
     };
 }

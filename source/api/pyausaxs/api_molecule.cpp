@@ -10,10 +10,10 @@
 #include <fitter/SmartFitter.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/histogram_manager/IHistogramManager.h>
-#include <hist/scattering_model/AmplitudeHistogram.h>
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/ScatteringAmplitude.h>
 #include <hist/scattering_model/ScatteringModelPoint.h>
 #include <io/pdb/PDBStructure.h>
 #include <math/Vector3.h>
@@ -310,7 +310,7 @@ int molecule_debye_amplitude(
     _molecule_debye_amplitude_obj data;
     data.q = debye_I.get_axis().as_vector();
     data.I = debye_I.get_intensity();
-    data.A = model->amplitude_transform(molecule.get_histogram_manager()->get_amplitude_scatterers(), data.q, to_centre(centre));
+    data.A = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(data.q, to_centre(centre), model->get_parameters());
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto* ref = api::ObjectStorage::get_object<_molecule_debye_amplitude_obj>(data_id);
     *q = ref->q.data();

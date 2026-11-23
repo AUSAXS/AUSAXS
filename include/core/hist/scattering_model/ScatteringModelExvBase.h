@@ -191,6 +191,8 @@ namespace ausaxs::hist {
              */
             static double get_exv_debye_waller_factor(double q, double sigma);
 
+            ScatteringParameters get_parameters() const override {return free_params;}
+
         protected:
             ScatteringParameters free_params;
             struct {Distribution3D<hist::Shape::Triangular> aa; Distribution2D aw; Distribution1D ww;} distance_profiles;
@@ -205,8 +207,6 @@ namespace ausaxs::hist {
              * @brief Throws by default: exv models are not supposed to be used outside the default q range. 
              */
             std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
-
-            ScatteringParameters get_parameters() const override {return free_params;}
 
         private:
             /**

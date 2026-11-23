@@ -12,7 +12,7 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
-#include <hist/scattering_model/AmplitudeHistogram.h>
+#include <hist/scattering_model/ScatteringAmplitude.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/ScatteringModelSimple.h>
 #include <settings/ExvSettings.h>
@@ -153,25 +153,25 @@ std::unique_ptr<IScatteringModel> HistogramManager<weighted_bins>::calculate_all
     p_tot.resize(max_bin);
 
     if constexpr (weighted_bins) {
-        return hist::detail::with_amplitude(std::make_unique<ScatteringModelSimple>(
+        return std::make_unique<ScatteringModelSimple>(
             std::move(Distribution1D(std::move(p_aa))), 
             std::move(Distribution1D(std::move(p_aw))), 
             std::move(Distribution1D(std::move(p_ww))), 
             std::move(p_tot)
-        ));
+        );
     } else {
-        return hist::detail::with_amplitude(std::make_unique<ScatteringModelSimple>(
+        return std::make_unique<ScatteringModelSimple>(
             std::move(p_aa), 
             std::move(p_aw), 
             std::move(p_ww), 
             std::move(p_tot)
-        ));
+        );
     }
 }
 
 template<bool weighted_bins>
-AmplitudeScatterers HistogramManager<weighted_bins>::get_amplitude_scatterers() const {
-    return hist::detail::make_amplitude_scatterers<false>(protein);
+std::unique_ptr<ScatteringAmplitude> HistogramManager<weighted_bins>::get_scattering_amplitude() const {
+    return hist::detail::make_scattering_amplitude<false>(protein);
 }
 
 template<bool weighted_bins>

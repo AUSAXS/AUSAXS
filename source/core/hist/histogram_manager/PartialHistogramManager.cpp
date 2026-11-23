@@ -11,7 +11,7 @@
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
-#include <hist/scattering_model/AmplitudeHistogram.h>
+#include <hist/scattering_model/ScatteringAmplitude.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/ScatteringModelSimple.h>
 #include <settings/HistogramSettings.h>
@@ -147,12 +147,12 @@ std::unique_ptr<IScatteringModel> PartialHistogramManager<weighted_bins>::calcul
         auto p_aa = cache.p_aa;
         auto p_aw = cache.p_aw;
         auto p_ww = cache.p_ww;
-        return hist::detail::with_amplitude(std::make_unique<ScatteringModelSimple>(
+        return std::make_unique<ScatteringModelSimple>(
             std::move(p_aa), 
             std::move(p_aw), 
             std::move(p_ww), 
             std::move(p_tot)
-        ));
+        );
     }
 
     auto total = calculate();
@@ -200,12 +200,12 @@ std::unique_ptr<IScatteringModel> PartialHistogramManager<weighted_bins>::calcul
     cache.p_ww = p_ww;
     cache.p_tot = p_tot;
 
-    return hist::detail::with_amplitude(std::make_unique<ScatteringModelSimple>(
+    return std::make_unique<ScatteringModelSimple>(
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 
         std::move(p_tot)
-    ));
+    );
 }
 
 template<bool weighted_bins> 
@@ -383,8 +383,8 @@ void PartialHistogramManager<weighted_bins>::calc_ww() {
 }
 
 template<bool weighted_bins>
-AmplitudeScatterers PartialHistogramManager<weighted_bins>::get_amplitude_scatterers() const {
-    return hist::detail::make_amplitude_scatterers<false>(protein);
+std::unique_ptr<ScatteringAmplitude> PartialHistogramManager<weighted_bins>::get_scattering_amplitude() const {
+    return hist::detail::make_scattering_amplitude<false>(protein);
 }
 
 template<bool weighted_bins>

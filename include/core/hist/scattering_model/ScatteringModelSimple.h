@@ -54,10 +54,10 @@ namespace ausaxs::hist {
             ScatteringProfile get_profile_aw() const override;
             ScatteringProfile get_profile_ww() const override;
 
+            ScatteringParameters get_parameters() const override;
+
         protected:
             std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
-
-            ScatteringParameters get_parameters() const override;
 
         private:
             mutable struct {Distribution1D aa, aw, ww;} distance_profiles;

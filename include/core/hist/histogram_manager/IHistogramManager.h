@@ -34,10 +34,9 @@ namespace ausaxs::hist {
 			virtual settings::hist::HistogramManagerChoice get_type() const = 0;
 
 			/**
-			 * @brief The scatterers of the molecule as this manager weighs them, grouped in the layout of the scattering model built by calculate_all(). 
-			 *        These are the input of IScatteringModel::amplitude_transform().
-			 *        Throws by default, for the managers without an amplitude.
+			 * @brief The orientationally averaged scattering amplitude of the molecule, the counterpart of the scattering model built by calculate_all().
+			 *        This does not calculate the distance histograms.
 			 */
-			virtual AmplitudeScatterers get_amplitude_scatterers() const;
+			virtual std::unique_ptr<ScatteringAmplitude> get_scattering_amplitude() const;
     };
 }

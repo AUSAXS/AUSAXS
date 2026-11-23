@@ -5,9 +5,10 @@
 #include <data/Body.h>
 #include <data/Molecule.h>
 #include <hist/histogram_manager/IHistogramManager.h>
-#include <hist/scattering_model/AmplitudeHistogram.h>
 #include <hist/scattering_model/IScatteringModel.h>
 #include <hist/scattering_model/IScatteringModelExv.h>
+#include <hist/scattering_model/ScatteringAmplitude.h>
+#include <hist/scattering_model/ScatteringParameters.h>
 #include <math/ConstexprMath.h>
 #include <settings/All.h>
 
@@ -88,14 +89,14 @@ TEST_CASE("Molecule::amplitude: consistent with the intensity") {
         auto A = molecule.amplitude(q);
         check_consistent(q, A, I.get_intensity());
 
-        // the model carries the same form factors as Molecule::amplitude, which never builds one
-        auto A_model = model->amplitude_transform(molecule.get_histogram_manager()->get_amplitude_scatterers(), q);
+        // the parameters of a freshly built model are the defaults of Molecule::amplitude
+        auto A_model = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(q, std::nullopt, model->get_parameters());
         for (std::size_t i = 0; i < q.size(); ++i) {REQUIRE_THAT(A_model[i], Catch::Matchers::WithinRel(A[i], 1e-12));}
     }
 }
 
 // the amplitude uses the parameters of the model it is evaluated with
-TEST_CASE("IScatteringModel::amplitude_transform: follows the fitted parameters") {
+TEST_CASE("ScatteringAmplitude::evaluate: follows the fitted parameters") {
     settings::general::verbose = false;
     Molecule molecule("tests/files/2epe.pdb");
     molecule.generate_new_hydration();
@@ -106,7 +107,7 @@ TEST_CASE("IScatteringModel::amplitude_transform: follows the fitted parameters"
         model->apply_water_scaling_factor(3);
         auto I = model->debye_transform();
         auto q = I.get_axis().as_vector();
-        auto A = model->amplitude_transform(molecule.get_histogram_manager()->get_amplitude_scatterers(), q);
+        auto A = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(q, std::nullopt, model->get_parameters());
         check_consistent(q, A, I.get_intensity());
     }
 
@@ -122,7 +123,7 @@ TEST_CASE("IScatteringModel::amplitude_transform: follows the fitted parameters"
         exv_model->apply_exv_debye_waller_factor(0.3);
         auto I = model->debye_transform();
         auto q = I.get_axis().as_vector();
-        auto A = model->amplitude_transform(molecule.get_histogram_manager()->get_amplitude_scatterers(), q);
+        auto A = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(q, std::nullopt, model->get_parameters());
         check_consistent(q, A, I.get_intensity());
 
         // and it differs from the amplitude at the default parameters
@@ -156,8 +157,7 @@ TEST_CASE("Molecule::amplitude: the centre can be chosen") {
     // the default centre lies where the q^2 term is smallest, so a shift in any direction lowers the amplitude
     std::vector<double> q = {0.002, 0.005};
     auto A = molecule.amplitude(q);
-    auto scatterers = molecule.get_histogram_manager()->get_amplitude_scatterers();
-    auto centroid = hist::AmplitudeHistogram::scattering_centre(scatterers, {1, 1});
+    auto centroid = molecule.get_histogram_manager()->get_scattering_amplitude()->default_centre();
     auto A_centroid = molecule.amplitude(q, centroid);
     for (std::size_t i = 0; i < q.size(); ++i) {REQUIRE_THAT(A_centroid[i], Catch::Matchers::WithinRel(A[i], 1e-9));}
 

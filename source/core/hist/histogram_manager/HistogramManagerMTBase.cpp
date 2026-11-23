@@ -11,7 +11,7 @@
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
-#include <hist/scattering_model/AmplitudeHistogram.h>
+#include <hist/scattering_model/ScatteringAmplitude.h>
 #include <settings/HistogramSettings.h>
 
 #include <cassert>
@@ -66,8 +66,8 @@ typename HistogramManagerMTBase<wb, ff>::Distributions HistogramManagerMTBase<wb
 }
 
 template<bool wb, bool ff>
-AmplitudeScatterers HistogramManagerMTBase<wb, ff>::get_amplitude_scatterers() const {
-    return hist::detail::make_amplitude_scatterers<ff>(this->protein);
+std::unique_ptr<ScatteringAmplitude> HistogramManagerMTBase<wb, ff>::get_scattering_amplitude() const {
+    return hist::detail::make_scattering_amplitude<ff>(this->protein);
 }
 
 template<bool wb, bool ff>
