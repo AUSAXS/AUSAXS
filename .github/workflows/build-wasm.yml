@@ -2,6 +2,7 @@ name: Build Pyodide backend
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -20,8 +21,10 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=OFF -DBUILD_EXECUTABLES=OFF -DGPU_DOWNLOADER=OFF
           cmake --build build-wasm --target libausaxs -j2
+          mkdir -p wasm-release/lib
+          cp build-wasm/lib/libausaxs.so wasm-release/lib/
       - uses: actions/upload-artifact@v4
         with:
           name: libausaxs-pyemscripten-2026-0
-          path: build-wasm/lib/libausaxs.so
+          path: wasm-release/
           if-no-files-found: error
