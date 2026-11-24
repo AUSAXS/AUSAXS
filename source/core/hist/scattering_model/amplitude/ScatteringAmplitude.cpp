@@ -2,6 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
+
 #include <constants/ConstantsAxes.h>
 #include <math/ConstexprMath.h>
 #include <utility/Exceptions.h>
@@ -88,20 +89,16 @@ std::vector<double> ScatteringAmplitude::evaluate(
 Vector3<double> ScatteringAmplitude::default_centre(const ScatteringParameters& params) const {
     auto f0 = form_factors(0, params);
     assert(f0.size() == groups.size() && "ScatteringAmplitude::default_centre: form_factors must return one value per group.");
-    Vector3<double> sum{0, 0, 0}, abs_sum{0, 0, 0};
-    double total = 0, abs_total = 0;
+    Vector3<double> sum{0, 0, 0};
+    double total = 0;
     for (std::size_t g = 0; g < groups.size(); ++g) {
         const auto& coords = groups[g];
         for (int i = 0; i < coords.size(); ++i) {
             double w = f0[g]*coords.get_weight(i);
-            Vector3<double> r(coords.x(i), coords.y(i), coords.z(i));
-            sum += r*w;
-            abs_sum += r*std::abs(w);
+            sum += Vector3<double>(coords.x(i), coords.y(i), coords.z(i))*w;
             total += w;
-            abs_total += std::abs(w);
         }
     }
-    if (abs_total == 0) {throw except::invalid_argument("ScatteringAmplitude::default_centre: The molecule has no scattering length.");}
-    if (std::abs(total) < 1e-6*abs_total) {return abs_sum/abs_total;}
+    if (total == 0) {throw except::invalid_argument("ScatteringAmplitude::default_centre: The molecule has no contrast.");}
     return sum/total;
 }
