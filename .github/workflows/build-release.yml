@@ -63,7 +63,7 @@ jobs:
             name: "Windows MSVC"
             arch: x64
             triplet: x64-windows-static
-            artifact: windows-binaries
+            artifact: windows-x64-binaries
 
           - os: windows-11-arm
             name: "Windows ARM64 MSVC"
