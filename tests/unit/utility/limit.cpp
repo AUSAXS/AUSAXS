@@ -39,6 +39,12 @@ TEST_CASE("Limit::merge") {
     limit1.merge(limit3);
     CHECK(limit1.min == -1);
     CHECK(limit1.max == 20);
+
+    // partially overlapping: each end comes from a different limit
+    Limit limit4(0, 1);
+    limit4.merge(Limit(0.5, 1.5));
+    CHECK(limit4.min == 0);
+    CHECK(limit4.max == 1.5);
 }
 
 TEST_CASE("Limit::expand") {
