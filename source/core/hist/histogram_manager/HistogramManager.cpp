@@ -10,9 +10,11 @@
 #include <hist/detail/data/BinWidth.h>
 #include <hist/distance_calculator/detail/Evaluators.h>
 #include <hist/distribution/GenericDistribution1D.h>
+#include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/ScatteringModelSimple.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <settings/ExvSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
@@ -165,6 +167,11 @@ std::unique_ptr<IScatteringModel> HistogramManager<weighted_bins>::calculate_all
             std::move(p_tot)
         );
     }
+}
+
+template<bool weighted_bins>
+std::unique_ptr<ScatteringAmplitude> HistogramManager<weighted_bins>::get_scattering_amplitude() const {
+    return hist::detail::make_scattering_amplitude<false>(protein);
 }
 
 template<bool weighted_bins>

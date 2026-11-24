@@ -140,6 +140,12 @@ namespace ausaxs::hist::detail {
 	);
 
 	/**
+	 * @brief The scattering amplitude of @a protein, the counterpart of the scattering model make_model() builds with the same settings.
+	 */
+	template<bool form_factors>
+	std::unique_ptr<ScatteringAmplitude> make_scattering_amplitude(observer_ptr<const data::Molecule> protein);
+
+	/**
 	 * @brief The scattering model of @a distributions based on the current settings. 
 	 */
 	template<bool weighted_bins, bool form_factors>

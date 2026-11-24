@@ -8,6 +8,7 @@ target_sources(ausaxs_core PRIVATE
 	"detail/GridExvFFT.cpp"
 	"detail/MasterHistogram.cpp"
 
+	"histogram_manager/IHistogramManager.cpp"
 	"histogram_manager/HistogramManager.cpp"
 	"histogram_manager/HistogramManagerFactory.cpp"
 	"histogram_manager/HistogramManagerMT.cpp"
@@ -50,6 +51,10 @@ target_sources(ausaxs_core PRIVATE
 	"scattering_model/ScatteringModelNoExv.cpp"
 	"scattering_model/ScatteringModelPoint.cpp"
 	"scattering_model/ScatteringModelSimple.cpp"
+	"scattering_model/amplitude/ScatteringAmplitude.cpp"
+	"scattering_model/amplitude/ScatteringAmplitudeFraser.cpp"
+	"scattering_model/amplitude/ScatteringAmplitudeSimple.cpp"
+	"scattering_model/amplitude/ScatteringAmplitudeVacuum.cpp"
 	"scattering_model/crysol/ScatteringModelCrysol.cpp"
 	"scattering_model/foxs/ScatteringModelFoXS.cpp"
 	"scattering_model/pepsi/ScatteringModelPepsi.cpp"

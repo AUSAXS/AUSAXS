@@ -5,6 +5,7 @@
 
 #include <hist/distribution/Distribution1D.h>
 #include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/ScatteringParameters.h>
 
 namespace ausaxs::hist {
     /**
@@ -53,11 +54,14 @@ namespace ausaxs::hist {
             ScatteringProfile get_profile_aw() const override;
             ScatteringProfile get_profile_ww() const override;
 
+            ScatteringParameters get_parameters() const override;
+
         protected:
             std::vector<double> debye_transform_direct(const std::vector<double>& q) const override;
 
         private:
             mutable struct {Distribution1D aa, aw, ww;} distance_profiles;
+            double cw = 1; // the water scaling factor last applied
 
             ScatteringProfile transform_counts_gaussian(std::span<const double> counts) const;
     };

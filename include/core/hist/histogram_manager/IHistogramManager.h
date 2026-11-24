@@ -32,5 +32,11 @@ namespace ausaxs::hist {
 			 * @brief The type of this manager, such that the factory can construct another one like it. 
 			 */
 			virtual settings::hist::HistogramManagerChoice get_type() const = 0;
+
+			/**
+			 * @brief The orientationally averaged scattering amplitude of the molecule, the counterpart of the scattering model built by calculate_all().
+			 *        This does not calculate the distance histograms.
+			 */
+			virtual std::unique_ptr<ScatteringAmplitude> get_scattering_amplitude() const;
     };
 }

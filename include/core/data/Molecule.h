@@ -58,6 +58,11 @@ namespace ausaxs::data {
 			[[nodiscard]] std::unique_ptr<hist::DistanceHistogram> get_total_histogram() const;
 
 			/**
+			 * @brief Get the orientationally averaged scattering amplitude <A(q)> of this molecule and its hydration shell.
+			 */
+			[[nodiscard]] std::unique_ptr<hist::ScatteringAmplitude> get_scattering_amplitude() const;
+
+			/**
 			 * @brief Simulate a SAXS dataset based on this molecule.
 			 * 
 			 * @param add_noise Whether to add noise to the simulated dataset.

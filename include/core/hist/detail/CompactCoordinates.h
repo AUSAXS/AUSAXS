@@ -14,7 +14,7 @@
 #include <utility/observer_ptr.h>
 
 #include <algorithm>
-#include <numeric>
+#include <ranges>
 #include <type_traits>
 #include <vector>
 
@@ -69,6 +69,11 @@ namespace ausaxs::hist::detail {
 
             float get_weight(int i) const {return _w[i];}
             float& get_weight(int i) {return _w[i];}
+
+            /**
+             * @brief Give every entry the weight @a w.
+             */
+            void set_weights(float w) {std::ranges::fill(_w, w);}
 
             float x(int i) const {return _x[i];}
             float y(int i) const {return _y[i];}
@@ -163,7 +168,7 @@ inline void ausaxs::hist::detail::CompactCoordinates::shuffle_order() {
     // one permutation applied to every component, so an atom stays intact
     int n = size();
     std::vector<int> perm(n);
-    std::iota(perm.begin(), perm.end(), 0);
+    std::ranges::copy(std::views::iota(0, n), perm.begin());
     std::shuffle(perm.begin(), perm.end(), random::generator());
 
     auto permute = [&perm, n] (auto& v) {

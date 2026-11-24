@@ -7,6 +7,8 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <utility/observer_ptr.h>
 
+#include <vector>
+
 /**
  * @brief The effective charge excluded volume approximation of settings::exv::ExvMethod::Simple.
  */
@@ -26,4 +28,11 @@ namespace ausaxs::hist::detail::simple_exv {
 	 * @param volume_per_atom The excluded volume per atom, see get_volume_per_atom.
 	 */
 	void apply(hist::detail::CompactCoordinates& data_a, double volume_per_atom);
+
+	/**
+	 * @brief The weight of each active form factor type in the Simple model: its charge less the displaced charge per atom.
+	 *
+	 * @param molecule The molecule to use for the excluded volume calculation.
+	 */
+	std::vector<double> get_type_weights(observer_ptr<const data::Molecule> molecule);
 }

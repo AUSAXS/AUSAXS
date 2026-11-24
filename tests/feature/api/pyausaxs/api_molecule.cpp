@@ -3,6 +3,11 @@
 #include <api/ObjectStorage.h>
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
+#include <data/Molecule.h>
+#include <hist/ScatteringProfile.h>
+#include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
+#include <math/Vector3.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Random.h>
 
@@ -59,53 +64,77 @@ TEST_CASE("molecule_distance_histogram: UNKNOWN form factors with Fraser exv mod
     CHECK(error_str.find("UNKNOWN form factor") != std::string::npos);
 }
 
-// The q values returned alongside a profile must be the ones the profile was computed at, also when qmin is raised.
-TEST_CASE("molecule_debye: q axis honours qmin") {
-    // a small deterministic cluster; the Simple path is enough since only the q labelling is under test
-    std::vector<double> x, y, z, w;
-    for (int i = 0; i < 40; ++i) {
-        x.push_back(7*std::sin(1.3*i)); y.push_back(5*std::cos(0.7*i)); z.push_back(0.4*i - 8); w.push_back(6);
-    }
+// end-to-end: with non-default settings, the profile functions without q values lie on get_q_axis, and each returns the profile of the
+// molecule's own scattering model or amplitude. The values themselves are verified by the tests of the core library.
+TEST_CASE("profile functions with user settings") {
     int status = 1;
-    int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), static_cast<int>(x.size()), &status);
+    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
     REQUIRE(status == 0);
-
-    double qmin = GENERATE(1e-4, 0.05, 0.2);
-    settings::axes::qmin = qmin;
-    settings::axes::qmax = 0.5;
-
-    // each profile is compared against its own _userq variant
-    double *q, *I, *q_raw, *I_raw, *q_ex, *I_ex;
-    int n = 0, n_raw = 0, n_ex = 0;
-    molecule_debye(mol, &q, &I, &n, &status);
+    molecule_hydrate(mol, &status);
     REQUIRE(status == 0);
-    std::vector<double> I_user(n);
-    molecule_debye_userq(mol, q, I_user.data(), n, &status);
-    REQUIRE(status == 0);
-
-    molecule_debye_raw(mol, &q_raw, &I_raw, &n_raw, &status);
-    REQUIRE(status == 0);
-    std::vector<double> I_raw_user(n_raw);
-    molecule_debye_raw_userq(mol, q_raw, I_raw_user.data(), n_raw, &status);
-    REQUIRE(status == 0);
-
-    molecule_debye_exact(mol, &q_ex, &I_ex, &n_ex, &status);
-    REQUIRE(status == 0);
-
-    // all three families report the same q grid, starting at qmin
-    REQUIRE(n == n_ex);
-    REQUIRE(n_raw == n_ex);
-    CHECK_THAT(q[0], Catch::Matchers::WithinAbs(qmin, 5e-3));
-    for (int i = 0; i < n; ++i) {
-        CHECK_THAT(q[i], Catch::Matchers::WithinAbs(q_ex[i], 1e-12));
-        CHECK_THAT(q_raw[i], Catch::Matchers::WithinAbs(q_ex[i], 1e-12));
+    for (auto [key, value] : std::array<std::array<const char*, 2>, 3>{{{"exv_model", "fraser"}, {"qmin", "0.05"}, {"qmax", "0.4"}}}) {
+        set_setting(key, value, &status);
+        REQUIRE(status == 0);
     }
 
-    // evaluating a profile at its own q values reproduces it
-    for (int i = 0; i < n; ++i) {
-        CHECK_THAT(I_user[i], Catch::Matchers::WithinRel(I[i], 1e-6));
-        CHECK_THAT(I_raw_user[i], Catch::Matchers::WithinRel(I_raw[i], 1e-6));
-    }
+    // the references are taken first, since the raw profiles rebuild the histogram manager with their own settings
+    std::array<double, 3> centre = {50, 0, 0};
+    auto& molecule = api::ObjectStorage::get<data::Molecule>(mol, "molecule");
+    auto I_ref = molecule.get_histogram()->debye_transform();
+    auto q_ref = I_ref.get_axis().as_vector();
+    auto A_centroid_ref = molecule.get_scattering_amplitude()->evaluate(q_ref);
+    auto A_centre_ref = molecule.get_scattering_amplitude()->evaluate(q_ref, Vector3<double>(centre[0], centre[1], centre[2]));
+
+    const double* q;
+    int n = 0;
+    get_q_axis(&q, &n, &status);
+    REQUIRE(status == 0);
+    REQUIRE(n == static_cast<int>(q_ref.size()));
+    for (int k = 0; k < n; ++k) {CHECK_THAT(q[k], Catch::Matchers::WithinRel(q_ref[k], 1e-12));}
+    std::vector<double> q_user(q, q + n);
+
+    auto check = [n] (const double* profile, int n_profile, const std::vector<double>& ref) {
+        REQUIRE(n_profile == n);
+        for (int k = 0; k < n; ++k) {CHECK_THAT(profile[k], Catch::Matchers::WithinRel(ref[k], 1e-6));}
+    };
+
+    double *I, *A, *I_beta, *A_beta;
+    int n_out = 0;
+    molecule_debye(mol, &I, &n_out, &status);
+    REQUIRE(status == 0);
+    check(I, n_out, I_ref.get_intensity());
+
+    molecule_amplitude_centroid(mol, &A, &n_out, &status);
+    REQUIRE(status == 0);
+    check(A, n_out, A_centroid_ref);
+    std::vector<double> A_user(n);
+    molecule_amplitude_centroid_userq(mol, q_user.data(), A_user.data(), n, &status);
+    REQUIRE(status == 0);
+    check(A_user.data(), n, A_centroid_ref);
+
+    molecule_amplitude(mol, centre.data(), &A, &n_out, &status);
+    REQUIRE(status == 0);
+    check(A, n_out, A_centre_ref);
+    molecule_amplitude_userq(mol, centre.data(), q_user.data(), A_user.data(), n, &status);
+    REQUIRE(status == 0);
+    check(A_user.data(), n, A_centre_ref);
+
+    molecule_beta_centroid(mol, &I_beta, &A_beta, &n_out, &status);
+    REQUIRE(status == 0);
+    check(I_beta, n_out, I_ref.get_intensity());
+    check(A_beta, n_out, A_centroid_ref);
+    molecule_beta(mol, centre.data(), &I_beta, &A_beta, &n_out, &status);
+    REQUIRE(status == 0);
+    check(I_beta, n_out, I_ref.get_intensity());
+    check(A_beta, n_out, A_centre_ref);
+
+    // the raw and exact profiles follow other paths; only their axis is checked here
+    molecule_debye_raw(mol, &I, &n_out, &status);
+    REQUIRE(status == 0);
+    CHECK(n_out == n);
+    molecule_debye_exact(mol, &I, &n_out, &status);
+    REQUIRE(status == 0);
+    CHECK(n_out == n);
 }
 
 TEST_CASE("molecule_distance_histogram_raw: weight products without excluded volume") {
@@ -195,9 +224,9 @@ TEST_CASE("object ids: an object of the wrong type is refused") {
         CHECK(status != 0);
         iterative_fit_init(not_molecule, &status);
         CHECK(status != 0);
-        double *q = nullptr, *I = nullptr;
+        double* I = nullptr;
         int n = 0;
-        molecule_debye_exact(not_molecule, &q, &I, &n, &status);
+        molecule_debye_exact(not_molecule, &I, &n, &status);
         CHECK(status != 0);
     }
     molecule_from_pdb_id(mol, &status);

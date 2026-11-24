@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <hist/HistFwd.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <utility/Limit.h>
 
@@ -74,5 +75,10 @@ namespace ausaxs::hist {
              * @brief Determine if the structure represented by this histogram is highly ordered.
              */
             bool is_highly_ordered() const override;
+
+            /**
+             * @brief The current values of the free parameters of this model. Models without free parameters return the defaults.
+             */
+            virtual ScatteringParameters get_parameters() const;
     };
 }

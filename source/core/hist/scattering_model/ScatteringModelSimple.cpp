@@ -51,6 +51,7 @@ Distribution1D& ScatteringModelSimple::get_ww_counts() {
 }
 
 void ScatteringModelSimple::apply_water_scaling_factor(double k) {
+    cw = k;
     for (int i = 0; i < p.size(); ++i) {p[i] = distance_profiles.aa.index(i) + k*distance_profiles.aw.index(i) + k*k*distance_profiles.ww.index(i);}
 }
 
@@ -89,3 +90,5 @@ ScatteringProfile ScatteringModelSimple::get_profile_aw() const {
 ScatteringProfile ScatteringModelSimple::get_profile_ww() const {
     return transform_counts_gaussian(get_ww_counts().get_content());
 }
+
+ScatteringParameters ScatteringModelSimple::get_parameters() const {return {.cw = cw};}

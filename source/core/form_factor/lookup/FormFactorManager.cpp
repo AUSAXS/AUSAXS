@@ -19,7 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <numeric>
+#include <ranges>
 
 using namespace ausaxs;
 using namespace ausaxs::form_factor;
@@ -236,8 +236,12 @@ observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_ta
     return active_tables.get();
 }
 
+const std::array<int, form_factor::total_ff_count>& manager::get_active_indices() {
+    return get_active_product_tables()->ff_indices;
+}
+
 std::vector<int> manager::get_active_mapping() {
-    auto ff_indices = get_active_product_tables()->ff_indices;
+    const auto& ff_indices = get_active_indices();
     std::vector<int> mapping(form_factor::total_ff_count, -1);
     for (int i = 0; i < form_factor::get_active_count(); ++i) {
         mapping[ff_indices[i]] = i;
@@ -281,7 +285,7 @@ void manager::use_form_factors(const data::Molecule& molecule) {
     ff_counts[static_cast<int>(form_factor::form_factor_t::OTHER)] = std::numeric_limits<int>::min();
 
     std::vector<int> ff_indices(form_factor::total_ff_count);
-    std::iota(ff_indices.begin(), ff_indices.end(), 0);
+    std::ranges::copy(std::views::iota(0, form_factor::total_ff_count), ff_indices.begin());
     std::ranges::stable_sort(ff_indices, std::greater{}, [&ff_counts] (int type) {return ff_counts[type];});
 
     // Drop the absent types. The sort above places EXCLUDED_VOLUME and WATER first (forced), then every type in descending order of abundance, and finally 

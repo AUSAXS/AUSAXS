@@ -4,9 +4,12 @@
 #include <hist/scattering_model/IScatteringModel.h>
 
 #include <hist/distribution/Distribution1D.h>
+#include <hist/scattering_model/ScatteringParameters.h>
 
 using namespace ausaxs;
 
 bool hist::IScatteringModel::is_highly_ordered() const {
     return DistanceHistogram::is_highly_ordered(get_aa_counts().get_content());
 }
+
+hist::ScatteringParameters hist::IScatteringModel::get_parameters() const {return {};}

@@ -14,6 +14,7 @@
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>
 #include <utility/MultiThreading.h>
@@ -205,6 +206,11 @@ template<bool weighted_bins, bool form_factors>
 void PartialHistogramManagerMTBase<weighted_bins, form_factors>::calc_ww(calculator_t calculator) {
     recalculate(id.ww);
     calculator->enqueue_calculate_self(this->coords_w, id.ww);
+}
+
+template<bool weighted_bins, bool form_factors>
+std::unique_ptr<ScatteringAmplitude> PartialHistogramManagerMTBase<weighted_bins, form_factors>::get_scattering_amplitude() const {
+    return hist::detail::make_scattering_amplitude<form_factors>(protein);
 }
 
 template<bool weighted_bins, bool form_factors>

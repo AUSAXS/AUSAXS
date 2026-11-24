@@ -13,6 +13,7 @@
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <io/Writer.h>
 #include <settings/All.h>
@@ -306,6 +307,10 @@ std::unique_ptr<hist::IScatteringModel> Molecule::get_histogram() const {
 std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
     if (auto_bins_allowed() && !auto_weighted_bins) {return get_histogram();} // the decision needs the atom-atom component
     return get_histogram_manager()->calculate();
+}
+
+std::unique_ptr<hist::ScatteringAmplitude> Molecule::get_scattering_amplitude() const {
+    return get_histogram_manager()->get_scattering_amplitude();
 }
 
 observer_ptr<grid::Grid> Molecule::get_grid() const {

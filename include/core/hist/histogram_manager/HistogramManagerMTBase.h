@@ -30,6 +30,8 @@ namespace ausaxs::hist {
 
 			settings::hist::HistogramManagerChoice get_type() const override;
 
+			std::unique_ptr<ScatteringAmplitude> get_scattering_amplitude() const override;
+
 		protected:
 			using Distributions = hist::detail::ManagerDistributions<weighted_bins, form_factors>;
 

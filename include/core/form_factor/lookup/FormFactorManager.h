@@ -83,6 +83,13 @@ namespace ausaxs::form_factor::manager {
     observer_ptr<const detail::ActiveTables> get_active_product_tables();
 
     /**
+     * @brief Get the form_factor_t index of each slot of the active form factor set. Slot i holds the scatterers of type get_active_indices()[i].
+     *        Only the first form_factor::get_active_count() slots are in use; the rest are OTHER.
+     *        Throws if no form factor selection has been made yet; see use_form_factors.
+     */
+    const std::array<int, form_factor::total_ff_count>& get_active_indices();
+
+    /**
      * @brief Get a mapping from form_factor_t enum index to active slot index.
      *        All form factors not in the active set are mapped to OTHER. 
      */

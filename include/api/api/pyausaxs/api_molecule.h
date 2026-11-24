@@ -53,7 +53,7 @@ extern "C" API int molecule_distance_histogram_raw(
  */
 extern "C" API int molecule_debye(
     int molecule_id,
-    double** q, double** I, int* n_points, 
+    double** I, int* n_points,
     int* status
 );
 
@@ -68,12 +68,70 @@ extern "C" API void molecule_debye_userq(
 );
 
 /**
+ * The orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, including its hydration shell if it has one.
+ * The amplitude is taken about centre, given as [x, y, z], which must be the reference point of the particles in the structure factor S(q). 
+ */
+extern "C" API int molecule_amplitude(
+    int molecule_id,
+    const double* centre,
+    double** A, int* n_points,
+    int* status
+);
+
+/**
+ * As molecule_amplitude, but taken about the centroid of the excess scattering length.
+ */
+extern "C" API int molecule_amplitude_centroid(
+    int molecule_id,
+    double** A, int* n_points,
+    int* status
+);
+
+/**
+ * As molecule_amplitude, but evaluated at the given q values.
+ */
+extern "C" API void molecule_amplitude_userq(
+    int molecule_id,
+    const double* centre,
+    double* q, double* A, int n_points,
+    int* status
+);
+
+/**
+ * As molecule_amplitude_centroid, but evaluated at the given q values.
+ */
+extern "C" API void molecule_amplitude_centroid_userq(
+    int molecule_id,
+    double* q, double* A, int n_points,
+    int* status
+);
+
+/**
+ * The beta(q) from the decoupling approximation.
+ */
+extern "C" API int molecule_beta(
+    int molecule_id,
+    const double* centre,
+    double** I, double** A, int* n_points,
+    int* status
+);
+
+/**
+ * As molecule_beta, but with the amplitude taken about the centroid of the excess scattering length.
+ */
+extern "C" API int molecule_beta_centroid(
+    int molecule_id,
+    double** I, double** A, int* n_points,
+    int* status
+);
+
+/**
  * The plain binned Debye sum of the atoms and any waters as point scatterers with their weights.
  * For the same sum with their atomic form factors, use molecule_debye with the excluded volume model "vacuum".
  */
 extern "C" API int molecule_debye_raw(
     int molecule_id,
-    double** q, double** I, int* n_points,
+    double** I, int* n_points,
     int* status
 );
 
@@ -92,7 +150,7 @@ extern "C" API void molecule_debye_raw_userq(
  */
 extern "C" API int molecule_debye_exact(
     int molecule_id,
-    double** q, double** I, int* n_points,
+    double** I, int* n_points,
     int* status
 );
 

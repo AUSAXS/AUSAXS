@@ -11,4 +11,6 @@ namespace ausaxs::hist {
     class Histogram;
     class Histogram2D;
     class ScatteringProfile;
+    class ScatteringAmplitude;
+    struct ScatteringParameters;
 }

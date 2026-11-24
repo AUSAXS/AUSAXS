@@ -46,6 +46,8 @@ namespace ausaxs::hist {
 			std::unique_ptr<IScatteringModel> calculate_all() override;
 			settings::hist::HistogramManagerChoice get_type() const override;
 
+			std::unique_ptr<ScatteringAmplitude> get_scattering_amplitude() const override;
+
 		protected:
 			int prepare_axis();
 
