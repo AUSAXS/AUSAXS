@@ -3,12 +3,11 @@
 
 #pragma once
 
+#include <hist/HistFwd.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <utility/Limit.h>
 
 namespace ausaxs::hist {
-    struct ScatteringParameters;
-
     /**
      * @brief Interface for a scattering model, which evaluates the distance histograms of a molecule together with
      *        its hydration model, and for IScatteringModelExv its excluded volume model, into the scattering intensity.
@@ -78,8 +77,7 @@ namespace ausaxs::hist {
             bool is_highly_ordered() const override;
 
             /**
-             * @brief The current values of the free parameters of this model, for example to evaluate a ScatteringAmplitude with fitted parameters.
-             *        Models without free parameters return the defaults.
+             * @brief The current values of the free parameters of this model. Models without free parameters return the defaults.
              */
             virtual ScatteringParameters get_parameters() const;
     };

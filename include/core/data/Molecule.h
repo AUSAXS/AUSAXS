@@ -59,9 +59,6 @@ namespace ausaxs::data {
 
 			/**
 			 * @brief Get the orientationally averaged scattering amplitude <A(q)> of this molecule and its hydration shell.
-			 *        This is the amplitude counterpart of the scattering model of get_histogram(): evaluate it with that model's 
-			 *        IScatteringModel::get_parameters() for the amplitude matching its intensity. Unlike get_histogram(), this does not 
-			 *        calculate the distance histograms, so it costs O(N).
 			 */
 			[[nodiscard]] std::unique_ptr<hist::ScatteringAmplitude> get_scattering_amplitude() const;
 
