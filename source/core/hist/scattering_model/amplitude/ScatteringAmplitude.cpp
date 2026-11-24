@@ -16,22 +16,21 @@ using namespace ausaxs::hist;
 
 namespace {
     /**
-     * @brief The weights of a group of scatterers, binned by their distance from a centre. Each bin keeps the mean distance of its scatterers.
-     *        Only the occupied bins are kept.
+     * @brief The terms w_i sinc(q r_i) of the amplitude sum of one group, with its scatterers merged into thin shells about the centre.
      */
-    struct BinnedDistances {
+    struct SincTerms {
         std::vector<double> weights, distances;
     };
 
-    BinnedDistances bin_distances(const hist::detail::CompactCoordinates& coords, const Vector3<double>& centre) {
+    SincTerms make_sinc_terms(const hist::detail::CompactCoordinates& coords, const Vector3<double>& centre) {
         constexpr double width = constants::axes::d_axis.width();
 
         // the bins are weighted by the absolute weights, so a bin of mixed signs still has its mean distance inside it
         std::vector<double> w, abs_w, abs_wr;
         for (int i = 0; i < coords.size(); ++i) {
-            double r = Vector3<double>(coords.x(i), coords.y(i), coords.z(i)).distance(centre);
-            auto bin = static_cast<std::size_t>(r/width);
-            if (w.size() <= bin) {
+            double r = Vector3<double>{coords.x(i), coords.y(i), coords.z(i)}.distance(centre);
+            auto bin = static_cast<int>(r/width);
+            if (static_cast<int>(w.size()) <= bin) { // grow the vectors to accommodate the new bin
                 w.resize(bin+1, 0);
                 abs_w.resize(bin+1, 0);
                 abs_wr.resize(bin+1, 0);
@@ -42,9 +41,9 @@ namespace {
             abs_wr[bin] += std::abs(weight)*r;
         }
 
-        BinnedDistances res;
-        for (std::size_t bin = 0; bin < w.size(); ++bin) {
-            if (abs_w[bin] == 0) {continue;}
+        SincTerms res;
+        for (int bin = 0; bin < static_cast<int>(w.size()); ++bin) {
+            if (abs_w[bin] == 0) {continue;} // an empty bin adds nothing, and has no mean distance
             res.weights.emplace_back(w[bin]);
             res.distances.emplace_back(abs_wr[bin]/abs_w[bin]);
         }
@@ -58,9 +57,9 @@ std::vector<double> ScatteringAmplitude::evaluate(
     const std::vector<double>& q, const std::optional<Vector3<double>>& centre, const ScatteringParameters& params
 ) const {
     auto origin = centre.has_value() ? *centre : default_centre(params);
-    std::vector<BinnedDistances> bins;
-    bins.reserve(groups.size());
-    for (const auto& group : groups) {bins.emplace_back(bin_distances(group, origin));}
+    std::vector<SincTerms> terms;
+    terms.reserve(groups.size());
+    for (const auto& group : groups) {terms.emplace_back(make_sinc_terms(group, origin));}
 
     // the form factors are evaluated up front, since they are not required to be thread-safe
     const auto f = get_excess_form_factors(q, params);
@@ -71,13 +70,12 @@ std::vector<double> ScatteringAmplitude::evaluate(
 
     std::vector<double> A(q.size(), 0);
     auto* pool = utility::multi_threading::get_global_pool();
-    pool->detach_blocks(0, static_cast<int>(q.size()), [&q, &f, &bins, &A] (int start, int end) {
+    pool->detach_blocks(0, static_cast<int>(q.size()), [&q, &f, &terms, &A] (int start, int end) {
         for (int k = start; k < end; ++k) {
-            for (int g = 0; g < static_cast<int>(bins.size()); ++g) {
-                if (f(g, k) == 0) {continue;}
-                const auto& b = bins[g];
+            for (int g = 0; g < static_cast<int>(terms.size()); ++g) {
+                const auto& t = terms[g];
                 double sum = 0;
-                for (std::size_t i = 0; i < b.distances.size(); ++i) {sum += b.weights[i]*math::sinc(q[k]*b.distances[i]);}
+                for (int i = 0; i < static_cast<int>(t.distances.size()); ++i) {sum += t.weights[i]*math::sinc(q[k]*t.distances[i]);}
                 A[k] += f(g, k)*sum;
             }
         }
@@ -99,6 +97,6 @@ Vector3<double> ScatteringAmplitude::default_centre(const ScatteringParameters& 
             total += w;
         }
     }
-    if (total == 0) {throw except::invalid_argument("ScatteringAmplitude::default_centre: The molecule has no contrast.");}
+    assert(total != 0 && "ScatteringAmplitude::default_centre: The molecule has no contrast.");
     return sum/total;
 }
