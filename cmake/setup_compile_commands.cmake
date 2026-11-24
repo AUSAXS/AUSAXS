@@ -94,7 +94,7 @@ function(setup_compile_commands)
         # (AMD64, ARM64), which differs from the target in a cross-compile or an emulated CMake on an ARM host.
         string(TOLOWER "${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" _msvc_target)
         if (_msvc_target STREQUAL "x64")
-            set(MARCH_FLAG /arch:AVX)
+            set(MARCH_FLAG /arch:AVX2)
         elseif (_msvc_target STREQUAL "arm64")
             set(MARCH_FLAG /arch:armv8.0)
         else()
