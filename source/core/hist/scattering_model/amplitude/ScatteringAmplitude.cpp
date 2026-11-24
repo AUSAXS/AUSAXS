@@ -65,8 +65,8 @@ std::vector<double> ScatteringAmplitude::evaluate(
     // the form factors are evaluated up front, since they are not required to be thread-safe
     std::vector<std::vector<double>> f(q.size());
     for (std::size_t k = 0; k < q.size(); ++k) {
-        f[k] = form_factors(q[k], params);
-        assert(f[k].size() == groups.size() && "ScatteringAmplitude::evaluate: form_factors must return one value per group.");
+        f[k] = get_excess_form_factors(q[k], params);
+        assert(f[k].size() == groups.size() && "ScatteringAmplitude::evaluate: get_excess_form_factors must return one value per group.");
     }
 
     std::vector<double> A(q.size(), 0);
@@ -87,8 +87,8 @@ std::vector<double> ScatteringAmplitude::evaluate(
 }
 
 Vector3<double> ScatteringAmplitude::default_centre(const ScatteringParameters& params) const {
-    auto f0 = form_factors(0, params);
-    assert(f0.size() == groups.size() && "ScatteringAmplitude::default_centre: form_factors must return one value per group.");
+    auto f0 = get_excess_form_factors(0, params);
+    assert(f0.size() == groups.size() && "ScatteringAmplitude::default_centre: get_excess_form_factors must return one value per group.");
     Vector3<double> sum{0, 0, 0};
     double total = 0;
     for (std::size_t g = 0; g < groups.size(); ++g) {

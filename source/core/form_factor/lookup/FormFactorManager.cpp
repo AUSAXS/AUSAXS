@@ -236,8 +236,12 @@ observer_ptr<const manager::detail::ActiveTables> manager::get_active_product_ta
     return active_tables.get();
 }
 
+const std::array<int, form_factor::total_ff_count>& manager::get_active_indices() {
+    return get_active_product_tables()->ff_indices;
+}
+
 std::vector<int> manager::get_active_mapping() {
-    auto ff_indices = get_active_product_tables()->ff_indices;
+    const auto& ff_indices = get_active_indices();
     std::vector<int> mapping(form_factor::total_ff_count, -1);
     for (int i = 0; i < form_factor::get_active_count(); ++i) {
         mapping[ff_indices[i]] = i;

@@ -19,6 +19,6 @@ namespace ausaxs::hist {
             ScatteringAmplitudeSimple(detail::CompactCoordinates&& atoms, detail::CompactCoordinates&& waters);
 
         protected:
-            std::vector<double> form_factors(double q, const ScatteringParameters& params) const override;
+            std::vector<double> get_excess_form_factors(double q, const ScatteringParameters& params) const override;
     };
 }

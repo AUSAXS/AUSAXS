@@ -47,9 +47,9 @@ namespace ausaxs::hist {
             explicit ScatteringAmplitude(std::vector<detail::CompactCoordinates>&& groups);
 
             /**
-             * @brief The form factor f_k(q) of each group k of scatterers with the model parameters @a params.
+             * @brief The excess form factor f_k(q) of each group k of scatterers with the model parameters @a params.
              */
-            virtual std::vector<double> form_factors(double q, const ScatteringParameters& params) const = 0;
+            virtual std::vector<double> get_excess_form_factors(double q, const ScatteringParameters& params) const = 0;
 
         private:
             std::vector<detail::CompactCoordinates> groups;

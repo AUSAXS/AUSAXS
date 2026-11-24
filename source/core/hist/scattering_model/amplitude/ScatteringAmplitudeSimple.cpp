@@ -21,7 +21,7 @@ namespace {
 ScatteringAmplitudeSimple::ScatteringAmplitudeSimple(hist::detail::CompactCoordinates&& atoms, hist::detail::CompactCoordinates&& waters)
     : ScatteringAmplitude(make_groups(std::move(atoms), std::move(waters))) {}
 
-std::vector<double> ScatteringAmplitudeSimple::form_factors(double q, const ScatteringParameters& params) const {
+std::vector<double> ScatteringAmplitudeSimple::get_excess_form_factors(double q, const ScatteringParameters& params) const {
     double f = std::exp(-0.5*q*q);
     return {f, params.cw*f};
 }

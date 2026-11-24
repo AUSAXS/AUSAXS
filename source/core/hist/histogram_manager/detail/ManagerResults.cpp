@@ -15,7 +15,7 @@
 #include <hist/distribution/Distribution3D.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
 #include <hist/scattering_model/amplitude/ScatteringAmplitudeFraser.h>
-#include <hist/scattering_model/amplitude/ScatteringAmplitudeNoExv.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitudeVacuum.h>
 #include <hist/scattering_model/amplitude/ScatteringAmplitudeSimple.h>
 #include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelFraser.h>
@@ -111,7 +111,7 @@ std::unique_ptr<IScatteringModel> hist::detail::make_simple_model(
     // the plain managers weigh each atom by its charge less the displaced charge per atom. All atoms of a type share both, so the same
     // weights can be applied to the histogram of each type instead
     double displaced_charge = settings::internal_state::solvent_density()*simple_exv::get_volume_per_atom(protein);
-    const auto& ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
+    const auto& ff_indices = form_factor::manager::get_active_indices();
     int n_ff = form_factor::get_active_count();
     std::vector<double> w(n_ff);
     for (int ff = form_factor::start_index_for_explicit_exv(); ff < n_ff; ++ff) {
@@ -155,7 +155,7 @@ std::unique_ptr<ScatteringAmplitude> hist::detail::make_scattering_amplitude(obs
             case settings::exv::ExvMethod::Simple: {
                 // the weights per type of make_simple_model
                 double displaced_charge = simple ? settings::internal_state::solvent_density()*simple_exv::get_volume_per_atom(protein) : 0;
-                const auto& ff_indices = form_factor::manager::get_active_product_tables()->ff_indices;
+                const auto& ff_indices = form_factor::manager::get_active_indices();
                 auto charge = [&ff_indices] (int ff) {return constants::charge::get_ff_charge(static_cast<form_factor::form_factor_t>(ff_indices[ff]));};
                 CompactCoordinates weighted_atoms;
                 for (int ff = form_factor::start_index_for_explicit_exv(); ff < static_cast<int>(atoms.size()); ++ff) {
@@ -171,7 +171,7 @@ std::unique_ptr<ScatteringAmplitude> hist::detail::make_scattering_amplitude(obs
                 for (auto& c : atoms) {set_weights(c, 1);}
                 set_weights(waters, 1);
                 atoms[form_factor::water_bin].append(waters);
-                if (settings::exv::exv_method == settings::exv::ExvMethod::Vacuum) {return std::make_unique<ScatteringAmplitudeNoExv>(std::move(atoms));}
+                if (settings::exv::exv_method == settings::exv::ExvMethod::Vacuum) {return std::make_unique<ScatteringAmplitudeVacuum>(std::move(atoms));}
                 return std::make_unique<ScatteringAmplitudeFraser>(std::move(atoms));
 
             // we explicitly write each case to ensure we will get a compiler warning for new models in the future
