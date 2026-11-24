@@ -309,8 +309,8 @@ std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
     return get_histogram_manager()->calculate();
 }
 
-std::vector<double> Molecule::amplitude(const std::vector<double>& q, const std::optional<Vector3<double>>& centre) const {
-    return get_histogram_manager()->get_scattering_amplitude()->evaluate(q, centre);
+std::unique_ptr<hist::ScatteringAmplitude> Molecule::get_scattering_amplitude() const {
+    return get_histogram_manager()->get_scattering_amplitude();
 }
 
 observer_ptr<grid::Grid> Molecule::get_grid() const {

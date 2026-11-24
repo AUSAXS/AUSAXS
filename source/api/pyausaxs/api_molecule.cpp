@@ -258,13 +258,13 @@ namespace {
     int amplitude(int molecule_id, const Centre& centre, double** A, int* n_points) {
         auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
         molecule.reset_histogram_manager(); // as molecule_debye, so a changed configuration takes effect
-        return register_profile(molecule.amplitude(default_q_axis(), centre), A, n_points);
+        return register_profile(molecule.get_scattering_amplitude()->evaluate(default_q_axis(), centre), A, n_points);
     }
 
     void amplitude_userq(int molecule_id, const Centre& centre, const double* q, double* A, int n_points) {
         auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
         molecule.reset_histogram_manager();
-        std::ranges::copy(molecule.amplitude(std::vector<double>(q, q + n_points), centre), A);
+        std::ranges::copy(molecule.get_scattering_amplitude()->evaluate(std::vector<double>(q, q + n_points), centre), A);
     }
 
     int debye_amplitude(int molecule_id, const Centre& centre, double** I, double** A, int* n_points) {
@@ -274,7 +274,7 @@ namespace {
         auto debye_I = model->debye_transform();
         _molecule_debye_amplitude_obj data;
         data.I = debye_I.get_intensity();
-        data.A = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(debye_I.get_axis().as_vector(), centre, model->get_parameters());
+        data.A = molecule.get_scattering_amplitude()->evaluate(debye_I.get_axis().as_vector(), centre, model->get_parameters());
         int data_id = api::ObjectStorage::register_object(std::move(data));
         auto* ref = api::ObjectStorage::get_object<_molecule_debye_amplitude_obj>(data_id);
         *I = ref->I.data();
