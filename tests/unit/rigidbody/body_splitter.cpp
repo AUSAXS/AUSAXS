@@ -2,6 +2,11 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <data/atoms/AtomFF.h>
+#include <data/atoms/AtomMetadata.h>
+#include <io/Reader.h>
+#include <io/pdb/PDBAtom.h>
+#include <io/pdb/PDBStructure.h>
 #include <rigidbody/BodySplitter.h>
 #include <settings/All.h>
 
@@ -46,5 +51,121 @@ TEST_CASE("BodySplitter::split by chain") {
         for (int i = 0; i < molecule.size_body(); ++i) {
             CHECK(molecule.get_body(i).size_atom() > 0);
         }
+    }
+}
+
+TEST_CASE("BodySplitter::split: bodies start at the split residues") {
+    settings::general::verbose = false;
+
+    auto test_splits = [] (std::string_view file, const std::vector<int>& splits) {
+        data::Molecule protein = rigidbody::BodySplitter::split(file, splits);
+        io::pdb::PDBStructure data = io::Reader::read(file);
+        REQUIRE(protein.size_atom() == static_cast<int>(data.atoms.size()));
+        
+        std::vector<int> expected_sizes;
+        int count = 0;
+        for (int split = 0, i = 0; i < protein.size_atom(); ++i) {
+            auto& ap = data.atoms[i];
+            if (split < static_cast<int>(splits.size()) && ap.resSeq == splits[split]) {
+                expected_sizes.push_back(count);
+                ++split;
+                count = 1;
+            } else {
+                ++count;
+            }
+        }
+        expected_sizes.push_back(count);
+
+        REQUIRE(protein.size_body() == static_cast<int>(expected_sizes.size()));
+        int index = 0;
+        for (int i = 0; i < static_cast<int>(expected_sizes.size()); ++i) {
+            auto& atoms = protein.get_body(i).get_atoms();
+            REQUIRE(static_cast<int>(atoms.size()) == expected_sizes[i]);
+
+            if (1 <= i) {
+                CHECK(data.atoms[index].resSeq == splits[i-1]);
+            }
+            if (i < static_cast<int>(splits.size())) {
+                CHECK(data.atoms[index+expected_sizes[i]-1].resSeq == splits[i]-1);
+            }
+            index += expected_sizes[i];
+        }
+    };
+
+    SECTION("LAR1-2") {
+        SECTION("1 split") {
+            test_splits("tests/files/LAR1-2.pdb", {9});
+        }
+
+        SECTION("2 splits") {
+            test_splits("tests/files/LAR1-2.pdb", {9, 99});
+        }
+
+        SECTION("many splits") {
+            test_splits("tests/files/LAR1-2.pdb", {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 200});
+        }
+    }
+
+    SECTION("2epe") {
+        SECTION("1 split") {
+            test_splits("tests/files/2epe.pdb", {10});
+        }
+
+        SECTION("2 splits") {
+            test_splits("tests/files/2epe.pdb", {10, 50});
+        }
+
+        SECTION("many splits") {
+            test_splits("tests/files/2epe.pdb", {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100});
+        }
+    }
+
+    SECTION("SASDJG5") {
+        SECTION("1 split") {
+            test_splits("tests/files/SASDJG5.pdb", {10});
+        }
+
+        SECTION("2 splits") {
+            test_splits("tests/files/SASDJG5.pdb", {10, 50});
+        }
+
+        SECTION("many splits") {
+            test_splits("tests/files/SASDJG5.pdb", {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100});
+        }
+
+        SECTION("by chain") {
+            data::Molecule protein = rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb");
+            REQUIRE(protein.size_body() == 2);
+            REQUIRE(protein.get_body(0).size_atom() == 2367);
+            REQUIRE(protein.get_body(1).size_atom() == 2367);
+        }
+    }
+
+    SECTION("throws for splits that would produce an empty body") {
+        // splitting at the first residue leaves nothing before it, and one past the last leaves nothing after it
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1}));
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {307}));
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1, 307}));
+    }
+
+    SECTION("throws for smaller & larger splits than min/max res id") {
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {-1}));
+        REQUIRE_THROWS(rigidbody::BodySplitter::split("tests/files/SASDJG5.pdb", {1000}));
+    }
+
+    SECTION("throws for splits landing in a gap in the residue numbering") {
+        // residues 1-3 and 10-12, i.e. an unresolved loop between them, as is common in experimental structures
+        std::vector<data::AtomFF> atoms;
+        data::AtomMetadata md;
+        md.residue_seq.emplace();
+        for (int r : {1, 2, 3, 10, 11, 12}) {
+            atoms.emplace_back(Vector3<double>(r, 0, 0), form_factor::form_factor_t::C);
+            md.residue_seq->push_back(r);
+        }
+        data::Body body(atoms, std::vector<data::Water>{});
+        body.set_metadata(md);
+
+        REQUIRE_NOTHROW(rigidbody::BodySplitter::split(body, {10}));
+        REQUIRE_THROWS(rigidbody::BodySplitter::split(body, {5}));
     }
 }
