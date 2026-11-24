@@ -242,11 +242,11 @@ TEST_CASE("molecule_debye_amplitude: agrees with molecule_debye and molecule_amp
 
     double *I, *A, *I_sep, *A_sep;
     int n = 0, n_I = 0, n_A = 0;
-    molecule_debye_amplitude(mol, nullptr, &I, &A, &n, &status);
+    molecule_debye_amplitude_centroid(mol, &I, &A, &n, &status);
     REQUIRE(status == 0);
     molecule_debye(mol, &I_sep, &n_I, &status);
     REQUIRE(status == 0);
-    molecule_amplitude(mol, nullptr, &A_sep, &n_A, &status);
+    molecule_amplitude_centroid(mol, &A_sep, &n_A, &status);
     REQUIRE(status == 0);
 
     const double* q_axis;
@@ -270,4 +270,24 @@ TEST_CASE("molecule_debye_amplitude: agrees with molecule_debye and molecule_amp
     molecule_amplitude_userq(mol, centre.data(), q.data(), A_shifted.data(), n, &status);
     REQUIRE(status == 0);
     CHECK(A_shifted[1] < 0.999*A[1]);
+
+    // the variants with and without q values, and with and without the intensity, agree for a given centre
+    double *A_c, *I_c, *A_c_joint;
+    int n_c = 0, n_c_joint = 0;
+    molecule_amplitude(mol, centre.data(), &A_c, &n_c, &status);
+    REQUIRE(status == 0);
+    molecule_debye_amplitude(mol, centre.data(), &I_c, &A_c_joint, &n_c_joint, &status);
+    REQUIRE(status == 0);
+    std::vector<double> A_centroid_user(n);
+    molecule_amplitude_centroid_userq(mol, q.data(), A_centroid_user.data(), n, &status);
+    REQUIRE(status == 0);
+
+    REQUIRE(n_c == n);
+    REQUIRE(n_c_joint == n);
+    for (int i = 0; i < n; ++i) {
+        CHECK_THAT(A_c[i], Catch::Matchers::WithinRel(A_shifted[i], 1e-9));
+        CHECK_THAT(A_c_joint[i], Catch::Matchers::WithinRel(A_shifted[i], 1e-9));
+        CHECK_THAT(I_c[i], Catch::Matchers::WithinRel(I[i], 1e-9));
+        CHECK_THAT(A_centroid_user[i], Catch::Matchers::WithinRel(A[i], 1e-9));
+    }
 }

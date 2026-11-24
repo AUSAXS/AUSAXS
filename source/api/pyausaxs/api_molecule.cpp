@@ -249,61 +249,66 @@ void molecule_debye_userq(
 }, status);}
 
 namespace {
-    std::optional<Vector3<double>> to_centre(const double* centre) {
-        if (centre == nullptr) {return std::nullopt;}
-        return Vector3<double>(centre[0], centre[1], centre[2]);
-    }
-}
+    using Centre = std::optional<Vector3<double>>; // nullopt: the centroid of the excess scattering length
 
-int molecule_amplitude(
-    int molecule_id,
-    const double* centre,
-    double** A, int* n_points,
-    int* status
-) {return execute_with_catch([&]() {
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    molecule.reset_histogram_manager(); // as molecule_debye, so a changed configuration takes effect
-    return register_profile(molecule.amplitude(default_q_axis(), to_centre(centre)), A, n_points);
-}, status);}
-
-void molecule_amplitude_userq(
-    int molecule_id,
-    const double* centre,
-    double* q, double* A, int n_points,
-    int* status
-) {execute_with_catch([&]() {
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    molecule.reset_histogram_manager();
-    auto Aq = molecule.amplitude(std::vector<double>(q, q + n_points), to_centre(centre));
-    std::ranges::copy(Aq, A);
-}, status);}
-
-namespace {
     struct _molecule_debye_amplitude_obj {
         std::vector<double> I, A;
     };
+
+    int amplitude(int molecule_id, const Centre& centre, double** A, int* n_points) {
+        auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+        molecule.reset_histogram_manager(); // as molecule_debye, so a changed configuration takes effect
+        return register_profile(molecule.amplitude(default_q_axis(), centre), A, n_points);
+    }
+
+    void amplitude_userq(int molecule_id, const Centre& centre, const double* q, double* A, int n_points) {
+        auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+        molecule.reset_histogram_manager();
+        std::ranges::copy(molecule.amplitude(std::vector<double>(q, q + n_points), centre), A);
+    }
+
+    int debye_amplitude(int molecule_id, const Centre& centre, double** I, double** A, int* n_points) {
+        auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
+        molecule.reset_histogram_manager();
+        auto model = molecule.get_histogram();
+        auto debye_I = model->debye_transform();
+        _molecule_debye_amplitude_obj data;
+        data.I = debye_I.get_intensity();
+        data.A = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(debye_I.get_axis().as_vector(), centre, model->get_parameters());
+        int data_id = api::ObjectStorage::register_object(std::move(data));
+        auto* ref = api::ObjectStorage::get_object<_molecule_debye_amplitude_obj>(data_id);
+        *I = ref->I.data();
+        *A = ref->A.data();
+        *n_points = static_cast<int>(ref->I.size());
+        return data_id;
+    }
+
+    Vector3<double> to_centre(const double* centre) {return {centre[0], centre[1], centre[2]};}
 }
 
-int molecule_debye_amplitude(
-    int molecule_id,
-    const double* centre,
-    double** I, double** A, int* n_points,
-    int* status
-) {return execute_with_catch([&]() {
-    auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    molecule.reset_histogram_manager();
-    auto model = molecule.get_histogram();
-    auto debye_I = model->debye_transform();
-    _molecule_debye_amplitude_obj data;
-    data.I = debye_I.get_intensity();
-    data.A = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(debye_I.get_axis().as_vector(), to_centre(centre), model->get_parameters());
-    int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto* ref = api::ObjectStorage::get_object<_molecule_debye_amplitude_obj>(data_id);
-    *I = ref->I.data();
-    *A = ref->A.data();
-    *n_points = static_cast<int>(ref->I.size());
-    return data_id;
-}, status);}
+int molecule_amplitude(int molecule_id, const double* centre, double** A, int* n_points, int* status) {
+    return execute_with_catch([&]() {return amplitude(molecule_id, to_centre(centre), A, n_points);}, status);
+}
+
+int molecule_amplitude_centroid(int molecule_id, double** A, int* n_points, int* status) {
+    return execute_with_catch([&]() {return amplitude(molecule_id, std::nullopt, A, n_points);}, status);
+}
+
+void molecule_amplitude_userq(int molecule_id, const double* centre, double* q, double* A, int n_points, int* status) {
+    execute_with_catch([&]() {amplitude_userq(molecule_id, to_centre(centre), q, A, n_points);}, status);
+}
+
+void molecule_amplitude_centroid_userq(int molecule_id, double* q, double* A, int n_points, int* status) {
+    execute_with_catch([&]() {amplitude_userq(molecule_id, std::nullopt, q, A, n_points);}, status);
+}
+
+int molecule_debye_amplitude(int molecule_id, const double* centre, double** I, double** A, int* n_points, int* status) {
+    return execute_with_catch([&]() {return debye_amplitude(molecule_id, to_centre(centre), I, A, n_points);}, status);
+}
+
+int molecule_debye_amplitude_centroid(int molecule_id, double** I, double** A, int* n_points, int* status) {
+    return execute_with_catch([&]() {return debye_amplitude(molecule_id, std::nullopt, I, A, n_points);}, status);
+}
 
 namespace {
 hist::ScatteringModelPoint raw_histogram(int molecule_id) {

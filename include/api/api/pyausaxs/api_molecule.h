@@ -71,11 +71,20 @@ extern "C" API void molecule_debye_userq(
 /**
  * The orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, including its hydration shell if it has one.
  * The amplitude is taken about centre, given as [x, y, z], which must be the reference point of the particles in the structure factor S(q). 
- * If centre is null, the centroid of the excess scattering length is used. Evaluated on the default q axis, see get_q_axis.
+ * Evaluated on the default q axis, see get_q_axis.
  */
 extern "C" API int molecule_amplitude(
     int molecule_id,
     const double* centre,
+    double** A, int* n_points,
+    int* status
+);
+
+/**
+ * As molecule_amplitude, but taken about the centroid of the excess scattering length.
+ */
+extern "C" API int molecule_amplitude_centroid(
+    int molecule_id,
     double** A, int* n_points,
     int* status
 );
@@ -91,6 +100,15 @@ extern "C" API void molecule_amplitude_userq(
 );
 
 /**
+ * As molecule_amplitude_centroid, but evaluated at the given q values.
+ */
+extern "C" API void molecule_amplitude_centroid_userq(
+    int molecule_id,
+    double* q, double* A, int n_points,
+    int* status
+);
+
+/**
  * The Debye intensity I(q) and the orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, both on the default 
  * q axis (see get_q_axis) and from a single histogram calculation. This is cheaper than molecule_debye followed by molecule_amplitude.
  * beta(q) = A(q)^2 / I(q). The centre is as in molecule_amplitude.
@@ -98,6 +116,15 @@ extern "C" API void molecule_amplitude_userq(
 extern "C" API int molecule_debye_amplitude(
     int molecule_id,
     const double* centre,
+    double** I, double** A, int* n_points,
+    int* status
+);
+
+/**
+ * As molecule_debye_amplitude, but with the amplitude taken about the centroid of the excess scattering length.
+ */
+extern "C" API int molecule_debye_amplitude_centroid(
+    int molecule_id,
     double** I, double** A, int* n_points,
     int* status
 );
