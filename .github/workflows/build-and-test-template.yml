@@ -75,14 +75,31 @@ jobs:
           python scripts/run_clang_tidy.py --summary="$GITHUB_STEP_SUMMARY" $files
 
   build-win:
-    name: "Windows MSVC"
+    name: ${{ matrix.name }}
     needs: check-sources
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: "Windows MSVC"
+            arch: x64
+            triplet: x64-windows-static
+            artifact: windows-binaries
+
+          - os: windows-11-arm
+            name: "Windows ARM64 MSVC"
+            arch: arm64
+            triplet: arm64-windows-static
+            artifact: windows-arm64-binaries
     env:
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/AUSAXS/index.json,${{ inputs.package_permission && 'readwrite' || 'read' }}"
     steps:
       - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
 
       # pinned so the build does not float on the vcpkg bundled with the runner image
       - uses: lukka/run-vcpkg@v11
@@ -99,7 +116,7 @@ jobs:
       - name: Install dependencies
         shell: pwsh
         run: |
-          & "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\vcpkg.exe" install curl --triplet x64-windows-static
+          & "${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\vcpkg.exe" install curl --triplet ${{ matrix.triplet }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           choco install ninja
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -113,7 +130,7 @@ jobs:
             -DCMAKE_C_COMPILER=cl \
             -DCMAKE_CXX_COMPILER=cl \
             -DCMAKE_TOOLCHAIN_FILE="${{ steps.vcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}\scripts\buildsystems\vcpkg.cmake" \
-            -DVCPKG_TARGET_TRIPLET="x64-windows-static" \
+            -DVCPKG_TARGET_TRIPLET="${{ matrix.triplet }}" \
             -DBUILD_TESTS=OFF
           cmake --build build --config $BUILD_TYPE --target libausaxs ausaxs -j12
 
@@ -124,7 +141,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-binaries
+          name: ${{ matrix.artifact }}
           path: |
             build/lib/*
             build/bin/*
