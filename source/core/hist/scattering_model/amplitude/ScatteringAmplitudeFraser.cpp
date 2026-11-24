@@ -8,6 +8,8 @@
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/scattering_model/ScatteringModelFraser.h>
 
+#include <cassert>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
@@ -26,7 +28,7 @@ container::Container2D<double> ScatteringAmplitudeFraser::get_excess_form_factor
     for (int ff = form_factor::start_index_for_explicit_exv(); ff < form_factor::get_active_count(); ++ff) {
         if (ff == form_factor::water_bin) {continue;}
         auto type = static_cast<form_factor::form_factor_t>(ff_indices[ff]);
-        if (!exv_set.contains(type)) {continue;} // a type without a volume has no excluded volume in the intensity either
+        assert(exv_set.contains(type) && "ScatteringAmplitudeFraser: the form factor manager only activates types with a displaced volume under Fraser.");
         const auto& fx = exv_set.get(type);
         for (int k = 0; k < n_q; ++k) {f(ff, k) -= exv_scale[k]*fx.evaluate(q[k]);}
     }
