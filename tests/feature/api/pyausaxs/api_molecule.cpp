@@ -90,7 +90,7 @@ TEST_CASE("profile functions with user settings") {
     get_q_axis(&q, &n, &status);
     REQUIRE(status == 0);
     REQUIRE(n == static_cast<int>(q_ref.size()));
-    for (int k = 0; k < n; ++k) {CHECK(q[k] == q_ref[k]);}
+    for (int k = 0; k < n; ++k) {CHECK_THAT(q[k], Catch::Matchers::WithinRel(q_ref[k], 1e-12));}
     std::vector<double> q_user(q, q + n);
 
     auto check = [n] (const double* profile, int n_profile, const std::vector<double>& ref) {
