@@ -348,9 +348,8 @@ int molecule_debye_exact(
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     auto qv = default_q_axis();
     auto Iq = hist::exact_debye_transform(molecule, qv);
-    for (std::size_t i = 0; i < Iq.size(); ++i) {
-        Iq[i] *= std::exp(qv[i]*qv[i]); // remove form factor added by exact_debye
-    }
+    // remove form factor added by exact_debye
+    std::ranges::transform(Iq, qv, Iq.begin(), [] (double I, double q) {return I*std::exp(q*q);});
     return register_profile(std::move(Iq), I, n_points);
 }, status);}
 

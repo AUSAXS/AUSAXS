@@ -7,6 +7,8 @@
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/scattering_model/ScatteringModelNoExv.h>
 
+#include <algorithm>
+
 using namespace ausaxs;
 using namespace ausaxs::hist;
 
@@ -19,13 +21,13 @@ container::Container2D<double> ScatteringAmplitudeVacuum::get_excess_form_factor
 
     // the atoms are damped by the atomic Debye-Waller factor, while the waters are scaled by cw
     std::vector<double> atomic_scale(n_q), water_scale(n_q, params.cw);
-    for (int k = 0; k < n_q; ++k) {atomic_scale[k] = ScatteringModelNoExv::get_atomic_debye_waller_factor(q[k], params.DW_sigma_atomic);}
+    std::ranges::transform(q, atomic_scale.begin(), [&params] (double qk) {return ScatteringModelNoExv::get_atomic_debye_waller_factor(qk, params.DW_sigma_atomic);});
 
     container::Container2D<double> f(n_ff, n_q, 0); // no scatterer has the excluded volume slot
     for (int ff = form_factor::start_index_for_explicit_exv(); ff < n_ff; ++ff) {
         auto type = static_cast<form_factor::form_factor_t>(ff_indices[ff]);
         const auto& scale = ff == form_factor::water_bin ? water_scale : atomic_scale;
-        for (int k = 0; k < n_q; ++k) {f(ff, k) = scale[k]*form_factor::manager::evaluate(type, q[k]);}
+        std::ranges::transform(q, scale, f.begin(ff), [type] (double qk, double s) {return s*form_factor::manager::evaluate(type, qk);});
     }
     return f;
 }

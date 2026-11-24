@@ -8,6 +8,7 @@
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/scattering_model/ScatteringModelFraser.h>
 
+#include <algorithm>
 #include <cassert>
 
 using namespace ausaxs;
@@ -21,9 +22,9 @@ container::Container2D<double> ScatteringAmplitudeFraser::get_excess_form_factor
     const auto& ff_indices = form_factor::manager::get_active_indices();
     const auto exv_set = form_factor::ExvTableManager::get_current_exv_form_factor_set();
     std::vector<double> exv_scale(n_q);
-    for (int k = 0; k < n_q; ++k) {
-        exv_scale[k] = params.crho*ScatteringModelFraser::exv_factor(q[k], params.cx)*ScatteringModelFraser::get_exv_debye_waller_factor(q[k], params.DW_sigma_exv);
-    }
+    std::ranges::transform(q, exv_scale.begin(), [&params] (double qk) {
+        return params.crho*ScatteringModelFraser::exv_factor(qk, params.cx)*ScatteringModelFraser::get_exv_debye_waller_factor(qk, params.DW_sigma_exv);
+    });
 
     for (int ff = form_factor::start_index_for_explicit_exv(); ff < form_factor::get_active_count(); ++ff) {
         if (ff == form_factor::water_bin) {continue;}

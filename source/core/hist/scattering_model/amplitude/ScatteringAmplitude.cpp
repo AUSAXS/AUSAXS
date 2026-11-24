@@ -8,8 +8,12 @@
 #include <utility/Exceptions.h>
 #include <utility/MultiThreading.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
+#include <iterator>
+#include <numeric>
 
 using namespace ausaxs;
 using namespace ausaxs::hist;
@@ -59,7 +63,7 @@ std::vector<double> ScatteringAmplitude::evaluate(
     auto origin = centre.has_value() ? *centre : default_centre(params);
     std::vector<SincTerms> terms;
     terms.reserve(groups.size());
-    for (const auto& group : groups) {terms.emplace_back(make_sinc_terms(group, origin));}
+    std::ranges::transform(groups, std::back_inserter(terms), [&origin] (const auto& group) {return make_sinc_terms(group, origin);});
 
     // the form factors are evaluated up front, since they are not required to be thread-safe
     const auto f = get_excess_form_factors(q, params);
@@ -74,8 +78,10 @@ std::vector<double> ScatteringAmplitude::evaluate(
         for (int k = start; k < end; ++k) {
             for (int g = 0; g < static_cast<int>(terms.size()); ++g) {
                 const auto& t = terms[g];
-                double sum = 0;
-                for (int i = 0; i < static_cast<int>(t.distances.size()); ++i) {sum += t.weights[i]*math::sinc(q[k]*t.distances[i]);}
+                double sum = std::transform_reduce(
+                    t.weights.begin(), t.weights.end(), t.distances.begin(), 0.0, std::plus<>(),
+                    [qk = q[k]] (double w, double r) {return w*math::sinc(qk*r);}
+                );
                 A[k] += f(g, k)*sum;
             }
         }
