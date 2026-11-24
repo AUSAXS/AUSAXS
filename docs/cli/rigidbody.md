@@ -224,7 +224,7 @@ The elements are grouped by how often you will need them. The [essential element
 _`load { pdb <paths>, saxs <path>, split <splits>, names <names> }`_  
 
 * **`pdb`** [`string`, `vector<string>`]: Path to the structure file(s). 
-* **`saxs`** [`string`]: Path to the SAXS data file. 
+* **`saxs`** [`string`]: Path to the SAXS or SANS data file. See [SANS data](#sans-data). 
 * `split` [`string`, `vector<int>`]: Declare how to split the structure file into bodies. 
 * `names` [`vector<string>`]: Custom names for the loaded bodies. 
 
@@ -280,6 +280,19 @@ load {
 
 > [!TIP]
 > Structure and data paths are resolved relative to where the program was launched, and then relative to the folder holding the configuration script. The latter lets a script reference files placed next to it no matter where it is run from.
+
+#### SANS data
+By default, the data file is fitted as SAXS data. To refine against SANS data instead, switch to neutron scattering with a [`settings`](#settings) element *before* `load`:
+
+```
+settings radiation neutron
+load {
+	pdb structure.pdb
+	saxs measurement.dat
+}
+```
+
+The solvent defaults to pure D₂O. For another H₂O/D₂O mixture, set `neutron_solvent_density` to its scattering length density in fm/Å³: -0.0559 for pure H₂O, 0.6363 for pure D₂O, and linear in the D₂O fraction in between. The fraction of labile hydrogens exchanged with the solvent is set by `neutron_exchange_efficiency` (default 1). These settings can also be given in a settings file with `config --file`.
 
 ---
 

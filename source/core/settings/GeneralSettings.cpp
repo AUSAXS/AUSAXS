@@ -3,6 +3,7 @@
 
 #include <settings/GeneralSettings.h>
 
+#include <form_factor/lookup/FormFactorManager.h>
 #include <settings/SettingsIORegistry.h>
 #include <utility/StringUtils.h>
 
@@ -17,7 +18,12 @@ settings::Setting<bool> settings::general::warnings{true};
 settings::Setting<bool> settings::general::offline{false};
 settings::Setting<int> settings::general::threads{std::max(1, static_cast<int>(std::thread::hardware_concurrency())-1)};
 settings::Setting<std::string> settings::general::output{"output/"};
-settings::Setting<bool> settings::general::keep_hydrogens{false};
+settings::Setting<bool> settings::general::keep_hydrogens{
+    false,
+    [] (bool&) {
+        ausaxs::form_factor::manager::rebuild(); // explicit hydrogens switch the exv tables to their _explicit_H variants
+    }
+};
 settings::Setting<bool> settings::general::supplementary_plots{true};
 settings::Setting<bool> settings::general::generate_plots{true};
 settings::Setting<bool> settings::general::gpu{false};

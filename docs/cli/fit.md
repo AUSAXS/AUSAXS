@@ -147,7 +147,7 @@ These models are not as well-tested as those listed above, and are only listed f
 ### `hydrogens` group
 | Argument           | Name                       | Description |
 |--------------------|----------------------------|-------------|
-|`--keep`, `--discard` | Keep explicit hydrogens    | Keep the explicit hydrogens present in the structure file instead of accounting for them implicitly. This will also switch the excluded volume tables to a version containing non-zero hydrogen volumes. |
+|`--keep`, `--discard` | Keep explicit hydrogens    | Keep the explicit hydrogens present in the structure file instead of accounting for them implicitly. This also switches the excluded volume tables to their variants with non-zero hydrogen volumes. |
 |`--force-field-names` | Read force-field residue names | Read force-field residue names, such as the protonation states `HID`, `HSE` and `CYX`, or `SOL` for water, by their force-field meaning instead of their usual definitions in the PDB's Chemical Component Dictionary. |
 
 ### `grid` group

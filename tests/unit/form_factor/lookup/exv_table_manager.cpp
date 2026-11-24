@@ -6,6 +6,7 @@
 #include <form_factor/lookup/FormFactorManager.h>
 #include <form_factor/lookup/FormFactorProduct.h>
 #include <settings/ExvSettings.h>
+#include <settings/GeneralSettings.h>
 #include <support/form_factor_helper.h>
 
 using namespace ausaxs;
@@ -91,5 +92,45 @@ TEST_CASE("ExvSet switching") {
                 }
             }
         }
+    }
+}
+
+TEST_CASE("ExvTableManager: kept explicit hydrogens use the explicit-H tables") {
+    settings::exv::exv_method = settings::exv::ExvMethod::Fraser; // the explicit exv tables are only used by the Fraser-based models
+    test::form_factor::use_random_form_factors();
+    using Set = settings::exv::ExvSet;
+
+    SECTION("the implicit-H sets switch to their explicit-H variants") {
+        settings::exv::exv_set = Set::MinimumFluctutation_implicit_H;
+        settings::general::keep_hydrogens = false;
+        CHECK(*ExvTableManager::get_current_exv_table() == constants::exv::MinimumFluctuation_implicit_H);
+        settings::general::keep_hydrogens = true;
+        CHECK(*ExvTableManager::get_current_exv_table() == constants::exv::MinimumFluctuation_explicit_H);
+
+        settings::exv::exv_set = Set::Voronoi_implicit_H;
+        CHECK(*ExvTableManager::get_current_exv_table() == constants::exv::Voronoi_explicit_H);
+    }
+
+    SECTION("sets without hydrogen variants are unchanged") {
+        settings::general::keep_hydrogens = true;
+        settings::exv::exv_set = Set::Traube;
+        CHECK(*ExvTableManager::get_current_exv_table() == constants::exv::Traube);
+        settings::exv::exv_set = Set::vdw;
+        CHECK(*ExvTableManager::get_current_exv_table() == constants::exv::vdw);
+    }
+
+    SECTION("toggling keep_hydrogens rebuilds the active tables") {
+        settings::exv::exv_set = Set::MinimumFluctutation_implicit_H;
+        settings::general::keep_hydrogens = false;
+        // the active exv tables must follow the switch without a new form factor selection
+        auto exv_at_zero = [] () {
+            const auto* tables = manager::get_active_product_tables();
+            double sum = 0;
+            for (int ff = start_index_for_explicit_exv(); ff < tables->active_count; ++ff) {sum += tables->raw_exv_table.index(ff, ff).evaluate(0);}
+            return sum;
+        };
+        double before = exv_at_zero();
+        settings::general::keep_hydrogens = true;
+        CHECK(exv_at_zero() != before);
     }
 }
