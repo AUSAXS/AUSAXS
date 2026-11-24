@@ -70,6 +70,11 @@ namespace ausaxs::hist::detail {
             float get_weight(int i) const {return _w[i];}
             float& get_weight(int i) {return _w[i];}
 
+            /**
+             * @brief Give every entry the weight @a w.
+             */
+            void set_weights(float w) {std::ranges::fill(_w, w);}
+
             float x(int i) const {return _x[i];}
             float y(int i) const {return _y[i];}
             float z(int i) const {return _z[i];}
