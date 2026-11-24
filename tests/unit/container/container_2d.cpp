@@ -32,7 +32,7 @@ TEST_CASE("Container2D::Container2D") {
     }
 }
 
-TEST_CASE("Container3D::iterators") {
+TEST_CASE("Container2D::iterators") {
     SECTION("default") {
         Container2D<int> container1(2, 3, 5);
         Container2D<int> container2(2, 3);
