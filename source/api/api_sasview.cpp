@@ -43,7 +43,7 @@ namespace {
     };
 }
 
-void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, double* _return_Iq, int* _return_status) {return execute_with_catch([&]() {
+void debye_no_ff(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, double* _return_Iq, int* _return_status) {execute_with_catch([&]() {
     RawDebyeScope scope;
 
     // convert coordinate input to Atom objects
