@@ -6,7 +6,6 @@
 #include <mini/All.h>
 #include <mini/detail/Parameter.h>
 #include <numbers>
-#include <plots/All.h>
 
 
 using std::vector;
@@ -63,18 +62,6 @@ static TestFunction Beale([] (const std::vector<double>& p) {
     {3, 0.5}
 );
 static TestFunction decay2d([] (const std::vector<double>& p) {return decay_residuals(p[0], p[1]);}, {Limit(0, 10), Limit(0, 5)}, {3, 0.7});
-
-TEST_CASE("1d_landscape", "[manual]") {
-    mini::Golden mini(decay1d.function, {"x1", decay1d.bounds[0]});
-    auto res = mini.minimize();
-
-    Dataset evaluations = mini.get_evaluated_points().as_dataset();
-    Dataset landscape = mini.landscape().as_dataset();
-
-    plots::PlotDataset plot(landscape, plots::PlotOptions(style::draw::line, {{"color", style::color::black}}));
-    plot.plot(evaluations, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}));
-    plot.save("figures/tests/minimizer/golden_test.pdf");
-}
 
 TEST_CASE("Minimizer: golden") {
     auto GoldenTest = [] (const TestFunction& test) {
