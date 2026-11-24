@@ -1,9 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/parameters/decay/ExponentialDecay.h>
 #include <rigidbody/parameters/decay/LinearDecay.h>
 #include <rigidbody/parameters/decay/NoDecay.h>
+
+#include <cmath>
+#include <string>
 
 using namespace ausaxs::rigidbody::parameter::decay;
 
@@ -70,5 +74,30 @@ TEST_CASE("ExponentialDecay::next") {
         ExponentialDecay decay(100);
         decay.set_iterations(200);
         REQUIRE(decay.get_iterations() == 200);
+    }
+}
+
+TEST_CASE("LinearDecay::next: exact values") {
+    auto val = GENERATE(10, 20, 30);
+    double rate = 1./val;
+
+    SECTION("Decay value " + std::to_string(val)) {
+        LinearDecay decay(val);
+        for (int i = val; i > 0; --i) {
+            REQUIRE_THAT(decay.next(), Catch::Matchers::WithinAbs(i*rate, 1e-6));
+        }
+    }
+}
+
+TEST_CASE("ExponentialDecay::next: exact values") {
+    auto val = GENERATE(10, 20, 30);
+
+    SECTION("Decay value " + std::to_string(val)) {
+        double rate = 2./val;
+        ExponentialDecay decay(val);
+        for (double i = 0; i < val; ++i) {
+            double factor = std::exp(-i*rate);
+            REQUIRE_THAT(decay.next(), Catch::Matchers::WithinAbs(factor, 1e-6));
+        }
     }
 }
