@@ -26,7 +26,7 @@ if (NOT EMSCRIPTEN)
 		FetchContent_Declare(
 			CLI11
 			GIT_REPOSITORY https://github.com/CLIUtils/CLI11
-			GIT_TAG 792d89286788acac125e0487f8dbde88035f7422
+			GIT_TAG cbd58a3696887b34c70949aef21a71735a0c2ad5 # v2.7.2
 			GIT_PROGRESS TRUE
 		)
 		FetchContent_MakeAvailable(CLI11)
