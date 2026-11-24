@@ -67,12 +67,12 @@ ScatteringProfile ScatteringModelExvBase::debye_transform() const {
     assert(ww.size() == Iq.size() && "ScatteringModelExvBase::debye_transform(): ww.size() != Iq.size()");
     // Sum the six partial intensity profiles into the total. The signs result from the expansion:
     // \rho = (\rho_a - \rho_x + \rho_w)
-    std::transform(Iq.begin(), Iq.end(), aa.begin(), Iq.begin(), std::plus<>());
-    std::transform(Iq.begin(), Iq.end(), ax.begin(), Iq.begin(), std::minus<>());
-    std::transform(Iq.begin(), Iq.end(), aw.begin(), Iq.begin(), std::plus<>());
-    std::transform(Iq.begin(), Iq.end(), xx.begin(), Iq.begin(), std::plus<>());
-    std::transform(Iq.begin(), Iq.end(), wx.begin(), Iq.begin(), std::minus<>());
-    std::transform(Iq.begin(), Iq.end(), ww.begin(), Iq.begin(), std::plus<>());
+    std::ranges::transform(Iq, aa, Iq.begin(), std::plus<>());
+    std::ranges::transform(Iq, ax, Iq.begin(), std::minus<>());
+    std::ranges::transform(Iq, aw, Iq.begin(), std::plus<>());
+    std::ranges::transform(Iq, xx, Iq.begin(), std::plus<>());
+    std::ranges::transform(Iq, wx, Iq.begin(), std::minus<>());
+    std::ranges::transform(Iq, ww, Iq.begin(), std::plus<>());
     return {Iq, debye_axis};
 }
 
@@ -213,7 +213,7 @@ const Distribution1D& ScatteringModelExvBase::get_ww_counts_by_ff() const {
     static Distribution1D ret;
     ret = distance_profiles.ww;
     double weight = free_params.cw * free_params.cw * get_ff_table().index(form_factor::water_bin, form_factor::water_bin).evaluate(0);
-    std::transform(ret.begin(), ret.end(), ret.begin(), [weight](auto val) { return val*weight; });
+    std::ranges::transform(ret, ret.begin(), [weight](auto val) { return val*weight; });
     return ret;
 }
 
@@ -384,17 +384,17 @@ void ScatteringModelExvBase::cache_refresh_distance_profiles() const {
     pool->detach_task([this] () {
         for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
             for (int ff2 = ff1; ff2 < form_factor::get_active_count(); ++ff2) {
-                std::transform(cache.distance_profiles.p_aa.begin(), cache.distance_profiles.p_aa.end(), distance_profiles.aa.begin(ff1, ff2), cache.distance_profiles.p_aa.begin(), std::plus<>());
+                std::ranges::transform(cache.distance_profiles.p_aa, distance_profiles.aa.row(ff1, ff2), cache.distance_profiles.p_aa.begin(), std::plus<>());
             }
         }
     });
     pool->detach_task([this] () {
         for (int ff1 = form_factor::start_index_for_explicit_exv(); ff1 < form_factor::get_active_count(); ++ff1) {
-            std::transform(cache.distance_profiles.p_aw.begin(), cache.distance_profiles.p_aw.end(), distance_profiles.aw.begin(ff1), cache.distance_profiles.p_aw.begin(), std::plus<>());
+            std::ranges::transform(cache.distance_profiles.p_aw, distance_profiles.aw.row(ff1), cache.distance_profiles.p_aw.begin(), std::plus<>());
         }
     });
     pool->detach_task([this] () {
-        std::transform(cache.distance_profiles.p_ww.begin(), cache.distance_profiles.p_ww.end(), distance_profiles.ww.begin(), cache.distance_profiles.p_ww.begin(), std::plus<>());
+        std::ranges::transform(cache.distance_profiles.p_ww, distance_profiles.ww, cache.distance_profiles.p_ww.begin(), std::plus<>());
     });
     cache.distance_profiles.valid = true;
     pool->wait();
