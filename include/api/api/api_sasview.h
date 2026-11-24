@@ -14,7 +14,7 @@ extern "C" API void test_integration(int* test_value);
 /**
  * @brief Evaluate the I(q) for a given set of q-values and a set of coordinates.
  *        The coordinates are assumed to be in the form of a list of x, y, z, and w values.
- *        The return status will be non-zero if an error occurred.
+ *        The return status will be non-zero if an error occurred; the message is then available from get_last_error_msg.
  *        The resulting I(q) values will be stored in the given array.
  *        No form factors, excluded volume or implicit hydrogens are used; the global settings are left as they were.
  */
