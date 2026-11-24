@@ -11,11 +11,11 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::form_factor;
 
-observer_ptr<const table::DebyeTable> ScatteringModelGridBase::get_sinc_table_ax() const {
+observer_ptr<const table::VectorDebyeTable> ScatteringModelGridBase::get_sinc_table_ax() const {
     return sinc_tables.ax.get_sinc_table();
 }
 
-observer_ptr<const table::DebyeTable> ScatteringModelGridBase::get_sinc_table_xx() const {
+observer_ptr<const table::VectorDebyeTable> ScatteringModelGridBase::get_sinc_table_xx() const {
     return sinc_tables.xx.get_sinc_table();
 }
 

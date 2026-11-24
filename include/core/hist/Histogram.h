@@ -53,12 +53,6 @@ namespace ausaxs::hist {
             Histogram(const Axis& axis) noexcept;
 
             /**
-             * @brief Reduce the view axis to show only the non-zero area. 
-             *        Minimum size is 10 units.
-             */
-            void shorten_axis(int min_size = 10);
-
-            /**
              * @brief Resize the number of bins in this histogram, keeping the width constant.
              */
             void resize(int bins);
@@ -118,12 +112,6 @@ namespace ausaxs::hist {
             [[nodiscard]] Limit span_y() const noexcept;
 
             /**
-             * @brief Get the positive spanned range of this histogram.
-             *        This can be useful for setting log ranges. 
-             */
-            [[nodiscard]] Limit span_y_positive() const noexcept;
-
-            /**
              * @brief Get the size of this Histogram.
              */
             [[nodiscard]] int size() const noexcept;
@@ -141,11 +129,6 @@ namespace ausaxs::hist {
              * @brief Normalize the histogram to have a maximum value of 1. 
              */
             void normalize_max(double max = 1.0);
-
-            /**
-             * @brief Merge every n bins into one.
-             */
-            void merge(int n);
 
             Histogram& operator+=(const Histogram& rhs);
             Histogram& operator-=(const Histogram& rhs);

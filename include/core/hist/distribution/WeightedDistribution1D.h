@@ -40,11 +40,6 @@ namespace ausaxs::hist {
             const double& get_content(int i) const; // @copydoc get_content(int i)
 
             /**
-             * @brief Set the value of the ith bin.
-             */
-            void set_content(int i, double value);
-
-            /**
              * @brief Extract the weights from this distribution.
              */
             std::vector<double> get_weighted_axis() const;
@@ -67,43 +62,8 @@ namespace ausaxs::hist {
                 index(i) += N*value;
             }
 
-            template<int N = 1>
-            void add_index(int32_t i, float distance, float weight) {
-                index(i).add<N>(distance, weight);
-            }
-
-            /**
-             * @brief Increment the value for a given index.
-             * 
-             * @param i The index to increment.
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void increment_index(int32_t i, float distance) {
-                index(i).increment<N>(distance);
-            }
-
-            /**
-             * @brief Increment the value for a given linear index. 
-             * 
-             * @param i The index to increment.
-             * @tparam N A multiplicative factor for the value. 
-             */
-            template<int N = 1>
-            void increment_linear_index(int32_t i, float distance) {
-                linear_index(i).increment<N>(distance);
-            }
-
-            /**
-             * @brief Clear the value for a given distance.
-             * 
-             * @param distance The index to clear.
-             */
-            void clear(int32_t i);
-
             WeightedDistribution1D& operator+=(const WeightedDistribution1D& rhs);
             WeightedDistribution1D& operator-=(const WeightedDistribution1D& rhs);
     };
-    WeightedDistribution1D operator*(double factor, WeightedDistribution1D dist);
     static_assert(supports_nothrow_move_v<WeightedDistribution1D>, "WeightedDistribution1D should support nothrow move semantics.");
 }

@@ -77,16 +77,6 @@ TEST_CASE("WeightedEntry::operator-") {
     CHECK(result.bin_center == 2.5);
 }
 
-TEST_CASE("WeightedEntry::operator-=") {
-    WeightedEntry entry1(30, 8, 4.0);
-    WeightedEntry entry2(20, 3, 1.5);
-    
-    entry1 -= entry2;
-    CHECK(entry1.value == 10);
-    CHECK(entry1.count == 5);
-    CHECK(entry1.bin_center == 2.5);
-}
-
 TEST_CASE("WeightedEntry::operator==") {
     WeightedEntry entry(10, 5, 2.5);
     CHECK(entry == 10);

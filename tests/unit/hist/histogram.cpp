@@ -39,31 +39,6 @@ TEST_CASE("Histogram::Histogram") {
     }
 }
 
-TEST_CASE("Histogram::shorten_axis") {
-    SECTION("empty") {
-        hist::Histogram hist;
-        hist.shorten_axis();
-        CHECK(hist.size() == 0);
-        CHECK(hist.span_y() == Limit{0, 0});
-    }
-
-    SECTION("more than 10 elements") {
-        std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 0, 0, 0, 0, 0, 0, 0};
-        hist::Histogram hist(data);
-        hist.shorten_axis(10);
-        CHECK(hist.size() == 10);
-        CHECK(hist.span_y() == Limit{1, 10});
-    }
-
-    SECTION("less than 10 elements") {
-        std::vector<double> data = {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0};
-        hist::Histogram hist(data);
-        hist.shorten_axis(10);
-        CHECK(hist.size() == 10);
-        CHECK(hist.span_y() == Limit{0, 6});
-    }
-}
-
 TEST_CASE("Histogram::resize") {
     hist::Histogram hist;
     hist.resize(10);
@@ -101,19 +76,6 @@ TEST_CASE("Histogram::span_y") {
         std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
         hist::Histogram hist(data);
         CHECK(hist.span_y() == Limit{-1, 5});
-    }
-}
-
-TEST_CASE("Histogram::span_y_positive") {
-    SECTION("empty") {
-        hist::Histogram hist;
-        CHECK(hist.span_y_positive() == Limit{0, 0});
-    }
-
-    SECTION("non-empty") {
-        std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
-        hist::Histogram hist(data);
-        CHECK(hist.span_y_positive() == Limit{0, 5});
     }
 }
 
@@ -220,32 +182,6 @@ TEST_CASE("Histogram::normalize_max") {
     hist.normalize_max(10);
     std::ranges::transform(data, data.begin(), [] (double x) {return x*10;});
     CHECK(hist.get_counts() == data);
-}
-
-TEST_CASE("Histogram::merge") {
-    SECTION("simple") {
-        std::vector<double> data(10, 1);
-        hist::Histogram hist(data);
-        hist.merge(2);
-        CHECK(hist.size() == 5);
-        CHECK(hist.get_counts() == std::vector<double>{2, 2, 2, 2, 2});
-    }
-
-    SECTION("complex") {
-        std::vector<double> data{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        hist::Histogram hist(data);
-        hist.merge(2);
-        CHECK(hist.size() == 5);
-        CHECK(hist.get_counts() == std::vector<double>{3, 7, 11, 15, 19});
-    }
-
-    SECTION("more complex") {
-        std::vector<double> data{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        hist::Histogram hist(data);
-        hist.merge(3);
-        CHECK(hist.size() == 4);
-        CHECK(hist.get_counts() == std::vector<double>{6, 15, 24, 10});
-    }
 }
 
 TEST_CASE("Histogram::operator+=") {

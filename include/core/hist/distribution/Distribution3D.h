@@ -26,38 +26,6 @@ namespace ausaxs::hist {
             using container::Container3D<double, S>::index;
             using container::Container3D<double, S>::linear_index;
             explicit Distribution3D(const WeightedDistribution3D<S>& other);
-
-            /**
-             * @brief Add a value for a given bin index.
-             * 
-             * @param x The first form factor index.
-             * @param y The second form factor index.
-             * @param i The bin index to add the value to.
-             * @param value The value to add.
-             *
-             * @tparam N A multiplicative factor for the value.
-             */
-            template<int N = 1>
-            void add_index(int x, int y, int32_t i, double value) {
-                index(x, y, i) += N*value;
-            }
-
-            template<int N = 1>
-            void increment_index(int x, int y, int32_t i) {
-                index(x, y, i) += N;
-            }
-            
-            /**
-             * @brief Increment the value for a given linear index. 
-             * 
-             * @param xy The combined form factor index.
-             * @param i The index to increment.
-             * @tparam N A multiplicative factor for the value. 
-             */
-            template<int N = 1>
-            void increment_linear_index(int xy, int32_t i) {
-                linear_index(xy, i) += N;                
-            }
     };
     static_assert(supports_nothrow_move_v<Distribution3D<Shape::Square>>, "Distribution3D should support nothrow move semantics.");
     static_assert(supports_nothrow_move_v<Distribution3D<Shape::Triangular>>, "Distribution3D should support nothrow move semantics.");

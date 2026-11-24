@@ -35,11 +35,6 @@ namespace ausaxs::hist {
             const double& get_content(int i) const; // @copydoc get_content(int i)
 
             /**
-             * @brief Set the value of the ith bin.
-             */
-            void set_content(int i, double value);
-
-            /**
              * @brief Add a value for a given bin index.
              * 
              * @param i The bin index to add the value to.
@@ -52,32 +47,8 @@ namespace ausaxs::hist {
                 index(i) += N*value;
             }
 
-            template<int N = 1>
-            void increment_index(int32_t i) {
-                index(i) += N;
-            }
-
-            /**
-             * @brief Increment the value for a given linear index. 
-             * 
-             * @param i The index to increment.
-             * @tparam N A multiplicative factor for the value. 
-             */
-            template<int N = 1>
-            void increment_linear_index(int32_t i) {
-                linear_index(i) += N;
-            }
-
-            /**
-             * @brief Clear the value for a given distance.
-             * 
-             * @param distance The index to clear.
-             */
-            void clear(int32_t i);
-
             Distribution1D& operator+=(const Distribution1D& rhs);
             Distribution1D& operator-=(const Distribution1D& rhs);
     };
-    Distribution1D operator*(double factor, Distribution1D dist);
     static_assert(supports_nothrow_move_v<Distribution1D>, "Distribution1D should support nothrow move semantics.");
 }

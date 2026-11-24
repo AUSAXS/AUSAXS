@@ -13,6 +13,3 @@ Distribution2D::Distribution2D(const WeightedDistribution2D& other) : container:
         }
     }
 }
-
-double& Distribution2D::get_content(int i, int j) {return index(i, j);}
-const double& Distribution2D::get_content(int i, int j) const {return index(i, j);}

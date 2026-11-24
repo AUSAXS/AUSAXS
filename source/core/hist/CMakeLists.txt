@@ -32,8 +32,6 @@ target_sources(ausaxs_core PRIVATE
 	"distribution/Distribution2D.cpp"
 	"distribution/Distribution3D.cpp"
 	"distribution/WeightedDistribution1D.cpp"
-	"distribution/WeightedDistribution2D.cpp"
-	"distribution/WeightedDistribution3D.cpp"
 	"distribution/detail/WeightedEntry.cpp"
 
 	"scattering_model/DebyeGradient.cpp"

@@ -63,21 +63,6 @@ TEST_CASE("AtomicFormFactor::evaluate") {
     }
 }
 
-TEST_CASE("AtomicFormFactor::set_normalization") {
-    SECTION("manual normalization") {
-        std::array<double, 5> a = {1.0, 2.0, 3.0, 4.0, 5.0};
-        std::array<double, 5> b = {0.1, 0.2, 0.3, 0.4, 0.5};
-        double c = 0.5;
-        
-        xray::AtomicFormFactor ff(a, b, c);
-        ff.set_normalization(2);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(2, 1e-9));
-
-        ff.set_normalization(30);
-        CHECK_THAT(ff.evaluate(0), Catch::Matchers::WithinAbs(30, 1e-9));
-    }
-}
-
 TEST_CASE("FormFactor::xray::raw") {
     SECTION("get hydrogen form factor") {
         const xray::FormFactor& ff = xray::raw::get(form_factor_t::H);

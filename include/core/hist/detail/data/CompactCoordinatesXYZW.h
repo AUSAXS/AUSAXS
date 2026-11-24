@@ -9,7 +9,6 @@
 #pragma once
 
 #include <constants/Constants.h>
-#include <hist/detail/data/IntrinsicHelpers.h>
 #include <hist/detail/data/IntrinsicMacros.h>
 
 #include <array>
