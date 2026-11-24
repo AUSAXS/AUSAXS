@@ -11,7 +11,7 @@ namespace ausaxs::hist {
     /**
      * @brief The average excluded volume model, where all dummy exv atoms are placed on top of the real atoms and share a single average form factor.
      */
-    class ScatteringModelAverage : public ScatteringModelExvBase<form_factor::lookup::table_t> {
+    class ScatteringModelAverage : public ScatteringModelExvBase {
         public:
             ScatteringModelAverage() = default;
 

@@ -11,7 +11,7 @@ namespace ausaxs::hist {
     /**
      * @brief A scattering model where all scatterers are taken to be in vacuum, i.e. there is no excluded volume contribution. 
      */
-    class ScatteringModelNoExv : public ScatteringModelExvBase<form_factor::lookup::table_t> {
+    class ScatteringModelNoExv : public ScatteringModelExvBase {
         public:
             using ScatteringModelExvBase::ScatteringModelExvBase;
 
