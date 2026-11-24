@@ -81,16 +81,26 @@ function(setup_compile_commands)
     set(CompilerFlags "")
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        # MSVC uses /arch: flags below; -march is not applicable
+        # MSVC uses the /arch: flags below in place of -march
         add_compile_definitions(NOMINMAX BUILD_EXPORT_DLL)
         list(APPEND CompilerFlags
             /fp:fast
             /Zm500
             /wd4267 # disable size_t --> int, unsigned int conversions
             /wd4244 # disable double --> float,int conversions
-            "$<$<STREQUAL:${SYS_ARCH},x86_64>:/arch:AVX>"
-            "$<$<STREQUAL:${SYS_ARCH},arm64>:/arch:armv8.0>"
         )
+
+        # Keyed on the compiler's target rather than SYS_ARCH: on Windows the latter is the host processor
+        # (AMD64, ARM64), which differs from the target in a cross-compile or an emulated CMake on an ARM host.
+        string(TOLOWER "${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" _msvc_target)
+        if (_msvc_target STREQUAL "x64")
+            set(MARCH_FLAG /arch:AVX)
+        elseif (_msvc_target STREQUAL "arm64")
+            set(MARCH_FLAG /arch:armv8.0)
+        else()
+            set(MARCH_FLAG "")
+        endif()
+        list(APPEND CompilerFlags ${MARCH_FLAG})
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded" PARENT_SCOPE)
 
         # only the test binaries need this: they link the DLL and reach into the library internals, so their export set is every symbol.
@@ -132,7 +142,7 @@ function(setup_compile_commands)
     # Print chosen compile configuration for debugging/CI visibility
     message(STATUS "Chosen compiler commands:")
     message(STATUS "setup_compile_commands: Detected architecture: ${SYS_ARCH}")
-    message(STATUS "setup_compile_commands: using -march '${MARCH_FLAG}'")
+    message(STATUS "setup_compile_commands: using architecture flag '${MARCH_FLAG}'")
     message(STATUS "setup_compile_commands: and additional flags ${CompilerFlags}")
 
     add_compile_options(${CompilerFlags})
