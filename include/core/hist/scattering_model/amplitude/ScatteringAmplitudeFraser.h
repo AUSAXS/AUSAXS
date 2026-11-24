@@ -15,6 +15,6 @@ namespace ausaxs::hist {
             using ScatteringAmplitudeVacuum::ScatteringAmplitudeVacuum;
 
         protected:
-            std::vector<double> get_excess_form_factors(double q, const ScatteringParameters& params) const override;
+            container::Container2D<double> get_excess_form_factors(const std::vector<double>& q, const ScatteringParameters& params) const override;
     };
 }

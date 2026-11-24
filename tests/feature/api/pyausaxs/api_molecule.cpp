@@ -233,7 +233,7 @@ TEST_CASE("object ids: a missing id and a wrong type give different errors") {
     CHECK(last_error() == "No object with id \"" + std::to_string(data) + "\" exists (expected: dataset). It may have been deallocated.");
 }
 
-TEST_CASE("molecule_debye_amplitude: agrees with molecule_debye and molecule_amplitude") {
+TEST_CASE("molecule_beta: agrees with molecule_debye and molecule_amplitude") {
     int status = 1;
     set_setting("exv_model", GENERATE("simple", "fraser"), &status);
     REQUIRE(status == 0);
@@ -242,7 +242,7 @@ TEST_CASE("molecule_debye_amplitude: agrees with molecule_debye and molecule_amp
 
     double *I, *A, *I_sep, *A_sep;
     int n = 0, n_I = 0, n_A = 0;
-    molecule_debye_amplitude_centroid(mol, &I, &A, &n, &status);
+    molecule_beta_centroid(mol, &I, &A, &n, &status);
     REQUIRE(status == 0);
     molecule_debye(mol, &I_sep, &n_I, &status);
     REQUIRE(status == 0);
@@ -276,7 +276,7 @@ TEST_CASE("molecule_debye_amplitude: agrees with molecule_debye and molecule_amp
     int n_c = 0, n_c_joint = 0;
     molecule_amplitude(mol, centre.data(), &A_c, &n_c, &status);
     REQUIRE(status == 0);
-    molecule_debye_amplitude(mol, centre.data(), &I_c, &A_c_joint, &n_c_joint, &status);
+    molecule_beta(mol, centre.data(), &I_c, &A_c_joint, &n_c_joint, &status);
     REQUIRE(status == 0);
     std::vector<double> A_centroid_user(n);
     molecule_amplitude_centroid_userq(mol, q.data(), A_centroid_user.data(), n, &status);

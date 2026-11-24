@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <container/Container2D.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/scattering_model/ScatteringParameters.h>
 #include <math/Vector3.h>
@@ -47,9 +48,9 @@ namespace ausaxs::hist {
             explicit ScatteringAmplitude(std::vector<detail::CompactCoordinates>&& groups);
 
             /**
-             * @brief The excess form factor f_k(q) of each group k of scatterers with the model parameters @a params.
+             * @brief The excess form factor f_k(q) of each group k of scatterers at each of @a q with the model parameters @a params, indexed as (k, q).
              */
-            virtual std::vector<double> get_excess_form_factors(double q, const ScatteringParameters& params) const = 0;
+            virtual container::Container2D<double> get_excess_form_factors(const std::vector<double>& q, const ScatteringParameters& params) const = 0;
 
         private:
             std::vector<detail::CompactCoordinates> groups;

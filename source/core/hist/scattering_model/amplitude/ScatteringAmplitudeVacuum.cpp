@@ -12,17 +12,20 @@ using namespace ausaxs::hist;
 
 ScatteringAmplitudeVacuum::ScatteringAmplitudeVacuum(std::vector<hist::detail::CompactCoordinates>&& groups) : ScatteringAmplitude(std::move(groups)) {}
 
-std::vector<double> ScatteringAmplitudeVacuum::get_excess_form_factors(double q, const ScatteringParameters& params) const {
+container::Container2D<double> ScatteringAmplitudeVacuum::get_excess_form_factors(const std::vector<double>& q, const ScatteringParameters& params) const {
     const auto& ff_indices = form_factor::manager::get_active_indices();
     const int n_ff = form_factor::get_active_count();
-    const double B = ScatteringModelNoExv::get_atomic_debye_waller_factor(q, params.DW_sigma_atomic);
-    constexpr int water = form_factor::water_bin;
+    const int n_q = static_cast<int>(q.size());
 
-    std::vector<double> f(n_ff, 0); // no scatterer has the excluded volume slot
+    // the atoms are damped by the atomic Debye-Waller factor, while the waters are scaled by cw
+    std::vector<double> atomic_scale(n_q), water_scale(n_q, params.cw);
+    for (int k = 0; k < n_q; ++k) {atomic_scale[k] = ScatteringModelNoExv::get_atomic_debye_waller_factor(q[k], params.DW_sigma_atomic);}
+
+    container::Container2D<double> f(n_ff, n_q, 0); // no scatterer has the excluded volume slot
     for (int ff = form_factor::start_index_for_explicit_exv(); ff < n_ff; ++ff) {
-        if (ff == water) {continue;}
-        f[ff] = B*form_factor::manager::evaluate(static_cast<form_factor::form_factor_t>(ff_indices[ff]), q);
+        auto type = static_cast<form_factor::form_factor_t>(ff_indices[ff]);
+        const auto& scale = ff == form_factor::water_bin ? water_scale : atomic_scale;
+        for (int k = 0; k < n_q; ++k) {f(ff, k) = scale[k]*form_factor::manager::evaluate(type, q[k]);}
     }
-    f[water] = params.cw*form_factor::manager::evaluate(static_cast<form_factor::form_factor_t>(ff_indices[water]), q);
     return f;
 }

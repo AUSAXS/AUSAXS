@@ -63,22 +63,22 @@ std::vector<double> ScatteringAmplitude::evaluate(
     for (const auto& group : groups) {bins.emplace_back(bin_distances(group, origin));}
 
     // the form factors are evaluated up front, since they are not required to be thread-safe
-    std::vector<std::vector<double>> f(q.size());
-    for (std::size_t k = 0; k < q.size(); ++k) {
-        f[k] = get_excess_form_factors(q[k], params);
-        assert(f[k].size() == groups.size() && "ScatteringAmplitude::evaluate: get_excess_form_factors must return one value per group.");
-    }
+    const auto f = get_excess_form_factors(q, params);
+    assert(
+        f.size_x() == static_cast<int>(groups.size()) && f.size_y() == static_cast<int>(q.size()) 
+        && "ScatteringAmplitude::evaluate: get_excess_form_factors must return one row per group and one column per q value."
+    );
 
     std::vector<double> A(q.size(), 0);
     auto* pool = utility::multi_threading::get_global_pool();
     pool->detach_blocks(0, static_cast<int>(q.size()), [&q, &f, &bins, &A] (int start, int end) {
         for (int k = start; k < end; ++k) {
-            for (std::size_t g = 0; g < bins.size(); ++g) {
-                if (f[k][g] == 0) {continue;}
+            for (int g = 0; g < static_cast<int>(bins.size()); ++g) {
+                if (f(g, k) == 0) {continue;}
                 const auto& b = bins[g];
                 double sum = 0;
                 for (std::size_t i = 0; i < b.distances.size(); ++i) {sum += b.weights[i]*math::sinc(q[k]*b.distances[i]);}
-                A[k] += f[k][g]*sum;
+                A[k] += f(g, k)*sum;
             }
         }
     });
@@ -87,14 +87,14 @@ std::vector<double> ScatteringAmplitude::evaluate(
 }
 
 Vector3<double> ScatteringAmplitude::default_centre(const ScatteringParameters& params) const {
-    auto f0 = get_excess_form_factors(0, params);
-    assert(f0.size() == groups.size() && "ScatteringAmplitude::default_centre: get_excess_form_factors must return one value per group.");
+    const auto f0 = get_excess_form_factors(std::vector<double>{0}, params);
+    assert(f0.size_x() == static_cast<int>(groups.size()) && "ScatteringAmplitude::default_centre: get_excess_form_factors must return one row per group.");
     Vector3<double> sum{0, 0, 0};
     double total = 0;
-    for (std::size_t g = 0; g < groups.size(); ++g) {
+    for (int g = 0; g < static_cast<int>(groups.size()); ++g) {
         const auto& coords = groups[g];
         for (int i = 0; i < coords.size(); ++i) {
-            double w = f0[g]*coords.get_weight(i);
+            double w = f0(g, 0)*coords.get_weight(i);
             sum += Vector3<double>(coords.x(i), coords.y(i), coords.z(i))*w;
             total += w;
         }
