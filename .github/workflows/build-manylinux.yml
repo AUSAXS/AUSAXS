@@ -5,10 +5,6 @@ name: Build manylinux binaries
 on:
   workflow_dispatch:
   workflow_call:
-  # TEMPORARY: workflow_dispatch only works once this file is on the default branch, so pushes to this branch run it
-  # until then. Remove before merging.
-  push:
-    branches: [ manylinux_2_28 ]
 
 permissions:
   contents: read
@@ -26,7 +22,7 @@ jobs:
             runner: ubuntu-latest
 
           - arch: aarch64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
 
     steps:
       - uses: actions/checkout@v4
