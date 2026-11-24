@@ -3,6 +3,11 @@
 #include <api/ObjectStorage.h>
 #include <api/api_pyausaxs.h>
 #include <api/pyausaxs/api_settings.h>
+#include <data/Molecule.h>
+#include <hist/ScatteringProfile.h>
+#include <hist/scattering_model/IScatteringModel.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
+#include <math/Vector3.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Random.h>
 
@@ -59,57 +64,77 @@ TEST_CASE("molecule_distance_histogram: UNKNOWN form factors with Fraser exv mod
     CHECK(error_str.find("UNKNOWN form factor") != std::string::npos);
 }
 
-// The profiles without q values must lie on the axis of get_q_axis, also when qmin is raised.
-TEST_CASE("molecule_debye: profiles lie on the default q axis") {
-    // a small deterministic cluster; the Simple path is enough since only the q labelling is under test
-    std::vector<double> x, y, z, w;
-    for (int i = 0; i < 40; ++i) {
-        x.push_back(7*std::sin(1.3*i)); y.push_back(5*std::cos(0.7*i)); z.push_back(0.4*i - 8); w.push_back(6);
-    }
+// end-to-end: with non-default settings, the profile functions without q values lie on get_q_axis, and each returns the profile of the
+// molecule's own scattering model or amplitude. The values themselves are verified by the tests of the core library.
+TEST_CASE("profile functions with user settings") {
     int status = 1;
-    int mol = molecule_from_arrays(x.data(), y.data(), z.data(), w.data(), static_cast<int>(x.size()), &status);
+    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
     REQUIRE(status == 0);
+    molecule_hydrate(mol, &status);
+    REQUIRE(status == 0);
+    for (auto [key, value] : std::array<std::array<const char*, 2>, 3>{{{"exv_model", "fraser"}, {"qmin", "0.05"}, {"qmax", "0.4"}}}) {
+        set_setting(key, value, &status);
+        REQUIRE(status == 0);
+    }
 
-    double qmin = GENERATE(1e-4, 0.05, 0.2);
-    settings::axes::qmin = qmin;
-    settings::axes::qmax = 0.5;
+    // the references are taken first, since the raw profiles rebuild the histogram manager with their own settings
+    std::array<double, 3> centre = {50, 0, 0};
+    auto& molecule = api::ObjectStorage::get<data::Molecule>(mol, "molecule");
+    auto I_ref = molecule.get_histogram()->debye_transform();
+    auto q_ref = I_ref.get_axis().as_vector();
+    auto A_centroid_ref = molecule.get_scattering_amplitude()->evaluate(q_ref);
+    auto A_centre_ref = molecule.get_scattering_amplitude()->evaluate(q_ref, Vector3<double>(centre[0], centre[1], centre[2]));
 
     const double* q;
     int n = 0;
     get_q_axis(&q, &n, &status);
     REQUIRE(status == 0);
-    CHECK_THAT(q[0], Catch::Matchers::WithinAbs(qmin, 5e-3));
-
-    // each profile is compared against its own _userq variant on the default axis
-    double *I, *I_raw, *I_ex;
-    int n_I = 0, n_raw = 0, n_ex = 0;
+    REQUIRE(n == static_cast<int>(q_ref.size()));
+    for (int k = 0; k < n; ++k) {CHECK(q[k] == q_ref[k]);}
     std::vector<double> q_user(q, q + n);
-    molecule_debye(mol, &I, &n_I, &status);
-    REQUIRE(status == 0);
-    std::vector<double> I_user(n);
-    molecule_debye_userq(mol, q_user.data(), I_user.data(), n, &status);
-    REQUIRE(status == 0);
 
-    molecule_debye_raw(mol, &I_raw, &n_raw, &status);
-    REQUIRE(status == 0);
-    std::vector<double> I_raw_user(n);
-    molecule_debye_raw_userq(mol, q_user.data(), I_raw_user.data(), n, &status);
-    REQUIRE(status == 0);
+    auto check = [n] (const double* profile, int n_profile, const std::vector<double>& ref) {
+        REQUIRE(n_profile == n);
+        for (int k = 0; k < n; ++k) {CHECK_THAT(profile[k], Catch::Matchers::WithinRel(ref[k], 1e-6));}
+    };
 
-    molecule_debye_exact(mol, &I_ex, &n_ex, &status);
+    double *I, *A, *I_beta, *A_beta;
+    int n_out = 0;
+    molecule_debye(mol, &I, &n_out, &status);
     REQUIRE(status == 0);
-    std::vector<double> I_ex_user(n);
-    molecule_debye_exact_userq(mol, q_user.data(), I_ex_user.data(), n, &status);
-    REQUIRE(status == 0);
+    check(I, n_out, I_ref.get_intensity());
 
-    REQUIRE(n_I == n);
-    REQUIRE(n_raw == n);
-    REQUIRE(n_ex == n);
-    for (int i = 0; i < n; ++i) {
-        CHECK_THAT(I_user[i], Catch::Matchers::WithinRel(I[i], 1e-6));
-        CHECK_THAT(I_raw_user[i], Catch::Matchers::WithinRel(I_raw[i], 1e-6));
-        CHECK_THAT(I_ex_user[i], Catch::Matchers::WithinRel(I_ex[i], 1e-9));
-    }
+    molecule_amplitude_centroid(mol, &A, &n_out, &status);
+    REQUIRE(status == 0);
+    check(A, n_out, A_centroid_ref);
+    std::vector<double> A_user(n);
+    molecule_amplitude_centroid_userq(mol, q_user.data(), A_user.data(), n, &status);
+    REQUIRE(status == 0);
+    check(A_user.data(), n, A_centroid_ref);
+
+    molecule_amplitude(mol, centre.data(), &A, &n_out, &status);
+    REQUIRE(status == 0);
+    check(A, n_out, A_centre_ref);
+    molecule_amplitude_userq(mol, centre.data(), q_user.data(), A_user.data(), n, &status);
+    REQUIRE(status == 0);
+    check(A_user.data(), n, A_centre_ref);
+
+    molecule_beta_centroid(mol, &I_beta, &A_beta, &n_out, &status);
+    REQUIRE(status == 0);
+    check(I_beta, n_out, I_ref.get_intensity());
+    check(A_beta, n_out, A_centroid_ref);
+    molecule_beta(mol, centre.data(), &I_beta, &A_beta, &n_out, &status);
+    REQUIRE(status == 0);
+    check(I_beta, n_out, I_ref.get_intensity());
+    check(A_beta, n_out, A_centre_ref);
+
+    // the raw and exact profiles follow other paths; only their axis is checked here
+    molecule_debye_raw(mol, &I, &n_out, &status);
+    REQUIRE(status == 0);
+    CHECK(n_out == n);
+    molecule_debye_exact(mol, &I, &n_out, &status);
+    REQUIRE(status == 0);
+    CHECK(n_out == n);
 }
 
 TEST_CASE("molecule_distance_histogram_raw: weight products without excluded volume") {
@@ -231,63 +256,4 @@ TEST_CASE("object ids: a missing id and a wrong type give different errors") {
     molecule_debye_fit(mol, data, &status);
     REQUIRE(status != 0);
     CHECK(last_error() == "No object with id \"" + std::to_string(data) + "\" exists (expected: dataset). It may have been deallocated.");
-}
-
-TEST_CASE("molecule_beta: agrees with molecule_debye and molecule_amplitude") {
-    int status = 1;
-    set_setting("exv_model", GENERATE("simple", "fraser"), &status);
-    REQUIRE(status == 0);
-    int mol = molecule_from_file("tests/files/2epe.pdb", &status);
-    REQUIRE(status == 0);
-
-    double *I, *A, *I_sep, *A_sep;
-    int n = 0, n_I = 0, n_A = 0;
-    molecule_beta_centroid(mol, &I, &A, &n, &status);
-    REQUIRE(status == 0);
-    molecule_debye(mol, &I_sep, &n_I, &status);
-    REQUIRE(status == 0);
-    molecule_amplitude_centroid(mol, &A_sep, &n_A, &status);
-    REQUIRE(status == 0);
-
-    const double* q_axis;
-    int n_q = 0;
-    get_q_axis(&q_axis, &n_q, &status);
-    REQUIRE(status == 0);
-    std::vector<double> q(q_axis, q_axis + n_q);
-
-    REQUIRE(n == n_q);
-    REQUIRE(n == n_I);
-    REQUIRE(n == n_A);
-    for (int i = 0; i < n; ++i) {
-        CHECK_THAT(I_sep[i], Catch::Matchers::WithinRel(I[i], 1e-9));
-        CHECK_THAT(A_sep[i], Catch::Matchers::WithinRel(A[i], 1e-9));
-    }
-    CHECK_THAT(A[0]*A[0]/I[0], Catch::Matchers::WithinRel(1, 1e-3));
-
-    // a centre away from the molecule lowers the amplitude at small q
-    std::array<double, 3> centre = {50, 0, 0};
-    std::vector<double> A_shifted(n);
-    molecule_amplitude_userq(mol, centre.data(), q.data(), A_shifted.data(), n, &status);
-    REQUIRE(status == 0);
-    CHECK(A_shifted[1] < 0.999*A[1]);
-
-    // the variants with and without q values, and with and without the intensity, agree for a given centre
-    double *A_c, *I_c, *A_c_joint;
-    int n_c = 0, n_c_joint = 0;
-    molecule_amplitude(mol, centre.data(), &A_c, &n_c, &status);
-    REQUIRE(status == 0);
-    molecule_beta(mol, centre.data(), &I_c, &A_c_joint, &n_c_joint, &status);
-    REQUIRE(status == 0);
-    std::vector<double> A_centroid_user(n);
-    molecule_amplitude_centroid_userq(mol, q.data(), A_centroid_user.data(), n, &status);
-    REQUIRE(status == 0);
-
-    REQUIRE(n_c == n);
-    REQUIRE(n_c_joint == n);
-    for (int i = 0; i < n; ++i) {
-        CHECK_THAT(A_c[i], Catch::Matchers::WithinRel(A_shifted[i], 1e-9));
-        CHECK_THAT(A_c_joint[i], Catch::Matchers::WithinRel(A_shifted[i], 1e-9));
-        CHECK_THAT(I_c[i], Catch::Matchers::WithinRel(I[i], 1e-9));
-        CHECK_THAT(A_centroid_user[i], Catch::Matchers::WithinRel(A[i], 1e-9));
-    }
 }

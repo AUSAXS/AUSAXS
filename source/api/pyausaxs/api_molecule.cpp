@@ -209,7 +209,7 @@ struct _molecule_debye_obj {
     std::vector<double> I;
 };
 
-// Store a profile on the default q axis, and point the outputs at it.
+// Store a profile on the set q axis, and point the outputs at it.
 int register_profile(std::vector<double> I, double** I_out, int* n_points) {
     int data_id = api::ObjectStorage::register_object(_molecule_debye_obj{.I = std::move(I)});
     auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
@@ -218,7 +218,7 @@ int register_profile(std::vector<double> I, double** I_out, int* n_points) {
     return data_id;
 }
 
-std::vector<double> default_q_axis() {
+std::vector<double> settings_q_axis() {
     return constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
 }
 }
@@ -258,7 +258,7 @@ namespace {
     int amplitude(int molecule_id, const Centre& centre, double** A, int* n_points) {
         auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
         molecule.reset_histogram_manager(); // as molecule_debye, so a changed configuration takes effect
-        return register_profile(molecule.get_scattering_amplitude()->evaluate(default_q_axis(), centre), A, n_points);
+        return register_profile(molecule.get_scattering_amplitude()->evaluate(settings_q_axis(), centre), A, n_points);
     }
 
     void amplitude_userq(int molecule_id, const Centre& centre, const double* q, double* A, int n_points) {
@@ -346,7 +346,7 @@ int molecule_debye_exact(
     int* status
 ) {return execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    auto qv = default_q_axis();
+    auto qv = settings_q_axis();
     auto Iq = hist::exact_debye_transform(molecule, qv);
     // remove form factor added by exact_debye
     std::ranges::transform(Iq, qv, Iq.begin(), [] (double I, double q) {return I*std::exp(q*q);});
