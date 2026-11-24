@@ -90,8 +90,6 @@ function(setup_compile_commands)
             /wd4244 # disable double --> float,int conversions
         )
 
-        # Keyed on the compiler's target rather than SYS_ARCH: on Windows the latter is the host processor
-        # (AMD64, ARM64), which differs from the target in a cross-compile or an emulated CMake on an ARM host.
         string(TOLOWER "${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" _msvc_target)
         if (_msvc_target STREQUAL "x64")
             set(MARCH_FLAG /arch:AVX2)
