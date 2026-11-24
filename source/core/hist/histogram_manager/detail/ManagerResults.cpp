@@ -51,9 +51,9 @@ namespace {
     /**
      * @brief The amplitude counterpart of the plain managers, with the displaced charge subtracted from each atom for the Simple model.
      */
-    std::unique_ptr<ScatteringAmplitude> make_simple_amplitude(observer_ptr<const data::Molecule> protein) {
+    std::unique_ptr<ScatteringAmplitude> make_plain_amplitude(observer_ptr<const data::Molecule> protein) {
         auto atoms = factory::construct_from_atoms<false>(protein);
-        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple && protein->size_atom() != 0) {
+        if (settings::exv::exv_method == settings::exv::ExvMethod::Simple) {
             simple_exv::apply(atoms, simple_exv::get_volume_per_atom(protein));
         }
         return std::make_unique<ScatteringAmplitudeSimple>(std::move(atoms), factory::construct_from_waters(protein));
@@ -138,7 +138,7 @@ template<bool wb>
 std::unique_ptr<IScatteringModel> hist::detail::make_average_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
-    double Z_exv_avg = protein->size_atom() == 0 ? 0 : protein->get_volume_grid()*settings::internal_state::solvent_density()/protein->size_atom();
+    double Z_exv_avg = protein->get_volume_grid()*settings::internal_state::solvent_density()/protein->size_atom();
     return make_ff_model<ScatteringModelAverage>(std::move(d), Z_exv_avg);
 }
 
@@ -176,7 +176,7 @@ template<bool form_factors>
 std::unique_ptr<ScatteringAmplitude> hist::detail::make_scattering_amplitude(observer_ptr<const data::Molecule> protein) {
     // the plain managers always build ScatteringModelSimple
     if constexpr (!form_factors) {
-        return make_simple_amplitude(protein);
+        return make_plain_amplitude(protein);
     } else {
         switch (settings::exv::exv_method) {
             case settings::exv::ExvMethod::Simple: return make_simple_ff_amplitude(protein);

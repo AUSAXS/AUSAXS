@@ -31,7 +31,6 @@ namespace ausaxs::hist::detail::simple_exv {
 
 	/**
 	 * @brief The weight of each active form factor type in the Simple model: its charge less the displaced charge per atom.
-	 *        The waters in form_factor::water_bin displace nothing. Without atoms, nothing is displaced.
 	 *
 	 * @param molecule The molecule to use for the excluded volume calculation.
 	 */
