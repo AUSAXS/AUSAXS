@@ -206,33 +206,30 @@ int molecule_distance_histogram_raw(
 namespace {
 
 struct _molecule_debye_obj {
-    explicit _molecule_debye_obj(int size) :
-        q(size), I(size)
-    {}
-    std::vector<double> q, I;
+    std::vector<double> I;
 };
+
+// Store a profile on the default q axis, and point the outputs at it.
+int register_profile(std::vector<double> I, double** I_out, int* n_points) {
+    int data_id = api::ObjectStorage::register_object(_molecule_debye_obj{.I = std::move(I)});
+    auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
+    *I_out = ref->I.data();
+    *n_points = static_cast<int>(ref->I.size());
+    return data_id;
+}
+
+std::vector<double> default_q_axis() {
+    return constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
+}
 }
 int molecule_debye(
     int molecule_id, 
-    double** q, double** I, int* n_points,
+    double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     molecule.reset_histogram_manager();
-    auto hist = molecule.get_histogram();
-    auto debye_I = hist->debye_transform();
-    auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
-    _molecule_debye_obj data(debye_I.size());
-    for (int i = 0; i < debye_I.size(); ++i) {
-        data.q[i] = qv[i];
-        data.I[i] = debye_I[i];
-    }
-    int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
-    *q = ref->q.data();
-    *I = ref->I.data();
-    *n_points = debye_I.size();
-    return data_id;
+    return register_profile(molecule.get_histogram()->debye_transform().get_intensity(), I, n_points);
 }, status);}
 
 void molecule_debye_userq(
@@ -261,22 +258,12 @@ namespace {
 int molecule_amplitude(
     int molecule_id,
     const double* centre,
-    double** q, double** A, int* n_points,
+    double** A, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
     molecule.reset_histogram_manager(); // as molecule_debye, so a changed configuration takes effect
-    auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector(); // the axis of molecule_debye
-    auto Aq = molecule.amplitude(qv, to_centre(centre));
-    _molecule_debye_obj data(static_cast<int>(Aq.size()));
-    data.q = std::move(qv);
-    data.I = std::move(Aq);
-    int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
-    *q = ref->q.data();
-    *A = ref->I.data();
-    *n_points = static_cast<int>(ref->I.size());
-    return data_id;
+    return register_profile(molecule.amplitude(default_q_axis(), to_centre(centre)), A, n_points);
 }, status);}
 
 void molecule_amplitude_userq(
@@ -293,14 +280,14 @@ void molecule_amplitude_userq(
 
 namespace {
     struct _molecule_debye_amplitude_obj {
-        std::vector<double> q, I, A;
+        std::vector<double> I, A;
     };
 }
 
 int molecule_debye_amplitude(
     int molecule_id,
     const double* centre,
-    double** q, double** I, double** A, int* n_points,
+    double** I, double** A, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
@@ -308,15 +295,13 @@ int molecule_debye_amplitude(
     auto model = molecule.get_histogram();
     auto debye_I = model->debye_transform();
     _molecule_debye_amplitude_obj data;
-    data.q = debye_I.get_axis().as_vector();
     data.I = debye_I.get_intensity();
-    data.A = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(data.q, to_centre(centre), model->get_parameters());
+    data.A = molecule.get_histogram_manager()->get_scattering_amplitude()->evaluate(debye_I.get_axis().as_vector(), to_centre(centre), model->get_parameters());
     int data_id = api::ObjectStorage::register_object(std::move(data));
     auto* ref = api::ObjectStorage::get_object<_molecule_debye_amplitude_obj>(data_id);
-    *q = ref->q.data();
     *I = ref->I.data();
     *A = ref->A.data();
-    *n_points = static_cast<int>(ref->q.size());
+    *n_points = static_cast<int>(ref->I.size());
     return data_id;
 }, status);}
 
@@ -331,22 +316,10 @@ hist::ScatteringModelPoint raw_histogram(int molecule_id) {
 
 int molecule_debye_raw(
     int molecule_id,
-    double** q, double** I, int* n_points,
+    double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
-    auto debye_I = raw_histogram(molecule_id).debye_transform();
-    auto qv = debye_I.get_axis().as_vector(); // starts at settings::axes::qmin, not at the first q_vals entry
-    _molecule_debye_obj data(debye_I.size());
-    for (int i = 0; i < debye_I.size(); ++i) {
-        data.q[i] = qv[i];
-        data.I[i] = debye_I[i];
-    }
-    int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
-    *q = ref->q.data();
-    *I = ref->I.data();
-    *n_points = debye_I.size();
-    return data_id;
+    return register_profile(raw_histogram(molecule_id).debye_transform().get_intensity(), I, n_points);
 }, status);}
 
 void molecule_debye_raw_userq(
@@ -364,23 +337,16 @@ void molecule_debye_raw_userq(
 
 int molecule_debye_exact(
     int molecule_id,
-    double** q, double** I, int* n_points,
+    double** I, int* n_points,
     int* status
 ) {return execute_with_catch([&]() {
     auto& molecule = api::ObjectStorage::get<Molecule>(molecule_id, "molecule");
-    auto qv = constants::axes::q_axis.sub_axis_covering(settings::axes::qmin, settings::axes::qmax).as_vector();
+    auto qv = default_q_axis();
     auto Iq = hist::exact_debye_transform(molecule, qv);
-    _molecule_debye_obj data(static_cast<int>(Iq.size()));
-    for (int i = 0; i < static_cast<int>(Iq.size()); ++i) {
-        data.q[i] = qv[i];
-        data.I[i] = Iq[i]*std::exp(qv[i]*qv[i]); // remove form factor added by exact_debye
+    for (std::size_t i = 0; i < Iq.size(); ++i) {
+        Iq[i] *= std::exp(qv[i]*qv[i]); // remove form factor added by exact_debye
     }
-    int data_id = api::ObjectStorage::register_object(std::move(data));
-    auto* ref = api::ObjectStorage::get_object<_molecule_debye_obj>(data_id);
-    *q = ref->q.data();
-    *I = ref->I.data();
-    *n_points = static_cast<int>(Iq.size());
-    return data_id;
+    return register_profile(std::move(Iq), I, n_points);
 }, status);}
 
 void molecule_debye_exact_userq(

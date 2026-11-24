@@ -50,10 +50,11 @@ extern "C" API int molecule_distance_histogram_raw(
 
 /**
  * The Debye intensity of the molecule's configured model, including its hydration shell if it has one.
+ * Evaluated on the default q axis, see get_q_axis.
  */
 extern "C" API int molecule_debye(
     int molecule_id,
-    double** q, double** I, int* n_points, 
+    double** I, int* n_points,
     int* status
 );
 
@@ -68,21 +69,19 @@ extern "C" API void molecule_debye_userq(
 );
 
 /**
- * The orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, including its hydration shell if it has one,
- * on the q axis of molecule_debye. <A(q)>^2 / I(q) is the beta(q) factor of the decoupling approximation, with I(q) from molecule_debye.
+ * The orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, including its hydration shell if it has one.
  * The amplitude is taken about centre, given as [x, y, z], which must be the reference point of the particles in the structure factor S(q). 
- * If centre is null, the centroid of the excess scattering length is used.
- * Only the excluded volume models "simple", "none", "vacuum" and "fraser" are supported, and molecules with symmetries are not.
+ * If centre is null, the centroid of the excess scattering length is used. Evaluated on the default q axis, see get_q_axis.
  */
 extern "C" API int molecule_amplitude(
     int molecule_id,
     const double* centre,
-    double** q, double** A, int* n_points,
+    double** A, int* n_points,
     int* status
 );
 
 /**
- * As molecule_amplitude, but evaluated at the given q values. Any q value is supported.
+ * As molecule_amplitude, but evaluated at the given q values.
  */
 extern "C" API void molecule_amplitude_userq(
     int molecule_id,
@@ -92,24 +91,25 @@ extern "C" API void molecule_amplitude_userq(
 );
 
 /**
- * The Debye intensity I(q) and the orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, both on the q axis of 
- * molecule_debye and from a single histogram calculation. This is cheaper than molecule_debye followed by molecule_amplitude.
+ * The Debye intensity I(q) and the orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, both on the default 
+ * q axis (see get_q_axis) and from a single histogram calculation. This is cheaper than molecule_debye followed by molecule_amplitude.
  * beta(q) = A(q)^2 / I(q). The centre is as in molecule_amplitude.
  */
 extern "C" API int molecule_debye_amplitude(
     int molecule_id,
     const double* centre,
-    double** q, double** I, double** A, int* n_points,
+    double** I, double** A, int* n_points,
     int* status
 );
 
 /**
  * The plain binned Debye sum of the atoms and any waters as point scatterers with their weights.
  * For the same sum with their atomic form factors, use molecule_debye with the excluded volume model "vacuum".
+ * Evaluated on the default q axis, see get_q_axis.
  */
 extern "C" API int molecule_debye_raw(
     int molecule_id,
-    double** q, double** I, int* n_points,
+    double** I, int* n_points,
     int* status
 );
 
@@ -128,7 +128,7 @@ extern "C" API void molecule_debye_raw_userq(
  */
 extern "C" API int molecule_debye_exact(
     int molecule_id,
-    double** q, double** I, int* n_points,
+    double** I, int* n_points,
     int* status
 );
 

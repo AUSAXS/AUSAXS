@@ -59,8 +59,8 @@ TEST_CASE("molecule_distance_histogram: UNKNOWN form factors with Fraser exv mod
     CHECK(error_str.find("UNKNOWN form factor") != std::string::npos);
 }
 
-// The q values returned alongside a profile must be the ones the profile was computed at, also when qmin is raised.
-TEST_CASE("molecule_debye: q axis honours qmin") {
+// The profiles without q values must lie on the axis of get_q_axis, also when qmin is raised.
+TEST_CASE("molecule_debye: profiles lie on the default q axis") {
     // a small deterministic cluster; the Simple path is enough since only the q labelling is under test
     std::vector<double> x, y, z, w;
     for (int i = 0; i < 40; ++i) {
@@ -74,37 +74,41 @@ TEST_CASE("molecule_debye: q axis honours qmin") {
     settings::axes::qmin = qmin;
     settings::axes::qmax = 0.5;
 
-    // each profile is compared against its own _userq variant
-    double *q, *I, *q_raw, *I_raw, *q_ex, *I_ex;
-    int n = 0, n_raw = 0, n_ex = 0;
-    molecule_debye(mol, &q, &I, &n, &status);
+    const double* q;
+    int n = 0;
+    get_q_axis(&q, &n, &status);
+    REQUIRE(status == 0);
+    CHECK_THAT(q[0], Catch::Matchers::WithinAbs(qmin, 5e-3));
+
+    // each profile is compared against its own _userq variant on the default axis
+    double *I, *I_raw, *I_ex;
+    int n_I = 0, n_raw = 0, n_ex = 0;
+    std::vector<double> q_user(q, q + n);
+    molecule_debye(mol, &I, &n_I, &status);
     REQUIRE(status == 0);
     std::vector<double> I_user(n);
-    molecule_debye_userq(mol, q, I_user.data(), n, &status);
+    molecule_debye_userq(mol, q_user.data(), I_user.data(), n, &status);
     REQUIRE(status == 0);
 
-    molecule_debye_raw(mol, &q_raw, &I_raw, &n_raw, &status);
+    molecule_debye_raw(mol, &I_raw, &n_raw, &status);
     REQUIRE(status == 0);
-    std::vector<double> I_raw_user(n_raw);
-    molecule_debye_raw_userq(mol, q_raw, I_raw_user.data(), n_raw, &status);
-    REQUIRE(status == 0);
-
-    molecule_debye_exact(mol, &q_ex, &I_ex, &n_ex, &status);
+    std::vector<double> I_raw_user(n);
+    molecule_debye_raw_userq(mol, q_user.data(), I_raw_user.data(), n, &status);
     REQUIRE(status == 0);
 
-    // all three families report the same q grid, starting at qmin
-    REQUIRE(n == n_ex);
-    REQUIRE(n_raw == n_ex);
-    CHECK_THAT(q[0], Catch::Matchers::WithinAbs(qmin, 5e-3));
-    for (int i = 0; i < n; ++i) {
-        CHECK_THAT(q[i], Catch::Matchers::WithinAbs(q_ex[i], 1e-12));
-        CHECK_THAT(q_raw[i], Catch::Matchers::WithinAbs(q_ex[i], 1e-12));
-    }
+    molecule_debye_exact(mol, &I_ex, &n_ex, &status);
+    REQUIRE(status == 0);
+    std::vector<double> I_ex_user(n);
+    molecule_debye_exact_userq(mol, q_user.data(), I_ex_user.data(), n, &status);
+    REQUIRE(status == 0);
 
-    // evaluating a profile at its own q values reproduces it
+    REQUIRE(n_I == n);
+    REQUIRE(n_raw == n);
+    REQUIRE(n_ex == n);
     for (int i = 0; i < n; ++i) {
         CHECK_THAT(I_user[i], Catch::Matchers::WithinRel(I[i], 1e-6));
         CHECK_THAT(I_raw_user[i], Catch::Matchers::WithinRel(I_raw[i], 1e-6));
+        CHECK_THAT(I_ex_user[i], Catch::Matchers::WithinRel(I_ex[i], 1e-9));
     }
 }
 
@@ -195,9 +199,9 @@ TEST_CASE("object ids: an object of the wrong type is refused") {
         CHECK(status != 0);
         iterative_fit_init(not_molecule, &status);
         CHECK(status != 0);
-        double *q = nullptr, *I = nullptr;
+        double* I = nullptr;
         int n = 0;
-        molecule_debye_exact(not_molecule, &q, &I, &n, &status);
+        molecule_debye_exact(not_molecule, &I, &n, &status);
         CHECK(status != 0);
     }
     molecule_from_pdb_id(mol, &status);
@@ -236,20 +240,25 @@ TEST_CASE("molecule_debye_amplitude: agrees with molecule_debye and molecule_amp
     int mol = molecule_from_file("tests/files/2epe.pdb", &status);
     REQUIRE(status == 0);
 
-    double *q, *I, *A, *q_I, *I_sep, *q_A, *A_sep;
+    double *I, *A, *I_sep, *A_sep;
     int n = 0, n_I = 0, n_A = 0;
-    molecule_debye_amplitude(mol, nullptr, &q, &I, &A, &n, &status);
+    molecule_debye_amplitude(mol, nullptr, &I, &A, &n, &status);
     REQUIRE(status == 0);
-    molecule_debye(mol, &q_I, &I_sep, &n_I, &status);
+    molecule_debye(mol, &I_sep, &n_I, &status);
     REQUIRE(status == 0);
-    molecule_amplitude(mol, nullptr, &q_A, &A_sep, &n_A, &status);
+    molecule_amplitude(mol, nullptr, &A_sep, &n_A, &status);
     REQUIRE(status == 0);
 
+    const double* q_axis;
+    int n_q = 0;
+    get_q_axis(&q_axis, &n_q, &status);
+    REQUIRE(status == 0);
+    std::vector<double> q(q_axis, q_axis + n_q);
+
+    REQUIRE(n == n_q);
     REQUIRE(n == n_I);
     REQUIRE(n == n_A);
     for (int i = 0; i < n; ++i) {
-        CHECK_THAT(q_I[i], Catch::Matchers::WithinAbs(q[i], 1e-12));
-        CHECK_THAT(q_A[i], Catch::Matchers::WithinAbs(q[i], 1e-12));
         CHECK_THAT(I_sep[i], Catch::Matchers::WithinRel(I[i], 1e-9));
         CHECK_THAT(A_sep[i], Catch::Matchers::WithinRel(A[i], 1e-9));
     }
@@ -258,7 +267,7 @@ TEST_CASE("molecule_debye_amplitude: agrees with molecule_debye and molecule_amp
     // a centre away from the molecule lowers the amplitude at small q
     std::array<double, 3> centre = {50, 0, 0};
     std::vector<double> A_shifted(n);
-    molecule_amplitude_userq(mol, centre.data(), q, A_shifted.data(), n, &status);
+    molecule_amplitude_userq(mol, centre.data(), q.data(), A_shifted.data(), n, &status);
     REQUIRE(status == 0);
     CHECK(A_shifted[1] < 0.999*A[1]);
 }
