@@ -12,9 +12,9 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
-#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/ScatteringModelSimple.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <settings/ExvSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Logging.h>

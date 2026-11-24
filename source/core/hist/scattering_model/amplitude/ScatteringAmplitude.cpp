@@ -5,7 +5,6 @@
 
 #include <constants/ConstantsAxes.h>
 #include <math/ConstexprMath.h>
-#include <utility/Exceptions.h>
 #include <utility/MultiThreading.h>
 
 #include <algorithm>
