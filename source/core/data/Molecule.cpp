@@ -13,7 +13,7 @@
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/IScatteringModel.h>
-#include <hist/scattering_model/ScatteringAmplitude.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <hydrate/generation/HydrationFactory.h>
 #include <io/Writer.h>
 #include <settings/All.h>

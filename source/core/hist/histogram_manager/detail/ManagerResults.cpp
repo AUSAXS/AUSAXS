@@ -14,9 +14,9 @@
 #include <hist/distribution/Distribution2D.h>
 #include <hist/distribution/Distribution3D.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
-#include <hist/scattering_model/ScatteringAmplitudeFraser.h>
-#include <hist/scattering_model/ScatteringAmplitudeNoExv.h>
-#include <hist/scattering_model/ScatteringAmplitudeSimple.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitudeFraser.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitudeNoExv.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitudeSimple.h>
 #include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelFraser.h>
 #include <hist/scattering_model/ScatteringModelNoExv.h>

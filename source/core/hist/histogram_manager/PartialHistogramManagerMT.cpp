@@ -12,7 +12,7 @@
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/PartialBinEstimate.h>
-#include <hist/scattering_model/ScatteringAmplitude.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <hist/scattering_model/DistanceHistogram.h>
 #include <hist/scattering_model/IScatteringModel.h>
 #include <settings/HistogramSettings.h>

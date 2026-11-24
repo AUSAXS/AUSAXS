@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <hist/scattering_model/ScatteringAmplitudeNoExv.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitudeNoExv.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/scattering_model/ScatteringModelNoExv.h>

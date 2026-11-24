@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <hist/scattering_model/ScatteringAmplitude.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 
 namespace ausaxs::hist {
     /**

@@ -2,7 +2,7 @@
 // Author: Kristian Lytje
 
 #include <hist/histogram_manager/IHistogramManager.h>
-#include <hist/scattering_model/ScatteringAmplitude.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <utility/Exceptions.h>
 
 using namespace ausaxs;

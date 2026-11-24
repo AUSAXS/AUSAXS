@@ -13,8 +13,8 @@
 #include <hist/scattering_model/DebyeGradient.h>
 #include <hist/scattering_model/ExactDebyeCalculator.h>
 #include <hist/scattering_model/IScatteringModel.h>
-#include <hist/scattering_model/ScatteringAmplitude.h>
 #include <hist/scattering_model/ScatteringModelPoint.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <io/pdb/PDBStructure.h>
 #include <math/Vector3.h>
 #include <settings/All.h>
@@ -302,11 +302,11 @@ void molecule_amplitude_centroid_userq(int molecule_id, double* q, double* A, in
     execute_with_catch([&]() {amplitude_userq(molecule_id, std::nullopt, q, A, n_points);}, status);
 }
 
-int molecule_debye_amplitude(int molecule_id, const double* centre, double** I, double** A, int* n_points, int* status) {
+int molecule_beta(int molecule_id, const double* centre, double** I, double** A, int* n_points, int* status) {
     return execute_with_catch([&]() {return debye_amplitude(molecule_id, to_centre(centre), I, A, n_points);}, status);
 }
 
-int molecule_debye_amplitude_centroid(int molecule_id, double** I, double** A, int* n_points, int* status) {
+int molecule_beta_centroid(int molecule_id, double** I, double** A, int* n_points, int* status) {
     return execute_with_catch([&]() {return debye_amplitude(molecule_id, std::nullopt, I, A, n_points);}, status);
 }
 

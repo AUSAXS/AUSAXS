@@ -11,7 +11,7 @@
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/ManagerResults.h>
 #include <hist/histogram_manager/detail/SimpleExvHelpers.h>
-#include <hist/scattering_model/ScatteringAmplitude.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
 #include <settings/HistogramSettings.h>
 
 #include <cassert>

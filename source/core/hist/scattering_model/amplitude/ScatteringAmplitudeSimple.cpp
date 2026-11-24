@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Author: Kristian Lytje
 
-#include <hist/scattering_model/ScatteringAmplitudeSimple.h>
+#include <hist/scattering_model/amplitude/ScatteringAmplitudeSimple.h>
 
 #include <cmath>
 
