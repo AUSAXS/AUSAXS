@@ -38,8 +38,7 @@ struct PathResolutionFixture {
 
     // place a copy of the test structure at <root>/sub/mol.pdb, reachable only through the config folder
     void plant_structure() const {
-        std::filesystem::copy_file("tests/files/SASDJG5_single.pdb", root + "/sub/mol.pdb",
-                                   std::filesystem::copy_options::overwrite_existing);
+        std::filesystem::copy_file("tests/files/SASDJG5_single.pdb", root + "/sub/mol.pdb", std::filesystem::copy_options::overwrite_existing);
     }
 
     std::unique_ptr<Sequencer> parse(const std::string& contents) const {
@@ -66,8 +65,7 @@ TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::LoadElement resolves pa
     }
 
     SECTION("a structure sitting directly next to the configuration file") {
-        std::filesystem::copy_file("tests/files/SASDJG5_single.pdb", root + "/mol.pdb",
-                                   std::filesystem::copy_options::overwrite_existing);
+        std::filesystem::copy_file("tests/files/SASDJG5_single.pdb", root + "/mol.pdb", std::filesystem::copy_options::overwrite_existing);
         auto seq = parse(
             "load {\n"
             "    pdb mol.pdb\n"
@@ -76,6 +74,18 @@ TEST_CASE_METHOD(PathResolutionFixture, "SequenceParser::LoadElement resolves pa
         );
         REQUIRE(seq != nullptr);
         CHECK(seq->_get_rigidbody()->molecule.size_body() == 1);
+    }
+
+    SECTION("a data file sitting directly next to the configuration file") {
+        std::filesystem::copy_file("tests/files/SASDJG5.dat", root + "/data.dat", std::filesystem::copy_options::overwrite_existing);
+        auto seq = parse(
+            "load {\n"
+            "    pdb tests/files/SASDJG5_single.pdb\n"
+            "    saxs data.dat\n"
+            "}\n"
+        );
+        REQUIRE(seq != nullptr);
+        CHECK(std::filesystem::equivalent(seq->_get_saxs_path().path(), root + "/data.dat"));
     }
 
     SECTION("a path that exists neither way is still an error") {

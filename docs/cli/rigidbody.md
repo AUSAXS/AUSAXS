@@ -279,7 +279,7 @@ load {
 </details>
 
 > [!TIP]
-> Structure paths are resolved relative to where the program was launched, and then relative to the folder holding the configuration script. The latter lets a script reference structures placed next to it no matter where it is run from.
+> Structure and data paths are resolved relative to where the program was launched, and then relative to the folder holding the configuration script. The latter lets a script reference files placed next to it no matter where it is run from.
 
 ---
 
