@@ -7,7 +7,6 @@
 #include <hist/scattering_model/IScatteringModel.h>
 #include <hist/scattering_model/IScatteringModelExv.h>
 #include <hist/scattering_model/amplitude/ScatteringAmplitude.h>
-#include <hist/scattering_model/ScatteringParameters.h>
 #include <math/ConstexprMath.h>
 #include <settings/All.h>
 

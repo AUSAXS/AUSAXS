@@ -19,7 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <numeric>
+#include <ranges>
 
 using namespace ausaxs;
 using namespace ausaxs::form_factor;
@@ -285,7 +285,7 @@ void manager::use_form_factors(const data::Molecule& molecule) {
     ff_counts[static_cast<int>(form_factor::form_factor_t::OTHER)] = std::numeric_limits<int>::min();
 
     std::vector<int> ff_indices(form_factor::total_ff_count);
-    std::iota(ff_indices.begin(), ff_indices.end(), 0);
+    std::ranges::copy(std::views::iota(0, form_factor::total_ff_count), ff_indices.begin());
     std::ranges::stable_sort(ff_indices, std::greater{}, [&ff_counts] (int type) {return ff_counts[type];});
 
     // Drop the absent types. The sort above places EXCLUDED_VOLUME and WATER first (forced), then every type in descending order of abundance, and finally 
