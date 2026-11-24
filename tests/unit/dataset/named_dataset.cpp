@@ -3,8 +3,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <dataset/NamedDataset.h>
+#include <dataset/SimpleDataset.h>
 
 #include <support/temp_file.h>
+
+#include <fstream>
+#include <string>
 
 using namespace ausaxs;
 
@@ -161,5 +165,23 @@ TEST_CASE("NamedDataset::save") {
         test::TempFile path(".dat");
         named.save(path, "# Test header");
         CHECK(path.exists());
+    }
+
+    SECTION("file contents") {
+        SimpleDataset data(std::vector<double>{0.01, 0.02, 0.03}, std::vector<double>{100, 95, 85}, std::vector<double>{2, 2.5, 3});
+        NamedSimpleDataset named_output(std::move(data), {"q", "I(q)", "error"});
+        test::TempFile output_path(".dat");
+        named_output.save(output_path, "# SAXS experimental data");
+
+        std::ifstream input(output_path.str());
+        std::string unit_line, header_line, column_line;
+        std::getline(input, unit_line);
+        std::getline(input, header_line);
+        std::getline(input, column_line);
+        CHECK(unit_line == "[A]");
+        CHECK(header_line == "# SAXS experimental data");
+        CHECK(column_line.find('q') != std::string::npos);
+        CHECK(column_line.find("I(q)") != std::string::npos);
+        CHECK(column_line.find("error") != std::string::npos);
     }
 }
