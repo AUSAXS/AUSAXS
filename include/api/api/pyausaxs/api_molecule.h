@@ -50,7 +50,6 @@ extern "C" API int molecule_distance_histogram_raw(
 
 /**
  * The Debye intensity of the molecule's configured model, including its hydration shell if it has one.
- * Evaluated on the default q axis, see get_q_axis.
  */
 extern "C" API int molecule_debye(
     int molecule_id,
@@ -71,7 +70,6 @@ extern "C" API void molecule_debye_userq(
 /**
  * The orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, including its hydration shell if it has one.
  * The amplitude is taken about centre, given as [x, y, z], which must be the reference point of the particles in the structure factor S(q). 
- * Evaluated on the default q axis, see get_q_axis.
  */
 extern "C" API int molecule_amplitude(
     int molecule_id,
@@ -109,11 +107,9 @@ extern "C" API void molecule_amplitude_centroid_userq(
 );
 
 /**
- * The Debye intensity I(q) and the orientationally averaged scattering amplitude <A(q)> of the molecule's configured model, both on the default 
- * q axis (see get_q_axis) and from a single histogram calculation. This is cheaper than molecule_debye followed by molecule_amplitude.
- * beta(q) = A(q)^2 / I(q). The centre is as in molecule_amplitude.
+ * The beta(q) from the decoupling approximation.
  */
-extern "C" API int molecule_debye_amplitude(
+extern "C" API int molecule_beta(
     int molecule_id,
     const double* centre,
     double** I, double** A, int* n_points,
@@ -121,9 +117,9 @@ extern "C" API int molecule_debye_amplitude(
 );
 
 /**
- * As molecule_debye_amplitude, but with the amplitude taken about the centroid of the excess scattering length.
+ * As molecule_beta, but with the amplitude taken about the centroid of the excess scattering length.
  */
-extern "C" API int molecule_debye_amplitude_centroid(
+extern "C" API int molecule_beta_centroid(
     int molecule_id,
     double** I, double** A, int* n_points,
     int* status
@@ -132,7 +128,6 @@ extern "C" API int molecule_debye_amplitude_centroid(
 /**
  * The plain binned Debye sum of the atoms and any waters as point scatterers with their weights.
  * For the same sum with their atomic form factors, use molecule_debye with the excluded volume model "vacuum".
- * Evaluated on the default q axis, see get_q_axis.
  */
 extern "C" API int molecule_debye_raw(
     int molecule_id,
