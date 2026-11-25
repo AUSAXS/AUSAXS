@@ -199,11 +199,13 @@ jobs:
         include:
           - os: ubuntu-latest
             name: "Ubuntu latest with GCC"
+            artifact: ubuntu-latest-binaries
             c_compiler: gcc
             cpp_compiler: g++
 
           - os: ubuntu-24.04-arm
             name: "Ubuntu 24.04 ARM with GCC"
+            artifact: ubuntu-latest-arm-binaries
             c_compiler: gcc
             cpp_compiler: g++
 
@@ -232,7 +234,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-binaries
+          name: ${{ matrix.artifact }}
           path: |
             build/lib/*
             build/bin/*
