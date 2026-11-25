@@ -12,11 +12,11 @@ using namespace ausaxs;
 using namespace ausaxs::hist;
 using namespace ausaxs::hist::detail::grid_exv;
 
-AtomicDistributions AtomicDistributions::from(ManagerDistributions<true, true>&& d) {
+AtomicDistributions AtomicDistributions::from(ManagerDistributions<true, true>&& d) { // NOLINT
     return AtomicDistributions{
-        .p_aa = Distribution3D<hist::Shape::Triangular>(std::move(d.p_aa)),
-        .p_aw = Distribution2D(std::move(d.p_aw)),
-        .p_ww = Distribution1D(std::move(d.p_ww)),
+        .p_aa = Distribution3D<hist::Shape::Triangular>(d.p_aa),
+        .p_aw = Distribution2D(d.p_aw),
+        .p_ww = Distribution1D(d.p_ww),
         .self_aa = std::move(d.self_aa),
         .self_ww = d.self_ww,
         .p_tot = std::move(d.p_tot)
