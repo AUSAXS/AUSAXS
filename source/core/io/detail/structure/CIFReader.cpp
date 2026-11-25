@@ -43,8 +43,6 @@ namespace {
 
         if (!labels.contains("comp_id")) {
             throw except::io_error(R"(CIFReader::parse_ion: Missing required label "comp_id" in "_chem_comp" section)");
-        } if (!labels.contains("charge")) {
-            throw except::io_error(R"(CIFReader::parse_ion: Missing required label "charge" in "_chem_comp" section)");
         }
 
         std::string comp_id = atom.data[0][labels.at("comp_id")];
@@ -52,9 +50,9 @@ namespace {
             throw except::io_error("CIFReader::parse_ion: Unrecognized ion: \"" + comp_id + "\"");
         }
 
-        int charge = std::stoi(atom.data[0][labels.at("charge")]);
+        // an ion carries no hydrogens; like the form factors, its weight is that of the neutral atom
         residue::detail::Residue residue(comp_id);
-        residue.add_atom(comp_id, charge, constants::symbols::parse_element_string(comp_id));
+        residue.add_atom(comp_id, comp_id, constants::symbols::parse_element_string(comp_id));
         return residue;
     }
 
@@ -83,9 +81,9 @@ namespace {
 
             residue::detail::Residue residue(current_comp_id);
             if (i+1 == atom.data.size() || atom.data[i+1][i_comp_id] != current_comp_id) {
-                // single-atom residue indicates an ion
-                auto element = constants::symbols::parse_element_string(atom.data[i][i_type_symbol]);
-                residue.add_atom(atom.data[i][i_atom_id], constants::charge::ionic::get_charge(element), element);
+                // single-atom residue indicates an ion, which carries no hydrogens
+                const std::string& atom_id = atom.data[i][i_atom_id];
+                residue.add_atom(atom_id, atom_id, constants::symbols::parse_element_string(atom.data[i][i_type_symbol]));
                 ++i;
             } else {
                 // multi-atom residue

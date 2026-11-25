@@ -99,25 +99,6 @@ constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t
     return constants::atomic_group_t::unknown;
 }
 
-int constants::valence::get_valence(atom_t atom) {
-    switch(atom) {
-        case atom_t::H:  return 1;
-        case atom_t::D:  return 1;
-        case atom_t::C:  return 4;
-        case atom_t::N:  return 3;
-        case atom_t::O:  return 2;
-        case atom_t::F:  return 1;
-        case atom_t::Ne: return 0;
-        case atom_t::S:  return 2;
-        case atom_t::P:  return 1;
-        case atom_t::Cl: return 1;
-        case atom_t::Fe: return 4;
-        case atom_t::Se: return 2;
-        case atom_t::M:  return 0;
-        default: throw except::runtime_error("constants::valence::get_valence: Unknown atom type \"" + constants::symbols::to_string(atom) + "\"");
-    }
-}
-
 double constants::radius::get_vdw_radius(atom_t atom) {
     switch(atom) {
         case atom_t::H:  return vdw::H;
