@@ -10,10 +10,17 @@
 using namespace ausaxs::settings;
 
 double internal_state::inv_bin_width = 1./constants::axes::d_axis.width();
-bool internal_state::prefer_partial_manager = false;
-bool internal_state::allow_decorrelate_atom_order = true;
-bool internal_state::gpu_expose_cpu = false;
-bool internal_state::suggest_rebinning = true;
+Setting<bool> internal_state::prefer_partial_manager{false};
+Setting<bool> internal_state::allow_decorrelate_atom_order{true};
+Setting<bool> internal_state::gpu_expose_cpu{false};
+Setting<bool> internal_state::suggest_rebinning{true};
+
+void internal_state::reset() {
+    prefer_partial_manager.reset();
+    allow_decorrelate_atom_order.reset();
+    gpu_expose_cpu.reset();
+    suggest_rebinning.reset();
+}
 
 double internal_state::solvent_density() {
     using Radiation = scattering::Radiation;
