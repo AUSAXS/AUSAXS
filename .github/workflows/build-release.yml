@@ -203,8 +203,8 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
 
-          - os: ubuntu-24.04-arm
-            name: "Ubuntu 24.04 ARM with GCC"
+          - os: ubuntu-26.04-arm
+            name: "Ubuntu 26.04 ARM with GCC"
             artifact: ubuntu-latest-arm-binaries
             c_compiler: gcc
             cpp_compiler: g++
