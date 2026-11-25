@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <io/Folder.h>
 #include <settings/ExportMacro.h>
 #include <settings/SettingsHelper.h>
 
@@ -14,7 +15,7 @@ namespace ausaxs::settings {
         static Setting<bool> verbose;                // Whether to print out extra information.
         static Setting<bool> warnings;               // Whether to print out warnings.
         static Setting<int> threads;                 // The number of threads to use for parallelization.
-        static Setting<std::string> output;          // The output directory.
+        static Setting<ausaxs::io::Folder> output;   // The output directory. Adding a file name to it inserts a separator.
         static Setting<std::string> cache;           // The cache directory.
         static Setting<bool> keep_hydrogens;         // Whether to keep bound hydrogens when reading a structure.
         static Setting<bool> generate_plots;         // Whether to generate plots when possible.

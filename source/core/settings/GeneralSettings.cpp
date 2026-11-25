@@ -17,7 +17,7 @@ settings::Setting<bool> settings::general::verbose{true};
 settings::Setting<bool> settings::general::warnings{true};
 settings::Setting<bool> settings::general::offline{false};
 settings::Setting<int> settings::general::threads{std::max(1, static_cast<int>(std::thread::hardware_concurrency())-1)};
-settings::Setting<std::string> settings::general::output{"output/"};
+settings::Setting<ausaxs::io::Folder> settings::general::output{ausaxs::io::Folder("output")};
 settings::Setting<bool> settings::general::keep_hydrogens{
     false,
     [] (bool&) {
@@ -55,7 +55,7 @@ settings::Setting<std::string> settings::general::cache{[] () {
             return std::string(env_p) + "/.cache/ausaxs/";
         }
     #endif
-    return output + "/temp/";
+    return output.value + "temp/";
 }()};
 
 std::string settings::general::helper::residue_folder() {
@@ -78,6 +78,15 @@ int ausaxs::settings::general::detail::get_job_size(int n) {
     int threads = std::max<int>(1, settings::general::threads);
     return std::clamp(n/(jobs_per_thread*threads), min_job_size, max_job_size);
 }
+
+// declared before the section below registers the setting, so that the registration sees them
+template<> std::string settings::io::detail::SettingRef<ausaxs::io::Folder>::get() const {return settingref.path();}
+template<> void settings::io::detail::SettingRef<ausaxs::io::Folder>::set(const std::vector<std::string>& val) {
+    if (val.size() != 1) {throw except::parse_error("settings: Option \"" + names.front() + "\" received too many settings.");}
+    settingref = val[0];
+}
+template<> std::string settings::io::detail::SettingRef<ausaxs::io::Folder>::type() const {return "string";}
+template<> bool settings::io::detail::SettingRef<ausaxs::io::Folder>::requires_quoting() const {return true;}
 
 namespace {
     using namespace ausaxs::settings;

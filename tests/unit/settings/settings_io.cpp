@@ -28,11 +28,11 @@ struct SettingsIOFixture {
 // so settings::write has to quote such a value for it to survive the round trip.
 TEST_CASE_METHOD(SettingsIOFixture, "settings: string values round-trip through write/read") {
     SECTION("no spaces") {
-        CHECK(round_trip("output/saxs_fitter/") == "output/saxs_fitter/");
+        CHECK(round_trip("output/saxs_fitter/") == "output/saxs_fitter");
     }
 
     SECTION("spaces") {
-        CHECK(round_trip("my output/saxs fitter/") == "my output/saxs fitter/");
+        CHECK(round_trip("my output/saxs fitter/") == "my output/saxs fitter");
     }
 
     SECTION("windows path with spaces") {
@@ -42,13 +42,13 @@ TEST_CASE_METHOD(SettingsIOFixture, "settings: string values round-trip through 
 
 // An empty value must survive too. Written bare it is a line with no value, which settings::read skips, so the setting
 // silently kept whatever it held before the read - a non-empty default, in practice.
-TEST_CASE_METHOD(SettingsIOFixture, "settings: an empty string value round-trips through write/read") {
-    settings::general::output = "";
+TEST_CASE("settings: an empty string value round-trips through write/read") {
+    settings::general::gpu_library = "";
     test::TempFile file(".txt");
     settings::write(file);
-    settings::general::output = "not/empty/";
+    settings::general::gpu_library = "not/empty/";
     settings::read(file);
-    CHECK(settings::general::output == "");
+    CHECK(settings::general::gpu_library == "");
 }
 
 // a double was written with std::to_string's fixed 6 decimals, so 2.5e-7 read back as 0

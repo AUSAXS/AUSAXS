@@ -52,10 +52,10 @@ TEST_CASE_METHOD(SequenceParserQuotingFixture, "SequenceParser: quoted paths") {
         CHECK(settings::general::output == "C:\\out dir\\sub dir\\");
     }
 
-    SECTION("quoted windows path without a trailing separator gains one") {
+    SECTION("quoted windows path without a trailing separator") {
         auto seq = parse(std::string(load_block) + "output \"C:\\out dir\\sub dir\"\n");
         REQUIRE(seq != nullptr);
-        CHECK(settings::general::output == "C:\\out dir\\sub dir/");
+        CHECK(settings::general::output == "C:\\out dir\\sub dir");
     }
 
     SECTION("trailing comment after a quoted windows path") {

@@ -7,6 +7,7 @@
 #include <utility/TypeTraits.h>
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace ausaxs::io {
@@ -29,6 +30,12 @@ namespace ausaxs::io {
             [[nodiscard]] std::string str() const; //< @copydoc path
 
             /**
+             * @brief Join a file or subfolder name onto this folder, inserting exactly one separator.
+             *        operator+ below is this function.
+             */
+            [[nodiscard]] std::string join(std::string_view name) const;
+
+            /**
              * @brief Check if this folder exists on disk.
              */
             [[nodiscard]] bool exists() const noexcept;
@@ -36,6 +43,11 @@ namespace ausaxs::io {
             template<ausaxs::detail::string_like T>
             Folder& operator=(const T& path) {*this = std::string_view(path); return *this;}
             Folder& operator=(std::string_view path);
+
+            /**
+             * @brief Descend into a subfolder of this one. Equivalent to assigning join(name).
+             */
+            Folder& operator+=(std::string_view name);
             bool operator==(const Folder& other) const noexcept = default;
 
             [[nodiscard]] operator std::string() const;
@@ -81,4 +93,10 @@ namespace ausaxs::io {
             std::string dir;
     };
     static_assert(supports_nothrow_move_v<Folder>, "Folder should support nothrow move semantics.");
+
+    // Folder::join as an operator, so `folder + "name"` is a path inside the folder. All three right-hand types are needed,
+    // since with only one of them `folder + "literal"` would be ambiguous with std::string's operator+.
+    [[nodiscard]] inline std::string operator+(const Folder& folder, std::string_view name) {return folder.join(name);}
+    [[nodiscard]] inline std::string operator+(const Folder& folder, const std::string& name) {return folder.join(name);}
+    [[nodiscard]] inline std::string operator+(const Folder& folder, const char* name) {return folder.join(name);}
 }

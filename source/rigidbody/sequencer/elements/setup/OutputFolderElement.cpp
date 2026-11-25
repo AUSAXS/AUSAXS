@@ -31,12 +31,9 @@ OutputFolderElement::OutputFolderElement(observer_ptr<Sequencer> owner, const io
         }
     }
 
-    // the output folder is later concatenated with file names, so it must end in a separator.
-    // '\' counts as one too, since Windows paths are written with it
-    bool terminated = !path.empty() && (path.back() == '/' || path.back() == '\\');
-    settings::general::output = prefix + path + (terminated ? "" : "/");
+    settings::general::output = prefix + path;
     if (settings::general::verbose) {
-        logging::log("OutputFolderElement: Setting output folder to \"" + settings::general::output + "\".");
+        logging::log("OutputFolderElement: Setting output folder to \"" + settings::general::output->path() + "\".");
     }
 }
 
