@@ -5,6 +5,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Body.h>
+#include <data/atoms/AtomMetadata.h>
 #include <data/Molecule.h>
 #include <data/symmetry/CyclicSymmetry.h>
 #include <data/symmetry/PredefinedSymmetries.h>
@@ -131,5 +132,65 @@ TEST_CASE("DistanceConstraintBond: prefers sequential C-alpha pairs") {
         int seq2 = (*md2->residue_seq)[c->iatom2];
         INFO("constraint between residues " << seq1 << " and " << seq2);
         CHECK((seq1 - seq2 == 1 || seq2 - seq1 == 1));
+    }
+}
+
+// Build two single-atom bodies carrying full backbone/residue/chain metadata, separated along x.
+static std::vector<Body> two_residues(int seq1, char chain1, int seq2, char chain2, double separation) {
+    auto make = [] (Vector3<double> pos, int seq, char chain) {
+        Body b(std::vector<AtomFF>{AtomFF(pos, form_factor::form_factor_t::C)});
+        AtomMetadata md;
+        md.backbone.emplace(1, data::backbone_t::c_alpha);
+        md.residue_seq.emplace(1, seq);
+        md.chain_id.emplace(1, chain);
+        b.set_metadata(std::move(md));
+        return b;
+    };
+    return {make({0, 0, 0}, seq1, chain1), make({separation, 0, 0}, seq2, chain2)};
+}
+
+TEST_CASE("DistanceConstraintBond: residues missing from the model") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+
+    // A deposited model routinely omits disordered residues. The two fragments on either side of such a gap are still
+    // covalently connected, so they must still bond - the gap is paid for in the distance the bond is allowed to span.
+    SECTION("one missing residue still bonds") {
+        auto ap = two_residues(10, 'A', 12, 'A', 6);
+        Molecule protein(ap);
+        REQUIRE(constraints::DistanceConstraintBond::can_bond(&protein, 0, 1));
+        constraints::DistanceConstraintBond c(&protein, 0, 1);
+        CHECK_THAT(c.d_target, Catch::Matchers::WithinAbs(6.0, 1e-9));
+    }
+
+    SECTION("four missing residues still bond") {
+        auto ap = two_residues(10, 'A', 15, 'A', 16);
+        Molecule protein(ap);
+        CHECK(constraints::DistanceConstraintBond::can_bond(&protein, 0, 1));
+    }
+
+    // ...but only as far as the missing stretch can physically reach: one residue step spans at most ~4A.
+    SECTION("a gap the missing residues cannot span does not bond") {
+        auto ap = two_residues(10, 'A', 12, 'A', 9);
+        Molecule protein(ap);
+        CHECK_FALSE(constraints::DistanceConstraintBond::can_bond(&protein, 0, 1));
+        CHECK_THROWS(constraints::DistanceConstraintBond(&protein, 0, 1));
+    }
+
+    SECTION("a stretch too long to be a single connection does not bond") {
+        auto ap = two_residues(10, 'A', 40, 'A', 3.8);
+        Molecule protein(ap);
+        CHECK_FALSE(constraints::DistanceConstraintBond::can_bond(&protein, 0, 1));
+    }
+
+    // Residue ids restart on every chain, so two chains regularly carry consecutive ids without being connected at all.
+    SECTION("adjacent residue ids on different chains do not bond") {
+        auto ap = two_residues(10, 'A', 11, 'B', 3.8);
+        Molecule protein(ap);
+        CHECK_FALSE(constraints::DistanceConstraintBond::can_bond(&protein, 0, 1));
+
+        auto same = two_residues(10, 'A', 11, 'A', 3.8);
+        Molecule same_protein(same);
+        CHECK(constraints::DistanceConstraintBond::can_bond(&same_protein, 0, 1));
     }
 }

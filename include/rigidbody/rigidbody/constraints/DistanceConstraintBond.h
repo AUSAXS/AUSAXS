@@ -13,8 +13,10 @@ namespace ausaxs::rigidbody::constraints {
             /**
              * @brief Create a backbone bond constraint between the two bodies.
              *
-             * The representative C-alpha pair is selected automatically: only the terminal C-alphas of each body are eligible. 
-             * Throws if no suitable pair is found or if the selected atoms are too far apart to represent a bond.
+             * The representative C-alpha pair is selected automatically: only the terminal C-alphas of each body are eligible, and of those
+             * only pairs sharing a chain and lying within a few residues of each other in sequence. Residues missing from the model are
+             * allowed for, so two fragments separated by a disordered stretch still bond.
+             * Throws if no suitable pair is found or if the selected atoms are too far apart for the number of residues between them.
              */
             DistanceConstraintBond(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2);
 
@@ -22,6 +24,8 @@ namespace ausaxs::rigidbody::constraints {
 
             /**
              * @brief Check whether a backbone bond can be formed between the two bodies.
+             *
+             * Equivalent to the constructor succeeding, but without throwing, so many pairs can be probed cheaply.
              */
             static bool can_bond(observer_ptr<const data::Molecule> molecule, int ibody1, int ibody2);
 
