@@ -5,6 +5,9 @@
 #include <math/MatrixUtils.h>
 #include <math/QRDecomposition.h>
 #include <math/Vector.h>
+#include <utility/Random.h>
+
+#include <random>
 
 using namespace ausaxs;
 
@@ -110,5 +113,30 @@ TEST_CASE("QRDecomposition::abs_determinant") {
         QRDecomposition qr(A);
         
         REQUIRE_THAT(qr.abs_determinant(), Catch::Matchers::WithinAbs(1, 1e-6));
+    }
+}
+
+TEST_CASE("QRDecomposition: random 5x5 systems") {
+    std::uniform_int_distribution<int> entry(0, 99);
+    auto id = matrix::identity(5);
+    for (int i = 0; i < 10; i++) {
+        Matrix<double> A(5, 5);
+        Vector<double> b(5);
+        for (int j = 0; j < 5; j++) {
+            b[j] = entry(random::generator());
+            for (int k = 0; k < 5; k++) {
+                A[j][k] = entry(random::generator());
+            }
+        }
+
+        QRDecomposition solver(A);
+        Vector<double> Ax = A*solver.solve(b);
+        auto AAinv = A*solver.inverse();
+        for (int j = 0; j < 5; j++) {
+            REQUIRE_THAT(Ax[j], Catch::Matchers::WithinAbs(b[j], 1e-6));
+            for (int k = 0; k < 5; k++) {
+                REQUIRE_THAT(AAinv[j][k], Catch::Matchers::WithinAbs(id[j][k], 1e-6));
+            }
+        }
     }
 }

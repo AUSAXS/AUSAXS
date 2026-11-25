@@ -89,20 +89,17 @@ TEST_CASE("FormFactorProduct::raw_atomic_table") {
             }
         }
     }
+}
 
-    SECTION("all table entries match direct calculation") {
-        const auto* tables = manager::get_active_product_tables();
-        const auto& table = tables->raw_atomic_table;
-        for (int i = 0; i < tables->active_count; ++i) {
-            for (int j = 0; j < tables->active_count; ++j) {
-                const xray::FormFactor& ff1 = xray::raw::get(static_cast<form_factor_t>(tables->ff_indices[i]));
-                const xray::FormFactor& ff2 = xray::raw::get(static_cast<form_factor_t>(tables->ff_indices[j]));
-                const FormFactorProduct& product = table.index(i, j);
-
-                for (int k = 0; k < constants::axes::q_axis.bins; ++k) {
-                    double expected = ff1.evaluate(constants::axes::q_vals[k]) * ff2.evaluate(constants::axes::q_vals[k]);
-                    CHECK_THAT(product.evaluate(k), Catch::Matchers::WithinRel(expected, 1e-10));
-                }
+TEST_CASE("FormFactorProduct::constructor: every pair of form factors") {
+    for (int ff1 = 0; ff1 < total_ff_count; ++ff1) {
+        for (int ff2 = 0; ff2 < total_ff_count; ++ff2) {
+            const xray::FormFactor& ff1_obj = xray::raw::get(static_cast<form_factor_t>(ff1));
+            const xray::FormFactor& ff2_obj = xray::raw::get(static_cast<form_factor_t>(ff2));
+            FormFactorProduct ff(ff1_obj, ff2_obj);
+            for (int i = 0; i < constants::axes::q_axis.bins; ++i) {
+                double expected = ff1_obj.evaluate(constants::axes::q_vals[i]) * ff2_obj.evaluate(constants::axes::q_vals[i]);
+                CHECK_THAT(ff.evaluate(i), Catch::Matchers::WithinRel(expected, 1e-10));
             }
         }
     }
