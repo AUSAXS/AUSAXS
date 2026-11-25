@@ -109,6 +109,8 @@ int cli_debye(int argc, char const *argv[]) {
         settings::exv::exv_method = points ? settings::exv::ExvMethod::None : settings::exv::ExvMethod::Vacuum;
         settings::hist::weighted_bins = true; // the profile must hold far beyond the range unweighted bins are judged by
         if (p_bin_width->count() == 0) {settings::axes::bin_width = default_bin_width;}
+        // wide-angle data routinely extends past q = 1, where the reader's magnitude rule would take Å^-1 for nm^-1
+        if (!settings::general::helper::is_user_defined(settings::general::input_q_unit)) {settings::general::input_q_unit = settings::general::QUnit::USER_A;}
         settings::validate_settings();
 
         if (!constants::filetypes::structure.check(structure)) {
