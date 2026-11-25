@@ -4,6 +4,7 @@
 #include <hist/histogram_manager/detail/ManagerResults.h>
 
 #include <data/Molecule.h>
+#include <data/symmetry/MoleculeSymmetryFacade.h>
 #include <form_factor/FormFactorType.h>
 #include <form_factor/lookup/FormFactorManager.h>
 #include <hist/detail/BinEstimate.h>
@@ -138,7 +139,8 @@ template<bool wb>
 std::unique_ptr<IScatteringModel> hist::detail::make_average_model(
     ManagerDistributions<wb, true>&& d, observer_ptr<const data::Molecule> protein // NOLINT
 ) {
-    double Z_exv_avg = protein->get_volume_grid()*settings::internal_state::solvent_density()/protein->size_atom();
+    // the grid holds every symmetry copy, so its volume is shared among the copies' atoms too
+    double Z_exv_avg = protein->get_volume_grid()*settings::internal_state::solvent_density()/protein->symmetry().size_atom_total();
     return make_ff_model<ScatteringModelAverage>(std::move(d), Z_exv_avg);
 }
 
