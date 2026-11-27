@@ -14,7 +14,11 @@
 
  - Work is split into a uniform tile grid over both index ranges, and each thread keeps rows_per_thread atoms of the first range in registers 
    while streaming the second. The streamed atom is the same for every thread in the workgroup, so it is read once into scalar registers and 
-   its cost is amortized over all the atoms held in registers. This is intended to minimize memory traffic. 
+   its cost is amortized over all the atoms held in registers. This is intended to minimize memory traffic.
+
+ - The tiles are launched in chunks of a bounded size rather than as one kernel. The OS can only reliably take the GPU back between kernels,
+   e.g. to draw the desktop, and resets the device when a single kernel holds it for too long (the TDR on Windows, the hang checks of the
+   Linux drivers). Since every tile adds into its job's slot atomically, the chunks need no ordering among themselves.
 */
 
 #include <gpu/GPUBackendABI.h>
@@ -82,6 +86,14 @@ namespace {
      * @brief How many output histograms to make room for before any are asked for.
      */
     constexpr int default_slots = 256;
+
+    /**
+     * @brief Tiles per compute unit in a single kernel launch; see Context::tiles_per_launch.
+     *
+     * A tile is at most tile_size^2 pairs, so a launch is about this many million pairs per compute unit: tens of milliseconds on a dedicated
+     * GPU, well within any watchdog, while the launch overhead of a few microseconds stays negligible.
+     */
+    constexpr std::size_t tiles_per_compute_unit = 8;
 
     template<sycl::access::address_space space, sycl::memory_scope scope, typename T>
     inline void atomic_add(T& target, T value) {
@@ -414,6 +426,15 @@ namespace {
             Arena arena;
             std::size_t local_mem = 0; // workgroup memory the device offers a single workgroup
 
+            /**
+             * @brief The most tiles a single kernel launch may cover; larger tile lists are launched in chunks.
+             *
+             * Bounds how long one kernel holds the device, so the OS can schedule other work (e.g. the desktop) in between. Derived from the
+             * device's compute unit count, so the chunks take about the same time on any device; a calibration against the measured
+             * throughput can replace it without touching anything else.
+             */
+            std::size_t tiles_per_launch = 1;
+
             // state of the calculation currently being built, reset by begin()
             bool active = false;
             bool weighted = false;
@@ -510,6 +531,8 @@ namespace {
             explicit Context(const sycl::device& device) : queue(device, [this] (sycl::exception_list errors) {record(errors);}) {
                 name = device.get_info<sycl::info::device::name>();
                 local_mem = queue.get_device().get_info<sycl::info::device::local_mem_size>();
+                const std::size_t compute_units = queue.get_device().get_info<sycl::info::device::max_compute_units>();
+                tiles_per_launch = std::max<std::size_t>(compute_units, 1)*tiles_per_compute_unit;
                 warmup();
             }
 
@@ -580,32 +603,37 @@ namespace {
         }
     }
 
+    /**
+     * @brief Queue the kernels evaluating @a n_tiles tiles, at most Context::tiles_per_launch per kernel.
+     */
     template<bool weighted, bool diagonal>
     void launch(
         Context& context, const TileRef* tiles, std::size_t n_tiles, const DeviceJob* jobs,
         bin_t<weighted>* histograms, float inv_width, int bin_count, int local_bins, // NOLINT
         const std::vector<sycl::event>& wait_for
     ) {
-        if (n_tiles == 0) {return;}
-        context.queue.submit([&] (sycl::handler& handler) {
-            handler.depends_on(wait_for);
-            handler.depends_on(context.zeroing);
+        for (std::size_t first = 0; first < n_tiles; first += context.tiles_per_launch) {
+            const std::size_t chunk = std::min(context.tiles_per_launch, n_tiles - first);
+            context.queue.submit([&] (sycl::handler& handler) {
+                handler.depends_on(wait_for);
+                handler.depends_on(context.zeroing);
 
-            // the two the unweighted kernel never touches are left empty rather than given a token
-            // element, so that the allocation is exactly what local_bin_capacity budgeted for
-            const auto bins = static_cast<std::size_t>(local_bins);
-            const auto shared = sycl::range<1>(weighted ? bins : 0);
-            sycl::local_accessor<i64, 1> value{sycl::range<1>(bins), handler};
-            sycl::local_accessor<i64, 1> count{shared, handler};
-            sycl::local_accessor<i64, 1> center{shared, handler};
-            handler.parallel_for(
-                sycl::nd_range<1>(n_tiles*workgroup_size, workgroup_size),
-                Kernel<weighted, diagonal>{
-                    tiles, jobs, histograms, inv_width, bin_count,
-                    local_bins, value, count, center
-                }
-            );
-        });
+                // the two the unweighted kernel never touches are left empty rather than given a token
+                // element, so that the allocation is exactly what local_bin_capacity budgeted for
+                const auto bins = static_cast<std::size_t>(local_bins);
+                const auto shared = sycl::range<1>(weighted ? bins : 0);
+                sycl::local_accessor<i64, 1> value{sycl::range<1>(bins), handler};
+                sycl::local_accessor<i64, 1> count{shared, handler};
+                sycl::local_accessor<i64, 1> center{shared, handler};
+                handler.parallel_for(
+                    sycl::nd_range<1>(chunk*workgroup_size, workgroup_size),
+                    Kernel<weighted, diagonal>{
+                        tiles + first, jobs, histograms, inv_width, bin_count,
+                        local_bins, value, count, center
+                    }
+                );
+            });
+        }
     }
 
     // Queue one batch of correlations. Does not wait for them; see the ABI header.
