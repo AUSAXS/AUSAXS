@@ -78,7 +78,8 @@ std::vector<int> math::find_minima(const std::vector<double>& x, const std::vect
                 // std::cout << "\t\tSlope left is " << slope_left << std::endl;
                 slope = slope_left*1.05;
                 bound.min++;
-                if (bound.min == index) {
+                // not ==: if the bound starts right next to the minimum, the increment before the loop already lands on it, and an equality test would let it walk past
+                if (index <= bound.min) {
                     bound.min--;
                     break;
                 }
@@ -95,7 +96,7 @@ std::vector<int> math::find_minima(const std::vector<double>& x, const std::vect
                 // std::cout << "\t\tSlope right is " << slope_right << std::endl;
                 slope = slope_right*1.05;
                 bound.max--;
-                if (bound.max == index) {
+                if (bound.max <= index) {
                     bound.max++;
                     break;
                 }
@@ -321,7 +322,7 @@ std::vector<int> math::find_minima(const std::vector<double>& x, const std::vect
                 }
 
                 // check next bound
-                if (i != size-1 && local_minima_bounds[i].max == local_minima_bounds[i+1].min) {
+                if (i+1 < static_cast<int>(local_minima.size()) && local_minima_bounds[i].max == local_minima_bounds[i+1].min) {
                     peak_finder::Limit new_bounds;
                     // restore original bounds and merge
                     new_bounds.min = original_bounds[i].min;
