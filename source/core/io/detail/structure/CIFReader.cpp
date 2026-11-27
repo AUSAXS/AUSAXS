@@ -332,7 +332,7 @@ namespace {
             if (hydrogens_found != 0) {console::print_text("Discarded " + std::to_string(hydrogens_found) + " explicit hydrogen atoms.");}
             if (deuterium_found != 0) {console::print_warning("CIFReader::read: " + std::to_string(deuterium_found) + " of the discarded hydrogens are deuterium, so their labelling is lost. Use 'hydrogens --keep' to keep them as given.");}
         } else {
-            if (hydrogens_found == 0) {console::print_warning("CIFReader::read: No explicit hydrogen atoms were found, but 'hydrogens --keep' was specified.");}
+            if (hydrogens_found == 0) {console::print_text("The file has no explicit hydrogen atoms to keep.");}
         }
     }
 

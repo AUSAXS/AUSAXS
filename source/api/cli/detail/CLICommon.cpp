@@ -3,14 +3,21 @@
 
 #include <api/cli/detail/CLICommon.h>
 
+#include <constants/Constants.h>
 #include <constants/ConstantsAxes.h>
 #include <constants/Version.h>
+#include <data/Body.h>
+#include <data/Molecule.h>
 #include <form_factor/neutron/NeutronSolvent.h>
 #include <gpu/GPUInstaller.h>
+#include <io/Reader.h>
+#include <io/pdb/PDBStructure.h>
 #include <settings/All.h>
 #include <utility/Console.h>
 #include <utility/Logging.h>
 #include <utility/StringUtils.h>
+
+#include <algorithm>
 
 using namespace ausaxs;
 
@@ -139,4 +146,19 @@ void cli::print_neutron_solvent() {
         "(" + utility::round_double(density, 4) + " fm/A^3), exchange efficiency "
         + utility::round_double(100*settings::scattering::neutron::exchange_efficiency, 1) + "%."
     );
+}
+
+data::Molecule cli::load_molecule(const io::File& path) {
+    auto structure = io::Reader::read(path);
+
+    // the displaced volume tables differ for explicit and implicit hydrogens, so the choice is made before the molecule is built
+    auto is_hydrogen = [] (const io::pdb::PDBAtom& a) {return constants::symbols::is_hydrogen(a.element);};
+    if (settings::general::keep_hydrogens && std::ranges::none_of(structure.atoms, is_hydrogen)) {
+        console::print_text("Using implicit hydrogens instead.");
+        settings::general::keep_hydrogens = false;
+    }
+
+    std::vector<data::Body> bodies;
+    bodies.emplace_back(structure);
+    return data::Molecule(std::move(bodies));
 }

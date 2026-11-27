@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <data/DataFwd.h>
 #include <io/ExistingFile.h>
 #include <io/Folder.h>
 
@@ -92,4 +93,9 @@ namespace ausaxs::cli {
      * @brief Print the neutron solvent and the exchange efficiency the calculation assumes.
      */
     void print_neutron_solvent();
+
+    /**
+     * @brief Load a structure file. Under 'hydrogens --keep', a file without hydrogens gets implicit hydrogens instead.
+     */
+    data::Molecule load_molecule(const io::File& path);
 }

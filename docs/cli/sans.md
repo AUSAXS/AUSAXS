@@ -10,6 +10,7 @@ For what SANS adds over SAXS, see the [SANS application](https://ausaxs.github.i
 - **Units.** Charges and densities are reported as scattering lengths in fm and fm/Å³, instead of electrons.
 - **Probe.** The tool always uses neutrons, even if a settings file says otherwise.
 - **Solvent.** The `solv` group has two extra arguments for the composition of the solvent, listed below.
+- **Hydrogens.** `hydrogens --keep` is the default: the hydrogens in the file are used as they are, since neutrons resolve their positions. A file without any gets implicit hydrogens instead, with a warning, as they make the scattering a few percent too low at q ≳ 0.2 Å⁻¹. Use `hydrogens --discard` to always use implicit hydrogens.
 
 ## `solv` group
 In addition to the arguments of the [`solv` group of `ausaxs fit`](fit.md#solv-group):

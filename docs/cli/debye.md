@@ -34,7 +34,7 @@ In addition to the general arguments of the [base group of `ausaxs fit`](fit.md#
 |`--wavelength`      | Set the wavelength   | Add a column with the scattering angle $2\theta$ in degrees for this wavelength in Å, from $q = \frac{4\pi}{\lambda}\sin\theta$. |
 |`--bin-width`       | Set the bin width          | The width of the distance bins in Å. The default should be sufficient for most cases. |
 |`--points`          | Use point scatterers       | Treat every atom as a point scatterer instead of using its form factor. Each atom is weighted by its number of electrons, or its scattering length with `--neutron`, including its implicit hydrogens and occupancy. |
-|`--neutron`         | Use neutrons               | Use neutron scattering lengths instead of X-ray form factors. |
+|`--neutron`         | Use neutrons               | Use neutron scattering lengths instead of X-ray form factors. The hydrogens in the file are then kept by default, as in [`ausaxs sans`](sans.md). |
 
 ### Groups
 | Group              | Description |

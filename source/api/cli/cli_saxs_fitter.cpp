@@ -89,6 +89,7 @@ namespace {
             "Fit the hydration shell.")->default_val(settings::fit::fit_hydration.value);
         if (neutron) {cli::add_neutron_solvent_options(sub_water);}
 
+        if (neutron) {settings::general::keep_hydrogens = true;} // neutrons resolve the positions of the hydrogens
         cli::add_hydrogens_subcommand(app);
 
         // grid subcommands
@@ -146,7 +147,7 @@ namespace {
             //######################//
 
             if (neutron) {cli::print_neutron_solvent();}
-            data::Molecule molecule(pdb);
+            data::Molecule molecule = cli::load_molecule(pdb);
             if (!exv_ref_file.empty()) {molecule.set_grid(grid::Grid::create_from_reference(exv_ref_file, molecule));}
             if (!keep_hydration) {
                 if (molecule.size_water() != 0) {console::print_text("\tDiscarding existing hydration atoms.");}

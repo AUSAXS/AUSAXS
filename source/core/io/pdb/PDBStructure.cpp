@@ -8,7 +8,9 @@
 #include <data/Molecule.h>
 #include <io/pdb/PDBAtom.h>
 #include <io/pdb/PDBWater.h>
+#include <settings/GeneralSettings.h>
 #include <settings/MoleculeSettings.h>
+#include <settings/ScatteringSettings.h>
 #include <utility/Console.h>
 
 #include <algorithm>
@@ -275,19 +277,37 @@ namespace {
     std::vector<ImplicitHydrogens> get_implicit_hydrogens(const PDBStructure& structure) {
         std::vector<ImplicitHydrogens> hydrogens(structure.atoms.size());
         if (!settings::molecule::implicit_hydrogens) {return hydrogens;}
-        if (!structure.supports_implicit_hydrogens) {
-            console::print_text("\tPDBStructure::reduced_representation: This structure does not carry the residue and atom naming required to assign implicit hydrogens. Skipping.");
+
+        // hydrogens kept from the file are used as they are; only a structure without any gets them implicitly
+        if (std::ranges::any_of(structure.atoms, [] (const PDBAtom& a) {return constants::symbols::is_hydrogen(a.element);})) {
+            if (!settings::general::keep_hydrogens) {
+                console::print_warning("PDBStructure::reduced_representation: The molecule already contains explicit hydrogen atoms. Skipping implicit addition.");
+            }
             return hydrogens;
         }
 
-        // sanity check: if the structure already contains hydrogens, don't implicitly add more
-        if (std::ranges::any_of(structure.atoms, [] (const PDBAtom& a) {return constants::symbols::is_hydrogen(a.element);})) {
-            console::print_warning("PDBStructure::reduced_representation: The molecule already contains explicit hydrogen atoms. Skipping implicit addition.");
+        const bool neutron = settings::scattering::radiation == settings::scattering::Radiation::Neutron;
+        if (!structure.supports_implicit_hydrogens) {
+            if (neutron) {
+                console::print_warning(
+                    "PDBStructure::reduced_representation: This structure has no hydrogens, and lacks the residue and atom naming required to add them implicitly. "
+                    "If the molecule has hydrogens, add them to the structure file: they dominate neutron scattering."
+                );
+            } else {
+                console::print_text("\tPDBStructure::reduced_representation: This structure does not carry the residue and atom naming required to assign implicit hydrogens. Skipping.");
+            }
             return hydrogens;
         }
 
         int unknown_res_count = 0;
         console::print_text("\tAdding implicit hydrogens to the molecule.");
+        if (neutron) {
+            console::print_warning(
+                "PDBStructure::reduced_representation: Implicit hydrogens lose the orientation of each hydrogen, which neutrons resolve: "
+                "the atomic scattering is about 2% too low at q = 0.2 and 9% at q = 0.5 Å^-1 in H2O, and 0.6% and 6% in D2O. "
+                "For accurate results, add explicit hydrogens to the structure file (in D2O, deuterium on the exchangeable sites) and keep them with 'hydrogens --keep'."
+            );
+        }
         for (int i = 0; i < static_cast<int>(structure.atoms.size()); ++i) {
             const auto& a = structure.atoms[i];
 
