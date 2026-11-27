@@ -9,8 +9,10 @@
 #include <grid/detail/GridExcludedVolume.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 
+#include <array>
+
 /**
- * @brief Pair-distance histograms of point sets supported on a cubic lattice.
+ * @brief Pair-distance histograms of point sets supported on an orthogonal lattice.
  */
 namespace ausaxs::hist::detail::lattice {
     /**
@@ -30,6 +32,19 @@ namespace ausaxs::hist::detail::lattice {
      * @param bin_count The size of the returned histogram.
      */
     WeightedDistribution1D self_correlation(const grid::exv::GridExcludedVolume& exv, double inv_bin_width, int bin_count);
+
+    /**
+     * @brief The self-correlation histogram of lattice sites with independent axis spacings.
+     *
+     * Sites must be unique and non-negative. Zero-displacement self-pairs are excluded.
+     * @param sites Integer lattice coordinates.
+     * @param spacing Positive lattice spacings along x, y and z, in Å.
+     * @param inv_bin_width The inverse histogram bin width.
+     * @param bin_count The size of the returned histogram.
+     */
+    WeightedDistribution1D self_correlation(
+        const std::vector<Vector3<int>>& sites, const std::array<double, 3>& spacing, double inv_bin_width, int bin_count
+    );
 
     /**
      * @brief The three correlation histograms of the interior and surface excluded volume points.
