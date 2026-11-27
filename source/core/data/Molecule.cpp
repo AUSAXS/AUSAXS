@@ -97,7 +97,10 @@ bool Molecule::uses_weighted_bins() const {
     return *auto_weighted_bins;
 }
 
-void Molecule::reset_histogram_manager() {phm = nullptr;}
+void Molecule::reset_histogram_manager() {
+    phm = nullptr;
+    bind_body_signallers(); // the bodies would otherwise keep signalling into the destroyed manager
+}
 
 void Molecule::refresh_weights() const {
     if (weights_probe == settings::scattering::radiation) {return;}
@@ -372,13 +375,10 @@ void Molecule::signal_modified_hydration_layer() const {
 }
 
 void Molecule::bind_body_signallers() const {
-    if (phm == nullptr) {return;}
-
     auto* cast = dynamic_cast<hist::IPartialHistogramManager*>(phm.get());
     if (cast == nullptr) {
-        // The caller requested the body signalling objects to be (re)bound, but the histogram manager
-        // does not support this. To avoid leaving the bodies in a potentially dangerous state, we
-        // register a new dummy signaller to all bodies. 
+        // There is no manager, or it does not track the bodies, so nothing may receive their signals. The bodies
+        // get a dummy signaller instead, since the one they hold may point into a manager that no longer exists.
         for (const auto& body : bodies) {
             body.register_probe(std::make_shared<signaller::UnboundSignaller>());
         }
