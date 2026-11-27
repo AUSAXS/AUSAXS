@@ -285,7 +285,7 @@ namespace {
                     std::stod(data[i_coord_z]),
                 };
                 element = constants::symbols::parse_element_string(data[i_type_symbol]);
-                if (has_alt_loc)     {altLoc   = data[i_label_alt_id];}
+                if (has_alt_loc && data[i_label_alt_id] != "." && data[i_label_alt_id] != "?") {altLoc = data[i_label_alt_id];} // a missing altLoc is stored as empty
                 if (has_chainID)     {chainID  = data[i_label_asym_id][0];}
                 if (has_ins_code)    {iCode    = data[i_PDB_ins_code];}
                 if (has_charge)      {charge   = data[i_pdbx_formal_charge];}

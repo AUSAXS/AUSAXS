@@ -194,7 +194,7 @@ TEST_CASE("CIFReader: compare with PDB") {
             REQUIRE(a1[i].resName == a2[i].resName);
             REQUIRE(a1[i].resSeq == a2[i].resSeq);
             REQUIRE(a1[i].chainID == a2[i].chainID);
-            if (!a1[i].altLoc.starts_with('.')) {REQUIRE(a1[i].altLoc == a2[i].altLoc);}
+            REQUIRE(a1[i].altLoc == a2[i].altLoc);
         }
     };
 

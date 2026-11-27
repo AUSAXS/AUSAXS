@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <map>
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -207,20 +207,32 @@ void PDBStructure::refresh() {
 }
 
 namespace {
-    bool has_alt_loc(const PDBAtom& a) {return !a.altLoc.empty() && a.altLoc != " " && a.altLoc != "." && a.altLoc != "?";}
-
     // keep the conformer of each residue holding its most occupied atom, the first one on ties; returns the number of atoms removed
+    // the conformers of a residue are listed together, so a single pass over the consecutive runs of each residue suffices
     template<typename T>
     int discard_alternates(std::vector<T>& atoms) {
-        std::map<std::tuple<char, int, std::string>, std::pair<double, std::string>> best; // per residue: the highest occupancy and its altLoc
-        for (const auto& a : atoms) {
-            if (!has_alt_loc(a)) {continue;}
-            auto [it, inserted] = best.try_emplace({a.chainID, a.resSeq, a.iCode}, a.occupancy, a.altLoc);
-            if (!inserted && it->second.first < a.occupancy) {it->second = {a.occupancy, a.altLoc};}
+        auto out = atoms.begin();
+        for (auto first = atoms.begin(); first != atoms.end();) {
+            auto last = std::find_if_not(first, atoms.end(), [&first] (const T& a) {
+                return a.chainID == first->chainID && a.resSeq == first->resSeq && a.iCode == first->iCode;
+            });
+
+            double best_occupancy = -1;
+            std::string best_alt_loc;
+            for (auto it = first; it != last; ++it) {
+                if (!it->altLoc.empty() && best_occupancy < it->occupancy) {best_occupancy = it->occupancy; best_alt_loc = it->altLoc;}
+            }
+
+            for (auto it = first; it != last; ++it) {
+                if (!it->altLoc.empty() && it->altLoc != best_alt_loc) {continue;}
+                if (out != it) {*out = std::move(*it);}
+                ++out;
+            }
+            first = last;
         }
-        return static_cast<int>(std::erase_if(atoms, [&best] (const T& a) {
-            return has_alt_loc(a) && best.at({a.chainID, a.resSeq, a.iCode}).second != a.altLoc;
-        }));
+        auto removed = static_cast<int>(std::distance(out, atoms.end()));
+        atoms.erase(out, atoms.end());
+        return removed;
     }
 }
 

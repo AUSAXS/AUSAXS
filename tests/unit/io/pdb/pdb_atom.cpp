@@ -56,7 +56,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         PDBAtom a1; a1.parse_pdb(line);
         CHECK(a1.serial == 1);
         CHECK(a1.name == "N");
-        CHECK(a1.altLoc == " ");
+        CHECK(a1.altLoc.empty());
         CHECK(a1.resName == "GLY");
         CHECK(a1.chainID == 'A');
         CHECK(a1.resSeq == 1);
@@ -74,7 +74,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         PDBAtom a1; a1.parse_pdb(line);
         CHECK(a1.serial == 2);
         CHECK(a1.name == "C");
-        CHECK(a1.altLoc == " ");
+        CHECK(a1.altLoc.empty());
         CHECK(a1.resName == "LYS");
         CHECK(a1.chainID == 'B');
         CHECK(a1.resSeq == 2);
@@ -92,7 +92,7 @@ TEST_CASE("PDBAtom::parse_pdb") {
         PDBAtom a; a.parse_pdb(line);
         CHECK(a.serial == 1);
         CHECK(a.name == "CB");
-        CHECK(a.altLoc == " ");
+        CHECK(a.altLoc.empty());
         CHECK(a.resName == "ARG");
         CHECK(a.chainID == 'A');
         CHECK(a.resSeq == 129);

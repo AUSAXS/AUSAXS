@@ -363,7 +363,7 @@ TEST_CASE("PDBStructure::keep_one_conformer") {
     settings::general::verbose = false;
     settings::molecule::implicit_hydrogens = false;
 
-    // residue 2 has two conformers, B the more occupied; residue 3 has two equally occupied ones, so the first is kept
+    // residue 2 has two interleaved conformers, B the more occupied; residue 3 has two equally occupied ones listed one after the other, so the first is kept
     std::string content =
         "ATOM      1  CA  SER A   1       0.000   0.000   0.000  1.00  0.00           C \n"
         "ATOM      2  CA ASER A   2       1.000   0.000   0.000  0.40  0.00           C \n"
@@ -371,18 +371,21 @@ TEST_CASE("PDBStructure::keep_one_conformer") {
         "ATOM      4  OG ASER A   2       2.000   0.000   0.000  0.40  0.00           O \n"
         "ATOM      5  OG BSER A   2       2.100   0.000   0.000  0.60  0.00           O \n"
         "ATOM      6  CA ASER A   3       3.000   0.000   0.000  0.50  0.00           C \n"
-        "ATOM      7  CA BSER A   3       3.100   0.000   0.000  0.50  0.00           C \n";
+        "ATOM      7  OG ASER A   3       4.000   0.000   0.000  0.50  0.00           O \n"
+        "ATOM      8  CA BSER A   3       3.100   0.000   0.000  0.50  0.00           C \n"
+        "ATOM      9  OG BSER A   3       4.100   0.000   0.000  0.50  0.00           O \n";
     test::TempFile path(".pdb", content);
 
     auto structure = io::detail::pdb::read(path);
-    REQUIRE(structure.atoms.size() == 4);
+    REQUIRE(structure.atoms.size() == 5);
     CHECK(structure.atoms[0].serial == 1);
     CHECK(structure.atoms[1].serial == 3);
     CHECK(structure.atoms[2].serial == 5);
     CHECK(structure.atoms[3].serial == 6);
+    CHECK(structure.atoms[4].serial == 7);
 
     // the occupancy does not enter the weights, so each kept atom counts in full
     double C = constants::charge::get_ff_charge(form_factor::form_factor_t::C), O = constants::charge::get_ff_charge(form_factor::form_factor_t::O);
     Molecule molecule(path);
-    CHECK_THAT(molecule.get_total_atomic_charge(), Catch::Matchers::WithinRel(3*C + O, 1e-12));
+    CHECK_THAT(molecule.get_total_atomic_charge(), Catch::Matchers::WithinRel(3*C + 2*O, 1e-12));
 }
