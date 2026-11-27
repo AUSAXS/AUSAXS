@@ -112,6 +112,14 @@ TEST_CASE("CIFReader: file residues") {
     SECTION("agree with the definitions used for the PDB") {
         data::Molecule pdb("tests/files/3sba.pdb");
     }
+    SECTION("give ions no hydrogens") {
+        for (const auto& residue : residues) {
+            if (residue.get_atoms().size() != 1) {continue;}
+            const auto& ion = residue.get_atoms().front();
+            INFO("Ion: " << residue.get_name());
+            CHECK(residue.to_map().get(ion.name, ion.atom) == 0);
+        }
+    }
 
     // the storage holds the definitions in their pH 7 state. insert all before the first lookup, which adds the master definitions of the rest
     residue::ResidueStorage ccd;

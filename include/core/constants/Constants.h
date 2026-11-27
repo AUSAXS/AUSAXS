@@ -85,28 +85,9 @@ namespace ausaxs::constants {
             constexpr int get_charge(atom_t atom);
         }
 
-        namespace ionic {
-            /**
-             * @brief Get the ionic charge of an atom in e.
-             */
-            constexpr int get_charge(atom_t atom);
-        }
-
         namespace density {
             constexpr double water = 0.334; // e/Å^3
         }
-    }
-
-    /**
-     * @brief Valence atoms
-     */
-    namespace valence {
-        /**
-         * @brief Get the valence of an atom.
-         *        Note that this is *not* the number of valence electrons, but the typical number of bonds the atom can form.
-         *        This information is primarily used to determine the number of hydrogens attached to an atom, as these are often not present in the PDB file.
-         */
-        int get_valence(atom_t atom);
     }
 
     namespace symbols {
@@ -240,11 +221,3 @@ constexpr int ausaxs::constants::charge::nuclear::get_charge(atom_t atom) {
     }
 }
 
-constexpr int ausaxs::constants::charge::ionic::get_charge(atom_t atom) {
-    switch (atom) {
-        case atom_t::Ca: return 2;
-        case atom_t::Cl: return -1;
-        case atom_t::Zn: return 2;
-        default: throw ausaxs::except::runtime_error("constants::charge::ionic::get_charge: Unknown atom type \"" + ausaxs::constants::symbols::to_string(atom) + "\"");
-    }
-}

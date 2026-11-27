@@ -26,32 +26,16 @@ namespace ausaxs::residue::detail {
         ResidueAtom(std::string name, std::string altname, constants::atom_t symbol);
 
         /**
-         * @brief Constructor.
-         * 
-         * @param name The name of the atom.
-         * @param charge The charge of the atom.
-         * @param atom The atom type. This is necessary to avoid ambiguities since the name is always capitalized in PDB files, so otherwise we cannot distinguish between e.g. a C-alpha (CA) and a calcium (Ca).
-         */
-        ResidueAtom(std::string name, int charge, constants::atom_t symbol);
-
-        /**
          * @brief Add a bond from this atom to another.
          * 
          * @param symbol The type of atom this instance is bonded to.
-         * @param order The order of the bond.
          */
-        void add_bond(constants::atom_t symbol, int order);
+        void add_bond(constants::atom_t symbol);
 
-        /**
-         * @brief Set the charge of the atom. Note that this will affect the valency and hydrogen bonds.
-         */
-        void set_charge(int charge);
-        
         std::string to_string() const;
 
         std::string name, altname;
         constants::atom_t atom;
-        int valency = 0;
         int hydrogen_bonds = 0;
     };
 
@@ -106,15 +90,6 @@ namespace ausaxs::residue::detail {
              * @param atom The atom type.
              */
             void add_atom(const std::string& name, const std::string& altname, constants::atom_t atom);
-
-            /**
-             * @brief Add an atom to the residue.
-             * 
-             * @param name The name of the atom.
-             * @param charge The charge of the atom.
-             * @param atom The atom type.
-             */
-            void add_atom(const std::string& name, int charge, constants::atom_t atom);
 
             /**
              * @brief Add a bond to the residue.
