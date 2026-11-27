@@ -160,6 +160,9 @@ std::unique_ptr<Dataset> io::detail::dataset::DATReader::construct(const io::Exi
             } else if (dataset->x().front() < 1e-3) {
                 console::print_text("Detected q-values smaller than 1e-3. Assuming the unit is [A].");
                 unit = settings::general::QUnit::A;
+            } else if (0.2 < dataset->x().back()) { // in [nm], the data would end at 0.1 [A] or below, which is rare
+                console::print_text("Detected q-values larger than 0.2. Assuming the unit is [A].");
+                unit = settings::general::QUnit::A;
             } else {
                 console::print_warning("Warning: The q-value unit is ambiguous. Assuming [A].");
             }
