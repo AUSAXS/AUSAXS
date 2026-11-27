@@ -752,6 +752,7 @@ TEST_CASE("Molecule::histogram") {
 
 #include <data/state/BoundSignaller.h>
 #include <data/state/StateManager.h>
+#include <data/state/UnboundSignaller.h>
 #include <hist/histogram_manager/IPartialHistogramManager.h>
 TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
     settings::general::verbose = false;
@@ -784,6 +785,14 @@ TEST_CASE_METHOD(fixture, "Molecule::bind_body_signallers") {
         for (int i = 0; i < static_cast<int>(bodies.size()); ++i) {
             CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies[i].get_signaller()) != nullptr);
             CHECK(manager->get_probe(i) == bodies[i].get_signaller());
+        }
+    }
+
+    SECTION("after reset") {
+        (void) protein.get_histogram();
+        protein.reset_histogram_manager();
+        for (const auto& body : protein.get_bodies()) {
+            CHECK(std::dynamic_pointer_cast<signaller::UnboundSignaller>(body.get_signaller()) != nullptr);
         }
     }
 }
