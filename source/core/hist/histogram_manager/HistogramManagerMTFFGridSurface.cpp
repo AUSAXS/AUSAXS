@@ -4,7 +4,6 @@
 #include <hist/histogram_manager/HistogramManagerMTFFGridSurface.h>
 
 #include <data/Molecule.h>  // IWYU pragma: keep
-#include <form_factor/FormFactorType.h>
 #include <grid/exv/RawGridWithSurfaceExv.h>
 #include <hist/detail/BinEstimate.h>
 #include <hist/detail/CompactCoordinatesFactory.h>
@@ -13,7 +12,6 @@
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/GridExvHelpers.h>
 #include <hist/scattering_model/DistanceHistogram.h>
-#include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelGridSurface.h>
 #include <utility/Logging.h>
 
@@ -36,7 +34,7 @@ std::unique_ptr<IScatteringModel> HistogramManagerMTFFGridSurface::calculate_all
     using AXContainer = typename hist::ScatteringModelGridSurface::AXContainer;
     using WXContainer = typename hist::ScatteringModelGridSurface::WXContainer;
 
-    auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
+    auto atomic = hist::detail::grid_exv::AtomicDistributions::from(this->compute_distributions());
     auto exv = get_exv();
     auto data_x_i = hist::detail::factory::construct(exv.interior);
     auto data_x_s = hist::detail::factory::construct(exv.surface);
@@ -91,7 +89,6 @@ std::unique_ptr<IScatteringModel> HistogramManagerMTFFGridSurface::calculate_all
     p_wx.surface  = store.export_1d(wx_s);
 
     // the excluded volume may reach further than the atoms, in which case the atomic distributions are grown to match
-    auto atomic = hist::detail::grid_exv::AtomicDistributions::take(static_cast<ScatteringModelAverage&>(*base_res));
     int max_bin = atomic.grow(hist::detail::trimmed_bin_count(p_xx.surface, p_xx.interior, p_wx.surface, p_wx.interior));
     auto& [p_aa, p_aw, p_ww, self_aa, self_ww, p_tot] = atomic;
 
@@ -114,15 +111,6 @@ std::unique_ptr<IScatteringModel> HistogramManagerMTFFGridSurface::calculate_all
         p_tot_xx.add_index(i, p_xx.interior.index(i));
         p_tot_xx.add_index(i, p_xx.surface.index(i));
         p_tot_xx.add_index(i, p_xx.cross.index(i));
-    }
-
-    {   // delete the exv information from the HistogramManagerMTFFAvg data
-        // we delegate this work to the DistanceHistogram class, since it must be able to do this anyway to vary the surface contribution
-        for (int i = 0; i < p_aa.size_x(); ++i) {
-            std::for_each(p_aa.begin(i, form_factor::exv_bin), p_aa.end(i, form_factor::exv_bin) , [](auto& x) {x = 0;});
-        }
-        std::for_each(p_aw.begin(form_factor::exv_bin), p_aw.end(form_factor::exv_bin), [](auto& x) {x = 0;});
-        std::for_each(p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), p_aa.end(form_factor::exv_bin, form_factor::exv_bin), [](auto& x) {x = 0;});
     }
 
     return std::make_unique<ScatteringModelGridSurface>(

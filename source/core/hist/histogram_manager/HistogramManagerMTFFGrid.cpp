@@ -12,7 +12,6 @@
 #include <hist/distance_calculator/HistogramStore.h>
 #include <hist/histogram_manager/detail/GridExvHelpers.h>
 #include <hist/scattering_model/DistanceHistogram.h>
-#include <hist/scattering_model/ScatteringModelAverage.h>
 #include <hist/scattering_model/ScatteringModelGrid.h>  // IWYU pragma: keep
 #include <utility/Logging.h>
 
@@ -33,7 +32,7 @@ ausaxs::grid::exv::GridExcludedVolume HistogramManagerMTFFGrid::get_exv() const 
 std::unique_ptr<IScatteringModel> HistogramManagerMTFFGrid::calculate_all() {
     logging::log("HistogramManagerMTFFGrid::calculate: starting calculation");
 
-    auto base_res = HistogramManagerMTFFAvg<true>::calculate_all(); // make sure everything is initialized
+    auto atomic = hist::detail::grid_exv::AtomicDistributions::from(this->compute_distributions());
     auto exv = get_exv();
     auto data_x = hist::detail::factory::construct(exv.interior);
     const auto& data_a = *this->data_a_ptr;
@@ -71,7 +70,6 @@ std::unique_ptr<IScatteringModel> HistogramManagerMTFFGrid::calculate_all() {
     WeightedDistribution1D p_wx_generic = store.export_1d(wx);
 
     // the excluded volume may reach further than the atoms, in which case the atomic distributions are grown to match
-    auto atomic = grid_exv::AtomicDistributions::take(static_cast<ScatteringModelAverage&>(*base_res));
     atomic.grow(hist::detail::trimmed_bin_count(p_xx_generic, p_wx_generic));
     return grid_exv::splice(std::move(atomic), p_ax_generic, p_wx_generic, std::move(p_xx_generic));
 }
