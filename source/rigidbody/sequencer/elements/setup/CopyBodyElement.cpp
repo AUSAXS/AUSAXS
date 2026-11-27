@@ -21,9 +21,14 @@ namespace {
         // initial_conformation stores bodies centered at origin; the live molecule body stores absolute positions
         auto initial_body = owner->_get_rigidbody()->conformation->initial_conformation[index];
         auto body_pars = owner->_get_rigidbody()->conformation->absolute_parameters.parameters[index];
-        body_pars.translation.z() += 2*owner->_get_molecule()->get_Rg(false);
+        Vector3<double> offset{0, 0, 2*owner->_get_molecule()->get_Rg(false)};
+        body_pars.translation += offset;
 
-        owner->_get_molecule()->get_bodies().emplace_back(owner->_get_molecule()->get_body(index));
+        // assigned into a fresh body so the copy gets its own uid; the copy constructor would keep the source's
+        data::Body copy;
+        copy = owner->_get_molecule()->get_body(index);
+        copy.translate(offset);
+        owner->_get_molecule()->get_bodies().emplace_back(std::move(copy));
         owner->_get_rigidbody()->conformation->initial_conformation.emplace_back(std::move(initial_body));
         owner->_get_rigidbody()->conformation->absolute_parameters.parameters.emplace_back(body_pars);
 
