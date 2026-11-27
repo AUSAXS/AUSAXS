@@ -32,7 +32,6 @@ int cli_rigidbody(int argc, char const *argv[]) {
     cli::add_structure_options(app);
     cli::add_config_subcommand(app, config, "rigidbody");
     cli::add_data_subcommand(app, "SAXS");
-    cli::add_molecule_subcommand(app);
     cli::add_hydrogens_subcommand(app);
 
     // grid subcommands

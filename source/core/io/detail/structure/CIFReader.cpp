@@ -283,7 +283,7 @@ namespace {
                     std::stod(data[i_coord_z]),
                 };
                 element = constants::symbols::parse_element_string(data[i_type_symbol]);
-                if (has_alt_loc)     {altLoc   = data[i_label_alt_id];}
+                if (has_alt_loc && data[i_label_alt_id] != "." && data[i_label_alt_id] != "?") {altLoc = data[i_label_alt_id];} // a missing altLoc is stored as empty
                 if (has_chainID)     {chainID  = data[i_label_asym_id][0];}
                 if (has_ins_code)    {iCode    = data[i_PDB_ins_code];}
                 if (has_charge)      {charge   = data[i_pdbx_formal_charge];}
@@ -315,16 +315,7 @@ namespace {
             else {collection.add(std::move(a));}
         }
 
-        // ensure that the occupancy column is not zeroed out, CHARMM likes to do this
-        if (!collection.atoms.empty() && std::ranges::all_of(collection.atoms, [] (const auto& a) {return a.occupancy == 0;})) {
-            console::print_warning("CIFReader::read: All atoms have zero occupancy. The occupancy column is assumed unused and is ignored.");
-            for (auto& a : collection.atoms) {a.occupancy = 1.0;}
-            for (auto& w : collection.waters) {w.occupancy = 1.0;}
-        }
-
-        if (!settings::molecule::use_occupancy) {
-            for (auto& a : collection.atoms) {a.occupancy = 1.0;}
-        }
+        collection.keep_one_conformer();
 
         if (!settings::general::keep_hydrogens) {
             if (hydrogens_found != 0) {console::print_text("Discarded " + std::to_string(hydrogens_found) + " explicit hydrogen atoms.");}

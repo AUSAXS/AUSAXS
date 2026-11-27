@@ -53,7 +53,6 @@ namespace {
         cli::add_structure_options(app);
         cli::add_config_subcommand(app, config, tool_name);
         cli::add_data_subcommand(app, probe_name);
-        cli::add_molecule_subcommand(app);
 
         // exv subcommands
         auto* sub_exv = app.add_subcommand("exv", "See and set additional options for the excluded volume calculations.");

@@ -9,7 +9,6 @@
 using namespace ausaxs;
 
 settings::Setting<bool> settings::molecule::implicit_hydrogens{true};
-settings::Setting<bool> settings::molecule::use_occupancy{true};
 settings::Setting<bool> settings::molecule::allow_unknown_residues{false};
 settings::Setting<bool> settings::molecule::allow_unknown_atoms{false};
 settings::Setting<bool> settings::molecule::force_field_residue_names{false};
@@ -20,7 +19,6 @@ namespace {
         settings::io::create(molecule::allow_unknown_atoms, "allow_unknown_atoms"),
         settings::io::create(molecule::allow_unknown_residues, "allow_unknown_residues"),
         settings::io::create(molecule::implicit_hydrogens, "implicit_hydrogens"),
-        settings::io::create(molecule::use_occupancy, "use_occupancy"),
         settings::io::create(molecule::force_field_residue_names, "force_field_residue_names"),
     });
 

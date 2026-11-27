@@ -56,11 +56,6 @@ namespace ausaxs::cli {
     void add_measurement_options(CLI::App* sub);
 
     /**
-     * @brief Register the molecule subcommand: --use-occupancy.
-     */
-    CLI::App* add_molecule_subcommand(CLI::App& app);
-
-    /**
      * @brief Register the hydrogens subcommand: --keep and --force-field-names.
      */
     CLI::App* add_hydrogens_subcommand(CLI::App& app);

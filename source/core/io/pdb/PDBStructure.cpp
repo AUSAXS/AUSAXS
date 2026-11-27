@@ -14,8 +14,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <iterator>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
 
 using namespace ausaxs;
@@ -202,6 +204,41 @@ void PDBStructure::refresh() {
         a.resSeq = resSeq++ % 10000;
         a.chainID = chain_identifier(chain + resSeq/10000);
     }
+}
+
+namespace {
+    // keep the conformer of each residue holding its most occupied atom, the first one on ties; returns the number of atoms removed
+    // the conformers of a residue are listed together, so a single pass over the consecutive runs of each residue suffices
+    template<typename T>
+    int discard_alternates(std::vector<T>& atoms) {
+        auto out = atoms.begin();
+        for (auto first = atoms.begin(); first != atoms.end();) {
+            auto last = std::find_if_not(first, atoms.end(), [&first] (const T& a) {
+                return a.chainID == first->chainID && a.resSeq == first->resSeq && a.iCode == first->iCode;
+            });
+
+            double best_occupancy = -1;
+            std::string best_alt_loc;
+            for (auto it = first; it != last; ++it) {
+                if (!it->altLoc.empty() && best_occupancy < it->occupancy) {best_occupancy = it->occupancy; best_alt_loc = it->altLoc;}
+            }
+
+            for (auto it = first; it != last; ++it) {
+                if (!it->altLoc.empty() && it->altLoc != best_alt_loc) {continue;}
+                if (out != it) {*out = std::move(*it);}
+                ++out;
+            }
+            first = last;
+        }
+        auto removed = static_cast<int>(std::distance(out, atoms.end()));
+        atoms.erase(out, atoms.end());
+        return removed;
+    }
+}
+
+void PDBStructure::keep_one_conformer() {
+    int removed = discard_alternates(atoms) + discard_alternates(waters);
+    if (removed != 0) {console::print_text("Discarded " + std::to_string(removed) + " atoms of alternate conformations.");}
 }
 
 namespace {

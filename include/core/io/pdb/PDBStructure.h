@@ -106,6 +106,11 @@ namespace ausaxs::io::pdb {
              */
             void refresh();
 
+            /**
+             * @brief Keep a single conformer of every residue with alternate locations: the one holding its most occupied atom, the first on ties.
+             */
+            void keep_one_conformer();
+
             bool operator==(const PDBStructure& rhs) const;
 
             bool equals_content(const PDBStructure& rhs) const;

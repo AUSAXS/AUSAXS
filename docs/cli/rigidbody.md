@@ -25,7 +25,6 @@ The remaining command-line arguments follow the same _group_ structure as the [S
 | base        | `--licence`, `-v`/`--version`, `--allow-unknown-atoms`, `--allow-unknown-residues`, `--offline`, `-t`/`--threads`, `-o`/`--output`, `--gpu`/`--no-gpu` |
 | `config`    | `-f`/`--file`, `--save`, `--log` |
 | `data`      | `--qmin`, `--qmax`, `-u`/`--unit`, `--skip`, `--rebin`, `--weighted-bins` |
-| `molecule`  | `--use-occupancy`/`--ignore-occupancy` |
 | `hydrogens` | `--keep`/`--discard`, `--force-field-names` |
 | `grid`      | `-w`/`--width` |
 

@@ -32,7 +32,7 @@ namespace ausaxs::data {
         std::optional<std::vector<backbone_t>>  backbone;     //< backbone classification
         std::optional<std::vector<int>>         residue_seq;  //< residue sequence id
         std::optional<std::vector<char>>        chain_id;     //< source chain identifier
-        std::optional<std::vector<float>>       occupancy;    //< fraction of the atom present; already folded into the atom charge
+        std::optional<std::vector<float>>       occupancy;    //< as read from the file; only kept for writing it back
         std::optional<std::vector<std::string>> atom_name;    //< source atom name, e.g. "CA"
         std::optional<std::vector<std::string>> residue_name; //< source residue name, e.g. "LYS"
         std::optional<std::vector<constants::atom_t>> element; //< source element

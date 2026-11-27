@@ -93,7 +93,7 @@ void PDBAtom::parse_pdb(const std::string& str) {
     try {
         this->serial = std::stoi(serial);
         this->name = std::move(name);
-        this->altLoc = std::move(altLoc);
+        if (altLoc != " ") {this->altLoc = std::move(altLoc);} // a blank altLoc is stored as empty
         this->resName = std::move(resName);
         this->chainID = chainID;
         this->resSeq = std::stoi(resSeq);

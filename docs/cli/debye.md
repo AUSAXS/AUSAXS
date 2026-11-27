@@ -33,14 +33,13 @@ In addition to the general arguments of the [base group of `ausaxs fit`](fit.md#
 |`-n`, `--count`     | Set the number of q values | The number of $q$ values, evenly spaced from `qmin` to `qmax`. Not used with a measurement. |
 |`--wavelength`      | Set the wavelength   | Add a column with the scattering angle $2\theta$ in degrees for this wavelength in Å, from $q = \frac{4\pi}{\lambda}\sin\theta$. |
 |`--bin-width`       | Set the bin width          | The width of the distance bins in Å. The default should be sufficient for most cases. |
-|`--points`          | Use point scatterers       | Treat every atom as a point scatterer instead of using its form factor. Each atom is weighted by its number of electrons, or its scattering length with `--neutron`, including its implicit hydrogens and occupancy. |
+|`--points`          | Use point scatterers       | Treat every atom as a point scatterer instead of using its form factor. Each atom is weighted by its number of electrons, or its scattering length with `--neutron`, including its implicit hydrogens. |
 |`--neutron`         | Use neutrons               | Use neutron scattering lengths instead of X-ray form factors. |
 
 ### Groups
 | Group              | Description |
 |--------------------|-------------|
 |`config`            | As for [`ausaxs fit`](fit.md#config-group). Without a measurement, a settings file is looked for in the folder of the structure file instead. |
-|`molecule`          | As for [`ausaxs fit`](fit.md#molecule-group). |
 |`hydrogens`         | As for [`ausaxs fit`](fit.md#hydrogens-group). |
 |`data`              | Only the `--unit` and `--skip` arguments of the [`data` group of `ausaxs fit`](fit.md#data-group). The $q$-range is set with `--qmin` and `--qmax` in the base group instead. |
 |`solv`              | Only the `--d2o` and `--exchange` arguments of the [`solv` group of `ausaxs sans`](sans.md#solv-group), which set the isotope composition of the exchangeable hydrogens. Only used with `--neutron`. |

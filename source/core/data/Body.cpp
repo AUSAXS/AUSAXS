@@ -168,15 +168,14 @@ bool Body::refresh_weights() {
         std::ranges::for_each(h->waters, [w] (data::Water& water) {water.weight() = w;});
     }
 
-    // the atom weights fold in the occupancy and the implicit hydrogens, so they can only be rebuilt where the metadata recorded both
+    // the atom weights fold in the implicit hydrogens, so they can only be rebuilt where the metadata recorded them
     if (atoms.empty()) {return true;}
-    if (!metadata || !metadata->element || !metadata->occupancy || !metadata->implicit_h) {return false;}
+    if (!metadata || !metadata->element || !metadata->implicit_h) {return false;}
     assert(metadata->size() == atoms.size() && "Body::refresh_weights: metadata is not parallel-indexed to the atoms.");
 
     double hydrogen_charge = constants::charge::get_ff_charge(form_factor::form_factor_t::H);
     for (int i = 0; i < static_cast<int>(atoms.size()); ++i) {
-        double charge = constants::charge::get_ff_charge(atoms[i].form_factor_type(), (*metadata->element)[i]) + (*metadata->implicit_h)[i]*hydrogen_charge;
-        atoms[i].weight() = charge*(*metadata->occupancy)[i];
+        atoms[i].weight() = constants::charge::get_ff_charge(atoms[i].form_factor_type(), (*metadata->element)[i]) + (*metadata->implicit_h)[i]*hydrogen_charge;
     }
     return true;
 }
