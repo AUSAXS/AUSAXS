@@ -42,7 +42,7 @@ In addition to the general arguments of the [base group of `ausaxs fit`](fit.md#
 |`config`            | As for [`ausaxs fit`](fit.md#config-group). Without a measurement, a settings file is looked for in the folder of the structure file instead. |
 |`molecule`          | As for [`ausaxs fit`](fit.md#molecule-group). |
 |`hydrogens`         | As for [`ausaxs fit`](fit.md#hydrogens-group). |
-|`data`              | Only the `--unit` and `--skip` arguments of the [`data` group of `ausaxs fit`](fit.md#data-group). The $q$-range is set with `--qmin` and `--qmax` in the base group instead. |
+|`data`              | Only the `--unit` and `--skip` arguments of the [`data` group of `ausaxs fit`](fit.md#data-group). The $q$-range is set with `--qmin` and `--qmax` in the base group instead. The unit defaults to Å⁻¹, since wide-angle data extends past $q = 1$, where `fit` would assume nm⁻¹; use `--unit nm` for a measurement in nm⁻¹. |
 |`solv`              | Only the `--d2o` and `--exchange` arguments of the [`solv` group of `ausaxs sans`](sans.md#solv-group), which set the isotope composition of the exchangeable hydrogens. Only used with `--neutron`. |
 
 As an example, `ausaxs debye Ag_crystal.cif --qmax 8.15 --wavelength 1.5406` calculates the Cu Kα powder pattern of a silver nanoparticle.
