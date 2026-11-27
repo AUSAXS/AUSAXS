@@ -140,7 +140,7 @@ int cli_gpu(int argc, char const *argv[]) {
     std::string device;
     sub_install->add_option("--device", device, "Use this GPU without asking: its identifier as listed when asked, or just its API, e.g. \"cuda\" for the first CUDA GPU.");
     // internal: offer the backend's host CPU device as well, to test the backend on a machine without a GPU
-    sub_install->add_flag("--expose-cpu", settings::internal_state::gpu_expose_cpu)->group("");
+    sub_install->add_flag("--expose-cpu", settings::internal_state::gpu_expose_cpu.value)->group("");
 
     auto* sub_status = app.add_subcommand("status", "Show the installed GPU backend and the device it finds.");
     auto* sub_remove = app.add_subcommand("remove", "Remove the installed GPU backend.");

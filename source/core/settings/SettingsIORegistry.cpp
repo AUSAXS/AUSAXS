@@ -3,6 +3,7 @@
 
 #include <settings/SettingsIORegistry.h>
 
+#include <settings/InternalState.h>
 #include <settings/SettingsIO.h>
 #include <utility/observer_ptr.h>
 
@@ -31,4 +32,5 @@ void ausaxs::settings::reset() {
     for (const auto& section : SettingSection::get_sections()) {
         for (const auto& setting : section->settings) {setting->reset_value();}
     }
+    internal_state::reset();
 }

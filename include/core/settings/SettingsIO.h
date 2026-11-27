@@ -31,7 +31,7 @@ namespace ausaxs::settings {
     bool discover(const ausaxs::io::Folder& path);
 
     /**
-     * @brief Restore every registered setting to its default value.
+     * @brief Restore every registered setting, and the internal_state flags, to their default values.
      */
     void reset();
 }

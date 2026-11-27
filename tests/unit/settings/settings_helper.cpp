@@ -79,6 +79,7 @@ TEST_CASE("Setting<T>::reset") {
 		settings::axes::qmax = 0.2;
 		settings::axes::bin_width = 0.5;
 		settings::general::output = "elsewhere/";
+		settings::internal_state::prefer_partial_manager = true; // a rigid-body run
 		settings::reset();
 
 		for (auto& [name, ref] : settings::io::detail::ISettingRef::get_stored_settings()) {
@@ -86,5 +87,6 @@ TEST_CASE("Setting<T>::reset") {
 			CHECK(ref->get() == defaults[name]);
 		}
 		CHECK(settings::internal_state::inv_bin_width == 1/settings::axes::bin_width); // derived state follows through on_change
+		CHECK(settings::internal_state::prefer_partial_manager == false);
 	}
 }
