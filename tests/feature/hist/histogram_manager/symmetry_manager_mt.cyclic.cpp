@@ -610,3 +610,30 @@ TEST_CASE("SymmetryManager: simple excluded volume matches the explicit structur
     auto h_explicit = m_explicit.get_histogram();
     CHECK(compare_hist_approx(h->get_weighted_counts(), h_explicit->get_weighted_counts()));
 }
+
+TEST_CASE("SymmetryManager: average excluded volume matches the explicit structure", "[gpu]") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::general::verbose = false;
+    settings::exv::exv_method = settings::exv::ExvMethod::Average;
+    auto choice = GENERATE(
+        settings::hist::HistogramManagerChoice::HistogramSymmetryManagerMT,
+        settings::hist::HistogramManagerChoice::PartialHistogramSymmetryManagerMT
+    );
+    auto reps = GENERATE(1, 3);
+
+    Molecule m("tests/files/2epe.pdb");
+    m.clear_hydration();
+    m.set_histogram_manager(choice);
+    m.get_body(0).symmetry().add(make_unique_cyclic_sym({0, 0, 0}, {60, 0, 0}, {0, 0, 1}, 0, reps));
+    auto I = m.get_histogram()->debye_transform().get_intensity();
+
+    auto explicit_body = m.get_body(0).symmetry().explicit_structure();
+    Molecule m_explicit({Body{std::move(explicit_body.atoms)}});
+    m_explicit.set_histogram_manager(settings::hist::HistogramManagerChoice::HistogramManagerMT);
+    REQUIRE_THAT(m.get_volume_grid(), Catch::Matchers::WithinRel(m_explicit.get_volume_grid(), 1e-6));
+    auto I_explicit = m_explicit.get_histogram()->debye_transform().get_intensity();
+    REQUIRE(I.size() == I_explicit.size());
+    for (int i = 0; i < static_cast<int>(I.size()); ++i) {
+        CHECK_THAT(I[i], Catch::Matchers::WithinRel(I_explicit[i], 1e-4));
+    }
+}
