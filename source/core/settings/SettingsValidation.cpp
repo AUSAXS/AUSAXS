@@ -70,8 +70,4 @@ void settings::validate_settings() {
             default: break;
         }
     }
-
-    {   // if the user wants to keep hydrogens, they should be treated explicitly
-        if (settings::general::keep_hydrogens) {settings::molecule::implicit_hydrogens = false;}
-    }
 }

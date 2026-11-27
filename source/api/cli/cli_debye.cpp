@@ -83,7 +83,7 @@ int cli_debye(int argc, char const *argv[]) {
     app.add_flag("--neutron", neutron, "Use neutron scattering lengths instead of X-ray form factors.");
     cli::add_config_subcommand(app, config, "debye");
     cli::add_molecule_subcommand(app);
-    cli::add_hydrogens_subcommand(app);
+    auto* p_hydrogens = cli::add_hydrogens_subcommand(app)->get_option("--keep");
     cli::add_measurement_options(app.add_subcommand("data", "See and set additional options for reading the measurement."));
     cli::add_neutron_solvent_options(app.add_subcommand("solv", "The solvent the exchangeable hydrogens take their isotope composition from. Only used with --neutron."));
 
@@ -109,6 +109,7 @@ int cli_debye(int argc, char const *argv[]) {
         settings::exv::exv_method = points ? settings::exv::ExvMethod::None : settings::exv::ExvMethod::Vacuum;
         settings::hist::weighted_bins = true; // the profile must hold far beyond the range unweighted bins are judged by
         if (p_bin_width->count() == 0) {settings::axes::bin_width = default_bin_width;}
+        if (neutron && p_hydrogens->count() == 0) {settings::general::keep_hydrogens = true;} // neutrons resolve the positions of the hydrogens
         settings::validate_settings();
 
         if (!constants::filetypes::structure.check(structure)) {
@@ -122,7 +123,7 @@ int cli_debye(int argc, char const *argv[]) {
         }
 
         if (neutron) {cli::print_neutron_solvent();}
-        data::Molecule molecule(structure);
+        data::Molecule molecule = cli::load_molecule(structure);
         if (molecule.size_water() != 0) {
             console::print_text("\tDiscarding " + std::to_string(molecule.size_water()) + " water molecules from the structure file.");
             molecule.clear_hydration();
