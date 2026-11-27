@@ -71,13 +71,6 @@ void cli::add_measurement_options(CLI::App* sub) {
     sub->add_option("--skip", settings::axes::skip.value, "Number of points to skip in the measurement file.")->default_val(settings::axes::skip.value);
 }
 
-CLI::App* cli::add_molecule_subcommand(CLI::App& app) {
-    auto* sub_mol = app.add_subcommand("molecule", "See and set additional options for the molecular structure file.");
-    sub_mol->add_flag("--use-occupancy,!--ignore-occupancy", settings::molecule::use_occupancy.value,
-        "Decides whether the atomic occupancies from the file will be used.")->default_val(settings::molecule::use_occupancy.value);
-    return sub_mol;
-}
-
 CLI::App* cli::add_hydrogens_subcommand(CLI::App& app) {
     auto* sub_hydrogen = app.add_subcommand("hydrogens", "See and set additional options for the handling of hydrogen atoms.");
     sub_hydrogen->add_flag("--keep,!--discard", settings::general::keep_hydrogens.value, "Keep or discard hydrogens from the structure file.")->default_val(settings::general::keep_hydrogens.value);

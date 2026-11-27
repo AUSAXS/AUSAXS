@@ -10,6 +10,9 @@ The order of the two files does not matter. If you leave out the SAXS data file,
 > [!TIP]
 > `ausaxs saxs` is an alias of `ausaxs fit`.
 
+> [!NOTE]
+> Atomic occupancies are not used. Of a residue with alternate locations, only the conformer holding its most occupied atom is read, the first one on ties.
+
 [`ausaxs sans`](sans.md) and [`ausaxs debye`](debye.md) are built on this tool, and take most of the arguments described here. Their own pages only list where they differ.
 
 ## Output
@@ -93,11 +96,6 @@ If no settings file is given, the program will look for one named `settings.txt`
 |`--weighted-bins`  | Use weighted bins          | Force weighted bins for the distance histograms. This is otherwise decided automatically for each molecule. |
 
 The `q`-range must lie within $[10^{-4},\ 1]\ Å^{-1}$. 
-
-### `molecule` group
-| Argument           | Name                       | Description |
-|--------------------|----------------------------|-------------|
-|`--use-occupancy`, `--ignore-occupancy` | Use occupancy information  | Decide whether the occupancy field in the `PDB` file is used to scale the scattering contribution of each atom. |
 
 ### `exv` group
 | Argument           | Name                       | Description |

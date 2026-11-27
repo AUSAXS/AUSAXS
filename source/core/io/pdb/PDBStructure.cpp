@@ -14,8 +14,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <map>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
 
 using namespace ausaxs;
@@ -202,6 +204,29 @@ void PDBStructure::refresh() {
         a.resSeq = resSeq++ % 10000;
         a.chainID = chain_identifier(chain + resSeq/10000);
     }
+}
+
+namespace {
+    bool has_alt_loc(const PDBAtom& a) {return !a.altLoc.empty() && a.altLoc != " " && a.altLoc != "." && a.altLoc != "?";}
+
+    // keep the conformer of each residue holding its most occupied atom, the first one on ties; returns the number of atoms removed
+    template<typename T>
+    int discard_alternates(std::vector<T>& atoms) {
+        std::map<std::tuple<char, int, std::string>, std::pair<double, std::string>> best; // per residue: the highest occupancy and its altLoc
+        for (const auto& a : atoms) {
+            if (!has_alt_loc(a)) {continue;}
+            auto [it, inserted] = best.try_emplace({a.chainID, a.resSeq, a.iCode}, a.occupancy, a.altLoc);
+            if (!inserted && it->second.first < a.occupancy) {it->second = {a.occupancy, a.altLoc};}
+        }
+        return static_cast<int>(std::erase_if(atoms, [&best] (const T& a) {
+            return has_alt_loc(a) && best.at({a.chainID, a.resSeq, a.iCode}).second != a.altLoc;
+        }));
+    }
+}
+
+void PDBStructure::keep_one_conformer() {
+    int removed = discard_alternates(atoms) + discard_alternates(waters);
+    if (removed != 0) {console::print_text("Discarded " + std::to_string(removed) + " atoms of alternate conformations.");}
 }
 
 namespace {

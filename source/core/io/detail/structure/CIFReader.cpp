@@ -317,16 +317,7 @@ namespace {
             else {collection.add(std::move(a));}
         }
 
-        // ensure that the occupancy column is not zeroed out, CHARMM likes to do this
-        if (!collection.atoms.empty() && std::ranges::all_of(collection.atoms, [] (const auto& a) {return a.occupancy == 0;})) {
-            console::print_warning("CIFReader::read: All atoms have zero occupancy. The occupancy column is assumed unused and is ignored.");
-            for (auto& a : collection.atoms) {a.occupancy = 1.0;}
-            for (auto& w : collection.waters) {w.occupancy = 1.0;}
-        }
-
-        if (!settings::molecule::use_occupancy) {
-            for (auto& a : collection.atoms) {a.occupancy = 1.0;}
-        }
+        collection.keep_one_conformer();
 
         if (!settings::general::keep_hydrogens) {
             if (hydrogens_found != 0) {console::print_text("Discarded " + std::to_string(hydrogens_found) + " explicit hydrogen atoms.");}

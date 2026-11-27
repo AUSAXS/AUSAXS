@@ -3,6 +3,7 @@
 
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <form_factor/FormFactorInfo.h>
 #include <io/detail/structure/PDBReader.h>
 #include <io/detail/structure/PDBWriter.h>
 #include <io/pdb/PDBStructure.h>
@@ -43,12 +44,11 @@ TEST_CASE("PDBStructure: save") {
 
 TEST_CASE("PDBStructure: a written structure can be read back unchanged") {
     settings::general::verbose = false;
-    settings::molecule::use_occupancy = true;
     settings::molecule::implicit_hydrogens = true;
     settings::molecule::allow_unknown_residues = false;
 
-    // The reduced representation keeps only coordinates, form factors and charges, so everything the residue table is keyed on - the residue name, the atom
-    // name and the occupancy - has to come back out of the metadata when the structure is written. Without it every residue is written as "UNK", which makes
+    // The reduced representation keeps only coordinates, form factors and charges, so everything the residue table is keyed on - the residue name and the atom
+    // name - has to come back out of the metadata when the structure is written. Without it every residue is written as "UNK", which makes
     // the implicit hydrogen assignment throw on the next read, and forcing it through instead drops the implicit hydrogens of every atom.
     SECTION("hand-written structure") {
         std::string content =
@@ -73,7 +73,7 @@ TEST_CASE("PDBStructure: a written structure can be read back unchanged") {
             CHECK(written.atoms[i].name    == names[i]);
         }
 
-        // the partially occupied atom contributes half its charge; writing 1.00 for it would inflate that on the next read
+        // the occupancy is written back as it was read
         CHECK_THAT(written.atoms[3].occupancy, Catch::Matchers::WithinAbs(0.5, 1e-6));
 
         Molecule reloaded(output);
@@ -357,4 +357,32 @@ TEST_CASE("PDBStructure: implicit hydrogens follow pH 7") {
             CHECK(types[1] == SH);
         }
     }
+}
+
+TEST_CASE("PDBStructure::keep_one_conformer") {
+    settings::general::verbose = false;
+    settings::molecule::implicit_hydrogens = false;
+
+    // residue 2 has two conformers, B the more occupied; residue 3 has two equally occupied ones, so the first is kept
+    std::string content =
+        "ATOM      1  CA  SER A   1       0.000   0.000   0.000  1.00  0.00           C \n"
+        "ATOM      2  CA ASER A   2       1.000   0.000   0.000  0.40  0.00           C \n"
+        "ATOM      3  CA BSER A   2       1.100   0.000   0.000  0.60  0.00           C \n"
+        "ATOM      4  OG ASER A   2       2.000   0.000   0.000  0.40  0.00           O \n"
+        "ATOM      5  OG BSER A   2       2.100   0.000   0.000  0.60  0.00           O \n"
+        "ATOM      6  CA ASER A   3       3.000   0.000   0.000  0.50  0.00           C \n"
+        "ATOM      7  CA BSER A   3       3.100   0.000   0.000  0.50  0.00           C \n";
+    test::TempFile path(".pdb", content);
+
+    auto structure = io::detail::pdb::read(path);
+    REQUIRE(structure.atoms.size() == 4);
+    CHECK(structure.atoms[0].serial == 1);
+    CHECK(structure.atoms[1].serial == 3);
+    CHECK(structure.atoms[2].serial == 5);
+    CHECK(structure.atoms[3].serial == 6);
+
+    // the occupancy does not enter the weights, so each kept atom counts in full
+    double C = constants::charge::get_ff_charge(form_factor::form_factor_t::C), O = constants::charge::get_ff_charge(form_factor::form_factor_t::O);
+    Molecule molecule(path);
+    CHECK_THAT(molecule.get_total_atomic_charge(), Catch::Matchers::WithinRel(3*C + O, 1e-12));
 }

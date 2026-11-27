@@ -82,7 +82,6 @@ int cli_debye(int argc, char const *argv[]) {
     auto* p_wavelength = app.add_option("--wavelength", wavelength, "Add a column with the scattering angle 2θ in degrees for this wavelength in Å to the output.")->check(CLI::PositiveNumber);
     app.add_flag("--neutron", neutron, "Use neutron scattering lengths instead of X-ray form factors.");
     cli::add_config_subcommand(app, config, "debye");
-    cli::add_molecule_subcommand(app);
     cli::add_hydrogens_subcommand(app);
     cli::add_measurement_options(app.add_subcommand("data", "See and set additional options for reading the measurement."));
     cli::add_neutron_solvent_options(app.add_subcommand("solv", "The solvent the exchangeable hydrogens take their isotope composition from. Only used with --neutron."));
