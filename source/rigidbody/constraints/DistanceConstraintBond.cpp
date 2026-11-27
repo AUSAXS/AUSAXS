@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstdlib>
 #include <limits>
 #include <optional>
 
@@ -40,6 +41,22 @@ namespace {
         return std::nullopt;
     }
 
+    // Source chain identifier of atom i, if chain metadata is available for this body.
+    std::optional<char> chain_id(const data::Body& body, int i) {
+        const auto& md = body.get_metadata();
+        if (md && md->chain_id) {return (*md->chain_id)[i];}
+        return std::nullopt;
+    }
+
+    // Longest C-alpha/C-alpha separation one residue step can span. Two residues joined by a peptide bond sit at
+    // 3.75-3.86A in every trans conformation, so 4A per step is the fully extended chain plus a small margin.
+    constexpr double max_distance_per_step = 4;
+
+    // Largest residue-id difference still read as one backbone connection, i.e. at most nine consecutive residues
+    // may be absent from the deposited model. Some cap is needed: the distance bound scales with the gap, so without
+    // one a wide enough gap would admit any pair of fragments that happen to lie within reach of each other.
+    constexpr int max_residue_gap = 10;
+
     // Plain (non-symmetry) distance between an atom of each body, needed to rank candidates before the
     // constraint object (which owns the symmetry-aware evaluate_distance) exists.
     double distance_between(observer_ptr<const data::Molecule> molecule, int ibody1, int iatom1, int ibody2, int iatom2) {
@@ -52,6 +69,7 @@ namespace {
         enum class Failure {None, NoTerminalCalpha, NotAdjacent, TooFar} failure = Failure::None;
         int iatom1 = -1, iatom2 = -1;
         double distance = 0;
+        int gap = 1;        //< residue steps the bond spans; 1 for a plain peptide bond
     };
 
     // The actual candidate search, shared between the throwing constructor (used when the caller explicitly asks for a bond between two specific bodies) 
@@ -68,22 +86,35 @@ namespace {
         }
         const std::array<std::pair<int, int>, 4> candidates = {{ {first1, first2}, {first1, last2}, {last1, first2}, {last1, last2} }};
 
-        // When residue metadata is available we require a *sequential* pair (consecutive residue ids): only a real peptide bond is a backbone bond.
-        // Without that metadata we fall back to the closest terminal pair, so the constraint still works for synthetic/in-memory molecules.
+        // A backbone bond joins two residues of the same chain that are neighbours in sequence. Deposited models routinely omit
+        // disordered residues, so "neighbours" cannot mean consecutive ids: a single missing residue would then leave the two
+        // fragments unconstrained however close their endpoints are. The pair is instead required to share a chain and to lie
+        // within max_residue_gap of each other, and the residues missing in between are paid for in the distance bound below.
+        // Without either kind of metadata we fall back to the closest terminal pair, so the constraint still works for
+        // synthetic/in-memory molecules.
         bool have_seq = residue_seq(body1, first1).has_value() && residue_seq(body2, first2).has_value();
+        bool have_chain = chain_id(body1, first1).has_value() && chain_id(body2, first2).has_value();
+        int best_gap = std::numeric_limits<int>::max();
         double best_distance = std::numeric_limits<double>::max();
         int iatom1 = -1, iatom2 = -1;
         for (auto [i, j] : candidates) {
-            double distance = distance_between(molecule, ibody1, i, ibody2, j);
-            bool sequential = false;
+            if (have_chain && chain_id(body1, i) != chain_id(body2, j)) {continue;}
+
+            // the gap is the number of residue steps the bond has to span: 1 for a plain peptide bond, one more for every
+            // residue missing in between. Without sequence metadata every candidate is treated as a plain peptide bond.
+            int gap = 1;
             if (have_seq) {
                 // have_seq was established from the endpoints of these same two bodies, and the metadata is per-body, so both are engaged here.
                 auto seq1 = residue_seq(body1, i), seq2 = residue_seq(body2, j);
                 assert(seq1.has_value() && seq2.has_value() && "find_bond: residue metadata is per-body, so it cannot vanish between two atoms of one body.");
-                int s1 = *seq1, s2 = *seq2;
-                sequential = (s1 - s2 == 1 || s2 - s1 == 1);
+                gap = std::abs(*seq1 - *seq2);
+                if (gap == 0 || max_residue_gap < gap) {continue;}
             }
-            if ((have_seq && !sequential) || distance >= best_distance) {continue;}
+
+            // the sequence-nearest pair is the bonded one; distance only decides between candidates the same number of steps apart
+            double distance = distance_between(molecule, ibody1, i, ibody2, j);
+            if (best_gap < gap || (gap == best_gap && best_distance <= distance)) {continue;}
+            best_gap = gap;
             best_distance = distance;
             iatom1 = i;
             iatom2 = j;
@@ -91,10 +122,10 @@ namespace {
         if (iatom1 == -1 || iatom2 == -1) {
             return {.failure = BondSearch::Failure::NotAdjacent};
         }
-        if (best_distance > 4) {
-            return {.failure = BondSearch::Failure::TooFar, .iatom1 = iatom1, .iatom2 = iatom2, .distance = best_distance};
+        if (best_distance > max_distance_per_step*best_gap) {
+            return {.failure = BondSearch::Failure::TooFar, .iatom1 = iatom1, .iatom2 = iatom2, .distance = best_distance, .gap = best_gap};
         }
-        return {.failure = BondSearch::Failure::None, .iatom1 = iatom1, .iatom2 = iatom2, .distance = best_distance};
+        return {.failure = BondSearch::Failure::None, .iatom1 = iatom1, .iatom2 = iatom2, .distance = best_distance, .gap = best_gap};
     }
 }
 
@@ -115,12 +146,17 @@ DistanceConstraintBond::DistanceConstraintBond(observer_ptr<const data::Molecule
         case BondSearch::Failure::NoTerminalCalpha:
             throw except::invalid_argument("DistanceConstraintBond::DistanceConstraintBond: Could not find suitable atoms to represent the bond between the two bodies!");
         case BondSearch::Failure::NotAdjacent:
-            throw except::invalid_argument("DistanceConstraintBond::DistanceConstraintBond: The two bodies are not backbone-adjacent; no sequential C-alpha pair could be found!");
+            throw except::invalid_argument(
+                "DistanceConstraintBond::DistanceConstraintBond: The two bodies are not backbone-adjacent; no terminal C-alpha pair sharing a chain "
+                "and within " + std::to_string(max_residue_gap) + " residues of each other could be found!"
+            );
         case BondSearch::Failure::TooFar: {
             const auto& atom1 = body1.get_atom(result.iatom1);
             const auto& atom2 = body2.get_atom(result.iatom2);
             throw except::invalid_argument(
                 "DistanceConstraint::DistanceConstraint: The atoms being constrained are too far apart!\n"
+                "Separated by " + std::to_string(result.gap) + " residue step(s), which at most " + std::to_string(max_distance_per_step) + "A each allows "
+                + std::to_string(max_distance_per_step*result.gap) + "A, but they are " + std::to_string(result.distance) + "A apart.\n"
                 "Atom 1: " + form_factor::to_string(atom1.form_factor_type()) + " in body " + std::to_string(ibody1) + " at " + atom1.coordinates().to_string() + "\n"
                 "Atom 2: " + form_factor::to_string(atom2.form_factor_type()) + " in body " + std::to_string(ibody2) + " at " + atom2.coordinates().to_string() + "\n"
             );
