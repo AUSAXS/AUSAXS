@@ -78,7 +78,6 @@ std::vector<int> math::find_minima(const std::vector<double>& x, const std::vect
                 // std::cout << "\t\tSlope left is " << slope_left << std::endl;
                 slope = slope_left*1.05;
                 bound.min++;
-                // not ==: if the bound starts right next to the minimum, the increment before the loop already lands on it, and an equality test would let it walk past
                 if (index <= bound.min) {
                     bound.min--;
                     break;

@@ -59,9 +59,6 @@ TEST_CASE("math::find_minima") {
         }
     }
 
-    // Only assert what holds for every draw. Depending on the draw, the noise creates genuine side minima near |x| ~ 2-3 that are prominent
-    // enough to be kept, so neither their number nor their position is a property of find_minima. Over 10^6 draws the deepest point of the
-    // smoothed curve stays within |x| <= 1.1, and the deepest minimum returned stays within |x| < 2.5.
     SECTION("sinusoidal noise") {
         std::uniform_real_distribution<double> noise(0, 1);
         for (int i = 0; i < 10; i++) {
