@@ -87,7 +87,6 @@ int cli_em_fitter(int argc, char const *argv[]) {
             throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile.str() + "\"");
         }
         if (!settings::em::hydrate) {settings::fit::fit_hydration = false;}
-        if (!settings::general::output->empty() && settings::general::output->back() != '/') {settings::general::output += "/";}
 
         // simulation mode: compute and save the raw scattering profile at the requested cutoff level
         if (simulate) {

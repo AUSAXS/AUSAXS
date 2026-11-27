@@ -20,6 +20,19 @@ Folder& Folder::operator=(std::string_view path) {
     return *this;
 }
 
+std::string Folder::join(std::string_view name) const {
+    if (dir.empty()) {return std::string(name);}
+    if (name.empty()) {return dir;}
+    auto is_separator = [] (char c) {return c == '/' || c == '\\';};
+    if (is_separator(dir.back()) || is_separator(name.front())) {return dir + std::string(name);}
+    return dir + '/' + std::string(name);
+}
+
+Folder& Folder::operator+=(std::string_view name) {
+    auto joined = join(name);
+    return *this = std::string_view(joined);
+}
+
 Folder::operator std::string() const {return dir;}
 
 std::string Folder::path() const {return dir;}

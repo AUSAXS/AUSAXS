@@ -166,7 +166,7 @@ int cli_debye(int argc, char const *argv[]) {
                 header += two_theta_header(wavelength);
             }
             fit.save(settings::general::output + "ausaxs.fit", header);
-            console::print_text("Wrote the fit of " + std::to_string(molecule.size_atom()) + " atoms with " + description + " to " + settings::general::output + "ausaxs.fit");
+            console::print_text("Wrote the fit of " + std::to_string(molecule.size_atom()) + " atoms with " + description + " to " + (settings::general::output + "ausaxs.fit"));
         }
 
         // simulation mode: the raw profile
@@ -184,7 +184,7 @@ int cli_debye(int argc, char const *argv[]) {
                 header += two_theta_header(wavelength);
             }
             profile.save(settings::general::output + "debye.dat", header);
-            console::print_text("Wrote I(q) of " + std::to_string(molecule.size_atom()) + " atoms with " + description + " to " + settings::general::output + "debye.dat");
+            console::print_text("Wrote I(q) of " + std::to_string(molecule.size_atom()) + " atoms with " + description + " to " + (settings::general::output + "debye.dat"));
         }
     } catch (const except::base&) {
         return 1; // our own exceptions already report themselves when thrown

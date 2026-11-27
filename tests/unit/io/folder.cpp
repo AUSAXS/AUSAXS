@@ -4,6 +4,8 @@
 
 #include <filesystem>
 #include <fstream>
+#include <string>
+#include <string_view>
 
 using namespace ausaxs;
 
@@ -43,6 +45,44 @@ TEST_CASE("Folder::Folder") {
         CHECK(folder.path() == "/");
         CHECK_FALSE(folder.empty());
     }
+}
+
+TEST_CASE("Folder::join") {
+    SECTION("inserts exactly one separator") {
+        CHECK(io::Folder("out").join("report.txt") == "out/report.txt");
+        CHECK(io::Folder("out/").join("report.txt") == "out/report.txt");
+        CHECK(io::Folder("a/b").join("c/report.txt") == "a/b/c/report.txt");
+    }
+
+    SECTION("does not double a separator the name already carries") {
+        CHECK(io::Folder("out").join("/report.txt") == "out/report.txt");
+    }
+
+    SECTION("root") {
+        CHECK(io::Folder("/").join("report.txt") == "/report.txt");
+    }
+
+    SECTION("an uninitialized folder joins to the bare name") {
+        CHECK(io::Folder().join("report.txt") == "report.txt");
+    }
+}
+
+TEST_CASE("Folder::operator+") {
+    io::Folder folder("/tmp/out_2epe");
+    CHECK(folder + "model.pdb" == "/tmp/out_2epe/model.pdb");
+    CHECK(folder + std::string("model.pdb") == "/tmp/out_2epe/model.pdb");
+    CHECK(folder + std::string_view("model.pdb") == "/tmp/out_2epe/model.pdb");
+
+    // only the first join crosses the folder boundary
+    CHECK(folder + "p(r)." + "png" == "/tmp/out_2epe/p(r).png");
+}
+
+TEST_CASE("Folder::operator+=") {
+    io::Folder folder("output");
+    folder += "2epe/";
+    CHECK(folder.path() == "output/2epe");
+    folder += "sub";
+    CHECK(folder.path() == "output/2epe/sub");
 }
 
 TEST_CASE("Folder::exists") {
